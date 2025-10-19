@@ -667,7 +667,170 @@ export const BookCard = memo<BookCardProps>((props) => {
 
 ---
 
-## 🚀 Checklist перед коммитом
+## � Константы и Magic Numbers
+
+### 1. Выносим все magic numbers в константы
+
+**✅ ПРАВИЛЬНО:**
+
+```typescript
+// lib/auth/constants.ts
+export const AUTH_TOKEN_EXPIRY = {
+  /** Access токен действителен 12 часов (в миллисекундах) */
+  ACCESS_TOKEN_MS: 12 * 60 * 60 * 1000,
+
+  /** Refresh токен действителен 7 дней (в секундах) */
+  REFRESH_TOKEN_SECONDS: 7 * 24 * 60 * 60,
+} as const;
+
+// lib/auth/config.ts
+import { AUTH_TOKEN_EXPIRY } from './constants';
+
+export const authOptions = {
+  session: {
+    maxAge: AUTH_TOKEN_EXPIRY.REFRESH_TOKEN_SECONDS,
+  },
+};
+```
+
+**❌ НЕПРАВИЛЬНО:**
+
+```typescript
+// НЕТ! Magic numbers без пояснений
+session: {
+  maxAge: 7 * 24 * 60 * 60, // Что это? Неочевидно!
+}
+
+// НЕТ! Хардкод в коде
+if (Date.now() > token.exp + 12 * 60 * 60 * 1000) {
+  // Непонятно что за число
+}
+```
+
+### 2. Enum вместо строковых литералов
+
+**✅ ПРАВИЛЬНО:**
+
+```typescript
+// constants/auth.ts
+export enum AuthErrorType {
+  REFRESH_TOKEN_ERROR = 'RefreshAccessTokenError',
+  INVALID_CREDENTIALS = 'InvalidCredentials',
+  RATE_LIMIT_EXCEEDED = 'RateLimitExceeded',
+}
+
+export enum UserRole {
+  USER = 'user',
+  ADMIN = 'admin',
+  CONTENT_MANAGER = 'content_manager',
+}
+
+// Использование
+interface Session {
+  error?: AuthErrorType; // Строго типизировано
+}
+
+const isAdmin = user.role === UserRole.ADMIN; // Автокомплит в IDE
+```
+
+**❌ НЕПРАВИЛЬНО:**
+
+```typescript
+// НЕТ! Строковые литералы
+interface Session {
+  error?: 'RefreshAccessTokenError' | 'InvalidCredentials'; // Многословно
+}
+
+// НЕТ! Можно опечататься
+const isAdmin = user.role === 'admin'; // Нет автокомплита
+```
+
+### 3. Группировка связанных констант
+
+**✅ ПРАВИЛЬНО:**
+
+```typescript
+// constants/routes.ts
+export const AUTH_ROUTES = {
+  SIGN_IN: '/en/auth/sign-in',
+  SIGN_OUT: '/en/auth/sign-out',
+  ERROR: '/en/auth/error',
+  REGISTER: '/en/auth/register',
+} as const;
+
+export const ADMIN_ROUTES = {
+  DASHBOARD: '/admin/:lang/dashboard',
+  BOOKS: '/admin/:lang/books',
+  USERS: '/admin/:lang/users',
+} as const;
+
+// Использование
+redirect(AUTH_ROUTES.SIGN_IN);
+```
+
+**❌ НЕПРАВИЛЬНО:**
+
+```typescript
+// НЕТ! Разбросанные строки по коду
+redirect('/en/auth/sign-in'); // Хардкод
+redirect('/en/auth/sign-out'); // Дублирование
+redirect('/en/auth/error'); // Легко опечататься
+```
+
+### 4. Сообщения об ошибках
+
+**✅ ПРАВИЛЬНО:**
+
+```typescript
+// constants/messages.ts
+export const AUTH_ERROR_MESSAGES = {
+  [AuthErrorType.INVALID_CREDENTIALS]: 'Invalid credentials',
+  [AuthErrorType.RATE_LIMIT_EXCEEDED]: 'Too many requests. Please try again later.',
+  [AuthErrorType.MISSING_CREDENTIALS]: 'Email and password are required',
+} as const;
+
+// Использование
+throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.INVALID_CREDENTIALS]);
+```
+
+**❌ НЕПРАВИЛЬНО:**
+
+```typescript
+// НЕТ! Хардкод сообщений
+throw new Error('Invalid credentials'); // Можно опечататься
+throw new Error('invalid credentials'); // Разный регистр
+throw new Error('Invalid creds'); // Разные формулировки
+```
+
+### 5. Массивы констант с `as const`
+
+**✅ ПРАВИЛЬНО:**
+
+```typescript
+// constants/roles.ts
+export const STAFF_ROLES = [UserRole.ADMIN, UserRole.CONTENT_MANAGER] as const;
+
+export type StaffRole = (typeof STAFF_ROLES)[number]; // 'admin' | 'content_manager'
+
+// Использование с type safety
+const isStaff = (role: string): role is StaffRole => {
+  return STAFF_ROLES.includes(role as UserRole);
+};
+```
+
+**❌ НЕПРАВИЛЬНО:**
+
+```typescript
+// НЕТ! Без as const теряется точная типизация
+const STAFF_ROLES = [UserRole.ADMIN, UserRole.CONTENT_MANAGER]; // string[]
+
+// НЕТ! Хардкод массива
+const staffRoles = ['admin', 'content_manager']; // Можно опечататься
+```
+
+---
+
+## Checklist перед коммитом
 
 - [ ] ✅ `yarn typecheck` проходит без ошибок
 - [ ] ✅ `yarn lint` проходит без ошибок
@@ -679,6 +842,9 @@ export const BookCard = memo<BookCardProps>((props) => {
 - [ ] ✅ `import type` для типов
 - [ ] ✅ Деструктуризация для 3+ props
 - [ ] ✅ Вычисления вынесены из рендера
+- [ ] ✅ Magic numbers вынесены в константы
+- [ ] ✅ Используются enum вместо строковых литералов
+- [ ] ✅ Named exports для всех утилит
 
 ---
 
@@ -727,5 +893,11 @@ export const metadata: Metadata = {
 
 ---
 
-**Версия:** 1.0  
-**Следующее обновление:** По мере появления новых практик
+**Версия:** 1.1  
+**Дата обновления:** 19 октября 2025  
+**Изменения v1.1:**
+
+- Добавлен раздел "Константы и Magic Numbers"
+- Добавлены рекомендации по использованию enum
+- Обновлен checklist перед коммитом  
+  **Следующее обновление:** По мере появления новых практик
