@@ -28,19 +28,23 @@ See [TASKS-TRACKING.md](./docs/plan/TASKS-TRACKING.md) for detailed progress.
 ## 🛠️ Tech Stack
 
 ### Core
+
 - **Framework:** Next.js 14 (App Router)
 - **Language:** TypeScript
 - **Package Manager:** Yarn
 
 ### UI & Styling
+
 - **Component Library:** Ant Design 5
 - **Styling:** CSS Modules + Global Styles
 
 ### Data & State
+
 - **Data Fetching:** React Query (TanStack Query)
 - **Authentication:** NextAuth.js v5 (beta)
 
 ### Code Quality
+
 - **Linting:** ESLint + TypeScript ESLint
 - **Formatting:** Prettier
 
@@ -77,6 +81,7 @@ books-app-front/
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 20.x LTS
 - Yarn (via Corepack)
 
@@ -133,8 +138,20 @@ See [backend API reference](./docs/frontend-agents/backend-api-reference.md) for
 
 - **[Development Plan](./docs/plan/DEVELOPMENT-PLAN.md)** - Overall roadmap and milestones
 - **[Tasks Tracking](./docs/plan/TASKS-TRACKING.md)** - Detailed task progress
+- **[Git Workflow](./docs/GIT-WORKFLOW.md)** - **⚠️ IMPORTANT:** Git procedures and push rules
+- **[Git Quick Reference](./docs/GIT-QUICK-REF.md)** - Quick commands cheat sheet
 - **[Frontend Agents](./docs/frontend-agents/)** - API integration guides
 - **[Milestone M0](./docs/milestones/M0-bootstrap.md)** - Current milestone specification
+
+## 🔄 Development Workflow
+
+**CRITICAL RULE:** After completing each subtask, you **MUST**:
+1. Run `yarn typecheck && yarn lint`
+2. Commit changes
+3. **Push to GitHub** ← DO NOT skip this!
+4. Update `TASKS-TRACKING.md`
+
+See [Git Workflow](./docs/GIT-WORKFLOW.md) for detailed procedures.
 
 ## 🤝 Contributing
 
