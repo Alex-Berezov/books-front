@@ -1,0 +1,36 @@
+{
+  "name": "books-app-front",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bibliaris - Multilingual audiobook platform frontend",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.5",
+    "@types/node": "^24.8.1",
+    "@types/react": "^19.2.2",
+    "antd": "^5.27.5",
+    "next": "14",
+    "next-auth": "^5.0.0-beta.29",
+    "react": "18",
+    "react-dom": "18",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
+    "eslint": "^9.38.0",
+    "eslint-config-next": "^15.5.6",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2"
+  }
+}
