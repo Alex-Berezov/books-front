@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { isSupportedLang, SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import styles from '../../page.module.scss';
 
 type Props = {
   params: Promise<{ lang: string }>;
@@ -19,7 +20,7 @@ export default async function AdminDashboardPage({ params }: Props) {
   }
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div className={styles.pageContainer}>
       <h1>Admin Dashboard</h1>
       <p>Language: {lang.toUpperCase()}</p>
       <p>This is a placeholder for the admin panel.</p>

@@ -1,13 +1,30 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { isSupportedLang } from '@/lib/i18n/lang';
 import { AppProviders } from '@/providers/AppProviders';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import '@/styles/globals.css';
+import styles from '@/styles/layouts.module.scss';
 
 type Props = {
   children: React.ReactNode;
   params: Promise<{ lang: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang } = await params;
+
+  return {
+    title: 'Bibliaris - Multilingual Audiobook Platform',
+    description: 'Discover and enjoy audiobooks in multiple languages',
+    openGraph: {
+      title: 'Bibliaris - Multilingual Audiobook Platform',
+      description: 'Discover and enjoy audiobooks in multiple languages',
+      locale: lang,
+      type: 'website',
+    },
+  };
+}
 
 export default async function PublicLayout({ children, params }: Props) {
   const { lang } = await params;
@@ -21,35 +38,15 @@ export default async function PublicLayout({ children, params }: Props) {
     <html lang={lang}>
       <body>
         <AppProviders>
-          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            {/* Header placeholder */}
-            <header
-              style={{
-                background: '#001529',
-                color: 'white',
-                padding: '1rem 2rem',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Bibliaris</h1>
+          <div className={styles.publicLayout}>
+            <header className={styles.publicHeader}>
+              <h1>Bibliaris</h1>
               <LanguageSwitcher />
             </header>
 
-            {/* Main content */}
-            <main style={{ flex: 1 }}>{children}</main>
+            <main className={styles.publicMain}>{children}</main>
 
-            {/* Footer placeholder */}
-            <footer
-              style={{
-                background: '#f0f0f0',
-                padding: '1rem 2rem',
-                textAlign: 'center',
-                borderTop: '1px solid #d9d9d9',
-              }}
-            >
+            <footer className={styles.publicFooter}>
               <p>© 2025 Bibliaris. All rights reserved.</p>
             </footer>
           </div>

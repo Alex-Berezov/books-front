@@ -1,11 +1,13 @@
+import styles from './not-found.module.scss';
+
 export default function NotFound() {
   return (
     <html lang="en">
       <body>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <div className={styles.notFoundContainer}>
           <h1>404 - Page Not Found</h1>
           <p>The page you are looking for does not exist.</p>
-          <a href="/en" style={{ color: '#0070f3', textDecoration: 'underline' }}>
+          <a href="/en" className={styles.homeLink}>
             Go to Homepage
           </a>
         </div>

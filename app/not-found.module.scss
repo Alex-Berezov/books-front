@@ -1,0 +1,28 @@
+@import '@/styles/tokens.scss';
+
+.notFoundContainer {
+  padding: $spacing-xxl;
+  text-align: center;
+
+  h1 {
+    color: $color-text-primary;
+    font-size: $font-size-xxl;
+    margin-bottom: $spacing-lg;
+  }
+
+  p {
+    color: $color-text-secondary;
+    font-size: $font-size-base;
+    margin-bottom: $spacing-xl;
+  }
+}
+
+.homeLink {
+  color: $color-primary;
+  text-decoration: underline;
+  font-size: $font-size-base;
+
+  &:hover {
+    color: $color-primary-hover;
+  }
+}

@@ -25,6 +25,19 @@ Bibliaris is a modern web platform for discovering, reading, and listening to cl
 
 See [TASKS-TRACKING.md](./docs/plan/TASKS-TRACKING.md) for detailed progress.
 
+## ⭐ Code Style - ОБЯЗАТЕЛЬНО К ПРОЧТЕНИЮ
+
+**Перед началом разработки прочитайте [CODE_STYLE.md](./CODE_STYLE.md)!**
+
+Основные правила:
+
+- ✅ Только **SCSS модули**, никаких inline стилей
+- ✅ Все цвета и spacing из **токенов** (`styles/tokens.scss`)
+- ✅ TypeScript **без `any`**, строгая типизация
+- ✅ **Деструктуризация props** при 3+ параметрах
+- ✅ Комментарии **на русском**
+- ✅ **`import type`** для импорта типов
+
 ## 🛠️ Tech Stack
 
 ### Core
@@ -36,7 +49,8 @@ See [TASKS-TRACKING.md](./docs/plan/TASKS-TRACKING.md) for detailed progress.
 ### UI & Styling
 
 - **Component Library:** Ant Design 5
-- **Styling:** CSS Modules + Global Styles
+- **Styling:** SCSS Modules + Design Tokens
+- **CSS Preprocessor:** SASS/SCSS
 
 ### Data & State
 
@@ -47,6 +61,7 @@ See [TASKS-TRACKING.md](./docs/plan/TASKS-TRACKING.md) for detailed progress.
 
 - **Linting:** ESLint + TypeScript ESLint
 - **Formatting:** Prettier
+- **Code Style:** [CODE_STYLE.md](./CODE_STYLE.md) - Production-ready standards
 
 ## 📁 Project Structure
 

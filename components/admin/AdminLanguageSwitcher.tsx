@@ -2,13 +2,9 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { Select } from 'antd';
-import {
-  SUPPORTED_LANGS,
-  LANGUAGE_LABELS,
-  LANGUAGE_FLAGS,
-  type SupportedLang,
-  switchLangInPath,
-} from '@/lib/i18n/lang';
+import { getLangFromPath, switchLangInPath, type SupportedLang } from '@/lib/i18n/lang';
+import { getLanguageSelectOptions } from '@/lib/i18n/languageSelectOptions';
+import styles from '../LanguageSwitcher.module.scss';
 
 /**
  * AdminLanguageSwitcher - Language switcher for admin panel
@@ -17,19 +13,16 @@ import {
  * Note: In future iterations (per roadmap), this will include entity resolution
  * to navigate to the same entity in a different language when editing content.
  */
-export function AdminLanguageSwitcher() {
+export const AdminLanguageSwitcher = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Extract current language from pathname (admin/:lang/...)
-  const pathSegments = pathname.split('/').filter(Boolean);
-  const currentLang =
-    pathSegments[0] === 'admin' && pathSegments.length >= 2
-      ? (pathSegments[1] as SupportedLang)
-      : 'en';
+  // Extract current language from pathname using shared utility
+  const currentLang = getLangFromPath(pathname);
 
-  const handleLanguageChange = (newLang: SupportedLang) => {
-    const newPath = switchLangInPath(pathname, newLang);
+  const handleLanguageChange = (newLang: string) => {
+    // Safe to cast as Select options are typed with SupportedLang
+    const newPath = switchLangInPath(pathname, newLang as SupportedLang);
     router.push(newPath);
 
     // TODO (M3): When editing content with translations,
@@ -37,22 +30,13 @@ export function AdminLanguageSwitcher() {
     // and redirect to /admin/:newLang/pages/:translationId or similar
   };
 
-  const options = SUPPORTED_LANGS.map((lang) => ({
-    label: (
-      <span>
-        {LANGUAGE_FLAGS[lang]} {LANGUAGE_LABELS[lang]}
-      </span>
-    ),
-    value: lang,
-  }));
-
   return (
     <Select
       value={currentLang}
       onChange={handleLanguageChange}
-      options={options}
-      style={{ minWidth: 150 }}
+      options={getLanguageSelectOptions()}
+      className={styles.languageSwitcher}
       aria-label="Select admin language"
     />
   );
-}
+};

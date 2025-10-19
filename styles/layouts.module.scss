@@ -1,0 +1,42 @@
+/**
+ * Public Layout Styles - стили для публичного layout'а
+ */
+
+@import './tokens.scss';
+@import './mixins.scss';
+
+.publicLayout {
+  min-height: 100vh;
+  @include flex-column;
+}
+
+.publicHeader {
+  background: $color-background-dark;
+  color: $color-text-inverse;
+  padding: $spacing-md $spacing-xl;
+  box-shadow: $shadow-sm;
+  @include flex-between;
+
+  h1 {
+    margin: 0;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.publicMain {
+  flex: 1;
+}
+
+.publicFooter {
+  background: $color-background-secondary;
+  padding: $spacing-md $spacing-xl;
+  text-align: center;
+  border-top: 1px solid $color-border-base;
+
+  p {
+    margin: 0;
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+  }
+}

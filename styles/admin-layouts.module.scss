@@ -1,0 +1,72 @@
+/**
+ * Admin Layout Styles - стили для админской панели
+ */
+
+@import './tokens.scss';
+@import './mixins.scss';
+
+.adminLayout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.adminSidebar {
+  width: 250px;
+  background: $color-background-dark;
+  color: $color-text-inverse;
+  padding: $spacing-md;
+  box-shadow: $shadow-md;
+
+  h2 {
+    color: $color-text-inverse;
+    margin: 0 0 $spacing-lg 0;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.adminNav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    color: $color-text-inverse;
+    font-size: $font-size-base;
+    cursor: pointer;
+    @include transition(color, background-color);
+    border-radius: $border-radius-base;
+    padding: $spacing-sm $spacing-md;
+
+    &:hover {
+      background-color: $color-background-dark-secondary;
+    }
+  }
+}
+
+.adminContent {
+  flex: 1;
+  @include flex-column;
+}
+
+.adminHeader {
+  background: $color-background-primary;
+  padding: $spacing-md $spacing-xl;
+  border-bottom: 1px solid $color-border-base;
+  @include flex-between;
+  box-shadow: $shadow-sm;
+
+  h1 {
+    margin: 0;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+  }
+}
+
+.adminMain {
+  flex: 1;
+  padding: $spacing-xl;
+  background: $color-background-tertiary;
+  @include custom-scrollbar;
+}

@@ -15,13 +15,13 @@ export const LANGUAGE_FLAGS: Record<SupportedLang, string> = {
   pt: '🇵🇹',
 };
 
-export function isSupportedLang(lang: string): lang is SupportedLang {
+export const isSupportedLang = (lang: string): lang is SupportedLang => {
   return SUPPORTED_LANGS.includes(lang as SupportedLang);
-}
+};
 
-export function getDefaultLang(): SupportedLang {
+export const getDefaultLang = (): SupportedLang => {
   return (process.env.NEXT_PUBLIC_DEFAULT_LANG as SupportedLang) || 'en';
-}
+};
 
 /**
  * Switch language in a given path
@@ -36,7 +36,7 @@ export function getDefaultLang(): SupportedLang {
  * switchLangInPath('/admin/en/pages', 'fr') // => '/admin/fr/pages'
  * switchLangInPath('/admin/en', 'pt') // => '/admin/pt'
  */
-export function switchLangInPath(currentPath: string, newLang: SupportedLang): string {
+export const switchLangInPath = (currentPath: string, newLang: SupportedLang): string => {
   // Remove leading slash for easier processing
   const pathWithoutLeadingSlash = currentPath.startsWith('/') ? currentPath.slice(1) : currentPath;
   const segments = pathWithoutLeadingSlash.split('/');
@@ -65,14 +65,14 @@ export function switchLangInPath(currentPath: string, newLang: SupportedLang): s
   }
 
   return '/' + segments.join('/');
-}
+};
 
 /**
  * Extract language from pathname
  * @param pathname - Current pathname
  * @returns Language code or default language
  */
-export function getLangFromPath(pathname: string): SupportedLang {
+export const getLangFromPath = (pathname: string): SupportedLang => {
   const segments = pathname.split('/').filter(Boolean);
 
   // Check if admin route
@@ -86,4 +86,4 @@ export function getLangFromPath(pathname: string): SupportedLang {
   }
 
   return getDefaultLang();
-}
+};

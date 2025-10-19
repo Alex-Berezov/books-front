@@ -2,42 +2,30 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { Select } from 'antd';
-import {
-  SUPPORTED_LANGS,
-  LANGUAGE_LABELS,
-  LANGUAGE_FLAGS,
-  type SupportedLang,
-  switchLangInPath,
-} from '@/lib/i18n/lang';
+import { getLangFromPath, switchLangInPath, type SupportedLang } from '@/lib/i18n/lang';
+import { getLanguageSelectOptions } from '@/lib/i18n/languageSelectOptions';
+import styles from './LanguageSwitcher.module.scss';
 
-export function LanguageSwitcher() {
+export const LanguageSwitcher = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Extract current language from pathname
-  const currentLang = pathname.split('/').filter(Boolean)[0] as SupportedLang;
+  // Extract current language from pathname using shared utility
+  const currentLang = getLangFromPath(pathname);
 
-  const handleLanguageChange = (newLang: SupportedLang) => {
-    const newPath = switchLangInPath(pathname, newLang);
+  const handleLanguageChange = (newLang: string) => {
+    // Safe to cast as Select options are typed with SupportedLang
+    const newPath = switchLangInPath(pathname, newLang as SupportedLang);
     router.push(newPath);
   };
-
-  const options = SUPPORTED_LANGS.map((lang) => ({
-    label: (
-      <span>
-        {LANGUAGE_FLAGS[lang]} {LANGUAGE_LABELS[lang]}
-      </span>
-    ),
-    value: lang,
-  }));
 
   return (
     <Select
       value={currentLang}
       onChange={handleLanguageChange}
-      options={options}
-      style={{ minWidth: 150 }}
+      options={getLanguageSelectOptions()}
+      className={styles.languageSwitcher}
       aria-label="Select language"
     />
   );
-}
+};

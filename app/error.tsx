@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import styles from './error.module.scss';
 
 export default function Error({
   error,
@@ -16,20 +17,10 @@ export default function Error({
   return (
     <html lang="en">
       <body>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <div className={styles.errorContainer}>
           <h1>Something went wrong!</h1>
           <p>{error.message || 'An unexpected error occurred.'}</p>
-          <button
-            onClick={reset}
-            style={{
-              padding: '0.5rem 1rem',
-              background: '#0070f3',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
+          <button onClick={reset} className={styles.retryButton}>
             Try again
           </button>
         </div>

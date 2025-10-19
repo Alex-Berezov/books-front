@@ -1,0 +1,38 @@
+@import '@/styles/tokens.scss';
+@import '@/styles/mixins.scss';
+
+.errorContainer {
+  padding: $spacing-xxl;
+  text-align: center;
+
+  h1 {
+    color: $color-text-primary;
+    font-size: $font-size-xxl;
+    margin-bottom: $spacing-lg;
+  }
+
+  p {
+    color: $color-text-secondary;
+    font-size: $font-size-base;
+    margin-bottom: $spacing-xl;
+  }
+}
+
+.retryButton {
+  padding: $spacing-sm $spacing-md;
+  background: $color-primary;
+  color: $color-text-inverse;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: $font-size-base;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+
+  &:active {
+    background: $color-primary-active;
+  }
+}

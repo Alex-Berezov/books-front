@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { isSupportedLang, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
+import styles from '../page.module.scss';
 
 type Props = {
   params: Promise<{ lang: string }>;
@@ -21,7 +22,7 @@ export default async function PublicLangPage({ params }: Props) {
   }
 
   return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
+    <div className={styles.pageContainer}>
       <h1>Welcome to Bibliaris</h1>
       <p>Current language: {lang.toUpperCase()}</p>
       <p>This is a placeholder for the public homepage.</p>
