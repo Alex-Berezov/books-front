@@ -14,6 +14,7 @@
 6. ✅ Обновить `TASKS-TRACKING.md` и запушить его тоже
 
 **Формат коммитов:**
+
 ```bash
 git add .
 git commit -m "feat: add language switchers (M0.4)

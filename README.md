@@ -146,6 +146,7 @@ See [backend API reference](./docs/frontend-agents/backend-api-reference.md) for
 ## 🔄 Development Workflow
 
 **CRITICAL RULE:** After completing each subtask, you **MUST**:
+
 1. Run `yarn typecheck && yarn lint`
 2. Commit changes
 3. **Push to GitHub** ← DO NOT skip this!
