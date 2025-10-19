@@ -1,15 +1,15 @@
-name: Uptime
-on:
-  schedule:
-    - cron: '*/10 * * * *'
-  workflow_dispatch: {}
-jobs:
-  ping:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Ping health
-        run: |
-          curl -fsS -w "time_total=%{time_total}\n" ${{ vars.SITE_URL }}/healthz -o /dev/null
-      - name: Ping home
-        run: |
-          curl -fsS -w "time_total=%{time_total}\n" ${{ vars.SITE_URL }}/en/pages/home -o /dev/null
+# name: Uptime
+# on:
+#   schedule:
+#     - cron: '*/10 * * * *'
+#   workflow_dispatch: {}
+# jobs:
+#   ping:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Ping health
+#         run: |
+#           curl -fsS -w "time_total=%{time_total}\n" ${{ vars.SITE_URL }}/healthz -o /dev/null
+#       - name: Ping home
+#         run: |
+#           curl -fsS -w "time_total=%{time_total}\n" ${{ vars.SITE_URL }}/en/pages/home -o /dev/null
