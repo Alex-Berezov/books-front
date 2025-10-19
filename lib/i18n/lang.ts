@@ -1,6 +1,20 @@
 export const SUPPORTED_LANGS = ['en', 'es', 'fr', 'pt'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
 
+export const LANGUAGE_LABELS: Record<SupportedLang, string> = {
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  pt: 'Português',
+};
+
+export const LANGUAGE_FLAGS: Record<SupportedLang, string> = {
+  en: '🇬🇧',
+  es: '🇪🇸',
+  fr: '🇫🇷',
+  pt: '🇵🇹',
+};
+
 export function isSupportedLang(lang: string): lang is SupportedLang {
   return SUPPORTED_LANGS.includes(lang as SupportedLang);
 }

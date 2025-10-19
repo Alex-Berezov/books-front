@@ -2,21 +2,13 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { Select } from 'antd';
-import { SUPPORTED_LANGS, type SupportedLang, switchLangInPath } from '@/lib/i18n/lang';
-
-const LANGUAGE_LABELS: Record<SupportedLang, string> = {
-  en: 'English',
-  es: 'Español',
-  fr: 'Français',
-  pt: 'Português',
-};
-
-const LANGUAGE_FLAGS: Record<SupportedLang, string> = {
-  en: '🇬🇧',
-  es: '🇪🇸',
-  fr: '🇫🇷',
-  pt: '🇵🇹',
-};
+import {
+  SUPPORTED_LANGS,
+  LANGUAGE_LABELS,
+  LANGUAGE_FLAGS,
+  type SupportedLang,
+  switchLangInPath,
+} from '@/lib/i18n/lang';
 
 export function LanguageSwitcher() {
   const pathname = usePathname();
