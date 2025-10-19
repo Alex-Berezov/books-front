@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { isSupportedLang } from '@/lib/i18n/lang';
 import { AppProviders } from '@/providers/AppProviders';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import '@/styles/globals.css';
 
 type Props = {
@@ -28,9 +29,13 @@ export default async function PublicLayout({ children, params }: Props) {
                 color: 'white',
                 padding: '1rem 2rem',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}
             >
               <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Bibliaris</h1>
+              <LanguageSwitcher />
             </header>
 
             {/* Main content */}

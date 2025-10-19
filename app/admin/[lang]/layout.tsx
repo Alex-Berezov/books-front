@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { isSupportedLang } from '@/lib/i18n/lang';
 import { AppProviders } from '@/providers/AppProviders';
+import { AdminLanguageSwitcher } from '@/components/admin/AdminLanguageSwitcher';
 import '@/styles/globals.css';
 
 type Props = {
@@ -56,7 +57,7 @@ export default async function AdminLayout({ children, params }: Props) {
                 }}
               >
                 <h1 style={{ margin: 0, fontSize: '1.25rem' }}>Content Management</h1>
-                <div>Language: {lang.toUpperCase()}</div>
+                <AdminLanguageSwitcher />
               </header>
 
               {/* Content */}
