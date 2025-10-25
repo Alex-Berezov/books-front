@@ -1,9 +1,44 @@
 # Backend API Reference (Updated)
 
-> **Last Updated:** October 18, 2025  
+> **Last Updated:** October 25, 2025  
 > **Backend Version:** Production-ready  
 > **API Base URL (Production):** `https://api.bibliaris.com/api`  
 > **API Base URL (Development):** `http://localhost:5000/api`
+
+---
+
+## ✅ Backend Status (October 25, 2025)
+
+### Production Environment Verified
+
+**All systems operational and ready for frontend development!**
+
+#### Available Resources:
+- ✅ **API Base URL:** `https://api.bibliaris.com/api`
+- ✅ **Swagger UI:** `https://api.bibliaris.com/docs`
+- ✅ **OpenAPI Schema:** `https://api.bibliaris.com/docs-json`
+- ✅ **Health Check:** `https://api.bibliaris.com/api/health/liveness`
+
+#### System Health:
+```json
+{
+  "status": "up",
+  "uptime": 421.53,
+  "timestamp": "2025-10-25T10:39:07.142Z"
+}
+```
+
+#### Database & Services:
+- ✅ PostgreSQL: Connected and responding
+- ✅ Redis: Operational
+- ✅ Prometheus Metrics: Available
+- ✅ Sentry Integration: Active
+
+#### Security:
+- ✅ **Swagger in Production:** Enabled for development (can be disabled later)
+- ✅ **HTTPS:** Let's Encrypt SSL certificates
+- ✅ **CORS:** Configured for frontend domains
+- ✅ **Rate Limiting:** Configurable per endpoint
 
 ---
 
@@ -609,9 +644,600 @@ if (process.env.NODE_ENV === 'development') {
 ## 📚 Additional Resources
 
 - **Full API Endpoints:** See `docs/ENDPOINTS.md`
-- **OpenAPI Schema:** `https://api.bibliaris.com/api/docs-json`
+- **OpenAPI Schema:** `https://api.bibliaris.com/docs-json`
+- **Swagger UI:** `https://api.bibliaris.com/docs`
 - **Health Check:** `https://api.bibliaris.com/api/health/readiness`
-- **Metrics:** `https://api.bibliaris.com/api/metrics`
+- **Metrics:** `https://api.bibliaris.com/metrics`
+
+---
+
+## 📋 Complete Admin Endpoints (for M3 - Admin MVP)
+
+### Books Management
+
+#### Create Book
+```http
+POST /api/books
+Authorization: Bearer {token}
+
+{
+  "slug": "harry-potter"  // lowercase, alphanumeric with hyphens
+}
+
+Response 201:
+{
+  "id": "uuid",
+  "slug": "harry-potter",
+  "createdAt": "2025-10-25T10:00:00.000Z",
+  "updatedAt": "2025-10-25T10:00:00.000Z"
+}
+```
+
+#### List All Books
+```http
+GET /api/books?page=1&limit=10
+Authorization: Bearer {token}
+
+Response 200:
+{
+  "items": [
+    {
+      "id": "uuid",
+      "slug": "harry-potter",
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ],
+  "page": 1,
+  "limit": 10,
+  "total": 1,
+  "hasNext": false
+}
+```
+
+#### Get Book by ID
+```http
+GET /api/books/{id}
+Authorization: Bearer {token}
+
+Response 200:
+{
+  "id": "uuid",
+  "slug": "harry-potter",
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
+#### Update Book
+```http
+PATCH /api/books/{id}
+Authorization: Bearer {token}
+
+{
+  "slug": "harry-potter-updated"
+}
+
+Response 200: (updated book)
+```
+
+#### Delete Book
+```http
+DELETE /api/books/{id}
+Authorization: Bearer {token}
+
+Response 200: { success: true }
+```
+
+---
+
+### Book Versions Management
+
+#### Create Book Version (Draft)
+```http
+POST /api/books/{bookId}/versions
+Authorization: Bearer {token}
+
+{
+  "language": "en",  // en|es|fr|pt
+  "title": "Harry Potter and the Philosopher's Stone",
+  "author": "J.K. Rowling",
+  "description": "First book of the series",
+  "coverImageUrl": "https://cdn.example.com/covers/hp1.jpg",
+  "type": "text",  // text|audio|referral
+  "isFree": true,
+  "referralUrl": "https://amazon.com/ref123",  // optional
+  "seoMetaTitle": "Harry Potter — Summary",  // optional
+  "seoMetaDescription": "Overview, themes and details"  // optional
+}
+
+Response 201:
+{
+  "id": "version-uuid",
+  "bookId": "book-uuid",
+  "language": "en",
+  "title": "...",
+  "author": "...",
+  "status": "draft",  // always draft on creation
+  "publishedAt": null,
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
+#### List Versions for Book (Public)
+```http
+GET /api/books/{bookId}/versions?language=en&type=text&isFree=true
+Accept-Language: en-US,es;q=0.9
+
+Response 200: Array of published versions
+```
+
+#### List Versions for Book (Admin - includes drafts)
+```http
+GET /api/admin/{lang}/books/{bookId}/versions?language=en&type=text&includeDrafts=true
+Authorization: Bearer {token}
+X-Admin-Language: en
+
+Response 200: Array of all versions (published + draft)
+```
+
+#### Get Version by ID
+```http
+GET /api/versions/{id}
+Authorization: Bearer {token}
+
+Response 200:
+{
+  "id": "uuid",
+  "bookId": "uuid",
+  "language": "en",
+  "title": "...",
+  "author": "...",
+  "description": "...",
+  "coverImageUrl": "...",
+  "type": "text",
+  "isFree": true,
+  "status": "draft",  // draft|published
+  "publishedAt": null,
+  "createdAt": "...",
+  "updatedAt": "...",
+  "seo": {
+    "metaTitle": "...",
+    "metaDescription": "..."
+  }
+}
+```
+
+#### Update Version
+```http
+PATCH /api/versions/{id}
+Authorization: Bearer {token}
+
+{
+  "title": "Updated Title",
+  "description": "Updated description",
+  "seoMetaTitle": "New SEO title"
+}
+
+Response 200: (updated version)
+```
+
+#### Publish Version
+```http
+PATCH /api/versions/{id}/publish
+Authorization: Bearer {token}
+
+Response 200:
+{
+  ...version,
+  "status": "published",
+  "publishedAt": "2025-10-25T13:00:00.000Z"
+}
+```
+
+#### Unpublish Version (Set to Draft)
+```http
+PATCH /api/versions/{id}/unpublish
+Authorization: Bearer {token}
+
+Response 200:
+{
+  ...version,
+  "status": "draft",
+  "publishedAt": null
+}
+```
+
+#### Delete Version
+```http
+DELETE /api/versions/{id}
+Authorization: Bearer {token}
+
+Response 204: (no content)
+```
+
+---
+
+### Chapters Management (Text)
+
+#### List Chapters
+```http
+GET /api/versions/{bookVersionId}/chapters?page=1&limit=20
+Authorization: Bearer {token}
+
+Response 200:
+{
+  "items": [
+    {
+      "id": "uuid",
+      "bookVersionId": "uuid",
+      "number": 1,
+      "title": "Chapter 1. The Boy Who Lived",
+      "content": "Once upon a time...",
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ],
+  "page": 1,
+  "limit": 20,
+  "total": 10,
+  "hasNext": false
+}
+```
+
+#### Create Chapter
+```http
+POST /api/versions/{bookVersionId}/chapters
+Authorization: Bearer {token}
+
+{
+  "number": 1,
+  "title": "Chapter 1. The Boy Who Lived",
+  "content": "Once upon a time..."
+}
+
+Response 201: (created chapter)
+```
+
+#### Update Chapter
+```http
+PATCH /api/chapters/{id}
+Authorization: Bearer {token}
+
+{
+  "title": "Updated title",
+  "content": "Updated content"
+}
+
+Response 200: (updated chapter)
+```
+
+#### Delete Chapter
+```http
+DELETE /api/chapters/{id}
+Authorization: Bearer {token}
+
+Response 204: (no content)
+```
+
+---
+
+### Categories Management
+
+#### List Categories
+```http
+GET /api/categories?page=1&limit=20
+Authorization: Bearer {token}
+
+Response 200:
+{
+  "items": [
+    {
+      "id": "uuid",
+      "type": "genre",  // genre|author|popular|etc
+      "name": "Fantasy",
+      "slug": "fantasy",
+      "parentId": null,
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ],
+  "page": 1,
+  "limit": 20,
+  "total": 5,
+  "hasNext": false
+}
+```
+
+#### Get Categories Tree
+```http
+GET /api/categories/tree
+
+Response 200: [
+  {
+    "id": "uuid",
+    "name": "Fantasy",
+    "slug": "fantasy",
+    "type": "genre",
+    "parentId": null,
+    "children": [
+      {
+        "id": "uuid2",
+        "name": "Urban Fantasy",
+        "slug": "urban-fantasy",
+        "type": "genre",
+        "parentId": "uuid",
+        "children": []
+      }
+    ]
+  }
+]
+```
+
+#### Create Category
+```http
+POST /api/categories
+Authorization: Bearer {token}
+
+{
+  "type": "genre",
+  "name": "Fantasy",
+  "slug": "fantasy",
+  "parentId": null  // optional, for nested categories
+}
+
+Response 201: (created category)
+```
+
+#### Update Category
+```http
+PATCH /api/categories/{id}
+Authorization: Bearer {token}
+
+{
+  "name": "Updated Fantasy",
+  "slug": "updated-fantasy"
+}
+
+Response 200: (updated category)
+```
+
+#### Attach Category to Book Version
+```http
+POST /api/versions/{id}/categories
+Authorization: Bearer {token}
+
+{
+  "categoryId": "category-uuid"
+}
+
+Response 201: (success)
+```
+
+#### Detach Category from Book Version
+```http
+DELETE /api/versions/{id}/categories/{categoryId}
+Authorization: Bearer {token}
+
+Response 204: (no content)
+```
+
+---
+
+### Tags Management
+
+#### List Tags
+```http
+GET /api/tags?page=1&limit=20
+Authorization: Bearer {token}
+
+Response 200:
+{
+  "items": [
+    {
+      "id": "uuid",
+      "name": "Motivation",
+      "slug": "motivation",
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ],
+  "page": 1,
+  "limit": 20,
+  "total": 3,
+  "hasNext": false
+}
+```
+
+#### Create Tag
+```http
+POST /api/tags
+Authorization: Bearer {token}
+
+{
+  "name": "Motivation",
+  "slug": "motivation"
+}
+
+Response 201: (created tag)
+```
+
+#### Update Tag
+```http
+PATCH /api/tags/{id}
+Authorization: Bearer {token}
+
+{
+  "name": "Updated Tag"
+}
+
+Response 200: (updated tag)
+```
+
+#### Attach Tag to Book Version
+```http
+POST /api/versions/{id}/tags
+Authorization: Bearer {token}
+
+{
+  "tagId": "tag-uuid"
+}
+
+Response 201: (success)
+```
+
+#### Detach Tag from Book Version
+```http
+DELETE /api/versions/{id}/tags/{tagId}
+Authorization: Bearer {token}
+
+Response 204: (no content)
+```
+
+---
+
+### Media & Uploads
+
+#### One-Step Upload (Recommended)
+```http
+POST /api/media/upload
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+
+file: [binary file data]
+type: "cover"  // or "audio"
+
+Response 201:
+{
+  "id": "uuid",
+  "key": "covers/2025/10/25/uuid.jpg",
+  "url": "https://api.bibliaris.com/static/covers/2025/10/25/uuid.jpg",
+  "contentType": "image/jpeg",
+  "size": 1048576,
+  "width": 1920,
+  "height": 1080,
+  "createdAt": "..."
+}
+```
+
+#### Two-Step Upload (Advanced)
+```http
+# 1. Get presigned URL
+POST /api/uploads/presign
+Authorization: Bearer {token}
+
+{
+  "type": "cover",
+  "contentType": "image/jpeg",
+  "size": 1048576
+}
+
+Response 201:
+{
+  "token": "upload-token-xxx",
+  "uploadUrl": "https://api.bibliaris.com/api/uploads/direct",
+  "key": "covers/2025/10/25/uuid.jpg"
+}
+
+# 2. Upload file
+POST {uploadUrl}
+X-Upload-Token: {token}
+Content-Type: image/jpeg
+[binary file data]
+
+Response 201: { success: true }
+
+# 3. Confirm upload
+POST /api/uploads/confirm?key={key}
+Authorization: Bearer {token}
+
+Response 201:
+{
+  "url": "https://api.bibliaris.com/static/covers/2025/10/25/uuid.jpg"
+}
+```
+
+---
+
+### Users & Roles Management
+
+#### List Users (Admin Only)
+```http
+GET /api/users?page=1&limit=10&staff=only&q=john
+Authorization: Bearer {token}
+
+staff: "only" | "exclude" | undefined
+q: search by email or name
+
+Response 200:
+{
+  "items": [
+    {
+      "id": "uuid",
+      "email": "user@example.com",
+      "displayName": "John Doe",
+      "roles": ["user", "admin"],
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ],
+  "page": 1,
+  "limit": 10,
+  "total": 1,
+  "hasNext": false
+}
+```
+
+#### Get User by ID (Admin Only)
+```http
+GET /api/users/{id}
+Authorization: Bearer {token}
+
+Response 200: (user object)
+```
+
+#### Assign Role to User (Admin Only)
+```http
+POST /api/users/{id}/roles/{role}
+Authorization: Bearer {token}
+
+role: "user" | "admin" | "content_manager"
+
+Response 201: (success)
+```
+
+#### Revoke Role from User (Admin Only)
+```http
+DELETE /api/users/{id}/roles/{role}
+Authorization: Bearer {token}
+
+Response 200: (success)
+```
+
+---
+
+## 🔧 Testing Endpoints with Swagger UI
+
+### Access Swagger
+👉 **URL:** https://api.bibliaris.com/docs
+
+### Steps to Test Admin Endpoints:
+
+1. **Login to get token:**
+   - Open `POST /auth/login`
+   - Click "Try it out"
+   - Enter credentials
+   - Copy `accessToken` from response
+
+2. **Authorize in Swagger:**
+   - Click "Authorize" button (top right)
+   - Enter: `Bearer {your-access-token}`
+   - Click "Authorize"
+
+3. **Test Endpoints:**
+   - All admin endpoints will now include auth token
+   - Try creating a book, version, categories, etc.
 
 ---
 
@@ -619,3 +1245,5 @@ if (process.env.NODE_ENV === 'development') {
 
 - `docs/docs-front/frontend-agents/api-cheatsheet.md`
 - `docs/ENDPOINTS.md` (comprehensive list with examples)
+- **Swagger UI:** https://api.bibliaris.com/docs
+
