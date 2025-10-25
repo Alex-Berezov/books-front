@@ -16,10 +16,16 @@ export const HTTP_STATUS = {
   FORBIDDEN: 403,
   /** 404 - Ресурс не найден */
   NOT_FOUND: 404,
+  /** 409 - Конфликт */
+  CONFLICT: 409,
+  /** 422 - Невозможно обработать */
+  UNPROCESSABLE_ENTITY: 422,
   /** 429 - Превышен лимит запросов */
   TOO_MANY_REQUESTS: 429,
   /** 500 - Внутренняя ошибка сервера */
   INTERNAL_SERVER_ERROR: 500,
+  /** 503 - Сервис недоступен */
+  SERVICE_UNAVAILABLE: 503,
 } as const;
 
 /**
