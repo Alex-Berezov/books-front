@@ -14,12 +14,14 @@
 **All systems operational and ready for frontend development!**
 
 #### Available Resources:
+
 - ✅ **API Base URL:** `https://api.bibliaris.com/api`
 - ✅ **Swagger UI:** `https://api.bibliaris.com/docs`
 - ✅ **OpenAPI Schema:** `https://api.bibliaris.com/docs-json`
 - ✅ **Health Check:** `https://api.bibliaris.com/api/health/liveness`
 
 #### System Health:
+
 ```json
 {
   "status": "up",
@@ -29,12 +31,14 @@
 ```
 
 #### Database & Services:
+
 - ✅ PostgreSQL: Connected and responding
 - ✅ Redis: Operational
 - ✅ Prometheus Metrics: Available
 - ✅ Sentry Integration: Active
 
 #### Security:
+
 - ✅ **Swagger in Production:** Enabled for development (can be disabled later)
 - ✅ **HTTPS:** Let's Encrypt SSL certificates
 - ✅ **CORS:** Configured for frontend domains
@@ -528,7 +532,7 @@ class ApiError extends Error {
   constructor(
     public status: number,
     public message: string,
-    public details?: any,
+    public details?: any
   ) {
     super(message);
   }
@@ -656,6 +660,7 @@ if (process.env.NODE_ENV === 'development') {
 ### Books Management
 
 #### Create Book
+
 ```http
 POST /api/books
 Authorization: Bearer {token}
@@ -674,6 +679,7 @@ Response 201:
 ```
 
 #### List All Books
+
 ```http
 GET /api/books?page=1&limit=10
 Authorization: Bearer {token}
@@ -696,6 +702,7 @@ Response 200:
 ```
 
 #### Get Book by ID
+
 ```http
 GET /api/books/{id}
 Authorization: Bearer {token}
@@ -710,6 +717,7 @@ Response 200:
 ```
 
 #### Update Book
+
 ```http
 PATCH /api/books/{id}
 Authorization: Bearer {token}
@@ -722,6 +730,7 @@ Response 200: (updated book)
 ```
 
 #### Delete Book
+
 ```http
 DELETE /api/books/{id}
 Authorization: Bearer {token}
@@ -734,6 +743,7 @@ Response 200: { success: true }
 ### Book Versions Management
 
 #### Create Book Version (Draft)
+
 ```http
 POST /api/books/{bookId}/versions
 Authorization: Bearer {token}
@@ -766,6 +776,7 @@ Response 201:
 ```
 
 #### List Versions for Book (Public)
+
 ```http
 GET /api/books/{bookId}/versions?language=en&type=text&isFree=true
 Accept-Language: en-US,es;q=0.9
@@ -774,6 +785,7 @@ Response 200: Array of published versions
 ```
 
 #### List Versions for Book (Admin - includes drafts)
+
 ```http
 GET /api/admin/{lang}/books/{bookId}/versions?language=en&type=text&includeDrafts=true
 Authorization: Bearer {token}
@@ -783,6 +795,7 @@ Response 200: Array of all versions (published + draft)
 ```
 
 #### Get Version by ID
+
 ```http
 GET /api/versions/{id}
 Authorization: Bearer {token}
@@ -810,6 +823,7 @@ Response 200:
 ```
 
 #### Update Version
+
 ```http
 PATCH /api/versions/{id}
 Authorization: Bearer {token}
@@ -824,6 +838,7 @@ Response 200: (updated version)
 ```
 
 #### Publish Version
+
 ```http
 PATCH /api/versions/{id}/publish
 Authorization: Bearer {token}
@@ -837,6 +852,7 @@ Response 200:
 ```
 
 #### Unpublish Version (Set to Draft)
+
 ```http
 PATCH /api/versions/{id}/unpublish
 Authorization: Bearer {token}
@@ -850,6 +866,7 @@ Response 200:
 ```
 
 #### Delete Version
+
 ```http
 DELETE /api/versions/{id}
 Authorization: Bearer {token}
@@ -862,6 +879,7 @@ Response 204: (no content)
 ### Chapters Management (Text)
 
 #### List Chapters
+
 ```http
 GET /api/versions/{bookVersionId}/chapters?page=1&limit=20
 Authorization: Bearer {token}
@@ -887,6 +905,7 @@ Response 200:
 ```
 
 #### Create Chapter
+
 ```http
 POST /api/versions/{bookVersionId}/chapters
 Authorization: Bearer {token}
@@ -901,6 +920,7 @@ Response 201: (created chapter)
 ```
 
 #### Update Chapter
+
 ```http
 PATCH /api/chapters/{id}
 Authorization: Bearer {token}
@@ -914,6 +934,7 @@ Response 200: (updated chapter)
 ```
 
 #### Delete Chapter
+
 ```http
 DELETE /api/chapters/{id}
 Authorization: Bearer {token}
@@ -926,6 +947,7 @@ Response 204: (no content)
 ### Categories Management
 
 #### List Categories
+
 ```http
 GET /api/categories?page=1&limit=20
 Authorization: Bearer {token}
@@ -951,6 +973,7 @@ Response 200:
 ```
 
 #### Get Categories Tree
+
 ```http
 GET /api/categories/tree
 
@@ -976,6 +999,7 @@ Response 200: [
 ```
 
 #### Create Category
+
 ```http
 POST /api/categories
 Authorization: Bearer {token}
@@ -991,6 +1015,7 @@ Response 201: (created category)
 ```
 
 #### Update Category
+
 ```http
 PATCH /api/categories/{id}
 Authorization: Bearer {token}
@@ -1004,6 +1029,7 @@ Response 200: (updated category)
 ```
 
 #### Attach Category to Book Version
+
 ```http
 POST /api/versions/{id}/categories
 Authorization: Bearer {token}
@@ -1016,6 +1042,7 @@ Response 201: (success)
 ```
 
 #### Detach Category from Book Version
+
 ```http
 DELETE /api/versions/{id}/categories/{categoryId}
 Authorization: Bearer {token}
@@ -1028,6 +1055,7 @@ Response 204: (no content)
 ### Tags Management
 
 #### List Tags
+
 ```http
 GET /api/tags?page=1&limit=20
 Authorization: Bearer {token}
@@ -1051,6 +1079,7 @@ Response 200:
 ```
 
 #### Create Tag
+
 ```http
 POST /api/tags
 Authorization: Bearer {token}
@@ -1064,6 +1093,7 @@ Response 201: (created tag)
 ```
 
 #### Update Tag
+
 ```http
 PATCH /api/tags/{id}
 Authorization: Bearer {token}
@@ -1076,6 +1106,7 @@ Response 200: (updated tag)
 ```
 
 #### Attach Tag to Book Version
+
 ```http
 POST /api/versions/{id}/tags
 Authorization: Bearer {token}
@@ -1088,6 +1119,7 @@ Response 201: (success)
 ```
 
 #### Detach Tag from Book Version
+
 ```http
 DELETE /api/versions/{id}/tags/{tagId}
 Authorization: Bearer {token}
@@ -1100,6 +1132,7 @@ Response 204: (no content)
 ### Media & Uploads
 
 #### One-Step Upload (Recommended)
+
 ```http
 POST /api/media/upload
 Authorization: Bearer {token}
@@ -1122,6 +1155,7 @@ Response 201:
 ```
 
 #### Two-Step Upload (Advanced)
+
 ```http
 # 1. Get presigned URL
 POST /api/uploads/presign
@@ -1163,6 +1197,7 @@ Response 201:
 ### Users & Roles Management
 
 #### List Users (Admin Only)
+
 ```http
 GET /api/users?page=1&limit=10&staff=only&q=john
 Authorization: Bearer {token}
@@ -1190,6 +1225,7 @@ Response 200:
 ```
 
 #### Get User by ID (Admin Only)
+
 ```http
 GET /api/users/{id}
 Authorization: Bearer {token}
@@ -1198,6 +1234,7 @@ Response 200: (user object)
 ```
 
 #### Assign Role to User (Admin Only)
+
 ```http
 POST /api/users/{id}/roles/{role}
 Authorization: Bearer {token}
@@ -1208,6 +1245,7 @@ Response 201: (success)
 ```
 
 #### Revoke Role from User (Admin Only)
+
 ```http
 DELETE /api/users/{id}/roles/{role}
 Authorization: Bearer {token}
@@ -1220,6 +1258,7 @@ Response 200: (success)
 ## 🔧 Testing Endpoints with Swagger UI
 
 ### Access Swagger
+
 👉 **URL:** https://api.bibliaris.com/docs
 
 ### Steps to Test Admin Endpoints:
@@ -1246,4 +1285,3 @@ Response 200: (success)
 - `docs/docs-front/frontend-agents/api-cheatsheet.md`
 - `docs/ENDPOINTS.md` (comprehensive list with examples)
 - **Swagger UI:** https://api.bibliaris.com/docs
-

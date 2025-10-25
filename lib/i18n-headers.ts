@@ -23,10 +23,7 @@ import { isSupportedLang, getDefaultLang } from '@/lib/i18n/lang';
  * // { 'Content-Type': 'application/json', 'Accept-Language': 'en' }
  * ```
  */
-export const withLangHeaders = (
-  lang: SupportedLang,
-  headers?: HeadersInit
-): HeadersInit => {
+export const withLangHeaders = (lang: SupportedLang, headers?: HeadersInit): HeadersInit => {
   const baseHeaders: Record<string, string> = {};
 
   // Копируем существующие заголовки
@@ -133,13 +130,9 @@ export const createLangHeaders = (headers?: HeadersInit): HeadersInit => {
  * ```
  */
 export const needsLangPrefix = (endpoint: string): boolean => {
-  const neutralPrefixes = [
-    '/auth/',
-    '/users/',
-    '/api/',
-  ];
+  const neutralPrefixes = ['/auth/', '/users/', '/api/'];
 
-  return !neutralPrefixes.some(prefix => endpoint.startsWith(prefix));
+  return !neutralPrefixes.some((prefix) => endpoint.startsWith(prefix));
 };
 
 /**

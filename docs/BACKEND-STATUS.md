@@ -7,14 +7,14 @@
 
 ## 🚀 Quick Links
 
-| Resource | URL | Status |
-|----------|-----|--------|
-| **API Base** | `https://api.bibliaris.com/api` | ✅ Online |
-| **Swagger UI** | `https://api.bibliaris.com/docs` | ✅ Available |
-| **OpenAPI Schema** | `https://api.bibliaris.com/docs-json` | ✅ Available |
-| **Health Check** | `https://api.bibliaris.com/api/health/liveness` | ✅ Up |
-| **Readiness Check** | `https://api.bibliaris.com/api/health/readiness` | ✅ Ready |
-| **Metrics** | `https://api.bibliaris.com/metrics` | ✅ Available |
+| Resource            | URL                                              | Status       |
+| ------------------- | ------------------------------------------------ | ------------ |
+| **API Base**        | `https://api.bibliaris.com/api`                  | ✅ Online    |
+| **Swagger UI**      | `https://api.bibliaris.com/docs`                 | ✅ Available |
+| **OpenAPI Schema**  | `https://api.bibliaris.com/docs-json`            | ✅ Available |
+| **Health Check**    | `https://api.bibliaris.com/api/health/liveness`  | ✅ Up        |
+| **Readiness Check** | `https://api.bibliaris.com/api/health/readiness` | ✅ Ready     |
+| **Metrics**         | `https://api.bibliaris.com/metrics`              | ✅ Available |
 
 ---
 
@@ -29,6 +29,7 @@
 ```
 
 ### Infrastructure Status:
+
 - ✅ **PostgreSQL Database:** Connected and responding
 - ✅ **Redis Cache:** Operational
 - ✅ **HTTPS/SSL:** Let's Encrypt certificates valid
@@ -40,7 +41,9 @@
 ## 🔐 Authentication
 
 ### Test Credentials
+
 For development/testing purposes, you can create test users via:
+
 ```http
 POST https://api.bibliaris.com/api/auth/register
 Content-Type: application/json
@@ -53,6 +56,7 @@ Content-Type: application/json
 ```
 
 ### Getting Access Token
+
 ```http
 POST https://api.bibliaris.com/api/auth/login
 Content-Type: application/json
@@ -64,6 +68,7 @@ Content-Type: application/json
 ```
 
 Response includes:
+
 - `accessToken` - Valid for 12 hours
 - `refreshToken` - Valid for 7 days
 
@@ -72,6 +77,7 @@ Response includes:
 ## 📋 Available Endpoint Groups
 
 ### Public Endpoints (No Auth Required)
+
 - ✅ **Books Overview:** `GET /:lang/books/:slug/overview`
 - ✅ **Pages:** `GET /:lang/pages/:slug`
 - ✅ **Categories:** `GET /:lang/categories/:slug/books`
@@ -79,6 +85,7 @@ Response includes:
 - ✅ **SEO Resolution:** `GET /:lang/seo/resolve`
 
 ### Auth Endpoints
+
 - ✅ **Register:** `POST /auth/register`
 - ✅ **Login:** `POST /auth/login`
 - ✅ **Refresh Token:** `POST /auth/refresh`
@@ -86,6 +93,7 @@ Response includes:
 - ✅ **Get Current User:** `GET /users/me`
 
 ### Admin Endpoints (Require Auth + Admin/Content Manager Role)
+
 - ✅ **Books CRUD:** `/api/books/*`
 - ✅ **Book Versions:** `/api/books/{id}/versions/*`
 - ✅ **Chapters:** `/api/versions/{id}/chapters/*`
@@ -98,6 +106,7 @@ Response includes:
 - ✅ **SEO Management:** `/api/versions/{id}/seo`
 
 ### User Endpoints (Require Auth)
+
 - ✅ **Bookshelf:** `/api/me/bookshelf/*`
 - ✅ **Reading Progress:** `/api/me/progress/*`
 - ✅ **Comments:** `/api/comments/*`
@@ -186,13 +195,13 @@ curl -X GET https://api.bibliaris.com/api/en/books/test-book/overview \
 
 ### Common Issues:
 
-| Issue | Solution |
-|-------|----------|
-| **401 Unauthorized** | Token expired - login again to get new token |
-| **403 Forbidden** | User doesn't have required role (admin/content_manager) |
-| **404 Not Found** | Check endpoint path and method |
-| **429 Too Many Requests** | Rate limit exceeded - wait and retry |
-| **CORS Error** | Contact backend team to whitelist your domain |
+| Issue                     | Solution                                                |
+| ------------------------- | ------------------------------------------------------- |
+| **401 Unauthorized**      | Token expired - login again to get new token            |
+| **403 Forbidden**         | User doesn't have required role (admin/content_manager) |
+| **404 Not Found**         | Check endpoint path and method                          |
+| **429 Too Many Requests** | Rate limit exceeded - wait and retry                    |
+| **CORS Error**            | Contact backend team to whitelist your domain           |
 
 ### Health Check Commands:
 

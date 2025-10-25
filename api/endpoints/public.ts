@@ -28,10 +28,7 @@ import { buildLangPath } from '@/lib/http';
  * const book = await getBookOverview('en', 'lord-of-the-rings');
  * ```
  */
-export const getBookOverview = async (
-  lang: SupportedLang,
-  slug: string
-): Promise<BookOverview> => {
+export const getBookOverview = async (lang: SupportedLang, slug: string): Promise<BookOverview> => {
   const endpoint = buildLangPath(lang, `/books/${slug}/overview`);
   return httpGet<BookOverview>(endpoint, { language: lang });
 };
