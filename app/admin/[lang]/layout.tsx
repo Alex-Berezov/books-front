@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { isSupportedLang } from '@/lib/i18n/lang';
 import { AppProviders } from '@/providers/AppProviders';
 import { AdminLanguageSwitcher } from '@/components/admin/AdminLanguageSwitcher';
+import { isStaff } from '@/lib/auth/helpers';
 import '@/styles/globals.css';
 import styles from '@/styles/admin-layouts.module.scss';
 
@@ -25,6 +26,15 @@ export default async function AdminLayout({ children, params }: Props) {
 
   if (!isSupportedLang(lang)) {
     notFound();
+  }
+
+  // Защита админ-маршрутов: проверка ролей staff (admin | content_manager)
+  const hasAccess = await isStaff();
+
+  if (!hasAccess) {
+    // Редирект на страницу входа с callbackUrl
+    const callbackUrl = encodeURIComponent(`/admin/${lang}`);
+    redirect(`/${lang}/auth/sign-in?callbackUrl=${callbackUrl}`);
   }
 
   return (

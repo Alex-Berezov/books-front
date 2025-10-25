@@ -38,35 +38,51 @@ interface SessionCallbackParams {
 /**
  * Обновление access токена через refresh токен
  *
- * TODO (M1): Реализовать логику вызова POST /api/auth/refresh
- * TODO (M1): Обработать ошибки refresh (401/403)
- * TODO (M1): Реализовать signOut при неудачном refresh
+ * Вызывает POST /auth/refresh для получения новой пары токенов
  *
  * @param token - текущий JWT токен
  * @returns обновлённый токен или токен с ошибкой
  */
 export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
-  // TODO (M1): Реализовать refresh логику
-  // const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`, {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ refreshToken: token.refreshToken }),
-  // });
-  //
-  // if (!response.ok) {
-  //   return { ...token, error: 'RefreshAccessTokenError' };
-  // }
-  //
-  // const refreshedTokens = await response.json();
-  // return {
-  //   ...token,
-  //   accessToken: refreshedTokens.accessToken,
-  //   refreshToken: refreshedTokens.refreshToken,
-  //   accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
-  // };
+  try {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
-  console.warn('refreshAccessToken: TODO - реализовать в M1');
-  return { ...token, error: AuthErrorType.REFRESH_TOKEN_ERROR };
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        refreshToken: token.refreshToken,
+      }),
+    });
+
+    // Если refresh не удался - помечаем токен ошибкой
+    if (!response.ok) {
+      console.error('Failed to refresh token:', response.status);
+      return {
+        ...token,
+        error: AuthErrorType.REFRESH_TOKEN_ERROR,
+      };
+    }
+
+    const refreshedTokens = await response.json();
+
+    // Возвращаем обновленный токен
+    return {
+      ...token,
+      accessToken: refreshedTokens.accessToken,
+      refreshToken: refreshedTokens.refreshToken,
+      accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
+      error: undefined, // Сбрасываем ошибку если была
+    };
+  } catch (error) {
+    console.error('Error refreshing access token:', error);
+    return {
+      ...token,
+      error: AuthErrorType.REFRESH_TOKEN_ERROR,
+    };
+  }
 };
 
 /**
@@ -93,45 +109,62 @@ export const authOptions = {
       /**
        * Авторизация пользователя через бэкенд
        *
-       * TODO (M1): Реализовать вызов POST /api/auth/login
-       * TODO (M1): Обработать ошибки валидации (400)
-       * TODO (M1): Обработать rate limiting (429)
-       * TODO (M1): Вернуть объект User с токенами
+       * Вызывает POST /auth/login и возвращает пользователя с токенами
        */
       async authorize(credentials) {
-        // TODO (M1): Реализовать авторизацию
-        // if (!credentials?.email || !credentials?.password) {
-        //   throw new Error('Email and password are required');
-        // }
-        //
-        // const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({
-        //     email: credentials.email,
-        //     password: credentials.password,
-        //   }),
-        // });
-        //
-        // if (!response.ok) {
-        //   if (response.status === 429) {
-        //     throw new Error('Too many requests. Please try again later.');
-        //   }
-        //   throw new Error('Invalid credentials');
-        // }
-        //
-        // const data = await response.json();
-        // return {
-        //   id: data.user.id,
-        //   email: data.user.email,
-        //   displayName: data.user.displayName,
-        //   roles: data.user.roles,
-        //   accessToken: data.accessToken,
-        //   refreshToken: data.refreshToken,
-        // };
+        // Валидация обязательных полей
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.MISSING_CREDENTIALS]);
+        }
 
-        console.warn('authorize: TODO - реализовать в M1');
-        return null;
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
+          });
+
+          // Обработка ошибок
+          if (!response.ok) {
+            // Rate limiting
+            if (response.status === 429) {
+              throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.RATE_LIMIT_EXCEEDED]);
+            }
+
+            // Неверные учетные данные
+            if (response.status === 400 || response.status === 401) {
+              throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.INVALID_CREDENTIALS]);
+            }
+
+            // Прочие ошибки
+            throw new Error('Authentication failed');
+          }
+
+          const data = await response.json();
+
+          // Возвращаем объект User с токенами
+          return {
+            id: data.user.id,
+            email: data.user.email,
+            displayName: data.user.displayName,
+            roles: data.user.roles || [],
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+          };
+        } catch (error) {
+          // Прокидываем ошибку дальше для обработки в UI
+          if (error instanceof Error) {
+            throw error;
+          }
+          throw new Error('Authentication failed');
+        }
       },
     }),
   ],
@@ -141,61 +174,53 @@ export const authOptions = {
     /**
      * JWT Callback - обработка токенов
      *
-     * TODO (M1): Реализовать сохранение токенов при логине
-     * TODO (M1): Реализовать проверку истечения токена
-     * TODO (M1): Реализовать автоматический refresh
+     * Сохраняет токены при логине и автоматически обновляет их при истечении
      */
     async jwt(params: JWTCallbackParams): Promise<JWT> {
       const { token, user, account } = params;
 
-      // TODO (M1): При первом логине - сохранить токены
-      // if (account && user) {
-      //   return {
-      //     ...token,
-      //     id: user.id,
-      //     email: user.email,
-      //     displayName: user.displayName,
-      //     roles: user.roles,
-      //     accessToken: user.accessToken,
-      //     refreshToken: user.refreshToken,
-      //     accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
-      //   };
-      // }
-      //
-      // // Токен ещё валиден
-      // if (Date.now() < token.accessTokenExpires) {
-      //   return token;
-      // }
-      //
-      // // Токен истёк - обновить
-      // return refreshAccessToken(token);
+      // При первом логине - сохранить токены из authorize
+      if (account && user) {
+        return {
+          ...token,
+          id: user.id,
+          email: user.email,
+          displayName: user.displayName,
+          roles: user.roles,
+          accessToken: user.accessToken,
+          refreshToken: user.refreshToken,
+          accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
+        };
+      }
 
-      console.warn('jwt callback: TODO - реализовать в M1');
-      return token;
+      // Токен ещё валиден - возвращаем как есть
+      if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
+        return token;
+      }
+
+      // Токен истёк или близок к истечению - обновить
+      return refreshAccessToken(token);
     },
 
     /**
      * Session Callback - формирование сессии для клиента
      *
-     * TODO (M1): Прокинуть accessToken в сессию
-     * TODO (M1): Прокинуть информацию о пользователе и ролях
-     * TODO (M1): Обработать ошибки refresh
+     * Прокидывает токены и информацию о пользователе в сессию
      */
     async session(params: SessionCallbackParams): Promise<Session> {
       const { session, token } = params;
 
-      // TODO (M1): Прокинуть данные из JWT в сессию
-      // session.user = {
-      //   id: token.id,
-      //   email: token.email,
-      //   displayName: token.displayName,
-      //   roles: token.roles,
-      // };
-      // session.accessToken = token.accessToken;
-      // session.refreshToken = token.refreshToken;
-      // session.error = token.error;
+      // Прокинуть данные из JWT в сессию
+      session.user = {
+        id: token.id,
+        email: token.email,
+        displayName: token.displayName,
+        roles: token.roles,
+      };
+      session.accessToken = token.accessToken;
+      session.refreshToken = token.refreshToken;
+      session.error = token.error;
 
-      console.warn('session callback: TODO - реализовать в M1');
       return session;
     },
   },

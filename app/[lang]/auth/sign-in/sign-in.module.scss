@@ -1,0 +1,41 @@
+/**
+ * Стили страницы входа (Sign In)
+ */
+
+@import '@/styles/tokens.scss';
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: $color-background-secondary;
+  padding: $spacing-lg;
+}
+
+.formWrapper {
+  width: 100%;
+  max-width: 400px;
+  padding: $spacing-xxl;
+  background: $color-background-primary;
+  border-radius: 8px;
+  box-shadow: $shadow-md;
+}
+
+.header {
+  margin-bottom: $spacing-xl;
+  text-align: center;
+
+  h2 {
+    margin-bottom: $spacing-xs;
+  }
+}
+
+.alert {
+  margin-bottom: $spacing-lg;
+}
+
+.footer {
+  margin-top: $spacing-lg;
+  text-align: center;
+}
