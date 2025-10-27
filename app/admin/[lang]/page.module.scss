@@ -1,0 +1,105 @@
+/**
+ * Admin Dashboard стили
+ */
+
+@import '@/styles/tokens';
+
+.dashboard {
+  max-width: 1200px;
+}
+
+.header {
+  margin-bottom: $spacing-xxl;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-sm 0;
+}
+
+.subtitle {
+  font-size: $font-size-lg;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+/**
+ * Quick Links Grid
+ */
+.quickLinks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: $spacing-lg;
+  margin-bottom: $spacing-xxl;
+}
+
+.card {
+  background: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: 8px;
+  padding: $spacing-xl;
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $color-primary;
+    box-shadow: $shadow-md;
+    transform: translateY(-2px);
+  }
+}
+
+.cardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: rgba(37, 99, 235, 0.1);
+  border-radius: 12px;
+  color: $color-primary;
+  margin-bottom: $spacing-lg;
+}
+
+.cardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-sm 0;
+}
+
+.cardDescription {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+/**
+ * Info Section
+ */
+.info {
+  background: $color-background-secondary;
+  border-radius: 8px;
+  padding: $spacing-lg;
+}
+
+.infoText {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  margin: $spacing-sm 0;
+
+  strong {
+    color: $color-text-primary;
+  }
+}
+
+/**
+ * Responsive
+ */
+@media (max-width: 768px) {
+  .quickLinks {
+    grid-template-columns: 1fr;
+  }
+}

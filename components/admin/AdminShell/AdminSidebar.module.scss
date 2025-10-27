@@ -1,0 +1,90 @@
+/**
+ * AdminSidebar стили
+ *
+ * Мигрировано из React-админки с адаптацией под проектные токены
+ */
+
+@import '@/styles/tokens';
+
+.sidebar {
+  width: 240px;
+  background: $color-background-dark;
+  color: $color-text-inverse;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-lg;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logoText {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-inverse;
+}
+
+.nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-md 0;
+}
+
+.menuList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menuItem {
+  margin: 0;
+}
+
+.menuLink {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: all 0.2s;
+  font-size: $font-size-md;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: $color-text-inverse;
+  }
+
+  &.active {
+    background: $color-primary;
+    color: $color-text-inverse;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.menuLabel {
+  flex: 1;
+}
+
+/**
+ * Responsive: на малых экранах скрываем или делаем выдвижным
+ */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+
+    &.open {
+      transform: translateX(0);
+    }
+  }
+}

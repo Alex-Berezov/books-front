@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { isSupportedLang, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
+import { isSupportedLang, SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import styles from '../page.module.scss';
 
 type Props = {

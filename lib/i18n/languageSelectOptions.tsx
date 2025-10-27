@@ -1,9 +1,4 @@
-import {
-  SUPPORTED_LANGS,
-  LANGUAGE_LABELS,
-  LANGUAGE_FLAGS,
-  type SupportedLang,
-} from '@/lib/i18n/lang';
+import { SUPPORTED_LANGS, LANGUAGE_LABELS, LANGUAGE_FLAGS } from '@/lib/i18n/lang';
 
 /**
  * Generate language selector options for Ant Design Select component
