@@ -315,10 +315,14 @@
   - [x] Интеграция с `usePublishVersion` и `useUnpublishVersion`
   - [x] Адаптивный layout со sidebar
 
-- [ ] 🔴 **M3.2.5** Categories & Tags Panels
-  - [ ] Categories: multi-select с деревом
-  - [ ] Tags: autocomplete с созданием новых
-  - [ ] Связь через API (book-category, book-tag endpoints)
+- [x] � **M3.2.5** Categories & Tags Panels (Завершено 28.10.2025)
+  - [x] Создать типы Category, Tag, CategoryTree в types/api-schema.ts
+  - [x] Добавить API функции getCategories, getTags, attachCategory, detachCategory, attachTag, detachTag
+  - [x] Создать React Query хуки useCategories, useTags, useAttachCategory, useDetachCategory, useAttachTag, useDetachTag
+  - [x] Создать компонент CategoriesPanel с иерархическим деревом
+  - [x] Создать компонент TagsPanel с поиском
+  - [x] Интегрировать панели в страницу редактирования версии
+  - [x] Добавить categories и tags в BookVersionDetail
 
 - [ ] 🔴 **M3.2.2** Book Editor - Shell
   - [ ] Создать `app/admin/[lang]/books/[id]/page.tsx`

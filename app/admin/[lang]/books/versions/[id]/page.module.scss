@@ -64,6 +64,10 @@
   }
 }
 
+.sidebarSpacer {
+  height: $spacing-lg;
+}
+
 // Loading и Error состояния
 .loadingContainer,
 .errorContainer {

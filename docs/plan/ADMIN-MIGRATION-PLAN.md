@@ -328,21 +328,54 @@ app/admin/[lang]/books/versions/[id]/page.tsx    # Интеграция в ст�
 
 ---
 
-#### Задача 2.5: Categories & Tags связывание
+#### ✅ Задача 2.5: Categories & Tags связывание — ЗАВЕРШЕНО (28.10.2025)
 
 ```bash
-components/admin/books/CategoriesPanel.tsx
-components/admin/books/TagsPanel.tsx
+components/admin/books/CategoriesPanel.tsx           # Панель выбора категорий
+components/admin/books/CategoriesPanel.module.scss   # Стили панели категорий
+components/admin/books/TagsPanel.tsx                 # Панель выбора тегов
+components/admin/books/TagsPanel.module.scss         # Стили панели тегов
+api/endpoints/admin.ts                               # API функции для категорий и тегов
+api/hooks/useAdmin.ts                                # React Query хуки
+types/api-schema.ts                                  # Типы для категорий и тегов
 ```
 
-**Функционал:**
+**Реализовано:**
 
-- Multi-select для категорий
-- Tree view для выбора категорий
-- Tag input с автокомплитом
-- Integration с `POST /api/versions/{id}/categories`
+1. ✅ Добавлены типы: `Category`, `CategoryTree`, `Tag`, `AttachCategoryRequest`, `AttachTagRequest`
+2. ✅ API эндпоинты: `getCategories`, `getCategoriesTree`, `getTags`, `attachCategory`, `detachCategory`, `attachTag`, `detachTag`
+3. ✅ React Query хуки: `useCategories`, `useCategoriesTree`, `useTags`, `useAttachCategory`, `useDetachCategory`, `useAttachTag`, `useDetachTag`
+4. ✅ Компонент `CategoriesPanel` с иерархическим деревом категорий
+5. ✅ Компонент `TagsPanel` с поиском и автокомплитом
+6. ✅ Интеграция в страницу редактирования версии книги
+7. ✅ Расширен `BookVersionDetail` для включения массивов `categories` и `tags`
 
-**Commit:** `feat(admin): add categories and tags panels to book editor`
+**Функционал CategoriesPanel:**
+
+- Загрузка иерархического дерева категорий
+- Expand/collapse для вложенных категорий
+- Checkbox для выбора/снятия категорий
+- Список выбранных категорий с возможностью быстрого удаления
+- Отображение типа категории (genre/author/popular)
+- Real-time обновление через React Query
+
+**Функционал TagsPanel:**
+
+- Поисковая строка для фильтрации тегов
+- Отображение результатов поиска в реальном времени
+- Выбор/снятие тегов через кнопки
+- Список выбранных тегов с возможностью удаления
+- Визуальное отображение выбранных тегов с checkmark
+
+**Особенности:**
+
+- Все панели размещены в sidebar редактора версии
+- Optimistic updates через invalidation React Query кэша
+- Loading и disabled состояния во время API запросов
+- Стили с использованием design tokens
+- Responsive дизайн
+
+**Commit:** `feat(admin): add categories and tags panels to book editor (M3.2.5)`
 
 ---
 

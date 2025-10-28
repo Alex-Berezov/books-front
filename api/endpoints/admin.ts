@@ -8,13 +8,18 @@
 import { httpDelete, httpGet, httpPatch, httpPost } from '@/lib/http';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
+  AttachCategoryRequest,
+  AttachTagRequest,
   BookOverview,
   BookVersionDetail,
+  Category,
+  CategoryTree,
   ChapterDetail,
   CreateBookVersionRequest,
   CreateChapterRequest,
   PaginatedResponse,
   ReorderChaptersRequest,
+  Tag,
   UpdateBookVersionRequest,
   UpdateChapterRequest,
 } from '@/types/api-schema';
@@ -268,4 +273,177 @@ export const reorderChapters = async (
 ): Promise<ChapterDetail[]> => {
   const endpoint = `/versions/${versionId}/chapters/reorder`;
   return httpPost<ChapterDetail[]>(endpoint, data);
+};
+
+/**
+ * ========================================
+ * Categories API
+ * ========================================
+ */
+
+/**
+ * Параметры для получения списка категорий
+ */
+export interface GetCategoriesParams {
+  /** Номер страницы (начиная с 1) */
+  page?: number;
+  /** Количество элементов на странице */
+  limit?: number;
+  /** Поиск по названию */
+  search?: string;
+}
+
+/**
+ * Получить список категорий
+ *
+ * @param params - Параметры запроса
+ * @returns Пагинированный список категорий
+ *
+ * @example
+ * ```ts
+ * const categories = await getCategories({ page: 1, limit: 50 });
+ * ```
+ */
+export const getCategories = async (
+  params: GetCategoriesParams = {}
+): Promise<PaginatedResponse<Category>> => {
+  const { page = 1, limit = 50, search } = params;
+
+  const queryParams = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  if (search) {
+    queryParams.append('search', search);
+  }
+
+  const endpoint = `/categories?${queryParams.toString()}`;
+  return httpGet<PaginatedResponse<Category>>(endpoint);
+};
+
+/**
+ * Получить дерево категорий
+ *
+ * @returns Иерархическое дерево категорий
+ *
+ * @example
+ * ```ts
+ * const tree = await getCategoriesTree();
+ * ```
+ */
+export const getCategoriesTree = async (): Promise<CategoryTree[]> => {
+  const endpoint = `/categories/tree`;
+  return httpGet<CategoryTree[]>(endpoint);
+};
+
+/**
+ * Привязать категорию к версии книги
+ *
+ * @param versionId - ID версии книги
+ * @param categoryId - ID категории
+ *
+ * @example
+ * ```ts
+ * await attachCategory('version-uuid', 'category-uuid');
+ * ```
+ */
+export const attachCategory = async (versionId: string, categoryId: string): Promise<void> => {
+  const endpoint = `/versions/${versionId}/categories`;
+  const data: AttachCategoryRequest = { categoryId };
+  return httpPost<void>(endpoint, data);
+};
+
+/**
+ * Отвязать категорию от версии книги
+ *
+ * @param versionId - ID версии книги
+ * @param categoryId - ID категории
+ *
+ * @example
+ * ```ts
+ * await detachCategory('version-uuid', 'category-uuid');
+ * ```
+ */
+export const detachCategory = async (versionId: string, categoryId: string): Promise<void> => {
+  const endpoint = `/versions/${versionId}/categories/${categoryId}`;
+  return httpDelete<void>(endpoint);
+};
+
+/**
+ * ========================================
+ * Tags API
+ * ========================================
+ */
+
+/**
+ * Параметры для получения списка тегов
+ */
+export interface GetTagsParams {
+  /** Номер страницы (начиная с 1) */
+  page?: number;
+  /** Количество элементов на странице */
+  limit?: number;
+  /** Поиск по названию */
+  search?: string;
+}
+
+/**
+ * Получить список тегов
+ *
+ * @param params - Параметры запроса
+ * @returns Пагинированный список тегов
+ *
+ * @example
+ * ```ts
+ * const tags = await getTags({ page: 1, limit: 50, search: 'motiv' });
+ * ```
+ */
+export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResponse<Tag>> => {
+  const { page = 1, limit = 50, search } = params;
+
+  const queryParams = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  if (search) {
+    queryParams.append('search', search);
+  }
+
+  const endpoint = `/tags?${queryParams.toString()}`;
+  return httpGet<PaginatedResponse<Tag>>(endpoint);
+};
+
+/**
+ * Привязать тег к версии книги
+ *
+ * @param versionId - ID версии книги
+ * @param tagId - ID тега
+ *
+ * @example
+ * ```ts
+ * await attachTag('version-uuid', 'tag-uuid');
+ * ```
+ */
+export const attachTag = async (versionId: string, tagId: string): Promise<void> => {
+  const endpoint = `/versions/${versionId}/tags`;
+  const data: AttachTagRequest = { tagId };
+  return httpPost<void>(endpoint, data);
+};
+
+/**
+ * Отвязать тег от версии книги
+ *
+ * @param versionId - ID версии книги
+ * @param tagId - ID тега
+ *
+ * @example
+ * ```ts
+ * await detachTag('version-uuid', 'tag-uuid');
+ * ```
+ */
+export const detachTag = async (versionId: string, tagId: string): Promise<void> => {
+  const endpoint = `/versions/${versionId}/tags/${tagId}`;
+  return httpDelete<void>(endpoint);
 };

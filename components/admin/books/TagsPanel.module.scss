@@ -1,0 +1,184 @@
+/**
+ * Стили для панели тегов
+ */
+
+@import '@/styles/tokens.scss';
+
+.panel {
+  background: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-sm;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.counter {
+  padding: $spacing-xs $spacing-sm;
+  background: rgba($color-success, 0.1);
+  color: $color-success;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.searchContainer {
+  margin-bottom: $spacing-md;
+}
+
+.searchInput {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  transition: border-color $transition-fast;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: $shadow-focus;
+  }
+
+  &::placeholder {
+    color: $color-text-tertiary;
+  }
+}
+
+.searchResults {
+  margin-bottom: $spacing-md;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.loading,
+.empty {
+  padding: $spacing-lg;
+  text-align: center;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.resultsList {
+  padding: $spacing-sm;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.tagButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm $spacing-md;
+  background: $color-background-tertiary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  text-align: left;
+  transition: all $transition-fast;
+
+  &:hover:not(:disabled) {
+    background: $color-background-secondary;
+    border-color: $color-primary;
+  }
+
+  &.selected {
+    background: rgba($color-success, 0.1);
+    border-color: $color-success;
+    color: $color-success;
+    font-weight: $font-weight-medium;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.checkmark {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.hint {
+  padding: $spacing-lg;
+  text-align: center;
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+  font-style: italic;
+}
+
+// Выбранные теги
+.selectedSection {
+  margin-top: $spacing-lg;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $color-border-light;
+}
+
+.selectedTitle {
+  margin: 0 0 $spacing-md 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+}
+
+.selectedList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.selectedTag {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  background: rgba($color-success, 0.1);
+  border: 1px solid rgba($color-success, 0.3);
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  color: $color-success;
+}
+
+.removeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: $color-success;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color $transition-fast;
+
+  &:hover:not(:disabled) {
+    color: $color-error;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}

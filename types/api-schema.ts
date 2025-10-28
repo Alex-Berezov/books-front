@@ -175,15 +175,35 @@ export interface Category {
   id: UUID;
   slug: string;
   name: string;
+  type?: string; // genre|author|popular|etc
   description?: string;
   language: SupportedLang;
+  parentId?: UUID | null;
   booksCount?: number;
   createdAt: ISODate;
   updatedAt: ISODate;
 }
 
+/**
+ * Категория с вложенными подкатегориями (для дерева)
+ */
+export interface CategoryTree extends Category {
+  children: CategoryTree[];
+}
+
 export interface CategoryBooksResponse extends PaginatedResponse<BookOverview> {
   category: Category;
+}
+
+/**
+ * Запросы для связывания категорий с версиями книг
+ */
+export interface AttachCategoryRequest {
+  categoryId: UUID;
+}
+
+export interface DetachCategoryRequest {
+  categoryId: UUID;
 }
 
 /**
@@ -202,6 +222,17 @@ export interface Tag {
 
 export interface TagBooksResponse extends PaginatedResponse<BookOverview> {
   tag: Tag;
+}
+
+/**
+ * Запросы для связывания тегов с версиями книг
+ */
+export interface AttachTagRequest {
+  tagId: UUID;
+}
+
+export interface DetachTagRequest {
+  tagId: UUID;
 }
 
 /**
@@ -293,6 +324,10 @@ export interface BookVersionDetail {
     metaTitle?: string;
     metaDescription?: string;
   };
+  /** Привязанные категории */
+  categories?: Category[];
+  /** Привязанные теги */
+  tags?: Tag[];
   createdAt: ISODate;
   updatedAt: ISODate;
 }

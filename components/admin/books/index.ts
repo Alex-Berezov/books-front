@@ -11,3 +11,7 @@ export { SummaryTab } from './SummaryTab';
 export type { SummaryTabProps } from './SummaryTab';
 export { PublishPanel } from './PublishPanel';
 export type { PublishPanelProps } from './PublishPanel';
+export { CategoriesPanel } from './CategoriesPanel';
+export type { CategoriesPanelProps } from './CategoriesPanel';
+export { TagsPanel } from './TagsPanel';
+export type { TagsPanelProps } from './TagsPanel';

@@ -7,10 +7,12 @@ import { useBookVersion, useUpdateBookVersion } from '@/api/hooks/useAdmin';
 import {
   BookForm,
   BookVersionTabs,
+  CategoriesPanel,
   ListenContentTab,
   PublishPanel,
   ReadContentTab,
   SummaryTab,
+  TagsPanel,
   type BookFormData,
   type TabType,
 } from '@/components/admin/books';
@@ -68,6 +70,22 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
   const handleUnpublishSuccess = () => {
     // TODO: Показать toast уведомление
     console.log('Version unpublished successfully');
+  };
+
+  /**
+   * Обработчик изменения категорий
+   */
+  const handleCategoriesChange = () => {
+    // TODO: Показать toast уведомление
+    console.log('Categories updated');
+  };
+
+  /**
+   * Обработчик изменения тегов
+   */
+  const handleTagsChange = () => {
+    // TODO: Показать toast уведомление
+    console.log('Tags updated');
   };
 
   /**
@@ -162,6 +180,22 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
             onPublishSuccess={handlePublishSuccess}
             onUnpublishSuccess={handleUnpublishSuccess}
             status={version.status}
+            versionId={versionId}
+          />
+
+          <div className={styles.sidebarSpacer} />
+
+          <CategoriesPanel
+            onCategoriesChange={handleCategoriesChange}
+            selectedCategories={version.categories || []}
+            versionId={versionId}
+          />
+
+          <div className={styles.sidebarSpacer} />
+
+          <TagsPanel
+            onTagsChange={handleTagsChange}
+            selectedTags={version.tags || []}
             versionId={versionId}
           />
         </aside>
