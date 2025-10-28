@@ -1,45 +1,51 @@
+/**
+ * Стили страницы 403 - Доступ запрещён
+ */
+
+@import '@/styles/tokens';
+
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 50vh;
-  padding: 2rem;
+  padding: $spacing-xl;
   text-align: center;
 }
 
 .title {
   font-size: 6rem;
-  font-weight: 700;
-  color: #dc2626;
+  font-weight: $font-weight-bold;
+  color: $color-error;
   margin: 0;
 }
 
 .message {
-  font-size: 2rem;
-  font-weight: 600;
-  margin: 1rem 0;
-  color: #1f2937;
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-semibold;
+  margin: $spacing-md 0;
+  color: $color-text-primary;
 }
 
 .description {
-  font-size: 1.125rem;
-  color: #6b7280;
-  margin: 0.5rem 0;
+  font-size: $font-size-lg;
+  color: $color-text-secondary;
+  margin: $spacing-sm 0;
   max-width: 500px;
 }
 
 .link {
-  margin-top: 2rem;
-  padding: 0.75rem 1.5rem;
-  background-color: #2563eb;
-  color: white;
+  margin-top: $spacing-xl;
+  padding: $spacing-md $spacing-lg;
+  background-color: $color-primary;
+  color: $color-text-inverse;
   text-decoration: none;
-  border-radius: 0.5rem;
-  font-weight: 500;
+  border-radius: 8px;
+  font-weight: $font-weight-medium;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #1d4ed8;
+    background-color: $color-primary-active;
   }
 }

@@ -11,24 +11,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  BookOpen,
-  FileText,
-  FolderTree,
-  Tags,
-  Image,
-  MessageSquare,
-  Users,
-} from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import { getAdminMenuItems } from './admin.constants';
 import styles from './AdminSidebar.module.scss';
-
-interface MenuItem {
-  id: string;
-  label: string;
-  icon: React.ComponentType<{ size?: number }>;
-  path: string;
-}
 
 interface AdminSidebarProps {
   lang: SupportedLang;
@@ -41,53 +27,8 @@ export const AdminSidebar = (props: AdminSidebarProps) => {
   const { lang } = props;
   const pathname = usePathname();
 
-  /**
-   * Меню админ-панели
-   */
-  const menuItems: MenuItem[] = [
-    {
-      id: 'books',
-      label: 'Books',
-      icon: BookOpen,
-      path: `/admin/${lang}/books`,
-    },
-    {
-      id: 'pages',
-      label: 'Pages',
-      icon: FileText,
-      path: `/admin/${lang}/pages`,
-    },
-    {
-      id: 'categories',
-      label: 'Categories',
-      icon: FolderTree,
-      path: `/admin/${lang}/categories`,
-    },
-    {
-      id: 'tags',
-      label: 'Tags',
-      icon: Tags,
-      path: `/admin/${lang}/tags`,
-    },
-    {
-      id: 'media',
-      label: 'Media',
-      icon: Image,
-      path: `/admin/${lang}/media`,
-    },
-    {
-      id: 'comments',
-      label: 'Comments',
-      icon: MessageSquare,
-      path: `/admin/${lang}/comments`,
-    },
-    {
-      id: 'users',
-      label: 'Users',
-      icon: Users,
-      path: `/admin/${lang}/users`,
-    },
-  ];
+  // Получаем пункты меню для текущего языка
+  const menuItems = getAdminMenuItems(lang);
 
   /**
    * Проверка, является ли пункт меню активным

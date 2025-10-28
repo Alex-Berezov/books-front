@@ -18,9 +18,7 @@ export default async function ForbiddenPage({ params }: Props) {
     <div className={styles.container}>
       <h1 className={styles.title}>403</h1>
       <p className={styles.message}>Access Forbidden</p>
-      <p className={styles.description}>
-        You don&apos;t have permission to access this page.
-      </p>
+      <p className={styles.description}>You don&apos;t have permission to access this page.</p>
       <p className={styles.description}>
         Only administrators and content managers can access the admin panel.
       </p>
