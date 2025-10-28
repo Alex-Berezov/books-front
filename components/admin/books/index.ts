@@ -1,3 +1,11 @@
 export { BookListTable } from './BookListTable';
 export { BookForm } from './BookForm';
 export type { BookFormData } from './BookForm';
+export { BookVersionTabs } from './BookVersionTabs';
+export type { BookVersionTabsProps, TabType } from './BookVersionTabs';
+export { ReadContentTab } from './ReadContentTab';
+export type { ReadContentTabProps } from './ReadContentTab';
+export { ListenContentTab } from './ListenContentTab';
+export type { ListenContentTabProps } from './ListenContentTab';
+export { SummaryTab } from './SummaryTab';
+export type { SummaryTabProps } from './SummaryTab';

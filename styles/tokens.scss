@@ -43,6 +43,7 @@ $shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
 $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
 $shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
 $shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.2);
+$shadow-focus: 0 0 0 2px rgba(24, 144, 255, 0.2); // Focus ring для форм
 
 // Spacing - Отступы
 $spacing-xs: 0.25rem; // 4px
@@ -51,6 +52,20 @@ $spacing-md: 1rem; // 16px
 $spacing-lg: 1.5rem; // 24px
 $spacing-xl: 2rem; // 32px
 $spacing-xxl: 3rem; // 48px
+
+// Layout Sizes - Размеры для layout
+$layout-max-width-sm: 600px;
+$layout-max-width-md: 800px;
+$layout-max-width-lg: 1200px;
+$layout-max-width-xl: 1400px;
+
+// Icon Sizes - Размеры иконок
+$icon-size-xs: 12px;
+$icon-size-sm: 16px;
+$icon-size-md: 20px;
+$icon-size-lg: 24px;
+$icon-size-xl: 32px;
+$icon-size-xxl: 48px;
 
 // Border Radius - Скругления
 $border-radius-sm: 2px;

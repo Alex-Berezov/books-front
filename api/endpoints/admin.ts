@@ -5,14 +5,18 @@
  * управление книгами, страницами, категориями и т.д.
  */
 
-import { httpGet, httpPost, httpPatch } from '@/lib/http';
+import { httpDelete, httpGet, httpPatch, httpPost } from '@/lib/http';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   BookOverview,
   BookVersionDetail,
+  ChapterDetail,
   CreateBookVersionRequest,
+  CreateChapterRequest,
   PaginatedResponse,
+  ReorderChaptersRequest,
   UpdateBookVersionRequest,
+  UpdateChapterRequest,
 } from '@/types/api-schema';
 
 /**
@@ -157,4 +161,111 @@ export const publishVersion = async (versionId: string): Promise<BookVersionDeta
 export const unpublishVersion = async (versionId: string): Promise<BookVersionDetail> => {
   const endpoint = `/versions/${versionId}/unpublish`;
   return httpPatch<BookVersionDetail>(endpoint);
+};
+
+/**
+ * ===========================
+ * Chapter Management
+ * ===========================
+ */
+
+/**
+ * Получить список глав версии книги
+ *
+ * @param versionId - ID версии книги
+ * @returns Массив глав
+ *
+ * @example
+ * ```ts
+ * const chapters = await getChapters('version-uuid');
+ * ```
+ */
+export const getChapters = async (versionId: string): Promise<ChapterDetail[]> => {
+  const endpoint = `/versions/${versionId}/chapters`;
+  return httpGet<ChapterDetail[]>(endpoint);
+};
+
+/**
+ * Создать новую главу
+ *
+ * @param versionId - ID версии книги
+ * @param data - Данные новой главы
+ * @returns Созданная глава
+ *
+ * @example
+ * ```ts
+ * const chapter = await createChapter('version-uuid', {
+ *   orderIndex: 1,
+ *   title: 'Introduction',
+ *   content: '# Chapter 1\n\nContent...',
+ *   isFree: true
+ * });
+ * ```
+ */
+export const createChapter = async (
+  versionId: string,
+  data: CreateChapterRequest
+): Promise<ChapterDetail> => {
+  const endpoint = `/versions/${versionId}/chapters`;
+  return httpPost<ChapterDetail>(endpoint, data);
+};
+
+/**
+ * Обновить главу
+ *
+ * @param chapterId - ID главы
+ * @param data - Новые данные главы
+ * @returns Обновленная глава
+ *
+ * @example
+ * ```ts
+ * const chapter = await updateChapter('chapter-uuid', {
+ *   title: 'Updated Title',
+ *   content: 'New content...'
+ * });
+ * ```
+ */
+export const updateChapter = async (
+  chapterId: string,
+  data: UpdateChapterRequest
+): Promise<ChapterDetail> => {
+  const endpoint = `/chapters/${chapterId}`;
+  return httpPatch<ChapterDetail>(endpoint, data);
+};
+
+/**
+ * Удалить главу
+ *
+ * @param chapterId - ID главы
+ *
+ * @example
+ * ```ts
+ * await deleteChapter('chapter-uuid');
+ * ```
+ */
+export const deleteChapter = async (chapterId: string): Promise<void> => {
+  const endpoint = `/chapters/${chapterId}`;
+  return httpDelete<void>(endpoint);
+};
+
+/**
+ * Переупорядочить главы
+ *
+ * @param versionId - ID версии книги
+ * @param data - Новый порядок глав
+ * @returns Массив глав в новом порядке
+ *
+ * @example
+ * ```ts
+ * const chapters = await reorderChapters('version-uuid', {
+ *   chapterIds: ['chapter-3', 'chapter-1', 'chapter-2']
+ * });
+ * ```
+ */
+export const reorderChapters = async (
+  versionId: string,
+  data: ReorderChaptersRequest
+): Promise<ChapterDetail[]> => {
+  const endpoint = `/versions/${versionId}/chapters/reorder`;
+  return httpPost<ChapterDetail[]>(endpoint, data);
 };

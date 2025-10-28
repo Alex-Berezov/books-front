@@ -8,14 +8,14 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-xl;
-  max-width: 800px;
+  max-width: $layout-max-width-md;
   margin: 0 auto;
 }
 
 .section {
   background: $color-background-primary;
   border: 1px solid $color-border-base;
-  border-radius: $radius-md;
+  border-radius: $border-radius-lg;
   padding: $spacing-lg;
 }
 
@@ -48,12 +48,12 @@
 .textarea {
   width: 100%;
   padding: $spacing-sm $spacing-md;
-  font-size: $font-size-md;
+  font-size: $font-size-base;
   border: 1px solid $color-border-base;
-  border-radius: $radius-sm;
+  border-radius: $border-radius-sm;
   background: $color-background-primary;
   color: $color-text-primary;
-  transition: all 0.3s ease;
+  transition: all $transition-base;
 
   &:hover {
     border-color: $color-primary-hover;
@@ -62,7 +62,7 @@
   &:focus {
     outline: none;
     border-color: $color-primary;
-    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    box-shadow: $shadow-focus;
   }
 
   &:disabled {
@@ -90,13 +90,13 @@
 }
 
 .checkbox {
-  width: 16px;
-  height: 16px;
+  width: $icon-size-sm;
+  height: $icon-size-sm;
   cursor: pointer;
 }
 
 .checkboxLabel {
-  font-size: $font-size-md;
+  font-size: $font-size-base;
   color: $color-text-primary;
   cursor: pointer;
   user-select: none;
@@ -126,14 +126,14 @@
 
 .submitButton {
   padding: $spacing-sm $spacing-xl;
-  font-size: $font-size-md;
+  font-size: $font-size-base;
   font-weight: $font-weight-medium;
   color: $color-text-inverse;
   background: $color-primary;
   border: none;
-  border-radius: $radius-sm;
+  border-radius: $border-radius-base;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all $transition-base;
 
   &:hover {
     background: $color-primary-hover;

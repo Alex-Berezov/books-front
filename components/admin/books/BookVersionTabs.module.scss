@@ -1,0 +1,48 @@
+@import '@/styles/tokens';
+
+/**
+ * Стили для компонента BookVersionTabs
+ * Табы навигации для редактора версии книги
+ */
+
+.tabsContainer {
+  background: $color-background-primary;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-sm;
+  border: 1px solid $color-border-base;
+}
+
+.tabsNav {
+  display: flex;
+  gap: $spacing-xl;
+  padding: 0 $spacing-lg;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.tab {
+  padding: $spacing-md $spacing-xs;
+  border-bottom: 2px solid transparent;
+  font-weight: $font-weight-medium;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: $color-text-primary;
+    border-bottom-color: $color-border-dark;
+  }
+
+  &.active {
+    color: $color-primary;
+    border-bottom-color: $color-primary;
+  }
+}
+
+.tabContent {
+  padding: $spacing-lg;
+}

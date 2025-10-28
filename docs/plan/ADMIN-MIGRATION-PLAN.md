@@ -258,31 +258,43 @@ components/admin/books/ListenContentTab.tsx
 components/admin/books/SummaryTab.tsx
 ```
 
-**Миграция:**
+**Статус:** ✅ ЗАВЕРШЕНО (28.10.2025)
 
-- Разделить большой `BookEditor.tsx` на отдельные компоненты
-- Каждый таб - отдельный компонент с собственной логикой
-- Общий state управляется через React Query
+**Реализовано:**
 
-**Read Tab:**
+1. ✅ Создан компонент `BookVersionTabs` с 4 табами: Overview, Read, Listen, Summary
+2. ✅ Создан `ReadContentTab` для управления текстовыми главами
+3. ✅ Создан `ListenContentTab` для управления аудио контентом
+4. ✅ Создан `SummaryTab` для редактирования саммари книги
+5. ✅ Интегрированы табы в страницу редактирования версии
+6. ✅ Добавлены API эндпоинты для глав: `getChapters`, `createChapter`, `updateChapter`, `deleteChapter`, `reorderChapters`
+7. ✅ Добавлены React Query хуки: `useChapters`, `useCreateChapter`, `useUpdateChapter`, `useDeleteChapter`, `useReorderChapters`
+8. ✅ Добавлены типы: `ChapterDetail`, `CreateChapterRequest`, `UpdateChapterRequest`, `ReorderChaptersRequest`
 
-- Управление главами (создание, редактирование, удаление)
-- Markdown/Rich text editor для контента
-- Drag-and-drop для сортировки глав
+**Компоненты:**
 
-**Listen Tab:**
+- `BookVersionTabs` - Навигация между табами с управлением активного состояния
+- `ReadContentTab` - Список глав с CRUD операциями (с заглушками для полной реализации)
+- `ListenContentTab` - Управление аудио главами (с заглушками)
+- `SummaryTab` - Редактирование саммари, key takeaways, themes
 
-- Загрузка аудио файлов
-- Управление аудио главами
-- Transcript для каждой главы
+**API интеграция:**
 
-**Summary Tab:**
+- GET `/versions/{versionId}/chapters` - получение списка глав
+- POST `/versions/{versionId}/chapters` - создание главы
+- PATCH `/chapters/{chapterId}` - обновление главы
+- DELETE `/chapters/{chapterId}` - удаление главы
+- POST `/versions/{versionId}/chapters/reorder` - переупорядочивание глав
 
-- Summary text
-- Key takeaways
-- Themes и analysis
+**Примечания:**
 
-**Commit:** `feat(admin): add book content tabs (read/listen/summary)`
+- Базовая структура табов готова
+- CRUD операции глав имеют заглушки (TODO для M3.2.3)
+- Markdown редактор для глав будет добавлен позже
+- Drag-and-drop сортировка глав будет добавлена позже
+- Загрузка аудио файлов будет реализована позже
+
+**Commit:** `feat(admin): add book content tabs (read/listen/summary) (M3.2.3)`
 
 ---
 

@@ -1,0 +1,79 @@
+@import '@/styles/tokens';
+
+/**
+ * Стили для SummaryTab
+ * Управление саммари книги
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.label {
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+}
+
+.labelHint {
+  color: $color-text-disabled;
+  margin-left: $spacing-xs;
+  font-weight: $font-weight-regular;
+}
+
+.textarea {
+  padding: $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  font-family: $font-family-base;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: $shadow-focus;
+  }
+}
+
+.saveButton {
+  align-self: flex-start;
+  padding: $spacing-sm $spacing-lg;
+  background: $color-primary;
+  color: $color-text-inverse;
+  border: none;
+  border-radius: $border-radius-base;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+}
+
+.emptyState {
+  text-align: center;
+  padding: $spacing-xxl;
+  color: $color-text-secondary;
+}
+
+.emptyIcon {
+  font-size: $icon-size-xxl;
+  margin-bottom: $spacing-md;
+}

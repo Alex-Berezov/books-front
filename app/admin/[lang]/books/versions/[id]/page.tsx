@@ -1,11 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { useBookVersion, useUpdateBookVersion } from '@/api/hooks/useAdmin';
-import { BookForm, type BookFormData } from '@/components/admin/books';
+import {
+  BookForm,
+  BookVersionTabs,
+  ListenContentTab,
+  ReadContentTab,
+  SummaryTab,
+  type BookFormData,
+  type TabType,
+} from '@/components/admin/books';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { UpdateBookVersionRequest } from '@/types/api-schema';
+import styles from './page.module.scss';
 
 interface EditBookVersionPageProps {
   params: {
@@ -24,6 +34,9 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
   const { lang, id: versionId } = params;
 
   const router = useRouter();
+
+  // Состояние активного таба
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
 
   // Загружаем данные версии
   const { data: version, error, isLoading } = useBookVersion(versionId);
@@ -67,7 +80,7 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
   // Loading состояние
   if (isLoading) {
     return (
-      <div style={{ padding: '2rem' }}>
+      <div className={styles.loadingContainer}>
         <p>Loading...</p>
       </div>
     );
@@ -76,20 +89,15 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
   // Error состояние
   if (error || !version) {
     return (
-      <div style={{ padding: '2rem' }}>
-        <h1>Error</h1>
-        <p>Failed to load book version. {error?.message || 'Version not found.'}</p>
+      <div className={styles.errorContainer}>
+        <h1 className={styles.errorTitle}>Error</h1>
+        <p className={styles.errorMessage}>
+          Failed to load book version. {error?.message || 'Version not found.'}
+        </p>
         <button
+          className={styles.errorButton}
           onClick={() => router.push(`/admin/${lang}/books`)}
-          style={{
-            marginTop: '1rem',
-            padding: '0.5rem 1rem',
-            background: '#1890ff',
-            border: 'none',
-            borderRadius: '4px',
-            color: 'white',
-            cursor: 'pointer',
-          }}
+          type="button"
         >
           Back to Books List
         </button>
@@ -98,31 +106,35 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
   }
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <div style={{ marginBottom: '2rem' }}>
+    <div className={styles.pageContainer}>
+      <div className={styles.header}>
         <button
+          className={styles.backButton}
           onClick={() => router.push(`/admin/${lang}/books`)}
-          style={{
-            padding: '0.5rem 1rem',
-            background: '#f0f0f0',
-            border: '1px solid #d9d9d9',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            marginBottom: '1rem',
-          }}
+          type="button"
         >
           ← Back to Books List
         </button>
-        <h1>Edit Book Version</h1>
-        <p style={{ color: '#666', marginTop: '0.5rem' }}>
+        <h1 className={styles.pageTitle}>Edit Book Version</h1>
+        <p className={styles.versionMeta}>
           {version.title} • {version.language.toUpperCase()} • {version.status}
         </p>
       </div>
-      <BookForm
-        initialData={version}
-        isSubmitting={updateMutation.isPending}
-        lang={lang}
-        onSubmit={handleSubmit}
+
+      <BookVersionTabs
+        activeTab={activeTab}
+        listenContent={<ListenContentTab versionId={versionId} />}
+        onTabChange={setActiveTab}
+        overviewContent={
+          <BookForm
+            initialData={version}
+            isSubmitting={updateMutation.isPending}
+            lang={lang}
+            onSubmit={handleSubmit}
+          />
+        }
+        readContent={<ReadContentTab versionId={versionId} />}
+        summaryContent={<SummaryTab versionId={versionId} />}
       />
     </div>
   );

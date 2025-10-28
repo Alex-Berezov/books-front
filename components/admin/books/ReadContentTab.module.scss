@@ -1,0 +1,109 @@
+@import '@/styles/tokens';
+
+/**
+ * Стили для ReadContentTab
+ * Управление текстовым контентом (главами)
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.addButton {
+  padding: $spacing-sm $spacing-md;
+  background: $color-primary;
+  color: $color-text-inverse;
+  border: none;
+  border-radius: $border-radius-base;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+}
+
+.chaptersList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.chapterItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  background: $color-background-secondary;
+  border-radius: $border-radius-base;
+  border: 1px solid $color-border-light;
+}
+
+.chapterInfo {
+  flex: 1;
+}
+
+.chapterTitle {
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.chapterMeta {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.chapterActions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.actionButton {
+  padding: $spacing-xs $spacing-sm;
+  background: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  color: $color-text-secondary;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: $color-text-primary;
+    border-color: $color-border-dark;
+  }
+}
+
+.emptyState {
+  text-align: center;
+  padding: $spacing-xxl;
+  color: $color-text-secondary;
+}
+
+.emptyIcon {
+  font-size: $icon-size-xxl;
+  margin-bottom: $spacing-md;
+}
+
+.emptyText {
+  margin-bottom: $spacing-lg;
+}
+
+.errorText {
+  color: $color-error;
+}
