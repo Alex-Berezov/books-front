@@ -170,27 +170,31 @@ components/admin/AdminShell/
 
 ### 🔹 Фаза 2: Books Management (4-5 часов)
 
-#### Задача 2.1: Список книг
+#### ✅ Задача 2.1: Список книг (ЗАВЕРШЕНО - 28.10.2025)
 
 ```bash
 app/admin/[lang]/books/page.tsx
 components/admin/books/BookListTable.tsx
+components/admin/books/BookListTable.module.scss
+api/endpoints/admin.ts
+api/hooks/useAdmin.ts
 ```
 
 **Миграция `BooksList.tsx`:**
 
-1. Создать Server Component для списка
-2. Перенести UI таблицы в `BookListTable.tsx` (Client Component)
-3. Интегрировать с `api/endpoints/public.ts`
-4. Использовать React Query через `useBooks` hook
-5. Добавить пагинацию, поиск, фильтры
+1. ✅ Создать Server Component для списка
+2. ✅ Перенести UI таблицы в `BookListTable.tsx` (Client Component)
+3. ✅ Интегрировать с `api/endpoints/admin.ts`
+4. ✅ Использовать React Query через `useBooks` hook
+5. ✅ Добавить пагинацию, поиск, фильтры
 
 **Новые features:**
 
-- Real API data вместо mock'ов
-- Server-side pagination
-- Optimistic updates
-- Error boundaries
+- ✅ Real API data вместо mock'ов
+- ✅ Server-side pagination
+- ✅ Search по title/author/slug
+- ✅ Фильтрация по языку
+- ✅ Responsive дизайн с SCSS tokens
 
 **Commit:** `feat(admin): add books list with API integration`
 

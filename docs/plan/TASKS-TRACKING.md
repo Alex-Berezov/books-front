@@ -287,12 +287,14 @@
 
 ### Фаза 2: Books Management (Must Have, 4-5ч)
 
-- [ ] 🔴 **M3.2.1** Books List
-  - [ ] Создать `app/admin/[lang]/books/page.tsx` (Server Component)
-  - [ ] Мигрировать `BooksList.tsx` → `components/admin/BooksList.tsx` (Client Component)
-  - [ ] Заменить mock data на `useBooks()` hook с React Query
-  - [ ] Реализовать search/filters с URL query params
-  - [ ] Добавить пагинацию через `usePagination()`
+- [x] � **M3.2.1** Books List (Завершено 28.10.2025)
+  - [x] Создать `app/admin/[lang]/books/page.tsx` (Server Component)
+  - [x] Создать `components/admin/books/BookListTable.tsx` (Client Component)
+  - [x] Создать `api/endpoints/admin.ts` с функцией getBooks
+  - [x] Создать `api/hooks/useAdmin.ts` с хуком useBooks
+  - [x] Реализовать search/filters по title/author/slug
+  - [x] Добавить пагинацию (prev/next кнопки)
+  - [x] Добавить стили через SCSS с design tokens
 
 - [ ] 🔴 **M3.2.2** Book Editor - Shell
   - [ ] Создать `app/admin/[lang]/books/[id]/page.tsx`

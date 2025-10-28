@@ -1,3 +1,63 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    // Порядок импортов согласно CODE_STYLE.md
+    "import/order": [
+      "warn",
+      {
+        "groups": [
+          ["builtin", "external"], // 1. React и библиотеки
+          "internal", // 2-4. Внутренние компоненты, утилиты
+          "type", // 5. Типы
+          ["parent", "sibling", "index"] // 6. Стили (последними)
+        ],
+        "pathGroups": [
+          {
+            "pattern": "react",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "@/styles/**",
+            "group": "index",
+            "position": "after"
+          },
+          {
+            "pattern": "**/*.scss",
+            "group": "index",
+            "position": "after"
+          },
+          {
+            "pattern": "**/*.css",
+            "group": "index",
+            "position": "after"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["react"],
+        "newlines-between": "never",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    // Требовать type для импортов типов
+    "@typescript-eslint/consistent-type-imports": [
+      "warn",
+      {
+        "prefer": "type-imports",
+        "disallowTypeAnnotations": false,
+        "fixStyle": "separate-type-imports"
+      }
+    ],
+    // Запретить неиспользуемые переменные (кроме начинающихся с _)
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ]
+  }
 }
