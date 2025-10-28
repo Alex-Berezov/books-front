@@ -150,10 +150,11 @@ export const authOptions = {
           const data = await response.json();
 
           // Возвращаем объект User с токенами
+          // Роли теперь приходят напрямую от бэкенда в /auth/login
           return {
             id: data.user.id,
             email: data.user.email,
-            displayName: data.user.displayName,
+            displayName: data.user.displayName || data.user.name,
             roles: data.user.roles || [],
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
