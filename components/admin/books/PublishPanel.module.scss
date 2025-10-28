@@ -1,0 +1,252 @@
+/**
+ * Стили для панели публикации версии книги
+ */
+
+@import '@/styles/tokens.scss';
+
+.panel {
+  background: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-sm;
+}
+
+.header {
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.statusSection {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+  padding: $spacing-md;
+  background: $color-background-tertiary;
+  border-radius: $border-radius-base;
+}
+
+.statusLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+
+  &.draft {
+    background: $color-background-secondary;
+    color: $color-text-secondary;
+    border: 1px solid $color-border-base;
+  }
+
+  &.published {
+    background: rgba($color-success, 0.1);
+    color: $color-success;
+    border: 1px solid rgba($color-success, 0.3);
+  }
+
+  &.archived {
+    background: rgba($color-warning, 0.1);
+    color: darken($color-warning, 10%);
+    border: 1px solid rgba($color-warning, 0.3);
+  }
+}
+
+.actions {
+  margin-bottom: $spacing-lg;
+}
+
+.button {
+  width: 100%;
+  padding: $spacing-sm $spacing-lg;
+  border: none;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+.publishButton {
+  background: $color-success;
+  color: $color-text-inverse;
+
+  &:hover:not(:disabled) {
+    background: $color-success-hover;
+  }
+}
+
+.unpublishButton {
+  background: $color-warning;
+  color: $color-text-inverse;
+
+  &:hover:not(:disabled) {
+    background: $color-warning-hover;
+  }
+}
+
+.info {
+  padding: $spacing-md;
+  background: rgba($color-info, 0.05);
+  border-left: 3px solid $color-info;
+  border-radius: $border-radius-base;
+}
+
+.infoText {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-base;
+}
+
+/* Модальное окно */
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: $z-index-modal;
+  animation: fadeIn $transition-fast;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: $color-background-primary;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-xl;
+  width: 90%;
+  max-width: 500px;
+  animation: slideUp $transition-base;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalHeader {
+  padding: $spacing-lg $spacing-xl;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.modalBody {
+  padding: $spacing-xl;
+}
+
+.modalText {
+  margin: 0;
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  line-height: $line-height-base;
+}
+
+.modalActions {
+  display: flex;
+  gap: $spacing-md;
+  padding: $spacing-lg $spacing-xl;
+  border-top: 1px solid $color-border-light;
+  justify-content: flex-end;
+}
+
+.modalButton {
+  padding: $spacing-sm $spacing-lg;
+  border: none;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
+  min-width: 100px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: $shadow-sm;
+  }
+}
+
+.cancelButton {
+  background: $color-background-secondary;
+  color: $color-text-primary;
+
+  &:hover:not(:disabled) {
+    background: darken($color-background-secondary, 5%);
+  }
+}
+
+.confirmPublishButton {
+  background: $color-success;
+  color: $color-text-inverse;
+
+  &:hover:not(:disabled) {
+    background: $color-success-hover;
+  }
+}
+
+.confirmUnpublishButton {
+  background: $color-warning;
+  color: $color-text-inverse;
+
+  &:hover:not(:disabled) {
+    background: $color-warning-hover;
+  }
+}

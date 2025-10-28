@@ -43,6 +43,27 @@
   margin-top: $spacing-sm;
 }
 
+// Layout с сайдбаром
+.contentLayout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: $spacing-xl;
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mainContent {
+  min-width: 0; // Предотвращает overflow
+}
+
+.sidebar {
+  @media (max-width: $breakpoint-md) {
+    order: -1; // На мобильных показываем сверху
+  }
+}
+
 // Loading и Error состояния
 .loadingContainer,
 .errorContainer {

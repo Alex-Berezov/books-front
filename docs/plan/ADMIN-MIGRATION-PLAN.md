@@ -298,20 +298,33 @@ components/admin/books/SummaryTab.tsx
 
 ---
 
-#### Задача 2.4: Publish/Unpublish
+#### ✅ Задача 2.4: Publish/Unpublish — ЗАВЕРШЕНО (28.10.2025)
 
 ```bash
-components/admin/books/PublishPanel.tsx
+components/admin/books/PublishPanel.tsx           # Компонент панели публикации
+components/admin/books/PublishPanel.module.scss   # Стили панели
+app/admin/[lang]/books/versions/[id]/page.tsx    # Интеграция в страницу
 ```
 
-**Функционал:**
+**Реализовано:**
 
-- Status toggle (draft/published)
-- Publish date picker
-- Confirmation modal перед публикацией
-- Integration с `PATCH /api/versions/{id}/publish`
+1. ✅ Создан компонент `PublishPanel` с функционалом публикации/снятия с публикации
+2. ✅ Интеграция с API хуками `usePublishVersion` и `useUnpublishVersion`
+3. ✅ Модальное окно подтверждения перед публикацией/снятием с публикации
+4. ✅ Отображение текущего статуса версии (draft/published/archived)
+5. ✅ Адаптивный layout со sidebar для размещения панели
+6. ✅ Стили с использованием design tokens
 
-**Commit:** `feat(admin): add book publish/unpublish functionality`
+**Особенности:**
+
+- Status badge с визуальными индикаторами для каждого статуса
+- Disabled состояние для archived версий
+- Анимированное модальное окно с подтверждением
+- Loading состояния во время API запросов
+- Responsive дизайн с переносом sidebar на мобильных устройствах
+- Поддержка callbacks для success событий
+
+**Commit:** `feat(admin): add publish/unpublish panel for book versions (M3.2.4)`
 
 ---
 

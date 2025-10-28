@@ -9,3 +9,5 @@ export { ListenContentTab } from './ListenContentTab';
 export type { ListenContentTabProps } from './ListenContentTab';
 export { SummaryTab } from './SummaryTab';
 export type { SummaryTabProps } from './SummaryTab';
+export { PublishPanel } from './PublishPanel';
+export type { PublishPanelProps } from './PublishPanel';

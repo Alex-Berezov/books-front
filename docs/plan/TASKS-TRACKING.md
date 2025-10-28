@@ -287,7 +287,7 @@
 
 ### Фаза 2: Books Management (Must Have, 4-5ч)
 
-- [x] � **M3.2.1** Books List (Завершено 28.10.2025)
+- [x] 🟢 **M3.2.1** Books List (Завершено 28.10.2025)
   - [x] Создать `app/admin/[lang]/books/page.tsx` (Server Component)
   - [x] Создать `components/admin/books/BookListTable.tsx` (Client Component)
   - [x] Создать `api/endpoints/admin.ts` с функцией getBooks
@@ -295,6 +295,30 @@
   - [x] Реализовать search/filters по title/author/slug
   - [x] Добавить пагинацию (prev/next кнопки)
   - [x] Добавить стили через SCSS с design tokens
+
+- [x] 🟢 **M3.2.2** Book Editor - Shell (Завершено 28.10.2025)
+  - [x] Создать `app/admin/[lang]/books/versions/[id]/page.tsx`
+  - [x] Создать `components/admin/books/BookForm.tsx`
+  - [x] Добавить `react-hook-form` + `zod` валидацию
+  - [x] Реализовать 4 таба: Overview / Read Content / Listen Content / Summary
+
+- [x] 🟢 **M3.2.3** Book Editor - Content Tabs (Завершено 28.10.2025)
+  - [x] Read Content: текстовый контент/главы
+  - [x] Listen Content: аудио-версии/главы
+  - [x] Summary: генерация/отображение саммари
+
+- [x] 🟢 **M3.2.4** Publish Panel (Завершено 28.10.2025)
+  - [x] Создать `components/admin/books/PublishPanel.tsx`
+  - [x] Sidebar с Publish/Unpublish кнопкой
+  - [x] Status indicator (Published/Draft/Archived)
+  - [x] Модальное окно подтверждения
+  - [x] Интеграция с `usePublishVersion` и `useUnpublishVersion`
+  - [x] Адаптивный layout со sidebar
+
+- [ ] 🔴 **M3.2.5** Categories & Tags Panels
+  - [ ] Categories: multi-select с деревом
+  - [ ] Tags: autocomplete с созданием новых
+  - [ ] Связь через API (book-category, book-tag endpoints)
 
 - [ ] 🔴 **M3.2.2** Book Editor - Shell
   - [ ] Создать `app/admin/[lang]/books/[id]/page.tsx`

@@ -8,6 +8,7 @@ import {
   BookForm,
   BookVersionTabs,
   ListenContentTab,
+  PublishPanel,
   ReadContentTab,
   SummaryTab,
   type BookFormData,
@@ -52,6 +53,22 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
       console.error('Failed to update book version:', error);
     },
   });
+
+  /**
+   * Обработчик успешной публикации
+   */
+  const handlePublishSuccess = () => {
+    // TODO: Показать toast уведомление
+    console.log('Version published successfully');
+  };
+
+  /**
+   * Обработчик успешного снятия с публикации
+   */
+  const handleUnpublishSuccess = () => {
+    // TODO: Показать toast уведомление
+    console.log('Version unpublished successfully');
+  };
 
   /**
    * Обработчик отправки формы
@@ -121,21 +138,34 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
         </p>
       </div>
 
-      <BookVersionTabs
-        activeTab={activeTab}
-        listenContent={<ListenContentTab versionId={versionId} />}
-        onTabChange={setActiveTab}
-        overviewContent={
-          <BookForm
-            initialData={version}
-            isSubmitting={updateMutation.isPending}
-            lang={lang}
-            onSubmit={handleSubmit}
+      <div className={styles.contentLayout}>
+        <div className={styles.mainContent}>
+          <BookVersionTabs
+            activeTab={activeTab}
+            listenContent={<ListenContentTab versionId={versionId} />}
+            onTabChange={setActiveTab}
+            overviewContent={
+              <BookForm
+                initialData={version}
+                isSubmitting={updateMutation.isPending}
+                lang={lang}
+                onSubmit={handleSubmit}
+              />
+            }
+            readContent={<ReadContentTab versionId={versionId} />}
+            summaryContent={<SummaryTab versionId={versionId} />}
           />
-        }
-        readContent={<ReadContentTab versionId={versionId} />}
-        summaryContent={<SummaryTab versionId={versionId} />}
-      />
+        </div>
+
+        <aside className={styles.sidebar}>
+          <PublishPanel
+            onPublishSuccess={handlePublishSuccess}
+            onUnpublishSuccess={handleUnpublishSuccess}
+            status={version.status}
+            versionId={versionId}
+          />
+        </aside>
+      </div>
     </div>
   );
 };
