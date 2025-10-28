@@ -200,29 +200,52 @@ api/hooks/useAdmin.ts
 
 ---
 
-#### Задача 2.2: Редактор книги (основа)
+#### ✅ Задача 2.2: Редактор книги (основа) — ЗАВЕРШЕНО (28.10.2025)
 
 ```bash
-app/admin/[lang]/books/[id]/page.tsx
-components/admin/books/BookForm.tsx
+app/admin/[lang]/books/new/page.tsx           # Создание новой версии
+app/admin/[lang]/books/versions/[id]/page.tsx # Редактирование версии
+components/admin/books/BookForm.tsx           # Форма с валидацией
+components/admin/books/BookForm.module.scss   # Стили формы
+types/api-schema.ts                           # Новые типы
+api/endpoints/admin.ts                        # API функции
+api/hooks/useAdmin.ts                         # React Query хуки
 ```
 
-**Миграция `BookEditor.tsx` (часть 1 - Overview):**
+**Реализовано:**
 
-1. Создать форму с react-hook-form
-2. Интегрировать с `POST /api/books/{id}/versions`
-3. Валидация на стороне клиента + сервера
-4. Сохранение черновиков
+1. ✅ Форма с react-hook-form + zod валидацией
+2. ✅ Интеграция с `POST /api/books/{bookId}/versions` (создание)
+3. ✅ Интеграция с `PATCH /api/versions/{id}` (обновление)
+4. ✅ Валидация на стороне клиента
+5. ✅ Автоматическое сохранение через React Query
 
 **Поля формы:**
 
-- Title, Slug, Author, Description
-- Cover Image (через media upload)
-- Type (text/audio/referral)
-- isFree checkbox
-- SEO fields (metaTitle, metaDescription)
+- ✅ Title, Author, Language, Description
+- ✅ Cover Image URL
+- ✅ Type (text/audio)
+- ✅ isFree checkbox
+- ✅ Referral URL (опционально)
+- ✅ SEO fields (metaTitle, metaDescription)
 
-**Commit:** `feat(admin): add book editor with version creation`
+**API endpoints:**
+
+- ✅ `getBookVersion(versionId)` - получение версии
+- ✅ `createBookVersion(bookId, data)` - создание версии
+- ✅ `updateBookVersion(versionId, data)` - обновление версии
+- ✅ `publishVersion(versionId)` - публикация
+- ✅ `unpublishVersion(versionId)` - снятие с публикации
+
+**React Query hooks:**
+
+- ✅ `useBookVersion(versionId)` - получение версии
+- ✅ `useCreateBookVersion()` - создание версии
+- ✅ `useUpdateBookVersion()` - обновление версии
+- ✅ `usePublishVersion()` - публикация
+- ✅ `useUnpublishVersion()` - снятие с публикации
+
+**Commit:** `feat(admin): add book editor with version creation (M3.2.2)`
 
 ---
 

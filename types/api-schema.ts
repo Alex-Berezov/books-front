@@ -268,3 +268,81 @@ export interface UpdateProgressRequest {
   position: number;
   percentage: number;
 }
+
+/**
+ * Admin: Book Version Management
+ */
+
+/**
+ * Детальная информация о версии книги (для админки)
+ */
+export interface BookVersionDetail {
+  id: UUID;
+  bookId: UUID;
+  language: SupportedLang;
+  title: string;
+  author: string;
+  description?: string;
+  coverImageUrl?: string;
+  type: VersionType;
+  isFree: boolean;
+  status: PublicationStatus;
+  publishedAt?: ISODate;
+  referralUrl?: string;
+  seo: {
+    metaTitle?: string;
+    metaDescription?: string;
+  };
+  createdAt: ISODate;
+  updatedAt: ISODate;
+}
+
+/**
+ * Запрос на создание новой версии книги
+ */
+export interface CreateBookVersionRequest {
+  /** Язык версии книги */
+  language: SupportedLang;
+  /** Название книги */
+  title: string;
+  /** Автор книги */
+  author: string;
+  /** Описание книги */
+  description?: string;
+  /** URL обложки книги */
+  coverImageUrl?: string;
+  /** Тип версии (текстовая или аудио) */
+  type: VersionType;
+  /** Бесплатная ли версия */
+  isFree: boolean;
+  /** URL для реферальных ссылок (опционально) */
+  referralUrl?: string;
+  /** SEO мета-заголовок */
+  seoMetaTitle?: string;
+  /** SEO мета-описание */
+  seoMetaDescription?: string;
+}
+
+/**
+ * Запрос на обновление версии книги
+ */
+export interface UpdateBookVersionRequest {
+  /** Название книги */
+  title?: string;
+  /** Автор книги */
+  author?: string;
+  /** Описание книги */
+  description?: string;
+  /** URL обложки книги */
+  coverImageUrl?: string;
+  /** Тип версии (текстовая или аудио) */
+  type?: VersionType;
+  /** Бесплатная ли версия */
+  isFree?: boolean;
+  /** URL для реферальных ссылок */
+  referralUrl?: string;
+  /** SEO мета-заголовок */
+  seoMetaTitle?: string;
+  /** SEO мета-описание */
+  seoMetaDescription?: string;
+}
