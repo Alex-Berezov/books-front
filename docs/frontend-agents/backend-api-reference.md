@@ -1290,15 +1290,17 @@ Response 200: (success)
 **Problem:** `400 Bad Request - property language should not exist`
 
 **Solution:**
+
 ```typescript
 // ❌ WRONG - Adds language parameter
 const response = await fetch('/api/books?page=1&limit=20&language=en');
 
-// ✅ CORRECT - No language parameter  
+// ✅ CORRECT - No language parameter
 const response = await fetch('/api/books?page=1&limit=20');
 ```
 
 **Workflow for Language-Specific Data:**
+
 ```typescript
 // Option 1: Two requests (recommended)
 // 1. Get books list (containers)
@@ -1308,9 +1310,7 @@ const { data: books } = await booksResponse.json();
 // 2. Get versions for each book by language
 const booksWithVersions = await Promise.all(
   books.map(async (book) => {
-    const versionsResponse = await fetch(
-      `/api/books/${book.id}/versions?language=en&type=text`
-    );
+    const versionsResponse = await fetch(`/api/books/${book.id}/versions?language=en&type=text`);
     const versions = await versionsResponse.json();
     return { ...book, versions };
   })
