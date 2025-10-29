@@ -218,7 +218,7 @@ Public Content (with language):
 Neutral APIs (no language in path):
   /api/auth/login
   /api/users/me
-  /api/books
+  /api/books                    ⚠️ Does NOT accept ?language= parameter
   /api/versions/:id
 ```
 
@@ -683,6 +683,9 @@ Response 201:
 ```http
 GET /api/books?page=1&limit=10
 Authorization: Bearer {token}
+⚠️  IMPORTANT: Do NOT include language parameter
+❌  GET /api/books?language=en  (will return 400 Bad Request)
+✅  GET /api/books?page=1&limit=20  (correct)
 
 Response 200:
 {
@@ -1277,6 +1280,44 @@ Response 200: (success)
 3. **Test Endpoints:**
    - All admin endpoints will now include auth token
    - Try creating a book, version, categories, etc.
+
+---
+
+## 🐛 Common API Issues & Solutions
+
+### Books API Error Fixes
+
+**Problem:** `400 Bad Request - property language should not exist`
+
+**Solution:**
+```typescript
+// ❌ WRONG - Adds language parameter
+const response = await fetch('/api/books?page=1&limit=20&language=en');
+
+// ✅ CORRECT - No language parameter  
+const response = await fetch('/api/books?page=1&limit=20');
+```
+
+**Workflow for Language-Specific Data:**
+```typescript
+// Option 1: Two requests (recommended)
+// 1. Get books list (containers)
+const booksResponse = await fetch('/api/books?page=1&limit=20');
+const { data: books } = await booksResponse.json();
+
+// 2. Get versions for each book by language
+const booksWithVersions = await Promise.all(
+  books.map(async (book) => {
+    const versionsResponse = await fetch(
+      `/api/books/${book.id}/versions?language=en&type=text`
+    );
+    const versions = await versionsResponse.json();
+    return { ...book, versions };
+  })
+);
+```
+
+**Fixed:** October 29, 2025 - Removed `language` parameter from `getBooks()` function
 
 ---
 

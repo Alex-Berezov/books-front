@@ -6,7 +6,6 @@
  */
 
 import { httpDelete, httpGet, httpPatch, httpPost } from '@/lib/http';
-import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   AttachCategoryRequest,
   AttachTagRequest,
@@ -34,8 +33,6 @@ export interface GetBooksParams {
   limit?: number;
   /** Поиск по названию, автору или slug */
   search?: string;
-  /** Язык для фильтрации */
-  language?: SupportedLang;
 }
 
 /**
@@ -52,7 +49,7 @@ export interface GetBooksParams {
 export const getBooks = async (
   params: GetBooksParams = {}
 ): Promise<PaginatedResponse<BookOverview>> => {
-  const { page = 1, limit = 20, search, language } = params;
+  const { page = 1, limit = 20, search } = params;
 
   const queryParams = new URLSearchParams({
     page: String(page),
@@ -63,12 +60,8 @@ export const getBooks = async (
     queryParams.append('search', search);
   }
 
-  if (language) {
-    queryParams.append('language', language);
-  }
-
   const endpoint = `/books?${queryParams.toString()}`;
-  return httpGet<PaginatedResponse<BookOverview>>(endpoint, { language });
+  return httpGet<PaginatedResponse<BookOverview>>(endpoint);
 };
 
 /**
