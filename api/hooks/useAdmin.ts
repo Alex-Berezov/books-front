@@ -14,6 +14,7 @@ import {
 import {
   attachCategory,
   attachTag,
+  createBook,
   createBookVersion,
   createChapter,
   deleteChapter,
@@ -40,6 +41,8 @@ import type {
   Category,
   CategoryTree,
   ChapterDetail,
+  CreateBookRequest,
+  CreateBookResponse,
   CreateBookVersionRequest,
   CreateChapterRequest,
   PaginatedResponse,
@@ -101,6 +104,39 @@ export const useBooks = (
     queryKey: bookKeys.list(params),
     queryFn: () => getBooks(params),
     staleTime: 5 * 60 * 1000, // 5 минут
+    ...options,
+  });
+};
+
+/**
+ * Хук для создания новой книги (контейнера)
+ *
+ * @param options - Опции React Query mutation
+ * @returns React Query mutation для создания книги
+ *
+ * @example
+ * ```tsx
+ * const createBookMutation = useCreateBook();
+ *
+ * const handleCreateBook = async () => {
+ *   const book = await createBookMutation.mutateAsync({
+ *     slug: 'my-awesome-book'
+ *   });
+ *   console.log('Created book:', book);
+ * };
+ * ```
+ */
+export const useCreateBook = (
+  options?: Omit<UseMutationOptions<CreateBookResponse, Error, CreateBookRequest>, 'mutationFn'>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createBook,
+    onSuccess: () => {
+      // Инвалидируем список книг после создания
+      queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
+    },
     ...options,
   });
 };

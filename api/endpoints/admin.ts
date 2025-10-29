@@ -14,6 +14,8 @@ import type {
   Category,
   CategoryTree,
   ChapterDetail,
+  CreateBookRequest,
+  CreateBookResponse,
   CreateBookVersionRequest,
   CreateChapterRequest,
   PaginatedResponse,
@@ -62,6 +64,22 @@ export const getBooks = async (
 
   const endpoint = `/books?${queryParams.toString()}`;
   return httpGet<PaginatedResponse<BookOverview>>(endpoint);
+};
+
+/**
+ * Создать новую книгу (контейнер)
+ *
+ * @param data - Данные для создания книги
+ * @returns Созданная книга
+ *
+ * @example
+ * ```ts
+ * const book = await createBook({ slug: 'my-awesome-book' });
+ * ```
+ */
+export const createBook = async (data: CreateBookRequest): Promise<CreateBookResponse> => {
+  const endpoint = '/books';
+  return httpPost<CreateBookResponse>(endpoint, data);
 };
 
 /**

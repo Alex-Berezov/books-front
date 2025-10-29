@@ -31,7 +31,6 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
     page,
     limit: 20,
     search: search || undefined,
-    language: lang,
   });
 
   // Обработчик поиска
@@ -86,7 +85,7 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
       <div className={styles.header}>
         <div className={styles.titleRow}>
           <h1 className={styles.title}>Books Management</h1>
-          <Link href={`/admin/${lang}/books/new`} className={styles.createButton}>
+          <Link href={`/admin/${lang}/books/create`} className={styles.createButton}>
             + Create Book
           </Link>
         </div>

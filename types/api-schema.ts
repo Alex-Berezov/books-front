@@ -116,6 +116,23 @@ export interface BookOverview {
   updatedAt: ISODate;
 }
 
+/**
+ * Запрос на создание новой книги (контейнера)
+ */
+export interface CreateBookRequest {
+  slug: string;
+}
+
+/**
+ * Ответ при создании книги
+ */
+export interface CreateBookResponse {
+  id: UUID;
+  slug: string;
+  createdAt: ISODate;
+  updatedAt: ISODate;
+}
+
 export interface VersionPreview {
   id: UUID;
   type: VersionType;
