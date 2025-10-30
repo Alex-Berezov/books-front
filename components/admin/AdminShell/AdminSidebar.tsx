@@ -9,9 +9,9 @@
  * - Интегрировано с роутингом /admin/:lang
  */
 
+import { BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen } from 'lucide-react';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import { getAdminMenuItems } from './admin.constants';
 import styles from './AdminSidebar.module.scss';

@@ -1,7 +1,7 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
 import { Select } from 'antd';
+import { usePathname, useRouter } from 'next/navigation';
 import { getLangFromPath, switchLangInPath, type SupportedLang } from '@/lib/i18n/lang';
 import { getLanguageSelectOptions } from '@/lib/i18n/languageSelectOptions';
 import styles from './LanguageSwitcher.module.scss';

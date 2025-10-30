@@ -1,7 +1,7 @@
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { isSupportedLang, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { BookOpen, FileText, FolderTree, Tags } from 'lucide-react';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { isSupportedLang, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 
 type Props = {

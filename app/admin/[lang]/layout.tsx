@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
-import { getCurrentUser } from '@/lib/auth/helpers';
-import { STAFF_ROLES } from '@/lib/auth/constants';
 import { AdminSidebar } from '@/components/admin/AdminShell/AdminSidebar';
 import { AdminTopBar } from '@/components/admin/AdminShell/AdminTopBar';
+import { STAFF_ROLES } from '@/lib/auth/constants';
+import { getCurrentUser } from '@/lib/auth/helpers';
+import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import { AppProviders } from '@/providers/AppProviders';
+import type { Metadata } from 'next';
 import '@/styles/globals.css';
 import styles from '@/styles/admin-layouts.module.scss';
 

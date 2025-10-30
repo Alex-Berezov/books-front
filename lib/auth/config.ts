@@ -9,9 +9,9 @@
  * @see https://next-auth.js.org/configuration/options
  */
 
-import type { JWT } from 'next-auth/jwt';
-import type { User, Session, Account } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import type { User, Session, Account } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
 import { AUTH_TOKEN_EXPIRY, AuthErrorType, AUTH_ERROR_MESSAGES, AUTH_ROUTES } from './constants';
 
 /**

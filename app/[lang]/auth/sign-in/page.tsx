@@ -9,10 +9,10 @@
 
 import type { FC } from 'react';
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Form, Input, Button, Alert, Typography } from 'antd';
 import { LockOutlined, MailOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Alert, Typography } from 'antd';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import styles from './sign-in.module.scss';
 
 const { Title, Text } = Typography;

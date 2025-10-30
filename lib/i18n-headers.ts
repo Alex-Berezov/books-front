@@ -5,8 +5,8 @@
  * и извлечения языка из различных источников.
  */
 
-import type { SupportedLang } from '@/lib/i18n/lang';
 import { isSupportedLang, getDefaultLang } from '@/lib/i18n/lang';
+import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
  * Добавить языковой заголовок к существующим заголовкам

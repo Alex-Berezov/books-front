@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
-import type { BookVersionDetail, VersionType } from '@/types/api-schema';
+import type { BookVersionDetail } from '@/types/api-schema';
 import styles from './BookForm.module.scss';
 
 /**
@@ -19,12 +19,12 @@ const bookVersionSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
   /** Автор книги */
   author: z.string().min(1, 'Author is required').max(100, 'Author name is too long'),
-  /** Описание книги */
-  description: z.string().max(2000, 'Description is too long').optional(),
-  /** URL обложки */
-  coverImageUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  /** Описание книги (обязательное) */
+  description: z.string().min(1, 'Description is required').max(2000, 'Description is too long'),
+  /** URL обложки (обязательное) */
+  coverImageUrl: z.string().url('Invalid URL').min(1, 'Cover image is required'),
   /** Тип версии */
-  type: z.enum(['text', 'audio']),
+  type: z.enum(['text', 'audio', 'referral']),
   /** Бесплатная ли версия */
   isFree: z.boolean(),
   /** URL для реферальных ссылок */
@@ -87,9 +87,16 @@ export const BookForm: FC<BookFormProps> = (props) => {
           type: initialData.type,
         }
       : {
+          author: '',
+          coverImageUrl: '',
+          description: '',
           isFree: true,
           language: lang,
-          type: 'text' as VersionType,
+          referralUrl: '',
+          seoMetaDescription: '',
+          seoMetaTitle: '',
+          title: '',
+          type: 'text' as const,
         },
   });
 

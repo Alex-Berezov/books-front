@@ -5,6 +5,8 @@
  * НЕ импортируйте этот файл в production код!
  */
 
+import { ApiError } from '@/types/api';
+import type { SupportedLang } from '@/lib/i18n/lang';
 import {
   httpGet,
   httpPost,
@@ -13,8 +15,6 @@ import {
   buildUrlWithParams,
   buildLangPath,
 } from './http';
-import { ApiError } from '@/types/api';
-import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
  * Пример 1: Простой GET запрос

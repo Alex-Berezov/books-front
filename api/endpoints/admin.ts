@@ -3,9 +3,16 @@
  *
  * Содержит типизированные функции для работы с административными данными:
  * управление книгами, страницами, категориями и т.д.
+ * 
+ * Все функции автоматически добавляют JWT токен из NextAuth сессии.
  */
 
-import { httpDelete, httpGet, httpPatch, httpPost } from '@/lib/http';
+import {
+  httpDeleteAuth,
+  httpGetAuth,
+  httpPatchAuth,
+  httpPostAuth,
+} from '@/lib/http-client';
 import type {
   AttachCategoryRequest,
   AttachTagRequest,
@@ -63,7 +70,7 @@ export const getBooks = async (
   }
 
   const endpoint = `/books?${queryParams.toString()}`;
-  return httpGet<PaginatedResponse<BookOverview>>(endpoint);
+  return httpGetAuth<PaginatedResponse<BookOverview>>(endpoint);
 };
 
 /**
@@ -79,7 +86,7 @@ export const getBooks = async (
  */
 export const createBook = async (data: CreateBookRequest): Promise<CreateBookResponse> => {
   const endpoint = '/books';
-  return httpPost<CreateBookResponse>(endpoint, data);
+  return httpPostAuth<CreateBookResponse>(endpoint, data);
 };
 
 /**
@@ -95,7 +102,7 @@ export const createBook = async (data: CreateBookRequest): Promise<CreateBookRes
  */
 export const getBookVersion = async (versionId: string): Promise<BookVersionDetail> => {
   const endpoint = `/versions/${versionId}`;
-  return httpGet<BookVersionDetail>(endpoint);
+  return httpGetAuth<BookVersionDetail>(endpoint);
 };
 
 /**
@@ -121,7 +128,7 @@ export const createBookVersion = async (
   data: CreateBookVersionRequest
 ): Promise<BookVersionDetail> => {
   const endpoint = `/books/${bookId}/versions`;
-  return httpPost<BookVersionDetail>(endpoint, data);
+  return httpPostAuth<BookVersionDetail>(endpoint, data);
 };
 
 /**
@@ -144,7 +151,7 @@ export const updateBookVersion = async (
   data: UpdateBookVersionRequest
 ): Promise<BookVersionDetail> => {
   const endpoint = `/versions/${versionId}`;
-  return httpPatch<BookVersionDetail>(endpoint, data);
+  return httpPatchAuth<BookVersionDetail>(endpoint, data);
 };
 
 /**
@@ -160,7 +167,7 @@ export const updateBookVersion = async (
  */
 export const publishVersion = async (versionId: string): Promise<BookVersionDetail> => {
   const endpoint = `/versions/${versionId}/publish`;
-  return httpPatch<BookVersionDetail>(endpoint);
+  return httpPatchAuth<BookVersionDetail>(endpoint);
 };
 
 /**
@@ -176,7 +183,7 @@ export const publishVersion = async (versionId: string): Promise<BookVersionDeta
  */
 export const unpublishVersion = async (versionId: string): Promise<BookVersionDetail> => {
   const endpoint = `/versions/${versionId}/unpublish`;
-  return httpPatch<BookVersionDetail>(endpoint);
+  return httpPatchAuth<BookVersionDetail>(endpoint);
 };
 
 /**
@@ -198,7 +205,7 @@ export const unpublishVersion = async (versionId: string): Promise<BookVersionDe
  */
 export const getChapters = async (versionId: string): Promise<ChapterDetail[]> => {
   const endpoint = `/versions/${versionId}/chapters`;
-  return httpGet<ChapterDetail[]>(endpoint);
+  return httpGetAuth<ChapterDetail[]>(endpoint);
 };
 
 /**
@@ -223,7 +230,7 @@ export const createChapter = async (
   data: CreateChapterRequest
 ): Promise<ChapterDetail> => {
   const endpoint = `/versions/${versionId}/chapters`;
-  return httpPost<ChapterDetail>(endpoint, data);
+  return httpPostAuth<ChapterDetail>(endpoint, data);
 };
 
 /**
@@ -246,7 +253,7 @@ export const updateChapter = async (
   data: UpdateChapterRequest
 ): Promise<ChapterDetail> => {
   const endpoint = `/chapters/${chapterId}`;
-  return httpPatch<ChapterDetail>(endpoint, data);
+  return httpPatchAuth<ChapterDetail>(endpoint, data);
 };
 
 /**
@@ -261,7 +268,7 @@ export const updateChapter = async (
  */
 export const deleteChapter = async (chapterId: string): Promise<void> => {
   const endpoint = `/chapters/${chapterId}`;
-  return httpDelete<void>(endpoint);
+  return httpDeleteAuth<void>(endpoint);
 };
 
 /**
@@ -283,7 +290,7 @@ export const reorderChapters = async (
   data: ReorderChaptersRequest
 ): Promise<ChapterDetail[]> => {
   const endpoint = `/versions/${versionId}/chapters/reorder`;
-  return httpPost<ChapterDetail[]>(endpoint, data);
+  return httpPostAuth<ChapterDetail[]>(endpoint, data);
 };
 
 /**
@@ -330,7 +337,7 @@ export const getCategories = async (
   }
 
   const endpoint = `/categories?${queryParams.toString()}`;
-  return httpGet<PaginatedResponse<Category>>(endpoint);
+  return httpGetAuth<PaginatedResponse<Category>>(endpoint);
 };
 
 /**
@@ -345,7 +352,7 @@ export const getCategories = async (
  */
 export const getCategoriesTree = async (): Promise<CategoryTree[]> => {
   const endpoint = `/categories/tree`;
-  return httpGet<CategoryTree[]>(endpoint);
+  return httpGetAuth<CategoryTree[]>(endpoint);
 };
 
 /**
@@ -362,7 +369,7 @@ export const getCategoriesTree = async (): Promise<CategoryTree[]> => {
 export const attachCategory = async (versionId: string, categoryId: string): Promise<void> => {
   const endpoint = `/versions/${versionId}/categories`;
   const data: AttachCategoryRequest = { categoryId };
-  return httpPost<void>(endpoint, data);
+  return httpPostAuth<void>(endpoint, data);
 };
 
 /**
@@ -378,7 +385,7 @@ export const attachCategory = async (versionId: string, categoryId: string): Pro
  */
 export const detachCategory = async (versionId: string, categoryId: string): Promise<void> => {
   const endpoint = `/versions/${versionId}/categories/${categoryId}`;
-  return httpDelete<void>(endpoint);
+  return httpDeleteAuth<void>(endpoint);
 };
 
 /**
@@ -423,7 +430,7 @@ export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResp
   }
 
   const endpoint = `/tags?${queryParams.toString()}`;
-  return httpGet<PaginatedResponse<Tag>>(endpoint);
+  return httpGetAuth<PaginatedResponse<Tag>>(endpoint);
 };
 
 /**
@@ -440,7 +447,7 @@ export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResp
 export const attachTag = async (versionId: string, tagId: string): Promise<void> => {
   const endpoint = `/versions/${versionId}/tags`;
   const data: AttachTagRequest = { tagId };
-  return httpPost<void>(endpoint, data);
+  return httpPostAuth<void>(endpoint, data);
 };
 
 /**
@@ -456,5 +463,5 @@ export const attachTag = async (versionId: string, tagId: string): Promise<void>
  */
 export const detachTag = async (versionId: string, tagId: string): Promise<void> => {
   const endpoint = `/versions/${versionId}/tags/${tagId}`;
-  return httpDelete<void>(endpoint);
+  return httpDeleteAuth<void>(endpoint);
 };

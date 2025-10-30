@@ -1,8 +1,8 @@
-import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { isSupportedLang } from '@/lib/i18n/lang';
 import { AppProviders } from '@/providers/AppProviders';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import type { Metadata } from 'next';
 import '@/styles/globals.css';
 import styles from '@/styles/layouts.module.scss';
 

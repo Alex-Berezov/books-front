@@ -9,9 +9,9 @@
  * - JSON по умолчанию
  */
 
-import type { HttpRequestOptions } from '@/types/api';
 import { ApiError } from '@/types/api';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { HttpRequestOptions } from '@/types/api';
 import {
   HTTP_METHOD,
   HTTP_HEADER,

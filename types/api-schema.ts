@@ -27,7 +27,7 @@ export type RoleName = 'user' | 'admin' | 'content_manager';
 /**
  * Типы версий книг
  */
-export type VersionType = 'text' | 'audio';
+export type VersionType = 'text' | 'audio' | 'referral';
 
 /**
  * Статусы публикации
@@ -359,11 +359,11 @@ export interface CreateBookVersionRequest {
   title: string;
   /** Автор книги */
   author: string;
-  /** Описание книги */
-  description?: string;
-  /** URL обложки книги */
-  coverImageUrl?: string;
-  /** Тип версии (текстовая или аудио) */
+  /** Описание книги (обязательное) */
+  description: string;
+  /** URL обложки книги (обязательное) */
+  coverImageUrl: string;
+  /** Тип версии (текстовая, аудио или реферальная) */
   type: VersionType;
   /** Бесплатная ли версия */
   isFree: boolean;

@@ -8,10 +8,10 @@
  * - Интеграция с языками
  */
 
-import type { HttpRequestOptions } from '@/types/api';
-import { ApiError } from '@/types/api';
 import { getSession, signOut } from 'next-auth/react';
-import { httpGet as baseHttpGet, httpPost as baseHttpPost } from './http';
+import { ApiError } from '@/types/api';
+import type { HttpRequestOptions } from '@/types/api';
+import { httpGet as baseHttpGet, httpPost as baseHttpPost, httpPatch, httpDelete } from './http';
 
 /**
  * Расширенные опции для HTTP запросов
@@ -185,6 +185,134 @@ export const httpPostAuth = async <T>(
 
         // Повторяем запрос с новым токеном
         return await baseHttpPost<T>(endpoint, body, {
+          ...fetchOptions,
+          accessToken: newSession.accessToken,
+        });
+      } catch (refreshError) {
+        // Если refresh не помог - делаем logout
+        await handleAuthFailure();
+        throw refreshError;
+      }
+    }
+
+    throw error;
+  }
+};
+
+/**
+ * Выполняет PATCH запрос с автоматической авторизацией и retry
+ *
+ * @param endpoint - Путь эндпоинта
+ * @param body - Тело запроса
+ * @param options - Расширенные опции запроса
+ * @returns Типизированный ответ
+ */
+export const httpPatchAuth = async <T>(
+  endpoint: string,
+  body?: unknown,
+  options: ExtendedHttpOptions = {}
+): Promise<T> => {
+  const { requireAuth = true, retry401 = true, maxRetries: _maxRetries = 0, ...fetchOptions } = options;
+
+  // Получаем токен если requireAuth = true
+  let accessToken = fetchOptions.accessToken;
+  if (requireAuth && !accessToken) {
+    const session = await getCurrentSession();
+    accessToken = session?.accessToken;
+
+    if (!accessToken) {
+      throw new ApiError({
+        message: 'Authentication required',
+        statusCode: 401,
+        error: 'Unauthorized',
+      });
+    }
+  }
+
+  try {
+    // Первая попытка запроса
+    return await httpPatch<T>(endpoint, body, {
+      ...fetchOptions,
+      accessToken,
+    });
+  } catch (error) {
+    // Обработка 401 с автоматическим refresh
+    if (error instanceof ApiError && error.isUnauthorized() && retry401) {
+      try {
+        // Обновляем сессию (NextAuth сделает refresh в jwt callback)
+        const newSession = await getCurrentSession();
+
+        if (!newSession?.accessToken) {
+          // Refresh не удался - делаем logout
+          await handleAuthFailure();
+          throw error;
+        }
+
+        // Повторяем запрос с новым токеном
+        return await httpPatch<T>(endpoint, body, {
+          ...fetchOptions,
+          accessToken: newSession.accessToken,
+        });
+      } catch (refreshError) {
+        // Если refresh не помог - делаем logout
+        await handleAuthFailure();
+        throw refreshError;
+      }
+    }
+
+    throw error;
+  }
+};
+
+/**
+ * Выполняет DELETE запрос с автоматической авторизацией и retry
+ *
+ * @param endpoint - Путь эндпоинта
+ * @param options - Расширенные опции запроса
+ * @returns Типизированный ответ
+ */
+export const httpDeleteAuth = async <T>(
+  endpoint: string,
+  options: ExtendedHttpOptions = {}
+): Promise<T> => {
+  const { requireAuth = true, retry401 = true, maxRetries: _maxRetries = 0, ...fetchOptions } = options;
+
+  // Получаем токен если requireAuth = true
+  let accessToken = fetchOptions.accessToken;
+  if (requireAuth && !accessToken) {
+    const session = await getCurrentSession();
+    accessToken = session?.accessToken;
+
+    if (!accessToken) {
+      throw new ApiError({
+        message: 'Authentication required',
+        statusCode: 401,
+        error: 'Unauthorized',
+      });
+    }
+  }
+
+  try {
+    // Первая попытка запроса
+    return await httpDelete<T>(endpoint, {
+      ...fetchOptions,
+      accessToken,
+    });
+  } catch (error) {
+    // Обработка 401 с автоматическим refresh
+    if (error instanceof ApiError && error.isUnauthorized() && retry401) {
+      try {
+        // Обновляем сессию (NextAuth сделает refresh в jwt callback)
+        const newSession = await getCurrentSession();
+
+        if (!newSession?.accessToken) {
+          // Refresh не удался - делаем logout
+          await handleAuthFailure();
+          throw error;
+        }
+
+        // Повторяем запрос с новым токеном
+        return await httpDelete<T>(endpoint, {
           ...fetchOptions,
           accessToken: newSession.accessToken,
         });

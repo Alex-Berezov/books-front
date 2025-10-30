@@ -55,8 +55,8 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
       language: formData.language,
       title: formData.title,
       author: formData.author,
-      description: formData.description || undefined,
-      coverImageUrl: formData.coverImageUrl || undefined,
+      description: formData.description, // Теперь обязательное
+      coverImageUrl: formData.coverImageUrl, // Теперь обязательное
       type: formData.type,
       isFree: formData.isFree,
       referralUrl: formData.referralUrl || undefined,

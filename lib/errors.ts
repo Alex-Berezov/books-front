@@ -5,8 +5,8 @@
  * в user-friendly сообщения и обработки различных типов ошибок.
  */
 
-import { ApiError } from '@/types/api';
 import { HTTP_STATUS } from '@/lib/http.constants';
+import { ApiError } from '@/types/api';
 
 /**
  * Типы ошибок для маппинга
