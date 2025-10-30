@@ -44,8 +44,8 @@ const CreateBookPage: FC<CreateBookPageProps> = (props) => {
           .replace(/[^a-z0-9-]/g, '-'),
       });
 
-      // Перенаправляем на страницу созданной книги
-      router.push(`/admin/${lang}/books/${newBook.id}`);
+      // Перенаправляем на создание первой версии книги
+      router.push(`/admin/${lang}/books/new?bookId=${newBook.id}`);
     } catch (error) {
       console.error('Failed to create book:', error);
       alert('Failed to create book. Please try again.');
