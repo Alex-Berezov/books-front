@@ -63,7 +63,7 @@ export const httpGetAuth = async <T>(
   endpoint: string,
   options: ExtendedHttpOptions = {}
 ): Promise<T> => {
-  const { requireAuth = false, retry401 = true, maxRetries = 0, ...fetchOptions } = options;
+  const { requireAuth = true, retry401 = true, maxRetries: _maxRetries = 0, ...fetchOptions } = options;
 
   // Получаем токен если requireAuth = true
   let accessToken = fetchOptions.accessToken;
@@ -112,7 +112,7 @@ export const httpGetAuth = async <T>(
     }
 
     // Retry для других ошибок (опционально)
-    if (maxRetries > 0 && error instanceof ApiError) {
+    if (_maxRetries > 0 && error instanceof ApiError) {
       // Retry только для 5xx или сетевых ошибок
       const shouldRetry = error.statusCode >= 500 || error.statusCode === 0;
 
@@ -147,7 +147,7 @@ export const httpPostAuth = async <T>(
   body?: unknown,
   options: ExtendedHttpOptions = {}
 ): Promise<T> => {
-  const { requireAuth = false, retry401 = true, ...fetchOptions } = options;
+  const { requireAuth = true, retry401 = true, ...fetchOptions } = options;
 
   // Получаем токен если requireAuth = true
   let accessToken = fetchOptions.accessToken;
