@@ -3,16 +3,11 @@
  *
  * Содержит типизированные функции для работы с административными данными:
  * управление книгами, страницами, категориями и т.д.
- * 
+ *
  * Все функции автоматически добавляют JWT токен из NextAuth сессии.
  */
 
-import {
-  httpDeleteAuth,
-  httpGetAuth,
-  httpPatchAuth,
-  httpPostAuth,
-} from '@/lib/http-client';
+import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   AttachCategoryRequest,
   AttachTagRequest,

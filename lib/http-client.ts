@@ -212,7 +212,12 @@ export const httpPatchAuth = async <T>(
   body?: unknown,
   options: ExtendedHttpOptions = {}
 ): Promise<T> => {
-  const { requireAuth = true, retry401 = true, maxRetries: _maxRetries = 0, ...fetchOptions } = options;
+  const {
+    requireAuth = true,
+    retry401 = true,
+    maxRetries: _maxRetries = 0,
+    ...fetchOptions
+  } = options;
 
   // Получаем токен если requireAuth = true
   let accessToken = fetchOptions.accessToken;
@@ -275,7 +280,12 @@ export const httpDeleteAuth = async <T>(
   endpoint: string,
   options: ExtendedHttpOptions = {}
 ): Promise<T> => {
-  const { requireAuth = true, retry401 = true, maxRetries: _maxRetries = 0, ...fetchOptions } = options;
+  const {
+    requireAuth = true,
+    retry401 = true,
+    maxRetries: _maxRetries = 0,
+    ...fetchOptions
+  } = options;
 
   // Получаем токен если requireAuth = true
   let accessToken = fetchOptions.accessToken;
