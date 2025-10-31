@@ -85,7 +85,12 @@ export const createBook = async (data: CreateBookRequest): Promise<CreateBookRes
 };
 
 /**
- * Получить детали версии книги по ID
+ * Получить детали версии книги по ID (admin endpoint)
+ *
+ * ⚠️ ВАЖНО: Использует admin endpoint `/admin/versions/{id}`,
+ * который возвращает версии в ЛЮБОМ статусе (draft, published).
+ *
+ * Public endpoint `/versions/{id}` возвращает ТОЛЬКО published версии!
  *
  * @param versionId - ID версии книги
  * @returns Детальная информация о версии
@@ -93,10 +98,11 @@ export const createBook = async (data: CreateBookRequest): Promise<CreateBookRes
  * @example
  * ```ts
  * const version = await getBookVersion('uuid-here');
+ * // Работает с черновиками (draft) ✅
  * ```
  */
 export const getBookVersion = async (versionId: string): Promise<BookVersionDetail> => {
-  const endpoint = `/versions/${versionId}`;
+  const endpoint = `/admin/versions/${versionId}`;
   return httpGetAuth<BookVersionDetail>(endpoint);
 };
 
