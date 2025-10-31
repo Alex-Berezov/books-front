@@ -23,14 +23,20 @@
 
 **📂 [docs/frontend-agents/](./frontend-agents/)** — Руководства по работе с API
 
-**🚨 Статус бэкенда:**
+**� Справочники API:**
 
-- **[BACKEND-STATUS.md](./BACKEND-STATUS.md)** — ✅ **Текущий статус API** (проверен 25.10.2025)
+1. **[ENDPOINTS.md](./ENDPOINTS.md)** — **ПОЛНЫЙ КАТАЛОГ API** (актуальная документация с бэкенда)
+2. **[AI_AGENT_FRONTEND_GUIDE.md](./AI_AGENT_FRONTEND_GUIDE.md)** — Гайд для AI-агентов по работе с API
+
+**🔧 Решения проблем:**
+
+- **[FIX_BOOK_VERSION_404.md](./FIX_BOOK_VERSION_404.md)** — Подробное решение: 404 при создании версий
+- **[FRONTEND_FIX_SUMMARY.md](./FRONTEND_FIX_SUMMARY.md)** — Быстрая шпаргалка по фиксам
 
 **Обязательно к прочтению:**
 
 1. **[README.md](./frontend-agents/README.md)** — обзор и навигация
-2. **[backend-api-reference.md](./frontend-agents/backend-api-reference.md)** — **КРИТИЧНО!** Полная документация API
+2. **[ENDPOINTS.md](./ENDPOINTS.md)** — **КРИТИЧНО!** Полная документация API
 3. **[quickstart.md](./frontend-agents/quickstart.md)** — 10-минутный гайд по настройке
 
 **По темам:**
@@ -112,9 +118,7 @@
 **Корневые документы:**
 
 - **[AI-AGENT-BRIEFING.md](./AI-AGENT-BRIEFING.md)** — бриф для AI-агентов
-- **[project-description.md](./project-description.md)** — описание проекта
-- **[frontend-roadmap.md](./frontend-roadmap.md)** — дорожная карта
-- **[SWAGGER_FOR_FRONTEND.md](./SWAGGER_FOR_FRONTEND.md)** — работа со Swagger
+- **[GIT-WORKFLOW.md](./GIT-WORKFLOW.md)** — процесс работы с Git и code review
 
 ---
 
@@ -123,12 +127,12 @@
 ### Для быстрого старта (30 мин):
 
 1. ✅ [docs/plan/QUICKSTART.md](./plan/QUICKSTART.md) — как начать за 5 шагов
-2. ✅ [docs/frontend-agents/backend-api-reference.md](./frontend-agents/backend-api-reference.md) — критичная информация об API
+2. ✅ [docs/ENDPOINTS.md](./ENDPOINTS.md) — критичная информация об API
 3. ✅ [docs/milestones/M0-bootstrap.md](./milestones/M0-bootstrap.md) — первый этап работы
 
 ### Для глубокого понимания (2-3 часа):
 
-1. [docs/project-description.md](./project-description.md) — что за проект
+1. [../PROJECT-README.md](../PROJECT-README.md) — что за проект (в корне репо)
 2. [docs/plan/DEVELOPMENT-PLAN.md](./plan/DEVELOPMENT-PLAN.md) — полный план
 3. [docs/frontend-agents/README.md](./frontend-agents/README.md) — обзор интеграций
 4. Все файлы из [docs/frontend-agents/](./frontend-agents/)
