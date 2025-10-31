@@ -163,7 +163,7 @@ export const BooksList = ({ lang }: { lang: SupportedLang }) => {
   if (isLoading) return <Spinner />;
   if (error) return <ErrorMessage error={error} />;
 
-  return <BooksGrid books={data.items} />;
+  return <BooksGrid books={data.data} />;
 };
 ```
 

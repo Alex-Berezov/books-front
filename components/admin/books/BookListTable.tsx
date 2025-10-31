@@ -75,9 +75,9 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
   }
 
   // Вычисляем данные пагинации
-  const totalPages = data?.totalPages || 0;
-  const totalItems = data?.total || 0;
-  const books = data?.items || [];
+  const totalPages = data?.meta.totalPages || 0;
+  const totalItems = data?.meta.total || 0;
+  const books = data?.data || [];
 
   return (
     <div className={styles.container}>

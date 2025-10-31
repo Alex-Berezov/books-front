@@ -124,9 +124,9 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
             </div>
           )}
 
-          {!isLoading && tagsData && tagsData.items.length > 0 && (
+          {!isLoading && tagsData && tagsData.data.length > 0 && (
             <div className={styles.resultsList}>
-              {tagsData.items.map((tag) => {
+              {tagsData.data.map((tag) => {
                 const isSelected = isTagSelected(tag.id);
 
                 return (
@@ -145,7 +145,7 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
             </div>
           )}
 
-          {!isLoading && tagsData && tagsData.items.length === 0 && (
+          {!isLoading && tagsData && tagsData.data.length === 0 && (
             <div className={styles.empty}>
               <p>No tags found for &quot;{searchQuery}&quot;</p>
             </div>

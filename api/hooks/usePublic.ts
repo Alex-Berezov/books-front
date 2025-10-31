@@ -6,7 +6,10 @@
  */
 
 import { useQuery, type UseQueryOptions, type UseQueryResult } from '@tanstack/react-query';
+import * as publicApi from '@/api/endpoints/public';
+import { queryKeys, staleTimeConfig } from '@/lib/queryClient';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { ApiError } from '@/types/api';
 import type {
   BookOverview,
   PageResponse,
@@ -14,9 +17,6 @@ import type {
   TagBooksResponse,
   SeoResolveResponse,
 } from '@/types/api-schema';
-import { ApiError } from '@/types/api';
-import { queryKeys, staleTimeConfig } from '@/lib/queryClient';
-import * as publicApi from '@/api/endpoints/public';
 
 /**
  * Хук для получения обзора книги
@@ -107,7 +107,7 @@ export const usePage = (
  *   return (
  *     <>
  *       <h1>{data.category.name}</h1>
- *       <BookGrid books={data.items} />
+ *       <BookGrid books={data.data} />
  *     </>
  *   );
  * }
@@ -149,7 +149,7 @@ export const useCategoryBooks = (
  *   return (
  *     <>
  *       <h1>#{data.tag.name}</h1>
- *       <BookGrid books={data.items} />
+ *       <BookGrid books={data.data} />
  *     </>
  *   );
  * }

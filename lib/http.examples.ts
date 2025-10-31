@@ -102,11 +102,13 @@ export const examplePaginatedRequest = async (lang: SupportedLang, page: number 
   }
 
   interface PaginatedBooks {
-    items: Book[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
+    data: Book[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
   }
 
   const endpoint = buildUrlWithParams(`/${lang}/books`, {
@@ -119,8 +121,8 @@ export const examplePaginatedRequest = async (lang: SupportedLang, page: number 
     language: lang,
   });
 
-  console.log(`Page ${response.page} of ${response.totalPages}`);
-  console.log('Books:', response.items);
+  console.log(`Page ${response.meta.page} of ${response.meta.totalPages}`);
+  console.log('Books:', response.data);
 };
 
 /**

@@ -35,14 +35,25 @@ export type VersionType = 'text' | 'audio' | 'referral';
 export type PublicationStatus = 'draft' | 'published' | 'archived';
 
 /**
- * Пагинированный ответ
+ * Метаданные пагинации
  */
-export interface PaginatedResponse<T> {
-  items: T[];
+export interface PaginationMeta {
   total: number;
   page: number;
   limit: number;
   totalPages: number;
+}
+
+/**
+ * Пагинированный ответ от API
+ *
+ * Структура соответствует реальному API:
+ * - data: массив элементов
+ * - meta: метаданные пагинации
+ */
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
 }
 
 /**
