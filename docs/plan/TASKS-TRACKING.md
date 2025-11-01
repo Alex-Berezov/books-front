@@ -18,7 +18,7 @@
 | **M0** - Фундамент      | 🟢 Завершено | 7/7 (100%) | 🔥 Критический | 3-5 дней    |
 | **M1** - Авторизация    | 🟢 Завершено | 7/7 (100%) | 🔥 Критический | 2-3 дня     |
 | **M2** - Данные и типы  | 🟢 Завершено | 7/7 (100%) | 🔥 Критический | 3-4 дня     |
-| **M3** - Админка        | 🟡 В работе  | 0/10 фаз   | 🔥 Критический | 23-30 часов |
+| **M3** - Админка        | 🟡 В работе  | 3/10 фаз   | 🔥 Критический | 23-30 часов |
 | **M4** - Контент        | 🔴 Не начато | 0/4        | 🔶 Высокий     | 1-2 дня     |
 | **M5** - Публичный сайт | 🔴 Не начато | 0/6        | 🔥 Критический | 4-6 дней    |
 | **M6** - Reader/Player  | 🔴 Не начато | 0/5        | 🔶 Высокий     | 3-5 дней    |
@@ -27,13 +27,14 @@
 | **M9** - Тесты          | 🔴 Не начато | 0/6        | 🔵 Низкий      | 3-5 дней    |
 | **M10** - CI/CD         | 🔴 Не начато | 0/5        | 🔶 Средний     | 2-3 дня     |
 
-**Текущий фокус:** M3.1.1 - Создание admin layout с защитой ролей
+**Текущий фокус:** M3 - Фаза 3 завершена! Следующее: Фаза 4 (Categories & Tags)
 
 **Следующие шаги:**
 
-1. Фаза 1: Инфраструктура админки (2-3ч)
-2. Фаза 2: Books Management (4-5ч)
-3. Фаза 3: CMS Pages (2ч)
+1. ✅ Фаза 2: Books Management (4-5ч) — ЗАВЕРШЕНО
+2. ✅ Фаза 3: CMS Pages (2ч) — ЗАВЕРШЕНО
+3. Фаза 4: Categories & Tags (3ч)
+4. Фаза 5: Media Library (3-4ч)
 
 ---
 
@@ -350,18 +351,39 @@
   - [ ] Tags: autocomplete с созданием новых
   - [ ] Связь через API (book-category, book-tag endpoints)
 
-### Фаза 3: CMS Pages (Must Have, 2ч)
+### Фаза 3: CMS Pages (Must Have, 2ч) ✅ ЗАВЕРШЕНО (01.11.2025)
 
-- [ ] 🔴 **M3.3.1** Pages List
-  - [ ] Создать `app/admin/[lang]/pages/page.tsx`
-  - [ ] Мигрировать `PagesList.tsx` с API интеграцией
-  - [ ] Search, фильтр по status (published/draft)
+- [x] � **M3.3.1** Pages List (Завершено 01.11.2025)
+  - [x] Создать `app/admin/[lang]/pages/page.tsx`
+  - [x] Создать `components/admin/pages/PageListTable.tsx` с API интеграцией
+  - [x] Search по title/slug, фильтр по status (all/draft/published/archived)
+  - [x] Пагинация и адаптивный дизайн
+  - [x] Типы: `GetPagesParams`, `PageResponse`
+  - [x] API endpoints: `getPages(params)`
+  - [x] React Query hook: `usePages(params)`
 
-- [ ] 🔴 **M3.3.2** Page Editor
-  - [ ] Создать `app/admin/[lang]/pages/[id]/page.tsx`
-  - [ ] Мигрировать `PageEditor.tsx` с `react-hook-form`
-  - [ ] Поля: title, slug, content (markdown/rich text), SEO
-  - [ ] Publish/unpublish функционал
+- [x] � **M3.3.2** Page Editor (Завершено 01.11.2025)
+  - [x] Создать `app/admin/[lang]/pages/new/page.tsx` (создание)
+  - [x] Создать `app/admin/[lang]/pages/[id]/page.tsx` (редактирование)
+  - [x] Создать `components/admin/pages/PageForm.tsx` с react-hook-form + zod
+  - [x] Поля: title, slug, content (Markdown textarea), SEO (title, description)
+  - [x] Создать `components/admin/pages/PagePublishPanel.tsx` с publish/unpublish
+  - [x] Модальные окна подтверждения действий
+  - [x] Валидация slug (lowercase, hyphens)
+  - [x] Status badges и metadata display
+  - [x] Типы: `CreatePageRequest`, `UpdatePageRequest`
+  - [x] API endpoints: `getPageById`, `createPage`, `updatePage`, `publishPage`, `unpublishPage`
+  - [x] React Query hooks: `usePage`, `useCreatePage`, `useUpdatePage`, `usePublishPage`, `useUnpublishPage`
+
+**Итоги Фазы 3:**
+
+- ✅ Полный CRUD для CMS страниц
+- ✅ 6 новых API endpoints
+- ✅ 6 новых React Query hooks
+- ✅ 4 новых компонента с SCSS модулями
+- ✅ Валидация форм с Zod
+- ✅ Адаптивный дизайн
+- ✅ Все тесты: `yarn typecheck` ✅, `yarn lint` ✅
 
 ### Фаза 4: Categories & Tags (Must Have, 3ч)
 

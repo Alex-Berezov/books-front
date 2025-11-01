@@ -25,7 +25,7 @@ interface SignInFormValues {
 /**
  * Компонент страницы входа
  */
-export const SignInPage: FC = () => {
+const SignInPage: FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/admin/en';

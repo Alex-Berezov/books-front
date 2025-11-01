@@ -196,6 +196,28 @@ export interface PageResponse {
 }
 
 /**
+ * Запрос на создание страницы
+ */
+export interface CreatePageRequest {
+  slug: string;
+  title: string;
+  content: string;
+  language: SupportedLang;
+  seo?: SeoData;
+}
+
+/**
+ * Запрос на обновление страницы
+ */
+export interface UpdatePageRequest {
+  slug?: string;
+  title?: string;
+  content?: string;
+  language?: SupportedLang;
+  seo?: SeoData;
+}
+
+/**
  * Categories endpoints
  */
 

@@ -1,0 +1,435 @@
+@import '@/styles/tokens.scss';
+@import '@/styles/mixins.scss';
+
+.container {
+  padding: $spacing-lg;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// Header
+.header {
+  margin-bottom: $spacing-xl;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin: 0;
+}
+
+.createButton {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-lg;
+  background: $color-primary;
+  color: $color-text-inverse;
+  border: none;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: background $transition-fast;
+  text-decoration: none;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+
+  &:active {
+    background: $color-primary-active;
+  }
+}
+
+// Search form
+.searchForm {
+  display: flex;
+  gap: $spacing-sm;
+  max-width: 600px;
+  margin-bottom: $spacing-md;
+}
+
+.searchInput {
+  flex: 1;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  transition: border-color $transition-fast;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 2px rgba($color-primary, 0.1);
+  }
+}
+
+.searchButton,
+.clearButton {
+  padding: $spacing-sm $spacing-lg;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
+  background: $color-background-primary;
+  color: $color-text-primary;
+
+  &:hover {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+}
+
+.searchButton {
+  background: $color-primary;
+  color: $color-text-inverse;
+  border-color: $color-primary;
+
+  &:hover {
+    background: $color-primary-hover;
+    border-color: $color-primary-hover;
+    color: $color-text-inverse;
+  }
+}
+
+.clearButton {
+  padding: $spacing-sm;
+  min-width: 36px;
+  font-size: $font-size-lg;
+  color: $color-text-secondary;
+
+  &:hover {
+    color: $color-error;
+    border-color: $color-error;
+  }
+}
+
+// Filters
+.filters {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.filterLabel {
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.filterButtons {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.filterButton {
+  padding: $spacing-xs $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
+  background: $color-background-primary;
+  color: $color-text-secondary;
+
+  &:hover {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+
+  &.active {
+    background: $color-primary;
+    color: $color-text-inverse;
+    border-color: $color-primary;
+  }
+}
+
+// Table
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  background: $color-background-primary;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-base;
+
+  thead {
+    background: $color-background-secondary;
+    border-bottom: 2px solid $color-border-light;
+  }
+
+  th {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid $color-border-light;
+    transition: background $transition-fast;
+
+    &:hover {
+      background: $color-background-tertiary;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  td {
+    padding: $spacing-md;
+    vertical-align: middle;
+  }
+}
+
+// Table cells
+.titleCell {
+  font-weight: $font-weight-medium;
+  max-width: 300px;
+}
+
+.titleLink {
+  color: $color-primary;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $color-primary-hover;
+    text-decoration: underline;
+  }
+}
+
+.slugCell {
+  code {
+    padding: 2px 6px;
+    background: $color-background-secondary;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-sm;
+    font-family: $font-family-mono;
+    color: $color-text-secondary;
+  }
+}
+
+.langCell {
+  text-align: center;
+}
+
+.langBadge {
+  display: inline-block;
+  padding: $spacing-xs $spacing-sm;
+  background: $color-background-secondary;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+}
+
+.statusCell {
+  text-align: center;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  text-transform: capitalize;
+
+  &.draft {
+    background: rgba($color-warning, 0.1);
+    color: $color-warning;
+  }
+
+  &.published {
+    background: rgba($color-success, 0.1);
+    color: $color-success;
+  }
+
+  &.archived {
+    background: rgba($color-text-secondary, 0.1);
+    color: $color-text-secondary;
+  }
+}
+
+.dateCell {
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  white-space: nowrap;
+}
+
+.actionsCell {
+  text-align: right;
+}
+
+.editButton {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all $transition-fast;
+  background: $color-background-primary;
+
+  &:hover {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+}
+
+// Pagination
+.paginationTop {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: $spacing-md;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-lg;
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $color-border-light;
+}
+
+.paginationButton {
+  padding: $spacing-sm $spacing-lg;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
+  background: $color-background-primary;
+  color: $color-text-primary;
+
+  &:hover:not(:disabled) {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.paginationInfo {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+}
+
+// Empty state
+.empty {
+  padding: $spacing-xxl;
+  text-align: center;
+  color: $color-text-secondary;
+
+  p {
+    margin: 0;
+    font-size: $font-size-lg;
+
+    &:first-child {
+      font-weight: $font-weight-medium;
+      color: $color-text-primary;
+    }
+  }
+}
+
+.emptyHint {
+  margin-top: $spacing-sm;
+  font-size: $font-size-base;
+}
+
+// Loading & Error states
+.loading,
+.error {
+  padding: $spacing-xxl;
+  text-align: center;
+  font-size: $font-size-lg;
+  color: $color-text-secondary;
+}
+
+.error {
+  color: $color-error;
+
+  p:first-child {
+    font-weight: $font-weight-semibold;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.errorMessage {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+}
+
+// Responsive
+@include mobile {
+  .container {
+    padding: $spacing-md;
+  }
+
+  .titleRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-md;
+  }
+
+  .searchForm {
+    max-width: 100%;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .table {
+    font-size: $font-size-sm;
+
+    th,
+    td {
+      padding: $spacing-sm;
+    }
+  }
+
+  .titleCell {
+    max-width: 200px;
+  }
+}
+
+@include tablet {
+  .container {
+    padding: $spacing-lg;
+  }
+}

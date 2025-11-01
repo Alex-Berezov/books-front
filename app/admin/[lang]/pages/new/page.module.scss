@@ -1,0 +1,38 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  padding: $spacing-lg;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xl;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin: 0;
+}
+
+.backButton {
+  padding: $spacing-sm $spacing-lg;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
+  background: $color-background-primary;
+  color: $color-text-primary;
+
+  &:hover {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+}

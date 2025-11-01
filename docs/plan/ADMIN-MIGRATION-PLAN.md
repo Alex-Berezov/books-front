@@ -379,40 +379,81 @@ types/api-schema.ts                                  # Типы для кате�
 
 ---
 
-### 🔹 Фаза 3: CMS Pages (2 часа)
+### 🔹 Фаза 3: CMS Pages (2 часа) ✅ ЗАВЕРШЕНО
 
-#### Задача 3.1: Список страниц
+#### ✅ Задача 3.1: Список страниц (ЗАВЕРШЕНО - 01.11.2025)
 
 ```bash
 app/admin/[lang]/pages/page.tsx
 components/admin/pages/PageListTable.tsx
+components/admin/pages/PageListTable.module.scss
 ```
 
-**Миграция `PagesList.tsx`:**
+**Реализовано:**
 
-- Аналогично списку книг
-- Поиск по title/slug
-- Фильтр по статусу
+- ✅ Server Component для списка страниц
+- ✅ Client Component PageListTable с React Query
+- ✅ Поиск по title/slug
+- ✅ Фильтр по статусу (all/draft/published/archived)
+- ✅ Пагинация с навигацией
+- ✅ Адаптивный дизайн
+- ✅ Интеграция с API endpoints
 
-**Commit:** `feat(admin): add CMS pages list`
+**Commit:** `feat(admin): add CMS pages list (M3.3.1)`
 
 ---
 
-#### Задача 3.2: Редактор страницы
+#### ✅ Задача 3.2: Редактор страницы (ЗАВЕРШЕНО - 01.11.2025)
 
 ```bash
+app/admin/[lang]/pages/new/page.tsx
 app/admin/[lang]/pages/[id]/page.tsx
 components/admin/pages/PageForm.tsx
+components/admin/pages/PageForm.module.scss
+components/admin/pages/PagePublishPanel.tsx
+components/admin/pages/PagePublishPanel.module.scss
 ```
 
-**Миграция `PageEditor.tsx`:**
+**Реализовано:**
 
-- Form с title, slug, content
-- Markdown/Rich text editor
-- SEO settings
-- Publish/unpublish toggle
+- ✅ Form с react-hook-form + zod валидацией
+- ✅ Поля: title, slug, content (Markdown textarea)
+- ✅ SEO поля: meta title, meta description
+- ✅ PublishPanel с кнопками publish/unpublish
+- ✅ Модальные окна подтверждения
+- ✅ Status badges (draft/published/archived)
+- ✅ Metadata display (language, created, updated dates)
+- ✅ Layout со sidebar для PublishPanel
+- ✅ Страницы создания и редактирования
+- ✅ Валидация slug (lowercase, hyphens only)
+- ✅ Адаптивный дизайн
 
-**Commit:** `feat(admin): add CMS page editor`
+**API интеграция:**
+
+- ✅ `getPages(params)` - получение списка с фильтрами
+- ✅ `getPageById(id)` - получение страницы
+- ✅ `createPage(data)` - создание страницы
+- ✅ `updatePage(id, data)` - обновление страницы
+- ✅ `publishPage(id)` - публикация
+- ✅ `unpublishPage(id)` - снятие с публикации
+
+**React Query hooks:**
+
+- ✅ `usePages(params)` - список страниц
+- ✅ `usePage(id)` - детали страницы
+- ✅ `useCreatePage()` - создание
+- ✅ `useUpdatePage()` - обновление
+- ✅ `usePublishPage()` - публикация
+- ✅ `useUnpublishPage()` - снятие с публикации
+
+**Типы:**
+
+- ✅ `PageResponse` - response type
+- ✅ `CreatePageRequest` - create request
+- ✅ `UpdatePageRequest` - update request
+- ✅ `GetPagesParams` - query params
+
+**Commit:** `feat(admin): add CMS page editor with publish panel (M3.3.2)`
 
 ---
 

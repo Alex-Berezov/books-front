@@ -1,0 +1,131 @@
+/**
+ * Стили для формы создания/редактирования CMS страницы
+ */
+
+@import '@/styles/tokens.scss';
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+  max-width: $layout-max-width-md;
+  margin: 0 auto;
+}
+
+.section {
+  background: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+}
+
+.sectionTitle {
+  margin: 0 0 $spacing-lg 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-base;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  background: $color-background-primary;
+  color: $color-text-primary;
+  transition: all $transition-base;
+
+  &:hover {
+    border-color: $color-primary-hover;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: $shadow-focus;
+  }
+
+  &:disabled {
+    background: $color-background-secondary;
+    color: $color-text-disabled;
+    cursor: not-allowed;
+  }
+
+  &::placeholder {
+    color: $color-text-tertiary;
+  }
+}
+
+.textarea {
+  resize: vertical;
+  font-family: $font-family-mono;
+  line-height: 1.6;
+  min-height: 200px;
+}
+
+.error {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-error;
+  margin-top: $spacing-xs;
+}
+
+.hint {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-top: $spacing-xs;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-md;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $color-border-light;
+}
+
+.submitButton {
+  padding: $spacing-sm $spacing-xl;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  color: $color-text-inverse;
+  background: $color-primary;
+  border: none;
+  border-radius: $border-radius-base;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+
+  &:active {
+    background: $color-primary-active;
+  }
+
+  &:disabled {
+    background: $color-primary-disabled;
+    cursor: not-allowed;
+  }
+}
