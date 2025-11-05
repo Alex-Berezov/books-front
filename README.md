@@ -3,8 +3,8 @@
 > Multilingual audiobook platform for reading and listening to classic literature
 
 [![Status](https://img.shields.io/badge/status-in_development-yellow)](https://github.com/Alex-Berezov/books-front)
-[![Milestone](https://img.shields.io/badge/milestone-M0-blue)](./docs/plan/TASKS-TRACKING.md)
-[![Progress](https://img.shields.io/badge/progress-6%25-orange)](./docs/plan/TASKS-TRACKING.md)
+[![Milestone](https://img.shields.io/badge/milestone-M0-blue)](https://github.com/Alex-Berezov/books-app-docs)
+[![Progress](https://img.shields.io/badge/progress-6%25-orange)](https://github.com/Alex-Berezov/books-app-docs)
 
 ## 🚀 Project Overview
 
@@ -23,7 +23,7 @@ Bibliaris is a modern web platform for discovering, reading, and listening to cl
 - ⏳ M0.5: NextAuth stub setup
 - ⏳ M0.6: Base HTTP client
 
-See [TASKS-TRACKING.md](./docs/plan/TASKS-TRACKING.md) for detailed progress.
+See [books-app-docs](https://github.com/Alex-Berezov/books-app-docs) for detailed progress and task tracking.
 
 ## ⭐ Code Style - ОБЯЗАТЕЛЬНО К ПРОЧТЕНИЮ
 
@@ -84,14 +84,16 @@ books-app-front/
 │   └── AppProviders.tsx     # React Query, AntD providers
 ├── styles/
 │   └── globals.css
-├── docs/                    # Complete project documentation
-│   ├── plan/
-│   │   ├── DEVELOPMENT-PLAN.md
-│   │   └── TASKS-TRACKING.md
-│   ├── frontend-agents/     # Backend API integration guides
-│   └── milestones/          # Milestone specifications
 └── package.json
 ```
+
+> **📚 Documentation:** Complete project documentation is available in a separate private repository:  
+> 👉 **[books-app-docs](https://github.com/Alex-Berezov/books-app-docs)** (requires access)
+>
+> For local development with AI agents (MCP), clone the docs repository:
+> ```bash
+> git clone git@github.com:Alex-Berezov/books-app-docs.git
+> ```
 
 ## 🚀 Getting Started
 
@@ -147,16 +149,32 @@ Language is determined by URL prefix and validated on the server side.
 
 **Production API:** `https://api.bibliaris.com/api`
 
-See [backend API reference](./docs/frontend-agents/backend-api-reference.md) for complete documentation.
+API documentation is available in the [books-app-docs](https://github.com/Alex-Berezov/books-app-docs) repository.
 
 ## 📚 Documentation
 
-- **[Development Plan](./docs/plan/DEVELOPMENT-PLAN.md)** - Overall roadmap and milestones
-- **[Tasks Tracking](./docs/plan/TASKS-TRACKING.md)** - Detailed task progress
-- **[Git Workflow](./docs/GIT-WORKFLOW.md)** - **⚠️ IMPORTANT:** Git procedures and push rules
-- **[Git Quick Reference](./docs/GIT-QUICK-REF.md)** - Quick commands cheat sheet
-- **[Frontend Agents](./docs/frontend-agents/)** - API integration guides
-- **[Milestone M0](./docs/milestones/M0-bootstrap.md)** - Current milestone specification
+Complete project documentation is maintained in a separate private repository for security and AI agent access:
+
+**👉 [books-app-docs](https://github.com/Alex-Berezov/books-app-docs)** (private, requires access)
+
+### Documentation includes:
+
+- **Development Plan** - Overall roadmap (10 milestones M0-M10)
+- **Task Tracking** - Detailed progress tracking
+- **Backend API Reference** - Complete API integration guide
+- **Git Workflow** - Git procedures and conventions
+- **Frontend Agents** - AI agent integration guides
+- **Milestone Specifications** - Detailed technical requirements
+
+### For Local Development:
+
+```bash
+# Clone documentation repository
+cd ~/Dev
+git clone git@github.com:Alex-Berezov/books-app-docs.git
+
+# Documentation will be in books-app-docs/frontend/
+```
 
 ## 🔄 Development Workflow
 
@@ -165,15 +183,14 @@ See [backend API reference](./docs/frontend-agents/backend-api-reference.md) for
 1. Run `yarn typecheck && yarn lint`
 2. Commit changes
 3. **Push to GitHub** ← DO NOT skip this!
-4. Update `TASKS-TRACKING.md`
 
-See [Git Workflow](./docs/GIT-WORKFLOW.md) for detailed procedures.
+Detailed Git workflow procedures are available in the [documentation repository](https://github.com/Alex-Berezov/books-app-docs).
 
 ## 🤝 Contributing
 
 This is a learning/portfolio project. Contributions are welcome!
 
-1. Check [TASKS-TRACKING.md](./docs/plan/TASKS-TRACKING.md) for available tasks
+See the [documentation repository](https://github.com/Alex-Berezov/books-app-docs) for available tasks and development guidelines.
 2. Create a feature branch
 3. Make your changes
 4. Run `yarn lint` and `yarn typecheck`

@@ -42,3 +42,6 @@ coverage
 # Misc
 *.log
 .cache
+
+# Documentation (moved to books-app-docs)
+docs/
