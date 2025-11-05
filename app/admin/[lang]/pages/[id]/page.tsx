@@ -26,8 +26,8 @@ const EditPage: FC<EditPageProps> = (props) => {
 
   const router = useRouter();
 
-  // Загружаем данные страницы
-  const { data: page, error, isLoading } = usePage(pageId, lang);
+  // Загружаем данные страницы (БЕЗ lang - как у versions)
+  const { data: page, error, isLoading } = usePage(pageId);
 
   // Мутация для обновления страницы
   const updateMutation = useUpdatePage({
@@ -62,17 +62,24 @@ const EditPage: FC<EditPageProps> = (props) => {
    * Обработчик отправки формы
    */
   const handleSubmit = async (formData: PageFormData) => {
+    // Формируем SEO объект если есть хотя бы одно заполненное поле
+    const seo =
+      formData.seoMetaTitle || formData.seoMetaDescription
+        ? {
+            metaTitle: formData.seoMetaTitle || undefined,
+            metaDescription: formData.seoMetaDescription || undefined,
+          }
+        : undefined;
+
     updateMutation.mutate({
       pageId,
       lang,
       data: {
         title: formData.title,
         slug: formData.slug,
+        type: formData.type,
         content: formData.content,
-        seo: {
-          title: formData.seoTitle || undefined,
-          description: formData.seoDescription || undefined,
-        },
+        seo, // ✅ Backend автоматически создаст/обновит SEO entity
       },
     });
   };
@@ -87,18 +94,37 @@ const EditPage: FC<EditPageProps> = (props) => {
   }
 
   // Error state
-  if (error || !page) {
+  if (error) {
     return (
       <div className={styles.container}>
         <div className={styles.error}>
           <p>Failed to load page</p>
-          {error && <p className={styles.errorMessage}>{error.message}</p>}
+          <p style={{ marginTop: '0.5rem', color: '#666' }}>{error.message}</p>
+          <button
+            className={styles.backButton}
+            onClick={() => router.push(`/admin/${lang}/pages`)}
+            type="button"
+            style={{ marginTop: '1rem' }}
+          >
+            ← Back to Pages List
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // No data state
+  if (!page) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.error}>
+          <p>Page not found</p>
           <button
             className={styles.backButton}
             onClick={() => router.push(`/admin/${lang}/pages`)}
             type="button"
           >
-            ← Back to Pages
+            ← Back to Pages List
           </button>
         </div>
       </div>

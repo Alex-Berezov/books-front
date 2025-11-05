@@ -847,24 +847,24 @@ export const usePages = (
 /**
  * Хук для получения деталей страницы
  *
+ * ВАЖНО: Использует /admin/pages/:id БЕЗ :lang (как у versions)
+ *
  * @param pageId - ID страницы
- * @param lang - Язык админ-интерфейса (по умолчанию 'en')
  * @param options - Опции React Query
  * @returns React Query результат с деталями страницы
  *
  * @example
  * ```tsx
- * const { data: page, isLoading } = usePage('page-uuid', 'en');
+ * const { data: page, isLoading } = usePage('page-uuid');
  * ```
  */
 export const usePage = (
   pageId: string,
-  lang = 'en',
   options?: Omit<UseQueryOptions<PageResponse>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: pageKeys.detail(pageId),
-    queryFn: () => getPageById(pageId, lang),
+    queryFn: () => getPageById(pageId),
     enabled: !!pageId,
     ...options,
   });

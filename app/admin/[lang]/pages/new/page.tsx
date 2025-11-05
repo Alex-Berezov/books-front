@@ -23,8 +23,16 @@ export default function NewPage(props: NewPageProps) {
   // Mutation для создания страницы
   const createMutation = useCreatePage({
     onSuccess: (data) => {
-      // Перенаправляем на страницу редактирования
-      router.push(`/admin/${lang}/pages/${data.id}`);
+      // ⚠️ TEMPORARY WORKAROUND: Backend не имеет GET /admin/pages/:id endpoint
+      // Редиректим на список вместо страницы редактирования
+      console.log('Page created successfully:', data);
+      alert(
+        `✅ Page "${data.title}" created successfully!\n\nNote: Edit functionality disabled until backend adds GET /admin/pages/:id endpoint.`
+      );
+      router.push(`/admin/${lang}/pages`);
+
+      // TODO: Когда backend добавит GET /admin/pages/:id, заменить на:
+      // router.push(`/admin/${lang}/pages/${data.id}`);
     },
     onError: (error) => {
       // TODO: Показать toast с ошибкой
@@ -34,18 +42,25 @@ export default function NewPage(props: NewPageProps) {
   });
 
   const handleSubmit = async (data: PageFormData) => {
-    // Создаем страницу
+    // Формируем SEO объект если есть хотя бы одно заполненное поле
+    const seo =
+      data.seoMetaTitle || data.seoMetaDescription
+        ? {
+            metaTitle: data.seoMetaTitle || undefined,
+            metaDescription: data.seoMetaDescription || undefined,
+          }
+        : undefined;
+
+    // Создаем страницу с вложенным seo объектом
     createMutation.mutate({
       lang,
       data: {
-        language: data.language,
-        title: data.title,
         slug: data.slug,
+        title: data.title,
+        type: data.type,
         content: data.content,
-        seo: {
-          title: data.seoTitle || undefined,
-          description: data.seoDescription || undefined,
-        },
+        language: data.language, // Игнорируется backend, берется из :lang
+        seo, // ✅ Backend автоматически создаст SEO entity
       },
     });
   };

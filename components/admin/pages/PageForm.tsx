@@ -15,6 +15,8 @@ import styles from './PageForm.module.scss';
 const pageSchema = z.object({
   /** Язык страницы */
   language: z.enum(['en', 'es', 'fr', 'pt']),
+  /** Тип страницы (обязательное поле!) */
+  type: z.enum(['generic', 'category_index', 'author_index']),
   /** Заголовок страницы */
   title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
   /** URL slug страницы */
@@ -25,10 +27,10 @@ const pageSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers and hyphens'),
   /** Контент страницы (Markdown) */
   content: z.string().min(1, 'Content is required'),
-  /** SEO мета-заголовок */
-  seoTitle: z.string().max(60, 'SEO title is too long').optional(),
-  /** SEO мета-описание */
-  seoDescription: z.string().max(160, 'SEO description is too long').optional(),
+  /** SEO мета-заголовок - будет отправлен как seo.metaTitle */
+  seoMetaTitle: z.string().max(60, 'SEO meta title is too long').optional(),
+  /** SEO мета-описание - будет отправлен как seo.metaDescription */
+  seoMetaDescription: z.string().max(160, 'SEO meta description is too long').optional(),
 });
 
 /**
@@ -70,19 +72,22 @@ export const PageForm: FC<PageFormProps> = (props) => {
     defaultValues: initialData
       ? {
           language: initialData.language,
+          type: initialData.type || 'generic',
           title: initialData.title,
           slug: initialData.slug,
           content: initialData.content,
-          seoTitle: initialData.seo?.title || '',
-          seoDescription: initialData.seo?.description || '',
+          // ✅ Backend возвращает вложенный seo объект с metaTitle/metaDescription
+          seoMetaTitle: initialData.seo?.metaTitle || '',
+          seoMetaDescription: initialData.seo?.metaDescription || '',
         }
       : {
           language: lang,
+          type: 'generic',
           title: '',
           slug: '',
           content: '',
-          seoTitle: '',
-          seoDescription: '',
+          seoMetaTitle: '',
+          seoMetaDescription: '',
         },
   });
 
@@ -91,11 +96,12 @@ export const PageForm: FC<PageFormProps> = (props) => {
     if (initialData) {
       reset({
         language: initialData.language,
+        type: initialData.type || 'generic',
         title: initialData.title,
         slug: initialData.slug,
         content: initialData.content,
-        seoTitle: initialData.seo?.title || '',
-        seoDescription: initialData.seo?.description || '',
+        seoMetaTitle: initialData.seo?.metaTitle || '',
+        seoMetaDescription: initialData.seo?.metaDescription || '',
       });
     }
   }, [initialData, reset]);
@@ -126,6 +132,21 @@ export const PageForm: FC<PageFormProps> = (props) => {
           {initialData && (
             <span className={styles.hint}>Language cannot be changed after creation</span>
           )}
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="type">
+            Page Type *
+          </label>
+          <select className={styles.select} disabled={isSubmitting} id="type" {...register('type')}>
+            <option value="generic">Generic Page</option>
+            <option value="category_index">Category Index</option>
+            <option value="author_index">Author Index</option>
+          </select>
+          {errors.type && <span className={styles.error}>{errors.type.message}</span>}
+          <span className={styles.hint}>
+            Generic: regular content page | Category/Author Index: special listing pages
+          </span>
         </div>
 
         <div className={styles.field}>
@@ -190,35 +211,37 @@ export const PageForm: FC<PageFormProps> = (props) => {
         <h2 className={styles.sectionTitle}>SEO Settings</h2>
 
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="seoTitle">
+          <label className={styles.label} htmlFor="seoMetaTitle">
             Meta Title (optional)
           </label>
           <input
             className={styles.input}
             disabled={isSubmitting}
-            id="seoTitle"
+            id="seoMetaTitle"
             placeholder="About Us - Company Name"
             type="text"
-            {...register('seoTitle')}
+            {...register('seoMetaTitle')}
           />
-          {errors.seoTitle && <span className={styles.error}>{errors.seoTitle.message}</span>}
+          {errors.seoMetaTitle && (
+            <span className={styles.error}>{errors.seoMetaTitle.message}</span>
+          )}
           <span className={styles.hint}>Recommended length: 50-60 characters</span>
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="seoDescription">
+          <label className={styles.label} htmlFor="seoMetaDescription">
             Meta Description (optional)
           </label>
           <textarea
-            className={styles.textarea}
+            className={styles.input}
             disabled={isSubmitting}
-            id="seoDescription"
+            id="seoMetaDescription"
             placeholder="Learn more about our company, mission, and team..."
             rows={3}
-            {...register('seoDescription')}
+            {...register('seoMetaDescription')}
           />
-          {errors.seoDescription && (
-            <span className={styles.error}>{errors.seoDescription.message}</span>
+          {errors.seoMetaDescription && (
+            <span className={styles.error}>{errors.seoMetaDescription.message}</span>
           )}
           <span className={styles.hint}>Recommended length: 120-160 characters</span>
         </div>

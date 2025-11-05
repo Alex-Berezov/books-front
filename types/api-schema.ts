@@ -187,23 +187,50 @@ export interface PageResponse {
   id: UUID;
   slug: string;
   title: string;
+  type: PageType; // ✅ Добавлено поле type
   content: string;
   language: SupportedLang;
   status: PublicationStatus;
-  seo?: SeoData;
+  seoId?: number | null; // ✅ Backend возвращает seoId, не seo объект
+  seo?: SeoData; // ✅ Может быть populate из связи, но не всегда
   createdAt: ISODate;
   updatedAt: ISODate;
 }
 
 /**
+ * Тип страницы (согласно backend DTO)
+ */
+export type PageType = 'generic' | 'category_index' | 'author_index';
+
+/**
+ * SEO данные для создания/обновления (вложенный объект в запросе)
+ */
+export interface SeoInput {
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  canonicalUrl?: string | null;
+  robots?: string | null;
+  ogTitle?: string | null;
+  ogDescription?: string | null;
+  ogImageUrl?: string | null;
+  twitterCard?: string | null;
+  twitterTitle?: string | null;
+  twitterDescription?: string | null;
+}
+
+/**
  * Запрос на создание страницы
+ *
+ * ВАЖНО: Backend теперь принимает вложенный объект seo (commit 869a248)
+ * и автоматически создает/обновляет SEO entity
  */
 export interface CreatePageRequest {
   slug: string;
   title: string;
+  type: PageType; // ✅ Обязательное поле!
   content: string;
-  language: SupportedLang;
-  seo?: SeoData;
+  language?: SupportedLang; // Игнорируется backend, берется из :lang в URL
+  seo?: SeoInput; // ✅ Вложенный объект SEO (опционально)
 }
 
 /**
@@ -212,9 +239,11 @@ export interface CreatePageRequest {
 export interface UpdatePageRequest {
   slug?: string;
   title?: string;
+  type?: PageType;
   content?: string;
   language?: SupportedLang;
-  seo?: SeoData;
+  seo?: SeoInput; // ✅ Вложенный объект SEO (опционально)
+  status?: PublicationStatus;
 }
 
 /**
@@ -289,12 +318,23 @@ export interface DetachTagRequest {
  * SEO endpoints
  */
 
+/**
+ * SEO данные в ответе от backend (полная SEO entity)
+ */
 export interface SeoData {
-  title?: string;
-  description?: string;
-  keywords?: string[];
-  ogImage?: string;
-  canonicalUrl?: string;
+  id: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  canonicalUrl?: string | null;
+  robots?: string | null;
+  ogTitle?: string | null;
+  ogDescription?: string | null;
+  ogImageUrl?: string | null;
+  twitterCard?: string | null;
+  twitterTitle?: string | null;
+  twitterDescription?: string | null;
+  createdAt: ISODate;
+  updatedAt: ISODate;
 }
 
 export interface SeoResolveRequest {

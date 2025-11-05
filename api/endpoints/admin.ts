@@ -544,17 +544,18 @@ export const getPages = async (
 /**
  * Получить детали страницы по ID (admin endpoint)
  *
+ * ВАЖНО: Использует /admin/pages/:id БЕЗ :lang (как у versions)
+ *
  * @param pageId - ID страницы
- * @param lang - Язык админ-интерфейса (по умолчанию 'en')
  * @returns Детальная информация о странице
  *
  * @example
  * ```ts
- * const page = await getPageById('uuid-here', 'en');
+ * const page = await getPageById('uuid-here');
  * ```
  */
-export const getPageById = async (pageId: string, lang = 'en'): Promise<PageResponse> => {
-  const endpoint = `/admin/${lang}/pages/${pageId}`;
+export const getPageById = async (pageId: string): Promise<PageResponse> => {
+  const endpoint = `/admin/pages/${pageId}`;
   return httpGetAuth<PageResponse>(endpoint);
 };
 

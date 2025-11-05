@@ -91,6 +91,7 @@ books-app-front/
 > 👉 **[books-app-docs](https://github.com/Alex-Berezov/books-app-docs)** (requires access)
 >
 > For local development with AI agents (MCP), clone the docs repository:
+>
 > ```bash
 > git clone git@github.com:Alex-Berezov/books-app-docs.git
 > ```
@@ -190,11 +191,7 @@ Detailed Git workflow procedures are available in the [documentation repository]
 
 This is a learning/portfolio project. Contributions are welcome!
 
-See the [documentation repository](https://github.com/Alex-Berezov/books-app-docs) for available tasks and development guidelines.
-2. Create a feature branch
-3. Make your changes
-4. Run `yarn lint` and `yarn typecheck`
-5. Submit a pull request
+See the [documentation repository](https://github.com/Alex-Berezov/books-app-docs) for available tasks and development guidelines. 2. Create a feature branch 3. Make your changes 4. Run `yarn lint` and `yarn typecheck` 5. Submit a pull request
 
 ## 📄 License
 
