@@ -23,16 +23,10 @@ export default function NewPage(props: NewPageProps) {
   // Mutation для создания страницы
   const createMutation = useCreatePage({
     onSuccess: (data) => {
-      // ⚠️ TEMPORARY WORKAROUND: Backend не имеет GET /admin/pages/:id endpoint
-      // Редиректим на список вместо страницы редактирования
       console.log('Page created successfully:', data);
-      alert(
-        `✅ Page "${data.title}" created successfully!\n\nNote: Edit functionality disabled until backend adds GET /admin/pages/:id endpoint.`
-      );
-      router.push(`/admin/${lang}/pages`);
 
-      // TODO: Когда backend добавит GET /admin/pages/:id, заменить на:
-      // router.push(`/admin/${lang}/pages/${data.id}`);
+      // ✅ Редирект на страницу редактирования
+      router.push(`/admin/${lang}/pages/${data.id}`);
     },
     onError: (error) => {
       // TODO: Показать toast с ошибкой
@@ -42,16 +36,31 @@ export default function NewPage(props: NewPageProps) {
   });
 
   const handleSubmit = async (data: PageFormData) => {
-    // Формируем SEO объект если есть хотя бы одно заполненное поле
-    const seo =
-      data.seoMetaTitle || data.seoMetaDescription
-        ? {
-            metaTitle: data.seoMetaTitle || undefined,
-            metaDescription: data.seoMetaDescription || undefined,
-          }
-        : undefined;
+    // ✅ Backend теперь поддерживает вложенный seo объект!
+    // См. docs/PAGES_SEO_UPDATE_GUIDE.md для деталей
 
-    // Создаем страницу с вложенным seo объектом
+    // Формируем полный SEO объект со всеми полями (только заполненные)
+    const seo = {
+      // Basic Meta Tags
+      metaTitle: data.seoMetaTitle || undefined,
+      metaDescription: data.seoMetaDescription || undefined,
+      // Technical SEO
+      canonicalUrl: data.seoCanonicalUrl || undefined,
+      robots: data.seoRobots || undefined,
+      // Open Graph
+      ogTitle: data.seoOgTitle || undefined,
+      ogDescription: data.seoOgDescription || undefined,
+      ogImageUrl: data.seoOgImageUrl || undefined,
+      // Twitter Card
+      twitterCard: data.seoTwitterCard || undefined,
+      // ⚠️ Backend не поддерживает twitterTitle и twitterDescription
+      // Вместо этого используются metaTitle и metaDescription для Twitter Card
+    };
+
+    // Проверяем, есть ли хотя бы одно заполненное SEO поле
+    const hasSeoData = Object.values(seo).some((val) => val !== undefined);
+
+    // Создаем страницу с вложенным seo объектом (если есть данные)
     createMutation.mutate({
       lang,
       data: {
@@ -59,8 +68,7 @@ export default function NewPage(props: NewPageProps) {
         title: data.title,
         type: data.type,
         content: data.content,
-        language: data.language, // Игнорируется backend, берется из :lang
-        seo, // ✅ Backend автоматически создаст SEO entity
+        seo: hasSeoData ? seo : undefined, // ✅ Backend автоматически создаст SEO entity
       },
     });
   };

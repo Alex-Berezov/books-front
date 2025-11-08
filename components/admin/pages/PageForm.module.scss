@@ -129,3 +129,132 @@
     cursor: not-allowed;
   }
 }
+
+// ========================================
+// SEO Секции (сворачиваемые)
+// ========================================
+
+.seoSection {
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  margin-bottom: $spacing-md;
+  overflow: hidden;
+  background: $color-background-primary;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.seoSectionTitle {
+  width: 100%;
+  padding: $spacing-md;
+  background: $color-background-secondary;
+  border: none;
+  text-align: left;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  cursor: pointer;
+  transition: background $transition-base;
+
+  &:hover {
+    background: $color-border-light;
+  }
+
+  &::marker {
+    color: $color-primary;
+  }
+}
+
+.seoSectionContent {
+  padding: $spacing-md;
+}
+
+// Уведомление об автозаполнении
+.autoFillNotice {
+  padding: $spacing-sm $spacing-md;
+  margin-bottom: $spacing-md;
+  background: rgba(24, 144, 255, 0.1); // Светлый фон info цвета
+  color: $color-info;
+  border-left: 3px solid $color-info;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+}
+
+// Footer поля (подсказка + счетчик)
+.fieldFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-sm;
+  margin-top: $spacing-xs;
+}
+
+// Счетчик символов
+.charCounter {
+  flex-shrink: 0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  white-space: nowrap;
+
+  &.warning {
+    color: $color-warning;
+  }
+
+  &.error {
+    color: $color-error;
+  }
+}
+
+// Поле с кнопкой (для Canonical URL)
+.inputWithButton {
+  display: flex;
+  gap: $spacing-sm;
+
+  .input {
+    flex: 1;
+  }
+}
+
+.inputButton {
+  flex-shrink: 0;
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-primary;
+  background: $color-background-primary;
+  border: 1px solid $color-primary;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  transition: all $transition-base;
+  white-space: nowrap;
+
+  &:hover {
+    color: $color-text-inverse;
+    background: $color-primary;
+  }
+
+  &:disabled {
+    color: $color-text-disabled;
+    border-color: $color-border-base;
+    background: $color-background-secondary;
+    cursor: not-allowed;
+  }
+}
+
+// Превью изображения
+.imagePreview {
+  margin-top: $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  overflow: hidden;
+  max-width: 400px;
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+}

@@ -62,14 +62,29 @@ const EditPage: FC<EditPageProps> = (props) => {
    * Обработчик отправки формы
    */
   const handleSubmit = async (formData: PageFormData) => {
-    // Формируем SEO объект если есть хотя бы одно заполненное поле
-    const seo =
-      formData.seoMetaTitle || formData.seoMetaDescription
-        ? {
-            metaTitle: formData.seoMetaTitle || undefined,
-            metaDescription: formData.seoMetaDescription || undefined,
-          }
-        : undefined;
+    // ✅ Backend теперь поддерживает вложенный seo объект!
+    // См. docs/PAGES_SEO_UPDATE_GUIDE.md для деталей
+
+    // Формируем полный SEO объект со всеми полями (только заполненные)
+    const seo = {
+      // Basic Meta Tags
+      metaTitle: formData.seoMetaTitle || undefined,
+      metaDescription: formData.seoMetaDescription || undefined,
+      // Technical SEO
+      canonicalUrl: formData.seoCanonicalUrl || undefined,
+      robots: formData.seoRobots || undefined,
+      // Open Graph
+      ogTitle: formData.seoOgTitle || undefined,
+      ogDescription: formData.seoOgDescription || undefined,
+      ogImageUrl: formData.seoOgImageUrl || undefined,
+      // Twitter Card
+      twitterCard: formData.seoTwitterCard || undefined,
+      // ⚠️ Backend не поддерживает twitterTitle и twitterDescription
+      // Вместо этого используются metaTitle и metaDescription для Twitter Card
+    };
+
+    // Проверяем, есть ли хотя бы одно заполненное SEO поле
+    const hasSeoData = Object.values(seo).some((val) => val !== undefined);
 
     updateMutation.mutate({
       pageId,
@@ -79,7 +94,7 @@ const EditPage: FC<EditPageProps> = (props) => {
         slug: formData.slug,
         type: formData.type,
         content: formData.content,
-        seo, // ✅ Backend автоматически создаст/обновит SEO entity
+        seo: hasSeoData ? seo : undefined, // ✅ Backend автоматически создаст/обновит SEO entity
       },
     });
   };
