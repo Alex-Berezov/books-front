@@ -5,6 +5,7 @@ import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { PageResponse } from '@/types/api-schema';
 import styles from './PageForm.module.scss';
@@ -240,18 +241,19 @@ export const PageForm: FC<PageFormProps> = (props) => {
           <label className={styles.label} htmlFor="slug">
             Slug *
           </label>
-          <input
-            className={styles.input}
-            disabled={isSubmitting}
+          <SlugInput
+            autoGenerate
+            entityType="page"
+            error={errors.slug?.message}
+            excludeId={initialData?.id}
             id="slug"
+            lang={watch('language')}
+            onChange={(value) => setValue('slug', value)}
             placeholder="about-us"
-            type="text"
-            {...register('slug')}
+            showGenerateButton
+            sourceValue={watch('title')}
+            value={watch('slug')}
           />
-          {errors.slug && <span className={styles.error}>{errors.slug.message}</span>}
-          <span className={styles.hint}>
-            URL-friendly identifier (lowercase, hyphens only). Example: about-us
-          </span>
         </div>
       </div>
 

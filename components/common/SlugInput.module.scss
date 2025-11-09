@@ -1,0 +1,248 @@
+/**
+ * Стили для компонента SlugInput
+ */
+
+@import '@/styles/tokens.scss';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.input {
+  flex: 1;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: 4px;
+  font-size: $font-size-base;
+  font-family: $font-family-mono;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    border-color: $color-primary-hover;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+  }
+
+  &:disabled {
+    background-color: $color-background-secondary;
+    color: $color-text-disabled;
+    cursor: not-allowed;
+  }
+
+  // Стили для разных статусов валидации
+  &.checking {
+    border-color: $color-info;
+  }
+
+  &.valid {
+    border-color: $color-success;
+    padding-right: 40px; // Место для иконки
+  }
+
+  &.invalid {
+    border-color: $color-error;
+    padding-right: 40px; // Место для иконки
+  }
+}
+
+.statusIcon {
+  position: absolute;
+  right: 100px; // Справа от кнопки Generate
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.spinner {
+  font-size: $font-size-lg;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.checkmark {
+  color: $color-success;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+}
+
+.cross {
+  color: $color-error;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+}
+
+.generateButton {
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: 4px;
+  background-color: $color-background-primary;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: $color-background-secondary;
+    border-color: $color-primary;
+  }
+
+  &:active {
+    background-color: darken($color-background-secondary, 5%);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.hint {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-base;
+}
+
+.error {
+  font-size: $font-size-sm;
+  color: $color-error;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-base;
+}
+
+// Предупреждение о неуникальности slug
+.warningBox {
+  padding: $spacing-md;
+  border: 1px solid $color-warning;
+  border-radius: 4px;
+  background-color: rgba(250, 173, 20, 0.05);
+}
+
+.warningHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+  color: darken($color-warning, 10%);
+}
+
+.warningIcon {
+  font-size: $font-size-lg;
+}
+
+.warningContent {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+
+  p {
+    margin: 0;
+    font-size: $font-size-sm;
+    color: $color-text-primary;
+    line-height: $line-height-base;
+  }
+
+  code {
+    padding: 2px 6px;
+    border-radius: 3px;
+    background-color: $color-background-secondary;
+    color: $color-error;
+    font-family: $font-family-mono;
+    font-size: $font-size-sm;
+  }
+}
+
+.existingItem {
+  padding: $spacing-sm;
+  border: 1px solid $color-border-light;
+  border-radius: 4px;
+  background-color: $color-background-primary;
+}
+
+.existingItemMeta {
+  margin-top: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background-color: $color-background-secondary;
+  color: $color-text-primary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  text-transform: uppercase;
+}
+
+.suggestion {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+
+  p {
+    margin: 0;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.suggestionButton {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $color-success;
+  border-radius: 4px;
+  background-color: rgba(82, 196, 26, 0.05);
+  color: $color-text-primary;
+  font-size: $font-size-base;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba(82, 196, 26, 0.1);
+    border-color: darken($color-success, 10%);
+  }
+
+  code {
+    padding: 2px 6px;
+    border-radius: 3px;
+    background-color: $color-background-primary;
+    color: $color-success;
+    font-family: $font-family-mono;
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.suggestionIcon {
+  color: $color-success;
+  font-weight: $font-weight-bold;
+}
