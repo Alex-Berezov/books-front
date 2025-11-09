@@ -297,10 +297,36 @@
   cursor: pointer;
   transition: all $transition-fast;
   background: $color-background-primary;
+  margin-right: $spacing-xs;
 
   &:hover {
     border-color: $color-primary;
     color: $color-primary;
+  }
+}
+
+.deleteButton {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-error;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all $transition-fast;
+  background: $color-background-primary;
+
+  &:hover:not(:disabled) {
+    border-color: $color-error;
+    background: rgba($color-error, 0.05);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 

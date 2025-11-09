@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import Link from 'next/link';
-import { usePages } from '@/api/hooks/useAdmin';
+import { usePages, useDeletePage } from '@/api/hooks/useAdmin';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PublicationStatus } from '@/types/api-schema';
 import styles from './PageListTable.module.scss';
@@ -35,6 +35,29 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
     status: statusFilter !== 'all' ? statusFilter : undefined,
     lang, // Передаем язык в параметрах запроса
   });
+
+  // Мутация для удаления страницы
+  const deleteMutation = useDeletePage({
+    onSuccess: () => {
+      // После успешного удаления React Query автоматически обновит список
+      console.log('Page deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Failed to delete page:', error);
+      alert(`Failed to delete page: ${error.message}`);
+    },
+  });
+
+  // Обработчик удаления страницы
+  const handleDelete = (pageId: string, pageTitle: string) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete the page "${pageTitle}"?\n\nThis action cannot be undone.`
+    );
+
+    if (confirmDelete) {
+      deleteMutation.mutate({ pageId, lang });
+    }
+  };
 
   // Обработчик поиска
   const handleSearch = (e: React.FormEvent) => {
@@ -271,6 +294,14 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
                     >
                       Edit
                     </Link>
+                    <button
+                      onClick={() => handleDelete(pageItem.id, pageItem.title)}
+                      className={styles.deleteButton}
+                      disabled={deleteMutation.isPending}
+                      title="Delete page"
+                    >
+                      {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                    </button>
                   </td>
                 </tr>
               ))}

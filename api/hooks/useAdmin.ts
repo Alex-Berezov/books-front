@@ -19,6 +19,7 @@ import {
   createChapter,
   createPage,
   deleteChapter,
+  deletePage,
   detachCategory,
   detachTag,
   getBooks,
@@ -1009,6 +1010,43 @@ export const useUnpublishPage = (
   return useMutation({
     mutationFn: ({ pageId, lang = 'en' }) => unpublishPage(pageId, lang),
     onSuccess: (data, variables) => {
+      // Инвалидируем детали страницы и список
+      queryClient.invalidateQueries({ queryKey: pageKeys.detail(variables.pageId) });
+      queryClient.invalidateQueries({ queryKey: pageKeys.lists() });
+    },
+    ...options,
+  });
+};
+
+/**
+ * Хук для удаления страницы
+ *
+ * Удаляет страницу из базы данных.
+ * После успешного выполнения инвалидирует кэш списка страниц.
+ *
+ * @param options - Опции React Query mutation
+ * @returns React Query mutation
+ *
+ * @example
+ * ```tsx
+ * const deleteMutation = useDeletePage({
+ *   onSuccess: () => {
+ *     toast.success('Page deleted successfully');
+ *     router.push('/admin/en/pages');
+ *   }
+ * });
+ *
+ * deleteMutation.mutate({ pageId: 'page-uuid', lang: 'en' });
+ * ```
+ */
+export const useDeletePage = (
+  options?: UseMutationOptions<void, Error, { pageId: string; lang?: string }>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ pageId, lang = 'en' }) => deletePage(pageId, lang),
+    onSuccess: (_data, variables) => {
       // Инвалидируем детали страницы и список
       queryClient.invalidateQueries({ queryKey: pageKeys.detail(variables.pageId) });
       queryClient.invalidateQueries({ queryKey: pageKeys.lists() });

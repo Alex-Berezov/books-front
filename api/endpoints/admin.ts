@@ -638,3 +638,19 @@ export const unpublishPage = async (pageId: string, lang = 'en'): Promise<PageRe
   const endpoint = `/admin/${lang}/pages/${pageId}/unpublish`;
   return httpPostAuth<PageResponse>(endpoint);
 };
+
+/**
+ * Удалить страницу
+ *
+ * @param pageId - ID страницы для удаления
+ * @param lang - Язык админ-интерфейса (по умолчанию 'en')
+ *
+ * @example
+ * ```ts
+ * await deletePage('uuid-here', 'en');
+ * ```
+ */
+export const deletePage = async (pageId: string, lang = 'en'): Promise<void> => {
+  const endpoint = `/admin/${lang}/pages/${pageId}`;
+  return httpDeleteAuth<void>(endpoint);
+};
