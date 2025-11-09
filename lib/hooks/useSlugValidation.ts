@@ -8,7 +8,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { checkPageSlugUniqueness } from '@/api/endpoints/slug-validation';
+import { checkBookSlugUniqueness, checkPageSlugUniqueness } from '@/api/endpoints/slug-validation';
 import type { SlugValidationResult } from '@/api/endpoints/slug-validation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
@@ -87,9 +87,7 @@ export interface UseSlugValidationParams {
  * {status === 'invalid' && <Alert>Slug занят! Используйте: {suggestedSlug}</Alert>}
  * {status === 'valid' && <CheckIcon />}
  */
-export const useSlugValidation = (
-  params: UseSlugValidationParams
-): UseSlugValidationResult => {
+export const useSlugValidation = (params: UseSlugValidationParams): UseSlugValidationResult => {
   const { entityType, lang, excludeId, debounceMs = 500, enabled = true } = params;
 
   const [status, setStatus] = useState<SlugValidationStatus>('idle');
@@ -118,8 +116,8 @@ export const useSlugValidation = (
           }
           validationResult = await checkPageSlugUniqueness(slug, lang, excludeId);
         } else {
-          // TODO: Реализовать когда появится функция для книг
-          throw new Error('Book slug validation not implemented yet');
+          // entityType === 'book'
+          validationResult = await checkBookSlugUniqueness(slug, excludeId);
         }
 
         setResult(validationResult);

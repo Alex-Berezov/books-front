@@ -1,12 +1,11 @@
 /**
  * Slug Validation API
  *
- * Временная реализация проверки уникальности slug через существующий API.
- * TODO: Когда backend добавит специальный endpoint для проверки уникальности,
- * заменить на прямой вызов `/api/admin/:lang/pages/check-slug?slug=...`
+ * Проверка уникальности slug через оптимизированные backend endpoints.
+ * Backend endpoints: GET /api/admin/pages/check-slug и GET /api/books/check-slug
  */
 
-import { getPages } from '@/api/endpoints/admin';
+import { httpGetAuth } from '@/lib/http-client';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
@@ -25,16 +24,43 @@ export interface SlugValidationResult {
     title: string;
     status: 'draft' | 'published' | 'archived';
   };
+  /** Существующая книга с таким slug (если найдена) */
+  existingBook?: {
+    id: string;
+    slug: string;
+  };
+}
+
+/**
+ * Backend response для Pages check-slug
+ */
+interface CheckPageSlugResponse {
+  exists: boolean;
+  suggestedSlug?: string;
+  existingPage?: {
+    id: string;
+    title: string;
+    status: 'draft' | 'published' | 'archived';
+  };
+}
+
+/**
+ * Backend response для Books check-slug
+ */
+interface CheckBookSlugResponse {
+  exists: boolean;
+  suggestedSlug?: string;
+  existingBook?: {
+    id: string;
+    slug: string;
+  };
 }
 
 /**
  * Проверяет уникальность slug для страниц (Pages)
  *
- * ВРЕМЕННАЯ РЕАЛИЗАЦИЯ: Использует getPages() для поиска.
- * Это не оптимально, т.к. загружает весь список страниц.
- *
- * TODO: Заменить на backend endpoint когда он будет готов:
- * GET /api/admin/:lang/pages/check-slug?slug=about-us
+ * Использует оптимизированный backend endpoint:
+ * GET /api/admin/pages/check-slug?slug={slug}&lang={lang}&excludeId={id}
  *
  * @param slug - Проверяемый slug
  * @param lang - Язык страницы
@@ -59,48 +85,19 @@ export const checkPageSlugUniqueness = async (
   excludePageId?: string
 ): Promise<SlugValidationResult> => {
   try {
-    // Получаем все страницы для этого языка с поиском по slug
-    // TODO: Это временное решение. Backend должен добавить endpoint для проверки slug
-    const response = await getPages({
-      search: slug,
-      lang,
-      limit: 100, // На всякий случай берём больше, но реально будет 0-2 результата
-    });
-
-    // Ищем точное совпадение slug (поиск может вернуть похожие результаты)
-    const existingPage = response.data.find(
-      (page) => page.slug === slug && page.id !== excludePageId
-    );
-
-    if (!existingPage) {
-      return {
-        slug,
-        isUnique: true,
-      };
+    const params = new URLSearchParams({ slug, lang });
+    if (excludePageId) {
+      params.append('excludeId', excludePageId);
     }
 
-    // Slug занят - генерируем предложение с суффиксом
-    // Собираем все существующие slug'и с этим базовым slug
-    const allSlugs = response.data.map((page) => page.slug);
-
-    // Ищем первый свободный номер
-    let suffix = 2;
-    let suggestedSlug = `${slug}-${suffix}`;
-
-    while (allSlugs.includes(suggestedSlug)) {
-      suffix++;
-      suggestedSlug = `${slug}-${suffix}`;
-    }
+    const endpoint = `/admin/pages/check-slug?${params.toString()}`;
+    const response = await httpGetAuth<CheckPageSlugResponse>(endpoint);
 
     return {
       slug,
-      isUnique: false,
-      suggestedSlug,
-      existingPage: {
-        id: existingPage.id,
-        title: existingPage.title,
-        status: existingPage.status,
-      },
+      isUnique: !response.exists,
+      suggestedSlug: response.suggestedSlug,
+      existingPage: response.existingPage,
     };
   } catch (error) {
     // В случае ошибки (например, нет авторизации) считаем slug уникальным
@@ -116,21 +113,49 @@ export const checkPageSlugUniqueness = async (
 /**
  * Проверяет уникальность slug для книг (Books)
  *
- * TODO: Реализовать когда backend добавит endpoint для проверки slug книг
- * GET /api/admin/books/check-slug?slug=harry-potter
+ * Использует оптимизированный backend endpoint:
+ * GET /api/books/check-slug?slug={slug}&excludeId={id}
  *
  * @param slug - Проверяемый slug
- * @param _excludeBookId - ID книги, которую нужно исключить из проверки (при редактировании)
+ * @param excludeBookId - ID книги, которую нужно исключить из проверки (при редактировании)
  * @returns Результат проверки уникальности
+ *
+ * @example
+ * // При создании новой книги
+ * const result = await checkBookSlugUniqueness('harry-potter');
+ * if (!result.isUnique) {
+ *   console.log(`Slug занят! Используйте: ${result.suggestedSlug}`);
+ * }
+ *
+ * @example
+ * // При редактировании книги
+ * const result = await checkBookSlugUniqueness('harry-potter', 'book-id');
  */
 export const checkBookSlugUniqueness = async (
   slug: string,
-  _excludeBookId?: string
+  excludeBookId?: string
 ): Promise<SlugValidationResult> => {
-  // TODO: Реализовать когда появится backend endpoint
-  console.warn('[checkBookSlugUniqueness] Not implemented yet. Backend endpoint needed.');
-  return {
-    slug,
-    isUnique: true,
-  };
+  try {
+    const params = new URLSearchParams({ slug });
+    if (excludeBookId) {
+      params.append('excludeId', excludeBookId);
+    }
+
+    const endpoint = `/books/check-slug?${params.toString()}`;
+    const response = await httpGetAuth<CheckBookSlugResponse>(endpoint);
+
+    return {
+      slug,
+      isUnique: !response.exists,
+      suggestedSlug: response.suggestedSlug,
+      existingBook: response.existingBook,
+    };
+  } catch (error) {
+    // В случае ошибки считаем slug уникальным чтобы не блокировать форму
+    console.error('[checkBookSlugUniqueness] Error checking slug:', error);
+    return {
+      slug,
+      isUnique: true,
+    };
+  }
 };
