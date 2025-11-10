@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
-import { useAttachTag, useDetachTag, useTags } from '@/api/hooks/useAdmin';
+import { useAttachTag, useDetachTag, useTags } from '@/api/hooks';
 import type { Tag } from '@/types/api-schema';
 import styles from './TagsPanel.module.scss';
 

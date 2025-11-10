@@ -2,7 +2,8 @@
 
 import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
-import { usePage, useUpdatePage } from '@/api/hooks/useAdmin';
+import { useSnackbar } from 'notistack';
+import { usePage, useUpdatePage } from '@/api/hooks';
 import { PageForm, type PageFormData } from '@/components/admin/pages/PageForm';
 import { PagePublishPanel } from '@/components/admin/pages/PagePublishPanel';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -25,6 +26,7 @@ const EditPage: FC<EditPageProps> = (props) => {
   const { lang, id: pageId } = params;
 
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
   // Загружаем данные страницы (БЕЗ lang - как у versions)
   const { data: page, error, isLoading } = usePage(pageId);
@@ -32,13 +34,12 @@ const EditPage: FC<EditPageProps> = (props) => {
   // Мутация для обновления страницы
   const updateMutation = useUpdatePage({
     onSuccess: () => {
-      // TODO: Показать toast уведомление об успехе
+      enqueueSnackbar('Page updated successfully', { variant: 'success' });
       console.log('Page updated successfully');
     },
     onError: (error) => {
-      // TODO: Показать toast уведомление об ошибке
       console.error('Failed to update page:', error);
-      alert(`Failed to update page: ${error.message}`);
+      enqueueSnackbar(`Failed to update page: ${error.message}`, { variant: 'error' });
     },
   });
 
@@ -46,7 +47,7 @@ const EditPage: FC<EditPageProps> = (props) => {
    * Обработчик успешной публикации
    */
   const handlePublishSuccess = () => {
-    // TODO: Показать toast уведомление
+    enqueueSnackbar('Page published successfully', { variant: 'success' });
     console.log('Page published successfully');
   };
 
@@ -54,7 +55,7 @@ const EditPage: FC<EditPageProps> = (props) => {
    * Обработчик успешного снятия с публикации
    */
   const handleUnpublishSuccess = () => {
-    // TODO: Показать toast уведомление
+    enqueueSnackbar('Page unpublished successfully', { variant: 'success' });
     console.log('Page unpublished successfully');
   };
 
@@ -114,15 +115,16 @@ const EditPage: FC<EditPageProps> = (props) => {
       <div className={styles.container}>
         <div className={styles.error}>
           <p>Failed to load page</p>
-          <p style={{ marginTop: '0.5rem', color: '#666' }}>{error.message}</p>
-          <button
-            className={styles.backButton}
-            onClick={() => router.push(`/admin/${lang}/pages`)}
-            type="button"
-            style={{ marginTop: '1rem' }}
-          >
-            ← Back to Pages List
-          </button>
+          <p className={styles.errorMessage}>{error.message}</p>
+          <div className={styles.errorActions}>
+            <button
+              className={styles.backButton}
+              onClick={() => router.push(`/admin/${lang}/pages`)}
+              type="button"
+            >
+              ← Back to Pages List
+            </button>
+          </div>
         </div>
       </div>
     );

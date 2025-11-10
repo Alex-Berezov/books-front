@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
-import { useBookVersion, useUpdateBookVersion } from '@/api/hooks/useAdmin';
+import { useBookVersion, useUpdateBookVersion } from '@/api/hooks';
 import {
   BookForm,
   BookVersionTabs,

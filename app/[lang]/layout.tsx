@@ -4,6 +4,7 @@ import { isSupportedLang } from '@/lib/i18n/lang';
 import { AppProviders } from '@/providers/AppProviders';
 import type { Metadata } from 'next';
 import '@/styles/globals.css';
+import '@/styles/snackbar.scss';
 import styles from '@/styles/layouts.module.scss';
 
 type Props = {

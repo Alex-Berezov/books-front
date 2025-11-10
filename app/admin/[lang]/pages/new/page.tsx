@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCreatePage } from '@/api/hooks/useAdmin';
+import { useSnackbar } from 'notistack';
+import { useCreatePage } from '@/api/hooks';
 import { PageForm, type PageFormData } from '@/components/admin/pages/PageForm';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
@@ -19,19 +20,20 @@ export default function NewPage(props: NewPageProps) {
   const { params } = props;
   const { lang } = params;
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
   // Mutation для создания страницы
   const createMutation = useCreatePage({
     onSuccess: (data) => {
       console.log('Page created successfully:', data);
+      enqueueSnackbar('Page created successfully', { variant: 'success' });
 
       // ✅ Редирект на страницу редактирования
       router.push(`/admin/${lang}/pages/${data.id}`);
     },
     onError: (error) => {
-      // TODO: Показать toast с ошибкой
       console.error('Failed to create page:', error);
-      alert(`Failed to create page: ${error.message}`);
+      enqueueSnackbar(`Failed to create page: ${error.message}`, { variant: 'error' });
     },
   });
 

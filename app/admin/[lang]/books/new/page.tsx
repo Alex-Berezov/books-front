@@ -2,7 +2,7 @@
 
 import type { FC } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCreateBookVersion } from '@/api/hooks/useAdmin';
+import { useCreateBookVersion } from '@/api/hooks';
 import { BookForm, type BookFormData } from '@/components/admin/books';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CreateBookVersionRequest } from '@/types/api-schema';

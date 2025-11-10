@@ -1,0 +1,57 @@
+@import './tokens.scss';
+
+/**
+ * Глобальные стили для Notistack Snackbar
+ * Используем design tokens для единообразия
+ */
+
+// Z-index для snackbar (поверх всех элементов)
+$snackbar-z-index: 9999;
+
+.notistack-SnackbarContainer {
+  z-index: $snackbar-z-index !important;
+}
+
+.notistack-Snackbar {
+  font-family: $font-family-base;
+}
+
+// Success variant
+.notistack-MuiContent-success {
+  background-color: $color-success !important;
+  color: $color-text-inverse !important;
+  font-weight: $font-weight-medium;
+  box-shadow: 0 2px 8px rgba($color-success, 0.25);
+}
+
+// Error variant
+.notistack-MuiContent-error {
+  background-color: $color-error !important;
+  color: $color-text-inverse !important;
+  font-weight: $font-weight-medium;
+  box-shadow: 0 2px 8px rgba($color-error, 0.25);
+}
+
+// Warning variant
+.notistack-MuiContent-warning {
+  background-color: $color-warning !important;
+  color: $color-text-inverse !important;
+  font-weight: $font-weight-medium;
+  box-shadow: 0 2px 8px rgba($color-warning, 0.25);
+}
+
+// Info variant
+.notistack-MuiContent-info {
+  background-color: $color-info !important;
+  color: $color-text-inverse !important;
+  font-weight: $font-weight-medium;
+  box-shadow: 0 2px 8px rgba($color-info, 0.25);
+}
+
+// Default variant
+.notistack-MuiContent-default {
+  background-color: $color-background-dark !important;
+  color: $color-text-inverse !important;
+  font-weight: $font-weight-medium;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}

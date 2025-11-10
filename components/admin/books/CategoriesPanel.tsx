@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
-import { useAttachCategory, useCategoriesTree, useDetachCategory } from '@/api/hooks/useAdmin';
+import { useAttachCategory, useCategoriesTree, useDetachCategory } from '@/api/hooks';
 import type { Category } from '@/types/api-schema';
 import styles from './CategoriesPanel.module.scss';
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
-import { usePublishPage, useUnpublishPage } from '@/api/hooks/useAdmin';
+import { usePublishPage, useUnpublishPage } from '@/api/hooks';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PageResponse, PublicationStatus } from '@/types/api-schema';
 import styles from './PagePublishPanel.module.scss';

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
-import { usePublishVersion, useUnpublishVersion } from '@/api/hooks/useAdmin';
+import { usePublishVersion, useUnpublishVersion } from '@/api/hooks';
 import type { PublicationStatus } from '@/types/api-schema';
 import styles from './PublishPanel.module.scss';
 

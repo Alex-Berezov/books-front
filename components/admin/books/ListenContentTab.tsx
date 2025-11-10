@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
-import { useChapters } from '@/api/hooks/useAdmin';
+import { useChapters } from '@/api/hooks';
 import styles from './ReadContentTab.module.scss'; // Используем те же стили
 
 /**

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import type { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useBooks } from '@/api/hooks/useAdmin';
+import { useBooks } from '@/api/hooks';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './BookListTable.module.scss';
 

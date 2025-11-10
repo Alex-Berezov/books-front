@@ -2,7 +2,7 @@
 
 import { useState, type FC } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCreateBook } from '@/api/hooks/useAdmin';
+import { useCreateBook } from '@/api/hooks';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 interface CreateBookPageProps {

@@ -15,41 +15,12 @@ import { useEffect, useState } from 'react';
 import type { ChangeEvent, FC, FocusEvent } from 'react';
 import { useSlugValidation } from '@/lib/hooks/useSlugValidation';
 import { generateSlug, isValidSlug } from '@/lib/utils/slug';
-import type { SlugEntityType } from '@/lib/hooks/useSlugValidation';
-import type { SupportedLang } from '@/lib/i18n/lang';
+import type { SlugInputProps } from './SlugInput.types';
 import styles from './SlugInput.module.scss';
-
-/**
- * Пропсы компонента SlugInput
- */
-export interface SlugInputProps {
-  /** Текущее значение slug */
-  value: string;
-  /** Callback при изменении slug */
-  onChange: (value: string) => void;
-  /** Исходное значение для автогенерации (обычно title) */
-  sourceValue?: string;
-  /** Тип сущности (page | book) для проверки уникальности */
-  entityType: SlugEntityType;
-  /** Язык (для pages) */
-  lang?: SupportedLang;
-  /** ID редактируемой сущности (для исключения из проверки уникальности) */
-  excludeId?: string;
-  /** Отключить поле */
-  disabled?: boolean;
-  /** Показывать ли кнопку "Generate from title" */
-  showGenerateButton?: boolean;
-  /** Автоматически генерировать slug при вводе sourceValue */
-  autoGenerate?: boolean;
-  /** Placeholder для input */
-  placeholder?: string;
-  /** ID для HTML элемента */
-  id?: string;
-  /** CSS класс для кастомизации */
-  className?: string;
-  /** Сообщение об ошибке валидации (из react-hook-form) */
-  error?: string;
-}
+import { DuplicateWarning } from './ui/DuplicateWarning';
+import { GenerateButton } from './ui/GenerateButton';
+import { StatusIcon } from './ui/StatusIcon';
+import { ValidationHint } from './ui/ValidationHint';
 
 /**
  * Компонент для ввода slug с автогенерацией и проверкой уникальности
@@ -187,6 +158,9 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
     return '';
   };
 
+  // Определяем показывать ли дублирование
+  const showDuplicateWarning = !error && isUnique === false && existingItem;
+
   return (
     <div className={`${styles.container} ${className || ''}`}>
       {/* Основное поле ввода */}
@@ -203,73 +177,29 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
         />
 
         {/* Иконка статуса */}
-        {!disabled && value && (
-          <div className={styles.statusIcon}>
-            {status === 'checking' && <span className={styles.spinner}>⏳</span>}
-            {status === 'valid' && <span className={styles.checkmark}>✓</span>}
-            {status === 'invalid' && <span className={styles.cross}>✗</span>}
-          </div>
-        )}
+        {!disabled && value && <StatusIcon status={status} />}
 
         {/* Кнопка генерации slug */}
-        {showGenerateButton && !disabled && sourceValue && (
-          <button
-            className={styles.generateButton}
-            onClick={handleGenerateClick}
-            title="Generate slug from title"
-            type="button"
-          >
-            Generate
-          </button>
+        {showGenerateButton && !disabled && (
+          <GenerateButton hasSourceValue={!!sourceValue} onClick={handleGenerateClick} />
         )}
       </div>
 
       {/* Hint: URL-friendly формат */}
-      {!error && !existingItem && (
-        <span className={styles.hint}>
-          URL-friendly identifier (lowercase, hyphens only). Example: {placeholder}
-        </span>
-      )}
+      {!error && !existingItem && <ValidationHint placeholder={placeholder} />}
 
       {/* Ошибка валидации из react-hook-form */}
       {error && <span className={styles.error}>{error}</span>}
 
       {/* Предупреждение о неуникальности slug */}
-      {!error && isUnique === false && existingItem && (
-        <div className={styles.warningBox}>
-          <div className={styles.warningHeader}>
-            <span className={styles.warningIcon}>⚠️</span>
-            <strong>Slug is already taken</strong>
-          </div>
-          <div className={styles.warningContent}>
-            <p>
-              A {entityType === 'page' ? 'page' : 'book'} with slug <code>{value}</code> already
-              exists:
-            </p>
-            <div className={styles.existingItem}>
-              <div>
-                <strong>{existingItem.title}</strong>
-              </div>
-              <div className={styles.existingItemMeta}>
-                Status: <span className={styles.badge}>{existingItem.status}</span>
-              </div>
-            </div>
-
-            {suggestedSlug && (
-              <div className={styles.suggestion}>
-                <p>Try using:</p>
-                <button
-                  className={styles.suggestionButton}
-                  onClick={handleUseSuggested}
-                  type="button"
-                >
-                  <code>{suggestedSlug}</code>
-                  <span className={styles.suggestionIcon}>→</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+      {showDuplicateWarning && (
+        <DuplicateWarning
+          entityType={entityType}
+          slug={value}
+          existingItem={existingItem}
+          suggestedSlug={suggestedSlug}
+          onUseSuggested={handleUseSuggested}
+        />
       )}
     </div>
   );

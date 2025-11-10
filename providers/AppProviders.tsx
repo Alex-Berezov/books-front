@@ -6,12 +6,14 @@
  * Оборачивает приложение необходимыми провайдерами:
  * - QueryClientProvider (React Query для работы с API)
  * - ConfigProvider (Ant Design для темы и настроек UI)
+ * - SnackbarProvider (Notistack для уведомлений)
  */
 
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider } from 'antd';
+import { SnackbarProvider } from 'notistack';
 import { QUERY_CACHE_TIME } from '@/lib/queryClient.constants';
 import { colors } from '@/styles/tokens';
 
@@ -50,7 +52,16 @@ export const AppProviders = (props: AppProvidersProps) => {
           },
         }}
       >
-        {children}
+        <SnackbarProvider
+          maxSnack={3}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          autoHideDuration={4000}
+        >
+          {children}
+        </SnackbarProvider>
       </ConfigProvider>
     </QueryClientProvider>
   );
