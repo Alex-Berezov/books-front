@@ -5,9 +5,9 @@
  * Включает поля для accessToken, refreshToken, roles и времени истечения.
  */
 
+import type { AuthErrorType } from '@/lib/auth/constants';
 import type { DefaultSession } from 'next-auth';
 import type { JWT as NextAuthJWT } from 'next-auth/jwt';
-import type { AuthErrorType } from '@/lib/auth/constants';
 
 declare module 'next-auth' {
   /**

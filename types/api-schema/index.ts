@@ -1,0 +1,85 @@
+/**
+ * API Schema Types
+ *
+ * Временные типы для работы с API до генерации из OpenAPI.
+ * TODO (M2): Заменить на автогенерированные типы из production API
+ *
+ * @see https://api.bibliaris.com/api/docs-json (когда станет доступен)
+ */
+
+// Common types
+export type {
+  ISODate,
+  PageType,
+  PaginatedResponse,
+  PaginationMeta,
+  PublicationStatus,
+  RoleName,
+  SupportedLang,
+  UUID,
+  VersionType,
+} from './common';
+
+// Auth
+export type {
+  AuthResponse,
+  LoginRequest,
+  RefreshRequest,
+  RefreshResponse,
+  RegisterRequest,
+} from './auth';
+
+// User
+export type { UserMeResponse } from './user';
+
+// Books
+export type {
+  BookOverview,
+  BookVersion,
+  BookVersionDetail,
+  CreateBookRequest,
+  CreateBookResponse,
+  CreateBookVersionRequest,
+  UpdateBookVersionRequest,
+  VersionPreview,
+} from './books';
+
+// Chapters
+export type {
+  Chapter,
+  ChapterDetail,
+  CreateChapterRequest,
+  ReorderChaptersRequest,
+  UpdateChapterRequest,
+} from './chapters';
+
+// Categories
+export type {
+  AttachCategoryRequest,
+  Category,
+  CategoryBooksResponse,
+  CategoryTree,
+  DetachCategoryRequest,
+} from './categories';
+
+// Tags
+export type { AttachTagRequest, DetachTagRequest, Tag, TagBooksResponse } from './tags';
+
+// Pages (CMS)
+export type {
+  CreatePageRequest,
+  PageResponse,
+  SeoData,
+  SeoInput,
+  SeoResolveRequest,
+  SeoResolveResponse,
+  UpdatePageRequest,
+} from './pages';
+
+// Bookshelf & Reading Progress
+export type {
+  AddToBookshelfRequest,
+  BookshelfItem,
+  ReadingProgress,
+  UpdateProgressRequest,
+} from './bookshelf';

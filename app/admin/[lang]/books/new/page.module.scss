@@ -1,0 +1,28 @@
+@import '@/styles/tokens';
+
+.container {
+  padding: $spacing-xl;
+}
+
+.title {
+  margin-bottom: $spacing-xl;
+  color: $color-text-primary;
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-semibold;
+}
+
+.errorContainer {
+  padding: $spacing-xl;
+}
+
+.errorTitle {
+  margin-bottom: $spacing-md;
+  color: $color-error;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+}
+
+.errorMessage {
+  color: $color-text-secondary;
+  font-size: $font-size-md;
+}

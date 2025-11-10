@@ -6,10 +6,10 @@
  */
 
 import { useQuery, type UseQueryOptions, type UseQueryResult } from '@tanstack/react-query';
-import type { UserMeResponse } from '@/types/api-schema';
-import { ApiError } from '@/types/api';
-import { queryKeys, staleTimeConfig } from '@/lib/queryClient';
 import * as authApi from '@/api/endpoints/auth';
+import { queryKeys, staleTimeConfig } from '@/lib/queryClient';
+import type { ApiError } from '@/types/api';
+import type { UserMeResponse } from '@/types/api-schema';
 
 /**
  * Хук для получения данных текущего пользователя

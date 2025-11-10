@@ -5,6 +5,8 @@
  * книги, страницы, категории, теги и т.д.
  */
 
+import { httpGet } from '@/lib/http';
+import { buildLangPath } from '@/lib/http';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   BookOverview,
@@ -13,8 +15,6 @@ import type {
   TagBooksResponse,
   SeoResolveResponse,
 } from '@/types/api-schema';
-import { httpGet } from '@/lib/http';
-import { buildLangPath } from '@/lib/http';
 
 /**
  * Получить обзор книги
