@@ -18,7 +18,7 @@ import {
   publishVersion,
   unpublishVersion,
   updateBookVersion,
-} from '@/api/endpoints/admin';
+} from '@/api/endpoints/admin/bookVersions';
 import type {
   BookVersionDetail,
   CreateBookVersionRequest,

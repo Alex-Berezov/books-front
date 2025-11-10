@@ -5,8 +5,8 @@
  * требующими авторизации.
  */
 
-import type { UserMeResponse } from '@/types/api-schema';
 import { httpGetAuth } from '@/lib/http-client';
+import type { UserMeResponse } from '@/types/api-schema';
 
 /**
  * Получить данные текущего пользователя

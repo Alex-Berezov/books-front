@@ -18,7 +18,7 @@ import {
   getCategories,
   getCategoriesTree,
   type GetCategoriesParams,
-} from '@/api/endpoints/admin';
+} from '@/api/endpoints/admin/categories';
 import type { Category, CategoryTree, PaginatedResponse } from '@/types/api-schema';
 import { versionKeys } from './useBookVersions';
 

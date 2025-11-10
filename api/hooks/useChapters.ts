@@ -18,7 +18,7 @@ import {
   getChapters,
   reorderChapters,
   updateChapter,
-} from '@/api/endpoints/admin';
+} from '@/api/endpoints/admin/chapters';
 import type {
   ChapterDetail,
   CreateChapterRequest,

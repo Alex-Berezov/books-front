@@ -21,7 +21,7 @@ import {
   unpublishPage,
   updatePage,
   type GetPagesParams,
-} from '@/api/endpoints/admin';
+} from '@/api/endpoints/admin/pages';
 import type {
   CreatePageRequest,
   PageResponse,

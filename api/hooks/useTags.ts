@@ -12,7 +12,7 @@ import {
   type UseMutationOptions,
   type UseQueryOptions,
 } from '@tanstack/react-query';
-import { attachTag, detachTag, getTags, type GetTagsParams } from '@/api/endpoints/admin';
+import { attachTag, detachTag, getTags, type GetTagsParams } from '@/api/endpoints/admin/tags';
 import type { PaginatedResponse, Tag } from '@/types/api-schema';
 import { versionKeys } from './useBookVersions';
 

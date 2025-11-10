@@ -12,7 +12,7 @@ import {
   type UseMutationOptions,
   type UseQueryOptions,
 } from '@tanstack/react-query';
-import { createBook, getBooks, type GetBooksParams } from '@/api/endpoints/admin';
+import { createBook, getBooks, type GetBooksParams } from '@/api/endpoints/admin/books';
 import type {
   BookOverview,
   CreateBookRequest,
