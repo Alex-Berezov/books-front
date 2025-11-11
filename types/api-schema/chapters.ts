@@ -1,81 +1,81 @@
 /**
- * Типы для Chapters endpoints
+ * Types for Chapters endpoints
  *
- * Главы книг, создание, редактирование, переупорядочивание
+ * Book chapters, creation, editing, reordering
  */
 
 import type { ISODate, UUID } from './common';
 
 /**
- * Базовая информация о главе
+ * Basic chapter information
  */
 export interface Chapter {
   id: UUID;
   versionId: UUID;
   orderIndex: number;
   title?: string;
-  content?: string; // Для text версий
-  audioUrl?: string; // Для audio версий
-  duration?: number; // В секундах для аудио
+  content?: string; // For text versions
+  audioUrl?: string; // For audio versions
+  duration?: number; // In seconds for audio
   isFree: boolean;
   createdAt: ISODate;
   updatedAt: ISODate;
 }
 
 /**
- * Детальная информация о главе (для админки)
+ * Detailed chapter information (for admin panel)
  */
 export interface ChapterDetail {
   id: UUID;
   versionId: UUID;
   orderIndex: number;
   title?: string;
-  content?: string; // Для text версий (markdown)
-  audioUrl?: string; // Для audio версий
-  duration?: number; // В секундах для аудио
+  content?: string; // For text versions (markdown)
+  audioUrl?: string; // For audio versions
+  duration?: number; // In seconds for audio
   isFree: boolean;
   createdAt: ISODate;
   updatedAt: ISODate;
 }
 
 /**
- * Запрос на создание новой главы
+ * Request to create a new chapter
  */
 export interface CreateChapterRequest {
-  /** Номер главы в порядке следования */
+  /** Chapter number in order */
   orderIndex: number;
-  /** Название главы */
+  /** Chapter title */
   title?: string;
-  /** Контент главы (markdown) для текстовых версий */
+  /** Chapter content (markdown) for text versions */
   content?: string;
-  /** URL аудио файла для аудио версий */
+  /** Audio file URL for audio versions */
   audioUrl?: string;
-  /** Длительность в секундах для аудио */
+  /** Duration in seconds for audio */
   duration?: number;
-  /** Бесплатная ли глава */
+  /** Whether chapter is free */
   isFree: boolean;
 }
 
 /**
- * Запрос на обновление главы
+ * Request to update chapter
  */
 export interface UpdateChapterRequest {
-  /** Название главы */
+  /** Chapter title */
   title?: string;
-  /** Контент главы (markdown) */
+  /** Chapter content (markdown) */
   content?: string;
-  /** URL аудио файла */
+  /** Audio file URL */
   audioUrl?: string;
-  /** Длительность в секундах */
+  /** Duration in seconds */
   duration?: number;
-  /** Бесплатная ли глава */
+  /** Whether chapter is free */
   isFree?: boolean;
 }
 
 /**
- * Запрос на переупорядочивание глав
+ * Request to reorder chapters
  */
 export interface ReorderChaptersRequest {
-  /** Массив ID глав в новом порядке */
+  /** Array of chapter IDs in new order */
   chapterIds: UUID[];
 }

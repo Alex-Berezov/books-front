@@ -1,15 +1,15 @@
 {
   "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
-    // Порядок импортов согласно CODE_STYLE.md
+    // Import order according to CODE_STYLE.md
     "import/order": [
       "warn",
       {
         "groups": [
-          ["builtin", "external"], // 1. React и библиотеки
-          "internal", // 2-4. Внутренние компоненты, утилиты
-          "type", // 5. Типы
-          ["parent", "sibling", "index"] // 6. Стили (последними)
+          ["builtin", "external"], // 1. React and libraries
+          "internal", // 2-4. Internal components, utilities
+          "type", // 5. Types
+          ["parent", "sibling", "index"] // 6. Styles (last)
         ],
         "pathGroups": [
           {
@@ -41,7 +41,7 @@
         }
       }
     ],
-    // Требовать type для импортов типов
+    // Require type for type imports
     "@typescript-eslint/consistent-type-imports": [
       "warn",
       {
@@ -50,7 +50,7 @@
         "fixStyle": "separate-type-imports"
       }
     ],
-    // Запретить неиспользуемые переменные (кроме начинающихся с _)
+    // Prohibit unused variables (except those starting with _)
     "@typescript-eslint/no-unused-vars": [
       "error",
       {

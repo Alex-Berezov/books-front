@@ -1,13 +1,13 @@
 /**
- * Типы для Tags endpoints
+ * Types for Tags endpoints
  *
- * Теги книг, связывание с книгами
+ * Book tags, linking with books
  */
 
 import type { ISODate, PaginatedResponse, SupportedLang, UUID } from './common';
 
 /**
- * Тег книги
+ * Book tag
  */
 export interface Tag {
   id: UUID;
@@ -20,23 +20,23 @@ export interface Tag {
 }
 
 /**
- * Ответ со списком книг с тегом
+ * Response with list of books with tag
  *
- * NOTE: Импортируем BookOverview из books.ts в index.ts
+ * NOTE: Import BookOverview from books.ts in index.ts
  */
 export interface TagBooksResponse<T = unknown> extends PaginatedResponse<T> {
   tag: Tag;
 }
 
 /**
- * Запрос на привязку тега к версии книги
+ * Request to attach tag to book version
  */
 export interface AttachTagRequest {
   tagId: UUID;
 }
 
 /**
- * Запрос на отвязку тега от версии книги
+ * Request to detach tag from book version
  */
 export interface DetachTagRequest {
   tagId: UUID;

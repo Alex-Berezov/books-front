@@ -1,7 +1,7 @@
 /**
- * Типы для Books endpoints
+ * Types for Books endpoints
  *
- * Книги, версии, контейнеры книг
+ * Books, versions, book containers
  */
 
 import type { Category } from './categories';
@@ -10,7 +10,7 @@ import type { ISODate, PublicationStatus, SupportedLang, UUID, VersionType } fro
 import type { Tag } from './tags';
 
 /**
- * Превью версии книги
+ * Book version preview
  */
 export interface VersionPreview {
   id: UUID;
@@ -18,11 +18,11 @@ export interface VersionPreview {
   title?: string;
   isFree: boolean;
   chaptersCount: number;
-  duration?: number; // В секундах для аудио
+  duration?: number; // In seconds for audio
 }
 
 /**
- * Обзорная информация о книге
+ * Book overview information
  */
 export interface BookOverview {
   id: UUID;
@@ -42,14 +42,14 @@ export interface BookOverview {
 }
 
 /**
- * Запрос на создание новой книги (контейнера)
+ * Request to create a new book (container)
  */
 export interface CreateBookRequest {
   slug: string;
 }
 
 /**
- * Ответ при создании книги
+ * Response on book creation
  */
 export interface CreateBookResponse {
   id: UUID;
@@ -59,7 +59,7 @@ export interface CreateBookResponse {
 }
 
 /**
- * Версия книги
+ * Book version
  */
 export interface BookVersion {
   id: UUID;
@@ -75,7 +75,7 @@ export interface BookVersion {
 }
 
 /**
- * Детальная информация о версии книги (для админки)
+ * Detailed book version information (for admin panel)
  */
 export interface BookVersionDetail {
   id: UUID;
@@ -94,60 +94,60 @@ export interface BookVersionDetail {
     metaTitle?: string;
     metaDescription?: string;
   };
-  /** Привязанные категории */
+  /** Attached categories */
   categories?: Category[];
-  /** Привязанные теги */
+  /** Attached tags */
   tags?: Tag[];
   createdAt: ISODate;
   updatedAt: ISODate;
 }
 
 /**
- * Запрос на создание новой версии книги
+ * Request to create a new book version
  */
 export interface CreateBookVersionRequest {
-  /** Язык версии книги */
+  /** Book version language */
   language: SupportedLang;
-  /** Название книги */
+  /** Book title */
   title: string;
-  /** Автор книги */
+  /** Book author */
   author: string;
-  /** Описание книги (обязательное) */
+  /** Book description (required) */
   description: string;
-  /** URL обложки книги (обязательное) */
+  /** Book cover URL (required) */
   coverImageUrl: string;
-  /** Тип версии (текстовая, аудио или реферальная) */
+  /** Version type (text, audio, or referral) */
   type: VersionType;
-  /** Бесплатная ли версия */
+  /** Whether version is free */
   isFree: boolean;
-  /** URL для реферальных ссылок (опционально) */
+  /** URL for referral links (optional) */
   referralUrl?: string;
-  /** SEO мета-заголовок */
+  /** SEO meta title */
   seoMetaTitle?: string;
-  /** SEO мета-описание */
+  /** SEO meta description */
   seoMetaDescription?: string;
 }
 
 /**
- * Запрос на обновление версии книги
+ * Request to update book version
  */
 export interface UpdateBookVersionRequest {
-  /** Название книги */
+  /** Book title */
   title?: string;
-  /** Автор книги */
+  /** Book author */
   author?: string;
-  /** Описание книги */
+  /** Book description */
   description?: string;
-  /** URL обложки книги */
+  /** Book cover URL */
   coverImageUrl?: string;
-  /** Тип версии (текстовая или аудио) */
+  /** Version type (text or audio) */
   type?: VersionType;
-  /** Бесплатная ли версия */
+  /** Whether version is free */
   isFree?: boolean;
-  /** URL для реферальных ссылок */
+  /** URL for referral links */
   referralUrl?: string;
-  /** SEO мета-заголовок */
+  /** SEO meta title */
   seoMetaTitle?: string;
-  /** SEO мета-описание */
+  /** SEO meta description */
   seoMetaDescription?: string;
 }

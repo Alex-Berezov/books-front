@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * AppProviders - корневой провайдер приложения
+ * AppProviders - root application provider
  *
- * Оборачивает приложение необходимыми провайдерами:
- * - QueryClientProvider (React Query для работы с API)
- * - ConfigProvider (Ant Design для темы и настроек UI)
- * - SnackbarProvider (Notistack для уведомлений)
+ * Wraps the application with necessary providers:
+ * - QueryClientProvider (React Query for API work)
+ * - ConfigProvider (Ant Design for theme and UI settings)
+ * - SnackbarProvider (Notistack for notifications)
  */
 
 import type { ReactNode } from 'react';
@@ -22,13 +22,13 @@ interface AppProvidersProps {
 }
 
 /**
- * AppProviders компонент
+ * AppProviders component
  */
 export const AppProviders = (props: AppProvidersProps) => {
   const { children } = props;
 
   /**
-   * Создаём QueryClient один раз при монтировании
+   * Create QueryClient once on mount
    */
   const [queryClient] = useState(
     () =>

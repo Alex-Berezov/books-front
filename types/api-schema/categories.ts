@@ -1,13 +1,13 @@
 /**
- * Типы для Categories endpoints
+ * Types for Categories endpoints
  *
- * Категории книг, дерево категорий, связывание с книгами
+ * Book categories, category tree, linking with books
  */
 
 import type { ISODate, PaginatedResponse, SupportedLang, UUID } from './common';
 
 /**
- * Категория книг
+ * Book category
  */
 export interface Category {
   id: UUID;
@@ -23,30 +23,30 @@ export interface Category {
 }
 
 /**
- * Категория с вложенными подкатегориями (для дерева)
+ * Category with nested subcategories (for tree)
  */
 export interface CategoryTree extends Category {
   children: CategoryTree[];
 }
 
 /**
- * Ответ со списком книг в категории
+ * Response with list of books in category
  *
- * NOTE: Импортируем BookOverview из books.ts в index.ts
+ * NOTE: Import BookOverview from books.ts in index.ts
  */
 export interface CategoryBooksResponse<T = unknown> extends PaginatedResponse<T> {
   category: Category;
 }
 
 /**
- * Запрос на привязку категории к версии книги
+ * Request to attach category to book version
  */
 export interface AttachCategoryRequest {
   categoryId: UUID;
 }
 
 /**
- * Запрос на отвязку категории от версии книги
+ * Request to detach category from book version
  */
 export interface DetachCategoryRequest {
   categoryId: UUID;

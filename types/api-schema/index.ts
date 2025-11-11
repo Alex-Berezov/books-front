@@ -1,10 +1,10 @@
 /**
  * API Schema Types
  *
- * Временные типы для работы с API до генерации из OpenAPI.
- * TODO (M2): Заменить на автогенерированные типы из production API
+ * Temporary types for working with API until generation from OpenAPI.
+ * TODO (M2): Replace with auto-generated types from production API
  *
- * @see https://api.bibliaris.com/api/docs-json (когда станет доступен)
+ * @see https://api.bibliaris.com/api/docs-json (when available)
  */
 
 // Common types

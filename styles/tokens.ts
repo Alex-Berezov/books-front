@@ -1,5 +1,5 @@
 /**
- * Design Tokens - для использования в TypeScript
+ * Design Tokens - for use in TypeScript
  */
 
 export const colors = {

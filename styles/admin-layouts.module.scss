@@ -1,14 +1,14 @@
 /**
- * Admin Layout Styles - стили для админской панели
+ * Admin Layout Styles - styles for admin panel
  *
- * Обновлено для Фазы 1: интеграция с AdminSidebar + AdminTopBar
+ * Updated for Phase 1: integration with AdminSidebar + AdminTopBar
  */
 
 @import './tokens.scss';
 @import './mixins.scss';
 
 /**
- * Основной контейнер админки
+ * Main admin container
  */
 .adminLayout {
   display: flex;
@@ -17,17 +17,17 @@
 }
 
 /**
- * Контейнер контента (справа от сайдбара)
+ * Content container (to the right of sidebar)
  */
 .adminContent {
   flex: 1;
-  margin-left: 240px; /* Ширина sidebar */
+  margin-left: 240px; /* Sidebar width */
   display: flex;
   flex-direction: column;
 }
 
 /**
- * Основная область контента
+ * Main content area
  */
 .adminMain {
   flex: 1;
@@ -36,7 +36,7 @@
 }
 
 /**
- * Responsive: на малых экранах убираем margin
+ * Responsive: remove margin on small screens
  */
 @media (max-width: 768px) {
   .adminContent {

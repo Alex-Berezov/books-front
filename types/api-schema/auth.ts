@@ -1,13 +1,13 @@
 /**
- * Типы для Auth endpoints
+ * Types for Auth endpoints
  *
- * Авторизация, регистрация, refresh токенов
+ * Authorization, registration, token refresh
  */
 
 import type { RoleName, UUID } from './common';
 
 /**
- * Запрос на вход в систему
+ * Login request
  */
 export interface LoginRequest {
   email: string;
@@ -15,7 +15,7 @@ export interface LoginRequest {
 }
 
 /**
- * Запрос на регистрацию
+ * Registration request
  */
 export interface RegisterRequest {
   email: string;
@@ -24,7 +24,7 @@ export interface RegisterRequest {
 }
 
 /**
- * Ответ при успешной авторизации
+ * Response on successful authorization
  */
 export interface AuthResponse {
   accessToken: string;
@@ -38,14 +38,14 @@ export interface AuthResponse {
 }
 
 /**
- * Запрос на обновление токена
+ * Token refresh request
  */
 export interface RefreshRequest {
   refreshToken: string;
 }
 
 /**
- * Ответ при обновлении токена
+ * Token refresh response
  */
 export interface RefreshResponse {
   accessToken: string;

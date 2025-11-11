@@ -1,20 +1,20 @@
 /**
- * Типы для работы с API
+ * Types for working with API
  */
 
 import { HTTP_STATUS } from '@/lib/http.constants';
 
 /**
- * Структура ошибки API
+ * API error structure
  */
 export interface ApiErrorResponse {
-  /** Сообщение об ошибке */
+  /** Error message */
   message: string;
-  /** HTTP статус код */
+  /** HTTP status code */
   statusCode: number;
-  /** Тип ошибки (опционально) */
+  /** Error type (optional) */
   error?: string;
-  /** Детали валидации (для 400 ошибок) */
+  /** Validation details (for 400 errors) */
   details?: Array<{
     field: string;
     message: string;
@@ -22,7 +22,7 @@ export interface ApiErrorResponse {
 }
 
 /**
- * Класс ошибки API для typed error handling
+ * API error class for typed error handling
  */
 export class ApiError extends Error {
   public readonly statusCode: number;
@@ -36,42 +36,42 @@ export class ApiError extends Error {
     this.error = response.error;
     this.details = response.details;
 
-    // Сохраняем правильный stack trace
+    // Preserve correct stack trace
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, ApiError);
     }
   }
 
   /**
-   * Проверяет, является ли ошибка 401 (Unauthorized)
+   * Checks if error is 401 (Unauthorized)
    */
   public isUnauthorized(): boolean {
     return this.statusCode === HTTP_STATUS.UNAUTHORIZED;
   }
 
   /**
-   * Проверяет, является ли ошибка 403 (Forbidden)
+   * Checks if error is 403 (Forbidden)
    */
   public isForbidden(): boolean {
     return this.statusCode === HTTP_STATUS.FORBIDDEN;
   }
 
   /**
-   * Проверяет, является ли ошибка 404 (Not Found)
+   * Checks if error is 404 (Not Found)
    */
   public isNotFound(): boolean {
     return this.statusCode === HTTP_STATUS.NOT_FOUND;
   }
 
   /**
-   * Проверяет, является ли ошибка 429 (Rate Limit)
+   * Checks if error is 429 (Rate Limit)
    */
   public isRateLimited(): boolean {
     return this.statusCode === HTTP_STATUS.TOO_MANY_REQUESTS;
   }
 
   /**
-   * Проверяет, является ли ошибка валидации (400)
+   * Checks if error is validation error (400)
    */
   public isValidationError(): boolean {
     return this.statusCode === HTTP_STATUS.BAD_REQUEST && Boolean(this.details?.length);
@@ -79,17 +79,17 @@ export class ApiError extends Error {
 }
 
 /**
- * Опции для HTTP запросов
+ * Options for HTTP requests
  */
 export interface HttpRequestOptions extends RequestInit {
-  /** Bearer токен для авторизации */
+  /** Bearer token for authorization */
   accessToken?: string;
-  /** Язык для Accept-Language заголовка */
+  /** Language for Accept-Language header */
   language?: string;
 }
 
 /**
- * Базовый интерфейс пагинированного ответа
+ * Basic interface for paginated response
  */
 export interface PaginatedResponse<T> {
   items: T[];

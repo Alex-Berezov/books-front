@@ -1,14 +1,14 @@
 /**
- * Типы для Bookshelf и Reading Progress endpoints
+ * Types for Bookshelf and Reading Progress endpoints
  *
- * Библиотека пользователя, прогресс чтения
+ * User library, reading progress
  */
 
 import type { VersionPreview } from './books';
 import type { ISODate, UUID } from './common';
 
 /**
- * Элемент библиотеки пользователя
+ * User bookshelf item
  */
 export interface BookshelfItem {
   id: UUID;
@@ -19,29 +19,29 @@ export interface BookshelfItem {
 }
 
 /**
- * Запрос на добавление книги в библиотеку
+ * Request to add book to bookshelf
  */
 export interface AddToBookshelfRequest {
   versionId: UUID;
 }
 
 /**
- * Прогресс чтения
+ * Reading progress
  */
 export interface ReadingProgress {
   id: UUID;
   userId: UUID;
   versionId: UUID;
   chapterId?: UUID;
-  position: number; // Позиция в главе (offset для текста, секунды для аудио)
-  percentage: number; // Процент прочитанного/прослушанного
+  position: number; // Position in chapter (offset for text, seconds for audio)
+  percentage: number; // Percentage read/listened
   lastReadAt: ISODate;
   createdAt: ISODate;
   updatedAt: ISODate;
 }
 
 /**
- * Запрос на обновление прогресса чтения
+ * Request to update reading progress
  */
 export interface UpdateProgressRequest {
   versionId: UUID;

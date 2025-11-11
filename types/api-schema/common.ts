@@ -1,43 +1,43 @@
 /**
- * Базовые типы и общие структуры API
+ * Basic types and common API structures
  *
- * Содержит переиспользуемые типы для всех API endpoints
+ * Contains reusable types for all API endpoints
  */
 
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
- * Базовые типы данных
+ * Basic data types
  */
 
-/** UUID типа string */
+/** UUID as string type */
 export type UUID = string;
 
-/** ISO дата в формате строки */
+/** ISO date in string format */
 export type ISODate = string;
 
 /**
- * Роли пользователей
+ * User roles
  */
 export type RoleName = 'user' | 'admin' | 'content_manager';
 
 /**
- * Типы версий книг
+ * Book version types
  */
 export type VersionType = 'text' | 'audio' | 'referral';
 
 /**
- * Статусы публикации
+ * Publication statuses
  */
 export type PublicationStatus = 'draft' | 'published' | 'archived';
 
 /**
- * Тип страницы (согласно backend DTO)
+ * Page type (according to backend DTO)
  */
 export type PageType = 'generic' | 'category_index' | 'author_index';
 
 /**
- * Метаданные пагинации
+ * Pagination metadata
  */
 export interface PaginationMeta {
   total: number;
@@ -47,11 +47,11 @@ export interface PaginationMeta {
 }
 
 /**
- * Пагинированный ответ от API
+ * Paginated response from API
  *
- * Структура соответствует реальному API:
- * - data: массив элементов
- * - meta: метаданные пагинации
+ * Structure matches real API:
+ * - data: array of items
+ * - meta: pagination metadata
  */
 export interface PaginatedResponse<T> {
   data: T[];
@@ -59,6 +59,6 @@ export interface PaginatedResponse<T> {
 }
 
 /**
- * Re-export SupportedLang для удобства
+ * Re-export SupportedLang for convenience
  */
 export type { SupportedLang };

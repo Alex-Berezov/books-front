@@ -1,13 +1,13 @@
 /**
- * Типы для Pages (CMS) endpoints
+ * Types for Pages (CMS) endpoints
  *
- * Статические страницы, SEO метаданные
+ * Static pages, SEO metadata
  */
 
 import type { ISODate, PageType, PublicationStatus, SupportedLang, UUID } from './common';
 
 /**
- * SEO данные для создания/обновления (вложенный объект в запросе)
+ * SEO data for create/update (nested object in request)
  */
 export interface SeoInput {
   metaTitle?: string | null;
@@ -23,7 +23,7 @@ export interface SeoInput {
 }
 
 /**
- * SEO данные в ответе от backend (полная SEO entity)
+ * SEO data in response from backend (full SEO entity)
  */
 export interface SeoData {
   id: number;
@@ -42,7 +42,7 @@ export interface SeoData {
 }
 
 /**
- * Ответ с информацией о странице
+ * Response with page information
  */
 export interface PageResponse {
   id: UUID;
@@ -52,29 +52,29 @@ export interface PageResponse {
   content: string;
   language: SupportedLang;
   status: PublicationStatus;
-  seoId?: number | null; // Backend возвращает seoId, не seo объект
-  seo?: SeoData; // Может быть populate из связи, но не всегда
+  seoId?: number | null; // Backend returns seoId, not seo object
+  seo?: SeoData; // May be populated from relation, but not always
   createdAt: ISODate;
   updatedAt: ISODate;
 }
 
 /**
- * Запрос на создание страницы
+ * Request to create page
  *
- * ВАЖНО: Backend теперь принимает вложенный объект seo (commit 869a248)
- * и автоматически создает/обновляет SEO entity
+ * IMPORTANT: Backend now accepts nested seo object (commit 869a248)
+ * and automatically creates/updates SEO entity
  */
 export interface CreatePageRequest {
   slug: string;
   title: string;
-  type: PageType; // Обязательное поле!
+  type: PageType; // Required field!
   content: string;
-  language?: SupportedLang; // Игнорируется backend, берется из :lang в URL
-  seo?: SeoInput; // Вложенный объект SEO (опционально)
+  language?: SupportedLang; // Ignored by backend, taken from :lang in URL
+  seo?: SeoInput; // Nested SEO object (optional)
 }
 
 /**
- * Запрос на обновление страницы
+ * Request to update page
  */
 export interface UpdatePageRequest {
   slug?: string;
@@ -82,12 +82,12 @@ export interface UpdatePageRequest {
   type?: PageType;
   content?: string;
   language?: SupportedLang;
-  seo?: SeoInput; // Вложенный объект SEO (опционально)
+  seo?: SeoInput; // Nested SEO object (optional)
   status?: PublicationStatus;
 }
 
 /**
- * Запрос на резолв SEO данных
+ * Request to resolve SEO data
  */
 export interface SeoResolveRequest {
   type: 'book' | 'page' | 'category' | 'tag';
@@ -95,7 +95,7 @@ export interface SeoResolveRequest {
 }
 
 /**
- * Ответ с резолвнутыми SEO данными
+ * Response with resolved SEO data
  */
 export interface SeoResolveResponse {
   title: string;

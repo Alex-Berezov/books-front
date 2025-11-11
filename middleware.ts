@@ -1,8 +1,8 @@
 /**
- * Middleware для защиты роутов
+ * Middleware for route protection
  *
- * Проверяет авторизацию и роли пользователей для доступа к админке.
- * Все роуты под /admin/* требуют авторизации и роли admin или content_manager.
+ * Checks authorization and user roles for admin panel access.
+ * All routes under /admin/* require authorization and admin or content_manager role.
  */
 
 import { NextResponse } from 'next/server';
@@ -11,17 +11,17 @@ import { STAFF_ROLES } from '@/lib/auth/constants';
 import { ADMIN_LANG_REGEX, DEFAULT_REDIRECT_LANG } from '@/lib/middleware.constants';
 
 /**
- * Проверка, является ли путь админским
+ * Check if path is admin route
  */
 const isAdminRoute = (pathname: string): boolean => {
   return pathname.startsWith('/admin');
 };
 
 /**
- * Извлечение языка из пути админки
+ * Extract language from admin path
  *
- * @param pathname - путь URL
- * @returns язык из пути или язык по умолчанию
+ * @param pathname - URL path
+ * @returns language from path or default language
  */
 const extractLangFromAdminPath = (pathname: string): string => {
   const match = pathname.match(ADMIN_LANG_REGEX);
@@ -29,20 +29,20 @@ const extractLangFromAdminPath = (pathname: string): string => {
 };
 
 /**
- * Middleware функция
+ * Middleware function
  */
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
-  // Проверяем только админские роуты
+  // Check only admin routes
   if (!isAdminRoute(pathname)) {
     return NextResponse.next();
   }
 
-  // Получаем сессию из request (NextAuth добавляет её автоматически)
+  // Get session from request (NextAuth adds it automatically)
   const session = req.auth;
 
-  // Если нет сессии - редирект на логин
+  // If no session - redirect to login
   if (!session || !session.user) {
     const lang = extractLangFromAdminPath(pathname);
     const signInUrl = new URL(`/${lang}/auth/sign-in`, req.url);
@@ -50,25 +50,25 @@ export default auth((req) => {
     return NextResponse.redirect(signInUrl);
   }
 
-  // Проверяем наличие staff роли (admin или content_manager)
+  // Check for staff role (admin or content_manager)
   const userRoles = session.user.roles || [];
   const hasStaffRole = STAFF_ROLES.some((role) => userRoles.includes(role));
 
-  // Если нет нужной роли - показываем 403
+  // If no required role - show 403
   if (!hasStaffRole) {
     const lang = extractLangFromAdminPath(pathname);
     return NextResponse.redirect(new URL(`/${lang}/403`, req.url));
   }
 
-  // Всё ОК - пропускаем запрос
+  // All OK - pass the request
   return NextResponse.next();
 });
 
 /**
- * Конфигурация matcher - на какие пути применяется middleware
+ * Matcher configuration - which paths the middleware applies to
  */
 export const config = {
-  // Применяем только к админским роутам
-  // Исключаем статические файлы, API роуты и ресурсы Next.js
+  // Apply only to admin routes
+  // Exclude static files, API routes and Next.js resources
   matcher: ['/admin/:lang*/:path*', '/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

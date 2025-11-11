@@ -1,19 +1,19 @@
 # HTTP Client Module
 
-Модуль для работы с Backend API проекта Bibliaris.
+Module for working with Backend API of Bibliaris project.
 
-## 📋 Возможности
+## 📋 Features
 
-- ✅ Автоматическая установка базового URL из переменных окружения
-- ✅ Поддержка `Authorization` заголовка (Bearer token)
-- ✅ Поддержка `Accept-Language` заголовка для мультиязычности
-- ✅ Типизированная обработка ошибок через класс `ApiError`
-- ✅ JSON по умолчанию для всех запросов
-- ✅ Полная типизация TypeScript
+- ✅ Automatic base URL setup from environment variables
+- ✅ `Authorization` header support (Bearer token)
+- ✅ `Accept-Language` header support for multilingual functionality
+- ✅ Typed error handling through `ApiError` class
+- ✅ JSON by default for all requests
+- ✅ Full TypeScript typing
 
-## 🔧 Конфигурация
+## 🔧 Configuration
 
-### Переменные окружения
+### Environment Variables
 
 ```env
 # Production
@@ -23,44 +23,44 @@ NEXT_PUBLIC_API_BASE_URL=https://api.bibliaris.com/api
 NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
 ```
 
-## 📚 Использование
+## 📚 Usage
 
-### Импорт
+### Import
 
 ```typescript
 import { httpGet, httpPost, httpPatch, httpPut, httpDelete } from '@/lib/http';
 import { ApiError } from '@/types/api';
 ```
 
-### Примеры запросов
+### Request Examples
 
-#### GET запрос
+#### GET Request
 
 ```typescript
-// Простой GET запрос
+// Simple GET request
 const books = await httpGet<Book[]>('/en/books');
 
-// GET с авторизацией
+// GET with authorization
 const user = await httpGet<User>('/users/me', {
   accessToken: session.accessToken,
 });
 
-// GET с языком
+// GET with language
 const page = await httpGet<Page>('/en/pages/about', {
   language: 'en',
 });
 ```
 
-#### POST запрос
+#### POST Request
 
 ```typescript
-// Логин пользователя
+// User login
 const authResponse = await httpPost<AuthResponse>('/auth/login', {
   email: 'user@example.com',
   password: 'SecurePassword123!',
 });
 
-// Создание комментария с авторизацией
+// Create comment with authorization
 const comment = await httpPost<Comment>(
   '/comments',
   {
@@ -73,10 +73,10 @@ const comment = await httpPost<Comment>(
 );
 ```
 
-#### PATCH запрос
+#### PATCH Request
 
 ```typescript
-// Обновление профиля
+// Update profile
 const updatedUser = await httpPatch<User>(
   '/users/me',
   {
@@ -89,10 +89,10 @@ const updatedUser = await httpPatch<User>(
 );
 ```
 
-#### PUT запрос
+#### PUT Request
 
 ```typescript
-// Сохранение прогресса чтения
+// Save reading progress
 const progress = await httpPut<ReadingProgress>(
   '/me/progress/version-id',
   {
@@ -105,16 +105,16 @@ const progress = await httpPut<ReadingProgress>(
 );
 ```
 
-#### DELETE запрос
+#### DELETE Request
 
 ```typescript
-// Удаление книги из полки
+// Remove book from bookshelf
 await httpDelete('/me/bookshelf/version-id', {
   accessToken: session.accessToken,
 });
 ```
 
-### Использование в Server Components
+### Usage in Server Components
 
 ```typescript
 // app/[lang]/books/[slug]/page.tsx
@@ -127,7 +127,7 @@ export default async function BookPage({
 }) {
   const { lang, slug } = params;
 
-  // Запрос с автоматической подстановкой языка
+  // Request with automatic language substitution
   const endpoint = buildLangPath(lang, `/books/${slug}/overview`);
   const bookData = await httpGet<BookOverview>(endpoint, {
     language: lang,
@@ -137,7 +137,7 @@ export default async function BookPage({
 }
 ```
 
-### Использование в Client Components с React Query
+### Usage in Client Components with React Query
 
 ```typescript
 // components/BooksList.tsx
@@ -167,9 +167,9 @@ export const BooksList = ({ lang }: { lang: SupportedLang }) => {
 };
 ```
 
-## ⚠️ Обработка ошибок
+## ⚠️ Error Handling
 
-### Класс ApiError
+### ApiError Class
 
 ```typescript
 import { ApiError } from '@/types/api';
@@ -180,25 +180,25 @@ try {
   });
 } catch (error) {
   if (error instanceof ApiError) {
-    // Проверка типа ошибки
+    // Check error type
     if (error.isUnauthorized()) {
-      // 401 - требуется авторизация
+      // 401 - authorization required
       redirect('/auth/sign-in');
     } else if (error.isForbidden()) {
-      // 403 - нет прав доступа
+      // 403 - access denied
       return <AccessDenied />;
     } else if (error.isNotFound()) {
-      // 404 - ресурс не найден
+      // 404 - resource not found
       notFound();
     } else if (error.isRateLimited()) {
-      // 429 - превышен лимит запросов
+      // 429 - rate limit exceeded
       return <RateLimitError />;
     } else if (error.isValidationError()) {
-      // 400 - ошибка валидации
+      // 400 - validation error
       console.log('Validation errors:', error.details);
     }
 
-    // Доступ к данным ошибки
+    // Access error data
     console.error('API Error:', {
       message: error.message,
       statusCode: error.statusCode,
@@ -209,7 +209,7 @@ try {
 }
 ```
 
-### Обработка в Server Components
+### Error Handling in Server Components
 
 ```typescript
 // app/[lang]/books/[slug]/page.tsx
@@ -222,18 +222,18 @@ export default async function BookPage({ params }: PageProps) {
     return <BookDetails book={book} />;
   } catch (error) {
     if (error instanceof ApiError && error.isNotFound()) {
-      notFound(); // Отобразит app/not-found.tsx
+      notFound(); // Will display app/not-found.tsx
     }
-    throw error; // Другие ошибки пойдут в error.tsx
+    throw error; // Other errors will go to error.tsx
   }
 }
 ```
 
-## 🛠 Вспомогательные утилиты
+## 🛠 Helper Utilities
 
 ### buildUrlWithParams
 
-Создание URL с query параметрами:
+Building URL with query parameters:
 
 ```typescript
 import { buildUrlWithParams } from '@/lib/http';
@@ -244,39 +244,39 @@ const url = buildUrlWithParams('/books', {
   type: 'text',
   isFree: true,
 });
-// Результат: '/books?page=1&limit=20&type=text&isFree=true'
+// Result: '/books?page=1&limit=20&type=text&isFree=true'
 
-// Undefined значения игнорируются
+// Undefined values are ignored
 const url2 = buildUrlWithParams('/books', {
   page: 1,
-  category: undefined, // будет пропущен
+  category: undefined, // will be skipped
 });
-// Результат: '/books?page=1'
+// Result: '/books?page=1'
 ```
 
 ### buildLangPath
 
-Добавление языкового префикса к пути:
+Adding language prefix to path:
 
 ```typescript
 import { buildLangPath } from '@/lib/http';
 
 const endpoint = buildLangPath('en', '/books/some-slug/overview');
-// Результат: '/en/books/some-slug/overview'
+// Result: '/en/books/some-slug/overview'
 
 const endpoint2 = buildLangPath('es', 'pages/about');
-// Результат: '/es/pages/about'
+// Result: '/es/pages/about'
 ```
 
-## 📝 Типы
+## 📝 Types
 
 ### HttpRequestOptions
 
 ```typescript
 interface HttpRequestOptions extends RequestInit {
-  /** Bearer токен для авторизации */
+  /** Bearer token for authorization */
   accessToken?: string;
-  /** Язык для Accept-Language заголовка */
+  /** Language for Accept-Language header */
   language?: string;
 }
 ```
@@ -285,13 +285,13 @@ interface HttpRequestOptions extends RequestInit {
 
 ```typescript
 interface ApiErrorResponse {
-  /** Сообщение об ошибке */
+  /** Error message */
   message: string;
-  /** HTTP статус код */
+  /** HTTP status code */
   statusCode: number;
-  /** Тип ошибки (опционально) */
+  /** Error type (optional) */
   error?: string;
-  /** Детали валидации (для 400 ошибок) */
+  /** Validation details (for 400 errors) */
   details?: Array<{
     field: string;
     message: string;
@@ -311,9 +311,9 @@ interface PaginatedResponse<T> {
 }
 ```
 
-## 🔐 Авторизация
+## 🔐 Authorization
 
-### Получение accessToken из NextAuth сессии
+### Getting accessToken from NextAuth Session
 
 ```typescript
 // Server Component
@@ -355,26 +355,26 @@ export const ProtectedComponent = () => {
 };
 ```
 
-## 🌍 Мультиязычность
+## 🌍 Multilingual Support
 
-HTTP клиент поддерживает заголовок `Accept-Language` для запросов к мультиязычным эндпоинтам:
+HTTP client supports `Accept-Language` header for requests to multilingual endpoints:
 
 ```typescript
-// Запрос контента на испанском
+// Request content in Spanish
 const page = await httpGet<Page>('/es/pages/about', {
-  language: 'es', // Устанавливает заголовок Accept-Language: es
+  language: 'es', // Sets header Accept-Language: es
 });
 
-// Для нейтральных эндпоинтов (без /:lang в пути)
+// For neutral endpoints (without /:lang in path)
 const user = await httpGet<User>('/users/me', {
   accessToken: session.accessToken,
-  language: 'fr', // Backend вернет данные с учетом языка где применимо
+  language: 'fr', // Backend will return data with language consideration where applicable
 });
 ```
 
-## 🔗 См. также
+## 🔗 See Also
 
-- [HTTP Constants](./http.constants.ts) - Константы для HTTP клиента
+- [HTTP Constants](./http.constants.ts) - Constants for HTTP client
 - [API Cheatsheet](../../docs/frontend-agents/api-cheatsheet.md)
 - [Backend API Reference](../../docs/frontend-agents/backend-api-reference.md)
 - [Data Fetching and Types](../../docs/frontend-agents/data-fetching-and-types.md)

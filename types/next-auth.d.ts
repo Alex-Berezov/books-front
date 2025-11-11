@@ -1,8 +1,8 @@
 /**
- * Расширение типов NextAuth для проекта Bibliaris
+ * NextAuth type extensions for Bibliaris project
  *
- * Определяет структуру JWT токенов и сессии пользователя.
- * Включает поля для accessToken, refreshToken, roles и времени истечения.
+ * Defines JWT token structure and user session.
+ * Includes fields for accessToken, refreshToken, roles, and expiration time.
  */
 
 import type { AuthErrorType } from '@/lib/auth/constants';
@@ -11,7 +11,7 @@ import type { JWT as NextAuthJWT } from 'next-auth/jwt';
 
 declare module 'next-auth' {
   /**
-   * Расширенная информация о пользователе
+   * Extended user information
    */
   interface User {
     id: string;
@@ -23,7 +23,7 @@ declare module 'next-auth' {
   }
 
   /**
-   * Расширенная сессия с токенами и ролями
+   * Extended session with tokens and roles
    */
   interface Session extends DefaultSession {
     user: {
@@ -40,7 +40,7 @@ declare module 'next-auth' {
 
 declare module 'next-auth/jwt' {
   /**
-   * Расширенный JWT токен с информацией об авторизации
+   * Extended JWT token with authorization information
    */
   interface JWT extends NextAuthJWT {
     id: string;
@@ -49,7 +49,7 @@ declare module 'next-auth/jwt' {
     roles: string[];
     accessToken: string;
     refreshToken: string;
-    accessTokenExpires: number; // Unix timestamp в миллисекундах
+    accessTokenExpires: number; // Unix timestamp in milliseconds
     error?: AuthErrorType;
   }
 }

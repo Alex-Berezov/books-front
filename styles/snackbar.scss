@@ -1,11 +1,11 @@
 @import './tokens.scss';
 
 /**
- * Глобальные стили для Notistack Snackbar
- * Используем design tokens для единообразия
+ * Global styles for Notistack Snackbar
+ * Use design tokens for consistency
  */
 
-// Z-index для snackbar (поверх всех элементов)
+// Z-index for snackbar (above all elements)
 $snackbar-z-index: 9999;
 
 .notistack-SnackbarContainer {

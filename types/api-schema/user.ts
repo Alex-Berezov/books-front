@@ -1,13 +1,13 @@
 /**
- * Типы для User endpoints
+ * Types for User endpoints
  *
- * Профиль пользователя, настройки
+ * User profile, settings
  */
 
 import type { ISODate, RoleName, SupportedLang, UUID } from './common';
 
 /**
- * Ответ с информацией о текущем пользователе
+ * Response with current user information
  */
 export interface UserMeResponse {
   id: UUID;
