@@ -1,0 +1,177 @@
+/**
+ * Стили для универсального компонента модального окна
+ */
+
+@import '@/styles/tokens.scss';
+
+/* Оверлей (затемнение фона) */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: $z-index-modal;
+  animation: fadeIn $transition-fast;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Контейнер модалки */
+.modal {
+  background: $color-background-primary;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-xl;
+  width: 90%;
+  max-width: 500px;
+  animation: slideUp $transition-base;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-lg;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  padding: $spacing-xs;
+  cursor: pointer;
+  color: $color-text-secondary;
+  font-size: $font-size-xl;
+  line-height: 1;
+  transition: color $transition-fast;
+  border-radius: $border-radius-base;
+
+  &:hover {
+    color: $color-text-primary;
+    background: $color-background-secondary;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Body */
+.body {
+  padding: $spacing-lg;
+  color: $color-text-primary;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+}
+
+/* Footer с кнопками */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-md;
+  padding: $spacing-lg;
+  border-top: 1px solid $color-border-light;
+}
+
+.button {
+  padding: $spacing-sm $spacing-lg;
+  border: none;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
+  min-width: 80px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+/* Кнопка отмены */
+.cancelButton {
+  background: $color-background-secondary;
+  color: $color-text-primary;
+  border: 1px solid $color-border-base;
+
+  &:hover:not(:disabled) {
+    background: darken($color-background-secondary, 5%);
+  }
+}
+
+/* Кнопка подтверждения - варианты */
+.confirmButton {
+  color: $color-text-inverse;
+
+  &.primary {
+    background: $color-primary;
+
+    &:hover:not(:disabled) {
+      background: $color-primary-hover;
+    }
+  }
+
+  &.danger {
+    background: $color-error;
+
+    &:hover:not(:disabled) {
+      background: $color-error-hover;
+    }
+  }
+
+  &.warning {
+    background: $color-warning;
+
+    &:hover:not(:disabled) {
+      background: $color-warning-hover;
+    }
+  }
+
+  &.success {
+    background: $color-success;
+
+    &:hover:not(:disabled) {
+      background: $color-success-hover;
+    }
+  }
+}

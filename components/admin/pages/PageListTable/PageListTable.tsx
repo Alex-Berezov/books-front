@@ -5,6 +5,7 @@ import type { FC } from 'react';
 import Link from 'next/link';
 import { useSnackbar } from 'notistack';
 import { useDeletePage, usePages } from '@/api/hooks';
+import { Modal } from '@/components/common/Modal';
 import type { PageListTableProps } from './PageListTable.types';
 import type { PublicationStatus } from '@/types/api-schema';
 import styles from './PageListTable.module.scss';
@@ -31,6 +32,10 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
   const [searchValue, setSearchValue] = useState('');
   const [statusFilter, setStatusFilter] = useState<PublicationStatus | 'all'>('all');
 
+  // State для модалки подтверждения удаления
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [pageToDelete, setPageToDelete] = useState<{ id: string; title: string } | null>(null);
+
   // Получаем данные через React Query
   const { data, isLoading, error, refetch } = usePages({
     page,
@@ -44,6 +49,8 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
   const deleteMutation = useDeletePage({
     onSuccess: () => {
       enqueueSnackbar('Page deleted successfully', { variant: 'success' });
+      setIsDeleteModalOpen(false);
+      setPageToDelete(null);
       refetch();
     },
     onError: (error) => {
@@ -54,13 +61,26 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
 
   // Обработчик удаления страницы
   const handleDelete = (pageId: string, pageTitle: string) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete the page "${pageTitle}"?\n\nThis action cannot be undone.`
-    );
+    // Открываем модалку подтверждения
+    setPageToDelete({ id: pageId, title: pageTitle });
+    setIsDeleteModalOpen(true);
+  };
 
-    if (confirmed) {
-      deleteMutation.mutate({ pageId, lang });
+  /**
+   * Подтверждение удаления страницы
+   */
+  const handleConfirmDelete = () => {
+    if (pageToDelete) {
+      deleteMutation.mutate({ pageId: pageToDelete.id, lang });
     }
+  };
+
+  /**
+   * Отмена удаления (закрытие модалки)
+   */
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setPageToDelete(null);
   };
 
   // Обработчик поиска
@@ -180,6 +200,23 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
           onNext={handleNextPage}
         />
       )}
+
+      {/* Модалка подтверждения удаления */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        title="Delete Page"
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmVariant="danger"
+        isLoading={deleteMutation.isPending}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      >
+        <p>
+          Are you sure you want to delete the page <strong>&ldquo;{pageToDelete?.title}&rdquo;</strong>?
+        </p>
+        <p>This action cannot be undone.</p>
+      </Modal>
     </div>
   );
 };
