@@ -126,9 +126,15 @@ export const MyComponent = () => {
   onCancel={() => setIsOpen(false)}
 >
   <div>
-    <p><strong>Name:</strong> John Doe</p>
-    <p><strong>Email:</strong> john@example.com</p>
-    <p><strong>Role:</strong> Administrator</p>
+    <p>
+      <strong>Name:</strong> John Doe
+    </p>
+    <p>
+      <strong>Email:</strong> john@example.com
+    </p>
+    <p>
+      <strong>Role:</strong> Administrator
+    </p>
   </div>
 </Modal>
 ```
@@ -179,17 +185,17 @@ export const MyComponent = () => {
 
 ## Props
 
-| Prop              | Тип                                                          | Обязательный | По умолчанию | Описание                                      |
-| ----------------- | ------------------------------------------------------------ | ------------ | ------------ | --------------------------------------------- |
-| `isOpen`          | `boolean`                                                    | ✅           | -            | Показывать ли модалку                         |
-| `title`           | `string`                                                     | ✅           | -            | Заголовок модалки                             |
-| `children`        | `ReactNode`                                                  | ✅           | -            | Содержимое модалки                            |
-| `onConfirm`       | `() => void`                                                 | ✅           | -            | Callback при подтверждении                    |
-| `onCancel`        | `() => void`                                                 | ✅           | -            | Callback при отмене/закрытии                  |
-| `confirmText`     | `string`                                                     | ❌           | `'Confirm'`  | Текст кнопки подтверждения                    |
-| `cancelText`      | `string`                                                     | ❌           | `'Cancel'`   | Текст кнопки отмены                           |
-| `confirmVariant`  | `'primary'` \| `'danger'` \| `'warning'` \| `'success'`      | ❌           | `'primary'`  | Вариант стиля кнопки подтверждения            |
-| `isLoading`       | `boolean`                                                    | ❌           | `false`      | Состояние загрузки (блокирует кнопки)         |
+| Prop             | Тип                                                     | Обязательный | По умолчанию | Описание                              |
+| ---------------- | ------------------------------------------------------- | ------------ | ------------ | ------------------------------------- |
+| `isOpen`         | `boolean`                                               | ✅           | -            | Показывать ли модалку                 |
+| `title`          | `string`                                                | ✅           | -            | Заголовок модалки                     |
+| `children`       | `ReactNode`                                             | ✅           | -            | Содержимое модалки                    |
+| `onConfirm`      | `() => void`                                            | ✅           | -            | Callback при подтверждении            |
+| `onCancel`       | `() => void`                                            | ✅           | -            | Callback при отмене/закрытии          |
+| `confirmText`    | `string`                                                | ❌           | `'Confirm'`  | Текст кнопки подтверждения            |
+| `cancelText`     | `string`                                                | ❌           | `'Cancel'`   | Текст кнопки отмены                   |
+| `confirmVariant` | `'primary'` \| `'danger'` \| `'warning'` \| `'success'` | ❌           | `'primary'`  | Вариант стиля кнопки подтверждения    |
+| `isLoading`      | `boolean`                                               | ❌           | `false`      | Состояние загрузки (блокирует кнопки) |
 
 ## Варианты кнопок (`confirmVariant`)
 
@@ -305,7 +311,7 @@ const handleConfirm = () => {
   onCancel={() => setIsOpen(false)}
 >
   <p>Are you sure?</p>
-</Modal>
+</Modal>;
 ```
 
 ## Расширение функциональности

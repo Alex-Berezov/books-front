@@ -213,7 +213,8 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
         onCancel={handleCancelDelete}
       >
         <p>
-          Are you sure you want to delete the page <strong>&ldquo;{pageToDelete?.title}&rdquo;</strong>?
+          Are you sure you want to delete the page{' '}
+          <strong>&ldquo;{pageToDelete?.title}&rdquo;</strong>?
         </p>
         <p>This action cannot be undone.</p>
       </Modal>
