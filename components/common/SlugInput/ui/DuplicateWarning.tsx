@@ -3,10 +3,10 @@ import type { DuplicateWarningProps } from '../SlugInput.types';
 import styles from '../SlugInput.module.scss';
 
 /**
- * Предупреждение о дублировании slug
+ * Slug duplication warning
  *
- * Показывается когда slug уже занят другой сущностью
- * Предлагает альтернативный slug
+ * Shown when slug is already taken by another entity
+ * Suggests alternative slug
  */
 export const DuplicateWarning: FC<DuplicateWarningProps> = (props) => {
   const { entityType, slug, existingItem, suggestedSlug, onUseSuggested } = props;

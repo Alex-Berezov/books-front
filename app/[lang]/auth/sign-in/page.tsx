@@ -1,8 +1,8 @@
 /**
- * Страница входа (Sign In)
+ * Sign In Page
  *
- * Форма авторизации с email и password.
- * Использует NextAuth signIn для авторизации через Credentials provider.
+ * Authorization form with email and password.
+ * Uses NextAuth signIn for authentication via Credentials provider.
  */
 
 'use client';
@@ -23,7 +23,7 @@ interface SignInFormValues {
 }
 
 /**
- * Компонент страницы входа
+ * Sign In page component
  */
 const SignInPage: FC = () => {
   const router = useRouter();
@@ -34,7 +34,7 @@ const SignInPage: FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Обработчик отправки формы
+   * Form submission handler
    */
   const handleSubmit = async (values: SignInFormValues) => {
     try {
@@ -49,10 +49,10 @@ const SignInPage: FC = () => {
       });
 
       if (result?.error) {
-        // Обработка ошибок от NextAuth
+        // Handle NextAuth errors
         setError(result.error);
       } else if (result?.ok) {
-        // Успешная авторизация - редирект
+        // Successful authentication - redirect
         router.push(callbackUrl);
         router.refresh();
       }

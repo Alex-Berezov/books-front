@@ -1,13 +1,13 @@
 /**
- * Константы для middleware
+ * Middleware constants
  */
 
 /**
- * Регулярное выражение для извлечения языка из админ пути
+ * Regular expression for extracting language from admin path
  */
 export const ADMIN_LANG_REGEX = /^\/admin\/([a-z]{2})/;
 
 /**
- * Язык по умолчанию для редиректов
+ * Default language for redirects
  */
 export const DEFAULT_REDIRECT_LANG = 'en' as const;

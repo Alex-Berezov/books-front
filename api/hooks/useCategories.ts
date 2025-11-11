@@ -1,8 +1,8 @@
 /**
- * React Query хуки для работы с категориями
+ * React Query hooks for working with categories
  *
- * Категория (Category) - это таксономия для организации книг.
- * Категории могут быть вложенными (древовидная структура).
+ * Category is a taxonomy for organizing books.
+ * Categories can be nested (tree structure).
  */
 
 import {
@@ -23,25 +23,25 @@ import type { Category, CategoryTree, PaginatedResponse } from '@/types/api-sche
 import { versionKeys } from './useBookVersions';
 
 /**
- * Query ключи для категорий
+ * Query keys for categories
  */
 export const categoryKeys = {
-  /** Все запросы категорий */
+  /** All category queries */
   all: ['categories'] as const,
-  /** Списки категорий */
+  /** Category lists */
   lists: () => [...categoryKeys.all, 'list'] as const,
-  /** Список категорий с параметрами */
+  /** Category list with parameters */
   list: (params: GetCategoriesParams) => [...categoryKeys.lists(), params] as const,
-  /** Дерево категорий */
+  /** Category tree */
   tree: () => [...categoryKeys.all, 'tree'] as const,
 };
 
 /**
- * Хук для получения списка категорий
+ * Hook for getting category list
  *
- * @param params - Параметры запроса
- * @param options - Опции React Query
- * @returns React Query результат со списком категорий
+ * @param params - Request parameters (pagination, search)
+ * @param options - React Query options
+ * @returns React Query result with paginated category list
  *
  * @example
  * ```tsx
@@ -55,16 +55,16 @@ export const useCategories = (
   return useQuery({
     queryKey: categoryKeys.list(params),
     queryFn: () => getCategories(params),
-    staleTime: 10 * 60 * 1000, // 10 минут
+    staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 };
 
 /**
- * Хук для получения дерева категорий
+ * Hook for getting categories tree
  *
- * @param options - Опции React Query
- * @returns React Query результат с деревом категорий
+ * @param options - React Query options
+ * @returns React Query result with categories tree
  *
  * @example
  * ```tsx
@@ -77,15 +77,15 @@ export const useCategoriesTree = (
   return useQuery({
     queryKey: categoryKeys.tree(),
     queryFn: () => getCategoriesTree(),
-    staleTime: 10 * 60 * 1000, // 10 минут
+    staleTime: 10 * 60 * 1000, // 10 minutes
     ...options,
   });
 };
 
 /**
- * Хук для привязывания категории к версии книги
+ * Hook for attaching category to book version
  *
- * @param options - Опции React Query mutation
+ * @param options - React Query mutation options
  * @returns React Query mutation
  *
  * @example
@@ -110,7 +110,7 @@ export const useAttachCategory = (
   return useMutation({
     mutationFn: ({ versionId, categoryId }) => attachCategory(versionId, categoryId),
     onSuccess: (_data, variables) => {
-      // Инвалидируем данные версии для обновления
+      // Invalidate version data for update
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
     },
     ...options,
@@ -118,9 +118,9 @@ export const useAttachCategory = (
 };
 
 /**
- * Хук для отвязывания категории от версии книги
+ * Hook for detaching category from book version
  *
- * @param options - Опции React Query mutation
+ * @param options - React Query mutation options
  * @returns React Query mutation
  *
  * @example
@@ -145,7 +145,7 @@ export const useDetachCategory = (
   return useMutation({
     mutationFn: ({ versionId, categoryId }) => detachCategory(versionId, categoryId),
     onSuccess: (_data, variables) => {
-      // Инвалидируем данные версии для обновления
+      // Invalidate version data for update
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
     },
     ...options,

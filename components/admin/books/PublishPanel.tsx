@@ -7,30 +7,30 @@ import type { PublicationStatus } from '@/types/api-schema';
 import styles from './PublishPanel.module.scss';
 
 export interface PublishPanelProps {
-  /** ID версии книги */
+  /** Book version ID */
   versionId: string;
-  /** Текущий статус версии */
+  /** Current version status */
   status: PublicationStatus;
-  /** Callback при успешной публикации */
+  /** Callback on successful publish */
   onPublishSuccess?: () => void;
-  /** Callback при успешном снятии с публикации */
+  /** Callback on successful unpublish */
   onUnpublishSuccess?: () => void;
 }
 
 /**
- * Панель управления публикацией версии книги
+ * Book version publication management panel
  *
- * Позволяет публиковать или снимать с публикации версию книги
- * с подтверждением действия.
+ * Allows publishing or unpublishing book version
+ * with action confirmation.
  */
 export const PublishPanel: FC<PublishPanelProps> = (props) => {
   const { versionId, status, onPublishSuccess, onUnpublishSuccess } = props;
 
-  // Состояние модального окна подтверждения
+  // Confirmation modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [actionType, setActionType] = useState<'publish' | 'unpublish'>('publish');
 
-  // Мутации для публикации/снятия с публикации
+  // Mutations for publish/unpublish
   const publishMutation = usePublishVersion({
     onSuccess: () => {
       setShowConfirmModal(false);
@@ -38,7 +38,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
     },
     onError: (error) => {
       console.error('Failed to publish version:', error);
-      // TODO: Показать toast с ошибкой
+      // TODO: Show error toast
     },
   });
 
@@ -49,7 +49,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
     },
     onError: (error) => {
       console.error('Failed to unpublish version:', error);
-      // TODO: Показать toast с ошибкой
+      // TODO: Show error toast
     },
   });
 
@@ -59,7 +59,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
   const isLoading = publishMutation.isPending || unpublishMutation.isPending;
 
   /**
-   * Открыть модальное окно подтверждения
+   * Open confirmation modal
    */
   const handleOpenConfirmModal = (action: 'publish' | 'unpublish') => {
     setActionType(action);
@@ -67,14 +67,14 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
   };
 
   /**
-   * Закрыть модальное окно подтверждения
+   * Close confirmation modal
    */
   const handleCloseConfirmModal = () => {
     setShowConfirmModal(false);
   };
 
   /**
-   * Подтвердить действие
+   * Confirm action
    */
   const handleConfirmAction = () => {
     if (actionType === 'publish') {
@@ -132,7 +132,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
         </div>
       </div>
 
-      {/* Модальное окно подтверждения */}
+      {/* Confirmation modal */}
       {showConfirmModal && (
         <div className={styles.modalOverlay} onClick={handleCloseConfirmModal}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>

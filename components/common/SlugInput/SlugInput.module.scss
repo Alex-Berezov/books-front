@@ -1,5 +1,5 @@
 /**
- * Стили для компонента SlugInput
+ * Styles for SlugInput component
  */
 
 @import '@/styles/tokens.scss';
@@ -41,25 +41,25 @@
     cursor: not-allowed;
   }
 
-  // Стили для разных статусов валидации
+  // Styles for different validation statuses
   &.checking {
     border-color: $color-info;
   }
 
   &.valid {
     border-color: $color-success;
-    padding-right: 40px; // Место для иконки
+    padding-right: 40px; // Space for icon
   }
 
   &.invalid {
     border-color: $color-error;
-    padding-right: 40px; // Место для иконки
+    padding-right: 40px; // Space for icon
   }
 }
 
 .statusIcon {
   position: absolute;
-  right: 100px; // Справа от кнопки Generate
+  right: 100px; // Right from Generate button
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -135,7 +135,7 @@
   line-height: $line-height-base;
 }
 
-// Предупреждение о неуникальности slug
+// Warning about non-unique slug
 .warningBox {
   padding: $spacing-md;
   border: 1px solid $color-warning;

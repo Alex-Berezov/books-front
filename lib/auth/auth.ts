@@ -1,10 +1,10 @@
 /**
  * NextAuth v5 Auth instance
  *
- * Предоставляет функции для работы с авторизацией:
- * - auth() - получение сессии на сервере
- * - signIn() - вход пользователя
- * - signOut() - выход пользователя
+ * Provides functions for working with authorization:
+ * - auth() - get session on server
+ * - signIn() - user login
+ * - signOut() - user logout
  *
  * @see https://authjs.dev/getting-started/installation
  */

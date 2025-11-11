@@ -10,62 +10,62 @@ import type { BookVersionDetail } from '@/types/api-schema';
 import styles from './BookForm.module.scss';
 
 /**
- * Схема валидации для формы версии книги
+ * Validation schema for book version form
  */
 const bookVersionSchema = z.object({
-  /** Язык версии книги */
+  /** Book version language */
   language: z.enum(['en', 'es', 'fr', 'pt']),
-  /** Название книги */
+  /** Book title */
   title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
-  /** Автор книги */
+  /** Book author */
   author: z.string().min(1, 'Author is required').max(100, 'Author name is too long'),
-  /** Описание книги (обязательное) */
+  /** Book description (required) */
   description: z.string().min(1, 'Description is required').max(2000, 'Description is too long'),
-  /** URL обложки (обязательное) */
+  /** Cover image URL (required) */
   coverImageUrl: z.string().url('Invalid URL').min(1, 'Cover image is required'),
-  /** Тип версии */
+  /** Version type */
   type: z.enum(['text', 'audio', 'referral']),
-  /** Бесплатная ли версия */
+  /** Whether version is free */
   isFree: z.boolean(),
-  /** URL для реферальных ссылок */
+  /** URL for referral links */
   referralUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
-  /** SEO мета-заголовок */
+  /** SEO meta title */
   seoMetaTitle: z.string().max(60, 'SEO title is too long').optional(),
-  /** SEO мета-описание */
+  /** SEO meta description */
   seoMetaDescription: z.string().max(160, 'SEO description is too long').optional(),
 });
 
 /**
- * Тип данных формы
+ * Form data type
  */
 export type BookFormData = z.infer<typeof bookVersionSchema>;
 
 /**
- * Пропсы компонента формы книги
+ * Book form component props
  */
 export interface BookFormProps {
-  /** Текущий язык интерфейса */
+  /** Current interface language */
   lang: SupportedLang;
-  /** ID книги (для создания новой версии) */
+  /** Book ID (for creating new version) */
   bookId?: string;
-  /** Существующие данные версии (для редактирования) */
+  /** Existing version data (for editing) */
   initialData?: BookVersionDetail;
-  /** Callback при успешной отправке формы */
+  /** Callback on successful form submission */
   onSubmit: (data: BookFormData) => void | Promise<void>;
-  /** Флаг загрузки (например, при отправке на сервер) */
+  /** Loading flag (e.g., when submitting to server) */
   isSubmitting?: boolean;
 }
 
 /**
- * Форма для создания/редактирования версии книги
+ * Form for creating/editing book version
  *
- * Компонент с react-hook-form и zod валидацией.
- * Поддерживает создание новой версии и редактирование существующей.
+ * Component with react-hook-form and zod validation.
+ * Supports creating new version and editing existing one.
  */
 export const BookForm: FC<BookFormProps> = (props) => {
   const { lang, initialData, onSubmit, isSubmitting = false } = props;
 
-  // Инициализируем форму с react-hook-form
+  // Initialize form with react-hook-form
   const {
     formState: { errors },
     handleSubmit,
@@ -100,7 +100,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
         },
   });
 
-  // Обновляем форму при изменении initialData
+  // Update form when initialData changes
   useEffect(() => {
     if (initialData) {
       reset({
@@ -120,7 +120,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-      {/* Основная информация */}
+      {/* Basic Information */}
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Basic Information</h2>
 
@@ -189,7 +189,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
         </div>
       </div>
 
-      {/* Медиа и тип */}
+      {/* Media & Type */}
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Media & Type</h2>
 
@@ -243,7 +243,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
         </div>
       </div>
 
-      {/* SEO настройки */}
+      {/* SEO Settings */}
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>SEO Settings</h2>
 
@@ -284,7 +284,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
         </div>
       </div>
 
-      {/* Кнопки действий */}
+      {/* Action Buttons */}
       <div className={styles.actions}>
         <button className={styles.submitButton} disabled={isSubmitting} type="submit">
           {isSubmitting ? 'Saving...' : initialData ? 'Update Version' : 'Create Version'}

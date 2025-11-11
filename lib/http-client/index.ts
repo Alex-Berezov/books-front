@@ -1,11 +1,11 @@
 /**
- * Расширенный HTTP клиент с поддержкой NextAuth и retry логики
+ * Extended HTTP client with NextAuth and retry logic support
  *
- * Возможности:
- * - Автоматическое получение токена из NextAuth
- * - Обработка 401 с автоматическим refresh
- * - Retry логика для временных ошибок
- * - Интеграция с языками
+ * Features:
+ * - Automatic token retrieval from NextAuth
+ * - 401 handling with automatic refresh
+ * - Retry logic for temporary errors
+ * - Language integration
  *
  * @module http-client
  */
@@ -16,7 +16,7 @@ export { withAuthRetry } from './retry';
 export { httpGetAuth, httpPostAuth, httpPatchAuth, httpDeleteAuth } from './methods';
 
 /**
- * Type guard для проверки ApiError
+ * Type guard for ApiError checking
  */
 import { ApiError } from '@/types/api';
 

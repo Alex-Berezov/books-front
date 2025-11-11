@@ -4,12 +4,12 @@ import type { FC, ReactNode } from 'react';
 import styles from './BookVersionTabs.module.scss';
 
 /**
- * Тип таба
+ * Tab type
  */
 export type TabType = 'overview' | 'read' | 'listen' | 'summary';
 
 /**
- * Интерфейс для одного таба
+ * Interface for single tab
  */
 interface Tab {
   id: TabType;
@@ -17,25 +17,25 @@ interface Tab {
 }
 
 /**
- * Пропсы компонента BookVersionTabs
+ * BookVersionTabs component props
  */
 export interface BookVersionTabsProps {
-  /** Текущий активный таб */
+  /** Current active tab */
   activeTab: TabType;
-  /** Callback при смене таба */
+  /** Callback on tab change */
   onTabChange: (tab: TabType) => void;
-  /** Контент для Overview таба */
+  /** Content for Overview tab */
   overviewContent: ReactNode;
-  /** Контент для Read таба */
+  /** Content for Read tab */
   readContent: ReactNode;
-  /** Контент для Listen таба */
+  /** Content for Listen tab */
   listenContent: ReactNode;
-  /** Контент для Summary таба */
+  /** Content for Summary tab */
   summaryContent: ReactNode;
 }
 
 /**
- * Список табов с метаданными
+ * List of tabs with metadata
  */
 const TABS: Tab[] = [
   { id: 'overview', label: 'Overview' },
@@ -45,20 +45,20 @@ const TABS: Tab[] = [
 ];
 
 /**
- * Компонент табов для редактора версии книги
+ * Tabs component for book version editor
  *
- * Позволяет переключаться между разными разделами редактирования:
- * - Overview: Основная информация о книге
- * - Read Content: Текстовый контент (главы)
- * - Audio Content: Аудио контент
- * - Summary: Краткое содержание и выводы
+ * Allows switching between different editing sections:
+ * - Overview: Main book information
+ * - Read Content: Text content (chapters)
+ * - Audio Content: Audio content
+ * - Summary: Brief summary and conclusions
  */
 export const BookVersionTabs: FC<BookVersionTabsProps> = (props) => {
   const { activeTab, listenContent, onTabChange, overviewContent, readContent, summaryContent } =
     props;
 
   /**
-   * Получить контент для текущего активного таба
+   * Get content for current active tab
    */
   const getCurrentTabContent = (): ReactNode => {
     switch (activeTab) {
@@ -77,7 +77,7 @@ export const BookVersionTabs: FC<BookVersionTabsProps> = (props) => {
 
   return (
     <div className={styles.tabsContainer}>
-      {/* Навигация табов */}
+      {/* Tab navigation */}
       <nav className={styles.tabsNav}>
         {TABS.map((tab) => (
           <button
@@ -91,7 +91,7 @@ export const BookVersionTabs: FC<BookVersionTabsProps> = (props) => {
         ))}
       </nav>
 
-      {/* Контент активного таба */}
+      {/* Active tab content */}
       <div className={styles.tabContent}>{getCurrentTabContent()}</div>
     </div>
   );

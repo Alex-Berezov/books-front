@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Страница управления книгами (админка)
+ * Books management page (admin panel)
  */
 export default async function BooksPage(props: BooksPageProps) {
   const { params } = props;

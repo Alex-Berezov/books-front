@@ -1,8 +1,8 @@
 /**
- * React Query хуки для работы с CMS страницами
+ * React Query hooks for working with CMS pages
  *
- * Страница (Page) - это статический контент (About, Privacy Policy, и т.д.)
- * Страницы мультиязычные и имеют статус публикации.
+ * Page is static content (About, Privacy Policy, etc.)
+ * Pages are multilingual and have publication status.
  */
 
 import {
@@ -30,27 +30,27 @@ import type {
 } from '@/types/api-schema';
 
 /**
- * Query ключи для страниц
+ * Query keys for pages
  */
 export const pageKeys = {
-  /** Все запросы страниц */
+  /** All page queries */
   all: ['pages'] as const,
-  /** Списки страниц */
+  /** Page lists */
   lists: () => [...pageKeys.all, 'list'] as const,
-  /** Список страниц с параметрами */
+  /** Page list with parameters */
   list: (params: GetPagesParams) => [...pageKeys.lists(), params] as const,
-  /** Детали конкретной страницы */
+  /** Specific page details */
   details: () => [...pageKeys.all, 'detail'] as const,
-  /** Детали страницы по ID */
+  /** Page details by ID */
   detail: (id: string) => [...pageKeys.details(), id] as const,
 };
 
 /**
- * Хук для получения списка страниц
+ * Hook for getting pages list
  *
- * @param params - Параметры запроса (пагинация, поиск, фильтры)
- * @param options - Опции React Query
- * @returns React Query результат со списком страниц
+ * @param params - Request parameters (pagination, search, filters)
+ * @param options - React Query options
+ * @returns React Query result with pages list
  *
  * @example
  * ```tsx
@@ -73,13 +73,13 @@ export const usePages = (
 };
 
 /**
- * Хук для получения деталей страницы
+ * Hook for getting page details
  *
- * ВАЖНО: Использует /admin/pages/:id БЕЗ :lang (как у versions)
+ * IMPORTANT: Uses /admin/pages/:id WITHOUT :lang (like versions)
  *
- * @param pageId - ID страницы
- * @param options - Опции React Query
- * @returns React Query результат с деталями страницы
+ * @param pageId - Page ID
+ * @param options - React Query options
+ * @returns React Query result with page details
  *
  * @example
  * ```tsx
@@ -99,9 +99,9 @@ export const usePage = (
 };
 
 /**
- * Хук для создания новой страницы
+ * Hook for creating a new page
  *
- * @param options - Опции React Query mutation
+ * @param options - React Query mutation options
  * @returns React Query mutation
  *
  * @example
@@ -131,7 +131,7 @@ export const useCreatePage = (
   return useMutation({
     mutationFn: ({ data, lang = 'en' }) => createPage(data, lang),
     onSuccess: () => {
-      // Инвалидируем список страниц для обновления
+      // Invalidate pages list for update
       queryClient.invalidateQueries({ queryKey: pageKeys.lists() });
     },
     ...options,
@@ -139,9 +139,9 @@ export const useCreatePage = (
 };
 
 /**
- * Хук для обновления страницы
+ * Hook for updating page
  *
- * @param options - Опции React Query mutation
+ * @param options - React Query mutation options
  * @returns React Query mutation
  *
  * @example
@@ -171,7 +171,7 @@ export const useUpdatePage = (
   return useMutation({
     mutationFn: ({ pageId, data, lang = 'en' }) => updatePage(pageId, data, lang),
     onSuccess: (_data, variables) => {
-      // Инвалидируем детали страницы и список
+      // Invalidate page details and list
       queryClient.invalidateQueries({ queryKey: pageKeys.detail(variables.pageId) });
       queryClient.invalidateQueries({ queryKey: pageKeys.lists() });
     },
@@ -180,9 +180,9 @@ export const useUpdatePage = (
 };
 
 /**
- * Хук для публикации страницы
+ * Hook for publishing page
  *
- * @param options - Опции React Query mutation
+ * @param options - React Query mutation options
  * @returns React Query mutation
  *
  * @example
@@ -204,7 +204,7 @@ export const usePublishPage = (
   return useMutation({
     mutationFn: ({ pageId, lang = 'en' }) => publishPage(pageId, lang),
     onSuccess: (_data, variables) => {
-      // Инвалидируем детали страницы и список
+      // Invalidate page details and list
       queryClient.invalidateQueries({ queryKey: pageKeys.detail(variables.pageId) });
       queryClient.invalidateQueries({ queryKey: pageKeys.lists() });
     },
@@ -213,9 +213,9 @@ export const usePublishPage = (
 };
 
 /**
- * Хук для снятия страницы с публикации
+ * Hook for unpublishing page
  *
- * @param options - Опции React Query mutation
+ * @param options - React Query mutation options
  * @returns React Query mutation
  *
  * @example
@@ -237,7 +237,7 @@ export const useUnpublishPage = (
   return useMutation({
     mutationFn: ({ pageId, lang = 'en' }) => unpublishPage(pageId, lang),
     onSuccess: (_data, variables) => {
-      // Инвалидируем детали страницы и список
+      // Invalidate page details and list
       queryClient.invalidateQueries({ queryKey: pageKeys.detail(variables.pageId) });
       queryClient.invalidateQueries({ queryKey: pageKeys.lists() });
     },
@@ -246,12 +246,12 @@ export const useUnpublishPage = (
 };
 
 /**
- * Хук для удаления страницы
+ * Hook for deleting page
  *
- * Удаляет страницу из базы данных.
- * После успешного выполнения инвалидирует кэш списка страниц.
+ * Deletes page from database.
+ * After successful execution invalidates pages list cache.
  *
- * @param options - Опции React Query mutation
+ * @param options - React Query mutation options
  * @returns React Query mutation
  *
  * @example
@@ -274,7 +274,7 @@ export const useDeletePage = (
   return useMutation({
     mutationFn: ({ pageId, lang = 'en' }) => deletePage(pageId, lang),
     onSuccess: (_data, variables) => {
-      // Инвалидируем детали страницы и список
+      // Invalidate page details and list
       queryClient.invalidateQueries({ queryKey: pageKeys.detail(variables.pageId) });
       queryClient.invalidateQueries({ queryKey: pageKeys.lists() });
     },

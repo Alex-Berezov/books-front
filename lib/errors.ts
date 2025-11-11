@@ -1,15 +1,15 @@
 /**
- * Утилиты для обработки ошибок API
+ * API error handling utilities
  *
- * Предоставляет функции для преобразования ошибок API
- * в user-friendly сообщения и обработки различных типов ошибок.
+ * Provides functions for converting API errors
+ * to user-friendly messages and handling different error types.
  */
 
 import { HTTP_STATUS } from '@/lib/http.constants';
 import { ApiError } from '@/types/api';
 
 /**
- * Типы ошибок для маппинга
+ * Error types for mapping
  */
 export enum ErrorType {
   VALIDATION = 'validation',
@@ -24,7 +24,7 @@ export enum ErrorType {
 }
 
 /**
- * User-friendly сообщения для разных типов ошибок
+ * User-friendly messages for different error types
  */
 export const ERROR_MESSAGES: Record<ErrorType, string> = {
   [ErrorType.VALIDATION]: 'Please check your input and try again',
@@ -39,7 +39,7 @@ export const ERROR_MESSAGES: Record<ErrorType, string> = {
 };
 
 /**
- * Детальные сообщения для конкретных HTTP статусов
+ * Detailed messages for specific HTTP status codes
  */
 export const STATUS_MESSAGES: Record<number, string> = {
   [HTTP_STATUS.BAD_REQUEST]: 'Invalid request. Please check your input',
@@ -54,10 +54,10 @@ export const STATUS_MESSAGES: Record<number, string> = {
 };
 
 /**
- * Определить тип ошибки по статус коду
+ * Determine error type by status code
  *
- * @param statusCode - HTTP статус код
- * @returns Тип ошибки
+ * @param statusCode - HTTP status code
+ * @returns Error type
  */
 export const getErrorType = (statusCode: number): ErrorType => {
   if (statusCode === HTTP_STATUS.BAD_REQUEST || statusCode === HTTP_STATUS.UNPROCESSABLE_ENTITY) {
@@ -96,10 +96,10 @@ export const getErrorType = (statusCode: number): ErrorType => {
 };
 
 /**
- * Преобразовать ApiError в user-friendly сообщение
+ * Convert ApiError to user-friendly message
  *
- * @param error - ApiError или любая другая ошибка
- * @returns User-friendly сообщение об ошибке
+ * @param error - ApiError or any other error
+ * @returns User-friendly error message
  *
  * @example
  * ```ts
@@ -112,38 +112,38 @@ export const getErrorType = (statusCode: number): ErrorType => {
  * ```
  */
 export const toUserMessage = (error: unknown): string => {
-  // Если это ApiError с кастомным сообщением
+  // If this is ApiError with custom message
   if (error instanceof ApiError) {
-    // Если есть конкретное сообщение от сервера, используем его
+    // If there's a specific message from server, use it
     if (error.message && error.message !== 'Unknown error') {
       return error.message;
     }
 
-    // Иначе используем сообщение по статусу
+    // Otherwise use message by status
     const statusMessage = STATUS_MESSAGES[error.statusCode];
     if (statusMessage) {
       return statusMessage;
     }
 
-    // Или общее сообщение по типу ошибки
+    // Or generic message by error type
     const errorType = getErrorType(error.statusCode);
     return ERROR_MESSAGES[errorType];
   }
 
-  // Если это стандартная Error
+  // If this is standard Error
   if (error instanceof Error) {
     return error.message;
   }
 
-  // Fallback для неизвестных ошибок
+  // Fallback for unknown errors
   return ERROR_MESSAGES[ErrorType.UNKNOWN];
 };
 
 /**
- * Получить детали валидационных ошибок
+ * Get validation error details
  *
  * @param error - ApiError
- * @returns Массив валидационных ошибок или null
+ * @returns Array of validation errors or null
  *
  * @example
  * ```ts
@@ -165,35 +165,35 @@ export const getValidationErrors = (
 };
 
 /**
- * Проверить, является ли ошибка ошибкой валидации
+ * Check if error is validation error
  *
- * @param error - Любая ошибка
- * @returns true если это ошибка валидации
+ * @param error - Any error
+ * @returns true if this is validation error
  */
 export const isValidationError = (error: unknown): boolean => {
   return error instanceof ApiError && error.isValidationError();
 };
 
 /**
- * Проверить, нужно ли показывать retry кнопку
+ * Check if retry button should be shown
  *
- * @param error - Любая ошибка
- * @returns true если можно делать retry
+ * @param error - Any error
+ * @returns true if retry is possible
  */
 export const canRetry = (error: unknown): boolean => {
   if (error instanceof ApiError) {
     const errorType = getErrorType(error.statusCode);
-    // Можно retry для server errors и network errors
+    // Can retry for server errors and network errors
     return errorType === ErrorType.SERVER_ERROR || errorType === ErrorType.NETWORK_ERROR;
   }
   return false;
 };
 
 /**
- * Получить action для обработки ошибки
+ * Get action for error handling
  *
- * @param error - Любая ошибка
- * @returns Рекомендуемое действие
+ * @param error - Any error
+ * @returns Recommended action
  */
 export const getErrorAction = (error: unknown): 'retry' | 'signin' | 'dismiss' | 'contact' => {
   if (error instanceof ApiError) {

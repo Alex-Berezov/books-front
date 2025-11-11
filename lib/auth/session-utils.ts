@@ -1,17 +1,17 @@
 /**
- * Утилиты для работы с сессией NextAuth в HTTP запросах
+ * Utilities for working with NextAuth session in HTTP requests
  *
- * Предоставляет функции для получения токенов авторизации
- * как на клиенте, так и на сервере.
+ * Provides functions for getting authorization tokens
+ * both on client and server.
  */
 
 import { getSession } from 'next-auth/react';
 import { auth } from '@/lib/auth/auth';
 
 /**
- * Получить access token на клиенте
+ * Get access token on client
  *
- * @returns Access token или null
+ * @returns Access token or null
  */
 export const getClientAccessToken = async (): Promise<string | null> => {
   const session = await getSession();
@@ -19,9 +19,9 @@ export const getClientAccessToken = async (): Promise<string | null> => {
 };
 
 /**
- * Получить access token на сервере
+ * Get access token on server
  *
- * @returns Access token или null
+ * @returns Access token or null
  */
 export const getServerAccessToken = async (): Promise<string | null> => {
   const session = await auth();
@@ -29,18 +29,18 @@ export const getServerAccessToken = async (): Promise<string | null> => {
 };
 
 /**
- * Получить access token (универсальная функция)
+ * Get access token (universal function)
  *
- * Автоматически определяет контекст (клиент/сервер)
+ * Automatically detects context (client/server)
  *
- * @returns Access token или null
+ * @returns Access token or null
  */
 export const getAccessToken = async (): Promise<string | null> => {
-  // Проверяем, находимся ли мы в браузере
+  // Check if we are in browser
   if (typeof window !== 'undefined') {
     return getClientAccessToken();
   }
 
-  // Серверный контекст
+  // Server context
   return getServerAccessToken();
 };

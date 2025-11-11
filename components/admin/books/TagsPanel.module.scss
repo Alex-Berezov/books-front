@@ -1,5 +1,5 @@
 /**
- * Стили для панели тегов
+ * Styles for tags panel
  */
 
 @import '@/styles/tokens.scss';
@@ -126,7 +126,7 @@
   font-style: italic;
 }
 
-// Выбранные теги
+// Selected tags
 .selectedSection {
   margin-top: $spacing-lg;
   padding-top: $spacing-lg;

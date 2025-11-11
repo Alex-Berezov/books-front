@@ -28,9 +28,9 @@ interface EditBookVersionPageProps {
 }
 
 /**
- * Страница редактирования версии книги
+ * Book version edit page
  *
- * Загружает существующую версию и позволяет редактировать её данные
+ * Loads existing version and allows editing its data
  */
 const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
   const { params } = props;
@@ -38,61 +38,61 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
 
   const router = useRouter();
 
-  // Состояние активного таба
+  // Active tab state
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 
-  // Загружаем данные версии
+  // Load version data
   const { data: version, error, isLoading } = useBookVersion(versionId);
 
-  // Мутация для обновления версии
+  // Mutation for updating version
   const updateMutation = useUpdateBookVersion({
     onSuccess: () => {
-      // TODO: Показать toast уведомление об успехе
+      // TODO: Show success toast notification
       console.log('Book version updated successfully');
     },
     onError: (error) => {
-      // TODO: Показать toast уведомление об ошибке
+      // TODO: Show error toast notification
       console.error('Failed to update book version:', error);
     },
   });
 
   /**
-   * Обработчик успешной публикации
+   * Successful publish handler
    */
   const handlePublishSuccess = () => {
-    // TODO: Показать toast уведомление
+    // TODO: Show toast notification
     console.log('Version published successfully');
   };
 
   /**
-   * Обработчик успешного снятия с публикации
+   * Successful unpublish handler
    */
   const handleUnpublishSuccess = () => {
-    // TODO: Показать toast уведомление
+    // TODO: Show toast notification
     console.log('Version unpublished successfully');
   };
 
   /**
-   * Обработчик изменения категорий
+   * Categories change handler
    */
   const handleCategoriesChange = () => {
-    // TODO: Показать toast уведомление
+    // TODO: Show toast notification
     console.log('Categories updated');
   };
 
   /**
-   * Обработчик изменения тегов
+   * Tags change handler
    */
   const handleTagsChange = () => {
-    // TODO: Показать toast уведомление
+    // TODO: Show toast notification
     console.log('Tags updated');
   };
 
   /**
-   * Обработчик отправки формы
+   * Form submission handler
    */
   const handleSubmit = async (formData: BookFormData) => {
-    // Преобразуем данные формы в формат API
+    // Convert form data to API format
     const requestData: UpdateBookVersionRequest = {
       title: formData.title,
       author: formData.author,
@@ -105,14 +105,14 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
       seoMetaDescription: formData.seoMetaDescription || undefined,
     };
 
-    // Отправляем запрос на обновление
+    // Send update request
     updateMutation.mutate({
       versionId,
       data: requestData,
     });
   };
 
-  // Loading состояние
+  // Loading state
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
@@ -121,7 +121,7 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
     );
   }
 
-  // Error состояние
+  // Error state
   if (error || !version) {
     return (
       <div className={styles.errorContainer}>

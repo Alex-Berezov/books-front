@@ -11,20 +11,20 @@ import { SeoCollapsible } from '../ui/SeoCollapsible';
 export interface SeoBasicSectionProps {
   /** React Hook Form register */
   register: UseFormRegister<PageFormData>;
-  /** Ошибки валидации */
+  /** Validation errors */
   errors: FieldErrors<PageFormData>;
   /** React Hook Form watch */
   watch: UseFormWatch<PageFormData>;
-  /** Флаг загрузки */
+  /** Loading flag */
   isSubmitting: boolean;
 }
 
 /**
- * Секция базовых SEO настроек
+ * Basic SEO settings section
  *
- * Содержит поля:
- * - Meta Title (заголовок для поисковиков)
- * - Meta Description (описание для поисковиков)
+ * Contains fields:
+ * - Meta Title (title for search engines)
+ * - Meta Description (description for search engines)
  */
 export const SeoBasicSection: FC<SeoBasicSectionProps> = (props) => {
   const { register, errors, watch, isSubmitting } = props;

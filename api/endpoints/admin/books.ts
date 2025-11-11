@@ -1,9 +1,9 @@
 /**
  * Books Endpoints
  *
- * API эндпоинты для работы с книгами (контейнерами для версий книг).
- * Книга - это сущность верхнего уровня, которая может содержать
- * несколько версий на разных языках.
+ * API endpoints for working with books (containers for book versions).
+ * Book is a top-level entity that can contain
+ * multiple versions in different languages.
  */
 
 import { httpGetAuth, httpPostAuth } from '@/lib/http-client';
@@ -15,22 +15,22 @@ import type {
 } from '@/types/api-schema';
 
 /**
- * Параметры для получения списка книг
+ * Parameters for fetching books list
  */
 export interface GetBooksParams {
-  /** Номер страницы (начиная с 1) */
+  /** Page number (starting from 1) */
   page?: number;
-  /** Количество элементов на странице */
+  /** Number of items per page */
   limit?: number;
-  /** Поиск по названию, автору или slug */
+  /** Search by title, author or slug */
   search?: string;
 }
 
 /**
- * Получить список всех книг (для админки)
+ * Get list of all books (for admin panel)
  *
- * @param params - Параметры запроса
- * @returns Пагинированный список книг
+ * @param params - Request parameters
+ * @returns Paginated list of books
  *
  * @example
  * ```ts
@@ -56,10 +56,10 @@ export const getBooks = async (
 };
 
 /**
- * Создать новую книгу (контейнер)
+ * Create a new book (container)
  *
- * @param data - Данные для создания книги
- * @returns Созданная книга
+ * @param data - Data for creating the book
+ * @returns Created book
  *
  * @example
  * ```ts

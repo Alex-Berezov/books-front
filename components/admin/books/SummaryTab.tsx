@@ -5,34 +5,34 @@ import type { FC } from 'react';
 import styles from './SummaryTab.module.scss';
 
 /**
- * Пропсы компонента SummaryTab
+ * SummaryTab component props
  */
 export interface SummaryTabProps {
-  /** ID версии книги */
+  /** Book version ID */
   versionId: string;
 }
 
 /**
- * Таб для управления саммари книги
+ * Tab for managing book summary
  *
- * Позволяет редактировать:
- * - Summary text (краткое содержание)
- * - Key takeaways (ключевые выводы)
- * - Themes и analysis (темы и анализ)
+ * Allows editing:
+ * - Summary text (brief overview)
+ * - Key takeaways (main conclusions)
+ * - Themes and analysis (themes and analysis)
  */
 export const SummaryTab: FC<SummaryTabProps> = (props) => {
   const { versionId } = props;
 
-  // Локальное состояние для полей саммари
+  // Local state for summary fields
   const [summaryText, setSummaryText] = useState('');
   const [keyTakeaways, setKeyTakeaways] = useState('');
   const [themes, setThemes] = useState('');
 
   /**
-   * Обработчик сохранения саммари
+   * Summary save handler
    */
   const handleSave = () => {
-    // TODO (M3.2.3): Реализовать сохранение саммари
+    // TODO (M3.2.3): Implement summary saving
     console.log('Save summary for version:', versionId, {
       keyTakeaways,
       summaryText,

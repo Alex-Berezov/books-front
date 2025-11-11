@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * AdminTopBar - верхняя панель админки
+ * AdminTopBar - admin panel top bar
  *
- * Содержит:
- * - Переключатель языка (AdminLanguageSwitcher)
- * - Информацию о пользователе
- * - Кнопку выхода
+ * Contains:
+ * - Language switcher (AdminLanguageSwitcher)
+ * - User information
+ * - Logout button
  */
 
 import { LogOut } from 'lucide-react';
@@ -20,13 +20,13 @@ interface AdminTopBarProps {
 }
 
 /**
- * AdminTopBar компонент
+ * AdminTopBar component
  */
 export const AdminTopBar = (props: AdminTopBarProps) => {
   const { userEmail, userName } = props;
 
   /**
-   * Обработчик выхода из системы
+   * Logout handler
    */
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/en/auth/sign-in' });
@@ -34,9 +34,7 @@ export const AdminTopBar = (props: AdminTopBarProps) => {
 
   return (
     <header className={styles.topBar}>
-      <div className={styles.breadcrumbs}>
-        {/* TODO: M3.1.3 - добавить breadcrumbs навигацию */}
-      </div>
+      <div className={styles.breadcrumbs}>{/* TODO: M3.1.3 - add breadcrumbs navigation */}</div>
 
       <div className={styles.actions}>
         <AdminLanguageSwitcher />

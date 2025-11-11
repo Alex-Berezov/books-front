@@ -1,10 +1,10 @@
 /**
- * Стили для универсального компонента модального окна
+ * Styles for universal modal component
  */
 
 @import '@/styles/tokens.scss';
 
-/* Оверлей (затемнение фона) */
+/* Overlay (background darkening) */
 .overlay {
   position: fixed;
   top: 0;
@@ -28,7 +28,7 @@
   }
 }
 
-/* Контейнер модалки */
+/* Modal container */
 .modal {
   background: $color-background-primary;
   border-radius: $border-radius-lg;
@@ -94,7 +94,7 @@
   line-height: $line-height-base;
 }
 
-/* Footer с кнопками */
+/* Footer with buttons */
 .footer {
   display: flex;
   justify-content: flex-end;
@@ -128,7 +128,7 @@
   }
 }
 
-/* Кнопка отмены */
+/* Cancel button */
 .cancelButton {
   background: $color-background-secondary;
   color: $color-text-primary;
@@ -139,7 +139,7 @@
   }
 }
 
-/* Кнопка подтверждения - варианты */
+/* Confirm button - variants */
 .confirmButton {
   color: $color-text-inverse;
 

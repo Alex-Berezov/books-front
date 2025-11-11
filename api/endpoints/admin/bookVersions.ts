@@ -1,9 +1,9 @@
 /**
  * Book Versions Endpoints
  *
- * API эндпоинты для работы с версиями книг.
- * Версия книги - это конкретная языковая редакция книги с контентом,
- * главами, категориями и тегами.
+ * API endpoints for working with book versions.
+ * Book version is a specific language edition of a book with content,
+ * chapters, categories and tags.
  */
 
 import { httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
@@ -14,20 +14,20 @@ import type {
 } from '@/types/api-schema';
 
 /**
- * Получить детали версии книги по ID (admin endpoint)
+ * Get book version details by ID (admin endpoint)
  *
- * ⚠️ ВАЖНО: Использует admin endpoint `/admin/versions/{id}`,
- * который возвращает версии в ЛЮБОМ статусе (draft, published).
+ * ⚠️ IMPORTANT: Uses admin endpoint `/admin/versions/{id}`,
+ * which returns versions in ANY status (draft, published).
  *
- * Public endpoint `/versions/{id}` возвращает ТОЛЬКО published версии!
+ * Public endpoint `/versions/{id}` returns ONLY published versions!
  *
- * @param versionId - ID версии книги
- * @returns Детальная информация о версии
+ * @param versionId - Book version ID
+ * @returns Detailed information about the version
  *
  * @example
  * ```ts
  * const version = await getBookVersion('uuid-here');
- * // Работает с черновиками (draft) ✅
+ * // Works with drafts ✅
  * ```
  */
 export const getBookVersion = async (versionId: string): Promise<BookVersionDetail> => {
@@ -36,11 +36,11 @@ export const getBookVersion = async (versionId: string): Promise<BookVersionDeta
 };
 
 /**
- * Создать новую версию книги
+ * Create a new book version
  *
- * @param bookId - ID книги
- * @param data - Данные для создания версии
- * @returns Созданная версия книги
+ * @param bookId - Book ID
+ * @param data - Data for creating the version
+ * @returns Created book version
  *
  * @example
  * ```ts
@@ -62,11 +62,11 @@ export const createBookVersion = async (
 };
 
 /**
- * Обновить существующую версию книги
+ * Update existing book version
  *
- * @param versionId - ID версии книги
- * @param data - Данные для обновления
- * @returns Обновлённая версия книги
+ * @param versionId - Book version ID
+ * @param data - Data for update
+ * @returns Updated book version
  *
  * @example
  * ```ts
@@ -85,10 +85,10 @@ export const updateBookVersion = async (
 };
 
 /**
- * Опубликовать версию книги
+ * Publish book version
  *
- * @param versionId - ID версии книги
- * @returns Опубликованная версия
+ * @param versionId - Book version ID
+ * @returns Published version
  *
  * @example
  * ```ts
@@ -101,10 +101,10 @@ export const publishVersion = async (versionId: string): Promise<BookVersionDeta
 };
 
 /**
- * Снять с публикации версию книги (вернуть в draft)
+ * Unpublish book version (return to draft)
  *
- * @param versionId - ID версии книги
- * @returns Версия со статусом draft
+ * @param versionId - Book version ID
+ * @returns Version with draft status
  *
  * @example
  * ```ts

@@ -1,88 +1,88 @@
 /**
- * Конфигурация React Query
+ * React Query configuration
  *
- * Содержит настройки QueryClient, определение ключей кэша,
- * и стратегии retry для разных типов ошибок.
+ * Contains QueryClient settings, cache key definitions,
+ * and retry strategies for different error types.
  */
 
 import { QueryClient, type DefaultOptions } from '@tanstack/react-query';
 import { ApiError } from '@/types/api';
 
 /**
- * Определяет, нужно ли делать retry для ошибки
+ * Determines if retry should be attempted for an error
  *
- * @param failureCount - Количество неудачных попыток
- * @param error - Ошибка
- * @returns true если нужно сделать retry
+ * @param failureCount - Number of failed attempts
+ * @param error - Error
+ * @returns true if retry should be attempted
  */
 const shouldRetry = (failureCount: number, error: unknown): boolean => {
-  // Не делаем retry для ApiError
+  // Don't retry for ApiError
   if (error instanceof ApiError) {
     const status = error.statusCode;
 
-    // Не retry для клиентских ошибок (4xx), кроме 429
+    // Don't retry for client errors (4xx), except 429
     if (status >= 400 && status < 500) {
-      // Для 429 делаем 1-2 попытки
+      // For 429, do 1-2 attempts
       if (status === 429) {
         return failureCount < 2;
       }
-      // Остальные 4xx не retry
+      // Don't retry other 4xx
       return false;
     }
 
-    // Для серверных ошибок (5xx) делаем 2-3 попытки
+    // For server errors (5xx), do 2-3 attempts
     if (status >= 500) {
       return failureCount < 3;
     }
   }
 
-  // Для остальных ошибок (сетевых) делаем 2 попытки
+  // For other errors (network), do 2 attempts
   return failureCount < 2;
 };
 
 /**
- * Дефолтные опции для React Query
+ * Default options for React Query
  */
 const defaultOptions: DefaultOptions = {
   queries: {
-    // Время, в течение которого данные считаются актуальными
-    staleTime: 30 * 1000, // 30 секунд
+    // Time during which data is considered fresh
+    staleTime: 30 * 1000, // 30 seconds
 
-    // Время, в течение которого кэш хранится в памяти
-    gcTime: 5 * 60 * 1000, // 5 минут (ранее cacheTime)
+    // Time during which cache is stored in memory
+    gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
 
-    // Стратегия retry
+    // Retry strategy
     retry: shouldRetry,
 
-    // Не делать refetch при фокусе окна для стабильности
+    // Don't refetch on window focus for stability
     refetchOnWindowFocus: false,
 
-    // Refetch при монтировании только если данные stale
+    // Refetch on mount only if data is stale
     refetchOnMount: true,
 
-    // Не делать refetch при reconnect по умолчанию
+    // Don't refetch on reconnect by default
     refetchOnReconnect: false,
   },
   mutations: {
-    // Для мутаций не делаем retry на 4xx ошибках
+    // For mutations, don't retry on 4xx errors
     retry: (failureCount, error) => {
       if (error instanceof ApiError) {
         const status = error.statusCode;
-        // Не retry для клиентских ошибок
+        // Don't retry for client errors
         if (status >= 400 && status < 500) {
           return false;
         }
       }
-      // Для остальных делаем 1 попытку
+      // For others, do 1 attempt
       return failureCount < 1;
     },
   },
 };
 
 /**
- * Фабрика для создания QueryClient
+ * Factory for creating QueryClient
  *
- * @returns Новый экземпляр QueryClient
+ * @returns New QueryClient instance
  */
 export const createQueryClient = (): QueryClient => {
   return new QueryClient({
@@ -91,23 +91,23 @@ export const createQueryClient = (): QueryClient => {
 };
 
 /**
- * Глобальный QueryClient для использования в приложении
- * Создаётся один раз при старте приложения
+ * Global QueryClient for use in the application
+ * Created once at application startup
  */
 let browserQueryClient: QueryClient | undefined = undefined;
 
 /**
- * Получить QueryClient для использования в приложении
+ * Get QueryClient for use in the application
  *
  * @returns QueryClient instance
  */
 export const getQueryClient = (): QueryClient => {
-  // На сервере всегда создаём новый клиент
+  // On server, always create a new client
   if (typeof window === 'undefined') {
     return createQueryClient();
   }
 
-  // На клиенте используем singleton
+  // On client, use singleton
   if (!browserQueryClient) {
     browserQueryClient = createQueryClient();
   }
@@ -116,58 +116,58 @@ export const getQueryClient = (): QueryClient => {
 };
 
 /**
- * Ключи кэша для React Query
+ * Cache keys for React Query
  *
- * Централизованное определение ключей для предсказуемого кэширования
+ * Centralized key definitions for predictable caching
  */
 export const queryKeys = {
-  /** Обзор книги: ['bookOverview', lang, slug] */
+  /** Book overview: ['bookOverview', lang, slug] */
   bookOverview: (lang: string, slug: string) => ['bookOverview', lang, slug] as const,
 
-  /** Версии книги: ['bookVersions', bookId, filters] */
+  /** Book versions: ['bookVersions', bookId, filters] */
   bookVersions: (bookId: string, filters?: { lang?: string; type?: string; isFree?: boolean }) =>
     ['bookVersions', bookId, filters] as const,
 
-  /** CMS страница: ['page', lang, slug] */
+  /** CMS page: ['page', lang, slug] */
   page: (lang: string, slug: string) => ['page', lang, slug] as const,
 
-  /** Книги категории: ['categoryBooks', lang, slug, page, limit] */
+  /** Category books: ['categoryBooks', lang, slug, page, limit] */
   categoryBooks: (lang: string, slug: string, page?: number, limit?: number) =>
     ['categoryBooks', lang, slug, { page, limit }] as const,
 
-  /** Книги по тегу: ['tagBooks', lang, slug, page, limit] */
+  /** Books by tag: ['tagBooks', lang, slug, page, limit] */
   tagBooks: (lang: string, slug: string, page?: number, limit?: number) =>
     ['tagBooks', lang, slug, { page, limit }] as const,
 
-  /** SEO данные: ['seoResolve', lang, type, id] */
+  /** SEO data: ['seoResolve', lang, type, id] */
   seoResolve: (lang: string, type: string, id: string) => ['seoResolve', lang, type, id] as const,
 
-  /** Данные текущего пользователя: ['me'] */
+  /** Current user data: ['me'] */
   me: () => ['me'] as const,
 
-  /** Прогресс чтения пользователя: ['readingProgress', versionId] */
+  /** User reading progress: ['readingProgress', versionId] */
   readingProgress: (versionId: string) => ['readingProgress', versionId] as const,
 
-  /** Полка пользователя: ['bookshelf', page, limit] */
+  /** User bookshelf: ['bookshelf', page, limit] */
   bookshelf: (page?: number, limit?: number) => ['bookshelf', { page, limit }] as const,
 } as const;
 
 /**
- * Настройки staleTime для разных типов запросов
+ * staleTime settings for different query types
  */
 export const staleTimeConfig = {
-  /** Публичные данные (книги, страницы) - 30 секунд */
+  /** Public data (books, pages) - 30 seconds */
   public: 30 * 1000,
 
-  /** Каталоги и списки - 5 минут */
+  /** Catalogs and lists - 5 minutes */
   catalog: 5 * 60 * 1000,
 
-  /** SEO данные - 10 минут */
+  /** SEO data - 10 minutes */
   seo: 10 * 60 * 1000,
 
-  /** Пользовательские данные - 0 (всегда свежие) */
+  /** User data - 0 (always fresh) */
   user: 0,
 
-  /** Статические данные - 1 час */
+  /** Static data - 1 hour */
   static: 60 * 60 * 1000,
 } as const;

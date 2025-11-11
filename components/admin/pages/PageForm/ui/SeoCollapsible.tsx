@@ -2,18 +2,18 @@ import type { FC, ReactNode } from 'react';
 import styles from '../PageForm.module.scss';
 
 export interface SeoCollapsibleProps {
-  /** Заголовок секции */
+  /** Section title */
   title: string;
-  /** Контент секции */
+  /** Section content */
   children: ReactNode;
-  /** Открыта ли секция по умолчанию */
+  /** Whether section is open by default */
   defaultOpen?: boolean;
 }
 
 /**
- * Сворачиваемая секция для SEO настроек
+ * Collapsible section for SEO settings
  *
- * Использует HTML <details>/<summary> для нативной функциональности
+ * Uses HTML <details>/<summary> for native functionality
  */
 export const SeoCollapsible: FC<SeoCollapsibleProps> = (props) => {
   const { title, children, defaultOpen = false } = props;

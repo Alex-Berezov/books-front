@@ -1,17 +1,17 @@
 /**
- * Эндпоинты для авторизованных пользователей
+ * Endpoints for authorized users
  *
- * Содержит типизированные функции для работы с данными пользователя,
- * требующими авторизации.
+ * Contains typed functions for working with user data
+ * that require authorization.
  */
 
 import { httpGetAuth } from '@/lib/http-client';
 import type { UserMeResponse } from '@/types/api-schema';
 
 /**
- * Получить данные текущего пользователя
+ * Get current user data
  *
- * @returns Данные пользователя
+ * @returns User data
  *
  * @example
  * ```ts

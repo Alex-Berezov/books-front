@@ -1,8 +1,8 @@
 /**
- * React Query хуки для работы с книгами (контейнерами)
+ * React Query hooks for working with books (containers)
  *
- * Книга (Book) - это контейнер для разных языковых версий.
- * Каждая версия (BookVersion) содержит контент на определённом языке.
+ * Book is a container for different language versions.
+ * Each version (BookVersion) contains content in a specific language.
  */
 
 import {
@@ -21,27 +21,27 @@ import type {
 } from '@/types/api-schema';
 
 /**
- * Query ключи для книг
+ * Query keys for books
  */
 export const bookKeys = {
-  /** Все запросы книг */
+  /** All book queries */
   all: ['books'] as const,
-  /** Списки книг */
+  /** Book lists */
   lists: () => [...bookKeys.all, 'list'] as const,
-  /** Список книг с параметрами */
+  /** Book list with parameters */
   list: (params: GetBooksParams) => [...bookKeys.lists(), params] as const,
-  /** Детали конкретной книги */
+  /** Details of specific book */
   details: () => [...bookKeys.all, 'detail'] as const,
-  /** Детали книги по ID */
+  /** Book details by ID */
   detail: (id: string) => [...bookKeys.details(), id] as const,
 };
 
 /**
- * Хук для получения списка книг
+ * Hook for getting books list
  *
- * @param params - Параметры запроса (пагинация, поиск, фильтры)
- * @param options - Опции React Query
- * @returns React Query результат со списком книг
+ * @param params - Request parameters (pagination, search, filters)
+ * @param options - React Query options
+ * @returns React Query result with books list
  *
  * @example
  * ```tsx
@@ -59,16 +59,16 @@ export const useBooks = (
   return useQuery({
     queryKey: bookKeys.list(params),
     queryFn: () => getBooks(params),
-    staleTime: 5 * 60 * 1000, // 5 минут
+    staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 };
 
 /**
- * Хук для создания новой книги (контейнера)
+ * Hook for creating a new book (container)
  *
- * @param options - Опции React Query mutation
- * @returns React Query mutation для создания книги
+ * @param options - React Query mutation options
+ * @returns React Query mutation for creating book
  *
  * @example
  * ```tsx
@@ -90,7 +90,7 @@ export const useCreateBook = (
   return useMutation({
     mutationFn: createBook,
     onSuccess: () => {
-      // Инвалидируем список книг после создания
+      // Invalidate books list after creation
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
     },
     ...options,

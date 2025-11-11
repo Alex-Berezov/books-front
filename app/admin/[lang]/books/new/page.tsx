@@ -16,44 +16,44 @@ interface NewBookVersionPageProps {
 }
 
 /**
- * Страница создания новой версии книги
+ * New book version creation page
  *
- * Отображает форму для создания новой версии (language, title, author и т.д.)
+ * Displays form for creating new version (language, title, author, etc.)
  */
 const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
   const { params } = props;
   const { lang } = params;
 
-  // Хуки навигации
+  // Navigation hooks
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Получаем bookId из query параметров
+  // Get bookId from query parameters
   const bookId = searchParams.get('bookId');
 
-  // Мутация для создания версии
+  // Mutation for creating version
   const createMutation = useCreateBookVersion({
     onSuccess: (data) => {
-      // Перенаправляем на страницу редактирования созданной версии
+      // Redirect to created version edit page
       router.push(`/admin/${lang}/books/versions/${data.id}`);
     },
     onError: (error) => {
-      // TODO: Показать toast уведомление об ошибке
+      // TODO: Show toast notification about error
       console.error('Failed to create book version:', error);
     },
   });
 
   /**
-   * Обработчик отправки формы
+   * Form submission handler
    */
   const handleSubmit = async (formData: BookFormData) => {
-    // Проверяем что bookId присутствует
+    // Check that bookId is present
     if (!bookId) {
       console.error('bookId is required');
       return;
     }
 
-    // Преобразуем данные формы в формат API
+    // Convert form data to API format
     const requestData: CreateBookVersionRequest = {
       language: formData.language,
       title: formData.title,
@@ -67,14 +67,14 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
       seoMetaDescription: formData.seoMetaDescription || undefined,
     };
 
-    // Отправляем запрос на создание
+    // Send creation request
     createMutation.mutate({
       bookId,
       data: requestData,
     });
   };
 
-  // Если нет bookId, показываем ошибку
+  // If no bookId, show error
   if (!bookId) {
     return (
       <div className={styles.errorContainer}>

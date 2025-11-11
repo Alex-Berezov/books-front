@@ -15,9 +15,9 @@ export async function generateStaticParams() {
 }
 
 /**
- * Admin Dashboard - главная страница админки
+ * Admin Dashboard - admin panel main page
  *
- * Показывает краткую статистику и быстрые ссылки на основные разделы
+ * Shows brief statistics and quick links to main sections
  */
 export default async function AdminDashboardPage({ params }: Props) {
   const { lang } = await params;
@@ -29,7 +29,7 @@ export default async function AdminDashboardPage({ params }: Props) {
   const supportedLang = lang as SupportedLang;
 
   /**
-   * Быстрые ссылки на основные разделы
+   * Quick links to main sections
    */
   const quickLinks = [
     {

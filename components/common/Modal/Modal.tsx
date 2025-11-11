@@ -5,21 +5,21 @@ import type { ModalProps } from './Modal.types';
 import styles from './Modal.module.scss';
 
 /**
- * Переиспользуемый универсальный компонент модального окна
+ * Reusable universal modal component
  *
- * Модалка с гибкой настройкой для различных сценариев:
- * - Подтверждение действий (удаление, публикация и т.д.)
- * - Отображение информации
- * - Формы ввода данных
- * - Любой кастомный контент через children
+ * Modal with flexible configuration for various scenarios:
+ * - Action confirmation (delete, publish, etc.)
+ * - Information display
+ * - Data input forms
+ * - Any custom content via children
  *
- * Особенности:
- * - Кастомный заголовок с кнопкой закрытия
- * - Произвольное содержимое (children)
- * - Настраиваемые кнопки футера (тексты и варианты)
- * - Поддержка состояния загрузки
- * - Закрытие по оверлею или крестику
- * - Плавные анимации
+ * Features:
+ * - Custom title with close button
+ * - Arbitrary content (children)
+ * - Customizable footer buttons (texts and variants)
+ * - Loading state support
+ * - Close on overlay or cross click
+ * - Smooth animations
  *
  * @example
  * ```tsx
@@ -51,13 +51,13 @@ export const Modal: FC<ModalProps> = (props) => {
     onCancel,
   } = props;
 
-  // Если модалка закрыта, ничего не рендерим
+  // If modal is closed, don't render anything
   if (!isOpen) {
     return null;
   }
 
   /**
-   * Обработчик клика по оверлею (закрытие модалки)
+   * Overlay click handler (close modal)
    */
   const handleOverlayClick = () => {
     if (!isLoading) {
@@ -66,21 +66,21 @@ export const Modal: FC<ModalProps> = (props) => {
   };
 
   /**
-   * Предотвращаем всплытие клика по модалке к оверлею
+   * Prevent modal click propagation to overlay
    */
   const handleModalClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
   /**
-   * Обработчик подтверждения
+   * Confirm handler
    */
   const handleConfirm = () => {
     onConfirm();
   };
 
   /**
-   * Обработчик отмены
+   * Cancel handler
    */
   const handleCancel = () => {
     if (!isLoading) {
@@ -91,7 +91,7 @@ export const Modal: FC<ModalProps> = (props) => {
   return (
     <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={handleModalClick}>
-        {/* Header с заголовком и крестиком */}
+        {/* Header with title and close button */}
         <div className={styles.header}>
           <h3 className={styles.title}>{title}</h3>
           <button
@@ -105,10 +105,10 @@ export const Modal: FC<ModalProps> = (props) => {
           </button>
         </div>
 
-        {/* Тело модалки - произвольный контент */}
+        {/* Modal body - arbitrary content */}
         <div className={styles.body}>{children}</div>
 
-        {/* Footer с кнопками */}
+        {/* Footer with buttons */}
         <div className={styles.footer}>
           <button
             className={`${styles.button} ${styles.cancelButton}`}

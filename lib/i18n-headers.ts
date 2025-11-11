@@ -1,19 +1,19 @@
 /**
- * Утилиты для работы с языковыми заголовками в HTTP запросах
+ * Utilities for working with language headers in HTTP requests
  *
- * Предоставляет функции для добавления Accept-Language заголовка
- * и извлечения языка из различных источников.
+ * Provides functions for adding Accept-Language header
+ * and extracting language from various sources.
  */
 
 import { isSupportedLang, getDefaultLang } from '@/lib/i18n/lang';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
- * Добавить языковой заголовок к существующим заголовкам
+ * Add language header to existing headers
  *
- * @param lang - Код языка
- * @param headers - Существующие заголовки (опционально)
- * @returns Заголовки с добавленным Accept-Language
+ * @param lang - Language code
+ * @param headers - Existing headers (optional)
+ * @returns Headers with added Accept-Language
  *
  * @example
  * ```ts
@@ -26,7 +26,7 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 export const withLangHeaders = (lang: SupportedLang, headers?: HeadersInit): HeadersInit => {
   const baseHeaders: Record<string, string> = {};
 
-  // Копируем существующие заголовки
+  // Copy existing headers
   if (headers) {
     if (headers instanceof Headers) {
       headers.forEach((value, key) => {
@@ -41,17 +41,17 @@ export const withLangHeaders = (lang: SupportedLang, headers?: HeadersInit): Hea
     }
   }
 
-  // Добавляем Accept-Language
+  // Add Accept-Language
   baseHeaders['Accept-Language'] = lang;
 
   return baseHeaders;
 };
 
 /**
- * Извлечь язык из pathname URL
+ * Extract language from URL pathname
  *
- * @param pathname - Путь URL (например, '/en/books/some-slug')
- * @returns Код языка или дефолтный язык
+ * @param pathname - URL path (e.g., '/en/books/some-slug')
+ * @returns Language code or default language
  *
  * @example
  * ```ts
@@ -63,28 +63,28 @@ export const withLangHeaders = (lang: SupportedLang, headers?: HeadersInit): Hea
 export const extractLangFromPath = (pathname: string): SupportedLang => {
   const segments = pathname.split('/').filter(Boolean);
 
-  // Проверяем первый сегмент для публичных маршрутов
+  // Check first segment for public routes
   if (segments.length >= 1 && isSupportedLang(segments[0])) {
     return segments[0];
   }
 
-  // Проверяем второй сегмент для admin маршрутов
+  // Check second segment for admin routes
   if (segments[0] === 'admin' && segments.length >= 2 && isSupportedLang(segments[1])) {
     return segments[1];
   }
 
-  // Возвращаем дефолтный язык если не нашли
+  // Return default language if not found
   return getDefaultLang();
 };
 
 /**
- * Получить текущий язык на клиенте из URL
+ * Get current language on the client from URL
  *
- * @returns Код текущего языка
+ * @returns Current language code
  *
  * @example
  * ```ts
- * // Если текущий URL: https://example.com/en/books
+ * // If current URL: https://example.com/en/books
  * const lang = getCurrentLang(); // 'en'
  * ```
  */
@@ -97,10 +97,10 @@ export const getCurrentLang = (): SupportedLang => {
 };
 
 /**
- * Создать заголовки для HTTP запроса с текущим языком
+ * Create headers for HTTP request with current language
  *
- * @param headers - Дополнительные заголовки (опционально)
- * @returns Заголовки с Accept-Language для текущего языка
+ * @param headers - Additional headers (optional)
+ * @returns Headers with Accept-Language for current language
  *
  * @example
  * ```ts
@@ -115,12 +115,12 @@ export const createLangHeaders = (headers?: HeadersInit): HeadersInit => {
 };
 
 /**
- * Проверить, требуется ли языковой префикс для эндпоинта
+ * Check if language prefix is required for endpoint
  *
- * Некоторые эндпоинты (например, /auth/*) не требуют языкового префикса
+ * Some endpoints (e.g., /auth/*) don't require language prefix
  *
- * @param endpoint - Путь эндпоинта
- * @returns true если требуется языковой префикс
+ * @param endpoint - Endpoint path
+ * @returns true if language prefix is required
  *
  * @example
  * ```ts
@@ -136,11 +136,11 @@ export const needsLangPrefix = (endpoint: string): boolean => {
 };
 
 /**
- * Построить URL с языковым префиксом если необходимо
+ * Build URL with language prefix if necessary
  *
- * @param lang - Код языка
- * @param endpoint - Путь эндпоинта
- * @returns URL с языковым префиксом или без него
+ * @param lang - Language code
+ * @param endpoint - Endpoint path
+ * @returns URL with or without language prefix
  *
  * @example
  * ```ts
@@ -153,7 +153,7 @@ export const buildLangUrl = (lang: SupportedLang, endpoint: string): string => {
     return endpoint;
   }
 
-  // Убираем начальный слэш если есть
+  // Remove leading slash if present
   const normalizedEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
 
   return `/${lang}/${normalizedEndpoint}`;

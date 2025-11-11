@@ -1,25 +1,25 @@
 import type { ReactNode } from 'react';
 
 /**
- * Пропсы для компонента Modal
+ * Props for Modal component
  */
 export interface ModalProps {
-  /** Показывать ли модалку */
+  /** Whether to show modal */
   isOpen: boolean;
-  /** Заголовок модалки */
+  /** Modal title */
   title: string;
-  /** Содержимое модалки (может быть любым React компонентом) */
+  /** Modal content (can be any React component) */
   children: ReactNode;
-  /** Текст кнопки подтверждения */
+  /** Confirm button text */
   confirmText?: string;
-  /** Текст кнопки отмены */
+  /** Cancel button text */
   cancelText?: string;
-  /** Вариант кнопки подтверждения */
+  /** Confirm button variant */
   confirmVariant?: 'primary' | 'danger' | 'warning' | 'success';
-  /** Состояние загрузки */
+  /** Loading state */
   isLoading?: boolean;
-  /** Callback при подтверждении */
+  /** Callback on confirm */
   onConfirm: () => void;
-  /** Callback при отмене/закрытии */
+  /** Callback on cancel/close */
   onCancel: () => void;
 }

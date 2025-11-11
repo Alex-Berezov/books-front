@@ -12,34 +12,34 @@ import { FormField } from '../ui/FormField';
 export interface BasicInfoSectionProps {
   /** React Hook Form register */
   register: UseFormRegister<PageFormData>;
-  /** Ошибки валидации */
+  /** Validation errors */
   errors: FieldErrors<PageFormData>;
   /** React Hook Form watch */
   watch: UseFormWatch<PageFormData>;
   /** React Hook Form setValue */
   setValue: UseFormSetValue<PageFormData>;
-  /** Флаг загрузки */
+  /** Loading flag */
   isSubmitting: boolean;
-  /** Существующие данные (для режима редактирования) */
+  /** Existing data (for edit mode) */
   initialData?: PageResponse;
 }
 
 /**
- * Секция базовой информации о странице
+ * Page basic information section
  *
- * Содержит поля:
- * - Language (выбор языка)
- * - Page Type (тип страницы)
- * - Title (заголовок)
+ * Contains fields:
+ * - Language (language selection)
+ * - Page Type (page type)
+ * - Title (title)
  * - Slug (URL)
- * - Content (контент в Markdown)
+ * - Content (Markdown content)
  */
 export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
   const { register, errors, watch, setValue, isSubmitting, initialData } = props;
 
   return (
     <>
-      {/* Basic Info */}
+      {/* Basic information */}
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Basic Information</h2>
 

@@ -1,11 +1,11 @@
 /**
  * NextAuth API Route Handler
  *
- * Обрабатывает все запросы авторизации через NextAuth:
- * - /api/auth/signin - страница входа
- * - /api/auth/signout - выход
- * - /api/auth/session - получение сессии
- * - /api/auth/callback/* - callbacks провайдеров
+ * Handles all authentication requests through NextAuth:
+ * - /api/auth/signin - sign in page
+ * - /api/auth/signout - sign out
+ * - /api/auth/session - get session
+ * - /api/auth/callback/* - provider callbacks
  *
  * @see https://next-auth.js.org/configuration/initialization#route-handlers-app
  */

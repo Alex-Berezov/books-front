@@ -1,5 +1,5 @@
 /**
- * Стили для панели категорий
+ * Styles for categories panel
  */
 
 @import '@/styles/tokens.scss';
@@ -131,7 +131,7 @@
   margin-left: $spacing-xs;
 }
 
-// Вложенные категории
+// Nested categories
 .categoryItem .categoryList {
   margin-left: $spacing-lg;
   margin-top: $spacing-xs;
@@ -139,7 +139,7 @@
   border-left: 2px solid $color-border-light;
 }
 
-// Выбранные категории
+// Selected categories
 .selectedSection {
   margin-top: $spacing-lg;
   padding-top: $spacing-lg;

@@ -3,9 +3,9 @@ import type { GenerateButtonProps } from '../SlugInput.types';
 import styles from '../SlugInput.module.scss';
 
 /**
- * Кнопка генерации slug из sourceValue
+ * Button for generating slug from sourceValue
  *
- * Показывается только если есть sourceValue
+ * Shown only if sourceValue exists
  */
 export const GenerateButton: FC<GenerateButtonProps> = (props) => {
   const { hasSourceValue, onClick } = props;

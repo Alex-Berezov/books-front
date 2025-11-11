@@ -2,31 +2,31 @@ import type { FC, ReactNode } from 'react';
 import styles from '../PageForm.module.scss';
 
 export interface FormFieldProps {
-  /** Уникальный ID для label/input связи */
+  /** Unique ID for label/input binding */
   id: string;
-  /** Текст label */
+  /** Label text */
   label: string;
-  /** Контент поля (input, textarea, select и т.д.) */
+  /** Field content (input, textarea, select, etc.) */
   children: ReactNode;
-  /** Сообщение об ошибке */
+  /** Error message */
   error?: string;
-  /** Подсказка под полем */
+  /** Hint below the field */
   hint?: string;
-  /** Дополнительный контент в футере (например, счётчик символов) */
+  /** Additional footer content (e.g., character counter) */
   footer?: ReactNode;
-  /** Обязательное поле - добавляет звёздочку */
+  /** Required field - adds asterisk */
   required?: boolean;
 }
 
 /**
- * Переиспользуемый wrapper для полей формы
+ * Reusable wrapper for form fields
  *
- * Предоставляет единообразную структуру:
- * - Label с опциональной звёздочкой
- * - Контент поля
- * - Ошибка валидации
- * - Подсказка
- * - Футер (например, счётчик символов)
+ * Provides uniform structure:
+ * - Label with optional asterisk
+ * - Field content
+ * - Validation error
+ * - Hint
+ * - Footer (e.g., character counter)
  */
 export const FormField: FC<FormFieldProps> = (props) => {
   const { id, label, children, error, hint, footer, required = false } = props;

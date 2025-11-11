@@ -1,8 +1,8 @@
 /**
- * React Query хуки для работы с главами книг
+ * React Query hooks for working with book chapters
  *
- * Глава (Chapter) - это раздел контента внутри версии книги.
- * Главы упорядочены и могут быть бесплатными или платными.
+ * Chapter is a content section inside a book version.
+ * Chapters are ordered and can be free or paid.
  */
 
 import {
@@ -27,27 +27,27 @@ import type {
 } from '@/types/api-schema';
 
 /**
- * Query ключи для глав
+ * Query keys for chapters
  */
 export const chapterKeys = {
-  /** Все запросы глав */
+  /** All chapter queries */
   all: ['chapters'] as const,
-  /** Списки глав */
+  /** Chapter lists */
   lists: () => [...chapterKeys.all, 'list'] as const,
-  /** Список глав конкретной версии */
+  /** Chapter list for specific version */
   list: (versionId: string) => [...chapterKeys.lists(), versionId] as const,
-  /** Детали глав */
+  /** Chapter details */
   details: () => [...chapterKeys.all, 'detail'] as const,
-  /** Детали главы по ID */
+  /** Chapter details by ID */
   detail: (id: string) => [...chapterKeys.details(), id] as const,
 };
 
 /**
- * Хук для получения списка глав версии книги
+ * Hook for getting book version chapters list
  *
- * @param versionId - ID версии книги
- * @param options - Опции React Query
- * @returns React Query результат со списком глав
+ * @param versionId - Book version ID
+ * @param options - React Query options
+ * @returns React Query result with chapters list
  *
  * @example
  * ```tsx
@@ -61,16 +61,16 @@ export const useChapters = (
   return useQuery({
     queryKey: chapterKeys.list(versionId),
     queryFn: () => getChapters(versionId),
-    staleTime: 5 * 60 * 1000, // 5 минут
+    staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 };
 
 /**
- * Хук для создания новой главы
+ * Hook for creating a new chapter
  *
- * @param options - Опции React Query mutation
- * @returns React Query mutation для создания главы
+ * @param options - React Query mutation options
+ * @returns React Query mutation for creating chapter
  *
  * @example
  * ```tsx
@@ -103,9 +103,9 @@ export const useCreateChapter = (
   return useMutation({
     mutationFn: ({ versionId, data }) => createChapter(versionId, data),
     onSuccess: (data, variables) => {
-      // Инвалидируем список глав версии
+      // Invalidate version chapters list
       queryClient.invalidateQueries({ queryKey: chapterKeys.list(variables.versionId) });
-      // Устанавливаем данные главы в кэш
+      // Set chapter data in cache
       queryClient.setQueryData(chapterKeys.detail(data.id), data);
     },
     ...options,
@@ -113,10 +113,10 @@ export const useCreateChapter = (
 };
 
 /**
- * Хук для обновления главы
+ * Hook for updating chapter
  *
- * @param options - Опции React Query mutation
- * @returns React Query mutation для обновления главы
+ * @param options - React Query mutation options
+ * @returns React Query mutation for updating chapter
  *
  * @example
  * ```tsx
@@ -147,9 +147,9 @@ export const useUpdateChapter = (
   return useMutation({
     mutationFn: ({ chapterId, data }) => updateChapter(chapterId, data),
     onSuccess: (data, variables) => {
-      // Обновляем данные главы в кэше
+      // Update chapter data in cache
       queryClient.setQueryData(chapterKeys.detail(variables.chapterId), data);
-      // Инвалидируем список глав версии
+      // Invalidate version chapters list
       queryClient.invalidateQueries({ queryKey: chapterKeys.list(data.versionId) });
     },
     ...options,
@@ -157,10 +157,10 @@ export const useUpdateChapter = (
 };
 
 /**
- * Хук для удаления главы
+ * Hook for deleting chapter
  *
- * @param options - Опции React Query mutation
- * @returns React Query mutation для удаления главы
+ * @param options - React Query mutation options
+ * @returns React Query mutation for deleting chapter
  *
  * @example
  * ```tsx
@@ -184,9 +184,9 @@ export const useDeleteChapter = (
   return useMutation({
     mutationFn: ({ chapterId }) => deleteChapter(chapterId),
     onSuccess: (_data, variables) => {
-      // Инвалидируем список глав версии
+      // Invalidate version chapters list
       queryClient.invalidateQueries({ queryKey: chapterKeys.list(variables.versionId) });
-      // Удаляем главу из кэша
+      // Remove chapter from cache
       queryClient.removeQueries({ queryKey: chapterKeys.detail(variables.chapterId) });
     },
     ...options,
@@ -194,10 +194,10 @@ export const useDeleteChapter = (
 };
 
 /**
- * Хук для переупорядочивания глав
+ * Hook for reordering chapters
  *
- * @param options - Опции React Query mutation
- * @returns React Query mutation для переупорядочивания
+ * @param options - React Query mutation options
+ * @returns React Query mutation for reordering
  *
  * @example
  * ```tsx
@@ -227,7 +227,7 @@ export const useReorderChapters = (
   return useMutation({
     mutationFn: ({ versionId, data }) => reorderChapters(versionId, data),
     onSuccess: (_data, variables) => {
-      // Инвалидируем список глав для обновления
+      // Invalidate chapters list for update
       queryClient.invalidateQueries({ queryKey: chapterKeys.list(variables.versionId) });
     },
     ...options,

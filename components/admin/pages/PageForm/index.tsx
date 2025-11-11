@@ -17,13 +17,13 @@ import { SeoTwitterSection } from './sections/SeoTwitterSection';
 export type { PageFormData, PageFormProps } from './PageForm.types';
 
 /**
- * Форма для создания/редактирования CMS страницы
+ * Form for creating/editing CMS page
  *
- * Компонент с react-hook-form и zod валидацией.
- * Поддерживает создание новой страницы и редактирование существующей.
+ * Component with react-hook-form and zod validation.
+ * Supports creating new page and editing existing one.
  *
- * Декомпозирован на секции:
- * - BasicInfoSection (язык, тип, заголовок, slug, контент)
+ * Decomposed into sections:
+ * - BasicInfoSection (language, type, title, slug, content)
  * - SeoBasicSection (metaTitle, metaDescription)
  * - SeoTechnicalSection (canonical, robots)
  * - SeoOpenGraphSection (OG tags)
@@ -32,7 +32,7 @@ export type { PageFormData, PageFormProps } from './PageForm.types';
 export const PageForm: FC<PageFormProps> = (props) => {
   const { lang, initialData, onSubmit, isSubmitting = false } = props;
 
-  // Инициализируем форму с react-hook-form
+  // Initialize form with react-hook-form
   const {
     formState: { errors },
     handleSubmit,
@@ -42,7 +42,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
     watch,
   } = useForm<PageFormData>({
     resolver: zodResolver(pageSchema),
-    mode: 'onSubmit', // Валидация только при отправке формы
+    mode: 'onSubmit', // Validation only on form submit
     defaultValues: initialData
       ? {
           language: initialData.language,
@@ -50,7 +50,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
           title: initialData.title,
           slug: initialData.slug,
           content: initialData.content,
-          // SEO поля из backend
+          // SEO fields from backend
           seoMetaTitle: initialData.seo?.metaTitle || '',
           seoMetaDescription: initialData.seo?.metaDescription || '',
           seoCanonicalUrl: initialData.seo?.canonicalUrl || '',
@@ -67,7 +67,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
           title: '',
           slug: '',
           content: '',
-          // SEO дефолтные значения
+          // SEO default values
           seoMetaTitle: '',
           seoMetaDescription: '',
           seoCanonicalUrl: '',
@@ -79,7 +79,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
         },
   });
 
-  // Обновляем форму при изменении initialData
+  // Update form when initialData changes
   useEffect(() => {
     if (initialData) {
       reset({
@@ -101,20 +101,20 @@ export const PageForm: FC<PageFormProps> = (props) => {
     }
   }, [initialData, reset]);
 
-  // Автозаполнение OG и Twitter полей при вводе Meta Title и Meta Description
+  // Auto-fill OG and Twitter fields when entering Meta Title and Meta Description
   useEffect(() => {
     const subscription = watch((value, { name }) => {
-      // Автозаполнение при вводе Meta Title
+      // Auto-fill on Meta Title input
       if (name === 'seoMetaTitle') {
         const newTitle = value.seoMetaTitle || '';
-        // Всегда синхронизируем OG Title с Meta Title
+        // Always sync OG Title with Meta Title
         setValue('seoOgTitle', newTitle, { shouldValidate: false, shouldDirty: false });
       }
 
-      // Автозаполнение при вводе Meta Description
+      // Auto-fill on Meta Description input
       if (name === 'seoMetaDescription') {
         const newDescription = value.seoMetaDescription || '';
-        // Всегда синхронизируем OG Description с Meta Description
+        // Always sync OG Description with Meta Description
         setValue('seoOgDescription', newDescription, { shouldValidate: false, shouldDirty: false });
       }
     });
@@ -124,7 +124,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-      {/* Основная информация и контент */}
+      {/* Basic information and content */}
       <BasicInfoSection
         errors={errors}
         initialData={initialData}

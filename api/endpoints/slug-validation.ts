@@ -1,30 +1,30 @@
 /**
  * Slug Validation API
  *
- * Проверка уникальности slug через оптимизированные backend endpoints.
- * Backend endpoints: GET /api/admin/pages/check-slug и GET /api/books/check-slug
+ * Validates slug uniqueness through optimized backend endpoints.
+ * Backend endpoints: GET /api/admin/pages/check-slug and GET /api/books/check-slug
  */
 
 import { httpGetAuth } from '@/lib/http-client';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
- * Результат проверки уникальности slug
+ * Slug uniqueness validation result
  */
 export interface SlugValidationResult {
-  /** Проверяемый slug */
+  /** Validated slug */
   slug: string;
-  /** Является ли slug уникальным */
+  /** Is the slug unique */
   isUnique: boolean;
-  /** Предлагаемый уникальный slug (если текущий занят) */
+  /** Suggested unique slug (if current is taken) */
   suggestedSlug?: string;
-  /** Существующая страница с таким slug (если найдена) */
+  /** Existing page with this slug (if found) */
   existingPage?: {
     id: string;
     title: string;
     status: 'draft' | 'published' | 'archived';
   };
-  /** Существующая книга с таким slug (если найдена) */
+  /** Existing book with this slug (if found) */
   existingBook?: {
     id: string;
     slug: string;
@@ -32,7 +32,7 @@ export interface SlugValidationResult {
 }
 
 /**
- * Backend response для Pages check-slug
+ * Backend response for Pages check-slug
  */
 interface CheckPageSlugResponse {
   exists: boolean;
@@ -45,7 +45,7 @@ interface CheckPageSlugResponse {
 }
 
 /**
- * Backend response для Books check-slug
+ * Backend response for Books check-slug
  */
 interface CheckBookSlugResponse {
   exists: boolean;
@@ -57,27 +57,27 @@ interface CheckBookSlugResponse {
 }
 
 /**
- * Проверяет уникальность slug для страниц (Pages)
+ * Checks slug uniqueness for Pages
  *
- * Использует оптимизированный backend endpoint:
+ * Uses optimized backend endpoint:
  * GET /api/admin/pages/check-slug?slug={slug}&lang={lang}&excludeId={id}
  *
- * @param slug - Проверяемый slug
- * @param lang - Язык страницы
- * @param excludePageId - ID страницы, которую нужно исключить из проверки (при редактировании)
- * @returns Результат проверки уникальности
+ * @param slug - Slug to validate
+ * @param lang - Page language
+ * @param excludePageId - Page ID to exclude from check (when editing)
+ * @returns Uniqueness validation result
  *
  * @example
- * // При создании новой страницы
+ * // When creating new page
  * const result = await checkPageSlugUniqueness('about-us', 'en');
  * if (!result.isUnique) {
- *   console.log(`Slug занят! Используйте: ${result.suggestedSlug}`);
+ *   console.log(`Slug taken! Use: ${result.suggestedSlug}`);
  * }
  *
  * @example
- * // При редактировании существующей страницы
+ * // When editing existing page
  * const result = await checkPageSlugUniqueness('about-us', 'en', 'current-page-id');
- * // Исключит текущую страницу из проверки
+ * // Will exclude current page from check
  */
 export const checkPageSlugUniqueness = async (
   slug: string,
@@ -100,8 +100,8 @@ export const checkPageSlugUniqueness = async (
       existingPage: response.existingPage,
     };
   } catch (error) {
-    // В случае ошибки (например, нет авторизации) считаем slug уникальным
-    // чтобы не блокировать форму
+    // In case of error (e.g., no authorization) consider slug unique
+    // to not block the form
     console.error('[checkPageSlugUniqueness] Error checking slug:', error);
     return {
       slug,
@@ -111,24 +111,24 @@ export const checkPageSlugUniqueness = async (
 };
 
 /**
- * Проверяет уникальность slug для книг (Books)
+ * Checks slug uniqueness for Books
  *
- * Использует оптимизированный backend endpoint:
+ * Uses optimized backend endpoint:
  * GET /api/books/check-slug?slug={slug}&excludeId={id}
  *
- * @param slug - Проверяемый slug
- * @param excludeBookId - ID книги, которую нужно исключить из проверки (при редактировании)
- * @returns Результат проверки уникальности
+ * @param slug - Slug to validate
+ * @param excludeBookId - Book ID to exclude from check (when editing)
+ * @returns Uniqueness validation result
  *
  * @example
- * // При создании новой книги
+ * // When creating new book
  * const result = await checkBookSlugUniqueness('harry-potter');
  * if (!result.isUnique) {
- *   console.log(`Slug занят! Используйте: ${result.suggestedSlug}`);
+ *   console.log(`Slug taken! Use: ${result.suggestedSlug}`);
  * }
  *
  * @example
- * // При редактировании книги
+ * // When editing book
  * const result = await checkBookSlugUniqueness('harry-potter', 'book-id');
  */
 export const checkBookSlugUniqueness = async (
@@ -151,7 +151,7 @@ export const checkBookSlugUniqueness = async (
       existingBook: response.existingBook,
     };
   } catch (error) {
-    // В случае ошибки считаем slug уникальным чтобы не блокировать форму
+    // In case of error consider slug unique to not block the form
     console.error('[checkBookSlugUniqueness] Error checking slug:', error);
     return {
       slug,

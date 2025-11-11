@@ -1,40 +1,40 @@
 /**
- * Константы для модуля авторизации
+ * Constants for authorization module
  *
- * Содержит все числовые значения, время жизни токенов,
- * типы ошибок и другие константы связанные с авторизацией.
+ * Contains all numeric values, token lifetimes,
+ * error types and other constants related to authorization.
  */
 
 /**
- * Время жизни токенов
+ * Token expiration times
  */
 export const AUTH_TOKEN_EXPIRY = {
-  /** Access токен действителен 12 часов (в миллисекундах) */
+  /** Access token is valid for 12 hours (in milliseconds) */
   ACCESS_TOKEN_MS: 12 * 60 * 60 * 1000,
 
-  /** Refresh токен действителен 7 дней (в секундах для NextAuth session) */
+  /** Refresh token is valid for 7 days (in seconds for NextAuth session) */
   REFRESH_TOKEN_SECONDS: 7 * 24 * 60 * 60,
 } as const;
 
 /**
- * Типы ошибок авторизации
+ * Authorization error types
  */
 export enum AuthErrorType {
-  /** Ошибка при обновлении токена */
+  /** Error refreshing token */
   REFRESH_TOKEN_ERROR = 'RefreshAccessTokenError',
 
-  /** Неверные учетные данные */
+  /** Invalid credentials */
   INVALID_CREDENTIALS = 'InvalidCredentials',
 
-  /** Превышен лимит запросов */
+  /** Rate limit exceeded */
   RATE_LIMIT_EXCEEDED = 'RateLimitExceeded',
 
-  /** Email и пароль обязательны */
+  /** Email and password are required */
   MISSING_CREDENTIALS = 'MissingCredentials',
 }
 
 /**
- * Сообщения об ошибках авторизации
+ * Authorization error messages
  */
 export const AUTH_ERROR_MESSAGES = {
   [AuthErrorType.INVALID_CREDENTIALS]: 'Invalid credentials',
@@ -44,26 +44,26 @@ export const AUTH_ERROR_MESSAGES = {
 } as const;
 
 /**
- * Роли пользователей в системе
+ * User roles in the system
  */
 export enum UserRole {
-  /** Обычный пользователь */
+  /** Regular user */
   USER = 'user',
 
-  /** Администратор */
+  /** Administrator */
   ADMIN = 'admin',
 
-  /** Контент-менеджер */
+  /** Content manager */
   CONTENT_MANAGER = 'content_manager',
 }
 
 /**
- * Staff роли (имеют доступ к админке)
+ * Staff roles (have access to admin panel)
  */
 export const STAFF_ROLES = [UserRole.ADMIN, UserRole.CONTENT_MANAGER] as const;
 
 /**
- * Маршруты авторизации
+ * Authorization routes
  */
 export const AUTH_ROUTES = {
   SIGN_IN: '/en/auth/sign-in',

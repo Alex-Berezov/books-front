@@ -1,10 +1,10 @@
 /**
- * HTTP методы с автоматической авторизацией и retry
+ * HTTP methods with automatic authorization and retry
  *
- * Предоставляет GET, POST, PATCH, DELETE методы с поддержкой:
- * - Автоматического получения токена из NextAuth
- * - Retry при 401 с автоматическим refresh
- * - Типобезопасности
+ * Provides GET, POST, PATCH, DELETE methods with support for:
+ * - Automatic token retrieval from NextAuth
+ * - 401 retry with automatic refresh
+ * - Type safety
  */
 
 import type { ExtendedHttpOptions } from './types';
@@ -18,11 +18,11 @@ import { getAccessToken } from './auth';
 import { withAuthRetry } from './retry';
 
 /**
- * Выполняет GET запрос с автоматической авторизацией и retry
+ * Performs GET request with automatic authorization and retry
  *
- * @param endpoint - Путь эндпоинта
- * @param options - Расширенные опции запроса
- * @returns Типизированный ответ
+ * @param endpoint - Endpoint path
+ * @param options - Extended request options
+ * @returns Typed response
  */
 export const httpGetAuth = async <T>(
   endpoint: string,
@@ -35,10 +35,10 @@ export const httpGetAuth = async <T>(
     ...fetchOptions
   } = options;
 
-  // Получаем токен если requireAuth = true
+  // Get token if requireAuth = true
   const initialToken = await getAccessToken(requireAuth, fetchOptions.accessToken);
 
-  // Оборачиваем запрос в retry логику
+  // Wrap request in retry logic
   return withAuthRetry(async (refreshedToken?: string) => {
     const accessToken = refreshedToken || initialToken;
 
@@ -50,12 +50,12 @@ export const httpGetAuth = async <T>(
 };
 
 /**
- * Выполняет POST запрос с автоматической авторизацией и retry
+ * Performs POST request with automatic authorization and retry
  *
- * @param endpoint - Путь эндпоинта
- * @param body - Тело запроса
- * @param options - Расширенные опции запроса
- * @returns Типизированный ответ
+ * @param endpoint - Endpoint path
+ * @param body - Request body
+ * @param options - Extended request options
+ * @returns Typed response
  */
 export const httpPostAuth = async <T>(
   endpoint: string,
@@ -69,10 +69,10 @@ export const httpPostAuth = async <T>(
     ...fetchOptions
   } = options;
 
-  // Получаем токен если requireAuth = true
+  // Get token if requireAuth = true
   const initialToken = await getAccessToken(requireAuth, fetchOptions.accessToken);
 
-  // Оборачиваем запрос в retry логику
+  // Wrap request in retry logic
   return withAuthRetry(async (refreshedToken?: string) => {
     const accessToken = refreshedToken || initialToken;
 
@@ -84,12 +84,12 @@ export const httpPostAuth = async <T>(
 };
 
 /**
- * Выполняет PATCH запрос с автоматической авторизацией и retry
+ * Performs PATCH request with automatic authorization and retry
  *
- * @param endpoint - Путь эндпоинта
- * @param body - Тело запроса
- * @param options - Расширенные опции запроса
- * @returns Типизированный ответ
+ * @param endpoint - Endpoint path
+ * @param body - Request body
+ * @param options - Extended request options
+ * @returns Typed response
  */
 export const httpPatchAuth = async <T>(
   endpoint: string,
@@ -103,10 +103,10 @@ export const httpPatchAuth = async <T>(
     ...fetchOptions
   } = options;
 
-  // Получаем токен если requireAuth = true
+  // Get token if requireAuth = true
   const initialToken = await getAccessToken(requireAuth, fetchOptions.accessToken);
 
-  // Оборачиваем запрос в retry логику
+  // Wrap request in retry logic
   return withAuthRetry(async (refreshedToken?: string) => {
     const accessToken = refreshedToken || initialToken;
 
@@ -118,11 +118,11 @@ export const httpPatchAuth = async <T>(
 };
 
 /**
- * Выполняет DELETE запрос с автоматической авторизацией и retry
+ * Performs DELETE request with automatic authorization and retry
  *
- * @param endpoint - Путь эндпоинта
- * @param options - Расширенные опции запроса
- * @returns Типизированный ответ
+ * @param endpoint - Endpoint path
+ * @param options - Extended request options
+ * @returns Typed response
  */
 export const httpDeleteAuth = async <T>(
   endpoint: string,
@@ -135,10 +135,10 @@ export const httpDeleteAuth = async <T>(
     ...fetchOptions
   } = options;
 
-  // Получаем токен если requireAuth = true
+  // Get token if requireAuth = true
   const initialToken = await getAccessToken(requireAuth, fetchOptions.accessToken);
 
-  // Оборачиваем запрос в retry логику
+  // Wrap request in retry logic
   return withAuthRetry(async (refreshedToken?: string) => {
     const accessToken = refreshedToken || initialToken;
 

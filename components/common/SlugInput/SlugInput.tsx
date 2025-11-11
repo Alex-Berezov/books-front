@@ -1,12 +1,12 @@
 /**
- * Переиспользуемый компонент для ввода slug
+ * Reusable component for slug input
  *
- * Умеет:
- * - Автоматически генерировать slug из sourceValue (обычно title)
- * - Проверять уникальность slug через API с debounce
- * - Показывать статус валидации (проверяется, уникален, занят)
- * - Предлагать альтернативный slug если текущий занят
- * - Предупреждать о дубликатах с информацией о существующей странице
+ * Features:
+ * - Automatically generate slug from sourceValue (usually title)
+ * - Check slug uniqueness via API with debounce
+ * - Show validation status (checking, unique, taken)
+ * - Suggest alternative slug if current is taken
+ * - Warn about duplicates with information about existing page
  */
 
 'use client';
@@ -23,10 +23,10 @@ import { StatusIcon } from './ui/StatusIcon';
 import { ValidationHint } from './ui/ValidationHint';
 
 /**
- * Компонент для ввода slug с автогенерацией и проверкой уникальности
+ * Component for slug input with auto-generation and uniqueness check
  *
  * @example
- * // В форме страницы с react-hook-form
+ * // In page form with react-hook-form
  * <SlugInput
  *   value={watch('slug')}
  *   onChange={(slug) => setValue('slug', slug)}
@@ -54,10 +54,10 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
     value,
   } = props;
 
-  // Состояние: был ли slug изменён вручную пользователем
+  // State: was slug manually edited by user
   const [wasManuallyEdited, setWasManuallyEdited] = useState(false);
 
-  // Хук для проверки уникальности slug
+  // Hook for slug uniqueness check
   const { existingItem, isUnique, status, suggestedSlug, validate } = useSlugValidation({
     entityType,
     lang,
@@ -66,27 +66,27 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
   });
 
   /**
-   * Автогенерация slug при изменении sourceValue (title)
+   * Auto-generate slug when sourceValue (title) changes
    */
   useEffect(() => {
-    // Не генерируем автоматически если:
-    // - autoGenerate выключен
-    // - slug был изменён вручную
-    // - нет sourceValue
+    // Don't auto-generate if:
+    // - autoGenerate is disabled
+    // - slug was manually edited
+    // - no sourceValue
     if (!autoGenerate || wasManuallyEdited || !sourceValue) {
       return;
     }
 
     const generatedSlug = generateSlug(sourceValue);
 
-    // Обновляем только если сгенерированный slug отличается от текущего
+    // Update only if generated slug differs from current
     if (generatedSlug !== value) {
       onChange(generatedSlug);
     }
   }, [sourceValue, autoGenerate, wasManuallyEdited, value, onChange]);
 
   /**
-   * Проверка уникальности при изменении slug
+   * Check uniqueness when slug changes
    */
   useEffect(() => {
     if (value && isValidSlug(value)) {
@@ -95,27 +95,27 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
   }, [value, validate]);
 
   /**
-   * Обработка ручного изменения slug
+   * Handle manual slug change
    */
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
 
-    // Приводим к lowercase и удаляем недопустимые символы на лету
+    // Convert to lowercase and remove invalid characters on the fly
     const sanitizedValue = newValue
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, '')
-      .replace(/--+/g, '-'); // Убираем множественные дефисы
+      .replace(/--+/g, '-'); // Remove multiple hyphens
 
     onChange(sanitizedValue);
 
-    // Помечаем что slug был изменён вручную
+    // Mark that slug was manually edited
     if (!wasManuallyEdited) {
       setWasManuallyEdited(true);
     }
   };
 
   /**
-   * Обработка потери фокуса (убираем дефисы в начале/конце)
+   * Handle blur (remove hyphens at start/end)
    */
   const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
     const trimmedValue = e.target.value.replace(/^-+|-+$/g, '');
@@ -125,7 +125,7 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
   };
 
   /**
-   * Генерация slug из sourceValue по клику на кнопку
+   * Generate slug from sourceValue on button click
    */
   const handleGenerateClick = () => {
     if (!sourceValue) {
@@ -134,11 +134,11 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
 
     const generatedSlug = generateSlug(sourceValue);
     onChange(generatedSlug);
-    setWasManuallyEdited(false); // Сбрасываем флаг ручного редактирования
+    setWasManuallyEdited(false); // Reset manual edit flag
   };
 
   /**
-   * Применить предложенный slug
+   * Apply suggested slug
    */
   const handleUseSuggested = () => {
     if (suggestedSlug) {
@@ -147,7 +147,7 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
   };
 
   /**
-   * Определяем CSS класс для статуса
+   * Determine CSS class for status
    */
   const getStatusClass = (): string => {
     if (error) return styles.invalid;
@@ -158,12 +158,12 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
     return '';
   };
 
-  // Определяем показывать ли дублирование
+  // Determine whether to show duplication
   const showDuplicateWarning = !error && isUnique === false && existingItem;
 
   return (
     <div className={`${styles.container} ${className || ''}`}>
-      {/* Основное поле ввода */}
+      {/* Main input field */}
       <div className={styles.inputWrapper}>
         <input
           className={`${styles.input} ${getStatusClass()}`}
@@ -176,22 +176,22 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
           value={value}
         />
 
-        {/* Иконка статуса */}
+        {/* Status icon */}
         {!disabled && value && <StatusIcon status={status} />}
 
-        {/* Кнопка генерации slug */}
+        {/* Slug generation button */}
         {showGenerateButton && !disabled && (
           <GenerateButton hasSourceValue={!!sourceValue} onClick={handleGenerateClick} />
         )}
       </div>
 
-      {/* Hint: URL-friendly формат */}
+      {/* Hint: URL-friendly format */}
       {!error && !existingItem && <ValidationHint placeholder={placeholder} />}
 
-      {/* Ошибка валидации из react-hook-form */}
+      {/* Validation error from react-hook-form */}
       {error && <span className={styles.error}>{error}</span>}
 
-      {/* Предупреждение о неуникальности slug */}
+      {/* Warning about non-unique slug */}
       {showDuplicateWarning && (
         <DuplicateWarning
           entityType={entityType}

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Страница управления CMS страницами (админка)
+ * CMS pages management page (admin panel)
  */
 export default async function PagesPage(props: PagesPageProps) {
   const { params } = props;

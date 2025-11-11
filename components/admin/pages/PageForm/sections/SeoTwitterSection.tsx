@@ -10,17 +10,17 @@ import { SeoCollapsible } from '../ui/SeoCollapsible';
 export interface SeoTwitterSectionProps {
   /** React Hook Form register */
   register: UseFormRegister<PageFormData>;
-  /** Ошибки валидации */
+  /** Validation errors */
   errors: FieldErrors<PageFormData>;
-  /** Флаг загрузки */
+  /** Loading flag */
   isSubmitting: boolean;
 }
 
 /**
- * Секция Twitter Card настроек
+ * Twitter Card settings section
  *
- * Содержит поля:
- * - Twitter Card Type (тип карточки для Twitter)
+ * Contains fields:
+ * - Twitter Card Type (card type for Twitter)
  */
 export const SeoTwitterSection: FC<SeoTwitterSectionProps> = (props) => {
   const { register, errors, isSubmitting } = props;

@@ -1,5 +1,5 @@
 /**
- * Стили для панели публикации версии книги
+ * Styles for book version publication panel
  */
 
 @import '@/styles/tokens.scss';
@@ -127,7 +127,7 @@
   line-height: $line-height-base;
 }
 
-/* Модальное окно */
+/* Modal window */
 
 .modalOverlay {
   position: fixed;

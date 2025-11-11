@@ -1,48 +1,48 @@
-# Модуль авторизации NextAuth
+# NextAuth Authorization Module
 
-> Заготовка для интеграции NextAuth в проект Bibliaris
+> Template for integrating NextAuth into Bibliaris project
 
-## 📁 Структура
+## 📁 Structure
 
 ```
 lib/auth/
 ├── auth.ts              # NextAuth v5 instance (auth, signIn, signOut, handlers)
-├── config.ts            # Конфигурация NextAuth с провайдерами и callbacks
-├── SessionProvider.tsx  # Client-side провайдер сессии
-├── helpers.ts           # Утилиты для работы с сессией на сервере
-├── index.ts             # Public API модуля
-└── README.md            # Эта документация
+├── config.ts            # NextAuth configuration with providers and callbacks
+├── SessionProvider.tsx  # Client-side session provider
+├── helpers.ts           # Utilities for working with session on server
+├── index.ts             # Public API of the module
+└── README.md            # This documentation
 
 app/api/auth/[...nextauth]/
-└── route.ts             # API Route Handler для NextAuth
+└── route.ts             # API Route Handler for NextAuth
 
 types/
-└── next-auth.d.ts       # Расширение типов NextAuth (User, Session, JWT)
+└── next-auth.d.ts       # NextAuth type extensions (User, Session, JWT)
 ```
 
-## 🎯 Текущий статус (M0.5)
+## 🎯 Current Status (M0.5)
 
-**✅ Реализовано:**
+**✅ Implemented:**
 
-- Структура файлов NextAuth
-- Типы для User, Session, JWT
-- Конфигурация с Credentials Provider (заготовка)
+- NextAuth file structure
+- Types for User, Session, JWT
+- Configuration with Credentials Provider (template)
 - API Route Handler (`/api/auth/*`)
-- SessionProvider для клиентских компонентов
-- Хелперы для серверных компонентов
+- SessionProvider for client components
+- Helpers for server components
 
 **🔴 TODO (M1):**
 
-- Реализовать логику `authorize()` в CredentialsProvider
-- Реализовать callbacks для JWT и Session
-- Реализовать автоматический refresh токенов
-- Создать страницы `/[lang]/auth/sign-in` и `/[lang]/auth/error`
-- Интегрировать SessionProvider в `AppProviders`
-- Добавить middleware для защиты админ-маршрутов
+- Implement `authorize()` logic in CredentialsProvider
+- Implement callbacks for JWT and Session
+- Implement automatic token refresh
+- Create pages `/[lang]/auth/sign-in` and `/[lang]/auth/error`
+- Integrate SessionProvider into `AppProviders`
+- Add middleware to protect admin routes
 
-## 🔧 Использование (после M1)
+## 🔧 Usage (after M1)
 
-### Серверные компоненты
+### Server Components
 
 ```typescript
 import { getCurrentUser, isStaff } from '@/lib/auth';
@@ -63,7 +63,7 @@ export default async function AdminPage() {
 }
 ```
 
-### Клиентские компоненты
+### Client Components
 
 ```typescript
 'use client';
@@ -88,9 +88,9 @@ export function UserMenu() {
 }
 ```
 
-## 📝 Конфигурация
+## 📝 Configuration
 
-### Переменные окружения
+### Environment Variables
 
 ```env
 # .env.local
@@ -101,28 +101,28 @@ NEXTAUTH_SECRET=your-secret-key-here
 NEXT_PUBLIC_API_BASE_URL=https://api.bibliaris.com/api
 ```
 
-### Генерация NEXTAUTH_SECRET
+### Generate NEXTAUTH_SECRET
 
 ```bash
 openssl rand -base64 32
 ```
 
-## 🔒 Типы данных
+## 🔒 Data Types
 
-### User (из бэкенда)
+### User (from backend)
 
 ```typescript
 interface User {
   id: string;
   email: string;
   displayName?: string;
-  roles: string[]; // ['user'] или ['admin', 'content_manager']
-  accessToken: string; // JWT, 12 часов
-  refreshToken: string; // JWT, 7 дней
+  roles: string[]; // ['user'] or ['admin', 'content_manager']
+  accessToken: string; // JWT, 12 hours
+  refreshToken: string; // JWT, 7 days
 }
 ```
 
-### Session (для клиента)
+### Session (for client)
 
 ```typescript
 interface Session {
@@ -153,52 +153,52 @@ interface JWT {
 }
 ```
 
-## 🚀 Планы на M1
+## 🚀 Plans for M1
 
-### 1. Реализовать авторизацию
+### 1. Implement Authorization
 
-**Файл:** `lib/auth/config.ts`
+**File:** `lib/auth/config.ts`
 
-- [ ] Реализовать функцию `authorize()` в CredentialsProvider
-- [ ] Вызвать `POST /api/auth/login` с credentials
-- [ ] Обработать ошибки (400, 401, 429)
-- [ ] Вернуть объект User с токенами
+- [ ] Implement `authorize()` function in CredentialsProvider
+- [ ] Call `POST /api/auth/login` with credentials
+- [ ] Handle errors (400, 401, 429)
+- [ ] Return User object with tokens
 
-### 2. Реализовать JWT callback
+### 2. Implement JWT Callback
 
-**Файл:** `lib/auth/config.ts`
+**File:** `lib/auth/config.ts`
 
-- [ ] При логине сохранить токены в JWT
-- [ ] Проверять истечение accessToken
-- [ ] Вызывать `refreshAccessToken()` если токен истёк
-- [ ] Обрабатывать ошибки refresh
+- [ ] Save tokens in JWT on login
+- [ ] Check accessToken expiration
+- [ ] Call `refreshAccessToken()` if token expired
+- [ ] Handle refresh errors
 
-### 3. Реализовать Session callback
+### 3. Implement Session Callback
 
-**Файл:** `lib/auth/config.ts`
+**File:** `lib/auth/config.ts`
 
-- [ ] Прокидывать данные из JWT в Session
-- [ ] Добавить информацию о пользователе и ролях
-- [ ] Обрабатывать ошибки refresh
+- [ ] Pass data from JWT to Session
+- [ ] Add user information and roles
+- [ ] Handle refresh errors
 
-### 4. Реализовать refresh логику
+### 4. Implement Refresh Logic
 
-**Файл:** `lib/auth/config.ts`, функция `refreshAccessToken()`
+**File:** `lib/auth/config.ts`, function `refreshAccessToken()`
 
-- [ ] Вызвать `POST /api/auth/refresh` с refreshToken
-- [ ] Обработать успешный refresh (200)
-- [ ] Обработать ошибки (401, 403)
-- [ ] Вернуть обновлённый токен или ошибку
+- [ ] Call `POST /api/auth/refresh` with refreshToken
+- [ ] Handle successful refresh (200)
+- [ ] Handle errors (401, 403)
+- [ ] Return updated token or error
 
-### 5. Создать страницы
+### 5. Create Pages
 
-- [ ] `/[lang]/auth/sign-in/page.tsx` - форма входа
-- [ ] `/[lang]/auth/error/page.tsx` - страница ошибок
-- [ ] `/[lang]/auth/register/page.tsx` - регистрация (опционально)
+- [ ] `/[lang]/auth/sign-in/page.tsx` - login form
+- [ ] `/[lang]/auth/error/page.tsx` - error page
+- [ ] `/[lang]/auth/register/page.tsx` - registration (optional)
 
-### 6. Интегрировать в AppProviders
+### 6. Integrate into AppProviders
 
-**Файл:** `providers/AppProviders.tsx`
+**File:** `providers/AppProviders.tsx`
 
 ```typescript
 import { SessionProvider } from '@/lib/auth';
@@ -214,9 +214,9 @@ export function AppProviders({ children }) {
 }
 ```
 
-### 7. Защитить админ-маршруты
+### 7. Protect Admin Routes
 
-**Опция 1: Middleware**
+**Option 1: Middleware**
 
 ```typescript
 // middleware.ts
@@ -232,7 +232,7 @@ export default auth((req) => {
 });
 ```
 
-**Опция 2: Layout проверка**
+**Option 2: Layout Check**
 
 ```typescript
 // app/admin/[lang]/layout.tsx
@@ -255,40 +255,40 @@ export default async function AdminLayout({ children, params }) {
 }
 ```
 
-## 📚 Ресурсы
+## 📚 Resources
 
 - [NextAuth.js v5 Documentation](https://authjs.dev/)
 - [Backend API Reference](/docs/frontend-agents/backend-api-reference.md)
 - [Auth Integration Guide](/docs/frontend-agents/auth-next-auth.md)
 
-## ⚠️ Важные замечания
+## ⚠️ Important Notes
 
-1. **Rate Limits:** Backend имеет rate limits на auth endpoints:
+1. **Rate Limits:** Backend has rate limits on auth endpoints:
    - Login: 5 req/min
    - Register: 3 req/5min
    - Refresh: 10 req/min
 
 2. **Token Lifetime:**
-   - Access Token: 12 часов
-   - Refresh Token: 7 дней
+   - Access Token: 12 hours
+   - Refresh Token: 7 days
 
-3. **CORS:** Всегда включать `credentials: 'include'` в fetch запросах
+3. **CORS:** Always include `credentials: 'include'` in fetch requests
 
-4. **Безопасность:**
-   - NEXTAUTH_SECRET должен быть уникальным для каждого окружения
-   - Никогда не коммитить реальные секреты в git
-   - Использовать HTTPS в production
+4. **Security:**
+   - NEXTAUTH_SECRET must be unique for each environment
+   - Never commit real secrets to git
+   - Use HTTPS in production
 
 ## 🐛 Troubleshooting
 
-### Ошибка: "Invalid Options" в ESLint
+### Error: "Invalid Options" in ESLint
 
-Это известная проблема совместимости ESLint v8/v9. Не влияет на сборку проекта.
+This is a known compatibility issue with ESLint v8/v9. It doesn't affect project build.
 
-### Ошибка: "Module 'next-auth' has no exported member..."
+### Error: "Module 'next-auth' has no exported member..."
 
-Убедитесь, что используете `next-auth@^5.0.0-beta`.
+Make sure you're using `next-auth@^5.0.0-beta`.
 
-### Warning: "TODO - реализовать в M1"
+### Warning: "TODO - implement in M1"
 
-Это ожидаемое поведение для M0.5. Функциональность будет реализована в M1.
+This is expected behavior for M0.5. Functionality will be implemented in M1.

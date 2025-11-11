@@ -3,9 +3,9 @@ import type { ValidationHintProps } from '../SlugInput.types';
 import styles from '../SlugInput.module.scss';
 
 /**
- * Подсказка о формате slug
+ * Slug format hint
  *
- * Показывается когда нет ошибок валидации
+ * Shown when there are no validation errors
  */
 export const ValidationHint: FC<ValidationHintProps> = (props) => {
   const { placeholder } = props;

@@ -1,25 +1,25 @@
 /**
- * Константы для React Query конфигурации
+ * React Query configuration constants
  */
 
 /**
- * Время кэширования данных
+ * Data caching time
  */
 export const QUERY_CACHE_TIME = {
-  /** Данные считаются свежими 1 минуту */
+  /** Data is considered fresh for 1 minute */
   STALE_TIME_MS: 60 * 1000,
 
-  /** Кэш хранится 5 минут */
+  /** Cache is stored for 5 minutes */
   CACHE_TIME_MS: 5 * 60 * 1000,
 } as const;
 
 /**
- * Настройки retry для запросов
+ * Retry settings for queries
  */
 export const QUERY_RETRY = {
-  /** Количество попыток повтора при ошибке */
+  /** Number of retry attempts on error */
   MAX_RETRIES: 3,
 
-  /** Задержка между попытками (мс) */
+  /** Delay between attempts (ms) */
   RETRY_DELAY_MS: 1000,
 } as const;

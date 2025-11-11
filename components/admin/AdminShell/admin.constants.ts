@@ -1,5 +1,5 @@
 /**
- * Константы для админ-панели
+ * Admin panel constants
  */
 
 import type { ComponentType } from 'react';
@@ -7,7 +7,7 @@ import { BookOpen, FileText, FolderTree, Tags, Image, MessageSquare, Users } fro
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
- * Пункт меню админ-панели
+ * Admin panel menu item
  */
 export interface AdminMenuItem {
   id: string;
@@ -17,7 +17,7 @@ export interface AdminMenuItem {
 }
 
 /**
- * Генерация пунктов меню для конкретного языка
+ * Generate menu items for specific language
  */
 export const getAdminMenuItems = (lang: SupportedLang): AdminMenuItem[] => [
   {

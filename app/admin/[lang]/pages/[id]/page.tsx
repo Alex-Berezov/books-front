@@ -17,9 +17,9 @@ interface EditPageProps {
 }
 
 /**
- * Страница редактирования CMS страницы
+ * CMS page edit page
  *
- * Загружает существующую страницу и позволяет редактировать её данные
+ * Loads existing page and allows editing its data
  */
 const EditPage: FC<EditPageProps> = (props) => {
   const { params } = props;
@@ -28,10 +28,10 @@ const EditPage: FC<EditPageProps> = (props) => {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
 
-  // Загружаем данные страницы (БЕЗ lang - как у versions)
+  // Load page data (WITHOUT lang - like versions)
   const { data: page, error, isLoading } = usePage(pageId);
 
-  // Мутация для обновления страницы
+  // Mutation for updating page
   const updateMutation = useUpdatePage({
     onSuccess: () => {
       enqueueSnackbar('Page updated successfully', { variant: 'success' });
@@ -44,7 +44,7 @@ const EditPage: FC<EditPageProps> = (props) => {
   });
 
   /**
-   * Обработчик успешной публикации
+   * Successful publish handler
    */
   const handlePublishSuccess = () => {
     enqueueSnackbar('Page published successfully', { variant: 'success' });
@@ -52,7 +52,7 @@ const EditPage: FC<EditPageProps> = (props) => {
   };
 
   /**
-   * Обработчик успешного снятия с публикации
+   * Successful unpublish handler
    */
   const handleUnpublishSuccess = () => {
     enqueueSnackbar('Page unpublished successfully', { variant: 'success' });
@@ -60,13 +60,13 @@ const EditPage: FC<EditPageProps> = (props) => {
   };
 
   /**
-   * Обработчик отправки формы
+   * Form submission handler
    */
   const handleSubmit = async (formData: PageFormData) => {
-    // ✅ Backend теперь поддерживает вложенный seo объект!
-    // См. docs/PAGES_SEO_UPDATE_GUIDE.md для деталей
+    // ✅ Backend now supports nested seo object!
+    // See docs/PAGES_SEO_UPDATE_GUIDE.md for details
 
-    // Формируем полный SEO объект со всеми полями (только заполненные)
+    // Form complete SEO object with all fields (only filled ones)
     const seo = {
       // Basic Meta Tags
       metaTitle: formData.seoMetaTitle || undefined,
@@ -80,11 +80,11 @@ const EditPage: FC<EditPageProps> = (props) => {
       ogImageUrl: formData.seoOgImageUrl || undefined,
       // Twitter Card
       twitterCard: formData.seoTwitterCard || undefined,
-      // ⚠️ Backend не поддерживает twitterTitle и twitterDescription
-      // Вместо этого используются metaTitle и metaDescription для Twitter Card
+      // ⚠️ Backend doesn't support twitterTitle and twitterDescription
+      // Instead, metaTitle and metaDescription are used for Twitter Card
     };
 
-    // Проверяем, есть ли хотя бы одно заполненное SEO поле
+    // Check if there's at least one filled SEO field
     const hasSeoData = Object.values(seo).some((val) => val !== undefined);
 
     updateMutation.mutate({
@@ -95,7 +95,7 @@ const EditPage: FC<EditPageProps> = (props) => {
         slug: formData.slug,
         type: formData.type,
         content: formData.content,
-        seo: hasSeoData ? seo : undefined, // ✅ Backend автоматически создаст/обновит SEO entity
+        seo: hasSeoData ? seo : undefined, // ✅ Backend will automatically create/update SEO entity
       },
     });
   };

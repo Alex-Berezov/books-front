@@ -1,28 +1,28 @@
 # Code Style Guide - Bibliaris Frontend
 
-> Стандарты кодирования для production-ready проекта
+> Coding standards for production-ready project
 
-**Версия:** 1.5  
-**Дата обновления:** 10 ноября 2025
-
----
-
-## 🎯 Философия
-
-Мы пишем код, который:
-
-- ✅ Легко читается и понимается
-- ✅ Просто масштабируется
-- ✅ Безопасен по типам
-- ✅ Готов к production
+**Version:** 1.5  
+**Last Updated:** November 10, 2025
 
 ---
 
-## 📐 Общие правила
+## 🎯 Philosophy
 
-### 1. TypeScript - строго и без компромиссов
+We write code that:
 
-**✅ ПРАВИЛЬНО:**
+- ✅ Is easy to read and understand
+- ✅ Scales simply
+- ✅ Is type-safe
+- ✅ Is production-ready
+
+---
+
+## 📐 General Rules
+
+### 1. TypeScript - strict and no compromises
+
+**✅ CORRECT:**
 
 ```typescript
 import type { FC, ReactNode } from 'react';
@@ -41,29 +41,29 @@ export const UserCard: FC<UserCardProps> = (props) => {
 };
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```typescript
-// НЕТ! Никогда не используем any
+// NO! Never use any
 const UserCard = (props: any) => {};
 
-// НЕТ! Используем import type для типов
+// NO! Use import type for types
 import { FC, ReactNode } from 'react';
 
-// НЕТ! React.ReactNode - избыточно
+// NO! React.ReactNode is redundant
 const Component = ({ children }: { children: React.ReactNode }) => {};
 ```
 
-**🚫 ЗАПРЕЩЕНО:**
+**🚫 FORBIDDEN:**
 
-- `any` - всегда пишем конкретные типы
-- `@ts-ignore` / `@ts-nocheck` - исправляем проблему, а не скрываем
-- `as any` - только с четким комментарием почему
-- Неявные типы там, где они критичны
+- `any` - always write specific types
+- `@ts-ignore` / `@ts-nocheck` - fix the problem, don't hide it
+- `as any` - only with a clear comment explaining why
+- Implicit types where they are critical
 
-### 2. Деструктуризация props (3+ параметра)
+### 2. Destructure props (3+ parameters)
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```typescript
 interface BookCardProps {
@@ -75,7 +75,7 @@ interface BookCardProps {
 }
 
 export const BookCard: FC<BookCardProps> = (props) => {
-  // Деструктурируем внутри компонента
+  // Destructure inside the component
   const { title, author, coverUrl, rating, onRead } = props;
 
   return (
@@ -86,10 +86,10 @@ export const BookCard: FC<BookCardProps> = (props) => {
 }
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```typescript
-// Слишком длинная сигнатура - плохо читается
+// Signature is too long - hard to read
 export const BookCard: FC<BookCardProps> = ({
   title,
   author,
@@ -101,15 +101,15 @@ export const BookCard: FC<BookCardProps> = ({
 }
 ```
 
-### 3. Вычисления выносим из рендера
+### 3. Extract computations from render
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```typescript
 export const BookPrice: FC<Props> = (props) => {
   const { price, currency, discount } = props;
 
-  // Вычисления в переменных
+  // Computations in variables
   const finalPrice = price - (price * discount);
   const formattedPrice = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -120,10 +120,10 @@ export const BookPrice: FC<Props> = (props) => {
 }
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```typescript
-// Вычисления в JSX - плохо читается
+// Computations in JSX - hard to read
 return (
   <span>
     {new Intl.NumberFormat('en-US', {
@@ -134,17 +134,17 @@ return (
 );
 ```
 
-### 4. Обработчики событий с логикой выносим в именованные функции
+### 4. Extract event handlers with logic into named functions
 
-**Правило:** Обработчики событий с логикой (2+ строки) должны быть вынесены в именованные функции.
+**Rule:** Event handlers with logic (2+ lines) must be extracted into named functions.
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```typescript
 export const PageForm: FC<Props> = (props) => {
   const { watch, setValue } = useForm();
 
-  // Обработчик генерации canonical URL
+  // Handler for generating canonical URL
   const handleGenerateCanonicalUrl = () => {
     const currentSlug = watch('slug');
     const currentLang = watch('language');
@@ -165,10 +165,10 @@ export const PageForm: FC<Props> = (props) => {
 };
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```typescript
-// НЕТ! Логика прямо в JSX - плохо читается и тестируется
+// NO! Logic directly in JSX - hard to read and test
 <button
   onClick={() => {
     const currentSlug = watch('slug');
@@ -184,60 +184,60 @@ export const PageForm: FC<Props> = (props) => {
 >
 ```
 
-**Допустимые исключения (inline обработчики):**
+**Acceptable exceptions (inline handlers):**
 
 ```typescript
-// ✅ OK: Простой вызов без логики (1 строка)
+// ✅ OK: Simple call without logic (1 line)
 <button onClick={() => setIsOpen(true)}>Open</button>
 
-// ✅ OK: Передача параметра в существующую функцию
+// ✅ OK: Passing parameter to existing function
 <button onClick={() => handleDelete(item.id)}>Delete</button>
 
-// ✅ OK: Предотвращение события
+// ✅ OK: Preventing event
 <a href="#" onClick={(e) => e.preventDefault()}>Link</a>
 ```
 
-**Почему это важно:**
+**Why this matters:**
 
-- ✅ Код легче читать и понимать
-- ✅ Функции можно переиспользовать
-- ✅ Легче тестировать логику
-- ✅ Имя функции описывает что она делает
-- ✅ JSX остается чистым и декларативным
+- ✅ Code is easier to read and understand
+- ✅ Functions can be reused
+- ✅ Easier to test logic
+- ✅ Function name describes what it does
+- ✅ JSX remains clean and declarative
 
-### 5. Декомпозиция компонентов - максимум 250 строк
+### 5. Component decomposition - maximum 250 lines
 
-**Правило:** Компонент не должен превышать 250 строк кода. При превышении — обязательная декомпозиция.
+**Rule:** A component should not exceed 250 lines of code. When exceeded - decomposition is mandatory.
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```typescript
-// ❌ БЫЛО: PageForm.tsx (545 строк - монстр!)
+// ❌ BEFORE: PageForm.tsx (545 lines - monster!)
 export const PageForm: FC<PageFormProps> = (props) => {
-  // 500+ строк JSX с повторяющимися паттернами
+  // 500+ lines of JSX with repeating patterns
 };
 
-// ✅ СТАЛО: Разбито на модули
+// ✅ AFTER: Split into modules
 
-// PageForm.types.ts - схемы и типы
+// PageForm.types.ts - schemas and types
 export const pageSchema = z.object({...});
 export type PageFormData = z.infer<typeof pageSchema>;
 
-// PageForm/BasicInfoSection.tsx (~80 строк)
+// PageForm/BasicInfoSection.tsx (~80 lines)
 export const BasicInfoSection: FC<Props> = ({ control, errors }) => (
   <div className={styles.section}>
     {/* language, type, title, slug, content */}
   </div>
 );
 
-// PageForm/SeoBasicSection.tsx (~60 строк)
+// PageForm/SeoBasicSection.tsx (~60 lines)
 export const SeoBasicSection: FC<Props> = ({ control, errors }) => (
   <SeoCollapsible title="Basic Meta Tags">
     {/* metaTitle, metaDescription */}
   </SeoCollapsible>
 );
 
-// PageForm/index.tsx (~100 строк)
+// PageForm/index.tsx (~100 lines)
 export const PageForm: FC<PageFormProps> = (props) => {
   const { handleSubmit, control } = useForm();
 
@@ -253,49 +253,49 @@ export const PageForm: FC<PageFormProps> = (props) => {
 };
 ```
 
-**Принципы декомпозиции:**
+**Decomposition principles:**
 
-1. **По функциональности:** Группируем связанные поля (Basic Info, SEO, Metadata)
-2. **Переиспользуемые UI:** Выносим повторяющиеся паттерны (FormField, CharCounter)
-3. **Типы отдельно:** Схемы Zod и типы в `.types.ts`
-4. **Один компонент = одна ответственность**
+1. **By functionality:** Group related fields (Basic Info, SEO, Metadata)
+2. **Reusable UI:** Extract repeating patterns (FormField, CharCounter)
+3. **Types separately:** Zod schemas and types in `.types.ts`
+4. **One component = one responsibility**
 
-**Структура после декомпозиции:**
+**Structure after decomposition:**
 
 ```
 components/admin/pages/PageForm/
-  ├── index.tsx              (~100 строк - главный компонент)
-  ├── PageForm.types.ts      (~50 строк - схемы и типы)
-  ├── PageForm.module.scss   (стили)
+  ├── index.tsx              (~100 lines - main component)
+  ├── PageForm.types.ts      (~50 lines - schemas and types)
+  ├── PageForm.module.scss   (styles)
   ├── sections/
-  │   ├── BasicInfoSection.tsx      (~80 строк)
-  │   ├── SeoBasicSection.tsx       (~60 строк)
-  │   ├── SeoTechnicalSection.tsx   (~70 строк)
-  │   ├── SeoOpenGraphSection.tsx   (~90 строк)
-  │   └── SeoTwitterSection.tsx     (~50 строк)
+  │   ├── BasicInfoSection.tsx      (~80 lines)
+  │   ├── SeoBasicSection.tsx       (~60 lines)
+  │   ├── SeoTechnicalSection.tsx   (~70 lines)
+  │   ├── SeoOpenGraphSection.tsx   (~90 lines)
+  │   └── SeoTwitterSection.tsx     (~50 lines)
   └── ui/
-      ├── FormField.tsx         (~40 строк - переиспользуемый wrapper)
-      ├── CharCounter.tsx       (~20 строк - счётчик символов)
-      └── SeoCollapsible.tsx    (~30 строк - details/summary)
+      ├── FormField.tsx         (~40 lines - reusable wrapper)
+      ├── CharCounter.tsx       (~20 lines - character counter)
+      └── SeoCollapsible.tsx    (~30 lines - details/summary)
 ```
 
-**Почему это важно:**
+**Why this matters:**
 
-- ✅ Легче читать и понимать код
-- ✅ Проще найти нужную логику
-- ✅ Переиспользование UI компонентов
-- ✅ Независимое тестирование секций
-- ✅ Параллельная разработка разных секций
+- ✅ Easier to read and understand code
+- ✅ Simpler to find needed logic
+- ✅ UI component reuse
+- ✅ Independent testing of sections
+- ✅ Parallel development of different sections
 
-**Когда декомпозировать:**
+**When to decompose:**
 
-- 🔴 **Обязательно:** Компонент > 250 строк
-- 🟡 **Желательно:** Компонент > 150 строк с повторяющимися паттернами
-- ✅ **Можно оставить:** < 150 строк без дублирования
+- 🔴 **Mandatory:** Component > 250 lines
+- 🟡 **Recommended:** Component > 150 lines with repeating patterns
+- ✅ **Can leave:** < 150 lines without duplication
 
-### 6. Экспорты - только Named Exports с Arrow Functions
+### 6. Exports - only Named Exports with Arrow Functions
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```typescript
 // utils/formatPrice.ts
@@ -306,7 +306,7 @@ export const formatPrice = (price: number, currency: string): string => {
   }).format(price);
 };
 
-// Можно экспортировать несколько функций
+// Can export multiple functions
 export const calculateDiscount = (price: number, percent: number): number => {
   return price - (price * percent) / 100;
 };
@@ -322,52 +322,52 @@ export const getLanguageSelectOptions = () => {
 };
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```typescript
-// НЕТ! export default затрудняет рефакторинг
+// NO! export default makes refactoring harder
 export default function formatPrice(price: number) {
   return price.toFixed(2);
 }
 
-// НЕТ! Обычная функция вместо arrow function
+// NO! Regular function instead of arrow function
 export function calculateDiscount(price: number, percent: number) {
   return price * percent;
 }
 ```
 
-**Почему `export const` с arrow functions:**
+**Why `export const` with arrow functions:**
 
-- ✅ Явное именование при импорте (нельзя переименовать произвольно)
-- ✅ Лучше для tree-shaking
-- ✅ Удобнее для автоимпорта в IDE
-- ✅ Имя функции видно в стеке ошибок
-- ✅ Можно экспортировать несколько утилит из одного файла
-- ✅ Современный TypeScript/React стиль
+- ✅ Explicit naming on import (cannot rename arbitrarily)
+- ✅ Better for tree-shaking
+- ✅ More convenient for auto-import in IDE
+- ✅ Function name visible in error stack
+- ✅ Can export multiple utilities from one file
+- ✅ Modern TypeScript/React style
 
-**Когда `export default` допустим:**
+**When `export default` is acceptable:**
 
-- React-компоненты страниц в Next.js (требование фреймворка)
-- Конфигурационные файлы (`next.config.js`, `tailwind.config.ts`)
+- React component pages in Next.js (framework requirement)
+- Configuration files (`next.config.js`, `tailwind.config.ts`)
 
 ---
 
-## 🎨 Стили - только SCSS
+## 🎨 Styles - SCSS only
 
-### 1. НЕТ inline-стилям!
+### 1. NO inline styles!
 
-**🚫 КРИТИЧЕСКОЕ ПРАВИЛО:** Inline стили ЗАПРЕЩЕНЫ во всех компонентах!
+**🚫 CRITICAL RULE:** Inline styles are FORBIDDEN in all components!
 
-**Причины запрета:**
+**Reasons for the ban:**
 
-- ❌ Невозможно переиспользовать стили
-- ❌ Нарушают единообразие дизайна
-- ❌ Усложняют поддержку кода
-- ❌ Не работают с CSS-переменными и токенами
-- ❌ Плохо масштабируются
-- ❌ Отсутствует автокомплит в IDE
+- ❌ Impossible to reuse styles
+- ❌ Break design consistency
+- ❌ Complicate code maintenance
+- ❌ Don't work with CSS variables and tokens
+- ❌ Scale poorly
+- ❌ No autocomplete in IDE
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```tsx
 // Component.tsx
@@ -396,46 +396,46 @@ export const Component = () => {
 }
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```tsx
-// НЕТ! Inline стили запрещены
+// NO! Inline styles are forbidden
 <div style={{ padding: '1rem', background: '#fff' }}>
   <h1 style={{ color: '#000' }}>Hello</h1>
 </div>
 
-// НЕТ! Даже для простых случаев
+// NO! Even for simple cases
 <span style={{ marginLeft: '4px', fontWeight: 'normal' }}>Text</span>
 
-// НЕТ! Даже в условиях
+// NO! Even in conditionals
 <p style={{ color: error ? '#ff4d4f' : '#666' }}>Message</p>
 ```
 
-**Допустимые исключения (только в крайних случаях):**
+**Acceptable exceptions (only in extreme cases):**
 
-- Динамические значения, которые невозможно задать через CSS (например, `transform` на основе координат мыши)
-- Временные страницы-заглушки (например, loading/error states перед добавлением дизайна)
+- Dynamic values that cannot be set via CSS (e.g., `transform` based on mouse coordinates)
+- Temporary placeholder pages (e.g., loading/error states before adding design)
 
-**В этих случаях добавляйте комментарий:**
+**In these cases add a comment:**
 
 ```tsx
-// TODO: Переместить в SCSS после финализации дизайна
+// TODO: Move to SCSS after design finalization
 <div style={{ transform: `translate(${x}px, ${y}px)` }}>
 ```
 
-### 2. Используем SCSS возможности
+### 2. Use SCSS features
 
-### 2. Используем SCSS возможности
+### 2. Use SCSS features
 
 ```scss
-// variables.scss - токены и миксины
+// variables.scss - tokens and mixins
 $spacing-xs: 0.25rem;
 $spacing-sm: 0.5rem;
 $spacing-md: 1rem;
 $spacing-lg: 1.5rem;
 $spacing-xl: 2rem;
 
-// Миксины для переиспользования
+// Mixins for reuse
 @mixin flex-center {
   display: flex;
   align-items: center;
@@ -466,13 +466,13 @@ $spacing-xl: 2rem;
 
 ---
 
-## 🎨 Design Tokens - единый источник истины
+## 🎨 Design Tokens - single source of truth
 
-### 1. Цвета всегда из токенов
+### 1. Colors always from tokens
 
 ```scss
 // styles/tokens/colors.scss
-// Палитра цветов проекта
+// Project color palette
 
 // Primary Colors
 $color-primary: #1890ff;
@@ -509,7 +509,7 @@ $shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
 ```
 
 ```typescript
-// styles/tokens/colors.ts - для использования в TypeScript
+// styles/tokens/colors.ts - for use in TypeScript
 export const colors = {
   primary: '#1890ff',
   primaryHover: '#40a9ff',
@@ -533,7 +533,7 @@ export const colors = {
 export type ColorToken = keyof typeof colors;
 ```
 
-### 2. Spacing токены
+### 2. Spacing tokens
 
 ```scss
 // styles/tokens/spacing.scss
@@ -545,7 +545,7 @@ $spacing-xl: 2rem; // 32px
 $spacing-xxl: 3rem; // 48px
 ```
 
-### 3. Typography токены
+### 3. Typography tokens
 
 ```scss
 // styles/tokens/typography.scss
@@ -573,7 +573,7 @@ $line-height-normal: 1.5;
 $line-height-relaxed: 1.75;
 ```
 
-### 4. Breakpoints для адаптива
+### 4. Breakpoints for responsive design
 
 ```scss
 // styles/tokens/breakpoints.scss
@@ -583,7 +583,7 @@ $breakpoint-md: 1024px;
 $breakpoint-lg: 1280px;
 $breakpoint-xl: 1536px;
 
-// Миксины для media queries
+// Mixins for media queries
 @mixin mobile {
   @media (max-width: $breakpoint-sm - 1) {
     @content;
@@ -605,32 +605,32 @@ $breakpoint-xl: 1536px;
 
 ---
 
-## 📝 Комментарии - на русском
+## 📝 Comments - in English
 
 ```typescript
 /**
- * Компонент карточки книги
- * Отображает обложку, название, автора и рейтинг
+ * Book card component
+ * Displays cover, title, author and rating
  *
- * @param props - Пропсы компонента
+ * @param props - Component props
  */
 export const BookCard: FC<BookCardProps> = (props) => {
   const { title, author, coverUrl, rating } = props;
 
-  // Форматируем рейтинг для отображения
+  // Format rating for display
   const formattedRating = rating.toFixed(1);
 
-  // Обработчик клика по карточке
+  // Click handler for the card
   const handleClick = () => {
-    // Логика обработки
+    // Handle logic
   };
 
   return (
     <div className={styles.card}>
-      {/* Обложка книги */}
+      {/* Book cover */}
       <img src={coverUrl} alt={title} />
 
-      {/* Информация о книге */}
+      {/* Book information */}
       <div className={styles.info}>
         <h3>{title}</h3>
         <p>{author}</p>
@@ -642,15 +642,15 @@ export const BookCard: FC<BookCardProps> = (props) => {
 
 ---
 
-## 📁 Структура файлов компонента
+## 📁 Component file structure
 
 ```
 components/
 └── BookCard/
-    ├── BookCard.tsx          # Основной компонент
-    ├── BookCard.module.scss  # Стили компонента
-    ├── BookCard.types.ts     # Типы и интерфейсы
-    ├── BookCard.test.tsx     # Тесты (в будущем)
+    ├── BookCard.tsx          # Main component
+    ├── BookCard.module.scss  # Component styles
+    ├── BookCard.types.ts     # Types and interfaces
+    ├── BookCard.test.tsx     # Tests (future)
     └── index.ts              # Re-export
 ```
 
@@ -673,70 +673,70 @@ export type { BookCardProps } from './BookCard.types';
 
 ## 🔧 Best Practices
 
-### 1. Именование
+### 1. Naming
 
 ```typescript
-// Компоненты - PascalCase
+// Components - PascalCase
 export const UserProfile = () => { }
 
-// Функции и переменные - camelCase
+// Functions and variables - camelCase
 const handleClick = () => { }
 const userName = 'John';
 
-// Константы - UPPER_SNAKE_CASE
+// Constants - UPPER_SNAKE_CASE
 const API_BASE_URL = 'https://api.example.com';
 const MAX_RETRY_COUNT = 3;
 
-// Типы и интерфейсы - PascalCase
+// Types and interfaces - PascalCase
 interface UserData { }
 type ApiResponse = { }
 
-// CSS классы - kebab-case
+// CSS classes - kebab-case
 .user-profile { }
 .book-card { }
 ```
 
-### 2. Организация импортов
+### 2. Import organization
 
-**⚠️ ВАЖНО:** Порядок импортов автоматически проверяется ESLint!
+**⚠️ IMPORTANT:** Import order is automatically checked by ESLint!
 
 ```typescript
-// 1. React и библиотеки
+// 1. React and libraries
 import { useState, useEffect } from 'react';
 import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
 
-// 2. UI библиотеки
+// 2. UI libraries
 import { Button, Input } from 'antd';
 
-// 3. Внутренние компоненты
+// 3. Internal components
 import { UserCard } from '@/components/UserCard';
 import { Layout } from '@/components/Layout';
 
-// 4. Утилиты и хуки
+// 4. Utilities and hooks
 import { useAuth } from '@/hooks/useAuth';
 import { formatDate } from '@/lib/utils';
 
-// 5. Типы
+// 5. Types
 import type { User } from '@/types/user';
 import type { ApiResponse } from '@/types/api';
 
-// 6. Стили (всегда последними)
+// 6. Styles (always last)
 import styles from './Component.module.scss';
 ```
 
-**Настройки ESLint:**
+**ESLint settings:**
 
-- Правило `import/order` автоматически проверяет порядок
-- Правило `@typescript-eslint/consistent-type-imports` требует `import type`
-- Импорты сортируются алфавитно внутри групп
-- Стили всегда в конце файла
+- `import/order` rule automatically checks order
+- `@typescript-eslint/consistent-type-imports` requires `import type`
+- Imports are sorted alphabetically within groups
+- Styles always at the end of file
 
-### 3. Хуки - правила использования
+### 3. Hooks - usage rules
 
 ```typescript
 export const UserProfile: FC<Props> = (props) => {
-  // 1. Все хуки в начале, в правильном порядке
+  // 1. All hooks at the beginning, in correct order
   const router = useRouter();
   const { user } = useAuth();
 
@@ -744,34 +744,34 @@ export const UserProfile: FC<Props> = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 3. Мемоизация
+  // 3. Memoization
   const fullName = useMemo(() => {
     return `${user.firstName} ${user.lastName}`;
   }, [user.firstName, user.lastName]);
 
   // 4. Effects
   useEffect(() => {
-    // Логика эффекта
+    // Effect logic
   }, []);
 
-  // 5. Обработчики
+  // 5. Handlers
   const handleSave = useCallback(() => {
-    // Логика сохранения
+    // Save logic
   }, []);
 
-  // 6. Вычисления и переменные
+  // 6. Computations and variables
   const { id, email } = props;
   const isAdmin = user.role === 'admin';
 
-  // 7. Рендер
+  // 7. Render
   return <div>...</div>;
 }
 ```
 
-### 4. Условный рендеринг
+### 4. Conditional rendering
 
 ```typescript
-// ✅ ПРАВИЛЬНО: Early return для простых условий
+// ✅ CORRECT: Early return for simple conditions
 if (isLoading) {
   return <Spinner />;
 }
@@ -782,21 +782,21 @@ if (error) {
 
 return <Content />;
 
-// ✅ ПРАВИЛЬНО: Тернарный оператор для простых условий
+// ✅ CORRECT: Ternary operator for simple conditions
 return (
   <div>
     {isVisible ? <Content /> : <Placeholder />}
   </div>
 );
 
-// ✅ ПРАВИЛЬНО: && для опционального рендера
+// ✅ CORRECT: && for optional render
 return (
   <div>
     {isAdmin && <AdminPanel />}
   </div>
 );
 
-// ❌ НЕПРАВИЛЬНО: Сложная вложенность в JSX
+// ❌ INCORRECT: Complex nesting in JSX
 return (
   <div>
     {isLoading ? (
@@ -812,7 +812,7 @@ return (
 );
 ```
 
-### 5. Обработка ошибок
+### 5. Error handling
 
 ```typescript
 export const DataFetcher: FC<Props> = (props) => {
@@ -828,7 +828,7 @@ export const DataFetcher: FC<Props> = (props) => {
       const response = await api.getData();
       setData(response);
     } catch (err) {
-      // Правильная типизация ошибки
+      // Proper error typing
       const error = err instanceof Error ? err : new Error('Unknown error');
 
       setError(error);
@@ -842,15 +842,15 @@ export const DataFetcher: FC<Props> = (props) => {
 };
 ```
 
-### 6. Производительность
+### 6. Performance
 
 ```typescript
-// ✅ Мемоизация дорогих вычислений
+// ✅ Memoize expensive computations
 const sortedBooks = useMemo(() => {
   return books.sort((a, b) => b.rating - a.rating);
 }, [books]);
 
-// ✅ Мемоизация колбэков
+// ✅ Memoize callbacks
 const handleDelete = useCallback(
   (id: string) => {
     onDelete(id);
@@ -858,7 +858,7 @@ const handleDelete = useCallback(
   [onDelete]
 );
 
-// ✅ React.memo для чистых компонентов
+// ✅ React.memo for pure components
 export const BookCard = memo<BookCardProps>((props) => {
   // ...
 });
@@ -866,19 +866,19 @@ export const BookCard = memo<BookCardProps>((props) => {
 
 ---
 
-## � Константы и Magic Numbers
+## 🔢 Constants and Magic Numbers
 
-### 1. Выносим все magic numbers в константы
+### 1. Extract all magic numbers into constants
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```typescript
 // lib/auth/constants.ts
 export const AUTH_TOKEN_EXPIRY = {
-  /** Access токен действителен 12 часов (в миллисекундах) */
+  /** Access token is valid for 12 hours (in milliseconds) */
   ACCESS_TOKEN_MS: 12 * 60 * 60 * 1000,
 
-  /** Refresh токен действителен 7 дней (в секундах) */
+  /** Refresh token is valid for 7 days (in seconds) */
   REFRESH_TOKEN_SECONDS: 7 * 24 * 60 * 60,
 } as const;
 
@@ -892,23 +892,23 @@ export const authOptions = {
 };
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```typescript
-// НЕТ! Magic numbers без пояснений
+// NO! Magic numbers without explanation
 session: {
-  maxAge: 7 * 24 * 60 * 60, // Что это? Неочевидно!
+  maxAge: 7 * 24 * 60 * 60, // What is this? Not obvious!
 }
 
-// НЕТ! Хардкод в коде
+// NO! Hardcoded in code
 if (Date.now() > token.exp + 12 * 60 * 60 * 1000) {
-  // Непонятно что за число
+  // Unclear what this number is
 }
 ```
 
-### 2. Enum вместо строковых литералов
+### 2. Enum instead of string literals
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```typescript
 // constants/auth.ts
@@ -924,29 +924,29 @@ export enum UserRole {
   CONTENT_MANAGER = 'content_manager',
 }
 
-// Использование
+// Usage
 interface Session {
-  error?: AuthErrorType; // Строго типизировано
+  error?: AuthErrorType; // Strictly typed
 }
 
-const isAdmin = user.role === UserRole.ADMIN; // Автокомплит в IDE
+const isAdmin = user.role === UserRole.ADMIN; // Autocomplete in IDE
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```typescript
-// НЕТ! Строковые литералы
+// NO! String literals
 interface Session {
-  error?: 'RefreshAccessTokenError' | 'InvalidCredentials'; // Многословно
+  error?: 'RefreshAccessTokenError' | 'InvalidCredentials'; // Verbose
 }
 
-// НЕТ! Можно опечататься
-const isAdmin = user.role === 'admin'; // Нет автокомплита
+// NO! Can make typos
+const isAdmin = user.role === 'admin'; // No autocomplete
 ```
 
-### 3. Группировка связанных констант
+### 3. Group related constants
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```typescript
 // constants/routes.ts
@@ -963,22 +963,22 @@ export const ADMIN_ROUTES = {
   USERS: '/admin/:lang/users',
 } as const;
 
-// Использование
+// Usage
 redirect(AUTH_ROUTES.SIGN_IN);
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```typescript
-// НЕТ! Разбросанные строки по коду
-redirect('/en/auth/sign-in'); // Хардкод
-redirect('/en/auth/sign-out'); // Дублирование
-redirect('/en/auth/error'); // Легко опечататься
+// NO! Scattered strings throughout code
+redirect('/en/auth/sign-in'); // Hardcoded
+redirect('/en/auth/sign-out'); // Duplication
+redirect('/en/auth/error'); // Easy to make typos
 ```
 
-### 4. Сообщения об ошибках
+### 4. Error messages
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```typescript
 // constants/messages.ts
@@ -988,22 +988,22 @@ export const AUTH_ERROR_MESSAGES = {
   [AuthErrorType.MISSING_CREDENTIALS]: 'Email and password are required',
 } as const;
 
-// Использование
+// Usage
 throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.INVALID_CREDENTIALS]);
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```typescript
-// НЕТ! Хардкод сообщений
-throw new Error('Invalid credentials'); // Можно опечататься
-throw new Error('invalid credentials'); // Разный регистр
-throw new Error('Invalid creds'); // Разные формулировки
+// NO! Hardcoded messages
+throw new Error('Invalid credentials'); // Can make typos
+throw new Error('invalid credentials'); // Different casing
+throw new Error('Invalid creds'); // Different wording
 ```
 
-### 5. Массивы констант с `as const`
+### 5. Constant arrays with `as const`
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```typescript
 // constants/roles.ts
@@ -1011,82 +1011,82 @@ export const STAFF_ROLES = [UserRole.ADMIN, UserRole.CONTENT_MANAGER] as const;
 
 export type StaffRole = (typeof STAFF_ROLES)[number]; // 'admin' | 'content_manager'
 
-// Использование с type safety
+// Usage with type safety
 const isStaff = (role: string): role is StaffRole => {
   return STAFF_ROLES.includes(role as UserRole);
 };
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```typescript
-// НЕТ! Без as const теряется точная типизация
+// NO! Without as const loses precise typing
 const STAFF_ROLES = [UserRole.ADMIN, UserRole.CONTENT_MANAGER]; // string[]
 
-// НЕТ! Хардкод массива
-const staffRoles = ['admin', 'content_manager']; // Можно опечататься
+// NO! Hardcoded array
+const staffRoles = ['admin', 'content_manager']; // Can make typos
 ```
 
 ---
 
-## Checklist перед коммитом
+## Checklist before commit
 
-- [ ] ✅ `yarn typecheck` проходит без ошибок
-- [ ] ✅ `yarn lint` проходит без ошибок
-- [ ] ✅ Нет inline стилей
-- [ ] ✅ Все цвета из токенов
-- [ ] ✅ Нет `any` типов
-- [ ] ✅ Комментарии на русском
-- [ ] ✅ Импорты правильно организованы
-- [ ] ✅ `import type` для типов
-- [ ] ✅ Деструктуризация для 3+ props
-- [ ] ✅ Вычисления вынесены из рендера
-- [ ] ✅ Обработчики событий с логикой вынесены в функции
-- [ ] ✅ Magic numbers вынесены в константы
-- [ ] ✅ Используются enum вместо строковых литералов
-- [ ] ✅ Named exports для всех утилит
+- [ ] ✅ `yarn typecheck` passes without errors
+- [ ] ✅ `yarn lint` passes without errors
+- [ ] ✅ No inline styles
+- [ ] ✅ All colors from tokens
+- [ ] ✅ No `any` types
+- [ ] ✅ Comments in English
+- [ ] ✅ Imports properly organized
+- [ ] ✅ `import type` for types
+- [ ] ✅ Destructuring for 3+ props
+- [ ] ✅ Computations extracted from render
+- [ ] ✅ Event handlers with logic extracted into functions
+- [ ] ✅ Magic numbers extracted into constants
+- [ ] ✅ Using enums instead of string literals
+- [ ] ✅ Named exports for all utilities
 
 ---
 
-## 📚 Дополнительные рекомендации
+## 📚 Additional recommendations
 
-### Неиспользуемые параметры - используйте префикс `_`
+### Unused parameters - use `_` prefix
 
-**✅ ПРАВИЛЬНО:**
+**✅ CORRECT:**
 
 ```typescript
-// Если параметр не используется, но требуется для сигнатуры
+// If parameter is not used, but required for signature
 try {
   data = await response.json();
 } catch (_error) {
-  // Переменная не используется, но catch требует параметр
+  // Variable not used, but catch requires parameter
   throw new ApiError({
     message: 'Parse error',
     statusCode: 500,
   });
 }
 
-// В callback функциях
+// In callback functions
 array.map((_item, index) => {
-  // Используем только index, но map передаёт item первым
+  // Using only index, but map passes item first
   return index;
 });
 
-// В event handlers
+// In event handlers
 const handleClick = (_event: React.MouseEvent) => {
-  // Event не используется, но требуется типизация
+  // Event not used, but typing required
   doSomething();
 };
 ```
 
-**❌ НЕПРАВИЛЬНО:**
+**❌ INCORRECT:**
 
 ```typescript
-// НЕТ! ESLint ругается на неиспользуемую переменную
+// NO! ESLint warns about unused variable
 try {
   data = await response.json();
 } catch (error) {
-  // error объявлена, но не используется - warning
+  // error declared but not used - warning
   throw new ApiError({
     message: 'Parse error',
   });
@@ -1096,16 +1096,16 @@ try {
 ### Accessibility (a11y)
 
 ```tsx
-// Всегда добавляем aria-label для интерактивных элементов
+// Always add aria-label for interactive elements
 <button
-  aria-label="Закрыть модальное окно"
+  aria-label="Close modal"
   onClick={handleClose}
 >
   ×
 </button>
 
-// Семантическая разметка
-<nav aria-label="Основная навигация">
+// Semantic markup
+<nav aria-label="Main navigation">
   <ul>...</ul>
 </nav>
 ```
@@ -1113,7 +1113,7 @@ try {
 ### Performance
 
 ```typescript
-// Используем dynamic import для code splitting
+// Use dynamic import for code splitting
 const AdminPanel = dynamic(() => import('@/components/AdminPanel'), {
   loading: () => <Spinner />,
   ssr: false,
@@ -1123,89 +1123,57 @@ const AdminPanel = dynamic(() => import('@/components/AdminPanel'), {
 ### SEO
 
 ```typescript
-// Всегда заполняем метаданные
+// Always fill metadata
 export const metadata: Metadata = {
-  title: 'Страница книги',
-  description: 'Описание книги для SEO',
+  title: 'Book Page',
+  description: 'Book description for SEO',
   openGraph: {
-    title: 'Страница книги',
-    description: 'Описание книги для соцсетей',
+    title: 'Book Page',
+    description: 'Book description for social media',
   },
 };
 ```
 
 ---
 
-## 🔧 Настройки ESLint
+## 🔧 ESLint Settings
 
-### Автоматические проверки кода
+### Automatic code checks
 
-Проект настроен с следующими правилами ESLint:
+The project is configured with the following ESLint rules:
 
-**1. Порядок импортов (`import/order`)**
+**1. Import order (`import/order`)**
 
-- Автоматически проверяет правильный порядок импортов
-- Группирует: React/библиотеки → внутренние → типы → стили
-- Сортирует алфавитно внутри каждой группы
-- Уровень: `warn` (предупреждение)
+- Automatically checks correct import order
+- Groups: React/libraries → internal → types → styles
+- Sorts alphabetically within each group
+- Level: `warn` (warning)
 
 **2. Type imports (`@typescript-eslint/consistent-type-imports`)**
 
-- Требует использовать `import type` для типов
-- Помогает tree-shaking и читаемости
-- Уровень: `warn` (предупреждение)
+- Requires using `import type` for types
+- Helps with tree-shaking and readability
+- Level: `warn` (warning)
 
-**3. Неиспользуемые переменные (`@typescript-eslint/no-unused-vars`)**
+**3. Unused variables (`@typescript-eslint/no-unused-vars`)**
 
-- Запрещает неиспользуемые переменные
-- Разрешает переменные с префиксом `_` (например, `_error`)
-- Уровень: `error` (ошибка)
+- Forbids unused variables
+- Allows variables with `_` prefix (e.g., `_error`)
+- Level: `error` (error)
 
-### Проверка кода перед коммитом
+### Code check before commit
 
 ```bash
-# Проверить TypeScript
+# Check TypeScript
 yarn typecheck
 
-# Проверить ESLint
+# Check ESLint
 yarn lint
 
-# Исправить автоматически (где возможно)
+# Auto-fix (where possible)
 yarn lint --fix
 ```
 
 ---
 
-**Версия:** 1.5  
-**Дата обновления:** 10 ноября 2025  
-**Изменения v1.5:**
-
-- Добавлено правило "Декомпозиция компонентов - максимум 250 строк"
-- Компоненты > 250 строк обязательно разбивать на модули
-- Добавлена структура папок для сложных компонентов (sections/, ui/)
-- Пример: PageForm (545 строк) → 10 модулей по 24-174 строки
-
-**Изменения v1.4:**
-
-- Добавлено правило "Обработчики событий с логикой выносим в именованные функции"
-- Inline обработчики допустимы только для простых операций (1 строка)
-- Обновлён checklist перед коммитом
-
-**Изменения v1.3:**
-
-- Добавлены настройки ESLint для автоматической проверки порядка импортов
-- Добавлено правило для автоматической проверки `import type`
-- Обновлён раздел "Организация импортов" с указанием на ESLint
-
-**Изменения v1.2:**
-
-- Добавлен раздел "Неиспользуемые параметры - используйте префикс `_`"
-- Все magic strings и numbers должны быть в константах
-- HTTP константы вынесены в отдельный файл `lib/http.constants.ts`
-
-**Изменения v1.1:**
-
-- Добавлен раздел "Константы и Magic Numbers"
-- Добавлены рекомендации по использованию enum
-- Обновлен checklist перед коммитом  
-  **Следующее обновление:** По мере появления новых практик
+**Next update:** As new practices emerge

@@ -1,18 +1,18 @@
 /**
- * Утилиты для работы со slug
+ * Slug utilities
  *
- * Slug - это URL-friendly строка, используемая в адресах страниц.
- * Правила:
- * - Только строчные латинские буквы, цифры и дефисы
- * - Без пробелов, спецсимволов, диакритических знаков
- * - Кириллица транслитерируется в латиницу
+ * Slug is a URL-friendly string used in page addresses.
+ * Rules:
+ * - Only lowercase Latin letters, numbers and hyphens
+ * - No spaces, special characters, diacritical marks
+ * - Cyrillic is transliterated to Latin
  */
 
 /**
- * Мапа транслитерации кириллицы в латиницу (русский + украинский)
+ * Cyrillic to Latin transliteration map (Russian + Ukrainian)
  */
 const TRANSLITERATION_MAP: Record<string, string> = {
-  // Русский алфавит
+  // Russian alphabet
   а: 'a',
   б: 'b',
   в: 'v',
@@ -47,13 +47,13 @@ const TRANSLITERATION_MAP: Record<string, string> = {
   ю: 'yu',
   я: 'ya',
 
-  // Украинский алфавит (дополнительные символы)
+  // Ukrainian alphabet (additional characters)
   і: 'i',
   ї: 'yi',
   є: 'ye',
   ґ: 'g',
 
-  // Верхний регистр (будет приведен к lowercase, но на всякий случай)
+  // Uppercase (will be converted to lowercase, but just in case)
   А: 'a',
   Б: 'b',
   В: 'v',
@@ -94,10 +94,10 @@ const TRANSLITERATION_MAP: Record<string, string> = {
 };
 
 /**
- * Транслитерирует кириллические символы в латинские
+ * Transliterates Cyrillic characters to Latin
  *
- * @param text - Исходный текст с кириллицей
- * @returns Текст с транслитерированными символами
+ * @param text - Source text with Cyrillic
+ * @returns Text with transliterated characters
  *
  * @example
  * transliterate('Привет мир'); // 'Privet mir'
@@ -111,18 +111,18 @@ const transliterate = (text: string): string => {
 };
 
 /**
- * Генерирует URL-friendly slug из произвольного текста
+ * Generates URL-friendly slug from arbitrary text
  *
- * Алгоритм:
- * 1. Транслитерирует кириллицу в латиницу
- * 2. Приводит к нижнему регистру
- * 3. Убирает диакритические знаки (ñ → n, é → e, etc.)
- * 4. Заменяет пробелы и underscore на дефисы
- * 5. Удаляет все спецсимволы кроме букв, цифр и дефисов
- * 6. Убирает множественные дефисы подряд
- * 7. Убирает дефисы в начале и конце
+ * Algorithm:
+ * 1. Transliterates Cyrillic to Latin
+ * 2. Converts to lowercase
+ * 3. Removes diacritical marks (ñ → n, é → e, etc.)
+ * 4. Replaces spaces and underscores with hyphens
+ * 5. Removes all special characters except letters, numbers and hyphens
+ * 6. Removes multiple consecutive hyphens
+ * 7. Removes hyphens at the beginning and end
  *
- * @param text - Исходный текст (title, название, etc.)
+ * @param text - Source text (title, name, etc.)
  * @returns URL-friendly slug
  *
  * @example
@@ -135,46 +135,46 @@ const transliterate = (text: string): string => {
 export const generateSlug = (text: string): string => {
   return (
     transliterate(text)
-      // Приводим к lowercase
+      // Convert to lowercase
       .toLowerCase()
-      // Убираем диакритические знаки (normalize + regex)
-      // NFD разбивает символы с диакритикой на базовый символ + диакритику
-      // \u0300-\u036f - это unicode range для combining diacritical marks
+      // Remove diacritical marks (normalize + regex)
+      // NFD splits characters with diacritics into base character + diacritic
+      // \u0300-\u036f is the unicode range for combining diacritical marks
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
-      // Заменяем пробелы и underscore на дефисы
+      // Replace spaces and underscores with hyphens
       .replace(/[\s_]+/g, '-')
-      // Удаляем все, кроме букв, цифр и дефисов
+      // Remove everything except letters, numbers and hyphens
       .replace(/[^a-z0-9-]/g, '')
-      // Убираем множественные дефисы подряд
+      // Remove multiple consecutive hyphens
       .replace(/-+/g, '-')
-      // Убираем дефисы в начале и конце
+      // Remove hyphens at the beginning and end
       .replace(/^-+|-+$/g, '')
   );
 };
 
 /**
- * Генерирует уникальный slug с числовым суффиксом
+ * Generates unique slug with numeric suffix
  *
- * Добавляет суффикс -2, -3, ... к slug если оригинальный занят.
- * Используется WordPress-подобная логика.
+ * Adds suffix -2, -3, ... to slug if original is taken.
+ * Uses WordPress-like logic.
  *
- * @param baseSlug - Базовый slug (без суффикса)
- * @param existingSlugs - Массив уже существующих slug'ов
- * @returns Уникальный slug с суффиксом (или без, если не требуется)
+ * @param baseSlug - Base slug (without suffix)
+ * @param existingSlugs - Array of existing slugs
+ * @returns Unique slug with suffix (or without, if not required)
  *
  * @example
  * makeUniqueSlug('about', ['about']); // 'about-2'
  * makeUniqueSlug('about', ['about', 'about-2']); // 'about-3'
- * makeUniqueSlug('about', []); // 'about' (без суффикса)
+ * makeUniqueSlug('about', []); // 'about' (no suffix)
  */
 export const makeUniqueSlug = (baseSlug: string, existingSlugs: string[]): string => {
-  // Если slug свободен, возвращаем как есть
+  // If slug is available, return as is
   if (!existingSlugs.includes(baseSlug)) {
     return baseSlug;
   }
 
-  // Ищем первый свободный номер
+  // Find first available number
   let suffix = 2;
   let candidateSlug = `${baseSlug}-${suffix}`;
 
@@ -187,10 +187,10 @@ export const makeUniqueSlug = (baseSlug: string, existingSlugs: string[]): strin
 };
 
 /**
- * Извлекает базовый slug без числового суффикса
+ * Extracts base slug without numeric suffix
  *
- * @param slug - Slug с возможным суффиксом
- * @returns Базовый slug без суффикса
+ * @param slug - Slug with possible suffix
+ * @returns Base slug without suffix
  *
  * @example
  * getBaseSlug('about'); // 'about'
@@ -199,37 +199,37 @@ export const makeUniqueSlug = (baseSlug: string, existingSlugs: string[]): strin
  * getBaseSlug('test-page-hello-2'); // 'test-page-hello'
  */
 export const getBaseSlug = (slug: string): string => {
-  // Удаляем суффикс вида "-2", "-3", etc. в конце строки
+  // Remove suffix like "-2", "-3", etc. at the end of string
   return slug.replace(/-\d+$/, '');
 };
 
 /**
- * Проверяет, является ли slug валидным
+ * Checks if slug is valid
  *
- * Правила валидации:
- * - Только строчные латинские буквы (a-z)
- * - Цифры (0-9)
- * - Дефисы (-)
- * - Не может начинаться или заканчиваться дефисом
- * - Не может содержать множественные дефисы подряд
- * - Минимум 1 символ
+ * Validation rules:
+ * - Only lowercase Latin letters (a-z)
+ * - Numbers (0-9)
+ * - Hyphens (-)
+ * - Cannot start or end with hyphen
+ * - Cannot contain multiple consecutive hyphens
+ * - Minimum 1 character
  *
- * @param slug - Проверяемый slug
- * @returns true если slug валиден
+ * @param slug - Slug to validate
+ * @returns true if slug is valid
  *
  * @example
  * isValidSlug('about-us'); // true
- * isValidSlug('About-Us'); // false (верхний регистр)
- * isValidSlug('about--us'); // false (двойной дефис)
- * isValidSlug('-about'); // false (начинается с дефиса)
- * isValidSlug(''); // false (пустой)
+ * isValidSlug('About-Us'); // false (uppercase)
+ * isValidSlug('about--us'); // false (double hyphen)
+ * isValidSlug('-about'); // false (starts with hyphen)
+ * isValidSlug(''); // false (empty)
  */
 export const isValidSlug = (slug: string): boolean => {
   if (!slug || slug.length === 0) {
     return false;
   }
 
-  // Проверяем формат через regex
+  // Check format via regex
   const slugRegex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
   return slugRegex.test(slug);
 };

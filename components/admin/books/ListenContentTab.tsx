@@ -5,53 +5,53 @@ import { useChapters } from '@/api/hooks';
 import styles from './ReadContentTab.module.scss'; // Используем те же стили
 
 /**
- * Пропсы компонента ListenContentTab
+ * ListenContentTab component props
  */
 export interface ListenContentTabProps {
-  /** ID версии книги */
+  /** Book version ID */
   versionId: string;
 }
 
 /**
- * Таб для управления аудио контентом книги
+ * Tab for managing book audio content
  *
- * Позволяет:
- * - Просматривать список аудио глав
- * - Загружать аудио файлы
- * - Управлять аудио главами
- * - Добавлять транскрипты для каждой главы
+ * Allows:
+ * - View list of audio chapters
+ * - Upload audio files
+ * - Manage audio chapters
+ * - Add transcripts for each chapter
  */
 export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
   const { versionId } = props;
 
-  // Загружаем главы (аудио)
+  // Load chapters (audio)
   const { data: chapters, error, isLoading } = useChapters(versionId);
 
   /**
-   * Обработчик загрузки аудио файла
+   * Audio file upload handler
    */
   const handleUploadAudio = () => {
-    // TODO (M3.2.3): Реализовать загрузку аудио
+    // TODO (M3.2.3): Implement audio upload
     console.log('Upload audio for version:', versionId);
   };
 
   /**
-   * Обработчик создания аудио главы
+   * Audio chapter creation handler
    */
   const handleAddAudioChapter = () => {
-    // TODO (M3.2.3): Реализовать создание аудио главы
+    // TODO (M3.2.3): Implement audio chapter creation
     console.log('Add audio chapter for version:', versionId);
   };
 
   /**
-   * Обработчик редактирования аудио главы
+   * Audio chapter edit handler
    */
   const handleEditAudioChapter = (chapterId: string) => {
-    // TODO (M3.2.3): Реализовать редактирование аудио главы
+    // TODO (M3.2.3): Implement audio chapter editing
     console.log('Edit audio chapter:', chapterId);
   };
 
-  // Loading состояние
+  // Loading state
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -60,7 +60,7 @@ export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
     );
   }
 
-  // Error состояние
+  // Error state
   if (error) {
     return (
       <div className={styles.container}>
@@ -69,10 +69,10 @@ export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
     );
   }
 
-  // Фильтруем только аудио главы
+  // Filter only audio chapters
   const audioChapters = chapters?.filter((ch) => ch.audioUrl) || [];
 
-  // Пустое состояние
+  // Empty state
   if (audioChapters.length === 0) {
     return (
       <div className={styles.container}>
@@ -94,7 +94,7 @@ export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
     );
   }
 
-  // Список аудио глав
+  // Audio chapters list
   return (
     <div className={styles.container}>
       <div className={styles.header}>

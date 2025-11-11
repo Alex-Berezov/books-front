@@ -1,8 +1,8 @@
 /**
- * React Query хуки для работы с версиями книг
+ * React Query hooks for working with book versions
  *
- * Версия книги (BookVersion) - это конкретная языковая версия книги.
- * Содержит контент, главы, категории и теги.
+ * Book version is a specific language version of a book.
+ * Contains content, chapters, categories and tags.
  */
 
 import {
@@ -27,23 +27,23 @@ import type {
 import { bookKeys } from './useBooks';
 
 /**
- * Query ключи для версий книг
+ * Query keys for book versions
  */
 export const versionKeys = {
-  /** Все запросы версий */
+  /** All version queries */
   all: ['versions'] as const,
-  /** Детали версий */
+  /** Version details */
   details: () => [...versionKeys.all, 'detail'] as const,
-  /** Детали версии по ID */
+  /** Version details by ID */
   detail: (id: string) => [...versionKeys.details(), id] as const,
 };
 
 /**
- * Хук для получения детальной информации о версии книги
+ * Hook for getting book version details
  *
- * @param versionId - ID версии книги
- * @param options - Опции React Query
- * @returns React Query результат с деталями версии
+ * @param versionId - Book version ID
+ * @param options - React Query options
+ * @returns React Query result with version details
  *
  * @example
  * ```tsx
@@ -57,16 +57,16 @@ export const useBookVersion = (
   return useQuery({
     queryKey: versionKeys.detail(versionId),
     queryFn: () => getBookVersion(versionId),
-    staleTime: 5 * 60 * 1000, // 5 минут
+    staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 };
 
 /**
- * Хук для создания новой версии книги
+ * Hook for creating a new book version
  *
- * @param options - Опции React Query mutation
- * @returns React Query mutation для создания версии
+ * @param options - React Query mutation options
+ * @returns React Query mutation for creating version
  *
  * @example
  * ```tsx
@@ -100,9 +100,9 @@ export const useCreateBookVersion = (
   return useMutation({
     mutationFn: ({ bookId, data }) => createBookVersion(bookId, data),
     onSuccess: (data, _variables) => {
-      // Инвалидируем список книг для обновления
+      // Invalidate books list for update
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
-      // Устанавливаем данные версии в кэш
+      // Set version data in cache
       queryClient.setQueryData(versionKeys.detail(data.id), data);
     },
     ...options,
@@ -110,10 +110,10 @@ export const useCreateBookVersion = (
 };
 
 /**
- * Хук для обновления существующей версии книги
+ * Hook for updating existing book version
  *
- * @param options - Опции React Query mutation
- * @returns React Query mutation для обновления версии
+ * @param options - React Query mutation options
+ * @returns React Query mutation for updating version
  *
  * @example
  * ```tsx
@@ -143,9 +143,9 @@ export const useUpdateBookVersion = (
   return useMutation({
     mutationFn: ({ versionId, data }) => updateBookVersion(versionId, data),
     onSuccess: (data, variables) => {
-      // Обновляем данные версии в кэше
+      // Update version data in cache
       queryClient.setQueryData(versionKeys.detail(variables.versionId), data);
-      // Инвалидируем список книг
+      // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
     },
     ...options,
@@ -153,10 +153,10 @@ export const useUpdateBookVersion = (
 };
 
 /**
- * Хук для публикации версии книги
+ * Hook for publishing book version
  *
- * @param options - Опции React Query mutation
- * @returns React Query mutation для публикации
+ * @param options - React Query mutation options
+ * @returns React Query mutation for publishing
  *
  * @example
  * ```tsx
@@ -177,9 +177,9 @@ export const usePublishVersion = (
   return useMutation({
     mutationFn: (versionId: string) => publishVersion(versionId),
     onSuccess: (data, versionId) => {
-      // Обновляем данные версии в кэше
+      // Update version data in cache
       queryClient.setQueryData(versionKeys.detail(versionId), data);
-      // Инвалидируем список книг
+      // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
     },
     ...options,
@@ -187,10 +187,10 @@ export const usePublishVersion = (
 };
 
 /**
- * Хук для снятия версии с публикации
+ * Hook for unpublishing book version
  *
- * @param options - Опции React Query mutation
- * @returns React Query mutation для снятия с публикации
+ * @param options - React Query mutation options
+ * @returns React Query mutation for unpublishing
  *
  * @example
  * ```tsx
@@ -211,9 +211,9 @@ export const useUnpublishVersion = (
   return useMutation({
     mutationFn: (versionId: string) => unpublishVersion(versionId),
     onSuccess: (data, versionId) => {
-      // Обновляем данные версии в кэше
+      // Update version data in cache
       queryClient.setQueryData(versionKeys.detail(versionId), data);
-      // Инвалидируем список книг
+      // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
     },
     ...options,

@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * AdminSidebar - боковое меню админ-панели
+ * AdminSidebar - admin panel side menu
  *
- * Мигрировано из React-репозитория с адаптацией под Next.js:
- * - Использует Next.js Link вместо onClick
- * - Использует usePathname для определения активного пункта
- * - Интегрировано с роутингом /admin/:lang
+ * Migrated from React repository with adaptation to Next.js:
+ * - Uses Next.js Link instead of onClick
+ * - Uses usePathname to determine active item
+ * - Integrated with /admin/:lang routing
  */
 
 import { BookOpen } from 'lucide-react';
@@ -21,20 +21,20 @@ interface AdminSidebarProps {
 }
 
 /**
- * AdminSidebar компонент
+ * AdminSidebar component
  */
 export const AdminSidebar = (props: AdminSidebarProps) => {
   const { lang } = props;
   const pathname = usePathname();
 
-  // Получаем пункты меню для текущего языка
+  // Get menu items for current language
   const menuItems = getAdminMenuItems(lang);
 
   /**
-   * Проверка, является ли пункт меню активным
+   * Check if menu item is active
    */
   const isActive = (itemPath: string): boolean => {
-    // Точное совпадение или начало пути (для подстраниц)
+    // Exact match or path start (for subpages)
     return pathname === itemPath || pathname.startsWith(`${itemPath}/`);
   };
 

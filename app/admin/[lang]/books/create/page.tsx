@@ -12,9 +12,9 @@ interface CreateBookPageProps {
 }
 
 /**
- * Страница создания новой книги
+ * New book creation page
  *
- * Отображает форму для создания контейнера книги (только slug)
+ * Displays form for creating book container (slug only)
  */
 const CreateBookPage: FC<CreateBookPageProps> = (props) => {
   const { params } = props;
@@ -44,7 +44,7 @@ const CreateBookPage: FC<CreateBookPageProps> = (props) => {
           .replace(/[^a-z0-9-]/g, '-'),
       });
 
-      // Перенаправляем на создание первой версии книги
+      // Redirect to create first book version
       router.push(`/admin/${lang}/books/new?bookId=${newBook.id}`);
     } catch (error) {
       console.error('Failed to create book:', error);

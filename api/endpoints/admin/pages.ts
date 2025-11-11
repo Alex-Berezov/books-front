@@ -1,9 +1,9 @@
 /**
  * CMS Pages Endpoints
  *
- * API эндпоинты для работы со статическими страницами (CMS).
- * Страницы используются для контента типа "О нас", "Политика конфиденциальности",
- * "Условия использования" и других информационных страниц.
+ * API endpoints for working with static pages (CMS).
+ * Pages are used for content like "About Us", "Privacy Policy",
+ * "Terms of Service" and other informational pages.
  */
 
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
@@ -15,26 +15,26 @@ import type {
 } from '@/types/api-schema';
 
 /**
- * Параметры для получения списка страниц
+ * Parameters for fetching pages list
  */
 export interface GetPagesParams {
-  /** Номер страницы (начиная с 1) */
+  /** Page number (starting from 1) */
   page?: number;
-  /** Количество элементов на странице */
+  /** Number of items per page */
   limit?: number;
-  /** Поиск по title или slug */
+  /** Search by title or slug */
   search?: string;
-  /** Фильтр по статусу публикации */
+  /** Filter by publication status */
   status?: 'draft' | 'published' | 'archived';
-  /** Язык админ-интерфейса (по умолчанию 'en') */
+  /** Admin interface language (default 'en') */
   lang?: string;
 }
 
 /**
- * Получить список всех страниц (для админки)
+ * Get list of all pages (for admin panel)
  *
- * @param params - Параметры запроса
- * @returns Пагинированный список страниц
+ * @param params - Request parameters
+ * @returns Paginated list of pages
  *
  * @example
  * ```ts
@@ -62,8 +62,8 @@ export const getPages = async (
   const endpoint = `/admin/${lang}/pages?${queryParams.toString()}`;
   const response = await httpGetAuth<PaginatedResponse<PageResponse> | PageResponse[]>(endpoint);
 
-  // Временный workaround: если backend возвращает массив вместо пагинированного ответа,
-  // оборачиваем его в правильный формат
+  // Temporary workaround: if backend returns array instead of paginated response,
+  // wrap it in correct format
   if (Array.isArray(response)) {
     return {
       data: response,
@@ -80,12 +80,12 @@ export const getPages = async (
 };
 
 /**
- * Получить детали страницы по ID (admin endpoint)
+ * Get page details by ID (admin endpoint)
  *
- * ВАЖНО: Использует /admin/pages/:id БЕЗ :lang (как у versions)
+ * IMPORTANT: Uses /admin/pages/:id WITHOUT :lang (like versions)
  *
- * @param pageId - ID страницы
- * @returns Детальная информация о странице
+ * @param pageId - Page ID
+ * @returns Detailed information about the page
  *
  * @example
  * ```ts
@@ -98,11 +98,11 @@ export const getPageById = async (pageId: string): Promise<PageResponse> => {
 };
 
 /**
- * Создать новую страницу
+ * Create a new page
  *
- * @param data - Данные для создания страницы
- * @param lang - Язык админ-интерфейса (по умолчанию 'en')
- * @returns Созданная страница
+ * @param data - Data for creating the page
+ * @param lang - Admin interface language (default 'en')
+ * @returns Created page
  *
  * @example
  * ```ts
@@ -120,12 +120,12 @@ export const createPage = async (data: CreatePageRequest, lang = 'en'): Promise<
 };
 
 /**
- * Обновить страницу
+ * Update page
  *
- * @param pageId - ID страницы
- * @param data - Данные для обновления
- * @param lang - Язык админ-интерфейса (по умолчанию 'en')
- * @returns Обновленная страница
+ * @param pageId - Page ID
+ * @param data - Data for update
+ * @param lang - Admin interface language (default 'en')
+ * @returns Updated page
  *
  * @example
  * ```ts
@@ -144,11 +144,11 @@ export const updatePage = async (
 };
 
 /**
- * Опубликовать страницу
+ * Publish page
  *
- * @param pageId - ID страницы
- * @param lang - Язык админ-интерфейса (по умолчанию 'en')
- * @returns Обновленная страница со статусом published
+ * @param pageId - Page ID
+ * @param lang - Admin interface language (default 'en')
+ * @returns Updated page with published status
  *
  * @example
  * ```ts
@@ -161,11 +161,11 @@ export const publishPage = async (pageId: string, lang = 'en'): Promise<PageResp
 };
 
 /**
- * Снять страницу с публикации
+ * Unpublish page
  *
- * @param pageId - ID страницы
- * @param lang - Язык админ-интерфейса (по умолчанию 'en')
- * @returns Обновленная страница со статусом draft
+ * @param pageId - Page ID
+ * @param lang - Admin interface language (default 'en')
+ * @returns Updated page with draft status
  *
  * @example
  * ```ts
@@ -178,10 +178,10 @@ export const unpublishPage = async (pageId: string, lang = 'en'): Promise<PageRe
 };
 
 /**
- * Удалить страницу
+ * Delete page
  *
- * @param pageId - ID страницы для удаления
- * @param lang - Язык админ-интерфейса (по умолчанию 'en')
+ * @param pageId - Page ID to delete
+ * @param lang - Admin interface language (default 'en')
  *
  * @example
  * ```ts

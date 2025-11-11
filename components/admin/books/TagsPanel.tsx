@@ -7,26 +7,26 @@ import type { Tag } from '@/types/api-schema';
 import styles from './TagsPanel.module.scss';
 
 export interface TagsPanelProps {
-  /** ID версии книги */
+  /** Book version ID */
   versionId: string;
-  /** Текущие привязанные теги */
+  /** Current attached tags */
   selectedTags: Tag[];
-  /** Callback при изменении тегов */
+  /** Callback on tags change */
   onTagsChange?: () => void;
 }
 
 /**
- * Панель управления тегами версии книги
+ * Book version tags management panel
  *
- * Позволяет искать теги и добавлять/удалять их из версии книги
+ * Allows searching for tags and adding/removing them from book version
  */
 export const TagsPanel: FC<TagsPanelProps> = (props) => {
   const { versionId, selectedTags, onTagsChange } = props;
 
-  // Состояние поиска
+  // Search state
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Загрузка тегов с поиском
+  // Load tags with search
   const { data: tagsData, isLoading } = useTags(
     {
       page: 1,
@@ -38,14 +38,14 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
     }
   );
 
-  // Мутации для attach/detach
+  // Mutations for attach/detach
   const attachMutation = useAttachTag({
     onSuccess: () => {
       onTagsChange?.();
     },
     onError: (error) => {
       console.error('Failed to attach tag:', error);
-      // TODO: Показать toast с ошибкой
+      // TODO: Show error toast
     },
   });
 
@@ -55,21 +55,21 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
     },
     onError: (error) => {
       console.error('Failed to detach tag:', error);
-      // TODO: Показать toast с ошибкой
+      // TODO: Show error toast
     },
   });
 
   const isPending = attachMutation.isPending || detachMutation.isPending;
 
   /**
-   * Проверка, выбран ли тег
+   * Check if tag is selected
    */
   const isTagSelected = (tagId: string): boolean => {
     return selectedTags.some((tag) => tag.id === tagId);
   };
 
   /**
-   * Обработчик выбора тега
+   * Tag selection handler
    */
   const handleTagToggle = (tagId: string) => {
     if (isPending) {
@@ -77,16 +77,16 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
     }
 
     if (isTagSelected(tagId)) {
-      // Отвязать тег
+      // Detach tag
       detachMutation.mutate({ versionId, tagId });
     } else {
-      // Привязать тег
+      // Attach tag
       attachMutation.mutate({ versionId, tagId });
     }
   };
 
   /**
-   * Обработчик удаления тега из выбранных
+   * Remove tag from selected handler
    */
   const handleRemoveTag = (tagId: string) => {
     if (isPending) {
@@ -104,7 +104,7 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
         )}
       </div>
 
-      {/* Поле поиска тегов */}
+      {/* Tag search field */}
       <div className={styles.searchContainer}>
         <input
           className={styles.searchInput}
@@ -115,7 +115,7 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
         />
       </div>
 
-      {/* Результаты поиска */}
+      {/* Search results */}
       {searchQuery.length > 0 && (
         <div className={styles.searchResults}>
           {isLoading && (
@@ -153,7 +153,7 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
         </div>
       )}
 
-      {/* Выбранные теги */}
+      {/* Selected tags */}
       {selectedTags.length > 0 && (
         <div className={styles.selectedSection}>
           <h4 className={styles.selectedTitle}>Selected Tags:</h4>
@@ -175,7 +175,7 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
         </div>
       )}
 
-      {/* Подсказка */}
+      {/* Hint */}
       {searchQuery.length === 0 && selectedTags.length === 0 && (
         <div className={styles.hint}>
           <p>Start typing to search and add tags to this book version.</p>

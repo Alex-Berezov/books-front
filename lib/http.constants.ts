@@ -1,67 +1,67 @@
 /**
- * Константы для работы с HTTP API
+ * Constants for working with HTTP API
  */
 
 /**
- * HTTP статус коды
+ * HTTP status codes
  */
 export const HTTP_STATUS = {
-  /** 200 - Успешный запрос */
+  /** 200 - Successful request */
   OK: 200,
-  /** 400 - Ошибка валидации */
+  /** 400 - Validation error */
   BAD_REQUEST: 400,
-  /** 401 - Требуется авторизация */
+  /** 401 - Authorization required */
   UNAUTHORIZED: 401,
-  /** 403 - Доступ запрещён */
+  /** 403 - Access forbidden */
   FORBIDDEN: 403,
-  /** 404 - Ресурс не найден */
+  /** 404 - Resource not found */
   NOT_FOUND: 404,
-  /** 409 - Конфликт */
+  /** 409 - Conflict */
   CONFLICT: 409,
-  /** 422 - Невозможно обработать */
+  /** 422 - Unprocessable entity */
   UNPROCESSABLE_ENTITY: 422,
-  /** 429 - Превышен лимит запросов */
+  /** 429 - Rate limit exceeded */
   TOO_MANY_REQUESTS: 429,
-  /** 500 - Внутренняя ошибка сервера */
+  /** 500 - Internal server error */
   INTERNAL_SERVER_ERROR: 500,
-  /** 503 - Сервис недоступен */
+  /** 503 - Service unavailable */
   SERVICE_UNAVAILABLE: 503,
 } as const;
 
 /**
- * Типы ошибок API
+ * API error types
  */
 export const API_ERROR_TYPE = {
-  /** Ошибка парсинга JSON */
+  /** JSON parsing error */
   PARSE_ERROR: 'ParseError',
-  /** Ошибка валидации */
+  /** Validation error */
   VALIDATION_ERROR: 'ValidationError',
-  /** Ошибка авторизации */
+  /** Authorization error */
   UNAUTHORIZED: 'Unauthorized',
-  /** Доступ запрещён */
+  /** Access forbidden */
   FORBIDDEN: 'Forbidden',
-  /** Ресурс не найден */
+  /** Resource not found */
   NOT_FOUND: 'NotFound',
-  /** Превышен лимит запросов */
+  /** Rate limit exceeded */
   RATE_LIMIT_EXCEEDED: 'RateLimitExceeded',
-  /** Неизвестная ошибка */
+  /** Unknown error */
   UNKNOWN_ERROR: 'UnknownError',
 } as const;
 
 /**
- * Дефолтные сообщения об ошибках
+ * Default error messages
  */
 export const DEFAULT_ERROR_MESSAGES = {
-  /** Некорректный JSON ответ */
+  /** Invalid JSON response */
   INVALID_JSON: 'Invalid JSON response from server',
-  /** Неизвестная ошибка */
+  /** Unknown error */
   UNKNOWN: 'An error occurred',
-  /** Сетевая ошибка */
+  /** Network error */
   NETWORK_ERROR: 'Network error occurred',
 } as const;
 
 /**
- * HTTP методы
+ * HTTP methods
  */
 export const HTTP_METHOD = {
   GET: 'GET',
@@ -72,29 +72,29 @@ export const HTTP_METHOD = {
 } as const;
 
 /**
- * HTTP заголовки
+ * HTTP headers
  */
 export const HTTP_HEADER = {
-  /** Тип контента */
+  /** Content type */
   CONTENT_TYPE: 'Content-Type',
-  /** Авторизация */
+  /** Authorization */
   AUTHORIZATION: 'Authorization',
-  /** Язык */
+  /** Language */
   ACCEPT_LANGUAGE: 'Accept-Language',
 } as const;
 
 /**
- * Значения заголовков
+ * Header values
  */
 export const HEADER_VALUE = {
-  /** JSON тип контента */
+  /** JSON content type */
   JSON: 'application/json',
 } as const;
 
 /**
- * Префиксы для авторизации
+ * Authorization prefixes
  */
 export const AUTH_PREFIX = {
-  /** Bearer токен */
+  /** Bearer token */
   BEARER: 'Bearer',
 } as const;

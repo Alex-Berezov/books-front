@@ -1,8 +1,8 @@
 /**
- * React Query хуки для авторизованных эндпоинтов
+ * React Query hooks for authorized endpoints
  *
- * Предоставляет типизированные хуки для работы с данными пользователя
- * с автоматическим кэшированием через React Query.
+ * Provides typed hooks for working with user data
+ * with automatic caching via React Query.
  */
 
 import { useQuery, type UseQueryOptions, type UseQueryResult } from '@tanstack/react-query';
@@ -12,10 +12,10 @@ import type { ApiError } from '@/types/api';
 import type { UserMeResponse } from '@/types/api-schema';
 
 /**
- * Хук для получения данных текущего пользователя
+ * Hook for getting current user data
  *
- * @param options - Опции React Query
- * @returns Результат запроса с данными пользователя
+ * @param options - React Query options
+ * @returns Query result with user data
  *
  * @example
  * ```tsx

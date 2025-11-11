@@ -1,8 +1,8 @@
 /**
- * Примеры использования HTTP клиента
+ * HTTP Client Usage Examples
  *
- * Этот файл содержит практические примеры для разработчиков
- * НЕ импортируйте этот файл в production код!
+ * This file contains practical examples for developers
+ * DO NOT import this file in production code!
  */
 
 import { ApiError } from '@/types/api';
@@ -17,7 +17,7 @@ import {
 } from './http';
 
 /**
- * Пример 1: Простой GET запрос
+ * Example 1: Simple GET request
  */
 export const exampleSimpleGet = async () => {
   interface Book {
@@ -31,7 +31,7 @@ export const exampleSimpleGet = async () => {
 };
 
 /**
- * Пример 2: GET с авторизацией
+ * Example 2: GET with authorization
  */
 export const exampleAuthenticatedGet = async (accessToken: string) => {
   interface User {
@@ -47,7 +47,7 @@ export const exampleAuthenticatedGet = async (accessToken: string) => {
 };
 
 /**
- * Пример 3: POST запрос (логин)
+ * Example 3: POST request (login)
  */
 export const exampleLogin = async (email: string, password: string) => {
   interface LoginResponse {
@@ -69,7 +69,7 @@ export const exampleLogin = async (email: string, password: string) => {
 };
 
 /**
- * Пример 4: PATCH запрос (обновление профиля)
+ * Example 4: PATCH request (profile update)
  */
 export const exampleUpdateProfile = async (accessToken: string) => {
   interface User {
@@ -93,7 +93,7 @@ export const exampleUpdateProfile = async (accessToken: string) => {
 };
 
 /**
- * Пример 5: Пагинированный запрос с query параметрами
+ * Example 5: Paginated request with query parameters
  */
 export const examplePaginatedRequest = async (lang: SupportedLang, page: number = 1) => {
   interface Book {
@@ -126,7 +126,7 @@ export const examplePaginatedRequest = async (lang: SupportedLang, page: number 
 };
 
 /**
- * Пример 6: Обработка ошибок
+ * Example 6: Error handling
  */
 export const exampleErrorHandling = async () => {
   try {
@@ -151,7 +151,7 @@ export const exampleErrorHandling = async () => {
 };
 
 /**
- * Пример 7: Использование в Server Component
+ * Example 7: Usage in Server Component
  */
 export const exampleServerComponent = async (lang: SupportedLang, slug: string) => {
   interface BookOverview {
@@ -174,7 +174,7 @@ export const exampleServerComponent = async (lang: SupportedLang, slug: string) 
     return bookData;
   } catch (error) {
     if (error instanceof ApiError && error.isNotFound()) {
-      // В реальном коде вызовите notFound() из next/navigation
+      // In real code, call notFound() from next/navigation
       console.error('Book not found');
       return null;
     }
@@ -183,7 +183,7 @@ export const exampleServerComponent = async (lang: SupportedLang, slug: string) 
 };
 
 /**
- * Пример 8: Создание комментария
+ * Example 8: Creating a comment
  */
 export const exampleCreateComment = async (
   accessToken: string,
@@ -212,15 +212,15 @@ export const exampleCreateComment = async (
 };
 
 /**
- * Пример 9: Управление книжной полкой
+ * Example 9: Bookshelf management
  */
 export const exampleBookshelf = async (accessToken: string, versionId: string) => {
-  // Добавить в полку
+  // Add to bookshelf
   await httpPost(`/me/bookshelf/${versionId}`, undefined, {
     accessToken,
   });
 
-  // Получить полку
+  // Get bookshelf
   interface BookshelfItem {
     versionId: string;
     addedAt: string;
@@ -232,14 +232,14 @@ export const exampleBookshelf = async (accessToken: string, versionId: string) =
 
   console.log('Bookshelf:', bookshelf);
 
-  // Удалить из полки
+  // Remove from bookshelf
   await httpDelete(`/me/bookshelf/${versionId}`, {
     accessToken,
   });
 };
 
 /**
- * Пример 10: Сохранение прогресса чтения
+ * Example 10: Saving reading progress
  */
 export const exampleReadingProgress = async (
   accessToken: string,
@@ -269,7 +269,7 @@ export const exampleReadingProgress = async (
 };
 
 /**
- * Пример 11: SEO резолвинг
+ * Example 11: SEO resolving
  */
 export const exampleSeoResolve = async (lang: SupportedLang, type: string, id: string) => {
   interface SeoData {

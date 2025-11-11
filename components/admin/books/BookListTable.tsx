@@ -9,38 +9,38 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './BookListTable.module.scss';
 
 interface BookListTableProps {
-  /** Текущий язык интерфейса */
+  /** Current interface language */
   lang: SupportedLang;
 }
 
 /**
- * Таблица со списком книг для админки
+ * Books list table for admin panel
  *
- * Отображает список всех книг с пагинацией, поиском и фильтрацией
+ * Displays list of all books with pagination, search and filtering
  */
 export const BookListTable: FC<BookListTableProps> = (props) => {
   const { lang } = props;
 
-  // State для управления пагинацией и поиском
+  // State for managing pagination and search
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
 
-  // Получаем данные через React Query
+  // Get data through React Query
   const { data, isLoading, error } = useBooks({
     page,
     limit: 20,
     search: search || undefined,
   });
 
-  // Обработчик поиска
+  // Search handler
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setSearch(searchValue);
-    setPage(1); // Сбрасываем на первую страницу при поиске
+    setPage(1); // Reset to first page on search
   };
 
-  // Обработчик очистки поиска
+  // Clear search handler
   const handleClearSearch = () => {
     setSearchValue('');
     setSearch('');
@@ -74,14 +74,14 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
     );
   }
 
-  // Вычисляем данные пагинации
+  // Calculate pagination data
   const totalPages = data?.meta.totalPages || 0;
   const totalItems = data?.meta.total || 0;
   const books = data?.data || [];
 
   return (
     <div className={styles.container}>
-      {/* Header с поиском */}
+      {/* Header with search */}
       <div className={styles.header}>
         <div className={styles.titleRow}>
           <h1 className={styles.title}>Books Management</h1>
@@ -109,7 +109,7 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
         </form>
       </div>
 
-      {/* Информация о результатах */}
+      {/* Results information */}
       <div className={styles.info}>
         <p>
           Showing <strong>{books.length}</strong> of <strong>{totalItems}</strong> books
@@ -117,7 +117,7 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
         </p>
       </div>
 
-      {/* Таблица книг */}
+      {/* Books table */}
       {books.length === 0 ? (
         <div className={styles.empty}>
           <p>No books found</p>
@@ -141,15 +141,15 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
               </thead>
               <tbody>
                 {books.map((book) => {
-                  // Форматируем рейтинг
+                  // Format rating
                   const formattedRating = book.rating ? book.rating.toFixed(1) : 'N/A';
 
-                  // Извлекаем количество версий
+                  // Extract the number of versions
                   const versionsCount = book.versions?.length || 0;
 
                   return (
                     <tr key={book.id}>
-                      {/* Обложка */}
+                      {/* Cover */}
                       <td className={styles.coverCell}>
                         {book.coverUrl ? (
                           <Image
@@ -164,7 +164,7 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
                         )}
                       </td>
 
-                      {/* Название */}
+                      {/* Title */}
                       <td className={styles.titleCell}>
                         <Link href={`/admin/${lang}/books/${book.id}`} className={styles.bookLink}>
                           {book.title}
@@ -172,15 +172,15 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
                         <span className={styles.slug}>{book.slug}</span>
                       </td>
 
-                      {/* Автор */}
+                      {/* Author */}
                       <td>{book.author}</td>
 
-                      {/* Язык */}
+                      {/* Language */}
                       <td>
                         <span className={styles.languageBadge}>{book.language}</span>
                       </td>
 
-                      {/* Категории */}
+                      {/* Categories */}
                       <td>
                         {book.categories && book.categories.length > 0 ? (
                           <div className={styles.categories}>
@@ -195,19 +195,19 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
                         )}
                       </td>
 
-                      {/* Версии */}
+                      {/* Versions */}
                       <td className={styles.versionsCell}>
                         <span className={styles.versionsBadge}>
                           {versionsCount} {versionsCount === 1 ? 'version' : 'versions'}
                         </span>
                       </td>
 
-                      {/* Рейтинг */}
+                      {/* Rating */}
                       <td className={styles.ratingCell}>
                         <span className={styles.rating}>⭐ {formattedRating}</span>
                       </td>
 
-                      {/* Действия */}
+                      {/* Actions */}
                       <td className={styles.actionsCell}>
                         <Link
                           href={`/admin/${lang}/books/${book.id}`}
@@ -223,7 +223,7 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
             </table>
           </div>
 
-          {/* Пагинация */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className={styles.pagination}>
               <button

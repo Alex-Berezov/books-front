@@ -18,35 +18,35 @@ type Props = {
 export const metadata: Metadata = {
   title: 'Admin Panel - Bibliaris',
   description: 'Content management system for Bibliaris',
-  robots: 'noindex, nofollow', // Админка не индексируется
+  robots: 'noindex, nofollow', // Admin panel is not indexed
 };
 
 /**
  * Admin Layout
  *
- * Защищённый layout для админ-панели.
- * Требует авторизации и роли admin или content_manager.
+ * Protected layout for admin panel.
+ * Requires authentication and admin or content_manager role.
  *
- * Middleware уже проверил авторизацию, но мы делаем дополнительную
- * проверку на сервере для получения данных пользователя.
+ * Middleware already checked authentication, but we do additional
+ * server-side check to get user data.
  */
 export default async function AdminLayout({ children, params }: Props) {
   const { lang } = await params;
 
-  // Валидация языка
+  // Language validation
   if (!isSupportedLang(lang)) {
     notFound();
   }
 
-  // Получение текущего пользователя
+  // Get current user
   const session = await getCurrentUser();
 
-  // Double-check: middleware должен был перенаправить, но проверим ещё раз
+  // Double-check: middleware should have redirected, but check again
   if (!session || !session.user) {
     redirect(`/${lang}/auth/sign-in?callbackUrl=/admin/${lang}`);
   }
 
-  // Проверка ролей
+  // Check roles
   const userRoles = session.user.roles || [];
   const hasStaffRole = STAFF_ROLES.some((role) => userRoles.includes(role));
 
@@ -59,18 +59,18 @@ export default async function AdminLayout({ children, params }: Props) {
       <body>
         <AppProviders>
           <div className={styles.adminLayout}>
-            {/* Боковое меню */}
+            {/* Sidebar menu */}
             <AdminSidebar lang={lang as SupportedLang} />
 
-            {/* Контент справа */}
+            {/* Content on the right */}
             <div className={styles.adminContent}>
-              {/* Верхняя панель */}
+              {/* Top bar */}
               <AdminTopBar
                 userEmail={session.user.email || undefined}
                 userName={session.user.displayName || undefined}
               />
 
-              {/* Основной контент страницы */}
+              {/* Main page content */}
               <main className={styles.adminMain}>{children}</main>
             </div>
           </div>

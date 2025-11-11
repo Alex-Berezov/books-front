@@ -1,14 +1,14 @@
 /**
- * Session Provider для NextAuth
+ * Session Provider for NextAuth
  *
- * Обёртка для SessionProvider от next-auth, которая предоставляет
- * контекст сессии для клиентских компонентов.
+ * Wrapper for SessionProvider from next-auth that provides
+ * session context for client components.
  *
- * Использование:
- * - Оборачиваем root layout в SessionProvider
- * - В клиентских компонентах используем useSession()
+ * Usage:
+ * - Wrap root layout in SessionProvider
+ * - In client components use useSession()
  *
- * TODO (M1): Интегрировать в AppProviders
+ * TODO (M1): Integrate into AppProviders
  */
 
 'use client';
@@ -21,10 +21,10 @@ interface SessionProviderProps {
 }
 
 /**
- * Провайдер сессии NextAuth
+ * NextAuth session provider
  *
- * Оборачивает дочерние компоненты и предоставляет доступ к сессии
- * через хук useSession() из next-auth/react
+ * Wraps child components and provides access to session
+ * via useSession() hook from next-auth/react
  */
 export const SessionProvider = (props: SessionProviderProps) => {
   const { children } = props;

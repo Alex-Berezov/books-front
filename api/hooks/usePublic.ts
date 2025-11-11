@@ -1,8 +1,8 @@
 /**
- * React Query хуки для публичных эндпоинтов
+ * React Query hooks for public endpoints
  *
- * Предоставляет типизированные хуки для работы с публичными данными
- * с автоматическим кэшированием через React Query.
+ * Provides typed hooks for working with public data
+ * with automatic caching via React Query.
  */
 
 import { useQuery, type UseQueryOptions, type UseQueryResult } from '@tanstack/react-query';
@@ -19,12 +19,12 @@ import type {
 } from '@/types/api-schema';
 
 /**
- * Хук для получения обзора книги
+ * Hook for getting book overview
  *
- * @param lang - Язык
- * @param slug - Slug книги
- * @param options - Опции React Query
- * @returns Результат запроса с данными книги
+ * @param lang - Language
+ * @param slug - Book slug
+ * @param options - React Query options
+ * @returns Query result with book data
  *
  * @example
  * ```tsx
@@ -53,12 +53,12 @@ export const useBookOverview = (
 };
 
 /**
- * Хук для получения CMS страницы
+ * Hook for getting CMS page
  *
- * @param lang - Язык
- * @param slug - Slug страницы
- * @param options - Опции React Query
- * @returns Результат запроса с данными страницы
+ * @param lang - Language
+ * @param slug - Page slug
+ * @param options - React Query options
+ * @returns Query result with page data
  *
  * @example
  * ```tsx
@@ -87,14 +87,14 @@ export const usePage = (
 };
 
 /**
- * Хук для получения книг категории
+ * Hook for getting category books
  *
- * @param lang - Язык
- * @param slug - Slug категории
- * @param page - Номер страницы
- * @param limit - Лимит на страницу
- * @param options - Опции React Query
- * @returns Результат запроса с книгами категории
+ * @param lang - Language
+ * @param slug - Category slug
+ * @param page - Page number
+ * @param limit - Limit per page
+ * @param options - React Query options
+ * @returns Query result with category books
  *
  * @example
  * ```tsx
@@ -129,14 +129,14 @@ export const useCategoryBooks = (
 };
 
 /**
- * Хук для получения книг по тегу
+ * Hook for getting tag books
  *
- * @param lang - Язык
- * @param slug - Slug тега
- * @param page - Номер страницы
- * @param limit - Лимит на страницу
- * @param options - Опции React Query
- * @returns Результат запроса с книгами по тегу
+ * @param lang - Language
+ * @param slug - Tag slug
+ * @param page - Page number
+ * @param limit - Limit per page
+ * @param options - React Query options
+ * @returns Query result with tag books
  *
  * @example
  * ```tsx
@@ -171,13 +171,13 @@ export const useTagBooks = (
 };
 
 /**
- * Хук для получения SEO данных
+ * Hook for getting SEO data
  *
- * @param lang - Язык
- * @param type - Тип сущности
- * @param id - ID сущности
- * @param options - Опции React Query
- * @returns Результат запроса с SEO данными
+ * @param lang - Language
+ * @param type - Entity type
+ * @param id - Entity ID
+ * @param options - React Query options
+ * @returns Query result with SEO data
  *
  * @example
  * ```tsx

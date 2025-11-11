@@ -1,9 +1,9 @@
 import styles from './loading.module.scss';
 
 /**
- * Loading состояние для админки
+ * Loading state for admin panel
  *
- * Показывается при загрузке страниц в admin панели
+ * Displayed when loading pages in admin panel
  */
 export default function AdminLoading() {
   return (

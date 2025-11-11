@@ -1,17 +1,17 @@
 /**
  * Admin Endpoints Barrel Export
  *
- * Центральная точка импорта для всех административных эндпоинтов.
- * Позволяет импортировать любой эндпоинт из '@/api/endpoints/admin'
- * вместо указания конкретного файла.
+ * Central import point for all administrative endpoints.
+ * Allows importing any endpoint from '@/api/endpoints/admin'
+ * instead of specifying the specific file.
  *
  * @example
  * ```ts
- * // Вместо:
+ * // Instead of:
  * import { getBooks } from '@/api/endpoints/admin/books';
  * import { getBookVersion } from '@/api/endpoints/admin/bookVersions';
  *
- * // Можно:
+ * // You can:
  * import { getBooks, getBookVersion } from '@/api/endpoints/admin';
  * ```
  */

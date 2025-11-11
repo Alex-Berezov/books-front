@@ -1,8 +1,8 @@
 /**
- * Публичные эндпоинты API
+ * Public API endpoints
  *
- * Содержит типизированные функции для работы с публичными данными:
- * книги, страницы, категории, теги и т.д.
+ * Contains typed functions for working with public data:
+ * books, pages, categories, tags, etc.
  */
 
 import { httpGet } from '@/lib/http';
@@ -17,11 +17,11 @@ import type {
 } from '@/types/api-schema';
 
 /**
- * Получить обзор книги
+ * Get book overview
  *
- * @param lang - Язык
- * @param slug - Slug книги
- * @returns Обзор книги
+ * @param lang - Language
+ * @param slug - Book slug
+ * @returns Book overview
  *
  * @example
  * ```ts
@@ -34,11 +34,11 @@ export const getBookOverview = async (lang: SupportedLang, slug: string): Promis
 };
 
 /**
- * Получить CMS страницу
+ * Get CMS page
  *
- * @param lang - Язык
- * @param slug - Slug страницы
- * @returns Данные страницы
+ * @param lang - Language
+ * @param slug - Page slug
+ * @returns Page data
  *
  * @example
  * ```ts
@@ -51,13 +51,13 @@ export const getPage = async (lang: SupportedLang, slug: string): Promise<PageRe
 };
 
 /**
- * Получить книги категории
+ * Get category books
  *
- * @param lang - Язык
- * @param slug - Slug категории
- * @param page - Номер страницы (опционально)
- * @param limit - Лимит на страницу (опционально)
- * @returns Книги категории с пагинацией
+ * @param lang - Language
+ * @param slug - Category slug
+ * @param page - Page number (optional)
+ * @param limit - Items per page (optional)
+ * @returns Category books with pagination
  *
  * @example
  * ```ts
@@ -84,13 +84,13 @@ export const getCategoryBooks = async (
 };
 
 /**
- * Получить книги по тегу
+ * Get books by tag
  *
- * @param lang - Язык
- * @param slug - Slug тега
- * @param page - Номер страницы (опционально)
- * @param limit - Лимит на страницу (опционально)
- * @returns Книги по тегу с пагинацией
+ * @param lang - Language
+ * @param slug - Tag slug
+ * @param page - Page number (optional)
+ * @param limit - Items per page (optional)
+ * @returns Books by tag with pagination
  *
  * @example
  * ```ts
@@ -117,12 +117,12 @@ export const getTagBooks = async (
 };
 
 /**
- * Получить SEO данные для сущности
+ * Get SEO data for entity
  *
- * @param lang - Язык
- * @param type - Тип сущности (book, page, category, tag)
- * @param id - ID сущности
- * @returns SEO данные
+ * @param lang - Language
+ * @param type - Entity type (book, page, category, tag)
+ * @param id - Entity ID
+ * @returns SEO data
  *
  * @example
  * ```ts

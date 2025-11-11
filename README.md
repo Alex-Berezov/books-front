@@ -25,18 +25,18 @@ Bibliaris is a modern web platform for discovering, reading, and listening to cl
 
 See [books-app-docs](https://github.com/Alex-Berezov/books-app-docs) for detailed progress and task tracking.
 
-## ⭐ Code Style - ОБЯЗАТЕЛЬНО К ПРОЧТЕНИЮ
+## ⭐ Code Style - REQUIRED READING
 
-**Перед началом разработки прочитайте [CODE_STYLE.md](./CODE_STYLE.md)!**
+**Read [CODE_STYLE.md](./CODE_STYLE.md) before starting development!**
 
-Основные правила:
+Key rules:
 
-- ✅ Только **SCSS модули**, никаких inline стилей
-- ✅ Все цвета и spacing из **токенов** (`styles/tokens.scss`)
-- ✅ TypeScript **без `any`**, строгая типизация
-- ✅ **Деструктуризация props** при 3+ параметрах
-- ✅ Комментарии **на русском**
-- ✅ **`import type`** для импорта типов
+- ✅ Only **SCSS modules**, no inline styles
+- ✅ All colors and spacing from **design tokens** (`styles/tokens.scss`)
+- ✅ TypeScript **without `any`**, strict typing
+- ✅ **Props destructuring** for 3+ parameters
+- ✅ Comments **in English**
+- ✅ **`import type`** for type imports
 
 ## 🛠️ Tech Stack
 
@@ -191,7 +191,13 @@ Detailed Git workflow procedures are available in the [documentation repository]
 
 This is a learning/portfolio project. Contributions are welcome!
 
-See the [documentation repository](https://github.com/Alex-Berezov/books-app-docs) for available tasks and development guidelines. 2. Create a feature branch 3. Make your changes 4. Run `yarn lint` and `yarn typecheck` 5. Submit a pull request
+See the [documentation repository](https://github.com/Alex-Berezov/books-app-docs) for available tasks and development guidelines.
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run `yarn lint` and `yarn typecheck`
+5. Submit a pull request
 
 ## 📄 License
 

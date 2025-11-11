@@ -1,10 +1,10 @@
 /**
- * Конфигурация NextAuth для проекта Bibliaris
+ * NextAuth configuration for Bibliaris project
  *
- * Содержит настройки авторизации через Credentials Provider,
- * callbacks для работы с JWT и сессиями, а также обработку refresh токенов.
+ * Contains authorization settings via Credentials Provider,
+ * callbacks for working with JWT and sessions, as well as refresh token handling.
  *
- * TODO (M1): Реализовать полную логику авторизации
+ * TODO (M1): Implement full authorization logic
  *
  * @see https://next-auth.js.org/configuration/options
  */
@@ -15,7 +15,7 @@ import type { JWT } from 'next-auth/jwt';
 import { AUTH_TOKEN_EXPIRY, AuthErrorType, AUTH_ERROR_MESSAGES, AUTH_ROUTES } from './constants';
 
 /**
- * Параметры JWT callback
+ * JWT callback parameters
  */
 interface JWTCallbackParams {
   token: JWT;
@@ -27,7 +27,7 @@ interface JWTCallbackParams {
 }
 
 /**
- * Параметры Session callback
+ * Session callback parameters
  */
 interface SessionCallbackParams {
   session: Session;
@@ -36,12 +36,12 @@ interface SessionCallbackParams {
 }
 
 /**
- * Обновление access токена через refresh токен
+ * Refresh access token using refresh token
  *
- * Вызывает POST /auth/refresh для получения новой пары токенов
+ * Calls POST /auth/refresh to get a new pair of tokens
  *
- * @param token - текущий JWT токен
- * @returns обновлённый токен или токен с ошибкой
+ * @param token - current JWT token
+ * @returns updated token or token with error
  */
 export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
   try {
@@ -57,7 +57,7 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
       }),
     });
 
-    // Если refresh не удался - помечаем токен ошибкой
+    // If refresh failed - mark token with error
     if (!response.ok) {
       console.error('Failed to refresh token:', response.status);
       return {
@@ -68,13 +68,13 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
 
     const refreshedTokens = await response.json();
 
-    // Возвращаем обновленный токен
+    // Return updated token
     return {
       ...token,
       accessToken: refreshedTokens.accessToken,
       refreshToken: refreshedTokens.refreshToken,
       accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
-      error: undefined, // Сбрасываем ошибку если была
+      error: undefined, // Reset error if it was set
     };
   } catch (error) {
     console.error('Error refreshing access token:', error);
@@ -86,18 +86,18 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
 };
 
 /**
- * Конфигурация NextAuth
+ * NextAuth configuration
  *
- * Для next-auth v5 используется упрощённый объект конфигурации
+ * For next-auth v5 a simplified configuration object is used
  */
 export const authOptions = {
-  // Использование JWT для сессий (не database)
+  // Use JWT for sessions (not database)
   session: {
     strategy: 'jwt' as const,
     maxAge: AUTH_TOKEN_EXPIRY.REFRESH_TOKEN_SECONDS,
   },
 
-  // Провайдеры авторизации
+  // Authorization providers
   providers: [
     CredentialsProvider({
       id: 'credentials',
@@ -107,12 +107,12 @@ export const authOptions = {
         password: { label: 'Password', type: 'password' },
       },
       /**
-       * Авторизация пользователя через бэкенд
+       * Authorize user via backend
        *
-       * Вызывает POST /auth/login и возвращает пользователя с токенами
+       * Calls POST /auth/login and returns user with tokens
        */
       async authorize(credentials) {
-        // Валидация обязательных полей
+        // Validate required fields
         if (!credentials?.email || !credentials?.password) {
           throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.MISSING_CREDENTIALS]);
         }
@@ -131,26 +131,26 @@ export const authOptions = {
             }),
           });
 
-          // Обработка ошибок
+          // Handle errors
           if (!response.ok) {
             // Rate limiting
             if (response.status === 429) {
               throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.RATE_LIMIT_EXCEEDED]);
             }
 
-            // Неверные учетные данные
+            // Invalid credentials
             if (response.status === 400 || response.status === 401) {
               throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.INVALID_CREDENTIALS]);
             }
 
-            // Прочие ошибки
+            // Other errors
             throw new Error('Authentication failed');
           }
 
           const data = await response.json();
 
-          // Возвращаем объект User с токенами
-          // Роли теперь приходят напрямую от бэкенда в /auth/login
+          // Return User object with tokens
+          // Roles now come directly from backend in /auth/login
           return {
             id: data.user.id,
             email: data.user.email,
@@ -160,7 +160,7 @@ export const authOptions = {
             refreshToken: data.refreshToken,
           };
         } catch (error) {
-          // Прокидываем ошибку дальше для обработки в UI
+          // Pass error further for UI handling
           if (error instanceof Error) {
             throw error;
           }
@@ -170,17 +170,17 @@ export const authOptions = {
     }),
   ],
 
-  // Callbacks для обработки JWT и сессий
+  // Callbacks for JWT and session handling
   callbacks: {
     /**
-     * JWT Callback - обработка токенов
+     * JWT Callback - token processing
      *
-     * Сохраняет токены при логине и автоматически обновляет их при истечении
+     * Saves tokens on login and automatically refreshes them on expiration
      */
     async jwt(params: JWTCallbackParams): Promise<JWT> {
       const { token, user, account } = params;
 
-      // При первом логине - сохранить токены из authorize
+      // On first login - save tokens from authorize
       if (account && user) {
         return {
           ...token,
@@ -194,24 +194,24 @@ export const authOptions = {
         };
       }
 
-      // Токен ещё валиден - возвращаем как есть
+      // Token still valid - return as is
       if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
         return token;
       }
 
-      // Токен истёк или близок к истечению - обновить
+      // Token expired or close to expiration - refresh
       return refreshAccessToken(token);
     },
 
     /**
-     * Session Callback - формирование сессии для клиента
+     * Session Callback - session formation for client
      *
-     * Прокидывает токены и информацию о пользователе в сессию
+     * Passes tokens and user information to session
      */
     async session(params: SessionCallbackParams): Promise<Session> {
       const { session, token } = params;
 
-      // Прокинуть данные из JWT в сессию
+      // Pass data from JWT to session
       session.user = {
         id: token.id,
         email: token.email,
@@ -226,15 +226,15 @@ export const authOptions = {
     },
   },
 
-  // Страницы авторизации
+  // Authorization pages
   pages: {
-    signIn: AUTH_ROUTES.SIGN_IN, // TODO (M1): Создать страницу входа
-    error: AUTH_ROUTES.ERROR, // TODO (M1): Создать страницу ошибок
+    signIn: AUTH_ROUTES.SIGN_IN, // TODO (M1): Create sign-in page
+    error: AUTH_ROUTES.ERROR, // TODO (M1): Create error page
   },
 
-  // Debug в development
+  // Debug in development
   debug: process.env.NODE_ENV === 'development',
 
-  // Secret для JWT
+  // Secret for JWT
   secret: process.env.NEXTAUTH_SECRET,
 };

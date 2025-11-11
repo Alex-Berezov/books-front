@@ -3,9 +3,9 @@ import type { StatusIconProps } from '../SlugInput.types';
 import styles from '../SlugInput.module.scss';
 
 /**
- * Иконка статуса валидации slug
+ * Slug validation status icon
  *
- * Показывает разные иконки в зависимости от статуса проверки
+ * Shows different icons depending on validation status
  */
 export const StatusIcon: FC<StatusIconProps> = (props) => {
   const { status } = props;

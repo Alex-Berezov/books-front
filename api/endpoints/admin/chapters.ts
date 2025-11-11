@@ -1,9 +1,9 @@
 /**
  * Chapters Endpoints
  *
- * API эндпоинты для работы с главами книг.
- * Глава - это структурный элемент версии книги с контентом,
- * порядковым номером и настройками доступа.
+ * API endpoints for working with book chapters.
+ * Chapter is a structural element of a book version with content,
+ * order index and access settings.
  */
 
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
@@ -15,10 +15,10 @@ import type {
 } from '@/types/api-schema';
 
 /**
- * Получить список глав версии книги
+ * Get list of chapters for book version
  *
- * @param versionId - ID версии книги
- * @returns Массив глав
+ * @param versionId - Book version ID
+ * @returns Array of chapters
  *
  * @example
  * ```ts
@@ -31,11 +31,11 @@ export const getChapters = async (versionId: string): Promise<ChapterDetail[]> =
 };
 
 /**
- * Создать новую главу
+ * Create a new chapter
  *
- * @param versionId - ID версии книги
- * @param data - Данные новой главы
- * @returns Созданная глава
+ * @param versionId - Book version ID
+ * @param data - New chapter data
+ * @returns Created chapter
  *
  * @example
  * ```ts
@@ -56,11 +56,11 @@ export const createChapter = async (
 };
 
 /**
- * Обновить главу
+ * Update chapter
  *
- * @param chapterId - ID главы
- * @param data - Новые данные главы
- * @returns Обновленная глава
+ * @param chapterId - Chapter ID
+ * @param data - New chapter data
+ * @returns Updated chapter
  *
  * @example
  * ```ts
@@ -79,9 +79,9 @@ export const updateChapter = async (
 };
 
 /**
- * Удалить главу
+ * Delete chapter
  *
- * @param chapterId - ID главы
+ * @param chapterId - Chapter ID
  *
  * @example
  * ```ts
@@ -94,11 +94,11 @@ export const deleteChapter = async (chapterId: string): Promise<void> => {
 };
 
 /**
- * Переупорядочить главы
+ * Reorder chapters
  *
- * @param versionId - ID версии книги
- * @param data - Новый порядок глав
- * @returns Массив глав в новом порядке
+ * @param versionId - Book version ID
+ * @param data - New chapters order
+ * @returns Array of chapters in new order
  *
  * @example
  * ```ts

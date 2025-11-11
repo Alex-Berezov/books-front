@@ -10,22 +10,22 @@ import { SeoCollapsible } from '../ui/SeoCollapsible';
 export interface SeoTechnicalSectionProps {
   /** React Hook Form register */
   register: UseFormRegister<PageFormData>;
-  /** Ошибки валидации */
+  /** Validation errors */
   errors: FieldErrors<PageFormData>;
   /** React Hook Form watch */
   watch: UseFormWatch<PageFormData>;
   /** React Hook Form setValue */
   setValue: UseFormSetValue<PageFormData>;
-  /** Флаг загрузки */
+  /** Loading flag */
   isSubmitting: boolean;
 }
 
 /**
- * Секция технических SEO настроек
+ * Technical SEO settings section
  *
- * Содержит поля:
- * - Canonical URL (канонический URL)
- * - Robots (директивы для поисковых роботов)
+ * Contains fields:
+ * - Canonical URL (canonical URL)
+ * - Robots (directives for search engine robots)
  */
 export const SeoTechnicalSection: FC<SeoTechnicalSectionProps> = (props) => {
   const { register, errors, watch, setValue, isSubmitting } = props;

@@ -2,16 +2,16 @@ import type { FC } from 'react';
 import styles from '../PageForm.module.scss';
 
 export interface CharCounterProps {
-  /** Текущее количество символов */
+  /** Current character count */
   current: number;
-  /** Максимальное количество символов */
+  /** Maximum character count */
   max: number;
 }
 
 /**
- * Счётчик символов для полей с ограничением длины
+ * Character counter for fields with length limit
  *
- * Показывает "current / max" в правом углу поля
+ * Shows "current / max" in the right corner of the field
  */
 export const CharCounter: FC<CharCounterProps> = (props) => {
   const { current, max } = props;

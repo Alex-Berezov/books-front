@@ -2,78 +2,78 @@ import type { SlugEntityType } from '@/lib/hooks/useSlugValidation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
- * Пропсы компонента SlugInput
+ * SlugInput component props
  */
 export interface SlugInputProps {
-  /** Текущее значение slug */
+  /** Current slug value */
   value: string;
-  /** Callback при изменении slug */
+  /** Callback on slug change */
   onChange: (value: string) => void;
-  /** Исходное значение для автогенерации (обычно title) */
+  /** Source value for auto-generation (usually title) */
   sourceValue?: string;
-  /** Тип сущности (page | book) для проверки уникальности */
+  /** Entity type (page | book) for uniqueness check */
   entityType: SlugEntityType;
-  /** Язык (для pages) */
+  /** Language (for pages) */
   lang?: SupportedLang;
-  /** ID редактируемой сущности (для исключения из проверки уникальности) */
+  /** ID of edited entity (to exclude from uniqueness check) */
   excludeId?: string;
-  /** Отключить поле */
+  /** Disable field */
   disabled?: boolean;
-  /** Показывать ли кнопку "Generate from title" */
+  /** Show "Generate from title" button */
   showGenerateButton?: boolean;
-  /** Автоматически генерировать slug при вводе sourceValue */
+  /** Automatically generate slug when entering sourceValue */
   autoGenerate?: boolean;
-  /** Placeholder для input */
+  /** Input placeholder */
   placeholder?: string;
-  /** ID для HTML элемента */
+  /** ID for HTML element */
   id?: string;
-  /** CSS класс для кастомизации */
+  /** CSS class for customization */
   className?: string;
-  /** Сообщение об ошибке валидации (из react-hook-form) */
+  /** Validation error message (from react-hook-form) */
   error?: string;
 }
 
 /**
- * Пропсы для компонента StatusIcon
+ * Props for StatusIcon component
  */
 export interface StatusIconProps {
-  /** Статус валидации */
+  /** Validation status */
   status: 'idle' | 'checking' | 'valid' | 'invalid';
 }
 
 /**
- * Пропсы для компонента GenerateButton
+ * Props for GenerateButton component
  */
 export interface GenerateButtonProps {
-  /** Есть ли исходное значение для генерации */
+  /** Whether source value exists for generation */
   hasSourceValue: boolean;
-  /** Обработчик клика */
+  /** Click handler */
   onClick: () => void;
 }
 
 /**
- * Пропсы для компонента ValidationHint
+ * Props for ValidationHint component
  */
 export interface ValidationHintProps {
-  /** Placeholder для примера */
+  /** Placeholder for example */
   placeholder: string;
 }
 
 /**
- * Пропсы для компонента DuplicateWarning
+ * Props for DuplicateWarning component
  */
 export interface DuplicateWarningProps {
-  /** Тип сущности */
+  /** Entity type */
   entityType: SlugEntityType;
-  /** Текущий slug */
+  /** Current slug */
   slug: string;
-  /** Существующая сущность с таким slug */
+  /** Existing entity with this slug */
   existingItem: {
     title: string;
     status: string;
   };
-  /** Предложенный slug */
+  /** Suggested slug */
   suggestedSlug?: string;
-  /** Обработчик применения предложенного slug */
+  /** Handler for applying suggested slug */
   onUseSuggested: () => void;
 }

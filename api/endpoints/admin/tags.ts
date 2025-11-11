@@ -1,31 +1,31 @@
 /**
  * Tags Endpoints
  *
- * API эндпоинты для работы с тегами.
- * Теги используются для простой классификации книг без иерархии
- * (например, "мотивация", "бизнес", "саморазвитие").
+ * API endpoints for working with tags.
+ * Tags are used for simple classification of books without hierarchy
+ * (e.g., "motivation", "business", "self-development").
  */
 
 import { httpDeleteAuth, httpGetAuth, httpPostAuth } from '@/lib/http-client';
 import type { AttachTagRequest, PaginatedResponse, Tag } from '@/types/api-schema';
 
 /**
- * Параметры для получения списка тегов
+ * Parameters for fetching tags list
  */
 export interface GetTagsParams {
-  /** Номер страницы (начиная с 1) */
+  /** Page number (starting from 1) */
   page?: number;
-  /** Количество элементов на странице */
+  /** Number of items per page */
   limit?: number;
-  /** Поиск по названию */
+  /** Search by name */
   search?: string;
 }
 
 /**
- * Получить список тегов
+ * Get list of tags
  *
- * @param params - Параметры запроса
- * @returns Пагинированный список тегов
+ * @param params - Request parameters
+ * @returns Paginated list of tags
  *
  * @example
  * ```ts
@@ -49,10 +49,10 @@ export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResp
 };
 
 /**
- * Привязать тег к версии книги
+ * Attach tag to book version
  *
- * @param versionId - ID версии книги
- * @param tagId - ID тега
+ * @param versionId - Book version ID
+ * @param tagId - Tag ID
  *
  * @example
  * ```ts
@@ -66,10 +66,10 @@ export const attachTag = async (versionId: string, tagId: string): Promise<void>
 };
 
 /**
- * Отвязать тег от версии книги
+ * Detach tag from book version
  *
- * @param versionId - ID версии книги
- * @param tagId - ID тега
+ * @param versionId - Book version ID
+ * @param tagId - Tag ID
  *
  * @example
  * ```ts

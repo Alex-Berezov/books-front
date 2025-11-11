@@ -7,9 +7,9 @@ type Props = {
 };
 
 /**
- * Страница 403 - Доступ запрещён
+ * 403 Page - Access Forbidden
  *
- * Показывается когда у пользователя нет прав доступа к админке
+ * Displayed when user doesn't have admin panel access rights
  */
 export default async function ForbiddenPage({ params }: Props) {
   const { lang } = await params;

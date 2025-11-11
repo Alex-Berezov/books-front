@@ -1,7 +1,7 @@
 /**
- * Barrel export для всех админских хуков
+ * Barrel export for all admin hooks
  *
- * Экспортирует все хуки из отдельных файлов для удобства импорта.
+ * Exports all hooks from individual files for convenient import.
  */
 
 // Books

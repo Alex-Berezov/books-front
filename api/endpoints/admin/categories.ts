@@ -1,9 +1,9 @@
 /**
  * Categories Endpoints
  *
- * API эндпоинты для работы с категориями.
- * Категории представляют собой иерархическую таксономию
- * для классификации книг (например, Fiction → Fantasy → Epic Fantasy).
+ * API endpoints for working with categories.
+ * Categories represent a hierarchical taxonomy
+ * for classifying books (e.g., Fiction → Fantasy → Epic Fantasy).
  */
 
 import { httpDeleteAuth, httpGetAuth, httpPostAuth } from '@/lib/http-client';
@@ -15,22 +15,22 @@ import type {
 } from '@/types/api-schema';
 
 /**
- * Параметры для получения списка категорий
+ * Parameters for fetching categories list
  */
 export interface GetCategoriesParams {
-  /** Номер страницы (начиная с 1) */
+  /** Page number (starting from 1) */
   page?: number;
-  /** Количество элементов на странице */
+  /** Number of items per page */
   limit?: number;
-  /** Поиск по названию */
+  /** Search by name */
   search?: string;
 }
 
 /**
- * Получить список категорий
+ * Get list of categories
  *
- * @param params - Параметры запроса
- * @returns Пагинированный список категорий
+ * @param params - Request parameters
+ * @returns Paginated list of categories
  *
  * @example
  * ```ts
@@ -56,9 +56,9 @@ export const getCategories = async (
 };
 
 /**
- * Получить дерево категорий
+ * Get categories tree
  *
- * @returns Иерархическое дерево категорий
+ * @returns Hierarchical tree of categories
  *
  * @example
  * ```ts
@@ -71,10 +71,10 @@ export const getCategoriesTree = async (): Promise<CategoryTree[]> => {
 };
 
 /**
- * Привязать категорию к версии книги
+ * Attach category to book version
  *
- * @param versionId - ID версии книги
- * @param categoryId - ID категории
+ * @param versionId - Book version ID
+ * @param categoryId - Category ID
  *
  * @example
  * ```ts
@@ -88,10 +88,10 @@ export const attachCategory = async (versionId: string, categoryId: string): Pro
 };
 
 /**
- * Отвязать категорию от версии книги
+ * Detach category from book version
  *
- * @param versionId - ID версии книги
- * @param categoryId - ID категории
+ * @param versionId - Book version ID
+ * @param categoryId - Category ID
  *
  * @example
  * ```ts

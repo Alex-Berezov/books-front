@@ -11,21 +11,21 @@ import { SeoCollapsible } from '../ui/SeoCollapsible';
 export interface SeoOpenGraphSectionProps {
   /** React Hook Form register */
   register: UseFormRegister<PageFormData>;
-  /** Ошибки валидации */
+  /** Validation errors */
   errors: FieldErrors<PageFormData>;
   /** React Hook Form watch */
   watch: UseFormWatch<PageFormData>;
-  /** Флаг загрузки */
+  /** Loading flag */
   isSubmitting: boolean;
 }
 
 /**
- * Секция Open Graph настроек (Facebook, LinkedIn)
+ * Open Graph settings section (Facebook, LinkedIn)
  *
- * Содержит поля:
- * - OG Title (заголовок для соцсетей)
- * - OG Description (описание для соцсетей)
- * - OG Image URL (изображение для соцсетей)
+ * Contains fields:
+ * - OG Title (title for social media)
+ * - OG Description (description for social media)
+ * - OG Image URL (image for social media)
  */
 export const SeoOpenGraphSection: FC<SeoOpenGraphSectionProps> = (props) => {
   const { register, errors, watch, isSubmitting } = props;
@@ -90,7 +90,7 @@ export const SeoOpenGraphSection: FC<SeoOpenGraphSectionProps> = (props) => {
           {...register('seoOgImageUrl')}
         />
 
-        {/* Превью изображения */}
+        {/* Image preview */}
         {watch('seoOgImageUrl') && (
           <div className={styles.imagePreview}>
             {/* eslint-disable-next-line @next/next/no-img-element */}

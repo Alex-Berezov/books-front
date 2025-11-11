@@ -1,8 +1,8 @@
 /**
- * React хук для валидации slug с debounce
+ * React hook for slug validation with debounce
  *
- * Проверяет уникальность slug через API с задержкой (debounce),
- * чтобы не делать запрос при каждом нажатии клавиши.
+ * Checks slug uniqueness via API with delay (debounce),
+ * to avoid making a request on every keystroke.
  */
 
 'use client';
@@ -13,78 +13,78 @@ import type { SlugValidationResult } from '@/api/endpoints/slug-validation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
- * Тип сущности для проверки slug
+ * Entity type for slug validation
  */
 export type SlugEntityType = 'page' | 'book';
 
 /**
- * Статус валидации slug
+ * Slug validation status
  */
 export type SlugValidationStatus = 'idle' | 'checking' | 'valid' | 'invalid';
 
 /**
- * Результат хука useSlugValidation
+ * useSlugValidation hook result
  */
 export interface UseSlugValidationResult {
-  /** Текущий статус валидации */
+  /** Current validation status */
   status: SlugValidationStatus;
-  /** Является ли slug уникальным (undefined пока проверка не завершена) */
+  /** Whether slug is unique (undefined until validation is complete) */
   isUnique?: boolean;
-  /** Предлагаемый уникальный slug (если текущий занят) */
+  /** Suggested unique slug (if current is taken) */
   suggestedSlug?: string;
-  /** Информация о существующей странице/книге с таким slug */
+  /** Information about existing page/book with this slug */
   existingItem?: {
     id: string;
     title: string;
     status: string;
   };
-  /** Функция для ручного запуска проверки */
+  /** Function to manually trigger validation */
   validate: (slug: string) => void;
 }
 
 /**
- * Параметры хука useSlugValidation
+ * useSlugValidation hook parameters
  */
 export interface UseSlugValidationParams {
-  /** Тип сущности (page | book) */
+  /** Entity type (page | book) */
   entityType: SlugEntityType;
-  /** Язык (для pages) */
+  /** Language (for pages) */
   lang?: SupportedLang;
-  /** ID редактируемой сущности (для исключения из проверки) */
+  /** ID of entity being edited (to exclude from validation) */
   excludeId?: string;
-  /** Задержка debounce в миллисекундах (по умолчанию 500) */
+  /** Debounce delay in milliseconds (default 500) */
   debounceMs?: number;
-  /** Включена ли автоматическая валидация (по умолчанию true) */
+  /** Whether automatic validation is enabled (default true) */
   enabled?: boolean;
 }
 
 /**
- * React хук для проверки уникальности slug с debounce
+ * React hook for slug uniqueness validation with debounce
  *
- * Автоматически проверяет slug через API с задержкой (debounce),
- * чтобы не делать запрос при каждом нажатии клавиши.
+ * Automatically checks slug via API with delay (debounce),
+ * to avoid making a request on every keystroke.
  *
- * @param params - Параметры валидации
- * @returns Результат валидации и функция для ручной проверки
+ * @param params - Validation parameters
+ * @returns Validation result and function for manual validation
  *
  * @example
- * // В компоненте формы страницы
+ * // In page form component
  * const { status, isUnique, suggestedSlug, validate } = useSlugValidation({
  *   entityType: 'page',
  *   lang: 'en',
- *   excludeId: pageId, // при редактировании
+ *   excludeId: pageId, // when editing
  * });
  *
- * // Вызываем validate при изменении slug
+ * // Call validate when slug changes
  * useEffect(() => {
  *   if (slug) {
  *     validate(slug);
  *   }
  * }, [slug, validate]);
  *
- * // Показываем статус
+ * // Show status
  * {status === 'checking' && <Spinner />}
- * {status === 'invalid' && <Alert>Slug занят! Используйте: {suggestedSlug}</Alert>}
+ * {status === 'invalid' && <Alert>Slug is taken! Use: {suggestedSlug}</Alert>}
  * {status === 'valid' && <CheckIcon />}
  */
 export const useSlugValidation = (params: UseSlugValidationParams): UseSlugValidationResult => {
@@ -95,7 +95,7 @@ export const useSlugValidation = (params: UseSlugValidationParams): UseSlugValid
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
 
   /**
-   * Функция для проверки slug через API
+   * Function to check slug via API
    */
   const checkSlug = useCallback(
     async (slug: string) => {
@@ -124,7 +124,7 @@ export const useSlugValidation = (params: UseSlugValidationParams): UseSlugValid
         setStatus(validationResult.isUnique ? 'valid' : 'invalid');
       } catch (error) {
         console.error('[useSlugValidation] Error checking slug:', error);
-        // В случае ошибки считаем slug валидным (чтобы не блокировать форму)
+        // In case of error, consider slug valid (to not block the form)
         setStatus('valid');
         setResult({ slug, isUnique: true });
       }
@@ -133,7 +133,7 @@ export const useSlugValidation = (params: UseSlugValidationParams): UseSlugValid
   );
 
   /**
-   * Функция для ручного запуска проверки (с debounce)
+   * Function to manually trigger validation (with debounce)
    */
   const validate = useCallback(
     (slug: string) => {
@@ -143,7 +143,7 @@ export const useSlugValidation = (params: UseSlugValidationParams): UseSlugValid
   );
 
   /**
-   * Debounce эффект - запускает проверку через заданное время
+   * Debounce effect - triggers validation after specified time
    */
   useEffect(() => {
     if (!pendingSlug) {

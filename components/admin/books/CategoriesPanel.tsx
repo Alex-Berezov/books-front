@@ -7,36 +7,36 @@ import type { Category } from '@/types/api-schema';
 import styles from './CategoriesPanel.module.scss';
 
 export interface CategoriesPanelProps {
-  /** ID версии книги */
+  /** Book version ID */
   versionId: string;
-  /** Текущие привязанные категории */
+  /** Current attached categories */
   selectedCategories: Category[];
-  /** Callback при изменении категорий */
+  /** Callback on categories change */
   onCategoriesChange?: () => void;
 }
 
 /**
- * Панель управления категориями версии книги
+ * Book version categories management panel
  *
- * Позволяет просматривать дерево категорий, выбирать и отменять выбор категорий
+ * Allows viewing category tree, selecting and deselecting categories
  */
 export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
   const { versionId, selectedCategories, onCategoriesChange } = props;
 
-  // Состояние раскрытых категорий в дереве
+  // State of expanded categories in tree
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
-  // Загрузка дерева категорий
+  // Load categories tree
   const { data: categoriesTree, isLoading } = useCategoriesTree();
 
-  // Мутации для attach/detach
+  // Mutations for attach/detach
   const attachMutation = useAttachCategory({
     onSuccess: () => {
       onCategoriesChange?.();
     },
     onError: (error) => {
       console.error('Failed to attach category:', error);
-      // TODO: Показать toast с ошибкой
+      // TODO: Show error toast
     },
   });
 
@@ -46,21 +46,21 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
     },
     onError: (error) => {
       console.error('Failed to detach category:', error);
-      // TODO: Показать toast с ошибкой
+      // TODO: Show error toast
     },
   });
 
   const isPending = attachMutation.isPending || detachMutation.isPending;
 
   /**
-   * Проверка, выбрана ли категория
+   * Check if category is selected
    */
   const isCategorySelected = (categoryId: string): boolean => {
     return selectedCategories.some((cat) => cat.id === categoryId);
   };
 
   /**
-   * Переключить раскрытие категории
+   * Toggle category expansion
    */
   const toggleExpand = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -73,7 +73,7 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
   };
 
   /**
-   * Обработчик выбора категории
+   * Category selection handler
    */
   const handleCategoryToggle = (categoryId: string) => {
     if (isPending) {
@@ -81,16 +81,16 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
     }
 
     if (isCategorySelected(categoryId)) {
-      // Отвязать категорию
+      // Detach category
       detachMutation.mutate({ versionId, categoryId });
     } else {
-      // Привязать категорию
+      // Attach category
       attachMutation.mutate({ versionId, categoryId });
     }
   };
 
   /**
-   * Рекурсивная отрисовка дерева категорий
+   * Recursive rendering of category tree
    */
   const renderCategoryTree = (categories: typeof categoriesTree) => {
     if (!categories || categories.length === 0) {

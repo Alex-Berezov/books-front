@@ -14,7 +14,7 @@ interface NewPageProps {
 }
 
 /**
- * Страница создания новой CMS страницы
+ * New CMS page creation page
  */
 export default function NewPage(props: NewPageProps) {
   const { params } = props;
@@ -22,13 +22,13 @@ export default function NewPage(props: NewPageProps) {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
 
-  // Mutation для создания страницы
+  // Mutation for creating page
   const createMutation = useCreatePage({
     onSuccess: (data) => {
       console.log('Page created successfully:', data);
       enqueueSnackbar('Page created successfully', { variant: 'success' });
 
-      // ✅ Редирект на страницу редактирования
+      // ✅ Redirect to edit page
       router.push(`/admin/${lang}/pages/${data.id}`);
     },
     onError: (error) => {
@@ -38,10 +38,10 @@ export default function NewPage(props: NewPageProps) {
   });
 
   const handleSubmit = async (data: PageFormData) => {
-    // ✅ Backend теперь поддерживает вложенный seo объект!
-    // См. docs/PAGES_SEO_UPDATE_GUIDE.md для деталей
+    // ✅ Backend now supports nested seo object!
+    // See docs/PAGES_SEO_UPDATE_GUIDE.md for details
 
-    // Формируем полный SEO объект со всеми полями (только заполненные)
+    // Form complete SEO object with all fields (only filled ones)
     const seo = {
       // Basic Meta Tags
       metaTitle: data.seoMetaTitle || undefined,
@@ -55,14 +55,14 @@ export default function NewPage(props: NewPageProps) {
       ogImageUrl: data.seoOgImageUrl || undefined,
       // Twitter Card
       twitterCard: data.seoTwitterCard || undefined,
-      // ⚠️ Backend не поддерживает twitterTitle и twitterDescription
-      // Вместо этого используются metaTitle и metaDescription для Twitter Card
+      // ⚠️ Backend doesn't support twitterTitle and twitterDescription
+      // Instead, metaTitle and metaDescription are used for Twitter Card
     };
 
-    // Проверяем, есть ли хотя бы одно заполненное SEO поле
+    // Check if there's at least one filled SEO field
     const hasSeoData = Object.values(seo).some((val) => val !== undefined);
 
-    // Создаем страницу с вложенным seo объектом (если есть данные)
+    // Create page with nested seo object (if there's data)
     createMutation.mutate({
       lang,
       data: {
@@ -70,7 +70,7 @@ export default function NewPage(props: NewPageProps) {
         title: data.title,
         type: data.type,
         content: data.content,
-        seo: hasSeoData ? seo : undefined, // ✅ Backend автоматически создаст SEO entity
+        seo: hasSeoData ? seo : undefined, // ✅ Backend will automatically create SEO entity
       },
     });
   };

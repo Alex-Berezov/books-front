@@ -1,7 +1,7 @@
 @import '@/styles/tokens';
 
 /**
- * Стили для страницы редактирования версии книги
+ * Styles for book version edit page
  */
 
 .pageContainer {
@@ -43,7 +43,7 @@
   margin-top: $spacing-sm;
 }
 
-// Layout с сайдбаром
+// Layout with sidebar
 .contentLayout {
   display: grid;
   grid-template-columns: 1fr 320px;
@@ -55,12 +55,12 @@
 }
 
 .mainContent {
-  min-width: 0; // Предотвращает overflow
+  min-width: 0; // Prevents overflow
 }
 
 .sidebar {
   @media (max-width: $breakpoint-md) {
-    order: -1; // На мобильных показываем сверху
+    order: -1; // Show on top on mobile
   }
 }
 
@@ -68,7 +68,7 @@
   height: $spacing-lg;
 }
 
-// Loading и Error состояния
+// Loading and Error states
 .loadingContainer,
 .errorContainer {
   padding: $spacing-xl;

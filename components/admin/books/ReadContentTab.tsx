@@ -5,54 +5,54 @@ import { useChapters } from '@/api/hooks';
 import styles from './ReadContentTab.module.scss';
 
 /**
- * Пропсы компонента ReadContentTab
+ * ReadContentTab component props
  */
 export interface ReadContentTabProps {
-  /** ID версии книги */
+  /** Book version ID */
   versionId: string;
 }
 
 /**
- * Таб для управления текстовым контентом книги
+ * Tab for managing book text content
  *
- * Позволяет:
- * - Просматривать список глав
- * - Создавать новые главы
- * - Редактировать существующие главы
- * - Удалять главы
- * - Сортировать главы через drag-and-drop
+ * Allows:
+ * - View chapters list
+ * - Create new chapters
+ * - Edit existing chapters
+ * - Delete chapters
+ * - Sort chapters via drag-and-drop
  */
 export const ReadContentTab: FC<ReadContentTabProps> = (props) => {
   const { versionId } = props;
 
-  // Загружаем главы
+  // Load chapters
   const { data: chapters, error, isLoading } = useChapters(versionId);
 
   /**
-   * Обработчик создания новой главы
+   * New chapter creation handler
    */
   const handleAddChapter = () => {
-    // TODO (M3.2.3): Реализовать создание главы
+    // TODO (M3.2.3): Implement chapter creation
     console.log('Add chapter for version:', versionId);
   };
 
   /**
-   * Обработчик редактирования главы
+   * Chapter edit handler
    */
   const handleEditChapter = (chapterId: string) => {
-    // TODO (M3.2.3): Реализовать редактирование главы
+    // TODO (M3.2.3): Implement chapter editing
     console.log('Edit chapter:', chapterId);
   };
 
   /**
-   * Обработчик удаления главы
+   * Chapter delete handler
    */
   const handleDeleteChapter = (chapterId: string) => {
-    // TODO (M3.2.3): Реализовать удаление главы
+    // TODO (M3.2.3): Implement chapter deletion
     console.log('Delete chapter:', chapterId);
   };
 
-  // Loading состояние
+  // Loading state
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -61,7 +61,7 @@ export const ReadContentTab: FC<ReadContentTabProps> = (props) => {
     );
   }
 
-  // Error состояние
+  // Error state
   if (error) {
     return (
       <div className={styles.container}>
@@ -70,7 +70,7 @@ export const ReadContentTab: FC<ReadContentTabProps> = (props) => {
     );
   }
 
-  // Пустое состояние
+  // Empty state
   if (!chapters || chapters.length === 0) {
     return (
       <div className={styles.container}>
@@ -92,7 +92,7 @@ export const ReadContentTab: FC<ReadContentTabProps> = (props) => {
     );
   }
 
-  // Список глав
+  // Chapters list
   return (
     <div className={styles.container}>
       <div className={styles.header}>

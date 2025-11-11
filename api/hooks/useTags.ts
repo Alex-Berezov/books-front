@@ -1,8 +1,8 @@
 /**
- * React Query хуки для работы с тегами
+ * React Query hooks for working with tags
  *
- * Тег (Tag) - это метка для классификации и поиска книг.
- * Теги могут быть привязаны к версиям книг.
+ * Tag is a label for classifying and searching books.
+ * Tags can be attached to book versions.
  */
 
 import {
@@ -17,23 +17,23 @@ import type { PaginatedResponse, Tag } from '@/types/api-schema';
 import { versionKeys } from './useBookVersions';
 
 /**
- * Query ключи для тегов
+ * Query keys for tags
  */
 export const tagKeys = {
-  /** Все запросы тегов */
+  /** All tag queries */
   all: ['tags'] as const,
-  /** Списки тегов */
+  /** Tag lists */
   lists: () => [...tagKeys.all, 'list'] as const,
-  /** Список тегов с параметрами */
+  /** Tag list with parameters */
   list: (params: GetTagsParams) => [...tagKeys.lists(), params] as const,
 };
 
 /**
- * Хук для получения списка тегов
+ * Hook for getting tags list
  *
- * @param params - Параметры запроса
- * @param options - Опции React Query
- * @returns React Query результат со списком тегов
+ * @param params - Request parameters
+ * @param options - React Query options
+ * @returns React Query result with tags list
  *
  * @example
  * ```tsx
@@ -47,15 +47,15 @@ export const useTags = (
   return useQuery({
     queryKey: tagKeys.list(params),
     queryFn: () => getTags(params),
-    staleTime: 10 * 60 * 1000, // 10 минут
+    staleTime: 10 * 60 * 1000, // 10 minutes
     ...options,
   });
 };
 
 /**
- * Хук для привязывания тега к версии книги
+ * Hook for attaching tag to book version
  *
- * @param options - Опции React Query mutation
+ * @param options - React Query mutation options
  * @returns React Query mutation
  *
  * @example
@@ -80,7 +80,7 @@ export const useAttachTag = (
   return useMutation({
     mutationFn: ({ versionId, tagId }) => attachTag(versionId, tagId),
     onSuccess: (_data, variables) => {
-      // Инвалидируем данные версии для обновления
+      // Invalidate version data for update
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
     },
     ...options,
@@ -88,9 +88,9 @@ export const useAttachTag = (
 };
 
 /**
- * Хук для отвязывания тега от версии книги
+ * Hook for detaching tag from book version
  *
- * @param options - Опции React Query mutation
+ * @param options - React Query mutation options
  * @returns React Query mutation
  *
  * @example
@@ -115,7 +115,7 @@ export const useDetachTag = (
   return useMutation({
     mutationFn: ({ versionId, tagId }) => detachTag(versionId, tagId),
     onSuccess: (_data, variables) => {
-      // Инвалидируем данные версии для обновления
+      // Invalidate version data for update
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
     },
     ...options,

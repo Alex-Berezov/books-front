@@ -1,7 +1,7 @@
 /**
- * AdminSidebar стили
+ * AdminSidebar styles
  *
- * Мигрировано из React-админки с адаптацией под проектные токены
+ * Migrated from React admin with adaptation to project tokens
  */
 
 @import '@/styles/tokens';
@@ -76,7 +76,7 @@
 }
 
 /**
- * Responsive: на малых экранах скрываем или делаем выдвижным
+ * Responsive: hide or make it slide-out on small screens
  */
 @media (max-width: 768px) {
   .sidebar {

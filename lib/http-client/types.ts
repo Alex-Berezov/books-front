@@ -1,17 +1,17 @@
 /**
- * Типы для HTTP клиента с автоматической авторизацией
+ * Types for HTTP client with automatic authorization
  */
 
 import type { HttpRequestOptions } from '@/types/api';
 
 /**
- * Расширенные опции для HTTP запросов
+ * Extended options for HTTP requests
  */
 export interface ExtendedHttpOptions extends HttpRequestOptions {
-  /** Требуется ли автоматическая авторизация */
+  /** Whether automatic authorization is required */
   requireAuth?: boolean;
-  /** Максимальное количество попыток retry */
+  /** Maximum number of retry attempts */
   maxRetries?: number;
-  /** Включить retry при 401 (автоматический refresh) */
+  /** Enable retry on 401 (automatic refresh) */
   retry401?: boolean;
 }

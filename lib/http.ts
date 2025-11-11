@@ -1,12 +1,12 @@
 /**
- * HTTP клиент для работы с API
+ * HTTP client for API communication
  *
- * Возможности:
- * - Автоматическая установка базового URL
- * - Поддержка Authorization (Bearer token)
- * - Поддержка Accept-Language заголовка
- * - Типизированная обработка ошибок
- * - JSON по умолчанию
+ * Features:
+ * - Automatic base URL configuration
+ * - Authorization support (Bearer token)
+ * - Accept-Language header support
+ * - Typed error handling
+ * - JSON by default
  */
 
 import { ApiError } from '@/types/api';
@@ -22,29 +22,29 @@ import {
 } from './http.constants';
 
 /**
- * Базовый URL API из переменных окружения
- * В production: https://api.bibliaris.com/api
- * В development: http://localhost:5000/api
+ * Base API URL from environment variables
+ * In production: https://api.bibliaris.com/api
+ * In development: http://localhost:5000/api
  */
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
 /**
- * Создаёт заголовки для HTTP запроса
+ * Creates headers for HTTP request
  *
- * @param options - Опции запроса с токеном и языком
- * @returns Готовые заголовки для fetch
+ * @param options - Request options with token and language
+ * @returns Ready headers for fetch
  */
 const createHeaders = (options?: HttpRequestOptions): HeadersInit => {
   const headers: HeadersInit = {
     [HTTP_HEADER.CONTENT_TYPE]: HEADER_VALUE.JSON,
   };
 
-  // Добавляем Authorization заголовок если есть токен
+  // Add Authorization header if token exists
   if (options?.accessToken) {
     headers[HTTP_HEADER.AUTHORIZATION] = `${AUTH_PREFIX.BEARER} ${options.accessToken}`;
   }
 
-  // Добавляем Accept-Language заголовок если указан язык
+  // Add Accept-Language header if language is specified
   if (options?.language) {
     headers[HTTP_HEADER.ACCEPT_LANGUAGE] = options.language;
   }
@@ -53,21 +53,21 @@ const createHeaders = (options?: HttpRequestOptions): HeadersInit => {
 };
 
 /**
- * Обрабатывает ответ от API
+ * Handles API response
  *
- * @param response - Ответ от fetch
- * @returns Распарсенные данные
- * @throws {ApiError} При ошибке API или сети
+ * @param response - Response from fetch
+ * @returns Parsed data
+ * @throws {ApiError} On API or network error
  */
 const handleResponse = async <T>(response: Response): Promise<T> => {
-  // Проверяем статус перед парсингом JSON
+  // Check status before parsing JSON
   if (!response.ok) {
-    // Пытаемся распарсить JSON с ошибкой
+    // Try to parse error JSON
     let errorData;
     try {
       errorData = await response.json();
     } catch (_error) {
-      // Если не удалось распарсить JSON ошибки
+      // If failed to parse error JSON
       throw new ApiError({
         message: DEFAULT_ERROR_MESSAGES.UNKNOWN,
         statusCode: response.status,
@@ -83,17 +83,17 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     });
   }
 
-  // Для успешных ответов без тела (204 No Content)
+  // For successful responses without body (204 No Content)
   if (response.status === 204 || response.headers.get('content-length') === '0') {
     return undefined as T;
   }
 
-  // Пытаемся распарсить JSON ответ для успешных запросов
+  // Try to parse JSON response for successful requests
   let data;
   try {
     data = await response.json();
   } catch (_error) {
-    // Если не удалось распарсить JSON, но статус OK
+    // If failed to parse JSON, but status is OK
     throw new ApiError({
       message: DEFAULT_ERROR_MESSAGES.INVALID_JSON,
       statusCode: response.status,
@@ -105,11 +105,11 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 };
 
 /**
- * Выполняет GET запрос к API
+ * Executes GET request to API
  *
- * @param endpoint - Путь эндпоинта (без базового URL)
- * @param options - Опции запроса
- * @returns Типизированный ответ
+ * @param endpoint - Endpoint path (without base URL)
+ * @param options - Request options
+ * @returns Typed response
  *
  * @example
  * ```ts
@@ -133,12 +133,12 @@ export const httpGet = async <T>(endpoint: string, options?: HttpRequestOptions)
 };
 
 /**
- * Выполняет POST запрос к API
+ * Executes POST request to API
  *
- * @param endpoint - Путь эндпоинта (без базового URL)
- * @param body - Тело запроса
- * @param options - Опции запроса
- * @returns Типизированный ответ
+ * @param endpoint - Endpoint path (without base URL)
+ * @param body - Request body
+ * @param options - Request options
+ * @returns Typed response
  *
  * @example
  * ```ts
@@ -167,12 +167,12 @@ export const httpPost = async <T>(
 };
 
 /**
- * Выполняет PATCH запрос к API
+ * Executes PATCH request to API
  *
- * @param endpoint - Путь эндпоинта (без базового URL)
- * @param body - Тело запроса
- * @param options - Опции запроса
- * @returns Типизированный ответ
+ * @param endpoint - Endpoint path (without base URL)
+ * @param body - Request body
+ * @param options - Request options
+ * @returns Typed response
  *
  * @example
  * ```ts
@@ -202,11 +202,11 @@ export const httpPatch = async <T>(
 };
 
 /**
- * Выполняет DELETE запрос к API
+ * Executes DELETE request to API
  *
- * @param endpoint - Путь эндпоинта (без базового URL)
- * @param options - Опции запроса
- * @returns Типизированный ответ
+ * @param endpoint - Endpoint path (without base URL)
+ * @param options - Request options
+ * @returns Typed response
  *
  * @example
  * ```ts
@@ -229,12 +229,12 @@ export const httpDelete = async <T>(endpoint: string, options?: HttpRequestOptio
 };
 
 /**
- * Выполняет PUT запрос к API
+ * Executes PUT request to API
  *
- * @param endpoint - Путь эндпоинта (без базового URL)
- * @param body - Тело запроса
- * @param options - Опции запроса
- * @returns Типизированный ответ
+ * @param endpoint - Endpoint path (without base URL)
+ * @param body - Request body
+ * @param options - Request options
+ * @returns Typed response
  *
  * @example
  * ```ts
@@ -265,16 +265,16 @@ export const httpPut = async <T>(
 };
 
 /**
- * Утилита для построения URL с query параметрами
+ * Utility for building URL with query parameters
  *
- * @param endpoint - Базовый эндпоинт
- * @param params - Объект с query параметрами
- * @returns URL с query string
+ * @param endpoint - Base endpoint
+ * @param params - Object with query parameters
+ * @returns URL with query string
  *
  * @example
  * ```ts
  * const url = buildUrlWithParams('/books', { page: 1, limit: 10 });
- * // Результат: '/books?page=1&limit=10'
+ * // Result: '/books?page=1&limit=10'
  * ```
  */
 export const buildUrlWithParams = (
@@ -285,7 +285,7 @@ export const buildUrlWithParams = (
     return endpoint;
   }
 
-  // Фильтруем undefined значения и строим query string
+  // Filter undefined values and build query string
   const queryParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined) {
@@ -298,20 +298,20 @@ export const buildUrlWithParams = (
 };
 
 /**
- * Утилита для построения пути с языковым префиксом
+ * Utility for building path with language prefix
  *
- * @param lang - Язык
- * @param path - Путь без языка
- * @returns Полный путь с языком
+ * @param lang - Language
+ * @param path - Path without language
+ * @returns Full path with language
  *
  * @example
  * ```ts
  * const endpoint = buildLangPath('en', '/books/some-slug/overview');
- * // Результат: '/en/books/some-slug/overview'
+ * // Result: '/en/books/some-slug/overview'
  * ```
  */
 export const buildLangPath = (lang: SupportedLang, path: string): string => {
-  // Убираем начальный слэш если есть
+  // Remove leading slash if present
   const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
   return `/${lang}/${normalizedPath}`;
 };

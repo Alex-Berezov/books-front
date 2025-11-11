@@ -1,17 +1,17 @@
 /**
- * Утилиты для работы с авторизацией и сессией
+ * Utilities for working with authorization and session
  *
- * Предоставляет helper-функции для получения текущего пользователя,
- * проверки ролей и работы с сессией на сервере.
+ * Provides helper functions for getting current user,
+ * checking roles and working with session on server.
  */
 
 import { auth } from '@/lib/auth/auth';
 import { STAFF_ROLES } from './constants';
 
 /**
- * Получить текущего пользователя из сессии (серверная функция)
+ * Get current user from session (server function)
  *
- * @returns сессия пользователя или null
+ * @returns user session or null
  *
  * @example
  * ```ts
@@ -28,9 +28,9 @@ export const getCurrentUser = async () => {
 };
 
 /**
- * Проверить, авторизован ли пользователь
+ * Check if user is authenticated
  *
- * @returns true если пользователь авторизован
+ * @returns true if user is authenticated
  */
 export const isAuthenticated = async (): Promise<boolean> => {
   const session = await getCurrentUser();
@@ -38,10 +38,10 @@ export const isAuthenticated = async (): Promise<boolean> => {
 };
 
 /**
- * Проверить, имеет ли пользователь определённую роль
+ * Check if user has a specific role
  *
- * @param role - роль для проверки (admin | content_manager | user)
- * @returns true если у пользователя есть указанная роль
+ * @param role - role to check (admin | content_manager | user)
+ * @returns true if user has the specified role
  */
 export const hasRole = async (role: string): Promise<boolean> => {
   const session = await getCurrentUser();
@@ -50,15 +50,15 @@ export const hasRole = async (role: string): Promise<boolean> => {
 };
 
 /**
- * Проверить, является ли пользователь администратором или контент-менеджером
+ * Check if user is administrator or content manager
  *
- * @returns true если пользователь staff (admin или content_manager)
+ * @returns true if user is staff (admin or content_manager)
  */
 export const isStaff = async (): Promise<boolean> => {
   const session = await getCurrentUser();
   if (!session?.user?.roles) return false;
 
-  // Приведение типа необходимо для совместимости с readonly array
+  // Type casting is necessary for compatibility with readonly array
   const staffRoles: readonly string[] = STAFF_ROLES;
   return session.user.roles.some((role) => staffRoles.includes(role));
 };

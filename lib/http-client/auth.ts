@@ -1,19 +1,19 @@
 /**
- * Модуль авторизации для HTTP клиента
+ * Authorization module for HTTP client
  *
- * Отвечает за получение токенов и обработку ошибок авторизации
+ * Handles token retrieval and authorization error processing
  */
 
 import { getSession, signOut } from 'next-auth/react';
 import { ApiError } from '@/types/api';
 
 /**
- * Получить текущую сессию и access token
+ * Get current session and access token
  *
- * @returns Сессия пользователя или null
+ * @returns User session or null
  */
 export const getCurrentSession = async () => {
-  // Только на клиенте
+  // Client-side only
   if (typeof window === 'undefined') {
     return null;
   }
@@ -28,28 +28,28 @@ export const getCurrentSession = async () => {
 };
 
 /**
- * Получить access token из текущей сессии
+ * Get access token from current session
  *
- * @param requireAuth - Требуется ли авторизация
- * @param providedToken - Токен переданный явно
- * @returns Access token или null
- * @throws ApiError если requireAuth = true и токена нет
+ * @param requireAuth - Whether authorization is required
+ * @param providedToken - Token explicitly provided
+ * @returns Access token or null
+ * @throws ApiError if requireAuth = true and no token available
  */
 export const getAccessToken = async (
   requireAuth: boolean,
   providedToken?: string
 ): Promise<string | undefined> => {
-  // Используем переданный токен если есть
+  // Use provided token if available
   if (providedToken) {
     return providedToken;
   }
 
-  // Если авторизация не требуется, возвращаем undefined
+  // If authorization not required, return undefined
   if (!requireAuth) {
     return undefined;
   }
 
-  // Получаем токен из сессии
+  // Get token from session
   const session = await getCurrentSession();
   const accessToken = session?.accessToken;
 
@@ -65,7 +65,7 @@ export const getAccessToken = async (
 };
 
 /**
- * Выполнить logout при неудачной авторизации
+ * Perform logout on authentication failure
  */
 export const handleAuthFailure = async (): Promise<void> => {
   if (typeof window !== 'undefined') {

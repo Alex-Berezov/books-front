@@ -1,29 +1,29 @@
 # Modal
 
-Универсальный переиспользуемый компонент модального окна.
+Universal reusable modal component.
 
-## Описание
+## Description
 
-`Modal` - это гибкий компонент модального окна для различных сценариев использования:
+`Modal` is a flexible modal component for various use cases:
 
-- ✅ **Подтверждение действий** (удаление, публикация, отмена и т.д.)
-- ✅ **Отображение информации** (уведомления, детали объекта)
-- ✅ **Формы ввода** (создание/редактирование данных)
-- ✅ **Любой кастомный контент** через `children`
+- ✅ **Action confirmation** (delete, publish, cancel, etc.)
+- ✅ **Information display** (notifications, object details)
+- ✅ **Input forms** (create/edit data)
+- ✅ **Any custom content** via `children`
 
-**Возможности:**
+**Features:**
 
-- ✅ Кастомный заголовок с кнопкой закрытия (×)
-- ✅ Произвольное содержимое (через `children`)
-- ✅ Настраиваемые кнопки футера (тексты и варианты стилей)
-- ✅ Поддержка состояния загрузки
-- ✅ Закрытие по клику на оверлей или крестик
-- ✅ Плавные анимации появления/исчезновения
-- ✅ Использует design tokens проекта
+- ✅ Custom title with close button (×)
+- ✅ Arbitrary content (via `children`)
+- ✅ Customizable footer buttons (texts and style variants)
+- ✅ Loading state support
+- ✅ Close on overlay click or close button
+- ✅ Smooth appearance/disappearance animations
+- ✅ Uses project design tokens
 
-## Использование
+## Usage
 
-### Базовый пример (подтверждение действия)
+### Basic example (action confirmation)
 
 ```tsx
 import { useState } from 'react';
@@ -33,7 +33,7 @@ export const MyComponent = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleDelete = () => {
-    // Ваша логика удаления
+    // Your delete logic
     console.log('Deleted!');
     setIsOpen(false);
   };
@@ -58,7 +58,7 @@ export const MyComponent = () => {
 };
 ```
 
-### С состоянием загрузки (React Query)
+### With loading state (React Query)
 
 ```tsx
 import { useState } from 'react';
@@ -113,7 +113,7 @@ export const MyComponent = () => {
 };
 ```
 
-### Информационная модалка
+### Information modal
 
 ```tsx
 <Modal
@@ -139,10 +139,10 @@ export const MyComponent = () => {
 </Modal>
 ```
 
-### Различные варианты кнопок
+### Different button variants
 
 ```tsx
-// Удаление (красная кнопка)
+// Delete (red button)
 <Modal
   confirmVariant="danger"
   confirmText="Delete"
@@ -152,7 +152,7 @@ export const MyComponent = () => {
   <p>This will permanently delete the item.</p>
 </Modal>
 
-// Публикация (зеленая кнопка)
+// Publish (green button)
 <Modal
   confirmVariant="success"
   confirmText="Publish"
@@ -162,7 +162,7 @@ export const MyComponent = () => {
   <p>This page will be visible to all users.</p>
 </Modal>
 
-// Предупреждение (оранжевая кнопка)
+// Warning (orange button)
 <Modal
   confirmVariant="warning"
   confirmText="Proceed"
@@ -172,7 +172,7 @@ export const MyComponent = () => {
   <p>This action may have unexpected consequences.</p>
 </Modal>
 
-// Стандартное действие (синяя кнопка)
+// Standard action (blue button)
 <Modal
   confirmVariant="primary"
   confirmText="Confirm"
@@ -185,98 +185,98 @@ export const MyComponent = () => {
 
 ## Props
 
-| Prop             | Тип                                                     | Обязательный | По умолчанию | Описание                              |
-| ---------------- | ------------------------------------------------------- | ------------ | ------------ | ------------------------------------- |
-| `isOpen`         | `boolean`                                               | ✅           | -            | Показывать ли модалку                 |
-| `title`          | `string`                                                | ✅           | -            | Заголовок модалки                     |
-| `children`       | `ReactNode`                                             | ✅           | -            | Содержимое модалки                    |
-| `onConfirm`      | `() => void`                                            | ✅           | -            | Callback при подтверждении            |
-| `onCancel`       | `() => void`                                            | ✅           | -            | Callback при отмене/закрытии          |
-| `confirmText`    | `string`                                                | ❌           | `'Confirm'`  | Текст кнопки подтверждения            |
-| `cancelText`     | `string`                                                | ❌           | `'Cancel'`   | Текст кнопки отмены                   |
-| `confirmVariant` | `'primary'` \| `'danger'` \| `'warning'` \| `'success'` | ❌           | `'primary'`  | Вариант стиля кнопки подтверждения    |
-| `isLoading`      | `boolean`                                               | ❌           | `false`      | Состояние загрузки (блокирует кнопки) |
+| Prop             | Type                                                    | Required | Default     | Description                      |
+| ---------------- | ------------------------------------------------------- | -------- | ----------- | -------------------------------- |
+| `isOpen`         | `boolean`                                               | ✅       | -           | Whether to show modal            |
+| `title`          | `string`                                                | ✅       | -           | Modal title                      |
+| `children`       | `ReactNode`                                             | ✅       | -           | Modal content                    |
+| `onConfirm`      | `() => void`                                            | ✅       | -           | Callback on confirm              |
+| `onCancel`       | `() => void`                                            | ✅       | -           | Callback on cancel/close         |
+| `confirmText`    | `string`                                                | ❌       | `'Confirm'` | Confirm button text              |
+| `cancelText`     | `string`                                                | ❌       | `'Cancel'`  | Cancel button text               |
+| `confirmVariant` | `'primary'` \| `'danger'` \| `'warning'` \| `'success'` | ❌       | `'primary'` | Confirm button style variant     |
+| `isLoading`      | `boolean`                                               | ❌       | `false`     | Loading state (disables buttons) |
 
-## Варианты кнопок (`confirmVariant`)
+## Button variants (`confirmVariant`)
 
-- **`primary`** - синяя кнопка (стандартные действия, информация)
-- **`danger`** - красная кнопка (удаление, опасные действия)
-- **`warning`** - оранжевая кнопка (предупреждения, внимание)
-- **`success`** - зеленая кнопка (публикация, подтверждение, успех)
+- **`primary`** - blue button (standard actions, information)
+- **`danger`** - red button (delete, dangerous actions)
+- **`warning`** - orange button (warnings, attention)
+- **`success`** - green button (publish, confirm, success)
 
-## Поведение
+## Behavior
 
-### Закрытие модалки
+### Closing modal
 
-Модалка закрывается при:
+Modal closes when:
 
-- Клик по крестику (×) в заголовке
-- Клик по кнопке отмены (`cancelText`)
-- Клик по оверлею (затемненному фону)
+- Click on close button (×) in header
+- Click on cancel button (`cancelText`)
+- Click on overlay (darkened background)
 
-**Важно:** Во время загрузки (`isLoading=true`) закрытие модалки блокируется для предотвращения случайного прерывания операции.
+**Important:** During loading (`isLoading=true`) closing modal is blocked to prevent accidental operation interruption.
 
-### Состояние загрузки
+### Loading state
 
-Когда `isLoading={true}`:
+When `isLoading={true}`:
 
-- Текст кнопки подтверждения меняется на "Processing..."
-- Все кнопки блокируются (`disabled`)
-- Закрытие модалки невозможно (крестик и оверлей не работают)
+- Confirm button text changes to "Processing..."
+- All buttons are disabled
+- Modal cannot be closed (close button and overlay don't work)
 
-### Анимации
+### Animations
 
-- **Оверлей:** Плавное появление (fade in) за `0.15s`
-- **Модалка:** Появление снизу вверх (slide up) за `0.3s`
-- Все анимации используют токены из `$transition-fast` и `$transition-base`
+- **Overlay:** Smooth fade in for `0.15s`
+- **Modal:** Slide up from bottom for `0.3s`
+- All animations use tokens from `$transition-fast` and `$transition-base`
 
-## Примеры использования в проекте
+## Usage examples in project
 
-### PageListTable - удаление страницы
+### PageListTable - delete page
 
-Файл: `/components/admin/pages/PageListTable/PageListTable.tsx`
+File: `/components/admin/pages/PageListTable/PageListTable.tsx`
 
-Полный пример интеграции с React Query для удаления страницы с подтверждением.
+Complete integration example with React Query for deleting page with confirmation.
 
-### PagePublishPanel - публикация страницы
+### PagePublishPanel - publish page
 
-Файл: `/components/admin/pages/PagePublishPanel.tsx`
+File: `/components/admin/pages/PagePublishPanel.tsx`
 
-Более сложный пример с разными состояниями (publish/unpublish) и кастомными сообщениями.
+More complex example with different states (publish/unpublish) and custom messages.
 
-## Стилизация
+## Styling
 
-Модалка использует SCSS модули и design tokens из `styles/tokens.scss`:
+Modal uses SCSS modules and design tokens from `styles/tokens.scss`:
 
-### Используемые токены
+### Used tokens
 
-- **Цвета:**
-  - `$color-primary`, `$color-primary-hover` (синяя кнопка)
-  - `$color-success`, `$color-success-hover` (зеленая кнопка)
-  - `$color-warning`, `$color-warning-hover` (оранжевая кнопка)
-  - `$color-error`, `$color-error-hover` (красная кнопка)
+- **Colors:**
+  - `$color-primary`, `$color-primary-hover` (blue button)
+  - `$color-success`, `$color-success-hover` (green button)
+  - `$color-warning`, `$color-warning-hover` (orange button)
+  - `$color-error`, `$color-error-hover` (red button)
   - `$color-background-*`, `$color-text-*`, `$color-border-*`
 
-- **Отступы:** `$spacing-xs`, `$spacing-sm`, `$spacing-md`, `$spacing-lg`
-- **Тени:** `$shadow-sm`, `$shadow-md`, `$shadow-xl`
-- **Скругления:** `$border-radius-base`, `$border-radius-lg`
-- **Анимации:** `$transition-fast`, `$transition-base`
+- **Spacing:** `$spacing-xs`, `$spacing-sm`, `$spacing-md`, `$spacing-lg`
+- **Shadows:** `$shadow-sm`, `$shadow-md`, `$shadow-xl`
+- **Border radius:** `$border-radius-base`, `$border-radius-lg`
+- **Animations:** `$transition-fast`, `$transition-base`
 - **Z-index:** `$z-index-modal` (1050)
 
-### Кастомизация стилей
+### Style customization
 
-Для изменения внешнего вида модалки редактируйте `Modal.module.scss`. Все стили изолированы через CSS modules.
+To change modal appearance, edit `Modal.module.scss`. All styles are isolated via CSS modules.
 
 ## Accessibility
 
-- ✅ Кнопка закрытия имеет `aria-label="Close modal"`
-- ✅ Все интерактивные элементы имеют правильный `type="button"`
-- ✅ При `isLoading=true` кнопки получают `disabled` атрибут
-- ✅ Модалка блокирует взаимодействие с фоном (оверлей)
+- ✅ Close button has `aria-label="Close modal"`
+- ✅ All interactive elements have proper `type="button"`
+- ✅ When `isLoading=true` buttons receive `disabled` attribute
+- ✅ Modal blocks interaction with background (overlay)
 
-## Миграция с window.confirm
+## Migration from window.confirm
 
-### До (антипаттерн ❌)
+### Before (antipattern ❌)
 
 ```tsx
 const handleDelete = () => {
@@ -287,7 +287,7 @@ const handleDelete = () => {
 };
 ```
 
-### После (правильно ✅)
+### After (correct ✅)
 
 ```tsx
 const [isOpen, setIsOpen] = useState(false);
@@ -301,7 +301,7 @@ const handleConfirm = () => {
   setIsOpen(false);
 };
 
-// В JSX:
+// In JSX:
 <Modal
   isOpen={isOpen}
   title="Confirm Delete"
@@ -314,17 +314,17 @@ const handleConfirm = () => {
 </Modal>;
 ```
 
-## Расширение функциональности
+## Extending functionality
 
-### Сценарии использования
+### Use cases
 
-1. **Подтверждение удаления** - используйте `confirmVariant="danger"`
-2. **Подтверждение публикации** - используйте `confirmVariant="success"`
-3. **Предупреждение** - используйте `confirmVariant="warning"`
-4. **Информация** - используйте `confirmVariant="primary"` и одинаковые callbacks для обеих кнопок
-5. **Формы** - вставьте форму в `children`, обработайте submit в `onConfirm`
+1. **Delete confirmation** - use `confirmVariant="danger"`
+2. **Publish confirmation** - use `confirmVariant="success"`
+3. **Warning** - use `confirmVariant="warning"`
+4. **Information** - use `confirmVariant="primary"` and same callbacks for both buttons
+5. **Forms** - insert form in `children`, handle submit in `onConfirm`
 
-### Пример с формой
+### Example with form
 
 ```tsx
 <Modal
@@ -343,13 +343,13 @@ const handleConfirm = () => {
 </Modal>
 ```
 
-## TODO / Будущие улучшения
+## TODO / Future improvements
 
-- [ ] Поддержка клавиатурных сокращений (Esc для отмены, Enter для подтверждения)
-- [ ] Accessibility: trap focus внутри модалки
-- [ ] Accessibility: restore focus при закрытии
-- [ ] Опциональная иконка в заголовке (info, warning, success, error)
-- [ ] Поддержка разных размеров модалки (sm, md, lg, xl)
-- [ ] Опциональный футер (возможность скрыть кнопки совсем)
-- [ ] Тесты (unit + integration + accessibility)
-- [ ] Storybook stories для всех вариантов использования
+- [ ] Keyboard shortcuts support (Esc to cancel, Enter to confirm)
+- [ ] Accessibility: trap focus inside modal
+- [ ] Accessibility: restore focus on close
+- [ ] Optional icon in header (info, warning, success, error)
+- [ ] Different modal sizes support (sm, md, lg, xl)
+- [ ] Optional footer (ability to hide buttons completely)
+- [ ] Tests (unit + integration + accessibility)
+- [ ] Storybook stories for all use cases

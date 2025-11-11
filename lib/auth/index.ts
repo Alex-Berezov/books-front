@@ -1,22 +1,22 @@
 /**
- * Публичный API модуля авторизации
+ * Public API of authorization module
  *
- * Экспортирует все необходимые функции и компоненты для работы с NextAuth
+ * Exports all necessary functions and components for working with NextAuth
  */
 
-// Основные функции авторизации
+// Main authorization functions
 export { auth, signIn, signOut } from './auth';
 
-// Конфигурация
+// Configuration
 export { authOptions, refreshAccessToken } from './config';
 
-// Провайдер для клиентских компонентов
+// Provider for client components
 export { SessionProvider } from './SessionProvider';
 
-// Вспомогательные функции для серверных компонентов
+// Helper functions for server components
 export { getCurrentUser, isAuthenticated, hasRole, isStaff } from './helpers';
 
-// Константы и типы
+// Constants and types
 export {
   AUTH_TOKEN_EXPIRY,
   AuthErrorType,
