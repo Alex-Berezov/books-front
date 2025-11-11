@@ -60,26 +60,44 @@ const createHeaders = (options?: HttpRequestOptions): HeadersInit => {
  * @throws {ApiError} При ошибке API или сети
  */
 const handleResponse = async <T>(response: Response): Promise<T> => {
-  // Пытаемся распарсить JSON ответ
+  // Проверяем статус перед парсингом JSON
+  if (!response.ok) {
+    // Пытаемся распарсить JSON с ошибкой
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch (_error) {
+      // Если не удалось распарсить JSON ошибки
+      throw new ApiError({
+        message: DEFAULT_ERROR_MESSAGES.UNKNOWN,
+        statusCode: response.status,
+        error: API_ERROR_TYPE.PARSE_ERROR,
+      });
+    }
+
+    throw new ApiError({
+      message: errorData.message || DEFAULT_ERROR_MESSAGES.UNKNOWN,
+      statusCode: response.status,
+      error: errorData.error,
+      details: errorData.details,
+    });
+  }
+
+  // Для успешных ответов без тела (204 No Content)
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return undefined as T;
+  }
+
+  // Пытаемся распарсить JSON ответ для успешных запросов
   let data;
   try {
     data = await response.json();
   } catch (_error) {
-    // Если не удалось распарсить JSON, это серверная ошибка
+    // Если не удалось распарсить JSON, но статус OK
     throw new ApiError({
       message: DEFAULT_ERROR_MESSAGES.INVALID_JSON,
       statusCode: response.status,
       error: API_ERROR_TYPE.PARSE_ERROR,
-    });
-  }
-
-  // Если статус не OK, выбрасываем типизированную ошибку
-  if (!response.ok) {
-    throw new ApiError({
-      message: data.message || DEFAULT_ERROR_MESSAGES.UNKNOWN,
-      statusCode: response.status,
-      error: data.error,
-      details: data.details,
     });
   }
 
