@@ -248,7 +248,9 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
                                   {type === 'audio' && '🎧'}
                                   {type === 'referral' && '🔗'}
                                   {type}
-                                  {count > 1 && <span className={styles.versionCount}>×{count}</span>}
+                                  {count > 1 && (
+                                    <span className={styles.versionCount}>×{count}</span>
+                                  )}
                                 </span>
                               ));
                             })()}
