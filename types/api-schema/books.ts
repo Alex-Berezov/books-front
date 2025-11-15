@@ -16,6 +16,10 @@ export interface VersionPreview {
   id: UUID;
   type: VersionType;
   title?: string;
+  author?: string;
+  language?: SupportedLang;
+  coverImageUrl?: string;
+  coverUrl?: string; // Alias for backward compatibility
   isFree: boolean;
   chaptersCount: number;
   duration?: number; // In seconds for audio

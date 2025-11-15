@@ -5,7 +5,20 @@ const nextConfig = {
     dirs: ['app', 'src', 'lib', 'components'],
   },
   images: {
-    domains: ['api.bibliaris.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.bibliaris.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.com', // Allow all .com domains for testing
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+    ],
   },
 };
 

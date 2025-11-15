@@ -155,14 +155,28 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
                   // Extract the number of versions
                   const versionsCount = book.versions?.length || 0;
 
+                  // Get data from first version (if exists)
+                  const firstVersion = book.versions?.[0];
+                  const displayTitle = firstVersion?.title || book.title || book.slug;
+                  const displayAuthor = firstVersion?.author || book.author;
+                  const displayCover =
+                    firstVersion?.coverImageUrl || firstVersion?.coverUrl || book.coverUrl;
+
+                  // Get all unique languages from versions
+                  const languages = book.versions?.length
+                    ? Array.from(new Set(book.versions.map((v) => v.language).filter(Boolean)))
+                    : book.language
+                      ? [book.language]
+                      : [];
+
                   return (
                     <tr key={book.id}>
                       {/* Cover */}
                       <td className={styles.coverCell}>
-                        {book.coverUrl ? (
+                        {displayCover ? (
                           <Image
-                            src={book.coverUrl}
-                            alt={book.title}
+                            src={displayCover}
+                            alt={displayTitle}
                             width={60}
                             height={90}
                             className={styles.cover}
@@ -175,19 +189,27 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
                       {/* Title */}
                       <td className={styles.titleCell}>
                         <Link href={`/admin/${lang}/books/${book.id}`} className={styles.bookLink}>
-                          {book.title || book.slug}
+                          {displayTitle}
                         </Link>
                         <span className={styles.slug}>{book.slug}</span>
                       </td>
 
                       {/* Author */}
-                      <td>
-                        {book.author || <span className={styles.noData}>—</span>}
-                      </td>
+                      <td>{displayAuthor || <span className={styles.noData}>—</span>}</td>
 
                       {/* Language - show all languages from versions */}
                       <td>
-                        <span className={styles.languageBadge}>{book.language}</span>
+                        {languages.length > 0 ? (
+                          <div className={styles.languages}>
+                            {languages.map((lng) => (
+                              <span key={lng} className={styles.languageBadge}>
+                                {lng}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className={styles.noData}>—</span>
+                        )}
                       </td>
 
                       {/* Categories */}
