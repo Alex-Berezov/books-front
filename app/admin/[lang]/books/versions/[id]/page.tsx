@@ -143,16 +143,32 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.header}>
-        <button
-          className={styles.backButton}
-          onClick={() => router.push(`/admin/${lang}/books`)}
-          type="button"
-        >
-          ← Back to Books List
-        </button>
+        <div className={styles.headerActions}>
+          <button
+            className={styles.backButton}
+            onClick={() => router.push(`/admin/${lang}/books`)}
+            type="button"
+          >
+            ← Back to Books List
+          </button>
+          <button
+            className={styles.addVersionButton}
+            onClick={() =>
+              router.push(
+                `/admin/${lang}/books/new?bookId=${version.bookId}&title=${encodeURIComponent(version.title)}&author=${encodeURIComponent(version.author)}`
+              )
+            }
+            type="button"
+          >
+            + Add Another Version
+          </button>
+        </div>
         <h1 className={styles.pageTitle}>Edit Book Version</h1>
         <p className={styles.versionMeta}>
           {version.title} • {version.language.toUpperCase()} • {version.status}
+        </p>
+        <p className={styles.slugMeta}>
+          Book Slug: <code className={styles.slugCode}>{version.bookSlug}</code>
         </p>
       </div>
 

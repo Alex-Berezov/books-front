@@ -80,6 +80,7 @@ export interface BookVersion {
 export interface BookVersionDetail {
   id: UUID;
   bookId: UUID;
+  bookSlug: string;
   language: SupportedLang;
   title: string;
   author: string;
