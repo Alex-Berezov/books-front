@@ -175,15 +175,17 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
                       {/* Title */}
                       <td className={styles.titleCell}>
                         <Link href={`/admin/${lang}/books/${book.id}`} className={styles.bookLink}>
-                          {book.title}
+                          {book.title || book.slug}
                         </Link>
                         <span className={styles.slug}>{book.slug}</span>
                       </td>
 
                       {/* Author */}
-                      <td>{book.author}</td>
+                      <td>
+                        {book.author || <span className={styles.noData}>—</span>}
+                      </td>
 
-                      {/* Language */}
+                      {/* Language - show all languages from versions */}
                       <td>
                         <span className={styles.languageBadge}>{book.language}</span>
                       </td>
@@ -205,9 +207,24 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
 
                       {/* Versions */}
                       <td className={styles.versionsCell}>
-                        <span className={styles.versionsBadge}>
-                          {versionsCount} {versionsCount === 1 ? 'version' : 'versions'}
-                        </span>
+                        {versionsCount > 0 ? (
+                          <div className={styles.versionsList}>
+                            {book.versions?.map((version) => (
+                              <span
+                                key={version.id}
+                                className={styles.versionBadge}
+                                title={version.title || 'Untitled'}
+                              >
+                                {version.type === 'text' && '📖'}
+                                {version.type === 'audio' && '🎧'}
+                                {version.type === 'referral' && '🔗'}
+                                {version.type}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className={styles.noData}>—</span>
+                        )}
                       </td>
 
                       {/* Rating */}
