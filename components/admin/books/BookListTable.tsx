@@ -229,20 +229,29 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
 
                       {/* Versions */}
                       <td className={styles.versionsCell}>
-                        {versionsCount > 0 ? (
+                        {versionsCount > 0 && book.versions ? (
                           <div className={styles.versionsList}>
-                            {book.versions?.map((version) => (
-                              <span
-                                key={version.id}
-                                className={styles.versionBadge}
-                                title={version.title || 'Untitled'}
-                              >
-                                {version.type === 'text' && '📖'}
-                                {version.type === 'audio' && '🎧'}
-                                {version.type === 'referral' && '🔗'}
-                                {version.type}
-                              </span>
-                            ))}
+                            {(() => {
+                              // Group versions by type
+                              const grouped = book.versions.reduce(
+                                (acc, version) => {
+                                  const type = version.type;
+                                  acc[type] = (acc[type] || 0) + 1;
+                                  return acc;
+                                },
+                                {} as Record<string, number>
+                              );
+
+                              return Object.entries(grouped).map(([type, count]) => (
+                                <span key={type} className={styles.versionBadge}>
+                                  {type === 'text' && '📖'}
+                                  {type === 'audio' && '🎧'}
+                                  {type === 'referral' && '🔗'}
+                                  {type}
+                                  {count > 1 && <span className={styles.versionCount}>×{count}</span>}
+                                </span>
+                              ));
+                            })()}
                           </div>
                         ) : (
                           <span className={styles.noData}>—</span>

@@ -304,6 +304,12 @@
   text-transform: capitalize;
 }
 
+.versionCount {
+  margin-left: $spacing-xs;
+  font-weight: $font-weight-bold;
+  opacity: 0.8;
+}
+
 .versionsBadge {
   display: inline-flex;
   align-items: center;
