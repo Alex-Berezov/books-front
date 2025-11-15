@@ -15,3 +15,5 @@ export { CategoriesPanel } from './CategoriesPanel';
 export type { CategoriesPanelProps } from './CategoriesPanel';
 export { TagsPanel } from './TagsPanel';
 export type { TagsPanelProps } from './TagsPanel';
+export { CreateBookModal } from './CreateBookModal';
+export type { CreateBookModalProps, CreateBookFormData } from './CreateBookModal.types';

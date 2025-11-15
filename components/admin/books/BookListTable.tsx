@@ -5,6 +5,7 @@ import type { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useBooks } from '@/api/hooks';
+import { CreateBookModal } from '@/components/admin/books';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './BookListTable.module.scss';
 
@@ -25,6 +26,9 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
+
+  // Modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Get data through React Query
   const { data, isLoading, error } = useBooks({
@@ -85,9 +89,13 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
       <div className={styles.header}>
         <div className={styles.titleRow}>
           <h1 className={styles.title}>Books Management</h1>
-          <Link href={`/admin/${lang}/books/create`} className={styles.createButton}>
+          <button
+            className={styles.createButton}
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
             + Create Book
-          </Link>
+          </button>
         </div>
 
         <form onSubmit={handleSearch} className={styles.searchForm}>
@@ -209,12 +217,21 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
 
                       {/* Actions */}
                       <td className={styles.actionsCell}>
-                        <Link
-                          href={`/admin/${lang}/books/${book.id}`}
-                          className={styles.actionButton}
-                        >
-                          Edit
-                        </Link>
+                        {versionsCount > 0 && book.versions && book.versions[0] ? (
+                          <Link
+                            href={`/admin/${lang}/books/versions/${book.versions[0].id}`}
+                            className={styles.actionButton}
+                          >
+                            Edit
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/admin/${lang}/books/new?bookId=${book.id}&title=${encodeURIComponent(book.title)}&author=${encodeURIComponent(book.author)}`}
+                            className={styles.actionButton}
+                          >
+                            Add Version
+                          </Link>
+                        )}
                       </td>
                     </tr>
                   );
@@ -249,6 +266,13 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
           )}
         </>
       )}
+
+      {/* Create Book Modal */}
+      <CreateBookModal
+        isOpen={isCreateModalOpen}
+        lang={lang}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
     </div>
   );
 };

@@ -50,6 +50,10 @@ export interface BookFormProps {
   bookId?: string;
   /** Existing version data (for editing) */
   initialData?: BookVersionDetail;
+  /** Initial title (from URL params) */
+  initialTitle?: string;
+  /** Initial author (from URL params) */
+  initialAuthor?: string;
   /** Callback on successful form submission */
   onSubmit: (data: BookFormData) => void | Promise<void>;
   /** Loading flag (e.g., when submitting to server) */
@@ -63,7 +67,7 @@ export interface BookFormProps {
  * Supports creating new version and editing existing one.
  */
 export const BookForm: FC<BookFormProps> = (props) => {
-  const { lang, initialData, onSubmit, isSubmitting = false } = props;
+  const { lang, initialData, initialTitle, initialAuthor, onSubmit, isSubmitting = false } = props;
 
   // Initialize form with react-hook-form
   const {
@@ -87,7 +91,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
           type: initialData.type,
         }
       : {
-          author: '',
+          author: initialAuthor || '',
           coverImageUrl: '',
           description: '',
           isFree: true,
@@ -95,7 +99,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
           referralUrl: '',
           seoMetaDescription: '',
           seoMetaTitle: '',
-          title: '',
+          title: initialTitle || '',
           type: 'text' as const,
         },
   });

@@ -19,6 +19,7 @@ interface NewBookVersionPageProps {
  * New book version creation page
  *
  * Displays form for creating new version (language, title, author, etc.)
+ * Can accept pre-filled title and author from URL params
  */
 const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
   const { params } = props;
@@ -28,8 +29,10 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Get bookId from query parameters
+  // Get data from query parameters
   const bookId = searchParams.get('bookId');
+  const titleFromUrl = searchParams.get('title');
+  const authorFromUrl = searchParams.get('author');
 
   // Mutation for creating version
   const createMutation = useCreateBookVersion({
@@ -91,6 +94,8 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
       <h1 className={styles.title}>Create New Book Version</h1>
       <BookForm
         bookId={bookId}
+        initialTitle={titleFromUrl || undefined}
+        initialAuthor={authorFromUrl || undefined}
         isSubmitting={createMutation.isPending}
         lang={lang}
         onSubmit={handleSubmit}
