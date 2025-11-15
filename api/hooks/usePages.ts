@@ -68,6 +68,9 @@ export const usePages = (
   return useQuery({
     queryKey: pageKeys.list(params),
     queryFn: () => getPages(params),
+    staleTime: 0, // Always consider data stale
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window gains focus
     ...options,
   });
 };
@@ -94,6 +97,9 @@ export const usePage = (
     queryKey: pageKeys.detail(pageId),
     queryFn: () => getPageById(pageId),
     enabled: !!pageId,
+    staleTime: 0, // Always consider data stale
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window gains focus
     ...options,
   });
 };
@@ -131,8 +137,8 @@ export const useCreatePage = (
   return useMutation({
     mutationFn: ({ data, lang = 'en' }) => createPage(data, lang),
     onSuccess: () => {
-      // Invalidate pages list for update
-      queryClient.invalidateQueries({ queryKey: pageKeys.lists() });
+      // Refetch pages list immediately for update
+      queryClient.refetchQueries({ queryKey: pageKeys.lists() });
     },
     ...options,
   });
@@ -171,9 +177,9 @@ export const useUpdatePage = (
   return useMutation({
     mutationFn: ({ pageId, data, lang = 'en' }) => updatePage(pageId, data, lang),
     onSuccess: (_data, variables) => {
-      // Invalidate page details and list
-      queryClient.invalidateQueries({ queryKey: pageKeys.detail(variables.pageId) });
-      queryClient.invalidateQueries({ queryKey: pageKeys.lists() });
+      // Refetch page details and list immediately
+      queryClient.refetchQueries({ queryKey: pageKeys.detail(variables.pageId) });
+      queryClient.refetchQueries({ queryKey: pageKeys.lists() });
     },
     ...options,
   });
@@ -204,9 +210,9 @@ export const usePublishPage = (
   return useMutation({
     mutationFn: ({ pageId, lang = 'en' }) => publishPage(pageId, lang),
     onSuccess: (_data, variables) => {
-      // Invalidate page details and list
-      queryClient.invalidateQueries({ queryKey: pageKeys.detail(variables.pageId) });
-      queryClient.invalidateQueries({ queryKey: pageKeys.lists() });
+      // Refetch page details and list immediately
+      queryClient.refetchQueries({ queryKey: pageKeys.detail(variables.pageId) });
+      queryClient.refetchQueries({ queryKey: pageKeys.lists() });
     },
     ...options,
   });
@@ -237,9 +243,9 @@ export const useUnpublishPage = (
   return useMutation({
     mutationFn: ({ pageId, lang = 'en' }) => unpublishPage(pageId, lang),
     onSuccess: (_data, variables) => {
-      // Invalidate page details and list
-      queryClient.invalidateQueries({ queryKey: pageKeys.detail(variables.pageId) });
-      queryClient.invalidateQueries({ queryKey: pageKeys.lists() });
+      // Refetch page details and list immediately
+      queryClient.refetchQueries({ queryKey: pageKeys.detail(variables.pageId) });
+      queryClient.refetchQueries({ queryKey: pageKeys.lists() });
     },
     ...options,
   });
@@ -273,10 +279,10 @@ export const useDeletePage = (
 
   return useMutation({
     mutationFn: ({ pageId, lang = 'en' }) => deletePage(pageId, lang),
-    onSuccess: (_data, variables) => {
-      // Invalidate page details and list
-      queryClient.invalidateQueries({ queryKey: pageKeys.detail(variables.pageId) });
-      queryClient.invalidateQueries({ queryKey: pageKeys.lists() });
+    onSuccess: () => {
+      // Refetch pages list immediately after deletion
+      queryClient.refetchQueries({ queryKey: pageKeys.lists() });
+      // Note: Don't refetch deleted page details
     },
     ...options,
   });
