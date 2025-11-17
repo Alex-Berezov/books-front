@@ -35,12 +35,10 @@ const EditPage: FC<EditPageProps> = (props) => {
   const updateMutation = useUpdatePage({
     onSuccess: () => {
       enqueueSnackbar('Page updated successfully', { variant: 'success' });
-      console.log('Page updated successfully');
       // Force router refresh to invalidate all caches
       router.refresh();
     },
     onError: (error) => {
-      console.error('Failed to update page:', error);
       enqueueSnackbar(`Failed to update page: ${error.message}`, { variant: 'error' });
     },
   });
@@ -50,7 +48,6 @@ const EditPage: FC<EditPageProps> = (props) => {
    */
   const handlePublishSuccess = () => {
     enqueueSnackbar('Page published successfully', { variant: 'success' });
-    console.log('Page published successfully');
     // Force router refresh to invalidate all caches
     router.refresh();
   };
@@ -60,7 +57,6 @@ const EditPage: FC<EditPageProps> = (props) => {
    */
   const handleUnpublishSuccess = () => {
     enqueueSnackbar('Page unpublished successfully', { variant: 'success' });
-    console.log('Page unpublished successfully');
     // Force router refresh to invalidate all caches
     router.refresh();
   };

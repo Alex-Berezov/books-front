@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { useSnackbar } from 'notistack';
 import { useChapters } from '@/api/hooks';
 import styles from './ReadContentTab.module.scss';
 
@@ -24,6 +25,7 @@ export interface ReadContentTabProps {
  */
 export const ReadContentTab: FC<ReadContentTabProps> = (props) => {
   const { versionId } = props;
+  const { enqueueSnackbar } = useSnackbar();
 
   // Load chapters
   const { data: chapters, error, isLoading } = useChapters(versionId);
@@ -33,7 +35,7 @@ export const ReadContentTab: FC<ReadContentTabProps> = (props) => {
    */
   const handleAddChapter = () => {
     // TODO (M3.2.3): Implement chapter creation
-    console.log('Add chapter for version:', versionId);
+    enqueueSnackbar('Chapter creation not yet implemented', { variant: 'info' });
   };
 
   /**
@@ -41,7 +43,7 @@ export const ReadContentTab: FC<ReadContentTabProps> = (props) => {
    */
   const handleEditChapter = (chapterId: string) => {
     // TODO (M3.2.3): Implement chapter editing
-    console.log('Edit chapter:', chapterId);
+    enqueueSnackbar(`Chapter editing not yet implemented (ID: ${chapterId})`, { variant: 'info' });
   };
 
   /**
@@ -49,7 +51,7 @@ export const ReadContentTab: FC<ReadContentTabProps> = (props) => {
    */
   const handleDeleteChapter = (chapterId: string) => {
     // TODO (M3.2.3): Implement chapter deletion
-    console.log('Delete chapter:', chapterId);
+    enqueueSnackbar(`Chapter deletion not yet implemented (ID: ${chapterId})`, { variant: 'info' });
   };
 
   // Loading state

@@ -25,14 +25,12 @@ export default function NewPage(props: NewPageProps) {
   // Mutation for creating page
   const createMutation = useCreatePage({
     onSuccess: (data) => {
-      console.log('Page created successfully:', data);
       enqueueSnackbar('Page created successfully', { variant: 'success' });
 
       // ✅ Redirect to edit page
       router.push(`/admin/${lang}/pages/${data.id}`);
     },
     onError: (error) => {
-      console.error('Failed to create page:', error);
       enqueueSnackbar(`Failed to create page: ${error.message}`, { variant: 'error' });
     },
   });

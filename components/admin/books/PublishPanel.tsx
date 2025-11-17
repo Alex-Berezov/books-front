@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
+import { useSnackbar } from 'notistack';
 import { usePublishVersion, useUnpublishVersion } from '@/api/hooks';
 import type { PublicationStatus } from '@/types/api-schema';
 import styles from './PublishPanel.module.scss';
@@ -25,6 +26,7 @@ export interface PublishPanelProps {
  */
 export const PublishPanel: FC<PublishPanelProps> = (props) => {
   const { versionId, status, onPublishSuccess, onUnpublishSuccess } = props;
+  const { enqueueSnackbar } = useSnackbar();
 
   // Confirmation modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -37,8 +39,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
       onPublishSuccess?.();
     },
     onError: (error) => {
-      console.error('Failed to publish version:', error);
-      // TODO: Show error toast
+      enqueueSnackbar(`Failed to publish version: ${error.message}`, { variant: 'error' });
     },
   });
 
@@ -48,8 +49,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
       onUnpublishSuccess?.();
     },
     onError: (error) => {
-      console.error('Failed to unpublish version:', error);
-      // TODO: Show error toast
+      enqueueSnackbar(`Failed to unpublish version: ${error.message}`, { variant: 'error' });
     },
   });
 

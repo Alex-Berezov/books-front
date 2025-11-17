@@ -2,6 +2,7 @@
 
 import { useState, type FC } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSnackbar } from 'notistack';
 import { useCreateBook } from '@/api/hooks';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
@@ -21,6 +22,7 @@ const CreateBookPage: FC<CreateBookPageProps> = (props) => {
   const { lang } = params;
 
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
   const [slug, setSlug] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,7 +32,7 @@ const CreateBookPage: FC<CreateBookPageProps> = (props) => {
     e.preventDefault();
 
     if (!slug.trim()) {
-      alert('Please enter a book slug');
+      enqueueSnackbar('Please enter a book slug', { variant: 'warning' });
       return;
     }
 
@@ -44,11 +46,12 @@ const CreateBookPage: FC<CreateBookPageProps> = (props) => {
           .replace(/[^a-z0-9-]/g, '-'),
       });
 
+      enqueueSnackbar('Book created successfully', { variant: 'success' });
+
       // Redirect to create first book version
       router.push(`/admin/${lang}/books/new?bookId=${newBook.id}`);
     } catch (error) {
-      console.error('Failed to create book:', error);
-      alert('Failed to create book. Please try again.');
+      enqueueSnackbar('Failed to create book. Please try again.', { variant: 'error' });
     } finally {
       setIsSubmitting(false);
     }

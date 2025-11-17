@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { useSnackbar } from 'notistack';
 import { useChapters } from '@/api/hooks';
 import styles from './ReadContentTab.module.scss'; // Используем те же стили
 
@@ -23,6 +24,7 @@ export interface ListenContentTabProps {
  */
 export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
   const { versionId } = props;
+  const { enqueueSnackbar } = useSnackbar();
 
   // Load chapters (audio)
   const { data: chapters, error, isLoading } = useChapters(versionId);
@@ -32,7 +34,7 @@ export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
    */
   const handleUploadAudio = () => {
     // TODO (M3.2.3): Implement audio upload
-    console.log('Upload audio for version:', versionId);
+    enqueueSnackbar('Audio upload not yet implemented', { variant: 'info' });
   };
 
   /**
@@ -40,7 +42,7 @@ export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
    */
   const handleAddAudioChapter = () => {
     // TODO (M3.2.3): Implement audio chapter creation
-    console.log('Add audio chapter for version:', versionId);
+    enqueueSnackbar('Audio chapter creation not yet implemented', { variant: 'info' });
   };
 
   /**
@@ -48,7 +50,7 @@ export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
    */
   const handleEditAudioChapter = (chapterId: string) => {
     // TODO (M3.2.3): Implement audio chapter editing
-    console.log('Edit audio chapter:', chapterId);
+    enqueueSnackbar(`Audio chapter editing not yet implemented (ID: ${chapterId})`, { variant: 'info' });
   };
 
   // Loading state

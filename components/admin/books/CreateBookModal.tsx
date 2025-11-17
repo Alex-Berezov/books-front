@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import type { FC, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSnackbar } from 'notistack';
 import { checkBookSlugUniqueness } from '@/api/endpoints/slug-validation';
 import { useCreateBook } from '@/api/hooks';
 import { Modal } from '@/components/common/Modal';
@@ -30,6 +31,7 @@ export const CreateBookModal: FC<CreateBookModalProps> = (props) => {
   const { isOpen, onClose, lang } = props;
 
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
   const createBookMutation = useCreateBook();
 
   // Form state
@@ -86,7 +88,6 @@ export const CreateBookModal: FC<CreateBookModalProps> = (props) => {
           setFinalSlug(generatedSlug);
         }
       } catch (error) {
-        console.error('Error validating slug:', error);
         // On error, use generated slug (validation failed gracefully)
         setFinalSlug(generatedSlug);
       } finally {
@@ -159,6 +160,8 @@ export const CreateBookModal: FC<CreateBookModalProps> = (props) => {
         slug: finalSlug,
       });
 
+      enqueueSnackbar('Book created successfully', { variant: 'success' });
+
       // Close modal
       onClose();
 
@@ -173,8 +176,7 @@ export const CreateBookModal: FC<CreateBookModalProps> = (props) => {
         `/admin/${lang}/books/new?bookId=${newBook.id}&title=${encodeURIComponent(formData.title)}&author=${encodeURIComponent(formData.author)}`
       );
     } catch (error) {
-      console.error('Failed to create book:', error);
-      setErrors({ title: 'Failed to create book. Please try again.' });
+      enqueueSnackbar('Failed to create book. Please try again.', { variant: 'error' });
     }
   };
 

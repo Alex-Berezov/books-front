@@ -5,6 +5,7 @@ import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { BookVersionDetail } from '@/types/api-schema';
 import styles from './BookForm.module.scss';
@@ -13,6 +14,12 @@ import styles from './BookForm.module.scss';
  * Validation schema for book version form
  */
 const bookVersionSchema = z.object({
+  /** Book slug (URL identifier) */
+  bookSlug: z
+    .string()
+    .min(1, 'Slug is required')
+    .max(100, 'Slug is too long')
+    .regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
   /** Book version language */
   language: z.enum(['en', 'es', 'fr', 'pt']),
   /** Book title */
@@ -75,10 +82,13 @@ export const BookForm: FC<BookFormProps> = (props) => {
     handleSubmit,
     register,
     reset,
+    setValue,
+    watch,
   } = useForm<BookFormData>({
     resolver: zodResolver(bookVersionSchema),
     defaultValues: initialData
       ? {
+          bookSlug: initialData.bookSlug || '',
           author: initialData.author,
           coverImageUrl: initialData.coverImageUrl || '',
           description: initialData.description || '',
@@ -91,6 +101,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
           type: initialData.type,
         }
       : {
+          bookSlug: '',
           author: initialAuthor || '',
           coverImageUrl: '',
           description: '',
@@ -108,6 +119,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
   useEffect(() => {
     if (initialData) {
       reset({
+        bookSlug: initialData.bookSlug || '',
         author: initialData.author,
         coverImageUrl: initialData.coverImageUrl || '',
         description: initialData.description || '',
@@ -176,6 +188,27 @@ export const BookForm: FC<BookFormProps> = (props) => {
             {...register('author')}
           />
           {errors.author && <span className={styles.error}>{errors.author.message}</span>}
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="bookSlug">
+            Book Slug *
+          </label>
+          <SlugInput
+            autoGenerate
+            entityType="book"
+            error={errors.bookSlug?.message}
+            excludeId={initialData?.bookId}
+            id="bookSlug"
+            onChange={(value) => setValue('bookSlug', value)}
+            placeholder="harry-potter"
+            showGenerateButton
+            sourceValue={watch('title')}
+            value={watch('bookSlug')}
+          />
+          <span className={styles.hint}>
+            URL-friendly identifier for the book (lowercase, hyphens only). Example: about-us
+          </span>
         </div>
 
         <div className={styles.field}>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
+import { useSnackbar } from 'notistack';
 import { useAttachCategory, useCategoriesTree, useDetachCategory } from '@/api/hooks';
 import type { Category } from '@/types/api-schema';
 import styles from './CategoriesPanel.module.scss';
@@ -22,6 +23,7 @@ export interface CategoriesPanelProps {
  */
 export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
   const { versionId, selectedCategories, onCategoriesChange } = props;
+  const { enqueueSnackbar } = useSnackbar();
 
   // State of expanded categories in tree
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
@@ -32,21 +34,21 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
   // Mutations for attach/detach
   const attachMutation = useAttachCategory({
     onSuccess: () => {
+      enqueueSnackbar('Category attached successfully', { variant: 'success' });
       onCategoriesChange?.();
     },
     onError: (error) => {
-      console.error('Failed to attach category:', error);
-      // TODO: Show error toast
+      enqueueSnackbar(`Failed to attach category: ${error.message}`, { variant: 'error' });
     },
   });
 
   const detachMutation = useDetachCategory({
     onSuccess: () => {
+      enqueueSnackbar('Category detached successfully', { variant: 'success' });
       onCategoriesChange?.();
     },
     onError: (error) => {
-      console.error('Failed to detach category:', error);
-      // TODO: Show error toast
+      enqueueSnackbar(`Failed to detach category: ${error.message}`, { variant: 'error' });
     },
   });
 

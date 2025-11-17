@@ -5,6 +5,7 @@ import type { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { useSnackbar } from 'notistack';
 import { useBooks, useDeleteBook } from '@/api/hooks';
 import { CreateBookModal, DeleteBookModal } from '@/components/admin/books';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -26,6 +27,7 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
   // Get current user session to check role
   const { data: session } = useSession();
   const isAdmin = session?.user?.roles?.includes('admin') || false;
+  const { enqueueSnackbar } = useSnackbar();
 
   // State for managing pagination and search
   const [page, setPage] = useState(1);
@@ -45,7 +47,14 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
   });
 
   // Delete book mutation
-  const deleteBookMutation = useDeleteBook();
+  const deleteBookMutation = useDeleteBook({
+    onSuccess: () => {
+      enqueueSnackbar('Book deleted successfully', { variant: 'success' });
+    },
+    onError: (error) => {
+      enqueueSnackbar(`Failed to delete book: ${error.message}`, { variant: 'error' });
+    },
+  });
 
   // Search handler
   const handleSearch = (e: React.FormEvent) => {
@@ -83,13 +92,8 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
   const handleConfirmDelete = async () => {
     if (!bookToDelete) return;
 
-    try {
-      await deleteBookMutation.mutateAsync(bookToDelete.id);
-      handleCloseDeleteModal();
-    } catch (error) {
-      console.error('Failed to delete book:', error);
-      // Error will be shown by React Query
-    }
+    await deleteBookMutation.mutateAsync(bookToDelete.id);
+    handleCloseDeleteModal();
   };
 
   // Loading state

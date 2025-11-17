@@ -2,6 +2,7 @@
 
 import type { FC } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useSnackbar } from 'notistack';
 import { useCreateBookVersion } from '@/api/hooks';
 import { BookForm } from '@/components/admin/books';
 import type { BookFormData } from '@/components/admin/books';
@@ -28,6 +29,7 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
   // Navigation hooks
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { enqueueSnackbar } = useSnackbar();
 
   // Get data from query parameters
   const bookId = searchParams.get('bookId');
@@ -37,12 +39,12 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
   // Mutation for creating version
   const createMutation = useCreateBookVersion({
     onSuccess: (data) => {
+      enqueueSnackbar('Book version created successfully', { variant: 'success' });
       // Redirect to created version edit page
       router.push(`/admin/${lang}/books/versions/${data.id}`);
     },
     onError: (error) => {
-      // TODO: Show toast notification about error
-      console.error('Failed to create book version:', error);
+      enqueueSnackbar(`Failed to create book version: ${error.message}`, { variant: 'error' });
     },
   });
 
@@ -52,7 +54,7 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
   const handleSubmit = async (formData: BookFormData) => {
     // Check that bookId is present
     if (!bookId) {
-      console.error('bookId is required');
+      enqueueSnackbar('Missing bookId parameter', { variant: 'error' });
       return;
     }
 

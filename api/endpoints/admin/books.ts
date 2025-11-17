@@ -6,7 +6,7 @@
  * multiple versions in different languages.
  */
 
-import { httpDeleteAuth, httpGetAuth, httpPostAuth } from '@/lib/http-client';
+import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   BookOverview,
   CreateBookRequest,
@@ -85,4 +85,24 @@ export const createBook = async (data: CreateBookRequest): Promise<CreateBookRes
 export const deleteBook = async (bookId: string): Promise<void> => {
   const endpoint = `/books/${bookId}`;
   return httpDeleteAuth<void>(endpoint);
+};
+
+/**
+ * Update book data (e.g., slug)
+ *
+ * @param bookId - ID of the book to update
+ * @param data - Update data
+ * @returns Updated book
+ *
+ * @example
+ * ```ts
+ * const book = await updateBook('book-uuid-123', { slug: 'new-slug' });
+ * ```
+ */
+export const updateBook = async (
+  bookId: string,
+  data: { slug: string }
+): Promise<CreateBookResponse> => {
+  const endpoint = `/books/${bookId}`;
+  return httpPatchAuth<CreateBookResponse>(endpoint, data);
 };

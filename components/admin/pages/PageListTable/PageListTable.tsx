@@ -54,7 +54,6 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
       refetch();
     },
     onError: (error) => {
-      console.error('Failed to delete page:', error);
       enqueueSnackbar(`Failed to delete page: ${error.message}`, { variant: 'error' });
     },
   });
@@ -131,7 +130,7 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
 
   // Проверка на правильный формат данных
   if (Array.isArray(data) || !data.meta || !data.data) {
-    console.error('Invalid data format received:', data);
+    enqueueSnackbar('Invalid API response format received', { variant: 'error' });
     return (
       <ErrorState
         lang={lang}

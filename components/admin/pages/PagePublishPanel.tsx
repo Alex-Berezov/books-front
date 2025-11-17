@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
+import { useSnackbar } from 'notistack';
 import { usePublishPage, useUnpublishPage } from '@/api/hooks';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PageResponse, PublicationStatus } from '@/types/api-schema';
@@ -26,6 +27,7 @@ export interface PagePublishPanelProps {
  */
 export const PagePublishPanel: FC<PagePublishPanelProps> = (props) => {
   const { lang, page, onPublishSuccess, onUnpublishSuccess } = props;
+  const { enqueueSnackbar } = useSnackbar();
 
   // Состояние модального окна подтверждения
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -35,22 +37,22 @@ export const PagePublishPanel: FC<PagePublishPanelProps> = (props) => {
   const publishMutation = usePublishPage({
     onSuccess: () => {
       setShowConfirmModal(false);
+      enqueueSnackbar('Page published successfully', { variant: 'success' });
       onPublishSuccess?.();
     },
     onError: (error) => {
-      console.error('Failed to publish page:', error);
-      alert(`Failed to publish page: ${error.message}`);
+      enqueueSnackbar(`Failed to publish page: ${error.message}`, { variant: 'error' });
     },
   });
 
   const unpublishMutation = useUnpublishPage({
     onSuccess: () => {
       setShowConfirmModal(false);
+      enqueueSnackbar('Page unpublished successfully', { variant: 'success' });
       onUnpublishSuccess?.();
     },
     onError: (error) => {
-      console.error('Failed to unpublish page:', error);
-      alert(`Failed to unpublish page: ${error.message}`);
+      enqueueSnackbar(`Failed to unpublish page: ${error.message}`, { variant: 'error' });
     },
   });
 

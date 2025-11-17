@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
-import { useBookVersion, useUpdateBookVersion } from '@/api/hooks';
+import { useSnackbar } from 'notistack';
+import { useBookVersion, useUpdateBook, useUpdateBookVersion } from '@/api/hooks';
 import {
   BookForm,
   BookVersionTabs,
@@ -37,6 +38,7 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
   const { lang, id: versionId } = params;
 
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
   // Active tab state
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -47,12 +49,20 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
   // Mutation for updating version
   const updateMutation = useUpdateBookVersion({
     onSuccess: () => {
-      // TODO: Show success toast notification
-      console.log('Book version updated successfully');
+      enqueueSnackbar('Book version updated successfully', { variant: 'success' });
     },
     onError: (error) => {
-      // TODO: Show error toast notification
-      console.error('Failed to update book version:', error);
+      enqueueSnackbar(`Failed to update book version: ${error.message}`, { variant: 'error' });
+    },
+  });
+
+  // Mutation for updating book (e.g., slug)
+  const updateBookMutation = useUpdateBook({
+    onSuccess: () => {
+      enqueueSnackbar('Book slug updated successfully', { variant: 'success' });
+    },
+    onError: (error) => {
+      enqueueSnackbar(`Failed to update book slug: ${error.message}`, { variant: 'error' });
     },
   });
 
@@ -60,38 +70,51 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
    * Successful publish handler
    */
   const handlePublishSuccess = () => {
-    // TODO: Show toast notification
-    console.log('Version published successfully');
+    enqueueSnackbar('Version published successfully', { variant: 'success' });
   };
 
   /**
    * Successful unpublish handler
    */
   const handleUnpublishSuccess = () => {
-    // TODO: Show toast notification
-    console.log('Version unpublished successfully');
+    enqueueSnackbar('Version unpublished successfully', { variant: 'success' });
   };
 
   /**
    * Categories change handler
    */
   const handleCategoriesChange = () => {
-    // TODO: Show toast notification
-    console.log('Categories updated');
+    enqueueSnackbar('Categories updated successfully', { variant: 'success' });
   };
 
   /**
    * Tags change handler
    */
   const handleTagsChange = () => {
-    // TODO: Show toast notification
-    console.log('Tags updated');
+    enqueueSnackbar('Tags updated successfully', { variant: 'success' });
   };
 
   /**
    * Form submission handler
    */
   const handleSubmit = async (formData: BookFormData) => {
+    // Check if slug has changed
+    const slugChanged = version && formData.bookSlug !== version.bookSlug;
+
+    // If slug changed, update book first
+    if (slugChanged && version) {
+      try {
+        await updateBookMutation.mutateAsync({
+          bookId: version.bookId,
+          data: { slug: formData.bookSlug },
+        });
+      } catch (error) {
+        // Error already handled by mutation's onError callback
+        // Don't proceed with version update if slug update failed
+        return;
+      }
+    }
+
     // Convert form data to API format
     const requestData: UpdateBookVersionRequest = {
       title: formData.title,
@@ -167,9 +190,6 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
         <p className={styles.versionMeta}>
           {version.title} • {version.language.toUpperCase()} • {version.status}
         </p>
-        <p className={styles.slugMeta}>
-          Book Slug: <code className={styles.slugCode}>{version.bookSlug}</code>
-        </p>
       </div>
 
       <div className={styles.contentLayout}>
@@ -181,7 +201,7 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
             overviewContent={
               <BookForm
                 initialData={version}
-                isSubmitting={updateMutation.isPending}
+                isSubmitting={updateMutation.isPending || updateBookMutation.isPending}
                 lang={lang}
                 onSubmit={handleSubmit}
               />

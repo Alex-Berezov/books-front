@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
+import { useSnackbar } from 'notistack';
 import styles from './SummaryTab.module.scss';
 
 /**
@@ -21,7 +22,8 @@ export interface SummaryTabProps {
  * - Themes and analysis (themes and analysis)
  */
 export const SummaryTab: FC<SummaryTabProps> = (props) => {
-  const { versionId } = props;
+  const { versionId: _versionId } = props;
+  const { enqueueSnackbar } = useSnackbar();
 
   // Local state for summary fields
   const [summaryText, setSummaryText] = useState('');
@@ -33,11 +35,7 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
    */
   const handleSave = () => {
     // TODO (M3.2.3): Implement summary saving
-    console.log('Save summary for version:', versionId, {
-      keyTakeaways,
-      summaryText,
-      themes,
-    });
+    enqueueSnackbar('Summary saving not yet implemented', { variant: 'info' });
   };
 
   return (

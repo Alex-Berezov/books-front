@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
+import { useSnackbar } from 'notistack';
 import { useAttachTag, useDetachTag, useTags } from '@/api/hooks';
 import type { Tag } from '@/types/api-schema';
 import styles from './TagsPanel.module.scss';
@@ -22,6 +23,7 @@ export interface TagsPanelProps {
  */
 export const TagsPanel: FC<TagsPanelProps> = (props) => {
   const { versionId, selectedTags, onTagsChange } = props;
+  const { enqueueSnackbar } = useSnackbar();
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,21 +43,21 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
   // Mutations for attach/detach
   const attachMutation = useAttachTag({
     onSuccess: () => {
+      enqueueSnackbar('Tag attached successfully', { variant: 'success' });
       onTagsChange?.();
     },
     onError: (error) => {
-      console.error('Failed to attach tag:', error);
-      // TODO: Show error toast
+      enqueueSnackbar(`Failed to attach tag: ${error.message}`, { variant: 'error' });
     },
   });
 
   const detachMutation = useDetachTag({
     onSuccess: () => {
+      enqueueSnackbar('Tag removed successfully', { variant: 'success' });
       onTagsChange?.();
     },
     onError: (error) => {
-      console.error('Failed to detach tag:', error);
-      // TODO: Show error toast
+      enqueueSnackbar(`Failed to remove tag: ${error.message}`, { variant: 'error' });
     },
   });
 
