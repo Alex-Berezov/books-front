@@ -229,9 +229,16 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
 
                       {/* Title */}
                       <td className={styles.titleCell}>
-                        <Link href={`/admin/${lang}/books/${book.id}`} className={styles.bookLink}>
-                          {displayTitle}
-                        </Link>
+                        {versionsCount > 0 && book.versions && book.versions[0] ? (
+                          <Link
+                            href={`/admin/${lang}/books/versions/${book.versions[0].id}`}
+                            className={styles.bookLink}
+                          >
+                            {displayTitle}
+                          </Link>
+                        ) : (
+                          <span className={styles.bookLink}>{displayTitle}</span>
+                        )}
                         <span className={styles.slug}>{book.slug}</span>
                       </td>
 
