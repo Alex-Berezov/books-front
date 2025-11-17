@@ -12,7 +12,7 @@ import {
   type UseMutationOptions,
   type UseQueryOptions,
 } from '@tanstack/react-query';
-import { createBook, getBooks, type GetBooksParams } from '@/api/endpoints/admin/books';
+import { createBook, deleteBook, getBooks, type GetBooksParams } from '@/api/endpoints/admin/books';
 import type {
   BookOverview,
   CreateBookRequest,
@@ -91,6 +91,37 @@ export const useCreateBook = (
     mutationFn: createBook,
     onSuccess: () => {
       // Invalidate books list after creation
+      queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
+    },
+    ...options,
+  });
+};
+
+/**
+ * Hook for deleting a book (container)
+ *
+ * @param options - React Query mutation options
+ * @returns React Query mutation for deleting book
+ *
+ * @example
+ * ```tsx
+ * const deleteBookMutation = useDeleteBook();
+ *
+ * const handleDeleteBook = async (bookId: string) => {
+ *   await deleteBookMutation.mutateAsync(bookId);
+ *   console.log('Book deleted');
+ * };
+ * ```
+ */
+export const useDeleteBook = (
+  options?: Omit<UseMutationOptions<void, Error, string>, 'mutationFn'>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteBook,
+    onSuccess: () => {
+      // Invalidate books list after deletion
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
     },
     ...options,

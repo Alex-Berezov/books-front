@@ -2,8 +2,52 @@
 
 > Coding standards for production-ready project
 
-**Version:** 1.5  
-**Last Updated:** November 10, 2025
+**Version:** 1.6  
+**Last Updated:** November 15, 2025
+
+---
+
+## 🚨 CRITICAL RULES (Read First!)
+
+### ⚠️ SCSS Files - ALWAYS Import Tokens!
+
+**🔴 MANDATORY:** Every `.module.scss` file MUST start with token imports!
+
+```scss
+// ✅ CORRECT - ALWAYS at the top of EVERY .module.scss file
+@import '@/styles/tokens.scss';
+
+.myComponent {
+  padding: $spacing-md; // ✅ Now variables work
+  font-size: $font-size-base; // ✅ Tokens available
+  color: $color-text-primary; // ✅ All good
+}
+```
+
+```scss
+// ❌ WRONG - No import = Build Error!
+.myComponent {
+  padding: $spacing-md; // ❌ ERROR: Undefined variable $spacing-md
+}
+```
+
+**Why this matters:**
+
+- ❌ Forgetting imports → Build fails with "Undefined variable"
+- ✅ Design tokens ensure consistency across all components
+- ✅ Easy to maintain and update styles globally
+
+**Available token variables:**
+
+- Colors: `$color-primary`, `$color-error`, `$color-text-primary`, etc.
+- Spacing: `$spacing-xs`, `$spacing-sm`, `$spacing-md`, `$spacing-lg`, etc.
+- Typography: `$font-size-xs`, `$font-size-sm`, `$font-size-base`, `$font-size-lg`, etc.
+- Font weights: `$font-weight-regular`, `$font-weight-medium`, `$font-weight-semibold`, etc.
+- Line heights: `$line-height-tight`, `$line-height-base`, `$line-height-relaxed`
+- Borders: `$border-radius-sm`, `$border-radius-base`, `$border-radius-lg`
+- Shadows: `$shadow-sm`, `$shadow-md`, `$shadow-lg`
+
+**📖 Full list:** See `styles/tokens.scss`
 
 ---
 

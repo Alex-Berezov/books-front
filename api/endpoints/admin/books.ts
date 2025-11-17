@@ -6,7 +6,7 @@
  * multiple versions in different languages.
  */
 
-import { httpGetAuth, httpPostAuth } from '@/lib/http-client';
+import { httpDeleteAuth, httpGetAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   BookOverview,
   CreateBookRequest,
@@ -69,4 +69,20 @@ export const getBooks = async (
 export const createBook = async (data: CreateBookRequest): Promise<CreateBookResponse> => {
   const endpoint = '/books';
   return httpPostAuth<CreateBookResponse>(endpoint, data);
+};
+
+/**
+ * Delete a book (container) by ID
+ *
+ * @param bookId - ID of the book to delete
+ * @returns void
+ *
+ * @example
+ * ```ts
+ * await deleteBook('book-uuid-123');
+ * ```
+ */
+export const deleteBook = async (bookId: string): Promise<void> => {
+  const endpoint = `/books/${bookId}`;
+  return httpDeleteAuth<void>(endpoint);
 };

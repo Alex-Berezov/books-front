@@ -17,3 +17,5 @@ export { TagsPanel } from './TagsPanel';
 export type { TagsPanelProps } from './TagsPanel';
 export { CreateBookModal } from './CreateBookModal';
 export type { CreateBookModalProps, CreateBookFormData } from './CreateBookModal.types';
+export { DeleteBookModal } from './DeleteBookModal';
+export type { DeleteBookModalProps } from './DeleteBookModal.types';

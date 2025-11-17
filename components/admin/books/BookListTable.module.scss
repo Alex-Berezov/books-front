@@ -348,6 +348,13 @@
   text-align: center;
 }
 
+.actionsButtons {
+  display: flex;
+  gap: $spacing-sm;
+  justify-content: center;
+  align-items: center;
+}
+
 .actionButton {
   display: inline-flex;
   align-items: center;
@@ -364,6 +371,16 @@
 
   &:hover {
     background: $color-primary;
+    color: $color-text-inverse;
+  }
+}
+
+.deleteButton {
+  color: $color-error;
+  border-color: $color-error;
+
+  &:hover {
+    background: $color-error;
     color: $color-text-inverse;
   }
 }

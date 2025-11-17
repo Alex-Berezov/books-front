@@ -1,0 +1,24 @@
+@import '@/styles/tokens.scss';
+
+.content {
+  padding: 0;
+}
+
+.warningText {
+  margin: 0 0 $spacing-md 0;
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  line-height: $line-height-base;
+
+  strong {
+    font-weight: $font-weight-semibold;
+    color: $color-error;
+  }
+}
+
+.subText {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-base;
+}

@@ -4,8 +4,9 @@ import { useState } from 'react';
 import type { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useBooks } from '@/api/hooks';
-import { CreateBookModal } from '@/components/admin/books';
+import { useSession } from 'next-auth/react';
+import { useBooks, useDeleteBook } from '@/api/hooks';
+import { CreateBookModal, DeleteBookModal } from '@/components/admin/books';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './BookListTable.module.scss';
 
@@ -22,13 +23,19 @@ interface BookListTableProps {
 export const BookListTable: FC<BookListTableProps> = (props) => {
   const { lang } = props;
 
+  // Get current user session to check role
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.roles?.includes('admin') || false;
+
   // State for managing pagination and search
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
 
-  // Modal state
+  // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [bookToDelete, setBookToDelete] = useState<{ id: string; title: string } | null>(null);
 
   // Get data through React Query
   const { data, isLoading, error } = useBooks({
@@ -36,6 +43,9 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
     limit: 20,
     search: search || undefined,
   });
+
+  // Delete book mutation
+  const deleteBookMutation = useDeleteBook();
 
   // Search handler
   const handleSearch = (e: React.FormEvent) => {
@@ -49,6 +59,37 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
     setSearchValue('');
     setSearch('');
     setPage(1);
+  };
+
+  /**
+   * Open delete modal for a book
+   */
+  const handleOpenDeleteModal = (bookId: string, bookTitle: string) => {
+    setBookToDelete({ id: bookId, title: bookTitle });
+    setIsDeleteModalOpen(true);
+  };
+
+  /**
+   * Close delete modal
+   */
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setBookToDelete(null);
+  };
+
+  /**
+   * Confirm book deletion
+   */
+  const handleConfirmDelete = async () => {
+    if (!bookToDelete) return;
+
+    try {
+      await deleteBookMutation.mutateAsync(bookToDelete.id);
+      handleCloseDeleteModal();
+    } catch (error) {
+      console.error('Failed to delete book:', error);
+      // Error will be shown by React Query
+    }
   };
 
   // Loading state
@@ -267,21 +308,34 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
 
                       {/* Actions */}
                       <td className={styles.actionsCell}>
-                        {versionsCount > 0 && book.versions && book.versions[0] ? (
-                          <Link
-                            href={`/admin/${lang}/books/versions/${book.versions[0].id}`}
-                            className={styles.actionButton}
-                          >
-                            Edit
-                          </Link>
-                        ) : (
-                          <Link
-                            href={`/admin/${lang}/books/new?bookId=${book.id}&title=${encodeURIComponent(book.title)}&author=${encodeURIComponent(book.author)}`}
-                            className={styles.actionButton}
-                          >
-                            Add Version
-                          </Link>
-                        )}
+                        <div className={styles.actionsButtons}>
+                          {versionsCount > 0 && book.versions && book.versions[0] ? (
+                            <Link
+                              href={`/admin/${lang}/books/versions/${book.versions[0].id}`}
+                              className={styles.actionButton}
+                            >
+                              Edit
+                            </Link>
+                          ) : (
+                            <Link
+                              href={`/admin/${lang}/books/new?bookId=${book.id}&title=${encodeURIComponent(book.title)}&author=${encodeURIComponent(book.author)}`}
+                              className={styles.actionButton}
+                            >
+                              Add Version
+                            </Link>
+                          )}
+
+                          {/* Delete button - only for admins */}
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              className={`${styles.actionButton} ${styles.deleteButton}`}
+                              onClick={() => handleOpenDeleteModal(book.id, displayTitle)}
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -322,6 +376,15 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
         isOpen={isCreateModalOpen}
         lang={lang}
         onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      {/* Delete Book Modal */}
+      <DeleteBookModal
+        isOpen={isDeleteModalOpen}
+        bookTitle={bookToDelete?.title || ''}
+        isDeleting={deleteBookMutation.isPending}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCloseDeleteModal}
       />
     </div>
   );
