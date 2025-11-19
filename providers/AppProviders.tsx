@@ -48,7 +48,7 @@ export const AppProviders = (props: AppProvidersProps) => {
   return (
     <SessionProvider
       // Optimize session polling to reduce API calls
-      refetchInterval={SESSION_SETTINGS.REFETCH_INTERVAL_MINUTES * 60} // Convert minutes to seconds
+      refetchInterval={SESSION_SETTINGS.REFETCH_INTERVAL_MINUTES * 60 * 1000} // Convert minutes to milliseconds
       refetchOnWindowFocus={false} // Don't refetch on window focus
       refetchWhenOffline={false} // Don't refetch when offline
     >
