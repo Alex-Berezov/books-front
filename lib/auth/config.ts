@@ -12,7 +12,13 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import type { User, Session, Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
-import { AUTH_TOKEN_EXPIRY, AuthErrorType, AUTH_ERROR_MESSAGES, AUTH_ROUTES } from './constants';
+import {
+  AUTH_TOKEN_EXPIRY,
+  SESSION_SETTINGS,
+  AuthErrorType,
+  AUTH_ERROR_MESSAGES,
+  AUTH_ROUTES,
+} from './constants';
 
 /**
  * JWT callback parameters
@@ -95,6 +101,8 @@ export const authOptions = {
   session: {
     strategy: 'jwt' as const,
     maxAge: AUTH_TOKEN_EXPIRY.REFRESH_TOKEN_SECONDS,
+    // Update session every 4 hours (instead of default 1 day)
+    updateAge: SESSION_SETTINGS.UPDATE_AGE_HOURS * 60 * 60, // Convert hours to seconds
   },
 
   // Authorization providers
@@ -232,8 +240,8 @@ export const authOptions = {
     error: AUTH_ROUTES.ERROR, // TODO (M1): Create error page
   },
 
-  // Debug in development
-  debug: process.env.NODE_ENV === 'development',
+  // Debug only when explicitly enabled (reduces unnecessary requests)
+  debug: process.env.NEXTAUTH_DEBUG === 'true',
 
   // Secret for JWT
   secret: process.env.NEXTAUTH_SECRET,

@@ -17,6 +17,17 @@ export const AUTH_TOKEN_EXPIRY = {
 } as const;
 
 /**
+ * Session polling optimization settings
+ */
+export const SESSION_SETTINGS = {
+  /** Check session every 15 minutes instead of default 60 seconds */
+  REFETCH_INTERVAL_MINUTES: 15,
+
+  /** Update session token every 4 hours to balance security and performance */
+  UPDATE_AGE_HOURS: 4,
+} as const;
+
+/**
  * Authorization error types
  */
 export enum AuthErrorType {

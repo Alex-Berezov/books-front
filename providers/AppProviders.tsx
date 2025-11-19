@@ -17,6 +17,7 @@ import { ConfigProvider } from 'antd';
 import { SessionProvider } from 'next-auth/react';
 import { SnackbarProvider } from 'notistack';
 import { QUERY_CACHE_TIME } from '@/lib/queryClient.constants';
+import { SESSION_SETTINGS } from '@/lib/auth/constants';
 import { colors } from '@/styles/tokens';
 
 interface AppProvidersProps {
@@ -45,7 +46,12 @@ export const AppProviders = (props: AppProvidersProps) => {
   );
 
   return (
-    <SessionProvider>
+    <SessionProvider
+      // Optimize session polling to reduce API calls
+      refetchInterval={SESSION_SETTINGS.REFETCH_INTERVAL_MINUTES * 60} // Convert minutes to seconds
+      refetchOnWindowFocus={false} // Don't refetch on window focus
+      refetchWhenOffline={false} // Don't refetch when offline
+    >
       <QueryClientProvider client={queryClient}>
         <ConfigProvider
           theme={{

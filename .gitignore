@@ -45,3 +45,4 @@ coverage
 
 # Documentation (moved to books-app-docs)
 docs/
+tsconfig.tsbuildinfo
