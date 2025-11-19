@@ -19,16 +19,18 @@ import { SnackbarProvider } from 'notistack';
 import { QUERY_CACHE_TIME } from '@/lib/queryClient.constants';
 import { SESSION_SETTINGS } from '@/lib/auth/constants';
 import { colors } from '@/styles/tokens';
+import type { Session } from 'next-auth';
 
 interface AppProvidersProps {
   children: ReactNode;
+  session?: Session | null;
 }
 
 /**
  * AppProviders component
  */
 export const AppProviders = (props: AppProvidersProps) => {
-  const { children } = props;
+  const { children, session } = props;
 
   /**
    * Create QueryClient once on mount
@@ -47,7 +49,9 @@ export const AppProviders = (props: AppProvidersProps) => {
 
   return (
     <SessionProvider
+      session={session} // Pass server session to prevent initial client requests
       // Optimize session polling to reduce API calls
+      basePath="/api/auth" // Explicit base path for better caching
       refetchInterval={SESSION_SETTINGS.REFETCH_INTERVAL_MINUTES * 60 * 1000} // Convert minutes to milliseconds
       refetchOnWindowFocus={false} // Don't refetch on window focus
       refetchWhenOffline={false} // Don't refetch when offline

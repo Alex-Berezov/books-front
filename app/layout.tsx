@@ -1,3 +1,4 @@
+import { auth } from '@/lib/auth/auth';
 import { AppProviders } from '@/providers/AppProviders';
 import '@/styles/globals.css';
 import '@/styles/snackbar.scss';
@@ -8,9 +9,12 @@ export const metadata: Metadata = {
   description: 'Discover and enjoy audiobooks in multiple languages',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Get initial session on server to prevent multiple client requests
+  const session = await auth();
+
   return (
-    <AppProviders>
+    <AppProviders session={session}>
       {children}
     </AppProviders>
   );
