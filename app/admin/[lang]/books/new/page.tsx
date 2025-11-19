@@ -3,10 +3,11 @@
 import type { FC } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSnackbar } from 'notistack';
-import { useCreateBookVersion } from '@/api/hooks';
+import { useCreateBookVersion, useUpsertVersionSeo } from '@/api/hooks';
 import { BookForm } from '@/components/admin/books';
 import type { BookFormData } from '@/components/admin/books';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { ApiError } from '@/types/api';
 import type { CreateBookVersionRequest } from '@/types/api-schema';
 import styles from './page.module.scss';
 
@@ -48,6 +49,16 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
     },
   });
 
+  // Mutation for creating SEO
+  const seoMutation = useUpsertVersionSeo({
+    onSuccess: () => {
+      enqueueSnackbar('SEO metadata saved successfully', { variant: 'success' });
+    },
+    onError: (error: ApiError) => {
+      enqueueSnackbar(`Failed to save SEO: ${error.message}`, { variant: 'error' });
+    },
+  });
+
   /**
    * Form submission handler
    */
@@ -58,7 +69,18 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
       return;
     }
 
-    // Convert form data to API format
+    // Build SEO object only if at least one field is filled
+    const seoData: Record<string, string> = {};
+    if (formData.seoMetaTitle) seoData.metaTitle = formData.seoMetaTitle;
+    if (formData.seoMetaDescription) seoData.metaDescription = formData.seoMetaDescription;
+    if (formData.seoCanonicalUrl) seoData.canonicalUrl = formData.seoCanonicalUrl;
+    if (formData.seoRobots) seoData.robots = formData.seoRobots;
+    if (formData.seoOgTitle) seoData.ogTitle = formData.seoOgTitle;
+    if (formData.seoOgDescription) seoData.ogDescription = formData.seoOgDescription;
+    if (formData.seoOgImageUrl) seoData.ogImageUrl = formData.seoOgImageUrl;
+    if (formData.seoTwitterCard) seoData.twitterCard = formData.seoTwitterCard;
+
+    // Convert form data to API format (without SEO)
     const requestData: CreateBookVersionRequest = {
       language: formData.language,
       title: formData.title,
@@ -68,15 +90,25 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
       type: formData.type,
       isFree: formData.isFree,
       referralUrl: formData.referralUrl || undefined,
-      seoMetaTitle: formData.seoMetaTitle || undefined,
-      seoMetaDescription: formData.seoMetaDescription || undefined,
     };
 
     // Send creation request
-    createMutation.mutate({
-      bookId,
-      data: requestData,
-    });
+    try {
+      const createdVersion = await createMutation.mutateAsync({
+        bookId,
+        data: requestData,
+      });
+
+      // If SEO data exists, send it separately
+      if (Object.keys(seoData).length > 0) {
+        await seoMutation.mutateAsync({
+          versionId: createdVersion.id,
+          data: seoData,
+        });
+      }
+    } catch (error) {
+      // Errors are handled by mutation callbacks
+    }
   };
 
   // If no bookId, show error
@@ -98,7 +130,7 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
         bookId={bookId}
         initialTitle={titleFromUrl || undefined}
         initialAuthor={authorFromUrl || undefined}
-        isSubmitting={createMutation.isPending}
+        isSubmitting={createMutation.isPending || seoMutation.isPending}
         lang={lang}
         onSubmit={handleSubmit}
       />

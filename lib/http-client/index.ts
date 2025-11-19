@@ -13,7 +13,7 @@
 export type { ExtendedHttpOptions } from './types';
 export { getCurrentSession, getAccessToken, handleAuthFailure } from './auth';
 export { withAuthRetry } from './retry';
-export { httpGetAuth, httpPostAuth, httpPatchAuth, httpDeleteAuth } from './methods';
+export { httpGetAuth, httpPostAuth, httpPatchAuth, httpPutAuth, httpDeleteAuth } from './methods';
 
 /**
  * Type guard for ApiError checking

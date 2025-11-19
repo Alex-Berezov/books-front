@@ -12,6 +12,7 @@ import {
   httpGet as baseHttpGet,
   httpPost as baseHttpPost,
   httpPatch as baseHttpPatch,
+  httpPut as baseHttpPut,
   httpDelete as baseHttpDelete,
 } from '../http';
 import { getAccessToken } from './auth';
@@ -143,6 +144,40 @@ export const httpDeleteAuth = async <T>(
     const accessToken = refreshedToken || initialToken;
 
     return baseHttpDelete<T>(endpoint, {
+      ...fetchOptions,
+      accessToken,
+    });
+  }, retry401);
+};
+
+/**
+ * Performs PUT request with automatic authorization and retry
+ *
+ * @param endpoint - Endpoint path
+ * @param body - Request body
+ * @param options - Extended request options
+ * @returns Typed response
+ */
+export const httpPutAuth = async <T>(
+  endpoint: string,
+  body?: unknown,
+  options: ExtendedHttpOptions = {}
+): Promise<T> => {
+  const {
+    requireAuth = true,
+    retry401 = true,
+    maxRetries: _maxRetries = 0,
+    ...fetchOptions
+  } = options;
+
+  // Get token if requireAuth = true
+  const initialToken = await getAccessToken(requireAuth, fetchOptions.accessToken);
+
+  // Wrap request in retry logic
+  return withAuthRetry(async (refreshedToken?: string) => {
+    const accessToken = refreshedToken || initialToken;
+
+    return baseHttpPut<T>(endpoint, body, {
       ...fetchOptions,
       accessToken,
     });

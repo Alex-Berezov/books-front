@@ -1,13 +1,13 @@
 'use client';
 
 import type { FC } from 'react';
+import { FormField } from '@/components/admin/common/SeoSections';
 import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { PageFormData } from '../PageForm.types';
 import type { PageResponse } from '@/types/api-schema';
 import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import styles from '../PageForm.module.scss';
-import { FormField } from '../ui/FormField';
 
 export interface BasicInfoSectionProps {
   /** React Hook Form register */

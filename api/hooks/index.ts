@@ -15,6 +15,7 @@ export {
   useUpdateBookVersion,
   usePublishVersion,
   useUnpublishVersion,
+  useUpsertVersionSeo,
 } from './useBookVersions';
 
 // Chapters

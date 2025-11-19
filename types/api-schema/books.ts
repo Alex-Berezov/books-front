@@ -7,6 +7,7 @@
 import type { Category } from './categories';
 import type { Chapter } from './chapters';
 import type { ISODate, PublicationStatus, SupportedLang, UUID, VersionType } from './common';
+import type { SeoData } from './pages';
 import type { Tag } from './tags';
 
 /**
@@ -95,10 +96,8 @@ export interface BookVersionDetail {
   status: PublicationStatus;
   publishedAt?: ISODate;
   referralUrl?: string;
-  seo: {
-    metaTitle?: string;
-    metaDescription?: string;
-  };
+  /** SEO metadata (full SEO entity) */
+  seo?: SeoData;
   /** Attached categories */
   categories?: Category[];
   /** Attached tags */
@@ -127,10 +126,6 @@ export interface CreateBookVersionRequest {
   isFree: boolean;
   /** URL for referral links (optional) */
   referralUrl?: string;
-  /** SEO meta title */
-  seoMetaTitle?: string;
-  /** SEO meta description */
-  seoMetaDescription?: string;
 }
 
 /**
@@ -151,8 +146,4 @@ export interface UpdateBookVersionRequest {
   isFree?: boolean;
   /** URL for referral links */
   referralUrl?: string;
-  /** SEO meta title */
-  seoMetaTitle?: string;
-  /** SEO meta description */
-  seoMetaDescription?: string;
 }

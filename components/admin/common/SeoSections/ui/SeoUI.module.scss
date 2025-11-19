@@ -1,0 +1,111 @@
+/**
+ * Styles for SEO UI components
+ *
+ * These components are used in SEO sections across admin forms
+ */
+
+@import '@/styles/tokens.scss';
+
+// ========================================
+// Field wrapper
+// ========================================
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.error {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-error;
+  margin-top: $spacing-xs;
+}
+
+.hint {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-top: $spacing-xs;
+}
+
+.fieldFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-sm;
+  margin-top: $spacing-xs;
+}
+
+// ========================================
+// Character counter
+// ========================================
+
+.charCounter {
+  flex-shrink: 0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  white-space: nowrap;
+
+  &.warning {
+    color: $color-warning;
+  }
+
+  &.error {
+    color: $color-error;
+  }
+}
+
+// ========================================
+// Collapsible section (details/summary)
+// ========================================
+
+.seoSection {
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  margin-bottom: $spacing-md;
+  overflow: hidden;
+  background: $color-background-primary;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.seoSectionTitle {
+  width: 100%;
+  padding: $spacing-md;
+  background: $color-background-secondary;
+  border: none;
+  text-align: left;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  cursor: pointer;
+  transition: background $transition-base;
+
+  &:hover {
+    background: $color-border-light;
+  }
+
+  &::marker {
+    color: $color-primary;
+  }
+}
+
+.seoSectionContent {
+  padding: $spacing-md;
+}

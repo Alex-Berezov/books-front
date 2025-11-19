@@ -6,12 +6,13 @@
  * chapters, categories and tags.
  */
 
-import { httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
+import { httpGetAuth, httpPatchAuth, httpPostAuth, httpPutAuth } from '@/lib/http-client';
 import type {
   BookVersionDetail,
   CreateBookVersionRequest,
   UpdateBookVersionRequest,
 } from '@/types/api-schema';
+import type { SeoData, SeoInput } from '@/types/api-schema/pages';
 
 /**
  * Get book version details by ID (admin endpoint)
@@ -114,4 +115,29 @@ export const publishVersion = async (versionId: string): Promise<BookVersionDeta
 export const unpublishVersion = async (versionId: string): Promise<BookVersionDetail> => {
   const endpoint = `/versions/${versionId}/unpublish`;
   return httpPatchAuth<BookVersionDetail>(endpoint);
+};
+
+/**
+ * Upsert SEO metadata for book version
+ *
+ * Creates or updates SEO metadata using PUT endpoint.
+ * If no SEO fields are filled, you can pass undefined to skip the request.
+ *
+ * @param versionId - Book version ID
+ * @param data - SEO data to upsert
+ * @returns Updated SEO data
+ *
+ * @example
+ * ```ts
+ * const seo = await upsertVersionSeo('version-uuid', {
+ *   metaTitle: 'Harry Potter SEO Title',
+ *   metaDescription: 'Best book ever',
+ *   ogTitle: 'Harry Potter',
+ *   ogDescription: 'Best book ever'
+ * });
+ * ```
+ */
+export const upsertVersionSeo = async (versionId: string, data: SeoInput): Promise<SeoData> => {
+  const endpoint = `/versions/${versionId}/seo`;
+  return httpPutAuth<SeoData>(endpoint, data);
 };

@@ -5,6 +5,12 @@ import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import {
+  SeoBasicSection,
+  SeoOpenGraphSection,
+  SeoTechnicalSection,
+  SeoTwitterSection,
+} from '@/components/admin/common/SeoSections';
 import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { BookVersionDetail } from '@/types/api-schema';
@@ -36,10 +42,34 @@ const bookVersionSchema = z.object({
   isFree: z.boolean(),
   /** URL for referral links */
   referralUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
-  /** SEO meta title */
-  seoMetaTitle: z.string().max(60, 'SEO title is too long').optional(),
-  /** SEO meta description */
-  seoMetaDescription: z.string().max(160, 'SEO description is too long').optional(),
+
+  // ========================================
+  // SEO Fields (matching PageForm structure)
+  // ========================================
+
+  // Basic Meta Tags
+  /** SEO meta title - will be sent as seo.metaTitle */
+  seoMetaTitle: z.string().max(60, 'Meta Title should be 50-60 characters'),
+  /** SEO meta description - will be sent as seo.metaDescription */
+  seoMetaDescription: z.string().max(160, 'Meta Description should be 120-160 characters'),
+
+  // Technical SEO
+  /** Canonical URL to avoid duplicate content */
+  seoCanonicalUrl: z.string(),
+  /** Robots meta tag for indexing control */
+  seoRobots: z.string(),
+
+  // Open Graph (Facebook, LinkedIn)
+  /** OG title for social media */
+  seoOgTitle: z.string().max(60, 'OG Title is too long'),
+  /** OG description for social media */
+  seoOgDescription: z.string().max(160, 'OG Description is too long'),
+  /** OG image URL (1200x630 recommended) */
+  seoOgImageUrl: z.string(),
+
+  // Twitter Card
+  /** Twitter card type */
+  seoTwitterCard: z.enum(['summary', 'summary_large_image', '']),
 });
 
 /**
@@ -95,8 +125,15 @@ export const BookForm: FC<BookFormProps> = (props) => {
           isFree: initialData.isFree,
           language: initialData.language,
           referralUrl: initialData.referralUrl || '',
-          seoMetaDescription: initialData.seo?.metaDescription || '',
           seoMetaTitle: initialData.seo?.metaTitle || '',
+          seoMetaDescription: initialData.seo?.metaDescription || '',
+          seoCanonicalUrl: initialData.seo?.canonicalUrl || '',
+          seoRobots: initialData.seo?.robots || 'index, follow',
+          seoOgTitle: initialData.seo?.ogTitle || '',
+          seoOgDescription: initialData.seo?.ogDescription || '',
+          seoOgImageUrl: initialData.seo?.ogImageUrl || '',
+          seoTwitterCard:
+            (initialData.seo?.twitterCard as 'summary' | 'summary_large_image') || 'summary',
           title: initialData.title,
           type: initialData.type,
         }
@@ -108,8 +145,14 @@ export const BookForm: FC<BookFormProps> = (props) => {
           isFree: true,
           language: lang,
           referralUrl: '',
-          seoMetaDescription: '',
           seoMetaTitle: '',
+          seoMetaDescription: '',
+          seoCanonicalUrl: '',
+          seoRobots: 'index, follow',
+          seoOgTitle: '',
+          seoOgDescription: '',
+          seoOgImageUrl: '',
+          seoTwitterCard: 'summary',
           title: initialTitle || '',
           type: 'text' as const,
         },
@@ -126,13 +169,41 @@ export const BookForm: FC<BookFormProps> = (props) => {
         isFree: initialData.isFree,
         language: initialData.language,
         referralUrl: initialData.referralUrl || '',
-        seoMetaDescription: initialData.seo?.metaDescription || '',
         seoMetaTitle: initialData.seo?.metaTitle || '',
+        seoMetaDescription: initialData.seo?.metaDescription || '',
+        seoCanonicalUrl: initialData.seo?.canonicalUrl || '',
+        seoRobots: initialData.seo?.robots || 'index, follow',
+        seoOgTitle: initialData.seo?.ogTitle || '',
+        seoOgDescription: initialData.seo?.ogDescription || '',
+        seoOgImageUrl: initialData.seo?.ogImageUrl || '',
+        seoTwitterCard:
+          (initialData.seo?.twitterCard as 'summary' | 'summary_large_image') || 'summary',
         title: initialData.title,
         type: initialData.type,
       });
     }
   }, [initialData, reset]);
+
+  // Auto-fill OG and Twitter fields when entering Meta Title and Meta Description
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      // Auto-fill on Meta Title input
+      if (name === 'seoMetaTitle') {
+        const newTitle = value.seoMetaTitle || '';
+        // Always sync OG Title with Meta Title
+        setValue('seoOgTitle', newTitle, { shouldValidate: false, shouldDirty: false });
+      }
+
+      // Auto-fill on Meta Description input
+      if (name === 'seoMetaDescription') {
+        const newDescription = value.seoMetaDescription || '';
+        // Always sync OG Description with Meta Description
+        setValue('seoOgDescription', newDescription, { shouldValidate: false, shouldDirty: false });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [watch, setValue]);
 
   return (
     <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
@@ -284,41 +355,47 @@ export const BookForm: FC<BookFormProps> = (props) => {
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>SEO Settings</h2>
 
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="seoMetaTitle">
-            Meta Title
-          </label>
-          <input
-            className={styles.input}
-            id="seoMetaTitle"
-            maxLength={60}
-            placeholder="SEO meta title (max 60 characters)"
-            type="text"
-            {...register('seoMetaTitle')}
-          />
-          {errors.seoMetaTitle && (
-            <span className={styles.error}>{errors.seoMetaTitle.message}</span>
-          )}
-          <span className={styles.hint}>Recommended: 50-60 characters</span>
-        </div>
+        <SeoBasicSection<BookFormData>
+          errors={errors}
+          isSubmitting={isSubmitting}
+          metaDescriptionField="seoMetaDescription"
+          metaTitleField="seoMetaTitle"
+          register={register}
+          styles={styles}
+          watch={watch}
+        />
 
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="seoMetaDescription">
-            Meta Description
-          </label>
-          <textarea
-            className={styles.textarea}
-            id="seoMetaDescription"
-            maxLength={160}
-            placeholder="SEO meta description (max 160 characters)"
-            rows={3}
-            {...register('seoMetaDescription')}
-          />
-          {errors.seoMetaDescription && (
-            <span className={styles.error}>{errors.seoMetaDescription.message}</span>
-          )}
-          <span className={styles.hint}>Recommended: 120-160 characters</span>
-        </div>
+        <SeoTechnicalSection<BookFormData>
+          canonicalUrlField="seoCanonicalUrl"
+          errors={errors}
+          isSubmitting={isSubmitting}
+          languageField="language"
+          register={register}
+          robotsField="seoRobots"
+          setValue={setValue}
+          slugField="bookSlug"
+          styles={styles}
+          watch={watch}
+        />
+
+        <SeoOpenGraphSection<BookFormData>
+          errors={errors}
+          isSubmitting={isSubmitting}
+          ogDescriptionField="seoOgDescription"
+          ogImageUrlField="seoOgImageUrl"
+          ogTitleField="seoOgTitle"
+          register={register}
+          styles={styles}
+          watch={watch}
+        />
+
+        <SeoTwitterSection<BookFormData>
+          errors={errors}
+          isSubmitting={isSubmitting}
+          register={register}
+          styles={styles}
+          twitterCardField="seoTwitterCard"
+        />
       </div>
 
       {/* Action Buttons */}

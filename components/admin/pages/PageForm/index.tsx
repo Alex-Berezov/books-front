@@ -4,14 +4,16 @@ import { useEffect } from 'react';
 import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import {
+  SeoBasicSection,
+  SeoOpenGraphSection,
+  SeoTechnicalSection,
+  SeoTwitterSection,
+} from '@/components/admin/common/SeoSections';
 import type { PageFormData, PageFormProps } from './PageForm.types';
 import styles from './PageForm.module.scss';
 import { pageSchema } from './PageForm.types';
 import { BasicInfoSection } from './sections/BasicInfoSection';
-import { SeoBasicSection } from './sections/SeoBasicSection';
-import { SeoOpenGraphSection } from './sections/SeoOpenGraphSection';
-import { SeoTechnicalSection } from './sections/SeoTechnicalSection';
-import { SeoTwitterSection } from './sections/SeoTwitterSection';
 
 // Re-export types for external usage
 export type { PageFormData, PageFormProps } from './PageForm.types';
@@ -138,29 +140,47 @@ export const PageForm: FC<PageFormProps> = (props) => {
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>SEO Settings</h2>
 
-        <SeoBasicSection
+        <SeoBasicSection<PageFormData>
           errors={errors}
           isSubmitting={isSubmitting}
+          metaDescriptionField="seoMetaDescription"
+          metaTitleField="seoMetaTitle"
           register={register}
+          styles={styles}
           watch={watch}
         />
 
-        <SeoTechnicalSection
+        <SeoTechnicalSection<PageFormData>
+          canonicalUrlField="seoCanonicalUrl"
           errors={errors}
           isSubmitting={isSubmitting}
+          languageField="language"
           register={register}
+          robotsField="seoRobots"
           setValue={setValue}
+          slugField="slug"
+          styles={styles}
           watch={watch}
         />
 
-        <SeoOpenGraphSection
+        <SeoOpenGraphSection<PageFormData>
+          errors={errors}
+          isSubmitting={isSubmitting}
+          ogDescriptionField="seoOgDescription"
+          ogImageUrlField="seoOgImageUrl"
+          ogTitleField="seoOgTitle"
+          register={register}
+          styles={styles}
+          watch={watch}
+        />
+
+        <SeoTwitterSection<PageFormData>
           errors={errors}
           isSubmitting={isSubmitting}
           register={register}
-          watch={watch}
+          styles={styles}
+          twitterCardField="seoTwitterCard"
         />
-
-        <SeoTwitterSection errors={errors} isSubmitting={isSubmitting} register={register} />
       </div>
 
       {/* Submit Button */}

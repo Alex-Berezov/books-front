@@ -18,12 +18,15 @@ import {
   publishVersion,
   unpublishVersion,
   updateBookVersion,
+  upsertVersionSeo,
 } from '@/api/endpoints/admin/bookVersions';
+import type { ApiError } from '@/types/api';
 import type {
   BookVersionDetail,
   CreateBookVersionRequest,
   UpdateBookVersionRequest,
 } from '@/types/api-schema';
+import type { SeoData, SeoInput } from '@/types/api-schema/pages';
 import { bookKeys } from './useBooks';
 
 /**
@@ -57,7 +60,7 @@ export const useBookVersion = (
   return useQuery({
     queryKey: versionKeys.detail(versionId),
     queryFn: () => getBookVersion(versionId),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000, // 30 seconds (reduced for better cache invalidation)
     ...options,
   });
 };
@@ -102,8 +105,8 @@ export const useCreateBookVersion = (
     onSuccess: (data, _variables) => {
       // Invalidate books list for update
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
-      // Set version data in cache
-      queryClient.setQueryData(versionKeys.detail(data.id), data);
+      // Invalidate version details (will be fetched on redirect)
+      queryClient.invalidateQueries({ queryKey: versionKeys.detail(data.id) });
     },
     ...options,
   });
@@ -142,9 +145,10 @@ export const useUpdateBookVersion = (
 
   return useMutation({
     mutationFn: ({ versionId, data }) => updateBookVersion(versionId, data),
-    onSuccess: (data, variables) => {
-      // Update version data in cache
-      queryClient.setQueryData(versionKeys.detail(variables.versionId), data);
+    onSuccess: (_data, variables) => {
+      // Invalidate version details to refetch with latest data
+      // (SEO might be updated separately, so we need fresh data)
+      queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
       // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
     },
@@ -176,9 +180,9 @@ export const usePublishVersion = (
 
   return useMutation({
     mutationFn: (versionId: string) => publishVersion(versionId),
-    onSuccess: (data, versionId) => {
-      // Update version data in cache
-      queryClient.setQueryData(versionKeys.detail(versionId), data);
+    onSuccess: (_data, versionId) => {
+      // Invalidate version details to refetch with updated status
+      queryClient.invalidateQueries({ queryKey: versionKeys.detail(versionId) });
       // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
     },
@@ -210,11 +214,53 @@ export const useUnpublishVersion = (
 
   return useMutation({
     mutationFn: (versionId: string) => unpublishVersion(versionId),
-    onSuccess: (data, versionId) => {
-      // Update version data in cache
-      queryClient.setQueryData(versionKeys.detail(versionId), data);
+    onSuccess: (_data, versionId) => {
+      // Invalidate version details to refetch with updated status
+      queryClient.invalidateQueries({ queryKey: versionKeys.detail(versionId) });
       // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
+    },
+    ...options,
+  });
+};
+
+/**
+ * Hook for upserting SEO metadata for book version
+ *
+ * Creates or updates SEO data using PUT endpoint.
+ * Use this to save SEO fields separately from version data.
+ *
+ * @param options - React Query mutation options
+ * @returns React Query mutation for upserting SEO
+ *
+ * @example
+ * ```tsx
+ * const seoMutation = useUpsertVersionSeo({
+ *   onSuccess: () => {
+ *     toast.success('SEO updated');
+ *   }
+ * });
+ *
+ * seoMutation.mutate({
+ *   versionId: 'version-uuid',
+ *   data: {
+ *     metaTitle: 'Harry Potter SEO',
+ *     metaDescription: 'Best book',
+ *     ogTitle: 'Harry Potter'
+ *   }
+ * });
+ * ```
+ */
+export const useUpsertVersionSeo = (
+  options?: UseMutationOptions<SeoData, ApiError, { versionId: string; data: SeoInput }>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ versionId, data }) => upsertVersionSeo(versionId, data),
+    onSuccess: (_seoData, variables) => {
+      // Invalidate version details to refetch with updated SEO
+      queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
     },
     ...options,
   });
