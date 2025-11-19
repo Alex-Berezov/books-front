@@ -13,9 +13,5 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Get initial session on server to prevent multiple client requests
   const session = await auth();
 
-  return (
-    <AppProviders session={session}>
-      {children}
-    </AppProviders>
-  );
+  return <AppProviders session={session}>{children}</AppProviders>;
 }
