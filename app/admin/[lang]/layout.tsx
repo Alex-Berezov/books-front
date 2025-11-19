@@ -4,10 +4,7 @@ import { AdminTopBar } from '@/components/admin/AdminShell/AdminTopBar';
 import { STAFF_ROLES } from '@/lib/auth/constants';
 import { getCurrentUser } from '@/lib/auth/helpers';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
-import { AppProviders } from '@/providers/AppProviders';
 import type { Metadata } from 'next';
-import '@/styles/globals.css';
-import '@/styles/snackbar.scss';
 import styles from '@/styles/admin-layouts.module.scss';
 
 type Props = {
@@ -57,24 +54,22 @@ export default async function AdminLayout({ children, params }: Props) {
   return (
     <html lang={lang}>
       <body>
-        <AppProviders>
-          <div className={styles.adminLayout}>
-            {/* Sidebar menu */}
-            <AdminSidebar lang={lang as SupportedLang} />
+        <div className={styles.adminLayout}>
+          {/* Sidebar menu */}
+          <AdminSidebar lang={lang as SupportedLang} />
 
-            {/* Content on the right */}
-            <div className={styles.adminContent}>
-              {/* Top bar */}
-              <AdminTopBar
-                userEmail={session.user.email || undefined}
-                userName={session.user.displayName || undefined}
-              />
+          {/* Content on the right */}
+          <div className={styles.adminContent}>
+            {/* Top bar */}
+            <AdminTopBar
+              userEmail={session.user.email || undefined}
+              userName={session.user.displayName || undefined}
+            />
 
-              {/* Main page content */}
-              <main className={styles.adminMain}>{children}</main>
-            </div>
+            {/* Main page content */}
+            <main className={styles.adminMain}>{children}</main>
           </div>
-        </AppProviders>
+        </div>
       </body>
     </html>
   );
