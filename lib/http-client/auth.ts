@@ -6,6 +6,24 @@
 
 import { getSession, signOut } from 'next-auth/react';
 import { ApiError } from '@/types/api';
+import type { Session } from 'next-auth';
+
+// Cache settings to prevent excessive API calls
+const SESSION_CACHE_TIME = 60 * 1000; // 1 minute
+
+// Cache state
+let cachedSession: Session | null = null;
+let lastSessionFetchTime = 0;
+let sessionFetchPromise: Promise<Session | null> | null = null;
+
+/**
+ * Manually set session (e.g. from AppProviders)
+ * to avoid initial network request
+ */
+export const setSession = (session: Session | null) => {
+  cachedSession = session;
+  lastSessionFetchTime = Date.now();
+};
 
 /**
  * Get current session and access token
@@ -18,12 +36,31 @@ export const getCurrentSession = async () => {
     return null;
   }
 
+  const now = Date.now();
+
+  // Return cached session if valid
+  if (cachedSession && now - lastSessionFetchTime < SESSION_CACHE_TIME) {
+    return cachedSession;
+  }
+
+  // Return existing promise if request in progress
+  if (sessionFetchPromise) {
+    return sessionFetchPromise;
+  }
+
   try {
-    const session = await getSession();
+    sessionFetchPromise = getSession();
+    const session = await sessionFetchPromise;
+
+    cachedSession = session;
+    lastSessionFetchTime = Date.now();
+
     return session;
   } catch (error) {
     console.error('Failed to get session:', error);
     return null;
+  } finally {
+    sessionFetchPromise = null;
   }
 };
 

@@ -11,13 +11,14 @@
  */
 
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider } from 'antd';
 import { SessionProvider } from 'next-auth/react';
 import { SnackbarProvider } from 'notistack';
 import { QUERY_CACHE_TIME } from '@/lib/queryClient.constants';
 import { SESSION_SETTINGS } from '@/lib/auth/constants';
+import { setSession } from '@/lib/http-client/auth';
 import { colors } from '@/styles/tokens';
 import type { Session } from 'next-auth';
 
@@ -31,6 +32,13 @@ interface AppProvidersProps {
  */
 export const AppProviders = (props: AppProvidersProps) => {
   const { children, session } = props;
+
+  // Initialize session cache in http-client to prevent initial API call
+  useEffect(() => {
+    if (session) {
+      setSession(session);
+    }
+  }, [session]);
 
   /**
    * Create QueryClient once on mount
