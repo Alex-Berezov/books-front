@@ -217,7 +217,8 @@ export const CreateBookModal: FC<CreateBookModalProps> = (props) => {
     <Modal
       confirmText={createBookMutation.isPending ? 'Creating...' : 'Create Book'}
       confirmVariant="primary"
-      isLoading={createBookMutation.isPending || !canSubmit}
+      isLoading={createBookMutation.isPending}
+      isConfirmDisabled={!canSubmit}
       isOpen={isOpen}
       title="Create New Book"
       onCancel={handleClose}

@@ -52,25 +52,21 @@ export default async function AdminLayout({ children, params }: Props) {
   }
 
   return (
-    <html lang={lang}>
-      <body>
-        <div className={styles.adminLayout}>
-          {/* Sidebar menu */}
-          <AdminSidebar lang={lang as SupportedLang} />
+    <div className={styles.adminLayout}>
+      {/* Sidebar menu */}
+      <AdminSidebar lang={lang as SupportedLang} />
 
-          {/* Content on the right */}
-          <div className={styles.adminContent}>
-            {/* Top bar */}
-            <AdminTopBar
-              userEmail={session.user.email || undefined}
-              userName={session.user.displayName || undefined}
-            />
+      {/* Content on the right */}
+      <div className={styles.adminContent}>
+        {/* Top bar */}
+        <AdminTopBar
+          userEmail={session.user.email || undefined}
+          userName={session.user.displayName || undefined}
+        />
 
-            {/* Main page content */}
-            <main className={styles.adminMain}>{children}</main>
-          </div>
-        </div>
-      </body>
-    </html>
+        {/* Main page content */}
+        <main className={styles.adminMain}>{children}</main>
+      </div>
+    </div>
   );
 }

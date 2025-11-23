@@ -33,21 +33,17 @@ export default async function PublicLayout({ children, params }: Props) {
   }
 
   return (
-    <html lang={lang}>
-      <body>
-        <div className={styles.publicLayout}>
-          <header className={styles.publicHeader}>
-            <h1>Bibliaris</h1>
-            <LanguageSwitcher />
-          </header>
+    <div className={styles.publicLayout}>
+      <header className={styles.publicHeader}>
+        <h1>Bibliaris</h1>
+        <LanguageSwitcher />
+      </header>
 
-          <main className={styles.publicMain}>{children}</main>
+      <main className={styles.publicMain}>{children}</main>
 
-          <footer className={styles.publicFooter}>
-            <p>© 2025 Bibliaris. All rights reserved.</p>
-          </footer>
-        </div>
-      </body>
-    </html>
+      <footer className={styles.publicFooter}>
+        <p>© 2025 Bibliaris. All rights reserved.</p>
+      </footer>
+    </div>
   );
 }

@@ -8,8 +8,8 @@
 
 .sidebar {
   width: 240px;
-  background: $color-background-dark;
-  color: $color-text-inverse;
+  background: $color-background-primary;
+  color: $color-text-primary;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -17,6 +17,7 @@
   left: 0;
   top: 0;
   z-index: 100;
+  border-right: 1px solid $color-border-light;
 }
 
 .logo {
@@ -24,13 +25,13 @@
   align-items: center;
   gap: $spacing-md;
   padding: $spacing-lg;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid $color-border-light;
 }
 
 .logoText {
   font-size: $font-size-lg;
   font-weight: $font-weight-bold;
-  color: $color-text-inverse;
+  color: $color-text-primary;
 }
 
 .nav {
@@ -54,20 +55,21 @@
   align-items: center;
   gap: $spacing-md;
   padding: $spacing-md $spacing-lg;
-  color: rgba(255, 255, 255, 0.7);
+  color: $color-text-secondary;
   text-decoration: none;
   transition: all 0.2s;
   font-size: $font-size-base;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: $color-text-inverse;
+    background: $color-background-secondary;
+    color: $color-primary;
   }
 
   &.active {
-    background: $color-primary;
-    color: $color-text-inverse;
+    background: rgba($color-primary, 0.1);
+    color: $color-primary;
     font-weight: $font-weight-medium;
+    border-right: 3px solid $color-primary;
   }
 }
 

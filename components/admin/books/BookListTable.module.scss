@@ -3,8 +3,8 @@
 
 .container {
   padding: $spacing-lg;
-  max-width: 1400px;
-  margin: 0 auto;
+  background: $color-background-primary;
+  min-height: 100vh;
 }
 
 // Header
@@ -26,6 +26,12 @@
   margin: 0;
 }
 
+.subtitle {
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  margin-top: $spacing-xs;
+}
+
 .createButton {
   display: inline-flex;
   align-items: center;
@@ -43,10 +49,6 @@
 
   &:hover {
     background: $color-primary-hover;
-  }
-
-  &:active {
-    background: $color-primary-active;
   }
 }
 
@@ -98,6 +100,7 @@
   &:hover {
     background: $color-primary-hover;
     border-color: $color-primary-hover;
+    color: $color-text-inverse;
   }
 }
 
@@ -106,317 +109,198 @@
   margin-bottom: $spacing-md;
   color: $color-text-secondary;
   font-size: $font-size-sm;
-
-  strong {
-    color: $color-text-primary;
-    font-weight: $font-weight-semibold;
-  }
-}
-
-// Loading and Error states
-.loading,
-.error {
-  padding: $spacing-xxl;
-  text-align: center;
-  background: $color-background-tertiary;
-  border-radius: $border-radius-lg;
-  color: $color-text-secondary;
-}
-
-.error {
-  background: rgba($color-error, 0.05);
-  color: $color-error;
-}
-
-.errorMessage {
-  margin-top: $spacing-sm;
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-}
-
-// Empty state
-.empty {
-  padding: $spacing-xxl;
-  text-align: center;
-  background: $color-background-tertiary;
-  border-radius: $border-radius-lg;
-  color: $color-text-secondary;
-
-  p {
-    margin: $spacing-xs 0;
-  }
 }
 
 // Table
 .tableWrapper {
-  overflow-x: auto;
   background: $color-background-primary;
-  border-radius: $border-radius-lg;
-  box-shadow: $shadow-sm;
   border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  overflow-x: auto;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: $font-size-sm;
+  text-align: left;
 
-  thead {
-    background: $color-background-tertiary;
-    border-bottom: 2px solid $color-border-base;
-
-    th {
-      padding: $spacing-md $spacing-lg;
-      text-align: left;
-      font-weight: $font-weight-semibold;
-      color: $color-text-primary;
-      white-space: nowrap;
-    }
+  th {
+    padding: $spacing-md;
+    background: $color-background-secondary;
+    color: $color-text-secondary;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-xs;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid $color-border-light;
   }
 
-  tbody {
-    tr {
-      border-bottom: 1px solid $color-border-light;
-      transition: background $transition-fast;
+  td {
+    padding: $spacing-md;
+    border-bottom: 1px solid $color-border-light;
+    color: $color-text-primary;
+    font-size: $font-size-sm;
+    vertical-align: middle;
+  }
 
-      &:hover {
-        background: $color-background-tertiary;
-      }
+  tr:last-child td {
+    border-bottom: none;
+  }
 
-      &:last-child {
-        border-bottom: none;
-      }
-    }
-
-    td {
-      padding: $spacing-md $spacing-lg;
-      vertical-align: middle;
-    }
+  tr:hover {
+    background-color: rgba($color-background-secondary, 0.3);
   }
 }
 
-// Cover
-.coverCell {
-  width: 80px;
-}
-
-.cover {
-  width: 60px;
-  height: 90px;
-  object-fit: cover;
-  border-radius: $border-radius-base;
-  box-shadow: $shadow-sm;
-}
-
-.noCover {
-  width: 60px;
-  height: 90px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: $color-background-secondary;
-  border-radius: $border-radius-base;
-  color: $color-text-tertiary;
-  font-size: $font-size-xs;
-  text-align: center;
-  padding: $spacing-xs;
-}
-
-// Title
+// Cells
 .titleCell {
-  min-width: 200px;
+  font-weight: $font-weight-medium;
 }
 
 .bookLink {
-  display: block;
-  color: $color-primary;
-  text-decoration: none;
-  font-weight: $font-weight-medium;
-  margin-bottom: $spacing-xs;
-  transition: color $transition-fast;
-
-  &:hover {
-    color: $color-primary-hover;
-    text-decoration: underline;
-  }
-}
-
-.slug {
-  display: block;
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-  font-family: $font-family-mono;
-}
-
-// Badges
-.languageBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: $spacing-xs $spacing-sm;
-  background: $color-background-secondary;
-  color: $color-text-secondary;
-  border-radius: $border-radius-base;
-  font-size: $font-size-xs;
-  text-transform: uppercase;
-  font-weight: $font-weight-medium;
-}
-
-.languages {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-xs;
-}
-
-.categories {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-xs;
-}
-
-.categoryBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: $spacing-xs $spacing-sm;
-  background: rgba($color-primary, 0.1);
-  color: $color-primary;
-  border-radius: $border-radius-base;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-medium;
-}
-
-.versionsList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-xs;
-  justify-content: center;
-}
-
-.versionBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: $spacing-xs;
-  padding: $spacing-xs $spacing-sm;
-  background: rgba($color-info, 0.1);
-  color: $color-info;
-  border-radius: $border-radius-base;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-medium;
-  text-transform: capitalize;
-}
-
-.versionCount {
-  margin-left: $spacing-xs;
-  font-weight: $font-weight-bold;
-  opacity: 0.8;
-}
-
-.versionsBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: $spacing-xs $spacing-sm;
-  background: rgba($color-info, 0.1);
-  color: $color-info;
-  border-radius: $border-radius-base;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-medium;
-}
-
-.rating {
-  display: inline-flex;
-  align-items: center;
-  gap: $spacing-xs;
-  font-weight: $font-weight-medium;
   color: $color-text-primary;
-}
-
-.noData {
-  color: $color-text-tertiary;
-}
-
-// Versions
-.versionsCell {
-  text-align: center;
-}
-
-// Rating
-.ratingCell {
-  text-align: center;
-}
-
-// Actions
-.actionsCell {
-  text-align: center;
-}
-
-.actionsButtons {
-  display: flex;
-  gap: $spacing-sm;
-  justify-content: center;
-  align-items: center;
-}
-
-.actionButton {
-  display: inline-flex;
-  align-items: center;
-  padding: $spacing-xs $spacing-md;
-  background: transparent;
-  color: $color-primary;
-  border: 1px solid $color-primary;
-  border-radius: $border-radius-base;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
   text-decoration: none;
-  cursor: pointer;
-  transition: all $transition-fast;
+  font-weight: $font-weight-semibold;
 
   &:hover {
-    background: $color-primary;
-    color: $color-text-inverse;
+    color: $color-primary;
   }
 }
 
-.deleteButton {
-  color: $color-error;
-  border-color: $color-error;
+.slugCell {
+  color: $color-text-secondary;
+  font-family: monospace;
+}
 
-  &:hover {
-    background: $color-error;
-    color: $color-text-inverse;
+.contentCell {
+  .icons {
+    display: flex;
+    gap: $spacing-xs;
   }
+
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    color: $color-text-secondary;
+    background: $color-background-secondary;
+
+    &View {
+      color: $color-info;
+      background: rgba($color-info, 0.1);
+    }
+
+    &Audio {
+      color: $color-primary;
+      background: rgba($color-primary, 0.1);
+    }
+
+    &Text {
+      color: $color-warning;
+      background: rgba($color-warning, 0.1);
+    }
+  }
+}
+
+.dateCell {
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.statusCell {
+  .statusBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    text-transform: capitalize;
+
+    &.published {
+      background: rgba($color-success, 0.1);
+      color: $color-success;
+    }
+
+    &.draft {
+      background: rgba($color-warning, 0.1);
+      color: $color-warning;
+    }
+  }
+}
+
+.actionsCell {
+  .actions {
+    display: flex;
+    gap: $spacing-xs;
+  }
+
+  .actionButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: $border-radius-base;
+    background: transparent;
+    color: $color-text-secondary;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: $color-background-secondary;
+      color: $color-primary;
+    }
+
+    &.delete:hover {
+      color: $color-error;
+      background: rgba($color-error, 0.1);
+    }
+  }
+}
+
+// Empty state
+.empty {
+  text-align: center;
+  padding: $spacing-xxl;
+  color: $color-text-secondary;
+  background: $color-background-secondary;
+  border-radius: $border-radius-base;
 }
 
 // Pagination
 .pagination {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: $spacing-lg;
+  align-items: center;
+  gap: $spacing-md;
   margin-top: $spacing-xl;
 }
 
-.paginationButton {
-  padding: $spacing-sm $spacing-lg;
-  background: $color-background-primary;
-  color: $color-text-primary;
+.pageButton {
+  padding: $spacing-xs $spacing-md;
   border: 1px solid $color-border-base;
   border-radius: $border-radius-base;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
+  background: $color-background-primary;
   cursor: pointer;
   transition: all $transition-fast;
-
-  &:hover:not(:disabled) {
-    border-color: $color-primary;
-    color: $color-primary;
-  }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  &:not(:disabled):hover {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
 }
 
-.paginationInfo {
+.pageInfo {
   color: $color-text-secondary;
   font-size: $font-size-sm;
 }
@@ -440,18 +324,9 @@
   .table {
     font-size: $font-size-xs;
 
-    thead th,
-    tbody td {
+    th,
+    td {
       padding: $spacing-sm;
     }
-  }
-
-  .coverCell {
-    width: 60px;
-  }
-
-  .cover {
-    width: 50px;
-    height: 75px;
   }
 }

@@ -18,6 +18,8 @@ export interface ModalProps {
   confirmVariant?: 'primary' | 'danger' | 'warning' | 'success';
   /** Loading state */
   isLoading?: boolean;
+  /** Whether confirm button is disabled */
+  isConfirmDisabled?: boolean;
   /** Callback on confirm */
   onConfirm: () => void;
   /** Callback on cancel/close */

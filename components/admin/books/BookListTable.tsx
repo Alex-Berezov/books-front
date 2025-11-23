@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
-import Image from 'next/image';
+import { Eye, Headphones, FileText, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useSnackbar } from 'notistack';
@@ -133,20 +133,23 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
       {/* Header with search */}
       <div className={styles.header}>
         <div className={styles.titleRow}>
-          <h1 className={styles.title}>Books Management</h1>
+          <div>
+            <h1 className={styles.title}>Books</h1>
+            <p className={styles.subtitle}>Manage your book content in {lang.toUpperCase()}</p>
+          </div>
           <button
             className={styles.createButton}
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
           >
-            + Create Book
+            + Add New Book
           </button>
         </div>
 
         <form onSubmit={handleSearch} className={styles.searchForm}>
           <input
             type="text"
-            placeholder="Search by title, author or slug..."
+            placeholder="Search books..."
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             className={styles.searchInput}
@@ -182,168 +185,96 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Cover</th>
-                  <th>Title</th>
-                  <th>Author</th>
-                  <th>Language</th>
-                  <th>Categories</th>
-                  <th>Versions</th>
-                  <th>Rating</th>
-                  <th>Actions</th>
+                  <th>TITLE</th>
+                  <th>SLUG</th>
+                  <th>CONTENT</th>
+                  <th>UPDATED</th>
+                  <th>STATUS</th>
+                  <th>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
                 {books.map((book) => {
-                  // Format rating
-                  const formattedRating = book.rating ? book.rating.toFixed(1) : 'N/A';
+                  // Find version for current language or fallback to first version
+                  const currentLangVersion = book.versions?.find((v) => v.language === lang);
+                  const displayVersion = currentLangVersion || book.versions?.[0];
 
-                  // Extract the number of versions
-                  const versionsCount = book.versions?.length || 0;
+                  // Determine content types available
+                  const hasText = book.versions?.some((v) => v.type === 'text');
+                  const hasAudio = book.versions?.some((v) => v.type === 'audio');
 
-                  // Get data from first version (if exists)
-                  const firstVersion = book.versions?.[0];
-                  const displayTitle = firstVersion?.title || book.title || book.slug;
-                  const displayAuthor = firstVersion?.author || book.author;
-                  const displayCover =
-                    firstVersion?.coverImageUrl || firstVersion?.coverUrl || book.coverUrl;
+                  // Determine status
+                  // If we have a version for current language, use its status.
+                  // Otherwise, if we have any versions, check if any is published?
+                  // Or just default to 'draft' if no version exists or status is missing.
+                  const status = displayVersion?.status || 'draft';
 
-                  // Get all unique languages from versions
-                  const languages = book.versions?.length
-                    ? Array.from(new Set(book.versions.map((v) => v.language).filter(Boolean)))
-                    : book.language
-                      ? [book.language]
-                      : [];
+                  // Determine title
+                  // Use version title if available, otherwise book title, otherwise slug
+                  const displayTitle = displayVersion?.title || book.title || book.slug;
+
+                  // Format date
+                  const updatedDate = new Date(book.updatedAt).toISOString().split('T')[0];
 
                   return (
                     <tr key={book.id}>
-                      {/* Cover */}
-                      <td className={styles.coverCell}>
-                        {displayCover ? (
-                          <Image
-                            src={displayCover}
-                            alt={displayTitle}
-                            width={60}
-                            height={90}
-                            className={styles.cover}
-                          />
-                        ) : (
-                          <div className={styles.noCover}>No cover</div>
-                        )}
-                      </td>
-
                       {/* Title */}
                       <td className={styles.titleCell}>
-                        {versionsCount > 0 && book.versions && book.versions[0] ? (
-                          <Link
-                            href={`/admin/${lang}/books/versions/${book.versions[0].id}`}
-                            className={styles.bookLink}
-                          >
-                            {displayTitle}
-                          </Link>
-                        ) : (
-                          <span className={styles.bookLink}>{displayTitle}</span>
-                        )}
-                        <span className={styles.slug}>{book.slug}</span>
+                        <Link
+                          href={`/admin/${lang}/books/versions/${displayVersion?.id || 'new'}?bookId=${book.id}`}
+                          className={styles.bookLink}
+                        >
+                          {displayTitle}
+                        </Link>
                       </td>
 
-                      {/* Author */}
-                      <td>{displayAuthor || <span className={styles.noData}>—</span>}</td>
+                      {/* Slug */}
+                      <td className={styles.slugCell}>{book.slug}</td>
 
-                      {/* Language - show all languages from versions */}
-                      <td>
-                        {languages.length > 0 ? (
-                          <div className={styles.languages}>
-                            {languages.map((lng) => (
-                              <span key={lng} className={styles.languageBadge}>
-                                {lng}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className={styles.noData}>—</span>
-                        )}
+                      {/* Content Icons */}
+                      <td className={styles.contentCell}>
+                        <div className={styles.icons}>
+                          <span className={`${styles.icon} ${styles.iconView}`} title="View">
+                            <Eye size={16} />
+                          </span>
+                          {hasAudio && (
+                            <span className={`${styles.icon} ${styles.iconAudio}`} title="Audio">
+                              <Headphones size={16} />
+                            </span>
+                          )}
+                          {hasText && (
+                            <span className={`${styles.icon} ${styles.iconText}`} title="Text">
+                              <FileText size={16} />
+                            </span>
+                          )}
+                        </div>
                       </td>
 
-                      {/* Categories */}
-                      <td>
-                        {book.categories && book.categories.length > 0 ? (
-                          <div className={styles.categories}>
-                            {book.categories.map((cat) => (
-                              <span key={cat.id} className={styles.categoryBadge}>
-                                {cat.name}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className={styles.noData}>—</span>
-                        )}
-                      </td>
+                      {/* Updated */}
+                      <td className={styles.dateCell}>{updatedDate}</td>
 
-                      {/* Versions */}
-                      <td className={styles.versionsCell}>
-                        {versionsCount > 0 && book.versions ? (
-                          <div className={styles.versionsList}>
-                            {(() => {
-                              // Group versions by type
-                              const grouped = book.versions.reduce(
-                                (acc, version) => {
-                                  const type = version.type;
-                                  acc[type] = (acc[type] || 0) + 1;
-                                  return acc;
-                                },
-                                {} as Record<string, number>
-                              );
-
-                              return Object.entries(grouped).map(([type, count]) => (
-                                <span key={type} className={styles.versionBadge}>
-                                  {type === 'text' && '📖'}
-                                  {type === 'audio' && '🎧'}
-                                  {type === 'referral' && '🔗'}
-                                  {type}
-                                  {count > 1 && (
-                                    <span className={styles.versionCount}>×{count}</span>
-                                  )}
-                                </span>
-                              ));
-                            })()}
-                          </div>
-                        ) : (
-                          <span className={styles.noData}>—</span>
-                        )}
-                      </td>
-
-                      {/* Rating */}
-                      <td className={styles.ratingCell}>
-                        <span className={styles.rating}>⭐ {formattedRating}</span>
+                      {/* Status */}
+                      <td className={styles.statusCell}>
+                        <span className={`${styles.statusBadge} ${styles[status]}`}>{status}</span>
                       </td>
 
                       {/* Actions */}
                       <td className={styles.actionsCell}>
-                        <div className={styles.actionsButtons}>
-                          {versionsCount > 0 && book.versions && book.versions[0] ? (
-                            <Link
-                              href={`/admin/${lang}/books/versions/${book.versions[0].id}`}
-                              className={styles.actionButton}
-                            >
-                              Edit
-                            </Link>
-                          ) : (
-                            <Link
-                              href={`/admin/${lang}/books/new?bookId=${book.id}&title=${encodeURIComponent(book.title)}&author=${encodeURIComponent(book.author)}`}
-                              className={styles.actionButton}
-                            >
-                              Add Version
-                            </Link>
-                          )}
-
-                          {/* Delete button - only for admins */}
+                        <div className={styles.actions}>
+                          <Link
+                            href={`/admin/${lang}/books/versions/${displayVersion?.id || 'new'}?bookId=${book.id}`}
+                            className={styles.actionButton}
+                            title="Edit"
+                          >
+                            <Edit size={16} />
+                          </Link>
                           {isAdmin && (
                             <button
-                              type="button"
-                              className={`${styles.actionButton} ${styles.deleteButton}`}
                               onClick={() => handleOpenDeleteModal(book.id, displayTitle)}
+                              className={`${styles.actionButton} ${styles.delete}`}
+                              title="Delete"
                             >
-                              Delete
+                              <Trash2 size={16} />
                             </button>
                           )}
                         </div>
@@ -354,7 +285,6 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
               </tbody>
             </table>
           </div>
-
           {/* Pagination */}
           {totalPages > 1 && (
             <div className={styles.pagination}>

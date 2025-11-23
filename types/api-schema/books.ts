@@ -22,6 +22,7 @@ export interface VersionPreview {
   coverImageUrl?: string;
   coverUrl?: string; // Alias for backward compatibility
   isFree: boolean;
+  status?: PublicationStatus;
   chaptersCount: number;
   duration?: number; // In seconds for audio
 }

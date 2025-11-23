@@ -47,6 +47,7 @@ export const Modal: FC<ModalProps> = (props) => {
     cancelText = 'Cancel',
     confirmVariant = 'primary',
     isLoading = false,
+    isConfirmDisabled = false,
     onConfirm,
     onCancel,
   } = props;
@@ -120,7 +121,7 @@ export const Modal: FC<ModalProps> = (props) => {
           </button>
           <button
             className={`${styles.button} ${styles.confirmButton} ${styles[confirmVariant]}`}
-            disabled={isLoading}
+            disabled={isLoading || isConfirmDisabled}
             onClick={handleConfirm}
             type="button"
           >

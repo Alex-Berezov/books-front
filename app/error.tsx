@@ -15,16 +15,12 @@ export default function Error({
   }, [error]);
 
   return (
-    <html lang="en">
-      <body>
-        <div className={styles.errorContainer}>
-          <h1>Something went wrong!</h1>
-          <p>{error.message || 'An unexpected error occurred.'}</p>
-          <button onClick={reset} className={styles.retryButton}>
-            Try again
-          </button>
-        </div>
-      </body>
-    </html>
+    <div className={styles.errorContainer}>
+      <h1>Something went wrong!</h1>
+      <p>We apologize for the inconvenience.</p>
+      <button onClick={() => reset()} className={styles.retryButton}>
+        Try again
+      </button>
+    </div>
   );
 }
