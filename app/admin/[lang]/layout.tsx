@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
-import { AdminSidebar } from '@/components/admin/AdminShell/AdminSidebar';
-import { AdminTopBar } from '@/components/admin/AdminShell/AdminTopBar';
+import { AdminSidebar } from '@/components/admin/AdminShell/AdminSidebar/AdminSidebar';
+import { AdminTopBar } from '@/components/admin/AdminShell/AdminTopBar/AdminTopBar';
 import { STAFF_ROLES } from '@/lib/auth/constants';
 import { getCurrentUser } from '@/lib/auth/helpers';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
