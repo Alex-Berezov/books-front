@@ -3,7 +3,7 @@
 import type { FC } from 'react';
 import { useSnackbar } from 'notistack';
 import { useChapters } from '@/api/hooks';
-import styles from './ReadContentTab.module.scss'; // Используем те же стили
+import styles from '../ReadContentTab/ReadContentTab.module.scss'; // Используем те же стили
 
 /**
  * ListenContentTab component props
@@ -50,7 +50,9 @@ export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
    */
   const handleEditAudioChapter = (chapterId: string) => {
     // TODO (M3.2.3): Implement audio chapter editing
-    enqueueSnackbar(`Audio chapter editing not yet implemented (ID: ${chapterId})`, { variant: 'info' });
+    enqueueSnackbar(`Audio chapter editing not yet implemented (ID: ${chapterId})`, {
+      variant: 'info',
+    });
   };
 
   // Loading state
