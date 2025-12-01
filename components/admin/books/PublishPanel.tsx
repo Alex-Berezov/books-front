@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
+import { Calendar } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { usePublishVersion, useUnpublishVersion } from '@/api/hooks';
 import type { PublicationStatus } from '@/types/api-schema';
@@ -88,7 +89,8 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
     <>
       <div className={styles.panel}>
         <div className={styles.header}>
-          <h3 className={styles.title}>Publication Status</h3>
+          <Calendar className={styles.icon} size={20} />
+          <h3 className={styles.title}>Publish</h3>
         </div>
 
         <div className={styles.statusSection}>

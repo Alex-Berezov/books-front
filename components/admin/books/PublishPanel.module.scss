@@ -13,7 +13,14 @@
 }
 
 .header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
   margin-bottom: $spacing-lg;
+}
+
+.icon {
+  color: $color-text-secondary;
 }
 
 .title {

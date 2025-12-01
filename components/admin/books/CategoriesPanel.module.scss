@@ -19,6 +19,16 @@
   margin-bottom: $spacing-lg;
 }
 
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.icon {
+  color: $color-text-secondary;
+}
+
 .title {
   margin: 0;
   font-size: $font-size-lg;

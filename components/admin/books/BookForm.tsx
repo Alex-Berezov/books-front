@@ -95,6 +95,8 @@ export interface BookFormProps {
   onSubmit: (data: BookFormData) => void | Promise<void>;
   /** Loading flag (e.g., when submitting to server) */
   isSubmitting?: boolean;
+  /** Form ID for external submission */
+  id?: string;
 }
 
 /**
@@ -104,7 +106,15 @@ export interface BookFormProps {
  * Supports creating new version and editing existing one.
  */
 export const BookForm: FC<BookFormProps> = (props) => {
-  const { lang, initialData, initialTitle, initialAuthor, onSubmit, isSubmitting = false } = props;
+  const {
+    lang,
+    initialData,
+    initialTitle,
+    initialAuthor,
+    onSubmit,
+    isSubmitting = false,
+    id,
+  } = props;
 
   // Initialize form with react-hook-form
   const {
@@ -206,7 +216,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
   }, [watch, setValue]);
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+    <form className={styles.form} id={id} onSubmit={handleSubmit(onSubmit)}>
       {/* Basic Information */}
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Basic Information</h2>

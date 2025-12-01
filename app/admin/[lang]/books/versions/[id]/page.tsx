@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
+import { ArrowLeft, Eye, Plus, Save } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import {
@@ -251,33 +252,58 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
     );
   }
 
+  const FORM_ID = 'book-version-form';
+  const isSubmitting =
+    updateMutation.isPending || updateBookMutation.isPending || seoMutation.isPending;
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.header}>
-        <div className={styles.headerActions}>
-          <button
-            className={styles.backButton}
-            onClick={() => router.push(`/admin/${lang}/books`)}
-            type="button"
-          >
-            ← Back to Books List
-          </button>
-          <button
-            className={styles.addVersionButton}
-            onClick={() =>
-              router.push(
-                `/admin/${lang}/books/new?bookId=${version.bookId}&title=${encodeURIComponent(version.title)}&author=${encodeURIComponent(version.author)}`
-              )
-            }
-            type="button"
-          >
-            + Add Another Version
-          </button>
+        <div className={styles.topRow}>
+          <div className={styles.titleGroup}>
+            <button
+              aria-label="Back to Books List"
+              className={styles.backArrow}
+              onClick={() => router.push(`/admin/${lang}/books`)}
+              type="button"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <div>
+              <h1 className={styles.pageTitle}>Edit Book Version</h1>
+              <p className={styles.versionMeta}>
+                {version.title} • {version.language.toUpperCase()} • {version.status}
+              </p>
+            </div>
+          </div>
+          <div className={styles.actionsGroup}>
+            <button
+              className={styles.secondaryButton}
+              onClick={() =>
+                router.push(
+                  `/admin/${lang}/books/new?bookId=${version.bookId}&title=${encodeURIComponent(version.title)}&author=${encodeURIComponent(version.author)}`
+                )
+              }
+              type="button"
+            >
+              <Plus size={16} />
+              Add Another Version
+            </button>
+            <button className={styles.secondaryButton} type="button">
+              <Eye size={16} />
+              Preview
+            </button>
+            <button
+              className={styles.primaryButton}
+              disabled={isSubmitting}
+              form={FORM_ID}
+              type="submit"
+            >
+              <Save size={16} />
+              {isSubmitting ? 'Saving...' : 'Update Version'}
+            </button>
+          </div>
         </div>
-        <h1 className={styles.pageTitle}>Edit Book Version</h1>
-        <p className={styles.versionMeta}>
-          {version.title} • {version.language.toUpperCase()} • {version.status}
-        </p>
       </div>
 
       <div className={styles.contentLayout}>
@@ -288,10 +314,9 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
             onTabChange={setActiveTab}
             overviewContent={
               <BookForm
+                id={FORM_ID}
                 initialData={version}
-                isSubmitting={
-                  updateMutation.isPending || updateBookMutation.isPending || seoMutation.isPending
-                }
+                isSubmitting={isSubmitting}
                 lang={lang}
                 onSubmit={handleSubmit}
               />

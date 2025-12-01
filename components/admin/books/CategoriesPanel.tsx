@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
+import { Network } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useAttachCategory, useCategoriesTree, useDetachCategory } from '@/api/hooks';
 import type { Category } from '@/types/api-schema';
@@ -144,7 +145,10 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
   return (
     <div className={styles.panel}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Categories</h3>
+        <div className={styles.titleGroup}>
+          <Network className={styles.icon} size={20} />
+          <h3 className={styles.title}>Categories</h3>
+        </div>
         {selectedCategories.length > 0 && (
           <span className={styles.counter}>{selectedCategories.length} selected</span>
         )}

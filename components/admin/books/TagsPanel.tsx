@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
+import { Tag as TagIcon } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useAttachTag, useDetachTag, useTags } from '@/api/hooks';
 import type { Tag } from '@/types/api-schema';
@@ -100,7 +101,10 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
   return (
     <div className={styles.panel}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Tags</h3>
+        <div className={styles.titleGroup}>
+          <TagIcon className={styles.icon} size={20} />
+          <h3 className={styles.title}>Tags</h3>
+        </div>
         {selectedTags.length > 0 && (
           <span className={styles.counter}>{selectedTags.length} selected</span>
         )}
