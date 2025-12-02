@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { Tag } from '@/types/api-schema';
 import styles from './TagsPanel.module.scss';
 
@@ -32,16 +33,18 @@ export const TagsSearchResults: FC<TagsSearchResultsProps> = (props) => {
             const isSelected = isTagSelected(tag.id);
 
             return (
-              <button
+              <Button
+                key={tag.id}
+                variant="secondary"
+                size="sm"
                 className={`${styles.tagButton} ${isSelected ? styles.selected : ''}`}
                 disabled={isPending}
-                key={tag.id}
                 onClick={() => onTagToggle(tag.id)}
-                type="button"
+                active={isSelected}
               >
                 <span>{tag.name}</span>
                 {isSelected && <span className={styles.checkmark}>✓</span>}
-              </button>
+              </Button>
             );
           })}
         </div>

@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import styles from './BookListTable.module.scss';
 
 interface BookListPaginationProps {
@@ -16,25 +17,27 @@ export const BookListPagination: FC<BookListPaginationProps> = (props) => {
 
   return (
     <div className={styles.pagination}>
-      <button
+      <Button
+        variant="secondary"
+        size="sm"
         onClick={() => onPageChange(Math.max(1, page - 1))}
         disabled={page === 1}
-        className={styles.paginationButton}
       >
         Previous
-      </button>
+      </Button>
 
       <span className={styles.paginationInfo}>
         Page {page} of {totalPages}
       </span>
 
-      <button
+      <Button
+        variant="secondary"
+        size="sm"
         onClick={() => onPageChange(Math.min(totalPages, page + 1))}
         disabled={page === totalPages}
-        className={styles.paginationButton}
       >
         Next
-      </button>
+      </Button>
     </div>
   );
 };

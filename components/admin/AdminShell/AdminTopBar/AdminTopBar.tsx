@@ -12,6 +12,7 @@
 import { LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { AdminLanguageSwitcher } from '@/components/admin/AdminLanguageSwitcher';
+import { Button } from '@/components/common/Button';
 import styles from './AdminTopBar.module.scss';
 
 interface AdminTopBarProps {
@@ -43,15 +44,15 @@ export const AdminTopBar = (props: AdminTopBarProps) => {
           <span className={styles.userName}>{userName || userEmail || 'User'}</span>
         </div>
 
-        <button
+        <Button
+          variant="secondary"
+          leftIcon={<LogOut size={20} />}
           onClick={handleLogout}
-          className={styles.logoutButton}
-          aria-label="Log out"
+          ariaLabel="Log out"
           title="Log out"
         >
-          <LogOut size={20} />
-          <span>Logout</span>
-        </button>
+          Logout
+        </Button>
       </div>
     </header>
   );

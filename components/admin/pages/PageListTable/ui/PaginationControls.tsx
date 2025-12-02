@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { PaginationControlsProps } from '../PageListTable.types';
 import styles from '../PageListTable.module.scss';
 
@@ -12,20 +13,16 @@ export const PaginationControls: FC<PaginationControlsProps> = (props) => {
 
   return (
     <div className={styles.pagination}>
-      <button onClick={onPrevious} disabled={currentPage === 1} className={styles.paginationButton}>
+      <Button variant="secondary" size="sm" onClick={onPrevious} disabled={currentPage === 1}>
         ← Previous
-      </button>
+      </Button>
       <span className={styles.paginationInfo}>
         Page {currentPage} of {totalPages}
         {showItemsCount && totalItems !== undefined && ` (${totalItems} total pages)`}
       </span>
-      <button
-        onClick={onNext}
-        disabled={currentPage >= totalPages}
-        className={styles.paginationButton}
-      >
+      <Button variant="secondary" size="sm" onClick={onNext} disabled={currentPage >= totalPages}>
         Next →
-      </button>
+      </Button>
     </div>
   );
 };

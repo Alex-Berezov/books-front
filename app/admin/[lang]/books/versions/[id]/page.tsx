@@ -12,6 +12,7 @@ import {
   SummaryTab,
   TagsPanel,
 } from '@/components/admin/books';
+import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 import { useBookVersionLogic } from './useBookVersionLogic';
@@ -64,13 +65,9 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
         <p className={styles.errorMessage}>
           Failed to load book version. {error?.message || 'Version not found.'}
         </p>
-        <button
-          className={styles.errorButton}
-          onClick={() => router.push(`/admin/${lang}/books`)}
-          type="button"
-        >
+        <Button variant="secondary" onClick={() => router.push(`/admin/${lang}/books`)}>
           Back to Books List
-        </button>
+        </Button>
       </div>
     );
   }
@@ -82,14 +79,14 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
       <div className={styles.header}>
         <div className={styles.topRow}>
           <div className={styles.titleGroup}>
-            <button
-              aria-label="Back to Books List"
+            <Button
+              variant="ghost"
+              ariaLabel="Back to Books List"
               className={styles.backArrow}
               onClick={() => router.push(`/admin/${lang}/books`)}
-              type="button"
             >
               <ArrowLeft size={24} />
-            </button>
+            </Button>
             <div>
               <h1 className={styles.pageTitle}>Edit Book Version</h1>
               <p className={styles.versionMeta}>
@@ -98,31 +95,29 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
             </div>
           </div>
           <div className={styles.actionsGroup}>
-            <button
-              className={styles.secondaryButton}
+            <Button
+              variant="secondary"
+              leftIcon={<Plus size={16} />}
               onClick={() =>
                 router.push(
                   `/admin/${lang}/books/new?bookId=${version.bookId}&title=${encodeURIComponent(version.title)}&author=${encodeURIComponent(version.author)}`
                 )
               }
-              type="button"
             >
-              <Plus size={16} />
               Add Another Version
-            </button>
-            <button className={styles.secondaryButton} type="button">
-              <Eye size={16} />
+            </Button>
+            <Button variant="secondary" leftIcon={<Eye size={16} />}>
               Preview
-            </button>
-            <button
-              className={styles.primaryButton}
-              disabled={isSubmitting}
-              form={FORM_ID}
+            </Button>
+            <Button
               type="submit"
+              form={FORM_ID}
+              leftIcon={<Save size={16} />}
+              loading={isSubmitting}
+              loadingText="Saving..."
             >
-              <Save size={16} />
-              {isSubmitting ? 'Saving...' : 'Update Version'}
-            </button>
+              Update Version
+            </Button>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { Category } from '@/types/api-schema';
 import styles from './CategoriesPanel.module.scss';
 
@@ -22,14 +23,16 @@ export const SelectedCategoriesList: FC<SelectedCategoriesListProps> = ({
         {selectedCategories.map((category) => (
           <div className={styles.selectedTag} key={category.id}>
             <span>{category.name}</span>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               className={styles.removeButton}
               disabled={isPending}
               onClick={() => onRemove(category.id)}
-              type="button"
+              ariaLabel={`Remove ${category.name}`}
             >
               ×
-            </button>
+            </Button>
           </div>
         ))}
       </div>

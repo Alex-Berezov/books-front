@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import { Eye, Headphones, FileText, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './BookListTable.module.scss';
@@ -100,13 +101,16 @@ export const BookTable: FC<BookTableProps> = (props) => {
                       <Edit size={16} />
                     </Link>
                     {isAdmin && (
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => onDeleteClick(book.id, displayTitle)}
                         className={`${styles.actionButton} ${styles.delete}`}
                         title="Delete"
+                        ariaLabel="Delete book"
                       >
                         <Trash2 size={16} />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </td>

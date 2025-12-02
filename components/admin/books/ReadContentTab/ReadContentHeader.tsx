@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import styles from './ReadContentTab.module.scss';
 
 interface ReadContentHeaderProps {
@@ -14,9 +15,7 @@ export const ReadContentHeader: FC<ReadContentHeaderProps> = (props) => {
   return (
     <div className={styles.header}>
       <h2 className={styles.title}>{title}</h2>
-      <button className={styles.addButton} onClick={onAddChapter} type="button">
-        + Add Chapter
-      </button>
+      <Button onClick={onAddChapter}>+ Add Chapter</Button>
     </div>
   );
 };

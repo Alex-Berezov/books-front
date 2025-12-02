@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { ModalProps } from './Modal.types';
 import styles from './Modal.module.scss';
 
@@ -95,15 +96,16 @@ export const Modal: FC<ModalProps> = (props) => {
         {/* Header with title and close button */}
         <div className={styles.header}>
           <h3 className={styles.title}>{title}</h3>
-          <button
+          <Button
             className={styles.closeButton}
             disabled={isLoading}
             onClick={handleCancel}
-            type="button"
-            aria-label="Close modal"
+            variant="ghost"
+            size="sm"
+            ariaLabel="Close modal"
           >
             ×
-          </button>
+          </Button>
         </div>
 
         {/* Modal body - arbitrary content */}
@@ -111,22 +113,17 @@ export const Modal: FC<ModalProps> = (props) => {
 
         {/* Footer with buttons */}
         <div className={styles.footer}>
-          <button
-            className={`${styles.button} ${styles.cancelButton}`}
-            disabled={isLoading}
-            onClick={handleCancel}
-            type="button"
-          >
+          <Button variant="secondary" disabled={isLoading} onClick={handleCancel}>
             {cancelText}
-          </button>
-          <button
-            className={`${styles.button} ${styles.confirmButton} ${styles[confirmVariant]}`}
-            disabled={isLoading || isConfirmDisabled}
+          </Button>
+          <Button
+            variant={confirmVariant}
+            disabled={isConfirmDisabled}
+            loading={isLoading}
             onClick={handleConfirm}
-            type="button"
           >
-            {isLoading ? 'Processing...' : confirmText}
-          </button>
+            {confirmText}
+          </Button>
         </div>
       </div>
     </div>

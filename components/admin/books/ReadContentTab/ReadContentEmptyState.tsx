@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import styles from './ReadContentTab.module.scss';
 
 interface ReadContentEmptyStateProps {
@@ -12,9 +13,7 @@ export const ReadContentEmptyState: FC<ReadContentEmptyStateProps> = (props) => 
     <div className={styles.emptyState}>
       <div className={styles.emptyIcon}>📖</div>
       <p className={styles.emptyText}>No chapters yet. Start adding content to your book.</p>
-      <button className={styles.addButton} onClick={onAddChapter} type="button">
-        Create First Chapter
-      </button>
+      <Button onClick={onAddChapter}>Create First Chapter</Button>
     </div>
   );
 };

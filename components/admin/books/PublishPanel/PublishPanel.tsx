@@ -2,6 +2,7 @@
 
 import type { FC } from 'react';
 import { Calendar } from 'lucide-react';
+import { Button } from '@/components/common/Button';
 import type { PublishPanelProps } from './PublishPanel.types';
 import { PublishConfirmModal } from './PublishConfirmModal';
 import styles from './PublishPanel.module.scss';
@@ -45,23 +46,26 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
 
         <div className={styles.actions}>
           {isPublished ? (
-            <button
-              className={`${styles.button} ${styles.unpublishButton}`}
-              disabled={isLoading}
+            <Button
+              variant="warning"
+              fullWidth
+              loading={isLoading}
+              loadingText="Processing..."
               onClick={() => handleOpenConfirmModal('unpublish')}
-              type="button"
             >
-              {isLoading ? 'Processing...' : 'Unpublish'}
-            </button>
+              Unpublish
+            </Button>
           ) : (
-            <button
-              className={`${styles.button} ${styles.publishButton}`}
-              disabled={isLoading || isArchived}
+            <Button
+              variant="success"
+              fullWidth
+              loading={isLoading}
+              loadingText="Publishing..."
+              disabled={isArchived}
               onClick={() => handleOpenConfirmModal('publish')}
-              type="button"
             >
-              {isLoading ? 'Publishing...' : 'Publish'}
-            </button>
+              Publish
+            </Button>
           )}
         </div>
 

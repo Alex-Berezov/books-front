@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { SummaryTabProps } from './SummaryTab.types';
 import { SummaryFormField } from './SummaryFormField';
 import styles from './SummaryTab.module.scss';
@@ -51,9 +52,7 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
         value={formData.themes}
       />
 
-      <button className={styles.saveButton} onClick={handleSave} type="button">
-        Save Summary
-      </button>
+      <Button onClick={handleSave}>Save Summary</Button>
     </div>
   );
 };

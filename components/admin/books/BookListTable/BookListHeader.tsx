@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './BookListTable.module.scss';
 
@@ -16,9 +17,7 @@ export const BookListHeader: FC<BookListHeaderProps> = (props) => {
         <h1 className={styles.title}>Books</h1>
         <p className={styles.subtitle}>Manage your book content in {lang.toUpperCase()}</p>
       </div>
-      <button className={styles.createButton} type="button" onClick={onAddClick}>
-        + Add New Book
-      </button>
+      <Button onClick={onAddClick}>+ Add New Book</Button>
     </div>
   );
 };

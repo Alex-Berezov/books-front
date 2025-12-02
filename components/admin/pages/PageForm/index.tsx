@@ -10,6 +10,7 @@ import {
   SeoTechnicalSection,
   SeoTwitterSection,
 } from '@/components/admin/common/SeoSections';
+import { Button } from '@/components/common/Button';
 import type { PageFormData, PageFormProps } from './PageForm.types';
 import styles from './PageForm.module.scss';
 import { pageSchema } from './PageForm.types';
@@ -185,9 +186,9 @@ export const PageForm: FC<PageFormProps> = (props) => {
 
       {/* Submit Button */}
       <div className={styles.actions}>
-        <button className={styles.submitButton} disabled={isSubmitting} type="submit">
-          {isSubmitting ? 'Saving...' : initialData ? 'Update Page' : 'Create Page'}
-        </button>
+        <Button type="submit" loading={isSubmitting} loadingText="Saving...">
+          {initialData ? 'Update Page' : 'Create Page'}
+        </Button>
       </div>
     </form>
   );

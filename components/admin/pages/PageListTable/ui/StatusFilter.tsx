@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { StatusFilterProps } from '../PageListTable.types';
 import type { PublicationStatus } from '@/types/api-schema';
 import styles from '../PageListTable.module.scss';
@@ -23,14 +24,15 @@ export const StatusFilter: FC<StatusFilterProps> = (props) => {
       <label className={styles.filterLabel}>Status:</label>
       <div className={styles.filterButtons}>
         {filters.map((filter) => (
-          <button
+          <Button
             key={filter.value}
-            type="button"
+            variant="secondary"
+            size="sm"
             onClick={() => onStatusFilterChange(filter.value)}
-            className={`${styles.filterButton} ${statusFilter === filter.value ? styles.active : ''}`}
+            active={statusFilter === filter.value}
           >
             {filter.label}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

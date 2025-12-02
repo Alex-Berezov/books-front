@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { DuplicateWarningProps } from '../SlugInput.types';
 import styles from '../SlugInput.module.scss';
 
@@ -35,10 +36,15 @@ export const DuplicateWarning: FC<DuplicateWarningProps> = (props) => {
         {suggestedSlug && (
           <div className={styles.suggestion}>
             <p>Try using:</p>
-            <button className={styles.suggestionButton} onClick={onUseSuggested} type="button">
+            <Button
+              className={styles.suggestionButton}
+              onClick={onUseSuggested}
+              variant="secondary"
+              size="sm"
+            >
               <code>{suggestedSlug}</code>
               <span className={styles.suggestionIcon}>→</span>
-            </button>
+            </Button>
           </div>
         )}
       </div>

@@ -4,6 +4,7 @@ import { useState, type FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useCreateBook } from '@/api/hooks';
+import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 interface CreateBookPageProps {
@@ -84,22 +85,18 @@ const CreateBookPage: FC<CreateBookPageProps> = (props) => {
           </div>
 
           <div className="flex gap-4 pt-4">
-            <button
+            <Button
               type="submit"
-              disabled={isSubmitting || !slug.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              disabled={!slug.trim()}
+              loading={isSubmitting}
+              loadingText="Creating..."
             >
-              {isSubmitting ? 'Creating...' : 'Create Book'}
-            </button>
+              Create Book
+            </Button>
 
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-              disabled={isSubmitting}
-            >
+            <Button variant="secondary" onClick={() => router.back()} disabled={isSubmitting}>
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
 

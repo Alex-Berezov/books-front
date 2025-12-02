@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import styles from '../ReadContentTab/ReadContentTab.module.scss';
 
 interface ListenContentHeaderProps {
@@ -10,9 +11,7 @@ export const ListenContentHeader: FC<ListenContentHeaderProps> = ({ count, onAdd
   return (
     <div className={styles.header}>
       <h2 className={styles.title}>Audio Chapters ({count})</h2>
-      <button className={styles.addButton} onClick={onAddChapter} type="button">
-        + Add Audio Chapter
-      </button>
+      <Button onClick={onAddChapter}>+ Add Audio Chapter</Button>
     </div>
   );
 };

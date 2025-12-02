@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { PageFormData } from '../PageForm.types';
 import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import styles from '../PageForm.module.scss';
@@ -56,14 +57,14 @@ export const SeoTechnicalSection: FC<SeoTechnicalSectionProps> = (props) => {
             type="url"
             {...register('seoCanonicalUrl')}
           />
-          <button
-            className={styles.inputButton}
+          <Button
+            variant="secondary"
+            size="sm"
             disabled={isSubmitting}
             onClick={handleGenerateCanonicalUrl}
-            type="button"
           >
             Use Current URL
-          </button>
+          </Button>
         </div>
       </FormField>
 

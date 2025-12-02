@@ -6,6 +6,7 @@ import { useSnackbar } from 'notistack';
 import { usePage, useUpdatePage } from '@/api/hooks';
 import { PageForm, type PageFormData } from '@/components/admin/pages/PageForm';
 import { PagePublishPanel } from '@/components/admin/pages/PagePublishPanel';
+import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 
@@ -119,13 +120,9 @@ const EditPage: FC<EditPageProps> = (props) => {
           <p>Failed to load page</p>
           <p className={styles.errorMessage}>{error.message}</p>
           <div className={styles.errorActions}>
-            <button
-              className={styles.backButton}
-              onClick={() => router.push(`/admin/${lang}/pages`)}
-              type="button"
-            >
+            <Button variant="secondary" onClick={() => router.push(`/admin/${lang}/pages`)}>
               ← Back to Pages List
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -138,13 +135,9 @@ const EditPage: FC<EditPageProps> = (props) => {
       <div className={styles.container}>
         <div className={styles.error}>
           <p>Page not found</p>
-          <button
-            className={styles.backButton}
-            onClick={() => router.push(`/admin/${lang}/pages`)}
-            type="button"
-          >
+          <Button variant="secondary" onClick={() => router.push(`/admin/${lang}/pages`)}>
             ← Back to Pages List
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -154,13 +147,9 @@ const EditPage: FC<EditPageProps> = (props) => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Edit Page: {page.title}</h1>
-        <button
-          className={styles.backButton}
-          onClick={() => router.push(`/admin/${lang}/pages`)}
-          type="button"
-        >
+        <Button variant="secondary" onClick={() => router.push(`/admin/${lang}/pages`)}>
           ← Back to Pages
-        </button>
+        </Button>
       </div>
 
       <div className={styles.layout}>

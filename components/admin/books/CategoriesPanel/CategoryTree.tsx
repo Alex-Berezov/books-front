@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { CategoryTree as CategoryTreeType } from '@/types/api-schema';
 import styles from './CategoriesPanel.module.scss';
 
@@ -34,13 +35,15 @@ export const CategoryTree: FC<CategoryTreeProps> = ({
           <li className={styles.categoryItem} key={category.id}>
             <div className={styles.categoryRow}>
               {hasChildren && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className={`${styles.expandButton} ${isExpanded ? styles.expanded : ''}`}
                   onClick={() => onToggleExpand(category.id)}
-                  type="button"
+                  ariaLabel={isExpanded ? 'Collapse' : 'Expand'}
                 >
                   ▶
-                </button>
+                </Button>
               )}
               {!hasChildren && <div className={styles.expandPlaceholder} />}
 

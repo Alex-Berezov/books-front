@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { Chapter } from '@/types/api-schema';
 import styles from '../ReadContentTab/ReadContentTab.module.scss';
 
@@ -23,16 +24,12 @@ export const ListenContentList: FC<ListenContentListProps> = ({ chapters, onEdit
           </div>
 
           <div className={styles.chapterActions}>
-            <button
-              className={styles.actionButton}
-              onClick={() => onEditChapter(chapter.id)}
-              type="button"
-            >
+            <Button variant="ghost" size="sm" onClick={() => onEditChapter(chapter.id)}>
               ✏️ Edit
-            </button>
-            <button className={styles.actionButton} type="button">
+            </Button>
+            <Button variant="ghost" size="sm">
               🎵 Play
-            </button>
+            </Button>
           </div>
         </div>
       ))}

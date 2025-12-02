@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useCreatePage } from '@/api/hooks';
 import { PageForm, type PageFormData } from '@/components/admin/pages/PageForm';
+import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 
@@ -77,13 +78,9 @@ export default function NewPage(props: NewPageProps) {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Create New Page</h1>
-        <button
-          className={styles.backButton}
-          onClick={() => router.push(`/admin/${lang}/pages`)}
-          type="button"
-        >
+        <Button variant="secondary" onClick={() => router.push(`/admin/${lang}/pages`)}>
           ← Back to Pages
-        </button>
+        </Button>
       </div>
 
       <PageForm lang={lang} onSubmit={handleSubmit} isSubmitting={createMutation.isPending} />

@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { Tag } from '@/types/api-schema';
 import styles from './TagsPanel.module.scss';
 
@@ -22,14 +23,16 @@ export const SelectedTagsList: FC<SelectedTagsListProps> = (props) => {
         {tags.map((tag) => (
           <div className={styles.selectedTag} key={tag.id}>
             <span>{tag.name}</span>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               className={styles.removeButton}
               disabled={isPending}
               onClick={() => onRemoveTag(tag.id)}
-              type="button"
+              ariaLabel={`Remove ${tag.name}`}
             >
               ×
-            </button>
+            </Button>
           </div>
         ))}
       </div>

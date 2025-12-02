@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import styles from './PublishPanel.module.scss';
 
 interface PublishConfirmModalProps {
@@ -36,24 +37,16 @@ export const PublishConfirmModal: FC<PublishConfirmModalProps> = ({
         </div>
 
         <div className={styles.modalActions}>
-          <button
-            className={`${styles.modalButton} ${styles.cancelButton}`}
-            disabled={isLoading}
-            onClick={onClose}
-            type="button"
-          >
+          <Button variant="secondary" disabled={isLoading} onClick={onClose}>
             Cancel
-          </button>
-          <button
-            className={`${styles.modalButton} ${
-              actionType === 'publish' ? styles.confirmPublishButton : styles.confirmUnpublishButton
-            }`}
-            disabled={isLoading}
+          </Button>
+          <Button
+            variant={actionType === 'publish' ? 'success' : 'warning'}
+            loading={isLoading}
             onClick={onConfirm}
-            type="button"
           >
-            {isLoading ? 'Processing...' : actionType === 'publish' ? 'Publish' : 'Unpublish'}
-          </button>
+            {actionType === 'publish' ? 'Publish' : 'Unpublish'}
+          </Button>
         </div>
       </div>
     </div>

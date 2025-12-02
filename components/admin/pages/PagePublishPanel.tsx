@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { FC } from 'react';
 import { useSnackbar } from 'notistack';
 import { usePublishPage, useUnpublishPage } from '@/api/hooks';
+import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PageResponse, PublicationStatus } from '@/types/api-schema';
 import styles from './PagePublishPanel.module.scss';
@@ -106,23 +107,26 @@ export const PagePublishPanel: FC<PagePublishPanelProps> = (props) => {
 
         <div className={styles.actions}>
           {isPublished ? (
-            <button
-              className={`${styles.button} ${styles.unpublishButton}`}
-              disabled={isLoading}
+            <Button
+              variant="warning"
+              fullWidth
+              loading={isLoading}
+              loadingText="Processing..."
               onClick={() => handleOpenConfirmModal('unpublish')}
-              type="button"
             >
-              {isLoading ? 'Processing...' : 'Unpublish'}
-            </button>
+              Unpublish
+            </Button>
           ) : (
-            <button
-              className={`${styles.button} ${styles.publishButton}`}
-              disabled={isLoading || isArchived}
+            <Button
+              variant="success"
+              fullWidth
+              loading={isLoading}
+              loadingText="Publishing..."
+              disabled={isArchived}
               onClick={() => handleOpenConfirmModal('publish')}
-              type="button"
             >
-              {isLoading ? 'Publishing...' : 'Publish'}
-            </button>
+              Publish
+            </Button>
           )}
         </div>
 
@@ -175,26 +179,16 @@ export const PagePublishPanel: FC<PagePublishPanelProps> = (props) => {
             </div>
 
             <div className={styles.modalActions}>
-              <button
-                className={`${styles.modalButton} ${styles.cancelButton}`}
-                disabled={isLoading}
-                onClick={handleCloseConfirmModal}
-                type="button"
-              >
+              <Button variant="secondary" disabled={isLoading} onClick={handleCloseConfirmModal}>
                 Cancel
-              </button>
-              <button
-                className={`${styles.modalButton} ${
-                  actionType === 'publish'
-                    ? styles.confirmPublishButton
-                    : styles.confirmUnpublishButton
-                }`}
-                disabled={isLoading}
+              </Button>
+              <Button
+                variant={actionType === 'publish' ? 'success' : 'warning'}
+                loading={isLoading}
                 onClick={handleConfirmAction}
-                type="button"
               >
-                {isLoading ? 'Processing...' : actionType === 'publish' ? 'Publish' : 'Unpublish'}
-              </button>
+                {actionType === 'publish' ? 'Publish' : 'Unpublish'}
+              </Button>
             </div>
           </div>
         </div>

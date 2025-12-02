@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { BookFormProps } from './BookForm.types';
 import { BasicInfoSection } from './BasicInfoSection';
 import styles from './BookForm.module.scss';
@@ -66,9 +67,9 @@ export const BookForm: FC<BookFormProps> = (props) => {
 
       {/* Action Buttons */}
       <div className={styles.actions}>
-        <button className={styles.submitButton} disabled={isSubmitting} type="submit">
-          {isSubmitting ? 'Saving...' : initialData ? 'Update Version' : 'Create Version'}
-        </button>
+        <Button type="submit" loading={isSubmitting} loadingText="Saving...">
+          {initialData ? 'Update Version' : 'Create Version'}
+        </Button>
       </div>
     </form>
   );

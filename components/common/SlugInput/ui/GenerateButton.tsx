@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type { GenerateButtonProps } from '../SlugInput.types';
 import styles from '../SlugInput.module.scss';
 
@@ -15,13 +16,14 @@ export const GenerateButton: FC<GenerateButtonProps> = (props) => {
   }
 
   return (
-    <button
+    <Button
       className={styles.generateButton}
       onClick={onClick}
       title="Generate slug from title"
-      type="button"
+      variant="link"
+      size="sm"
     >
       Generate
-    </button>
+    </Button>
   );
 };

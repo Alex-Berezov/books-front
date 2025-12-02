@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { Button } from '@/components/common/Button';
 import type {
   FieldErrors,
   FieldValues,
@@ -90,14 +91,14 @@ export const SeoTechnicalSection = <TFormData extends FieldValues>(
             type="url"
             {...register(canonicalUrlField)}
           />
-          <button
-            className={styles.inputButton}
+          <Button
+            variant="secondary"
+            size="sm"
             disabled={isSubmitting}
             onClick={handleGenerateCanonicalUrl}
-            type="button"
           >
             Use Current URL
-          </button>
+          </Button>
         </div>
       </FormField>
 

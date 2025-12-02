@@ -1,4 +1,5 @@
 import type { FC, FormEvent } from 'react';
+import { Button } from '@/components/common/Button';
 import styles from './BookListTable.module.scss';
 
 interface BookListSearchProps {
@@ -21,13 +22,11 @@ export const BookListSearch: FC<BookListSearchProps> = (props) => {
         onChange={(e) => onSearchValueChange(e.target.value)}
         className={styles.searchInput}
       />
-      <button type="submit" className={styles.searchButton}>
-        Search
-      </button>
+      <Button type="submit">Search</Button>
       {hasActiveSearch && (
-        <button type="button" onClick={onClear} className={styles.clearButton}>
+        <Button variant="secondary" onClick={onClear}>
           Clear
-        </button>
+        </Button>
       )}
     </form>
   );
