@@ -1,17 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import type { FC } from 'react';
-import { useSnackbar } from 'notistack';
+import type { SummaryTabProps } from './SummaryTab.types';
+import { SummaryFormField } from './SummaryFormField';
 import styles from './SummaryTab.module.scss';
-
-/**
- * SummaryTab component props
- */
-export interface SummaryTabProps {
-  /** Book version ID */
-  versionId: string;
-}
+import { useSummaryTab } from './useSummaryTab';
 
 /**
  * Tab for managing book summary
@@ -22,73 +15,41 @@ export interface SummaryTabProps {
  * - Themes and analysis (themes and analysis)
  */
 export const SummaryTab: FC<SummaryTabProps> = (props) => {
-  const { versionId: _versionId } = props;
-  const { enqueueSnackbar } = useSnackbar();
-
-  // Local state for summary fields
-  const [summaryText, setSummaryText] = useState('');
-  const [keyTakeaways, setKeyTakeaways] = useState('');
-  const [themes, setThemes] = useState('');
-
-  /**
-   * Summary save handler
-   */
-  const handleSave = () => {
-    // TODO (M3.2.3): Implement summary saving
-    enqueueSnackbar('Summary saving not yet implemented', { variant: 'info' });
-  };
+  const { formData, handleFieldChange, handleSave } = useSummaryTab(props);
 
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Book Summary</h2>
 
-      {/* Summary Text */}
-      <div className={styles.formGroup}>
-        <label className={styles.label} htmlFor="summaryText">
-          Summary
-          <span className={styles.labelHint}>(Brief overview of the book)</span>
-        </label>
-        <textarea
-          className={styles.textarea}
-          id="summaryText"
-          onChange={(e) => setSummaryText(e.target.value)}
-          placeholder="Write a concise summary of the book..."
-          rows={8}
-          value={summaryText}
-        />
-      </div>
+      <SummaryFormField
+        hint="Brief overview of the book"
+        id="summaryText"
+        label="Summary"
+        onChange={handleFieldChange}
+        placeholder="Write a concise summary of the book..."
+        rows={8}
+        value={formData.summaryText}
+      />
 
-      {/* Key Takeaways */}
-      <div className={styles.formGroup}>
-        <label className={styles.label} htmlFor="keyTakeaways">
-          Key Takeaways
-          <span className={styles.labelHint}>(Main lessons or insights)</span>
-        </label>
-        <textarea
-          className={styles.textarea}
-          id="keyTakeaways"
-          onChange={(e) => setKeyTakeaways(e.target.value)}
-          placeholder="List the main takeaways from the book..."
-          rows={6}
-          value={keyTakeaways}
-        />
-      </div>
+      <SummaryFormField
+        hint="Main lessons or insights"
+        id="keyTakeaways"
+        label="Key Takeaways"
+        onChange={handleFieldChange}
+        placeholder="List the main takeaways from the book..."
+        rows={6}
+        value={formData.keyTakeaways}
+      />
 
-      {/* Themes */}
-      <div className={styles.formGroup}>
-        <label className={styles.label} htmlFor="themes">
-          Themes & Analysis
-          <span className={styles.labelHint}>(Major themes and deeper analysis)</span>
-        </label>
-        <textarea
-          className={styles.textarea}
-          id="themes"
-          onChange={(e) => setThemes(e.target.value)}
-          placeholder="Describe the main themes and provide analysis..."
-          rows={6}
-          value={themes}
-        />
-      </div>
+      <SummaryFormField
+        hint="Major themes and deeper analysis"
+        id="themes"
+        label="Themes & Analysis"
+        onChange={handleFieldChange}
+        placeholder="Describe the main themes and provide analysis..."
+        rows={6}
+        value={formData.themes}
+      />
 
       <button className={styles.saveButton} onClick={handleSave} type="button">
         Save Summary
