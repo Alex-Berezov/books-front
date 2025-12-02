@@ -1,0 +1,20 @@
+import type { FC } from 'react';
+import styles from './ReadContentTab.module.scss';
+
+interface ReadContentEmptyStateProps {
+  onAddChapter: () => void;
+}
+
+export const ReadContentEmptyState: FC<ReadContentEmptyStateProps> = (props) => {
+  const { onAddChapter } = props;
+
+  return (
+    <div className={styles.emptyState}>
+      <div className={styles.emptyIcon}>📖</div>
+      <p className={styles.emptyText}>No chapters yet. Start adding content to your book.</p>
+      <button className={styles.addButton} onClick={onAddChapter} type="button">
+        Create First Chapter
+      </button>
+    </div>
+  );
+};
