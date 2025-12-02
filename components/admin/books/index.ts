@@ -14,8 +14,8 @@ export { PublishPanel } from './PublishPanel';
 export type { PublishPanelProps } from './PublishPanel';
 export { CategoriesPanel } from './CategoriesPanel';
 export type { CategoriesPanelProps } from './CategoriesPanel';
-export { TagsPanel } from './TagsPanel/TagsPanel';
-export type { TagsPanelProps } from './TagsPanel/TagsPanel';
+export { TagsPanel } from './TagsPanel';
+export type { TagsPanelProps } from './TagsPanel';
 export { CreateBookModal } from './CreateBookModal/CreateBookModal';
 export type {
   CreateBookModalProps,
