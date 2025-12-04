@@ -6,11 +6,18 @@ import {
   SeoTwitterSection,
 } from '@/components/admin/common/SeoSections';
 import type { BookFormData } from './BookForm.types';
-import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import type {
+  Control,
+  FieldErrors,
+  UseFormRegister,
+  UseFormSetValue,
+  UseFormWatch,
+} from 'react-hook-form';
 import styles from './BookForm.module.scss';
 
 interface SeoSectionProps {
   register: UseFormRegister<BookFormData>;
+  control: Control<BookFormData>;
   errors: FieldErrors<BookFormData>;
   watch: UseFormWatch<BookFormData>;
   setValue: UseFormSetValue<BookFormData>;
@@ -18,7 +25,7 @@ interface SeoSectionProps {
 }
 
 export const SeoSection: FC<SeoSectionProps> = (props) => {
-  const { register, errors, watch, setValue, isSubmitting } = props;
+  const { register, control, errors, watch, setValue, isSubmitting } = props;
 
   return (
     <div className={styles.section}>
@@ -36,6 +43,7 @@ export const SeoSection: FC<SeoSectionProps> = (props) => {
 
       <SeoTechnicalSection<BookFormData>
         canonicalUrlField="seoCanonicalUrl"
+        control={control}
         errors={errors}
         isSubmitting={isSubmitting}
         languageField="language"
@@ -59,6 +67,7 @@ export const SeoSection: FC<SeoSectionProps> = (props) => {
       />
 
       <SeoTwitterSection<BookFormData>
+        control={control}
         errors={errors}
         isSubmitting={isSubmitting}
         register={register}

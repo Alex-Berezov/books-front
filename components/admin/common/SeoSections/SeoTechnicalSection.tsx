@@ -1,8 +1,11 @@
 'use client';
 
 import type { FC } from 'react';
+import { Controller } from 'react-hook-form';
 import { Button } from '@/components/common/Button';
+import { Select } from '@/components/common/Select';
 import type {
+  Control,
   FieldErrors,
   FieldValues,
   Path,
@@ -16,6 +19,8 @@ import { SeoCollapsible } from './ui/SeoCollapsible';
 export interface SeoTechnicalSectionProps<TFormData extends FieldValues> {
   /** React Hook Form register */
   register: UseFormRegister<TFormData>;
+  /** React Hook Form control */
+  control: Control<TFormData>;
   /** Validation errors */
   errors: FieldErrors<TFormData>;
   /** React Hook Form watch */
@@ -52,6 +57,7 @@ export const SeoTechnicalSection = <TFormData extends FieldValues>(
 ): ReturnType<FC> => {
   const {
     register,
+    control,
     errors,
     watch,
     setValue,
@@ -63,6 +69,14 @@ export const SeoTechnicalSection = <TFormData extends FieldValues>(
     baseUrl = 'https://bibliaris.com',
     styles,
   } = props;
+
+  // Robots directive options
+  const robotsOptions = [
+    { label: 'index, follow (recommended)', value: 'index, follow' },
+    { label: 'noindex, follow', value: 'noindex, follow' },
+    { label: 'index, nofollow', value: 'index, nofollow' },
+    { label: 'noindex, nofollow', value: 'noindex, nofollow' },
+  ];
 
   const handleGenerateCanonicalUrl = () => {
     const currentSlug = watch(slugField) as string;
@@ -109,17 +123,20 @@ export const SeoTechnicalSection = <TFormData extends FieldValues>(
         label="Robots Directive"
         required
       >
-        <select
-          className={styles.select}
-          disabled={isSubmitting}
-          id={robotsField}
-          {...register(robotsField)}
-        >
-          <option value="index, follow">index, follow (recommended)</option>
-          <option value="noindex, follow">noindex, follow</option>
-          <option value="index, nofollow">index, nofollow</option>
-          <option value="noindex, nofollow">noindex, nofollow</option>
-        </select>
+        <Controller
+          name={robotsField}
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              options={robotsOptions}
+              disabled={isSubmitting}
+              fullWidth
+              error={!!errors[robotsField]}
+              ariaLabel="Select robots directive"
+            />
+          )}
+        />
       </FormField>
     </SeoCollapsible>
   );

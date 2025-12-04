@@ -1,14 +1,23 @@
 import type { FC } from 'react';
+import { Controller } from 'react-hook-form';
+import { Select } from '@/components/common/Select';
 import type { BookFormData } from './BookForm.types';
-import type { FieldErrors, UseFormRegister } from 'react-hook-form';
+import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
 import styles from './BookForm.module.scss';
 
 interface MediaSectionProps {
   register: UseFormRegister<BookFormData>;
+  control: Control<BookFormData>;
   errors: FieldErrors<BookFormData>;
 }
 
-export const MediaSection: FC<MediaSectionProps> = ({ register, errors }) => {
+export const MediaSection: FC<MediaSectionProps> = ({ register, control, errors }) => {
+  // Version type options
+  const typeOptions = [
+    { label: 'Text', value: 'text' },
+    { label: 'Audio', value: 'audio' },
+  ];
+
   return (
     <div className={styles.section}>
       <h2 className={styles.sectionTitle}>Media & Type</h2>
@@ -33,10 +42,19 @@ export const MediaSection: FC<MediaSectionProps> = ({ register, errors }) => {
         <label className={styles.label} htmlFor="type">
           Version Type *
         </label>
-        <select className={styles.select} id="type" {...register('type')}>
-          <option value="text">Text</option>
-          <option value="audio">Audio</option>
-        </select>
+        <Controller
+          name="type"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              options={typeOptions}
+              fullWidth
+              error={!!errors.type}
+              ariaLabel="Select version type"
+            />
+          )}
+        />
         {errors.type && <span className={styles.error}>{errors.type.message}</span>}
       </div>
 

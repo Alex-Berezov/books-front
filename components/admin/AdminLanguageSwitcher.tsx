@@ -1,7 +1,7 @@
 'use client';
 
-import { Select } from 'antd';
 import { usePathname, useRouter } from 'next/navigation';
+import { Select } from '@/components/common/Select';
 import { getLangFromPath, switchLangInPath, type SupportedLang } from '@/lib/i18n/lang';
 import { getLanguageSelectOptions } from '@/lib/i18n/languageSelectOptions';
 import styles from '../LanguageSwitcher.module.scss';
@@ -20,9 +20,10 @@ export const AdminLanguageSwitcher = () => {
   // Extract current language from pathname using shared utility
   const currentLang = getLangFromPath(pathname);
 
-  const handleLanguageChange = (newLang: string) => {
+  const handleLanguageChange = (newLang: string | string[]) => {
     // Safe to cast as Select options are typed with SupportedLang
-    const newPath = switchLangInPath(pathname, newLang as SupportedLang);
+    const lang = Array.isArray(newLang) ? newLang[0] : newLang;
+    const newPath = switchLangInPath(pathname, lang as SupportedLang);
     router.push(newPath);
 
     // TODO (M3): When editing content with translations,
@@ -36,7 +37,7 @@ export const AdminLanguageSwitcher = () => {
       onChange={handleLanguageChange}
       options={getLanguageSelectOptions()}
       className={styles.languageSwitcher}
-      aria-label="Select admin language"
+      ariaLabel="Select admin language"
     />
   );
 };

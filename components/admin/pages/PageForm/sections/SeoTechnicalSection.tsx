@@ -1,9 +1,17 @@
 'use client';
 
 import type { FC } from 'react';
+import { Controller } from 'react-hook-form';
 import { Button } from '@/components/common/Button';
+import { Select } from '@/components/common/Select';
 import type { PageFormData } from '../PageForm.types';
-import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import type {
+  Control,
+  FieldErrors,
+  UseFormRegister,
+  UseFormSetValue,
+  UseFormWatch,
+} from 'react-hook-form';
 import styles from '../PageForm.module.scss';
 import { FormField } from '../ui/FormField';
 import { SeoCollapsible } from '../ui/SeoCollapsible';
@@ -11,6 +19,8 @@ import { SeoCollapsible } from '../ui/SeoCollapsible';
 export interface SeoTechnicalSectionProps {
   /** React Hook Form register */
   register: UseFormRegister<PageFormData>;
+  /** React Hook Form control */
+  control: Control<PageFormData>;
   /** Validation errors */
   errors: FieldErrors<PageFormData>;
   /** React Hook Form watch */
@@ -29,7 +39,15 @@ export interface SeoTechnicalSectionProps {
  * - Robots (directives for search engine robots)
  */
 export const SeoTechnicalSection: FC<SeoTechnicalSectionProps> = (props) => {
-  const { register, errors, watch, setValue, isSubmitting } = props;
+  const { register, control, errors, watch, setValue, isSubmitting } = props;
+
+  // Robots directive options
+  const robotsOptions = [
+    { label: 'index, follow (recommended)', value: 'index, follow' },
+    { label: 'noindex, follow', value: 'noindex, follow' },
+    { label: 'index, nofollow', value: 'index, nofollow' },
+    { label: 'noindex, nofollow', value: 'noindex, nofollow' },
+  ];
 
   const handleGenerateCanonicalUrl = () => {
     const currentSlug = watch('slug');
@@ -75,17 +93,20 @@ export const SeoTechnicalSection: FC<SeoTechnicalSectionProps> = (props) => {
         label="Robots Directive"
         required
       >
-        <select
-          className={styles.select}
-          disabled={isSubmitting}
-          id="seoRobots"
-          {...register('seoRobots')}
-        >
-          <option value="index, follow">index, follow (recommended)</option>
-          <option value="noindex, follow">noindex, follow</option>
-          <option value="index, nofollow">index, nofollow</option>
-          <option value="noindex, nofollow">noindex, nofollow</option>
-        </select>
+        <Controller
+          name="seoRobots"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              options={robotsOptions}
+              disabled={isSubmitting}
+              fullWidth
+              error={!!errors.seoRobots}
+              ariaLabel="Select robots directive"
+            />
+          )}
+        />
       </FormField>
     </SeoCollapsible>
   );

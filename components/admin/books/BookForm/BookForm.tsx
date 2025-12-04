@@ -29,6 +29,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
   } = props;
 
   const {
+    control,
     formState: { errors },
     handleSubmit,
     register,
@@ -46,6 +47,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
       {/* Basic Information */}
       <BasicInfoSection
         bookId={initialData?.bookId}
+        control={control}
         errors={errors}
         isEditMode={!!initialData}
         register={register}
@@ -54,10 +56,11 @@ export const BookForm: FC<BookFormProps> = (props) => {
       />
 
       {/* Media & Type */}
-      <MediaSection errors={errors} register={register} />
+      <MediaSection control={control} errors={errors} register={register} />
 
       {/* SEO Settings */}
       <SeoSection
+        control={control}
         errors={errors}
         isSubmitting={isSubmitting}
         register={register}

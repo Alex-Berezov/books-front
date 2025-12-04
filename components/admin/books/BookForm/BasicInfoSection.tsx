@@ -1,12 +1,21 @@
 import type { FC } from 'react';
+import { Controller } from 'react-hook-form';
+import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { BookFormData } from './BookForm.types';
-import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import type {
+  Control,
+  FieldErrors,
+  UseFormRegister,
+  UseFormSetValue,
+  UseFormWatch,
+} from 'react-hook-form';
 import styles from './BookForm.module.scss';
 
 interface BasicInfoSectionProps {
   register: UseFormRegister<BookFormData>;
+  control: Control<BookFormData>;
   errors: FieldErrors<BookFormData>;
   watch: UseFormWatch<BookFormData>;
   setValue: UseFormSetValue<BookFormData>;
@@ -15,7 +24,13 @@ interface BasicInfoSectionProps {
 }
 
 export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
-  const { register, errors, watch, setValue, isEditMode, bookId } = props;
+  const { register, control, errors, watch, setValue, isEditMode, bookId } = props;
+
+  // Language options
+  const languageOptions = SUPPORTED_LANGS.map((langCode) => ({
+    label: langCode.toUpperCase(),
+    value: langCode,
+  }));
 
   return (
     <div className={styles.section}>
@@ -25,18 +40,20 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
         <label className={styles.label} htmlFor="language">
           Language *
         </label>
-        <select
-          className={styles.select}
-          disabled={isEditMode}
-          id="language"
-          {...register('language')}
-        >
-          {SUPPORTED_LANGS.map((langCode) => (
-            <option key={langCode} value={langCode}>
-              {langCode.toUpperCase()}
-            </option>
-          ))}
-        </select>
+        <Controller
+          name="language"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              options={languageOptions}
+              disabled={isEditMode}
+              fullWidth
+              error={!!errors.language}
+              ariaLabel="Select language"
+            />
+          )}
+        />
         {errors.language && <span className={styles.error}>{errors.language.message}</span>}
         {isEditMode && (
           <span className={styles.hint}>Language cannot be changed after creation</span>

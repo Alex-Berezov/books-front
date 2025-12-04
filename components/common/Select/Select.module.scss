@@ -1,0 +1,135 @@
+/**
+ * Select component styles (wrapper over antd Select)
+ *
+ * Custom styles for error states and full-width support
+ */
+
+@import '@/styles/tokens.scss';
+
+/* Base select styles */
+.select {
+  /* Ensure consistent box-sizing */
+  :global(.ant-select-selector) {
+    transition:
+      border-color $transition-fast,
+      box-shadow $transition-fast;
+  }
+}
+
+/* ============================================
+   FULL WIDTH
+   ============================================ */
+
+.fullWidth {
+  width: 100%;
+}
+
+/* ============================================
+   ERROR STATE
+   ============================================ */
+
+.error {
+  :global(.ant-select-selector) {
+    border-color: $color-error !important;
+
+    &:hover {
+      border-color: $color-error-hover !important;
+    }
+  }
+
+  /* Focus state with error */
+  &:global(.ant-select-focused) {
+    :global(.ant-select-selector) {
+      border-color: $color-error !important;
+      box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2) !important;
+    }
+  }
+}
+
+/* ============================================
+   SIZE OVERRIDES (if needed)
+   ============================================ */
+
+/* Small size adjustments */
+.select :global(.ant-select-sm) {
+  font-size: $font-size-sm;
+}
+
+/* Large size adjustments */
+.select :global(.ant-select-lg) {
+  font-size: $font-size-lg;
+}
+
+/* ============================================
+   MULTIPLE/TAGS MODE
+   ============================================ */
+
+.select {
+  /* Tag styling in multiple mode */
+  :global(.ant-select-selection-item) {
+    border-radius: $border-radius-sm;
+  }
+
+  /* Remove button in tags */
+  :global(.ant-select-selection-item-remove) {
+    color: $color-text-secondary;
+
+    &:hover {
+      color: $color-text-primary;
+    }
+  }
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.select {
+  :global(.ant-select-arrow) :global(.ant-select-suffix) {
+    /* Loading spinner inherits primary color */
+    color: $color-primary;
+  }
+}
+
+/* ============================================
+   DISABLED STATE
+   ============================================ */
+
+.select {
+  &:global(.ant-select-disabled) {
+    :global(.ant-select-selector) {
+      background: $color-background-secondary;
+      cursor: not-allowed;
+    }
+
+    :global(.ant-select-selection-item) {
+      color: $color-text-disabled;
+    }
+  }
+}
+
+/* ============================================
+   CLEAR BUTTON
+   ============================================ */
+
+.select {
+  :global(.ant-select-clear) {
+    background: $color-background-primary;
+    color: $color-text-tertiary;
+
+    &:hover {
+      color: $color-text-secondary;
+    }
+  }
+}
+
+/* ============================================
+   SEARCH INPUT
+   ============================================ */
+
+.select {
+  :global(.ant-select-selection-search-input) {
+    /* Ensure search input has proper styling */
+    height: 100%;
+  }
+}

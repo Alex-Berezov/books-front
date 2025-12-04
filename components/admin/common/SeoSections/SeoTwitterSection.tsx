@@ -1,13 +1,17 @@
 'use client';
 
 import type { FC } from 'react';
-import type { FieldErrors, FieldValues, Path, UseFormRegister } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
+import { Select } from '@/components/common/Select';
+import type { Control, FieldErrors, FieldValues, Path, UseFormRegister } from 'react-hook-form';
 import { FormField } from './ui/FormField';
 import { SeoCollapsible } from './ui/SeoCollapsible';
 
 export interface SeoTwitterSectionProps<TFormData extends FieldValues> {
   /** React Hook Form register */
   register: UseFormRegister<TFormData>;
+  /** React Hook Form control */
+  control: Control<TFormData>;
   /** Validation errors */
   errors: FieldErrors<TFormData>;
   /** Loading flag */
@@ -29,7 +33,13 @@ export interface SeoTwitterSectionProps<TFormData extends FieldValues> {
 export const SeoTwitterSection = <TFormData extends FieldValues>(
   props: SeoTwitterSectionProps<TFormData>
 ): ReturnType<FC> => {
-  const { register, errors, isSubmitting, twitterCardField, styles } = props;
+  const { control, errors, isSubmitting, twitterCardField, styles } = props;
+
+  // Twitter card options
+  const twitterCardOptions = [
+    { label: 'Summary (small image)', value: 'summary' },
+    { label: 'Summary Large Image (large image)', value: 'summary_large_image' },
+  ];
 
   return (
     <SeoCollapsible title="Twitter Card (required)">
@@ -44,15 +54,20 @@ export const SeoTwitterSection = <TFormData extends FieldValues>(
         label="Twitter Card Type"
         required
       >
-        <select
-          className={styles.select}
-          disabled={isSubmitting}
-          id={twitterCardField}
-          {...register(twitterCardField)}
-        >
-          <option value="summary">Summary (small image)</option>
-          <option value="summary_large_image">Summary Large Image (large image)</option>
-        </select>
+        <Controller
+          name={twitterCardField}
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              options={twitterCardOptions}
+              disabled={isSubmitting}
+              fullWidth
+              error={!!errors[twitterCardField]}
+              ariaLabel="Select Twitter card type"
+            />
+          )}
+        />
         <div className={styles.autoFillNotice}>
           ℹ️ Twitter uses Meta Title and Meta Description automatically
         </div>

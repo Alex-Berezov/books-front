@@ -37,6 +37,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
 
   // Initialize form with react-hook-form
   const {
+    control,
     formState: { errors },
     handleSubmit,
     register,
@@ -129,6 +130,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
     <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
       {/* Basic information and content */}
       <BasicInfoSection
+        control={control}
         errors={errors}
         initialData={initialData}
         isSubmitting={isSubmitting}
@@ -153,6 +155,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
 
         <SeoTechnicalSection<PageFormData>
           canonicalUrlField="seoCanonicalUrl"
+          control={control}
           errors={errors}
           isSubmitting={isSubmitting}
           languageField="language"
@@ -176,6 +179,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
         />
 
         <SeoTwitterSection<PageFormData>
+          control={control}
           errors={errors}
           isSubmitting={isSubmitting}
           register={register}

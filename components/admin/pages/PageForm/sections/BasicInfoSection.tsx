@@ -1,17 +1,27 @@
 'use client';
 
 import type { FC } from 'react';
+import { Controller } from 'react-hook-form';
 import { FormField } from '@/components/admin/common/SeoSections';
+import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { PageFormData } from '../PageForm.types';
 import type { PageResponse } from '@/types/api-schema';
-import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import type {
+  Control,
+  FieldErrors,
+  UseFormRegister,
+  UseFormSetValue,
+  UseFormWatch,
+} from 'react-hook-form';
 import styles from '../PageForm.module.scss';
 
 export interface BasicInfoSectionProps {
   /** React Hook Form register */
   register: UseFormRegister<PageFormData>;
+  /** React Hook Form control */
+  control: Control<PageFormData>;
   /** Validation errors */
   errors: FieldErrors<PageFormData>;
   /** React Hook Form watch */
@@ -35,7 +45,20 @@ export interface BasicInfoSectionProps {
  * - Content (Markdown content)
  */
 export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
-  const { register, errors, watch, setValue, isSubmitting, initialData } = props;
+  const { register, control, errors, watch, setValue, isSubmitting, initialData } = props;
+
+  // Language options
+  const languageOptions = SUPPORTED_LANGS.map((langCode) => ({
+    label: langCode.toUpperCase(),
+    value: langCode,
+  }));
+
+  // Page type options
+  const pageTypeOptions = [
+    { label: 'Generic Page', value: 'generic' },
+    { label: 'Category Index', value: 'category_index' },
+    { label: 'Author Index', value: 'author_index' },
+  ];
 
   return (
     <>
@@ -50,18 +73,20 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
           label="Language"
           required
         >
-          <select
-            className={styles.select}
-            disabled={!!initialData}
-            id="language"
-            {...register('language')}
-          >
-            {SUPPORTED_LANGS.map((langCode) => (
-              <option key={langCode} value={langCode}>
-                {langCode.toUpperCase()}
-              </option>
-            ))}
-          </select>
+          <Controller
+            name="language"
+            control={control}
+            render={({ field }) => (
+              <Select
+                {...field}
+                options={languageOptions}
+                disabled={!!initialData}
+                fullWidth
+                error={!!errors.language}
+                ariaLabel="Select language"
+              />
+            )}
+          />
         </FormField>
 
         <FormField
@@ -71,11 +96,20 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
           label="Page Type"
           required
         >
-          <select className={styles.select} disabled={isSubmitting} id="type" {...register('type')}>
-            <option value="generic">Generic Page</option>
-            <option value="category_index">Category Index</option>
-            <option value="author_index">Author Index</option>
-          </select>
+          <Controller
+            name="type"
+            control={control}
+            render={({ field }) => (
+              <Select
+                {...field}
+                options={pageTypeOptions}
+                disabled={isSubmitting}
+                fullWidth
+                error={!!errors.type}
+                ariaLabel="Select page type"
+              />
+            )}
+          />
         </FormField>
 
         <FormField error={errors.title?.message} id="title" label="Title" required>
