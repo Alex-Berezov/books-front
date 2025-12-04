@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
+import { Checkbox } from '@/components/common/Checkbox';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import type { BookFormData } from './BookForm.types';
@@ -59,12 +60,7 @@ export const MediaSection: FC<MediaSectionProps> = ({ register, control, errors 
         {errors.type && <span className={styles.error}>{errors.type.message}</span>}
       </div>
 
-      <div className={styles.checkboxField}>
-        <input className={styles.checkbox} id="isFree" type="checkbox" {...register('isFree')} />
-        <label className={styles.checkboxLabel} htmlFor="isFree">
-          This version is free
-        </label>
-      </div>
+      <Checkbox id="isFree" label="This version is free" {...register('isFree')} />
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="referralUrl">

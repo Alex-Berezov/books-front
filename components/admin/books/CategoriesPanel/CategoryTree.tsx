@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Button } from '@/components/common/Button';
+import { Checkbox } from '@/components/common/Checkbox';
 import type { CategoryTree as CategoryTreeType } from '@/types/api-schema';
 import styles from './CategoriesPanel.module.scss';
 
@@ -47,17 +48,22 @@ export const CategoryTree: FC<CategoryTreeProps> = ({
               )}
               {!hasChildren && <div className={styles.expandPlaceholder} />}
 
-              <label className={styles.categoryLabel}>
-                <input
+              <div className={styles.categoryLabel}>
+                <Checkbox
                   checked={isSelected}
-                  className={styles.checkbox}
                   disabled={isPending}
                   onChange={() => onToggleCategory(category.id)}
-                  type="checkbox"
+                  size="sm"
+                  label={
+                    <>
+                      <span className={styles.categoryName}>{category.name}</span>
+                      {category.type && (
+                        <span className={styles.categoryType}>({category.type})</span>
+                      )}
+                    </>
+                  }
                 />
-                <span className={styles.categoryName}>{category.name}</span>
-                {category.type && <span className={styles.categoryType}>({category.type})</span>}
-              </label>
+              </div>
             </div>
 
             {hasChildren && isExpanded && (
