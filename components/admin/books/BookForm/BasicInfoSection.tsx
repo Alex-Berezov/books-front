@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
+import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
@@ -64,11 +65,11 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
         <label className={styles.label} htmlFor="title">
           Title *
         </label>
-        <input
-          className={styles.input}
+        <Input
           id="title"
           placeholder="Enter book title"
           type="text"
+          fullWidth
           {...register('title')}
         />
         {errors.title && <span className={styles.error}>{errors.title.message}</span>}
@@ -78,11 +79,11 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
         <label className={styles.label} htmlFor="author">
           Author *
         </label>
-        <input
-          className={styles.input}
+        <Input
           id="author"
           placeholder="Enter author name"
           type="text"
+          fullWidth
           {...register('author')}
         />
         {errors.author && <span className={styles.error}>{errors.author.message}</span>}

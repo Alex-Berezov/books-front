@@ -136,9 +136,9 @@ export interface SelectProps<T = string> {
   autoFocus?: boolean;
 
   /**
-   * Custom dropdown render
+   * Custom popup render (replaces deprecated dropdownRender)
    */
-  dropdownRender?: (menu: React.ReactElement) => React.ReactElement;
+  popupRender?: (menu: React.ReactElement) => React.ReactElement;
 
   /**
    * Filter option function for search

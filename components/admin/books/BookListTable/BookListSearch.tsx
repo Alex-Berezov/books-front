@@ -1,5 +1,6 @@
 import type { FC, FormEvent } from 'react';
 import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
 import styles from './BookListTable.module.scss';
 
 interface BookListSearchProps {
@@ -15,12 +16,12 @@ export const BookListSearch: FC<BookListSearchProps> = (props) => {
 
   return (
     <form onSubmit={onSearch} className={styles.searchForm}>
-      <input
+      <Input
         type="text"
         placeholder="Search books..."
         value={searchValue}
         onChange={(e) => onSearchValueChange(e.target.value)}
-        className={styles.searchInput}
+        fullWidth
       />
       <Button type="submit">Search</Button>
       {hasActiveSearch && (

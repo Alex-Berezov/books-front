@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
+import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import type { BookFormData } from './BookForm.types';
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
@@ -26,11 +27,11 @@ export const MediaSection: FC<MediaSectionProps> = ({ register, control, errors 
         <label className={styles.label} htmlFor="coverImageUrl">
           Cover Image URL
         </label>
-        <input
-          className={styles.input}
+        <Input
           id="coverImageUrl"
           placeholder="https://example.com/cover.jpg"
           type="url"
+          fullWidth
           {...register('coverImageUrl')}
         />
         {errors.coverImageUrl && (
@@ -69,11 +70,11 @@ export const MediaSection: FC<MediaSectionProps> = ({ register, control, errors 
         <label className={styles.label} htmlFor="referralUrl">
           Referral URL (optional)
         </label>
-        <input
-          className={styles.input}
+        <Input
           id="referralUrl"
           placeholder="https://amazon.com/ref123"
           type="url"
+          fullWidth
           {...register('referralUrl')}
         />
         {errors.referralUrl && <span className={styles.error}>{errors.referralUrl.message}</span>}

@@ -1,19 +1,77 @@
 /**
- * Input component styles (wrapper over antd Input)
+ * Input component styles
  *
- * Custom styles for error states, loading, and full-width support
+ * Custom styled input with consistent design tokens
  */
 
 @import '@/styles/tokens.scss';
 
-/* Base input styles */
+/* ============================================
+   INPUT WRAPPER
+   ============================================ */
+
+.inputWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+}
+
+/* ============================================
+   BASE INPUT STYLES
+   ============================================ */
+
 .input {
-  /* Ensure consistent box-sizing */
-  :global(.ant-input),
-  :global(.ant-input-affix-wrapper) {
-    transition:
-      border-color $transition-fast,
-      box-shadow $transition-fast;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  font-family: inherit;
+  color: $color-text-primary;
+  background-color: $color-background-primary;
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color $transition-fast,
+    box-shadow $transition-fast;
+
+  &::placeholder {
+    color: $color-text-tertiary;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $color-primary;
+  }
+
+  &:focus {
+    border-color: $color-primary;
+    box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
+  }
+}
+
+/* ============================================
+   SIZE VARIANTS
+   ============================================ */
+
+.size-sm {
+  .input {
+    padding: 4px 8px;
+    font-size: $font-size-sm;
+  }
+}
+
+.size-md {
+  .input {
+    padding: 8px 12px;
+    font-size: $font-size-base;
+  }
+}
+
+.size-lg {
+  .input {
+    padding: 12px 16px;
+    font-size: $font-size-lg;
   }
 }
 
@@ -23,11 +81,6 @@
 
 .fullWidth {
   width: 100%;
-
-  :global(.ant-input),
-  :global(.ant-input-affix-wrapper) {
-    width: 100%;
-  }
 }
 
 /* ============================================
@@ -35,43 +88,45 @@
    ============================================ */
 
 .error {
-  :global(.ant-input),
-  :global(.ant-input-affix-wrapper) {
-    border-color: $color-error !important;
+  .input {
+    border-color: $color-error;
 
-    &:hover {
-      border-color: $color-error-hover !important;
+    &:hover:not(:disabled) {
+      border-color: $color-error-hover;
     }
-  }
 
-  /* Focus state with error */
-  :global(.ant-input:focus),
-  :global(.ant-input-affix-wrapper:focus),
-  :global(.ant-input-affix-wrapper-focused) {
-    border-color: $color-error !important;
-    box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2) !important;
+    &:focus {
+      border-color: $color-error;
+      box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+    }
   }
 }
 
 /* ============================================
-   SIZE OVERRIDES (if needed)
+   DISABLED STATE
    ============================================ */
 
-/* Small size adjustments */
-.input :global(.ant-input-sm) {
-  font-size: $font-size-sm;
-}
-
-/* Large size adjustments */
-.input :global(.ant-input-lg) {
-  font-size: $font-size-lg;
+.disabled {
+  .input {
+    background-color: $color-background-secondary;
+    color: $color-text-disabled;
+    cursor: not-allowed;
+  }
 }
 
 /* ============================================
    LOADING STATE
    ============================================ */
 
+.loading {
+  .input {
+    padding-right: 36px;
+  }
+}
+
 .spinner {
+  position: absolute;
+  right: 12px;
   display: inline-block;
   width: 14px;
   height: 14px;
@@ -88,40 +143,29 @@
 }
 
 /* ============================================
-   DISABLED STATE
-   ============================================ */
-
-.input {
-  :global(.ant-input[disabled]),
-  :global(.ant-input-affix-wrapper-disabled) {
-    background: $color-background-secondary;
-    cursor: not-allowed;
-    color: $color-text-disabled;
-  }
-}
-
-/* ============================================
    CLEAR BUTTON
    ============================================ */
 
-.input {
-  :global(.ant-input-clear-icon) {
-    color: $color-text-tertiary;
+.clearButton {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: $color-text-tertiary;
+  color: white;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color $transition-fast;
 
-    &:hover {
-      color: $color-text-secondary;
-    }
-  }
-}
-
-/* ============================================
-   PREFIX AND SUFFIX
-   ============================================ */
-
-.input {
-  :global(.ant-input-prefix),
-  :global(.ant-input-suffix) {
-    color: $color-text-secondary;
+  &:hover {
+    background-color: $color-text-secondary;
   }
 }
 
@@ -129,14 +173,36 @@
    PASSWORD TOGGLE
    ============================================ */
 
-.input {
-  :global(.ant-input-password-icon) {
-    color: $color-text-secondary;
-    cursor: pointer;
+.passwordToggle {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity $transition-fast;
 
-    &:hover {
-      color: $color-text-primary;
-    }
+  &:hover {
+    opacity: 1;
+  }
+}
+
+/* Adjust input padding when password toggle is present */
+.inputWrapper:has(.passwordToggle) {
+  .input {
+    padding-right: 40px;
+  }
+}
+
+/* Adjust input padding when clear button is present */
+.inputWrapper:has(.clearButton) {
+  .input {
+    padding-right: 36px;
   }
 }
 
@@ -144,9 +210,10 @@
    CHARACTER COUNT
    ============================================ */
 
-.input {
-  :global(.ant-input-show-count-suffix) {
-    color: $color-text-tertiary;
-    font-size: $font-size-sm;
-  }
+.charCount {
+  position: absolute;
+  right: 12px;
+  bottom: -18px;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
 }

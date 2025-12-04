@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { Input } from '@/components/common/Input';
 import type {
   FieldErrors,
   FieldValues,
@@ -54,13 +55,13 @@ export const SeoBasicSection = <TFormData extends FieldValues>(
         label="Meta Title"
         required
       >
-        <input
-          className={styles.input}
+        <Input
           disabled={isSubmitting}
           id={metaTitleField}
           maxLength={60}
           placeholder="About Us - Company Name"
           type="text"
+          fullWidth
           {...register(metaTitleField)}
         />
       </FormField>

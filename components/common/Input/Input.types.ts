@@ -1,4 +1,4 @@
-import type { ChangeEvent, ReactNode } from 'react';
+import type { ChangeEvent, FocusEvent } from 'react';
 
 /**
  * Input size options
@@ -13,7 +13,7 @@ export type InputType = 'text' | 'password' | 'email' | 'url' | 'number';
 /**
  * Input component props
  *
- * Wrapper over antd Input with extended API for project consistency
+ * Custom styled input with react-hook-form compatibility
  */
 export interface InputProps {
   /**
@@ -68,24 +68,16 @@ export interface InputProps {
 
   /**
    * Callback when blur event occurs (useful for react-hook-form)
+   * Uses generic event type for compatibility with react-hook-form's ChangeHandler
    */
-  onBlur?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onBlur?: (e?: FocusEvent<HTMLInputElement> | any) => void;
 
   /**
    * Input type
    * @default 'text'
    */
   type?: InputType;
-
-  /**
-   * Prefix icon or element (displayed on the left)
-   */
-  prefix?: ReactNode;
-
-  /**
-   * Suffix icon or element (displayed on the right)
-   */
-  suffix?: ReactNode;
 
   /**
    * Allow clearing the input value
@@ -118,6 +110,11 @@ export interface InputProps {
    * Field name for form integration
    */
   name?: string;
+
+  /**
+   * HTML id attribute (defaults to name if not provided)
+   */
+  id?: string;
 
   /**
    * Auto focus on mount

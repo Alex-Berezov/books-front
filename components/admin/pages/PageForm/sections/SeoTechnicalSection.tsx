@@ -3,6 +3,7 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import type { PageFormData } from '../PageForm.types';
 import type {
@@ -67,12 +68,12 @@ export const SeoTechnicalSection: FC<SeoTechnicalSectionProps> = (props) => {
         required
       >
         <div className={styles.inputWithButton}>
-          <input
-            className={styles.input}
+          <Input
             disabled={isSubmitting}
             id="seoCanonicalUrl"
             placeholder="https://example.com/about-us"
             type="url"
+            fullWidth
             {...register('seoCanonicalUrl')}
           />
           <Button

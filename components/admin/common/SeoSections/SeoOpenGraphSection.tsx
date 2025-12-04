@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { Input } from '@/components/common/Input';
 import type {
   FieldErrors,
   FieldValues,
@@ -69,13 +70,13 @@ export const SeoOpenGraphSection = <TFormData extends FieldValues>(
         label="OG Title"
         required
       >
-        <input
-          className={styles.input}
+        <Input
           disabled={isSubmitting}
           id={ogTitleField}
           maxLength={60}
           placeholder="About Us - Company Name"
           type="text"
+          fullWidth
           {...register(ogTitleField)}
         />
       </FormField>
@@ -108,12 +109,12 @@ export const SeoOpenGraphSection = <TFormData extends FieldValues>(
         label="OG Image URL"
         required
       >
-        <input
-          className={styles.input}
+        <Input
           disabled={isSubmitting}
           id={ogImageUrlField}
           placeholder="https://example.com/images/og-image.jpg"
           type="url"
+          fullWidth
           {...register(ogImageUrlField)}
         />
 

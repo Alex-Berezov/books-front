@@ -1,13 +1,11 @@
 'use client';
 
-import { forwardRef } from 'react';
-import { Input as AntInput } from 'antd';
+import { forwardRef, useState, type ChangeEvent, type FocusEvent } from 'react';
 import type { InputProps } from './Input.types';
-import type { InputRef } from 'antd';
 import styles from './Input.module.scss';
 
 /**
- * Input - Wrapper over antd Input with extended API
+ * Input - Custom styled input component
  *
  * Features:
  * - Sizes: sm, md, lg
@@ -15,7 +13,6 @@ import styles from './Input.module.scss';
  * - Loading state with spinner
  * - Full width support
  * - Password type with visibility toggle
- * - Prefix/suffix icons
  * - Character count
  * - Integration with react-hook-form via register or Controller
  *
@@ -43,14 +40,11 @@ import styles from './Input.module.scss';
  * // Password with toggle
  * <Input type="password" placeholder="Password" />
  *
- * // With prefix icon
- * <Input prefix={<SearchIcon />} placeholder="Search..." />
- *
  * // Full width with max length
  * <Input fullWidth maxLength={100} showCount placeholder="Description" />
  * ```
  */
-export const Input = forwardRef<InputRef, InputProps>((props, ref) => {
+export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
   const {
     size = 'md',
     fullWidth = false,
@@ -63,68 +57,115 @@ export const Input = forwardRef<InputRef, InputProps>((props, ref) => {
     onChange,
     onBlur,
     type = 'text',
-    prefix,
-    suffix,
     allowClear = false,
     maxLength,
     showCount = false,
     ariaLabel,
     className,
     name,
+    id,
     autoFocus = false,
     autoComplete,
   } = props;
 
-  // Map our sizes to antd sizes
-  const getAntdSize = () => {
-    switch (size) {
-      case 'sm':
-        return 'small' as const;
-      case 'lg':
-        return 'large' as const;
-      case 'md':
-      default:
-        return 'middle' as const;
+  const [showPassword, setShowPassword] = useState(false);
+  const [internalValue, setInternalValue] = useState(defaultValue ?? '');
+
+  // Track current value for showCount feature
+  const currentValue = value !== undefined ? value : internalValue;
+
+  // Handle internal value tracking for uncontrolled mode
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (value === undefined) {
+      setInternalValue(e.target.value);
     }
+    onChange?.(e);
+  };
+
+  // Handle clear button
+  const handleClear = () => {
+    const syntheticEvent = {
+      target: { value: '', name },
+      currentTarget: { value: '', name },
+    } as ChangeEvent<HTMLInputElement>;
+
+    if (value === undefined) {
+      setInternalValue('');
+    }
+    onChange?.(syntheticEvent);
   };
 
   // Build class names
-  const classNames = [styles.input, fullWidth && styles.fullWidth, error && styles.error, className]
+  const classNames = [
+    styles.inputWrapper,
+    styles[`size-${size}`],
+    fullWidth && styles.fullWidth,
+    error && styles.error,
+    disabled && styles.disabled,
+    loading && styles.loading,
+    className,
+  ]
     .filter(Boolean)
     .join(' ');
 
-  // Common props for all input types
-  const commonProps = {
-    ref,
-    size: getAntdSize(),
-    disabled: disabled || loading,
-    placeholder,
-    value,
-    defaultValue,
-    onChange,
-    onBlur,
-    prefix,
-    suffix: loading ? <span className={styles.spinner} /> : suffix,
-    allowClear,
-    maxLength,
-    showCount,
-    className: classNames,
-    'aria-label': ariaLabel,
-    id: name,
-    name,
-    autoFocus,
-    autoComplete,
-    status: error ? ('error' as const) : undefined,
-    style: fullWidth ? { width: '100%' } : undefined,
-  };
+  const inputType = type === 'password' && showPassword ? 'text' : type;
 
-  // Use Password component for password type
-  if (type === 'password') {
-    return <AntInput.Password {...commonProps} />;
-  }
+  return (
+    <div className={classNames}>
+      <input
+        ref={ref}
+        type={inputType}
+        disabled={disabled || loading}
+        placeholder={placeholder}
+        value={value}
+        defaultValue={value === undefined ? defaultValue : undefined}
+        onChange={handleChange}
+        onBlur={onBlur as (e: FocusEvent<HTMLInputElement>) => void}
+        maxLength={maxLength}
+        className={styles.input}
+        aria-label={ariaLabel}
+        id={id ?? name}
+        name={name}
+        autoFocus={autoFocus}
+        autoComplete={autoComplete}
+        aria-invalid={error}
+      />
 
-  // Use regular Input for other types
-  return <AntInput {...commonProps} type={type} />;
+      {/* Clear button */}
+      {allowClear && currentValue && !disabled && !loading && (
+        <button
+          type="button"
+          className={styles.clearButton}
+          onClick={handleClear}
+          aria-label="Clear input"
+        >
+          ×
+        </button>
+      )}
+
+      {/* Password toggle */}
+      {type === 'password' && (
+        <button
+          type="button"
+          className={styles.passwordToggle}
+          onClick={() => setShowPassword(!showPassword)}
+          aria-label={showPassword ? 'Hide password' : 'Show password'}
+        >
+          {showPassword ? '👁️' : '👁️‍🗨️'}
+        </button>
+      )}
+
+      {/* Loading spinner */}
+      {loading && <span className={styles.spinner} />}
+
+      {/* Character count */}
+      {showCount && maxLength && (
+        <span className={styles.charCount}>
+          {String(currentValue).length}/{maxLength}
+        </span>
+      )}
+    </div>
+  );
 });
 
 Input.displayName = 'Input';

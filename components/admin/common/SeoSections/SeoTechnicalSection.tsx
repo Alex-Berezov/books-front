@@ -3,6 +3,7 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import type {
   Control,
@@ -97,12 +98,12 @@ export const SeoTechnicalSection = <TFormData extends FieldValues>(
         required
       >
         <div className={styles.inputWithButton}>
-          <input
-            className={styles.input}
+          <Input
             disabled={isSubmitting}
             id={canonicalUrlField}
             placeholder="https://example.com/about-us"
             type="url"
+            fullWidth
             {...register(canonicalUrlField)}
           />
           <Button

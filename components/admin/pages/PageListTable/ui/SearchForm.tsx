@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
 import type { SearchFormProps } from '../PageListTable.types';
 import styles from '../PageListTable.module.scss';
 
@@ -13,12 +14,12 @@ export const SearchForm: FC<SearchFormProps> = (props) => {
 
   return (
     <form onSubmit={onSearch} className={styles.searchForm}>
-      <input
+      <Input
         type="text"
         placeholder="Search by title or slug..."
         value={searchValue}
         onChange={(e) => onSearchValueChange(e.target.value)}
-        className={styles.searchInput}
+        fullWidth
       />
       <Button type="submit">Search</Button>
       {search && (

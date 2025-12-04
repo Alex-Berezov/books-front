@@ -3,6 +3,7 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { FormField } from '@/components/admin/common/SeoSections';
+import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
@@ -113,12 +114,12 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
         </FormField>
 
         <FormField error={errors.title?.message} id="title" label="Title" required>
-          <input
-            className={styles.input}
+          <Input
             disabled={isSubmitting}
             id="title"
             placeholder="About Us"
             type="text"
+            fullWidth
             {...register('title')}
           />
         </FormField>

@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { Input } from '@/components/common/Input';
 import type { PageFormData } from '../PageForm.types';
 import type { FieldErrors, UseFormRegister, UseFormWatch } from 'react-hook-form';
 import styles from '../PageForm.module.scss';
@@ -39,13 +40,13 @@ export const SeoBasicSection: FC<SeoBasicSectionProps> = (props) => {
         label="Meta Title"
         required
       >
-        <input
-          className={styles.input}
+        <Input
           disabled={isSubmitting}
           id="seoMetaTitle"
           maxLength={60}
           placeholder="About Us - Company Name"
           type="text"
+          fullWidth
           {...register('seoMetaTitle')}
         />
       </FormField>

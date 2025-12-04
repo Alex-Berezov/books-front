@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Input } from '@/components/common/Input';
 import styles from './TagsPanel.module.scss';
 
 interface TagsSearchInputProps {
@@ -11,12 +12,13 @@ export const TagsSearchInput: FC<TagsSearchInputProps> = (props) => {
 
   return (
     <div className={styles.searchContainer}>
-      <input
+      <Input
         className={styles.searchInput}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search tags..."
         type="text"
         value={value}
+        fullWidth
       />
     </div>
   );

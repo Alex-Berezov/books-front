@@ -129,29 +129,29 @@ import { MailOutlined } from '@ant-design/icons';
 
 ## Props
 
-| Prop           | Type                                            | Default   | Description                 |
-| -------------- | ----------------------------------------------- | --------- | --------------------------- |
-| `size`         | `'sm' \| 'md' \| 'lg'`                          | `'md'`    | Size of the input           |
-| `fullWidth`    | `boolean`                                       | `false`   | Whether to span full width  |
-| `error`        | `boolean`                                       | `false`   | Error state for validation  |
-| `disabled`     | `boolean`                                       | `false`   | Disabled state              |
-| `loading`      | `boolean`                                       | `false`   | Loading state               |
-| `placeholder`  | `string`                                        | -         | Placeholder text            |
-| `value`        | `string`                                        | -         | Controlled value            |
-| `defaultValue` | `string`                                        | -         | Default value               |
-| `onChange`     | `(e: ChangeEvent<HTMLInputElement>) => void`    | -         | Change handler              |
-| `onBlur`       | `() => void`                                    | -         | Blur handler                |
-| `type`         | `'text' \| 'password' \| 'email' \| 'url' \| 'number'` | `'text'` | Input type                |
-| `prefix`       | `ReactNode`                                     | -         | Prefix icon/element         |
-| `suffix`       | `ReactNode`                                     | -         | Suffix icon/element         |
-| `allowClear`   | `boolean`                                       | `false`   | Show clear button           |
-| `maxLength`    | `number`                                        | -         | Maximum character length    |
-| `showCount`    | `boolean`                                       | `false`   | Show character count        |
-| `ariaLabel`    | `string`                                        | -         | Accessible label            |
-| `className`    | `string`                                        | -         | Additional CSS class        |
-| `name`         | `string`                                        | -         | Field name for forms        |
-| `autoFocus`    | `boolean`                                       | `false`   | Auto focus on mount         |
-| `autoComplete` | `string`                                        | -         | HTML autocomplete attribute |
+| Prop           | Type                                                   | Default  | Description                 |
+| -------------- | ------------------------------------------------------ | -------- | --------------------------- |
+| `size`         | `'sm' \| 'md' \| 'lg'`                                 | `'md'`   | Size of the input           |
+| `fullWidth`    | `boolean`                                              | `false`  | Whether to span full width  |
+| `error`        | `boolean`                                              | `false`  | Error state for validation  |
+| `disabled`     | `boolean`                                              | `false`  | Disabled state              |
+| `loading`      | `boolean`                                              | `false`  | Loading state               |
+| `placeholder`  | `string`                                               | -        | Placeholder text            |
+| `value`        | `string`                                               | -        | Controlled value            |
+| `defaultValue` | `string`                                               | -        | Default value               |
+| `onChange`     | `(e: ChangeEvent<HTMLInputElement>) => void`           | -        | Change handler              |
+| `onBlur`       | `() => void`                                           | -        | Blur handler                |
+| `type`         | `'text' \| 'password' \| 'email' \| 'url' \| 'number'` | `'text'` | Input type                  |
+| `prefix`       | `ReactNode`                                            | -        | Prefix icon/element         |
+| `suffix`       | `ReactNode`                                            | -        | Suffix icon/element         |
+| `allowClear`   | `boolean`                                              | `false`  | Show clear button           |
+| `maxLength`    | `number`                                               | -        | Maximum character length    |
+| `showCount`    | `boolean`                                              | `false`  | Show character count        |
+| `ariaLabel`    | `string`                                               | -        | Accessible label            |
+| `className`    | `string`                                               | -        | Additional CSS class        |
+| `name`         | `string`                                               | -        | Field name for forms        |
+| `autoFocus`    | `boolean`                                              | `false`  | Auto focus on mount         |
+| `autoComplete` | `string`                                               | -        | HTML autocomplete attribute |
 
 ## Styling
 

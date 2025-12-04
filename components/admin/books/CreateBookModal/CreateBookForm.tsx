@@ -1,4 +1,5 @@
 import type { FC, FormEvent, ChangeEvent } from 'react';
+import { Input } from '@/components/common/Input';
 import type { CreateBookFormData } from './CreateBookModal.types';
 import styles from './CreateBookModal.module.scss';
 
@@ -33,15 +34,16 @@ export const CreateBookForm: FC<CreateBookFormProps> = ({
           Book Title
           <span className={styles.required}>*</span>
         </label>
-        <input
+        <Input
           autoFocus
-          className={`${styles.input} ${errors.title ? styles.error : ''}`}
+          error={!!errors.title}
           disabled={isPending}
           id="book-title"
           placeholder="e.g. Harry Potter and the Philosopher's Stone"
           type="text"
           value={formData.title}
           onChange={onInputChange('title')}
+          fullWidth
         />
         {errors.title && <span className={styles.errorMessage}>{errors.title}</span>}
         {generatedSlug && !errors.title && (
@@ -67,14 +69,15 @@ export const CreateBookForm: FC<CreateBookFormProps> = ({
           Author
           <span className={styles.required}>*</span>
         </label>
-        <input
-          className={`${styles.input} ${errors.author ? styles.error : ''}`}
+        <Input
+          error={!!errors.author}
           disabled={isPending}
           id="book-author"
           placeholder="e.g. J.K. Rowling"
           type="text"
           value={formData.author}
           onChange={onInputChange('author')}
+          fullWidth
         />
         {errors.author && <span className={styles.errorMessage}>{errors.author}</span>}
       </div>

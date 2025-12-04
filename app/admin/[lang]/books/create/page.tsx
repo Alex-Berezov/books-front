@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useCreateBook } from '@/api/hooks';
 import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 interface CreateBookPageProps {
@@ -68,14 +69,13 @@ const CreateBookPage: FC<CreateBookPageProps> = (props) => {
             <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
               Book Slug *
             </label>
-            <input
+            <Input
               type="text"
               id="slug"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               placeholder="e.g. harry-potter-philosophers-stone"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
+              fullWidth
               disabled={isSubmitting}
             />
             <p className="mt-2 text-sm text-gray-600">
