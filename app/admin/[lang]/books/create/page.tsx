@@ -85,12 +85,7 @@ const CreateBookPage: FC<CreateBookPageProps> = (props) => {
           </div>
 
           <div className="flex gap-4 pt-4">
-            <Button
-              type="submit"
-              disabled={!slug.trim()}
-              loading={isSubmitting}
-              loadingText="Creating..."
-            >
+            <Button type="submit" disabled={!slug.trim()} loading={isSubmitting}>
               Create Book
             </Button>
 

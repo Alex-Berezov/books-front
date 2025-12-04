@@ -1,6 +1,6 @@
-# UniversalButton Component
+# Button Component
 
-Универсальный переиспользуемый компонент кнопки для проекта Bibliaris.
+Обёртка над antd Button с расширенным API для проекта Bibliaris.
 
 ## Установка
 
@@ -14,28 +14,27 @@ import { Button } from '@/components/common/Button';
 
 ### Props
 
-| Prop          | Type                                                                                  | Default           | Description                      |
-| ------------- | ------------------------------------------------------------------------------------- | ----------------- | -------------------------------- |
-| `variant`     | `'primary' \| 'secondary' \| 'danger' \| 'success' \| 'warning' \| 'ghost' \| 'link'` | `'primary'`       | Визуальный стиль кнопки          |
-| `size`        | `'sm' \| 'md' \| 'lg'`                                                                | `'md'`            | Размер кнопки                    |
-| `shape`       | `'default' \| 'round' \| 'circle'`                                                    | `'default'`       | Форма кнопки                     |
-| `fullWidth`   | `boolean`                                                                             | `false`           | Растягивает кнопку на всю ширину |
-| `loading`     | `boolean`                                                                             | `false`           | Состояние загрузки               |
-| `loadingText` | `string`                                                                              | `'Processing...'` | Текст при загрузке               |
-| `active`      | `boolean`                                                                             | `false`           | Активное состояние (для toggle)  |
-| `leftIcon`    | `ReactNode`                                                                           | -                 | Иконка слева                     |
-| `rightIcon`   | `ReactNode`                                                                           | -                 | Иконка справа                    |
-| `type`        | `'button' \| 'submit' \| 'reset'`                                                     | `'button'`        | HTML type                        |
-| `form`        | `string`                                                                              | -                 | ID формы для submit              |
-| `ariaLabel`   | `string`                                                                              | -                 | Accessibility label              |
-| `disabled`    | `boolean`                                                                             | `false`           | Отключена                        |
+| Prop        | Type                                                                                  | Default     | Description                      |
+| ----------- | ------------------------------------------------------------------------------------- | ----------- | -------------------------------- |
+| `variant`   | `'primary' \| 'secondary' \| 'danger' \| 'success' \| 'warning' \| 'ghost' \| 'link'` | `'primary'` | Визуальный стиль кнопки          |
+| `size`      | `'sm' \| 'md' \| 'lg'`                                                                | `'md'`      | Размер кнопки                    |
+| `shape`     | `'default' \| 'round' \| 'circle'`                                                    | `'default'` | Форма кнопки                     |
+| `fullWidth` | `boolean`                                                                             | `false`     | Растягивает кнопку на всю ширину |
+| `loading`   | `boolean`                                                                             | `false`     | Состояние загрузки               |
+| `active`    | `boolean`                                                                             | `false`     | Активное состояние (для toggle)  |
+| `leftIcon`  | `ReactNode`                                                                           | -           | Иконка слева                     |
+| `rightIcon` | `ReactNode`                                                                           | -           | Иконка справа                    |
+| `type`      | `'button' \| 'submit' \| 'reset'`                                                     | `'button'`  | HTML type                        |
+| `form`      | `string`                                                                              | -           | ID формы для submit              |
+| `ariaLabel` | `string`                                                                              | -           | Accessibility label              |
+| `disabled`  | `boolean`                                                                             | `false`     | Отключена                        |
 
 ## Примеры использования
 
 ### Primary Button (Submit)
 
 ```tsx
-<Button type="submit" loading={isSubmitting} loadingText="Saving...">
+<Button type="submit" loading={isSubmitting}>
   Save Changes
 </Button>
 ```
@@ -115,39 +114,38 @@ import { Edit } from 'lucide-react';
 
 ## Варианты (Variants)
 
-| Variant     | Использование                                         |
-| ----------- | ----------------------------------------------------- |
-| `primary`   | Главное действие (Submit, Create, Save)               |
-| `secondary` | Вторичное действие (Cancel, Back, Preview)            |
-| `danger`    | Деструктивные действия (Delete)                       |
-| `success`   | Позитивные действия (Publish)                         |
-| `warning`   | Предупреждающие действия (Unpublish)                  |
-| `ghost`     | Минималистичные кнопки (icon buttons, action buttons) |
-| `link`      | Кнопка-ссылка (Generate, inline actions)              |
+| Variant     | Использование                                         | antd mapping |
+| ----------- | ----------------------------------------------------- | ------------ |
+| `primary`   | Главное действие (Submit, Create, Save)               | `primary`    |
+| `secondary` | Вторичное действие (Cancel, Back, Preview)            | `default`    |
+| `danger`    | Деструктивные действия (Delete)                       | `danger`     |
+| `success`   | Позитивные действия (Publish)                         | custom       |
+| `warning`   | Предупреждающие действия (Unpublish)                  | custom       |
+| `ghost`     | Минималистичные кнопки (icon buttons, action buttons) | `text`       |
+| `link`      | Кнопка-ссылка (Generate, inline actions)              | `link`       |
 
 ## Размеры (Sizes)
 
-| Size | Использование                            |
-| ---- | ---------------------------------------- |
-| `sm` | Компактные списки, таблицы, icon buttons |
-| `md` | Стандартный размер (по умолчанию)        |
-| `lg` | Основные CTA кнопки                      |
+| Size | antd size | Использование                            |
+| ---- | --------- | ---------------------------------------- |
+| `sm` | `small`   | Компактные списки, таблицы, icon buttons |
+| `md` | `middle`  | Стандартный размер (по умолчанию)        |
+| `lg` | `large`   | Основные CTA кнопки                      |
 
 ## Формы (Shapes)
 
-| Shape     | Использование             |
-| --------- | ------------------------- |
-| `default` | Стандартный border-radius |
-| `round`   | Pill-style кнопки         |
-| `circle`  | Круглые icon-only кнопки  |
+| Shape     | antd shape | Использование             |
+| --------- | ---------- | ------------------------- |
+| `default` | -          | Стандартный border-radius |
+| `round`   | `round`    | Pill-style кнопки         |
+| `circle`  | `circle`   | Круглые icon-only кнопки  |
 
 ## Accessibility
 
 Компонент поддерживает:
 
 - `aria-label` для screen readers
-- `aria-busy` при loading state
-- `aria-disabled` для disabled state
+- Встроенный loading state с индикатором antd
 - Фокус ring для навигации с клавиатуры
 
 ## Миграция с нативных button
@@ -165,7 +163,7 @@ import { Edit } from 'lucide-react';
 **После:**
 
 ```tsx
-<Button type="submit" loading={isSubmitting} loadingText="Saving...">
+<Button type="submit" loading={isSubmitting}>
   Save
 </Button>
 ```

@@ -50,7 +50,6 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
               variant="warning"
               fullWidth
               loading={isLoading}
-              loadingText="Processing..."
               onClick={() => handleOpenConfirmModal('unpublish')}
             >
               Unpublish
@@ -60,7 +59,6 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
               variant="success"
               fullWidth
               loading={isLoading}
-              loadingText="Publishing..."
               disabled={isArchived}
               onClick={() => handleOpenConfirmModal('publish')}
             >

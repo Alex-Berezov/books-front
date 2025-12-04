@@ -186,7 +186,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
 
       {/* Submit Button */}
       <div className={styles.actions}>
-        <Button type="submit" loading={isSubmitting} loadingText="Saving...">
+        <Button type="submit" loading={isSubmitting}>
           {initialData ? 'Update Page' : 'Create Page'}
         </Button>
       </div>

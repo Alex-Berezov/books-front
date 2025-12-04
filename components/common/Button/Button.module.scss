@@ -1,232 +1,80 @@
 /**
- * UniversalButton component styles
+ * Button component styles (wrapper over antd Button)
  *
- * Comprehensive button styling with variants, sizes, and states
+ * Custom styles for variants not available in antd
  */
 
 @import '@/styles/tokens.scss';
 
-/* Base button styles */
+/* Base overrides for antd */
 .button {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: $spacing-sm;
-  border: none;
-  border-radius: $border-radius-base;
-  font-family: $font-family-base;
-  font-weight: $font-weight-medium;
-  cursor: pointer;
-  transition: all $transition-fast;
-  text-decoration: none;
-  white-space: nowrap;
-  user-select: none;
-  outline: none;
-  position: relative;
 
-  /* Focus visible state */
-  &:focus-visible {
-    box-shadow: $shadow-focus;
-  }
-
-  /* Disabled state */
-  &:disabled,
-  &.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-
-  /* Hover effect */
-  &:hover:not(:disabled):not(.disabled) {
+  /* Smooth hover effect */
+  &:hover:not(:disabled) {
     transform: translateY(-1px);
   }
 
-  /* Active/pressed effect */
-  &:active:not(:disabled):not(.disabled) {
+  &:active:not(:disabled) {
     transform: translateY(0);
   }
 }
 
 /* ============================================
-   VARIANTS
+   CUSTOM VARIANTS (not available in antd)
    ============================================ */
-
-/* Primary variant - main CTA buttons */
-.primary {
-  background: $color-primary;
-  color: $color-text-inverse;
-  border: 1px solid $color-primary;
-
-  &:hover:not(:disabled):not(.disabled) {
-    background: $color-primary-hover;
-    border-color: $color-primary-hover;
-    box-shadow: $shadow-md;
-  }
-
-  &:active:not(:disabled):not(.disabled) {
-    background: $color-primary-active;
-    border-color: $color-primary-active;
-  }
-}
 
 /* Secondary variant - secondary actions */
 .secondary {
-  background: $color-background-primary;
-  color: $color-text-primary;
-  border: 1px solid $color-border-base;
+  background: $color-background-primary !important;
+  color: $color-text-primary !important;
+  border-color: $color-border-base !important;
 
-  &:hover:not(:disabled):not(.disabled) {
-    background: $color-background-secondary;
-    border-color: $color-border-dark;
-    box-shadow: $shadow-sm;
-  }
-
-  &:active:not(:disabled):not(.disabled) {
-    background: darken($color-background-secondary, 5%);
-  }
-}
-
-/* Danger variant - destructive actions */
-.danger {
-  background: $color-error;
-  color: $color-text-inverse;
-  border: 1px solid $color-error;
-
-  &:hover:not(:disabled):not(.disabled) {
-    background: $color-error-hover;
-    border-color: $color-error-hover;
-    box-shadow: $shadow-md;
+  &:hover:not(:disabled) {
+    background: $color-background-secondary !important;
+    border-color: $color-border-dark !important;
+    color: $color-text-primary !important;
   }
 }
 
 /* Success variant - positive actions */
 .success {
-  background: $color-success;
-  color: $color-text-inverse;
-  border: 1px solid $color-success;
+  background: $color-success !important;
+  color: $color-text-inverse !important;
+  border-color: $color-success !important;
 
-  &:hover:not(:disabled):not(.disabled) {
-    background: $color-success-hover;
-    border-color: $color-success-hover;
-    box-shadow: $shadow-md;
+  &:hover:not(:disabled) {
+    background: $color-success-hover !important;
+    border-color: $color-success-hover !important;
+    color: $color-text-inverse !important;
   }
 }
 
 /* Warning variant - cautionary actions */
 .warning {
-  background: $color-warning;
-  color: $color-text-inverse;
-  border: 1px solid $color-warning;
+  background: $color-warning !important;
+  color: $color-text-inverse !important;
+  border-color: $color-warning !important;
 
-  &:hover:not(:disabled):not(.disabled) {
-    background: $color-warning-hover;
-    border-color: $color-warning-hover;
-    box-shadow: $shadow-md;
+  &:hover:not(:disabled) {
+    background: $color-warning-hover !important;
+    border-color: $color-warning-hover !important;
+    color: $color-text-inverse !important;
   }
 }
 
 /* Ghost variant - minimal styling */
 .ghost {
-  background: transparent;
-  color: $color-text-secondary;
-  border: 1px solid transparent;
+  background: transparent !important;
+  color: $color-text-secondary !important;
+  border-color: transparent !important;
 
-  &:hover:not(:disabled):not(.disabled) {
-    background: $color-background-secondary;
-    color: $color-text-primary;
-    transform: none;
+  &:hover:not(:disabled) {
+    background: $color-background-secondary !important;
+    color: $color-text-primary !important;
   }
-
-  &:active:not(:disabled):not(.disabled) {
-    background: darken($color-background-secondary, 5%);
-  }
-
-  /* Ghost danger hover */
-  &.ghostDanger:hover:not(:disabled):not(.disabled) {
-    color: $color-error;
-    background: rgba($color-error, 0.1);
-  }
-}
-
-/* Link variant - text-only link style */
-.link {
-  background: transparent;
-  color: $color-primary;
-  border: none;
-  padding: 0;
-
-  &:hover:not(:disabled):not(.disabled) {
-    color: $color-primary-hover;
-    text-decoration: underline;
-    transform: none;
-    box-shadow: none;
-  }
-
-  &.active {
-    color: $color-primary;
-    font-weight: $font-weight-semibold;
-  }
-}
-
-/* ============================================
-   SIZES
-   ============================================ */
-
-/* Small size */
-.sm {
-  padding: $spacing-xs $spacing-sm;
-  font-size: $font-size-sm;
-  min-height: 28px;
-
-  &.circle,
-  &.iconOnly {
-    width: 28px;
-    height: 28px;
-    padding: 0;
-  }
-}
-
-/* Medium size (default) */
-.md {
-  padding: $spacing-sm $spacing-lg;
-  font-size: $font-size-base;
-  min-height: 36px;
-
-  &.circle,
-  &.iconOnly {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-  }
-}
-
-/* Large size */
-.lg {
-  padding: $spacing-md $spacing-xl;
-  font-size: $font-size-lg;
-  min-height: 44px;
-
-  &.circle,
-  &.iconOnly {
-    width: 44px;
-    height: 44px;
-    padding: 0;
-  }
-}
-
-/* ============================================
-   SHAPES
-   ============================================ */
-
-/* Round shape (pill) */
-.round {
-  border-radius: 9999px;
-}
-
-/* Circle shape (for icon-only) */
-.circle {
-  border-radius: $border-radius-round;
 }
 
 /* ============================================
@@ -241,48 +89,28 @@
 /* Active state for toggle buttons */
 .active {
   &.secondary {
-    background: $color-primary;
-    color: $color-text-inverse;
-    border-color: $color-primary;
+    background: $color-primary !important;
+    color: $color-text-inverse !important;
+    border-color: $color-primary !important;
 
-    &:hover:not(:disabled):not(.disabled) {
-      background: $color-primary-hover;
-      border-color: $color-primary-hover;
+    &:hover:not(:disabled) {
+      background: $color-primary-hover !important;
+      border-color: $color-primary-hover !important;
     }
   }
 
   &.ghost {
-    background: $color-background-secondary;
-    color: $color-text-primary;
-  }
-}
-
-/* Loading state */
-.loading {
-  cursor: wait;
-
-  .content {
-    opacity: 0.7;
+    background: $color-background-secondary !important;
+    color: $color-text-primary !important;
   }
 }
 
 /* ============================================
-   ICON HANDLING
+   ICONS
    ============================================ */
 
-.iconOnly {
-  padding: $spacing-xs;
-}
-
-.icon {
+.rightIcon {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.content {
-  display: inline-flex;
-  align-items: center;
-  gap: $spacing-sm;
+  margin-left: $spacing-xs;
 }

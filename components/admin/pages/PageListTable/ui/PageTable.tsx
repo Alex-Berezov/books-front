@@ -61,7 +61,6 @@ export const PageTable: FC<PageTableProps> = (props) => {
                   onClick={() => onDelete(pageItem.id, pageItem.title)}
                   disabled={isDeletingPage}
                   loading={isDeletingPage}
-                  loadingText="Deleting..."
                   title="Delete page"
                 >
                   Delete

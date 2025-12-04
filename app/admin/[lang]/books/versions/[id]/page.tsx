@@ -114,7 +114,6 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
               form={FORM_ID}
               leftIcon={<Save size={16} />}
               loading={isSubmitting}
-              loadingText="Saving..."
             >
               Update Version
             </Button>

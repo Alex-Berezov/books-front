@@ -1,27 +1,28 @@
 'use client';
 
 import { forwardRef } from 'react';
+import { Button as AntButton } from 'antd';
 import type { ButtonProps } from './Button.types';
+import type { ButtonType } from 'antd/es/button';
 import styles from './Button.module.scss';
 
 /**
- * UniversalButton - Reusable button component with multiple variants
+ * Button - Wrapper over antd Button with extended API
  *
  * Features:
- * - Multiple visual variants (primary, secondary, danger, success, warning, ghost, link)
- * - Three sizes (sm, md, lg)
- * - Shape options (default, round, circle)
- * - Loading state with custom text
- * - Icon support (left/right)
- * - Full width option
+ * - Variants: primary, secondary, danger, success, warning, ghost, link
+ * - Sizes: sm, md, lg
+ * - Shapes: default, round, circle
+ * - Loading state
+ * - Icons (left/right)
+ * - Full width
  * - Active state for toggles
- * - Accessible with proper ARIA attributes
  *
  * @example
  * ```tsx
- * // Primary submit button with loading
- * <Button type="submit" loading={isSubmitting} loadingText="Saving...">
- *   Save Changes
+ * // Primary button with loading
+ * <Button type="submit" loading={isSubmitting}>
+ *   Save
  * </Button>
  *
  * // Secondary button with icon
@@ -47,7 +48,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) =>
     shape = 'default',
     fullWidth = false,
     loading = false,
-    loadingText = 'Processing...',
     active = false,
     leftIcon,
     rightIcon,
@@ -58,64 +58,78 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) =>
     className,
     children,
     onClick,
-    ...rest
   } = props;
 
-  // Determine if button is icon-only
-  const isIconOnly = !children && (leftIcon || rightIcon);
-  const hasOnlyIconChild =
-    !leftIcon && !rightIcon && children && typeof children !== 'string' && !Array.isArray(children);
+  // Map our variants to antd types
+  const getAntdType = (): ButtonType => {
+    switch (variant) {
+      case 'primary':
+        return 'primary';
+      case 'ghost':
+        return 'text';
+      case 'link':
+        return 'link';
+      case 'secondary':
+      case 'danger':
+      case 'success':
+      case 'warning':
+      default:
+        return 'default';
+    }
+  };
 
-  // Build class names
+  // Map sizes
+  const getAntdSize = () => {
+    switch (size) {
+      case 'sm':
+        return 'small' as const;
+      case 'lg':
+        return 'large' as const;
+      case 'md':
+      default:
+        return 'middle' as const;
+    }
+  };
+
+  // Map shape
+  const getAntdShape = () => {
+    if (shape === 'circle') return 'circle' as const;
+    if (shape === 'round') return 'round' as const;
+    return undefined;
+  };
+
+  // Build class names for custom styles
   const classNames = [
     styles.button,
     styles[variant],
-    styles[size],
-    shape !== 'default' && styles[shape],
     fullWidth && styles.fullWidth,
     active && styles.active,
-    loading && styles.loading,
-    (isIconOnly || hasOnlyIconChild) && styles.iconOnly,
-    disabled && styles.disabled,
     className,
   ]
     .filter(Boolean)
     .join(' ');
 
-  // Render content
-  const renderContent = () => {
-    if (loading) {
-      return <span className={styles.content}>{loadingText}</span>;
-    }
-
-    if (isIconOnly) {
-      return <span className={styles.icon}>{leftIcon || rightIcon}</span>;
-    }
-
-    return (
-      <span className={styles.content}>
-        {leftIcon && <span className={styles.icon}>{leftIcon}</span>}
-        {children}
-        {rightIcon && <span className={styles.icon}>{rightIcon}</span>}
-      </span>
-    );
-  };
-
   return (
-    <button
+    <AntButton
       ref={ref}
-      type={type}
+      type={getAntdType()}
+      size={getAntdSize()}
+      shape={getAntdShape()}
+      loading={loading}
+      disabled={disabled}
+      danger={variant === 'danger'}
+      block={fullWidth}
+      icon={leftIcon}
+      htmlType={type}
       form={form}
-      disabled={disabled || loading}
       onClick={onClick}
       className={classNames}
       aria-label={ariaLabel}
-      aria-busy={loading}
-      aria-disabled={disabled || loading}
-      {...rest}
     >
-      {renderContent()}
-    </button>
+      {!leftIcon && children}
+      {leftIcon && children}
+      {rightIcon && <span className={styles.rightIcon}>{rightIcon}</span>}
+    </AntButton>
   );
 });
 

@@ -23,9 +23,9 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonShape = 'default' | 'round' | 'circle';
 
 /**
- * UniversalButton component props
+ * Button component props
  *
- * Extends native button attributes with custom styling and behavior options
+ * Extends native button attributes with custom styling options
  */
 export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
   /**
@@ -41,28 +41,22 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   size?: ButtonSize;
 
   /**
-   * Shape of the button (useful for icon-only buttons)
+   * Shape of the button (for icon-only buttons)
    * @default 'default'
    */
   shape?: ButtonShape;
 
   /**
-   * Whether the button should take full width of its container
+   * Whether the button should take full width of container
    * @default false
    */
   fullWidth?: boolean;
 
   /**
-   * Loading state - shows loading indicator and disables button
+   * Loading state - shows indicator and disables button
    * @default false
    */
   loading?: boolean;
-
-  /**
-   * Text to display when loading
-   * @default 'Processing...'
-   */
-  loadingText?: string;
 
   /**
    * Active state for toggle/filter buttons
