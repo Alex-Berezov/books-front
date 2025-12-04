@@ -1,0 +1,152 @@
+/**
+ * Input component styles (wrapper over antd Input)
+ *
+ * Custom styles for error states, loading, and full-width support
+ */
+
+@import '@/styles/tokens.scss';
+
+/* Base input styles */
+.input {
+  /* Ensure consistent box-sizing */
+  :global(.ant-input),
+  :global(.ant-input-affix-wrapper) {
+    transition:
+      border-color $transition-fast,
+      box-shadow $transition-fast;
+  }
+}
+
+/* ============================================
+   FULL WIDTH
+   ============================================ */
+
+.fullWidth {
+  width: 100%;
+
+  :global(.ant-input),
+  :global(.ant-input-affix-wrapper) {
+    width: 100%;
+  }
+}
+
+/* ============================================
+   ERROR STATE
+   ============================================ */
+
+.error {
+  :global(.ant-input),
+  :global(.ant-input-affix-wrapper) {
+    border-color: $color-error !important;
+
+    &:hover {
+      border-color: $color-error-hover !important;
+    }
+  }
+
+  /* Focus state with error */
+  :global(.ant-input:focus),
+  :global(.ant-input-affix-wrapper:focus),
+  :global(.ant-input-affix-wrapper-focused) {
+    border-color: $color-error !important;
+    box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2) !important;
+  }
+}
+
+/* ============================================
+   SIZE OVERRIDES (if needed)
+   ============================================ */
+
+/* Small size adjustments */
+.input :global(.ant-input-sm) {
+  font-size: $font-size-sm;
+}
+
+/* Large size adjustments */
+.input :global(.ant-input-lg) {
+  font-size: $font-size-lg;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid $color-border-base;
+  border-top-color: $color-primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   DISABLED STATE
+   ============================================ */
+
+.input {
+  :global(.ant-input[disabled]),
+  :global(.ant-input-affix-wrapper-disabled) {
+    background: $color-background-secondary;
+    cursor: not-allowed;
+    color: $color-text-disabled;
+  }
+}
+
+/* ============================================
+   CLEAR BUTTON
+   ============================================ */
+
+.input {
+  :global(.ant-input-clear-icon) {
+    color: $color-text-tertiary;
+
+    &:hover {
+      color: $color-text-secondary;
+    }
+  }
+}
+
+/* ============================================
+   PREFIX AND SUFFIX
+   ============================================ */
+
+.input {
+  :global(.ant-input-prefix),
+  :global(.ant-input-suffix) {
+    color: $color-text-secondary;
+  }
+}
+
+/* ============================================
+   PASSWORD TOGGLE
+   ============================================ */
+
+.input {
+  :global(.ant-input-password-icon) {
+    color: $color-text-secondary;
+    cursor: pointer;
+
+    &:hover {
+      color: $color-text-primary;
+    }
+  }
+}
+
+/* ============================================
+   CHARACTER COUNT
+   ============================================ */
+
+.input {
+  :global(.ant-input-show-count-suffix) {
+    color: $color-text-tertiary;
+    font-size: $font-size-sm;
+  }
+}
