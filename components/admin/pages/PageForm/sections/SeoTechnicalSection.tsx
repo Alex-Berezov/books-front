@@ -78,7 +78,7 @@ export const SeoTechnicalSection: FC<SeoTechnicalSectionProps> = (props) => {
           />
           <Button
             variant="secondary"
-            size="sm"
+            size="md"
             disabled={isSubmitting}
             onClick={handleGenerateCanonicalUrl}
           >

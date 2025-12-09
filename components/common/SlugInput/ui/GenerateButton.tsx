@@ -21,7 +21,7 @@ export const GenerateButton: FC<GenerateButtonProps> = (props) => {
       onClick={onClick}
       title="Generate slug from title"
       variant="link"
-      size="sm"
+      size="lg"
     >
       Generate
     </Button>

@@ -70,7 +70,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
 
       {/* Action Buttons */}
       <div className={styles.actions}>
-        <Button type="submit" loading={isSubmitting}>
+        <Button type="submit" size="lg" loading={isSubmitting}>
           {initialData ? 'Update Version' : 'Create Version'}
         </Button>
       </div>

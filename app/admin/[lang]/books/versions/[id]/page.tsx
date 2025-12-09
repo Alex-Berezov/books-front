@@ -111,6 +111,7 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
             </Button>
             <Button
               type="submit"
+              size="md"
               form={FORM_ID}
               leftIcon={<Save size={16} />}
               loading={isSubmitting}

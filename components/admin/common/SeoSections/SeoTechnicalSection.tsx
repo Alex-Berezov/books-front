@@ -108,7 +108,7 @@ export const SeoTechnicalSection = <TFormData extends FieldValues>(
           />
           <Button
             variant="secondary"
-            size="sm"
+            size="md"
             disabled={isSubmitting}
             onClick={handleGenerateCanonicalUrl}
           >
