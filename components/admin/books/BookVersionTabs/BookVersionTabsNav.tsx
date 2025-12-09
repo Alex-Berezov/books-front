@@ -1,5 +1,4 @@
 import type { FC } from 'react';
-import { Button } from '@/components/common/Button';
 import type { Tab, TabType } from './BookVersionTabs.types';
 import styles from './BookVersionTabs.module.scss';
 
@@ -24,15 +23,14 @@ export const BookVersionTabsNav: FC<BookVersionTabsNavProps> = (props) => {
   return (
     <nav className={styles.tabsNav}>
       {TABS.map((tab) => (
-        <Button
+        <button
           key={tab.id}
-          variant="ghost"
+          type="button"
           className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
           onClick={() => onTabChange(tab.id)}
-          active={activeTab === tab.id}
         >
           {tab.label}
-        </Button>
+        </button>
       ))}
     </nav>
   );

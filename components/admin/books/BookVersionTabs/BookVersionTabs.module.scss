@@ -3,6 +3,7 @@
 /**
  * Styles for BookVersionTabs component
  * Navigation tabs for book version editor
+ * Based on original design: https://github.com/Farizda/book
  */
 
 .tabsContainer {
@@ -21,18 +22,16 @@
 
 .tab {
   padding: $spacing-md $spacing-xs;
+  border: none;
   border-bottom: 2px solid transparent;
   font-weight: $font-weight-medium;
   font-size: $font-size-sm;
   color: $color-text-secondary;
-  background: none;
-  border-top: none;
-  border-left: none;
-  border-right: none;
+  background: transparent;
   cursor: pointer;
   transition: all $transition-fast;
 
-  &:hover {
+  &:hover:not(.active) {
     color: $color-text-primary;
     border-bottom-color: $color-border-dark;
   }
