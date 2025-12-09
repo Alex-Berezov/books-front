@@ -1,12 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSnackbar } from 'notistack';
 import { useBooks, useDeleteBook } from '@/api/hooks';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { StatusFilter } from './BookListSearch';
 
 interface UseBookListTableProps {
   lang: SupportedLang;
 }
+
+/**
+ * Custom hook for debouncing a value
+ */
+const useDebounce = <T>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 export const useBookListTable = (_props: UseBookListTableProps) => {
   const { data: session } = useSession();
@@ -14,20 +34,51 @@ export const useBookListTable = (_props: UseBookListTableProps) => {
 
   // State
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [bookToDelete, setBookToDelete] = useState<{ id: string; title: string } | null>(null);
 
+  // Debounced search value (300ms delay)
+  const debouncedSearch = useDebounce(searchValue, 300);
+
   const isAdmin = session?.user?.roles?.includes('admin') || false;
 
-  // Data fetching
-  const { data, isLoading, error } = useBooks({
+  // Data fetching - no search/status params, API doesn't support them
+  const {
+    data: rawData,
+    isLoading,
+    error,
+  } = useBooks({
     page,
-    limit: 20,
-    search: search || undefined,
+    limit: 100, // Fetch more to allow client-side filtering
   });
+
+  // Client-side filtering (API doesn't support search and status filters)
+  const data = rawData
+    ? {
+        ...rawData,
+        data: rawData.data.filter((book) => {
+          // Search filter - check title, slug, author in versions
+          const searchLower = debouncedSearch.toLowerCase();
+          const matchesSearch =
+            !debouncedSearch ||
+            book.slug.toLowerCase().includes(searchLower) ||
+            book.versions?.some(
+              (v) =>
+                v.title?.toLowerCase().includes(searchLower) ||
+                v.author?.toLowerCase().includes(searchLower)
+            );
+
+          // Status filter - check if any version has the selected status
+          const matchesStatus =
+            statusFilter === 'all' || book.versions?.some((v) => v.status === statusFilter);
+
+          return matchesSearch && matchesStatus;
+        }),
+      }
+    : undefined;
 
   // Mutations
   const deleteBookMutation = useDeleteBook({
@@ -40,16 +91,8 @@ export const useBookListTable = (_props: UseBookListTableProps) => {
   });
 
   // Handlers
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearch(searchValue);
-    setPage(1);
-  };
-
-  const handleClearSearch = () => {
-    setSearchValue('');
-    setSearch('');
-    setPage(1);
+  const handleStatusFilterChange = (status: StatusFilter) => {
+    setStatusFilter(status);
   };
 
   const handleOpenDeleteModal = (bookId: string, bookTitle: string) => {
@@ -72,9 +115,9 @@ export const useBookListTable = (_props: UseBookListTableProps) => {
     // State
     page,
     setPage,
-    search,
     searchValue,
     setSearchValue,
+    statusFilter,
     isCreateModalOpen,
     setIsCreateModalOpen,
     isDeleteModalOpen,
@@ -90,8 +133,7 @@ export const useBookListTable = (_props: UseBookListTableProps) => {
     isDeleting: deleteBookMutation.isPending,
 
     // Handlers
-    handleSearch,
-    handleClearSearch,
+    handleStatusFilterChange,
     handleOpenDeleteModal,
     handleCloseDeleteModal,
     handleConfirmDelete,

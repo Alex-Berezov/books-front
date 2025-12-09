@@ -22,8 +22,6 @@ export interface GetBooksParams {
   page?: number;
   /** Number of items per page */
   limit?: number;
-  /** Search by title, author or slug */
-  search?: string;
 }
 
 /**
@@ -40,16 +38,12 @@ export interface GetBooksParams {
 export const getBooks = async (
   params: GetBooksParams = {}
 ): Promise<PaginatedResponse<BookOverview>> => {
-  const { page = 1, limit = 20, search } = params;
+  const { page = 1, limit = 20 } = params;
 
   const queryParams = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
-
-  if (search) {
-    queryParams.append('search', search);
-  }
 
   const endpoint = `/books?${queryParams.toString()}`;
   return httpGetAuth<PaginatedResponse<BookOverview>>(endpoint);

@@ -22,9 +22,9 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
     // State
     page,
     setPage,
-    search,
     searchValue,
     setSearchValue,
+    statusFilter,
     isCreateModalOpen,
     setIsCreateModalOpen,
     isDeleteModalOpen,
@@ -40,8 +40,7 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
     isDeleting,
 
     // Handlers
-    handleSearch,
-    handleClearSearch,
+    handleStatusFilterChange,
     handleOpenDeleteModal,
     handleCloseDeleteModal,
     handleConfirmDelete,
@@ -76,67 +75,57 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
 
   // Calculate pagination data
   const totalPages = data?.meta.totalPages || 0;
-  const totalItems = data?.meta.total || 0;
   const books = data?.data || [];
 
   return (
-    <div className={styles.container}>
-      {/* Header with search */}
+    <div className={styles.root}>
       <div className={styles.header}>
         <BookListHeader lang={lang} onAddClick={() => setIsCreateModalOpen(true)} />
-
+      </div>
+      <div className={styles.container}>
         <BookListSearch
-          hasActiveSearch={!!search}
-          onClear={handleClearSearch}
-          onSearch={handleSearch}
           onSearchValueChange={setSearchValue}
+          onStatusFilterChange={handleStatusFilterChange}
           searchValue={searchValue}
+          statusFilter={statusFilter}
+        />
+
+        {/* Books table */}
+        {books.length === 0 ? (
+          <div className={styles.empty}>
+            <p>No books found</p>
+            {searchValue && <p>Try adjusting your search query</p>}
+          </div>
+        ) : (
+          <>
+            <BookTable
+              books={books}
+              isAdmin={isAdmin}
+              lang={lang}
+              onDeleteClick={handleOpenDeleteModal}
+            />
+
+            {/* Pagination */}
+            <BookListPagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </>
+        )}
+
+        {/* Create Book Modal */}
+        <CreateBookModal
+          isOpen={isCreateModalOpen}
+          lang={lang}
+          onClose={() => setIsCreateModalOpen(false)}
+        />
+
+        {/* Delete Book Modal */}
+        <DeleteBookModal
+          bookTitle={bookToDelete?.title || ''}
+          isDeleting={isDeleting}
+          isOpen={isDeleteModalOpen}
+          onCancel={handleCloseDeleteModal}
+          onConfirm={handleConfirmDelete}
         />
       </div>
-
-      {/* Results information */}
-      <div className={styles.info}>
-        <p>
-          Showing <strong>{books.length}</strong> of <strong>{totalItems}</strong> books
-          {search && ` for "${search}"`}
-        </p>
-      </div>
-
-      {/* Books table */}
-      {books.length === 0 ? (
-        <div className={styles.empty}>
-          <p>No books found</p>
-          {search && <p>Try adjusting your search query</p>}
-        </div>
-      ) : (
-        <>
-          <BookTable
-            books={books}
-            isAdmin={isAdmin}
-            lang={lang}
-            onDeleteClick={handleOpenDeleteModal}
-          />
-
-          {/* Pagination */}
-          <BookListPagination page={page} totalPages={totalPages} onPageChange={setPage} />
-        </>
-      )}
-
-      {/* Create Book Modal */}
-      <CreateBookModal
-        isOpen={isCreateModalOpen}
-        lang={lang}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
-
-      {/* Delete Book Modal */}
-      <DeleteBookModal
-        bookTitle={bookToDelete?.title || ''}
-        isDeleting={isDeleting}
-        isOpen={isDeleteModalOpen}
-        onCancel={handleCloseDeleteModal}
-        onConfirm={handleConfirmDelete}
-      />
     </div>
   );
 };

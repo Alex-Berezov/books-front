@@ -5,6 +5,7 @@
   padding: $spacing-lg;
   background: $color-background-primary;
   min-height: 100vh;
+  border-radius: $border-radius-xl;
 }
 
 // Header
@@ -20,7 +21,7 @@
 }
 
 .title {
-  font-size: $font-size-xxl;
+  font-size: $font-size-xl;
   font-weight: $font-weight-bold;
   color: $color-text-primary;
   margin: 0;
@@ -55,52 +56,29 @@
 // Search form
 .searchForm {
   display: flex;
-  gap: $spacing-sm;
-  max-width: 600px;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-lg 0;
+  border-bottom: 1px solid $color-border-light;
 }
 
 .searchInput {
   flex: 1;
-  padding: $spacing-sm $spacing-md;
-  border: 1px solid $color-border-base;
-  border-radius: $border-radius-base;
-  font-size: $font-size-base;
-  transition: border-color $transition-fast;
-
-  &:focus {
-    outline: none;
-    border-color: $color-primary;
-    box-shadow: 0 0 0 2px rgba($color-primary, 0.1);
-  }
+  max-width: 28rem; // ~448px, similar to max-w-md in Tailwind
 }
 
-.searchButton,
-.clearButton {
-  padding: $spacing-sm $spacing-lg;
-  border: 1px solid $color-border-base;
-  border-radius: $border-radius-base;
-  font-size: $font-size-base;
-  font-weight: $font-weight-medium;
-  cursor: pointer;
-  transition: all $transition-fast;
-  background: $color-background-primary;
-  color: $color-text-primary;
-
-  &:hover {
-    border-color: $color-primary;
-    color: $color-primary;
-  }
+.statusSelect {
+  min-width: 140px;
+  height: 37px;
 }
 
-.searchButton {
-  background: $color-primary;
-  color: $color-text-inverse;
-  border-color: $color-primary;
+.filterButton {
+  border: 1px solid $color-border-base !important;
+  color: $color-text-tertiary !important;
 
   &:hover {
-    background: $color-primary-hover;
-    border-color: $color-primary-hover;
-    color: $color-text-inverse;
+    color: $color-text-secondary !important;
+    border-color: $color-text-secondary !important;
   }
 }
 

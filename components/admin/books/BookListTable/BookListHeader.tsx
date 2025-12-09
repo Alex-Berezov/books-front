@@ -17,7 +17,9 @@ export const BookListHeader: FC<BookListHeaderProps> = (props) => {
         <h1 className={styles.title}>Books</h1>
         <p className={styles.subtitle}>Manage your book content in {lang.toUpperCase()}</p>
       </div>
-      <Button onClick={onAddClick}>+ Add New Book</Button>
+      <Button size="lg" onClick={onAddClick}>
+        + Add New Book
+      </Button>
     </div>
   );
 };
