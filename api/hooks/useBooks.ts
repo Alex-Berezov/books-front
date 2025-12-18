@@ -95,11 +95,16 @@ export const useCreateBook = (
 
   return useMutation({
     mutationFn: createBook,
-    onSuccess: () => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Invalidate books list after creation
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -126,11 +131,16 @@ export const useDeleteBook = (
 
   return useMutation({
     mutationFn: deleteBook,
-    onSuccess: () => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Invalidate books list after deletion
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -170,11 +180,16 @@ export const useUpdateBook = (
 
   return useMutation({
     mutationFn: ({ bookId, data }: UpdateBookParams) => updateBook(bookId, data),
-    onSuccess: () => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Invalidate books list and details after update
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
       queryClient.invalidateQueries({ queryKey: bookKeys.details() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };

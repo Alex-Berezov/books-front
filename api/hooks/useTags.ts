@@ -79,11 +79,16 @@ export const useAttachTag = (
 
   return useMutation({
     mutationFn: ({ versionId, tagId }) => attachTag(versionId, tagId),
-    onSuccess: (_data, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Invalidate version data for update
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -114,10 +119,15 @@ export const useDetachTag = (
 
   return useMutation({
     mutationFn: ({ versionId, tagId }) => detachTag(versionId, tagId),
-    onSuccess: (_data, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Invalidate version data for update
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };

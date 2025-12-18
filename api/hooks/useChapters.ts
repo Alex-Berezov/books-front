@@ -102,13 +102,18 @@ export const useCreateChapter = (
 
   return useMutation({
     mutationFn: ({ versionId, data }) => createChapter(versionId, data),
-    onSuccess: (data, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Invalidate version chapters list
       queryClient.invalidateQueries({ queryKey: chapterKeys.list(variables.versionId) });
       // Set chapter data in cache
       queryClient.setQueryData(chapterKeys.detail(data.id), data);
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -146,13 +151,18 @@ export const useUpdateChapter = (
 
   return useMutation({
     mutationFn: ({ chapterId, data }) => updateChapter(chapterId, data),
-    onSuccess: (data, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Update chapter data in cache
       queryClient.setQueryData(chapterKeys.detail(variables.chapterId), data);
       // Invalidate version chapters list
       queryClient.invalidateQueries({ queryKey: chapterKeys.list(data.versionId) });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -183,13 +193,18 @@ export const useDeleteChapter = (
 
   return useMutation({
     mutationFn: ({ chapterId }) => deleteChapter(chapterId),
-    onSuccess: (_data, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Invalidate version chapters list
       queryClient.invalidateQueries({ queryKey: chapterKeys.list(variables.versionId) });
       // Remove chapter from cache
       queryClient.removeQueries({ queryKey: chapterKeys.detail(variables.chapterId) });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -226,10 +241,15 @@ export const useReorderChapters = (
 
   return useMutation({
     mutationFn: ({ versionId, data }) => reorderChapters(versionId, data),
-    onSuccess: (_data, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Invalidate chapters list for update
       queryClient.invalidateQueries({ queryKey: chapterKeys.list(variables.versionId) });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };

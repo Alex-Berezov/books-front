@@ -136,11 +136,16 @@ export const useCreatePage = (
 
   return useMutation({
     mutationFn: ({ data, lang = 'en' }) => createPage(data, lang),
-    onSuccess: () => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Refetch pages list immediately for update
       queryClient.refetchQueries({ queryKey: pageKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -176,12 +181,17 @@ export const useUpdatePage = (
 
   return useMutation({
     mutationFn: ({ pageId, data, lang = 'en' }) => updatePage(pageId, data, lang),
-    onSuccess: (_data, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Refetch page details and list immediately
       queryClient.refetchQueries({ queryKey: pageKeys.detail(variables.pageId) });
       queryClient.refetchQueries({ queryKey: pageKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -209,12 +219,17 @@ export const usePublishPage = (
 
   return useMutation({
     mutationFn: ({ pageId, lang = 'en' }) => publishPage(pageId, lang),
-    onSuccess: (_data, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Refetch page details and list immediately
       queryClient.refetchQueries({ queryKey: pageKeys.detail(variables.pageId) });
       queryClient.refetchQueries({ queryKey: pageKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -242,12 +257,17 @@ export const useUnpublishPage = (
 
   return useMutation({
     mutationFn: ({ pageId, lang = 'en' }) => unpublishPage(pageId, lang),
-    onSuccess: (_data, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Refetch page details and list immediately
       queryClient.refetchQueries({ queryKey: pageKeys.detail(variables.pageId) });
       queryClient.refetchQueries({ queryKey: pageKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -279,11 +299,16 @@ export const useDeletePage = (
 
   return useMutation({
     mutationFn: ({ pageId, lang = 'en' }) => deletePage(pageId, lang),
-    onSuccess: () => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Refetch pages list immediately after deletion
       queryClient.refetchQueries({ queryKey: pageKeys.lists() });
       // Note: Don't refetch deleted page details
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };

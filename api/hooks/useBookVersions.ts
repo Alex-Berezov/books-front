@@ -102,13 +102,18 @@ export const useCreateBookVersion = (
 
   return useMutation({
     mutationFn: ({ bookId, data }) => createBookVersion(bookId, data),
-    onSuccess: (data, _variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Invalidate books list for update
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
       // Invalidate version details (will be fetched on redirect)
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(data.id) });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -145,14 +150,19 @@ export const useUpdateBookVersion = (
 
   return useMutation({
     mutationFn: ({ versionId, data }) => updateBookVersion(versionId, data),
-    onSuccess: (_data, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Invalidate version details to refetch with latest data
       // (SEO might be updated separately, so we need fresh data)
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
       // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -180,13 +190,18 @@ export const usePublishVersion = (
 
   return useMutation({
     mutationFn: (versionId: string) => publishVersion(versionId),
-    onSuccess: (_data, versionId) => {
+    ...options,
+    onSuccess: (data, versionId, context) => {
       // Invalidate version details to refetch with updated status
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(versionId) });
       // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        versionId,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -214,13 +229,18 @@ export const useUnpublishVersion = (
 
   return useMutation({
     mutationFn: (versionId: string) => unpublishVersion(versionId),
-    onSuccess: (_data, versionId) => {
+    ...options,
+    onSuccess: (data, versionId, context) => {
       // Invalidate version details to refetch with updated status
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(versionId) });
       // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        versionId,
+        context
+      );
     },
-    ...options,
   });
 };
 
@@ -258,10 +278,15 @@ export const useUpsertVersionSeo = (
 
   return useMutation({
     mutationFn: ({ versionId, data }) => upsertVersionSeo(versionId, data),
-    onSuccess: (_seoData, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       // Invalidate version details to refetch with updated SEO
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
     },
-    ...options,
   });
 };
