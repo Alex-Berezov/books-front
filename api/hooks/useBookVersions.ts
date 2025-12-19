@@ -108,6 +108,8 @@ export const useCreateBookVersion = (
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
       // Invalidate version details (will be fetched on redirect)
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(data.id) });
+      // Invalidate book container details to update version list in switcher
+      queryClient.invalidateQueries({ queryKey: bookKeys.detail(variables.bookId) });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
