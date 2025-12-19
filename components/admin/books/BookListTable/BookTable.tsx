@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { Eye, Headphones, FileText, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/common/Button';
-import type { SupportedLang } from '@/lib/i18n/lang';
+import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './BookListTable.module.scss';
 
@@ -24,6 +24,7 @@ export const BookTable: FC<BookTableProps> = (props) => {
             <th>TITLE</th>
             <th>SLUG</th>
             <th>CONTENT</th>
+            <th>VERSIONS</th>
             <th>UPDATED</th>
             <th>STATUS</th>
             <th>ACTIONS</th>
@@ -40,7 +41,7 @@ export const BookTable: FC<BookTableProps> = (props) => {
             const hasAudio = book.versions?.some((v) => v.type === 'audio');
 
             // Determine status
-            const status = displayVersion?.status || 'draft';
+            // const status = displayVersion?.status || 'draft';
 
             // Determine title
             const displayTitle = displayVersion?.title || book.title || book.slug;
@@ -82,12 +83,47 @@ export const BookTable: FC<BookTableProps> = (props) => {
                   </div>
                 </td>
 
+                {/* Versions */}
+                <td className={styles.versionsCell}>
+                  <div className={styles.versionFlags}>
+                    {book.versions?.map((version) => {
+                      const flag = version.language ? LANGUAGE_FLAGS[version.language] : '🌐';
+                      return (
+                        <Link
+                          key={version.id}
+                          href={`/admin/${lang}/books/versions/${version.id}?bookId=${book.id}`}
+                          className={styles.versionFlag}
+                          title={`${version.title} (${version.language?.toUpperCase()})`}
+                        >
+                          {flag}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </td>
+
                 {/* Updated */}
                 <td className={styles.dateCell}>{updatedDate}</td>
 
                 {/* Status */}
                 <td className={styles.statusCell}>
-                  <span className={`${styles.statusBadge} ${styles[status]}`}>{status}</span>
+                  <div className={styles.statusList}>
+                    {book.versions?.map((version) => {
+                      const flag = version.language ? LANGUAGE_FLAGS[version.language] : '🌐';
+                      const vStatus = version.status || 'draft';
+                      return (
+                        <div key={version.id} className={styles.statusItem}>
+                          <span className={styles.statusLang}>{flag}</span>
+                          <span className={`${styles.statusBadge} ${styles[vStatus]}`}>
+                            {vStatus}
+                          </span>
+                        </div>
+                      );
+                    })}
+                    {(!book.versions || book.versions.length === 0) && (
+                      <span className={`${styles.statusBadge} ${styles.draft}`}>draft</span>
+                    )}
+                  </div>
                 </td>
 
                 {/* Actions */}
