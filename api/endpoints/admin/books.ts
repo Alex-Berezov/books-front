@@ -100,3 +100,19 @@ export const updateBook = async (
   const endpoint = `/books/${bookId}`;
   return httpPatchAuth<CreateBookResponse>(endpoint, data);
 };
+
+/**
+ * Get book details by ID
+ *
+ * @param bookId - ID of the book
+ * @returns Book details including versions
+ *
+ * @example
+ * ```ts
+ * const book = await getBook('book-uuid-123');
+ * ```
+ */
+export const getBook = async (bookId: string): Promise<BookOverview> => {
+  const endpoint = `/books/${bookId}`;
+  return httpGetAuth<BookOverview>(endpoint);
+};

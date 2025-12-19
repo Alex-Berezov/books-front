@@ -1,0 +1,94 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+  margin-right: $spacing-xs;
+}
+
+.versionList {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+}
+
+.versionTab {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: 100px;
+  border: 1px solid $color-border-base;
+  background-color: $color-background-primary;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+
+  &.active {
+    background-color: #e6f7ff;
+    border-color: $color-primary;
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.flag {
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.addVersionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px dashed $color-border-base;
+  background-color: transparent;
+  color: $color-text-secondary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $color-primary;
+    color: $color-primary;
+    background-color: $color-background-secondary;
+  }
+}
+
+.skeleton {
+  height: 32px;
+  width: 200px;
+  background-color: $color-background-secondary;
+  border-radius: $border-radius-sm;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}

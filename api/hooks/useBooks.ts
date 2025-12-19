@@ -15,6 +15,7 @@ import {
 import {
   createBook,
   deleteBook,
+  getBook,
   getBooks,
   updateBook,
   type GetBooksParams,
@@ -191,5 +192,29 @@ export const useUpdateBook = (
         context
       );
     },
+  });
+};
+
+/**
+ * Hook for getting book details
+ *
+ * @param bookId - Book ID
+ * @param options - React Query options
+ * @returns React Query result with book details
+ *
+ * @example
+ * ```tsx
+ * const { data: book, isLoading } = useBook('book-uuid-123');
+ * ```
+ */
+export const useBook = (
+  bookId: string,
+  options?: Omit<UseQueryOptions<BookOverview>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery({
+    queryKey: bookKeys.detail(bookId),
+    queryFn: () => getBook(bookId),
+    enabled: !!bookId,
+    ...options,
   });
 };

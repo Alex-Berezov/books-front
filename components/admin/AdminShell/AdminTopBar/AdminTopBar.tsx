@@ -11,7 +11,6 @@
 
 import { LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
-import { AdminLanguageSwitcher } from '@/components/admin/AdminLanguageSwitcher';
 import { Button } from '@/components/common/Button';
 import styles from './AdminTopBar.module.scss';
 
@@ -38,8 +37,6 @@ export const AdminTopBar = (props: AdminTopBarProps) => {
       <div className={styles.breadcrumbs}>{/* TODO: M3.1.3 - add breadcrumbs navigation */}</div>
 
       <div className={styles.actions}>
-        <AdminLanguageSwitcher />
-
         <div className={styles.userInfo}>
           <span className={styles.userName}>{userName || userEmail || 'User'}</span>
         </div>

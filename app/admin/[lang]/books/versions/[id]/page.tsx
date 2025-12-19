@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { ArrowLeft, Eye, Plus, Save } from 'lucide-react';
 import {
   BookForm,
+  BookVersionSwitcher,
   BookVersionTabs,
   CategoriesPanel,
   ListenContentTab,
@@ -119,6 +120,9 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
               Update Version
             </Button>
           </div>
+        </div>
+        <div className={styles.versionSwitcherRow}>
+          <BookVersionSwitcher bookId={version.bookId} currentVersionId={versionId} lang={lang} />
         </div>
       </div>
 
