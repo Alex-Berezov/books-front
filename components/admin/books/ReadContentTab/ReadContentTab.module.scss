@@ -107,3 +107,9 @@
 .errorText {
   color: $color-error;
 }
+
+.warningText {
+  color: $color-error;
+  font-size: $font-size-sm;
+  margin-top: $spacing-sm;
+}

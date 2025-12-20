@@ -34,8 +34,24 @@
   border-radius: $border-radius-lg;
   box-shadow: $shadow-xl;
   width: 90%;
-  max-width: 500px;
+  max-width: 500px; // Default (md)
   animation: slideUp $transition-base;
+
+  &.sm {
+    max-width: 400px;
+  }
+
+  &.md {
+    max-width: 500px;
+  }
+
+  &.lg {
+    max-width: 800px;
+  }
+
+  &.xl {
+    max-width: 1140px;
+  }
 }
 
 @keyframes slideUp {

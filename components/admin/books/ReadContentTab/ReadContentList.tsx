@@ -16,19 +16,15 @@ export const ReadContentList: FC<ReadContentListProps> = (props) => {
     <div className={styles.chaptersList}>
       {chapters.map((chapter) => {
         const chapterTitle = chapter.title || 'Untitled Chapter';
-        const accessBadge = chapter.isFree ? '🆓 Free' : '🔒 Premium';
         const charCount = chapter.content ? `${chapter.content.length} characters` : null;
 
         return (
           <div key={chapter.id} className={styles.chapterItem}>
             <div className={styles.chapterInfo}>
               <div className={styles.chapterTitle}>
-                {chapter.orderIndex}. {chapterTitle}
+                {chapter.number}. {chapterTitle}
               </div>
-              <div className={styles.chapterMeta}>
-                {accessBadge}
-                {charCount && ` • ${charCount}`}
-              </div>
+              <div className={styles.chapterMeta}>{charCount}</div>
             </div>
 
             <div className={styles.chapterActions}>

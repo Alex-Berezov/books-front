@@ -47,6 +47,7 @@ export const Modal: FC<ModalProps> = (props) => {
     confirmText = 'Confirm',
     cancelText = 'Cancel',
     confirmVariant = 'primary',
+    size = 'md',
     isLoading = false,
     isConfirmDisabled = false,
     onConfirm,
@@ -92,7 +93,7 @@ export const Modal: FC<ModalProps> = (props) => {
 
   return (
     <div className={styles.overlay} onClick={handleOverlayClick}>
-      <div className={styles.modal} onClick={handleModalClick}>
+      <div className={`${styles.modal} ${styles[size]}`} onClick={handleModalClick}>
         {/* Header with title and close button */}
         <div className={styles.header}>
           <h3 className={styles.title}>{title}</h3>

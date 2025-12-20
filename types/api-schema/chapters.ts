@@ -12,12 +12,11 @@ import type { ISODate, UUID } from './common';
 export interface Chapter {
   id: UUID;
   versionId: UUID;
-  orderIndex: number;
+  number: number;
   title?: string;
   content?: string; // For text versions
   audioUrl?: string; // For audio versions
   duration?: number; // In seconds for audio
-  isFree: boolean;
   createdAt: ISODate;
   updatedAt: ISODate;
 }
@@ -28,12 +27,11 @@ export interface Chapter {
 export interface ChapterDetail {
   id: UUID;
   versionId: UUID;
-  orderIndex: number;
+  number: number;
   title?: string;
   content?: string; // For text versions (markdown)
   audioUrl?: string; // For audio versions
   duration?: number; // In seconds for audio
-  isFree: boolean;
   createdAt: ISODate;
   updatedAt: ISODate;
 }
@@ -43,7 +41,7 @@ export interface ChapterDetail {
  */
 export interface CreateChapterRequest {
   /** Chapter number in order */
-  orderIndex: number;
+  number: number;
   /** Chapter title */
   title?: string;
   /** Chapter content (markdown) for text versions */
@@ -52,14 +50,14 @@ export interface CreateChapterRequest {
   audioUrl?: string;
   /** Duration in seconds for audio */
   duration?: number;
-  /** Whether chapter is free */
-  isFree: boolean;
 }
 
 /**
  * Request to update chapter
  */
 export interface UpdateChapterRequest {
+  /** Chapter number in order */
+  number?: number;
   /** Chapter title */
   title?: string;
   /** Chapter content (markdown) */
@@ -68,8 +66,6 @@ export interface UpdateChapterRequest {
   audioUrl?: string;
   /** Duration in seconds */
   duration?: number;
-  /** Whether chapter is free */
-  isFree?: boolean;
 }
 
 /**

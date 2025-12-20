@@ -1,44 +1,147 @@
+import { useState } from 'react';
 import { useSnackbar } from 'notistack';
-import { useChapters } from '@/api/hooks';
+import { useChapters, useCreateChapter, useDeleteChapter, useUpdateChapter } from '@/api/hooks';
+import { toUserMessage } from '@/lib/errors';
+import type { ChapterFormData } from './ChapterModal.types';
 import type { ReadContentTabProps } from './ReadContentTab.types';
+import type { Chapter } from '@/types/api-schema';
 
 export const useReadContentTab = (props: ReadContentTabProps) => {
   const { versionId } = props;
   const { enqueueSnackbar } = useSnackbar();
 
-  // Load chapters
+  // State for modals
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingChapter, setEditingChapter] = useState<Chapter | undefined>(undefined);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingChapterId, setDeletingChapterId] = useState<string | null>(null);
+
+  // API Hooks
   const { data: chapters, error, isLoading } = useChapters(versionId);
+  const createChapterMutation = useCreateChapter();
+  const updateChapterMutation = useUpdateChapter();
+  const deleteChapterMutation = useDeleteChapter();
 
   /**
-   * New chapter creation handler
+   * Open modal for creating new chapter
    */
   const handleAddChapter = () => {
-    // TODO (M3.2.3): Implement chapter creation
-    enqueueSnackbar('Chapter creation not yet implemented', { variant: 'info' });
+    setEditingChapter(undefined);
+    setIsModalOpen(true);
   };
 
   /**
-   * Chapter edit handler
+   * Open modal for editing existing chapter
    */
   const handleEditChapter = (chapterId: string) => {
-    // TODO (M3.2.3): Implement chapter editing
-    enqueueSnackbar(`Chapter editing not yet implemented (ID: ${chapterId})`, { variant: 'info' });
+    const chapter = chapters?.find((c) => c.id === chapterId);
+    if (chapter) {
+      setEditingChapter(chapter);
+      setIsModalOpen(true);
+    }
   };
 
   /**
-   * Chapter delete handler
+   * Close editor modal
+   */
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingChapter(undefined);
+  };
+
+  /**
+   * Save chapter (create or update)
+   */
+  const handleSaveChapter = async (data: ChapterFormData) => {
+    try {
+      if (editingChapter) {
+        await updateChapterMutation.mutateAsync({
+          chapterId: editingChapter.id,
+          versionId,
+          data: {
+            title: data.title,
+            content: data.content,
+            number: data.number,
+          },
+        });
+        enqueueSnackbar('Chapter updated successfully', { variant: 'success' });
+      } else {
+        await createChapterMutation.mutateAsync({
+          versionId,
+          data: {
+            title: data.title,
+            content: data.content,
+            number: data.number,
+          },
+        });
+        enqueueSnackbar('Chapter created successfully', { variant: 'success' });
+      }
+      handleCloseModal();
+    } catch (error) {
+      console.error('Failed to save chapter:', error);
+      const message = toUserMessage(error);
+      enqueueSnackbar(message, { variant: 'error' });
+    }
+  };
+
+  /**
+   * Open delete confirmation
    */
   const handleDeleteChapter = (chapterId: string) => {
-    // TODO (M3.2.3): Implement chapter deletion
-    enqueueSnackbar(`Chapter deletion not yet implemented (ID: ${chapterId})`, { variant: 'info' });
+    setDeletingChapterId(chapterId);
+    setIsDeleteModalOpen(true);
   };
+
+  /**
+   * Close delete confirmation
+   */
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeletingChapterId(null);
+  };
+
+  /**
+   * Confirm deletion
+   */
+  const handleConfirmDelete = async () => {
+    if (!deletingChapterId) return;
+
+    try {
+      await deleteChapterMutation.mutateAsync({
+        chapterId: deletingChapterId,
+        versionId,
+      });
+      enqueueSnackbar('Chapter deleted successfully', { variant: 'success' });
+      handleCloseDeleteModal();
+    } catch (error) {
+      console.error('Failed to delete chapter:', error);
+    }
+  };
+
+  // Calculate next chapter number
+  const nextChapterNumber =
+    chapters && chapters.length > 0 ? Math.max(...chapters.map((c) => c.number)) + 1 : 1;
 
   return {
     chapters: chapters || [],
     isLoading,
     error,
+    // Modal state
+    isModalOpen,
+    editingChapter,
+    isDeleteModalOpen,
+    deletingChapterId,
+    nextChapterNumber,
+    // Handlers
     handleAddChapter,
     handleEditChapter,
     handleDeleteChapter,
+    handleCloseModal,
+    handleSaveChapter,
+    handleCloseDeleteModal,
+    handleConfirmDelete,
+    // Loading states
+    isSubmitting: createChapterMutation.isPending || updateChapterMutation.isPending,
+    isDeleting: deleteChapterMutation.isPending,
   };
 };

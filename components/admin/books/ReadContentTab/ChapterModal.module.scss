@@ -1,0 +1,55 @@
+@import '@/styles/tokens.scss';
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.textarea {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  color: $color-text-primary;
+  background-color: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  transition: border-color 0.2s ease;
+  resize: vertical;
+  min-height: 200px;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 2px rgba($color-primary, 0.1);
+  }
+
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+}
+
+.error {
+  font-size: $font-size-xs;
+  color: $color-error;
+}
+
+.checkboxWrapper {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}

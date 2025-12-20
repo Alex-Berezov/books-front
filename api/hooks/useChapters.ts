@@ -144,7 +144,7 @@ export const useUpdateChapter = (
   options?: UseMutationOptions<
     ChapterDetail,
     Error,
-    { chapterId: string; data: UpdateChapterRequest }
+    { chapterId: string; data: UpdateChapterRequest; versionId?: string }
   >
 ) => {
   const queryClient = useQueryClient();
@@ -156,7 +156,10 @@ export const useUpdateChapter = (
       // Update chapter data in cache
       queryClient.setQueryData(chapterKeys.detail(variables.chapterId), data);
       // Invalidate version chapters list
-      queryClient.invalidateQueries({ queryKey: chapterKeys.list(data.versionId) });
+      const versionId = variables.versionId || data.versionId;
+      if (versionId) {
+        queryClient.invalidateQueries({ queryKey: chapterKeys.list(versionId) });
+      }
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
