@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, type FC } from 'react';
-import { useCategories } from '@/api/hooks/useCategories';
+import { useSnackbar } from 'notistack';
+import { useCategories, useDeleteCategory } from '@/api/hooks/useCategories';
 import { CategoryModal } from '@/components/admin/categories/CategoryModal';
+import { DeleteCategoryModal } from '@/components/admin/categories/DeleteCategoryModal';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -18,12 +20,27 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(undefined);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | undefined>(undefined);
+  const { enqueueSnackbar } = useSnackbar();
   const limit = 20;
 
   const { data, isLoading, isError } = useCategories({
     page,
     limit,
     search,
+  });
+
+  const deleteMutation = useDeleteCategory({
+    onSuccess: () => {
+      enqueueSnackbar('Category deleted successfully', { variant: 'success' });
+      setIsDeleteModalOpen(false);
+      setCategoryToDelete(undefined);
+    },
+    onError: (error) => {
+      enqueueSnackbar(`Failed to delete category: ${error.message}`, { variant: 'error' });
+      setIsDeleteModalOpen(false);
+    },
   });
 
   // Handle case where backend returns array instead of paginated response
@@ -52,6 +69,22 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedCategory(undefined);
+  };
+
+  const handleDelete = (category: Category) => {
+    setCategoryToDelete(category);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (categoryToDelete) {
+      deleteMutation.mutate(categoryToDelete.id);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setCategoryToDelete(undefined);
   };
 
   return (
@@ -97,9 +130,19 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
                   <td>{category.booksCount || 0}</td>
                   <td>{category.type || '-'}</td>
                   <td>
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(category)}>
-                      Edit
-                    </Button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(category)}>
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(category)}
+                        style={{ color: 'var(--color-error)' }}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -131,6 +174,14 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
       )}
 
       <CategoryModal isOpen={isModalOpen} onClose={handleCloseModal} category={selectedCategory} />
+
+      <DeleteCategoryModal
+        isOpen={isDeleteModalOpen}
+        categoryName={categoryToDelete?.name || ''}
+        isDeleting={deleteMutation.isPending}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCloseDeleteModal}
+      />
     </div>
   );
 };

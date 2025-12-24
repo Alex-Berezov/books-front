@@ -15,6 +15,7 @@ import {
 import {
   attachCategory,
   createCategory,
+  deleteCategory,
   detachCategory,
   getCategories,
   getCategoriesTree,
@@ -205,6 +206,26 @@ export const useDetachCategory = (
     onSuccess: (data, variables, context) => {
       // Invalidate version data for update
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+  });
+};
+
+/**
+ * Hook for deleting a category
+ */
+export const useDeleteCategory = (options?: UseMutationOptions<void, Error, string>) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id) => deleteCategory(id),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,

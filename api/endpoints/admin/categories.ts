@@ -130,3 +130,14 @@ export const detachCategory = async (versionId: string, categoryId: string): Pro
   const endpoint = `/versions/${versionId}/categories/${categoryId}`;
   return httpDeleteAuth<void>(endpoint);
 };
+
+/**
+ * Delete a category
+ *
+ * @param id - Category ID
+ * @returns Promise that resolves when deletion is complete
+ */
+export const deleteCategory = async (id: string): Promise<void> => {
+  const endpoint = `/categories/${id}`;
+  return httpDeleteAuth<void>(endpoint);
+};
