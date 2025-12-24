@@ -22,8 +22,10 @@ export interface ModalProps {
   isLoading?: boolean;
   /** Whether confirm button is disabled */
   isConfirmDisabled?: boolean;
+  /** Whether to show footer buttons (default: true) */
+  showFooter?: boolean;
   /** Callback on confirm */
-  onConfirm: () => void;
+  onConfirm?: () => void;
   /** Callback on cancel/close */
   onCancel: () => void;
 }

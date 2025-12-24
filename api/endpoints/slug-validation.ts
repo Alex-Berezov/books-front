@@ -159,3 +159,40 @@ export const checkBookSlugUniqueness = async (
     };
   }
 };
+
+/**
+ * Checks slug uniqueness for Categories
+ *
+ * Uses optimized backend endpoint:
+ * GET /api/categories/check-slug?slug={slug}&excludeId={id}
+ *
+ * @param slug - Slug to validate
+ * @param excludeCategoryId - Category ID to exclude from check (when editing)
+ * @returns Uniqueness validation result
+ */
+export const checkCategorySlugUniqueness = async (
+  slug: string,
+  excludeCategoryId?: string
+): Promise<SlugValidationResult> => {
+  try {
+    const params = new URLSearchParams({ slug });
+    if (excludeCategoryId) {
+      params.append('excludeId', excludeCategoryId);
+    }
+
+    const endpoint = `/categories/check-slug?${params.toString()}`;
+    const response = await httpGetAuth<{ exists: boolean; suggestedSlug?: string }>(endpoint);
+
+    return {
+      slug,
+      isUnique: !response.exists,
+      suggestedSlug: response.suggestedSlug,
+    };
+  } catch (error) {
+    console.error('[checkCategorySlugUniqueness] Error checking slug:', error);
+    return {
+      slug,
+      isUnique: true,
+    };
+  }
+};

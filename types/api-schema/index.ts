@@ -59,7 +59,9 @@ export type {
   Category,
   CategoryBooksResponse,
   CategoryTree,
+  CreateCategoryRequest,
   DetachCategoryRequest,
+  UpdateCategoryRequest,
 } from './categories';
 
 // Tags

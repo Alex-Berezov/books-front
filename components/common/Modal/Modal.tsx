@@ -50,6 +50,7 @@ export const Modal: FC<ModalProps> = (props) => {
     size = 'md',
     isLoading = false,
     isConfirmDisabled = false,
+    showFooter = true,
     onConfirm,
     onCancel,
   } = props;
@@ -79,7 +80,9 @@ export const Modal: FC<ModalProps> = (props) => {
    * Confirm handler
    */
   const handleConfirm = () => {
-    onConfirm();
+    if (onConfirm) {
+      onConfirm();
+    }
   };
 
   /**
@@ -113,19 +116,23 @@ export const Modal: FC<ModalProps> = (props) => {
         <div className={styles.body}>{children}</div>
 
         {/* Footer with buttons */}
-        <div className={styles.footer}>
-          <Button variant="secondary" disabled={isLoading} onClick={handleCancel}>
-            {cancelText}
-          </Button>
-          <Button
-            variant={confirmVariant}
-            disabled={isConfirmDisabled}
-            loading={isLoading}
-            onClick={handleConfirm}
-          >
-            {confirmText}
-          </Button>
-        </div>
+        {showFooter && (
+          <div className={styles.footer}>
+            <Button variant="secondary" disabled={isLoading} onClick={handleCancel}>
+              {cancelText}
+            </Button>
+            {onConfirm && (
+              <Button
+                variant={confirmVariant}
+                disabled={isConfirmDisabled}
+                loading={isLoading}
+                onClick={handleConfirm}
+              >
+                {confirmText}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

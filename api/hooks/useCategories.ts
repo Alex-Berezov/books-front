@@ -14,12 +14,20 @@ import {
 } from '@tanstack/react-query';
 import {
   attachCategory,
+  createCategory,
   detachCategory,
   getCategories,
   getCategoriesTree,
+  updateCategory,
   type GetCategoriesParams,
 } from '@/api/endpoints/admin/categories';
-import type { Category, CategoryTree, PaginatedResponse } from '@/types/api-schema';
+import type {
+  Category,
+  CategoryTree,
+  CreateCategoryRequest,
+  PaginatedResponse,
+  UpdateCategoryRequest,
+} from '@/types/api-schema';
 import { versionKeys } from './useBookVersions';
 
 /**
@@ -79,6 +87,50 @@ export const useCategoriesTree = (
     queryFn: () => getCategoriesTree(),
     staleTime: 10 * 60 * 1000, // 10 minutes
     ...options,
+  });
+};
+
+/**
+ * Hook for creating a new category
+ */
+export const useCreateCategory = (
+  options?: UseMutationOptions<Category, Error, CreateCategoryRequest>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data) => createCategory(data),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+  });
+};
+
+/**
+ * Hook for updating a category
+ */
+export const useUpdateCategory = (
+  options?: UseMutationOptions<Category, Error, { id: string; data: UpdateCategoryRequest }>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }) => updateCategory(id, data),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
   });
 };
 

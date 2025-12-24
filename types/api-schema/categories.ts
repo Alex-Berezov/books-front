@@ -51,3 +51,23 @@ export interface AttachCategoryRequest {
 export interface DetachCategoryRequest {
   categoryId: UUID;
 }
+
+/**
+ * Request to create a new category
+ */
+export interface CreateCategoryRequest {
+  name: string;
+  slug: string;
+  parentId?: UUID | null;
+  type?: string;
+}
+
+/**
+ * Request to update an existing category
+ */
+export interface UpdateCategoryRequest {
+  name?: string;
+  slug?: string;
+  parentId?: UUID | null;
+  type?: string;
+}

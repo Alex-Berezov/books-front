@@ -6,12 +6,14 @@
  * for classifying books (e.g., Fiction → Fantasy → Epic Fantasy).
  */
 
-import { httpDeleteAuth, httpGetAuth, httpPostAuth } from '@/lib/http-client';
+import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   AttachCategoryRequest,
   Category,
   CategoryTree,
+  CreateCategoryRequest,
   PaginatedResponse,
+  UpdateCategoryRequest,
 } from '@/types/api-schema';
 
 /**
@@ -68,6 +70,32 @@ export const getCategories = async (
 export const getCategoriesTree = async (): Promise<CategoryTree[]> => {
   const endpoint = `/categories/tree`;
   return httpGetAuth<CategoryTree[]>(endpoint);
+};
+
+/**
+ * Create a new category
+ *
+ * @param data - Category data
+ * @returns Created category
+ */
+export const createCategory = async (data: CreateCategoryRequest): Promise<Category> => {
+  const endpoint = `/categories`;
+  return httpPostAuth<Category>(endpoint, data);
+};
+
+/**
+ * Update an existing category
+ *
+ * @param id - Category ID
+ * @param data - Category data
+ * @returns Updated category
+ */
+export const updateCategory = async (
+  id: string,
+  data: UpdateCategoryRequest
+): Promise<Category> => {
+  const endpoint = `/categories/${id}`;
+  return httpPatchAuth<Category>(endpoint, data);
 };
 
 /**

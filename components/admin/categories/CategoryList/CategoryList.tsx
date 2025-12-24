@@ -1,0 +1,136 @@
+'use client';
+
+import { useState, type FC } from 'react';
+import { useCategories } from '@/api/hooks/useCategories';
+import { CategoryModal } from '@/components/admin/categories/CategoryModal';
+import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
+import type { SupportedLang } from '@/lib/i18n/lang';
+import type { Category } from '@/types/api-schema';
+import styles from './CategoryList.module.scss';
+
+interface CategoryListProps {
+  lang: SupportedLang;
+}
+
+export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(undefined);
+  const limit = 20;
+
+  const { data, isLoading, isError } = useCategories({
+    page,
+    limit,
+    search,
+  });
+
+  // Handle case where backend returns array instead of paginated response
+  const categories = Array.isArray(data) ? data : data?.data || [];
+  const totalPages = !Array.isArray(data) ? data?.meta?.totalPages : 1;
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleCreate = () => {
+    setSelectedCategory(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (category: Category) => {
+    setSelectedCategory(category);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCategory(undefined);
+  };
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1>Categories</h1>
+        <Button variant="primary" onClick={handleCreate}>
+          Add Category
+        </Button>
+      </div>
+
+      <div className={styles.controls}>
+        <div className={styles.search}>
+          <Input placeholder="Search categories..." value={search} onChange={handleSearchChange} />
+        </div>
+      </div>
+
+      <div className={styles.tableContainer}>
+        {isLoading ? (
+          <div className={styles.loading}>Loading categories...</div>
+        ) : isError ? (
+          <div className={styles.error}>Failed to load categories</div>
+        ) : categories.length === 0 ? (
+          <div className={styles.emptyState}>No categories found</div>
+        ) : (
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Language</th>
+                <th>Books Count</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map((category) => (
+                <tr key={category.id}>
+                  <td>{category.name}</td>
+                  <td>{category.slug}</td>
+                  <td>{category.language}</td>
+                  <td>{category.booksCount || 0}</td>
+                  <td>{category.type || '-'}</td>
+                  <td>
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(category)}>
+                      Edit
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {totalPages && totalPages > 1 && (
+        <div className={styles.pagination}>
+          <Button
+            variant="secondary"
+            disabled={page === 1}
+            onClick={() => handlePageChange(page - 1)}
+          >
+            Previous
+          </Button>
+          <span style={{ margin: '0 1rem', alignSelf: 'center' }}>
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            variant="secondary"
+            disabled={page === totalPages}
+            onClick={() => handlePageChange(page + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+
+      <CategoryModal isOpen={isModalOpen} onClose={handleCloseModal} category={selectedCategory} />
+    </div>
+  );
+};
