@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FC } from 'react';
+import { useState, type ChangeEvent, type FC } from 'react';
 import { useSnackbar } from 'notistack';
 import { useCategories, useDeleteCategory } from '@/api/hooks/useCategories';
 import { CategoryModal } from '@/components/admin/categories/CategoryModal';
@@ -23,12 +23,12 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | undefined>(undefined);
   const { enqueueSnackbar } = useSnackbar();
-  const limit = 20;
+  // Fetch all categories for client-side filtering
+  const limit = 1000;
 
   const { data, isLoading, isError } = useCategories({
-    page,
+    page: 1,
     limit,
-    search,
   });
 
   const deleteMutation = useDeleteCategory({
@@ -44,10 +44,21 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
   });
 
   // Handle case where backend returns array instead of paginated response
-  const categories = Array.isArray(data) ? data : data?.data || [];
+  const rawCategories = Array.isArray(data) ? data : data?.data || [];
+
+  // Client-side filtering
+  const categories = rawCategories.filter((category) => {
+    if (!search) return true;
+    const searchLower = search.toLowerCase();
+    return (
+      category.name.toLowerCase().includes(searchLower) ||
+      category.slug.toLowerCase().includes(searchLower)
+    );
+  });
+
   const totalPages = !Array.isArray(data) ? data?.meta?.totalPages : 1;
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     setPage(1);
   };

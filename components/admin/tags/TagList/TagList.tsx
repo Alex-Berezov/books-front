@@ -1,18 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import type { FC, FormEvent } from 'react';
+import type { ChangeEvent, FC } from 'react';
 import { useSnackbar } from 'notistack';
 import { useDeleteTag, useTags } from '@/api/hooks/useTags';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import type { TagListProps } from './TagList.types';
 import type { Tag } from '@/types/api-schema';
 import { DeleteTagModal } from '../DeleteTagModal';
 import { TagModal } from '../TagModal';
 import styles from './TagList.module.scss';
-import type { TagListProps } from './TagList.types';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 1000;
 
 /**
  * Tags list component for admin panel
@@ -25,7 +25,6 @@ export const TagList: FC<TagListProps> = (props) => {
 
   // State for pagination and search
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
 
   // State for modals
@@ -37,25 +36,31 @@ export const TagList: FC<TagListProps> = (props) => {
   const { data, isLoading, error } = useTags({
     page,
     limit: PAGE_SIZE,
-    search: search || undefined,
   });
 
   const deleteMutation = useDeleteTag();
 
   // Handle both paginated and flat array responses
-  const tags = Array.isArray(data) ? data : data?.data || [];
+  const rawTags = Array.isArray(data) ? data : data?.data || [];
   const meta = !Array.isArray(data) ? data?.meta : undefined;
 
+  // Client-side filtering
+  const tags = rawTags.filter((tag) => {
+    if (!searchValue) return true;
+    const searchLower = searchValue.toLowerCase();
+    return (
+      tag.name.toLowerCase().includes(searchLower) || tag.slug.toLowerCase().includes(searchLower)
+    );
+  });
+
   // Handlers
-  const handleSearch = (e: FormEvent) => {
-    e.preventDefault();
-    setSearch(searchValue);
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
     setPage(1);
   };
 
   const handleClearSearch = () => {
     setSearchValue('');
-    setSearch('');
     setPage(1);
   };
 
@@ -114,21 +119,21 @@ export const TagList: FC<TagListProps> = (props) => {
       </div>
 
       <div className={styles.controls}>
-        <form onSubmit={handleSearch} className={styles.search}>
+        <div className={styles.search}>
           <div className={styles.searchGroup}>
             <Input
               placeholder="Search tags..."
               value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
+              onChange={handleSearchChange}
               fullWidth
             />
-            {search && (
+            {searchValue && (
               <Button type="button" variant="ghost" onClick={handleClearSearch}>
                 Clear
               </Button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       <div className={styles.tableContainer}>
