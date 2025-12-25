@@ -65,7 +65,14 @@ export type {
 } from './categories';
 
 // Tags
-export type { AttachTagRequest, DetachTagRequest, Tag, TagBooksResponse } from './tags';
+export type {
+  AttachTagRequest,
+  CreateTagRequest,
+  DetachTagRequest,
+  Tag,
+  TagBooksResponse,
+  UpdateTagRequest,
+} from './tags';
 
 // Pages (CMS)
 export type {

@@ -1,0 +1,19 @@
+@import '@/styles/tokens.scss';
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.warningText {
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  margin: 0;
+}
+
+.subText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0;
+}

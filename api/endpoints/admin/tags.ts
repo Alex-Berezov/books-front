@@ -6,8 +6,14 @@
  * (e.g., "motivation", "business", "self-development").
  */
 
-import { httpDeleteAuth, httpGetAuth, httpPostAuth } from '@/lib/http-client';
-import type { AttachTagRequest, PaginatedResponse, Tag } from '@/types/api-schema';
+import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
+import type {
+  AttachTagRequest,
+  CreateTagRequest,
+  PaginatedResponse,
+  Tag,
+  UpdateTagRequest,
+} from '@/types/api-schema';
 
 /**
  * Parameters for fetching tags list
@@ -25,14 +31,16 @@ export interface GetTagsParams {
  * Get list of tags
  *
  * @param params - Request parameters
- * @returns Paginated list of tags
+ * @returns Paginated list of tags or array of tags
  *
  * @example
  * ```ts
  * const tags = await getTags({ page: 1, limit: 50, search: 'motiv' });
  * ```
  */
-export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResponse<Tag>> => {
+export const getTags = async (
+  params: GetTagsParams = {}
+): Promise<PaginatedResponse<Tag> | Tag[]> => {
   const { page = 1, limit = 50, search } = params;
 
   const queryParams = new URLSearchParams({
@@ -45,7 +53,37 @@ export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResp
   }
 
   const endpoint = `/tags?${queryParams.toString()}`;
-  return httpGetAuth<PaginatedResponse<Tag>>(endpoint);
+  return httpGetAuth<PaginatedResponse<Tag> | Tag[]>(endpoint);
+};
+
+/**
+ * Create a new tag
+ *
+ * @param data - Tag data
+ * @returns Created tag
+ */
+export const createTag = async (data: CreateTagRequest): Promise<Tag> => {
+  return httpPostAuth<Tag>('/tags', data);
+};
+
+/**
+ * Update an existing tag
+ *
+ * @param id - Tag ID
+ * @param data - Updated data
+ * @returns Updated tag
+ */
+export const updateTag = async (id: string, data: UpdateTagRequest): Promise<Tag> => {
+  return httpPatchAuth<Tag>(`/tags/${id}`, data);
+};
+
+/**
+ * Delete a tag
+ *
+ * @param id - Tag ID
+ */
+export const deleteTag = async (id: string): Promise<void> => {
+  return httpDeleteAuth<void>(`/tags/${id}`);
 };
 
 /**

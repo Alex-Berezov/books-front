@@ -13,7 +13,7 @@ export interface Tag {
   id: UUID;
   slug: string;
   name: string;
-  language: SupportedLang;
+  language?: SupportedLang;
   booksCount?: number;
   createdAt: ISODate;
   updatedAt: ISODate;
@@ -26,6 +26,22 @@ export interface Tag {
  */
 export interface TagBooksResponse<T = unknown> extends PaginatedResponse<T> {
   tag: Tag;
+}
+
+/**
+ * Request to create a new tag
+ */
+export interface CreateTagRequest {
+  name: string;
+  slug: string;
+}
+
+/**
+ * Request to update an existing tag
+ */
+export interface UpdateTagRequest {
+  name?: string;
+  slug?: string;
 }
 
 /**

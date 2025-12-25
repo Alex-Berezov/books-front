@@ -2,11 +2,15 @@
 
 import { useState } from 'react';
 import type { FC, FormEvent } from 'react';
-import { useTags } from '@/api/hooks/useTags';
+import { useSnackbar } from 'notistack';
+import { useDeleteTag, useTags } from '@/api/hooks/useTags';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import type { TagListProps } from './TagList.types';
+import type { Tag } from '@/types/api-schema';
+import { DeleteTagModal } from '../DeleteTagModal';
+import { TagModal } from '../TagModal';
 import styles from './TagList.module.scss';
+import type { TagListProps } from './TagList.types';
 
 const PAGE_SIZE = 20;
 
@@ -17,11 +21,17 @@ const PAGE_SIZE = 20;
  */
 export const TagList: FC<TagListProps> = (props) => {
   const { lang } = props;
+  const { enqueueSnackbar } = useSnackbar();
 
   // State for pagination and search
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
+
+  // State for modals
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingTag, setEditingTag] = useState<Tag | null>(null);
+  const [deletingTag, setDeletingTag] = useState<Tag | null>(null);
 
   // Fetch tags
   const { data, isLoading, error } = useTags({
@@ -30,7 +40,11 @@ export const TagList: FC<TagListProps> = (props) => {
     search: search || undefined,
   });
 
-  const tags = data?.data || [];
+  const deleteMutation = useDeleteTag();
+
+  // Handle both paginated and flat array responses
+  const tags = Array.isArray(data) ? data : data?.data || [];
+  const meta = !Array.isArray(data) ? data?.meta : undefined;
 
   // Handlers
   const handleSearch = (e: FormEvent) => {
@@ -46,7 +60,7 @@ export const TagList: FC<TagListProps> = (props) => {
   };
 
   const handleNextPage = () => {
-    if (data?.meta && data.meta.page < data.meta.totalPages) {
+    if (meta && meta.page < meta.totalPages) {
       setPage((p) => p + 1);
     }
   };
@@ -54,6 +68,31 @@ export const TagList: FC<TagListProps> = (props) => {
   const handlePrevPage = () => {
     if (page > 1) {
       setPage((p) => p - 1);
+    }
+  };
+
+  const handleCreate = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleEdit = (tag: Tag) => {
+    setEditingTag(tag);
+  };
+
+  const handleDelete = (tag: Tag) => {
+    setDeletingTag(tag);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deletingTag) {
+      try {
+        await deleteMutation.mutateAsync(deletingTag.id);
+        enqueueSnackbar('Tag deleted successfully', { variant: 'success' });
+        setDeletingTag(null);
+      } catch (error) {
+        console.error('Failed to delete tag:', error);
+        enqueueSnackbar('Failed to delete tag', { variant: 'error' });
+      }
     }
   };
 
@@ -69,12 +108,7 @@ export const TagList: FC<TagListProps> = (props) => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>Tags</h1>
-        <Button
-          variant="primary"
-          onClick={() => {
-            /* TODO: Create tag */
-          }}
-        >
+        <Button variant="primary" onClick={handleCreate}>
           Create Tag
         </Button>
       </div>
@@ -124,26 +158,14 @@ export const TagList: FC<TagListProps> = (props) => {
                   <tr key={tag.id}>
                     <td>{tag.name}</td>
                     <td>{tag.slug}</td>
-                    <td>{tag.language.toUpperCase()}</td>
+                    <td>{tag.language?.toUpperCase() || '—'}</td>
                     <td>{tag.booksCount || 0}</td>
                     <td>{new Date(tag.createdAt).toLocaleDateString(lang)}</td>
                     <td className={styles.actions}>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          /* TODO: Edit */
-                        }}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => handleEdit(tag)}>
                         Edit
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          /* TODO: Delete */
-                        }}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => handleDelete(tag)}>
                         Delete
                       </Button>
                     </td>
@@ -155,22 +177,43 @@ export const TagList: FC<TagListProps> = (props) => {
         )}
       </div>
 
-      {data?.meta && data.meta.totalPages > 1 && (
+      {meta && meta.totalPages > 1 && (
         <div className={styles.pagination}>
           <Button variant="secondary" disabled={page === 1} onClick={handlePrevPage}>
             Previous
           </Button>
           <span className={styles.pageInfo}>
-            Page {data.meta.page} of {data.meta.totalPages}
+            Page {meta.page} of {meta.totalPages}
           </span>
-          <Button
-            variant="secondary"
-            disabled={page === data.meta.totalPages}
-            onClick={handleNextPage}
-          >
+          <Button variant="secondary" disabled={page === meta.totalPages} onClick={handleNextPage}>
             Next
           </Button>
         </div>
+      )}
+
+      <TagModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        lang={lang}
+      />
+
+      {editingTag && (
+        <TagModal
+          isOpen={!!editingTag}
+          onClose={() => setEditingTag(null)}
+          tag={editingTag}
+          lang={lang}
+        />
+      )}
+
+      {deletingTag && (
+        <DeleteTagModal
+          isOpen={!!deletingTag}
+          tagName={deletingTag.name}
+          isDeleting={deleteMutation.isPending}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeletingTag(null)}
+        />
       )}
     </div>
   );

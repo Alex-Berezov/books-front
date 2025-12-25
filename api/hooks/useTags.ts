@@ -12,8 +12,21 @@ import {
   type UseMutationOptions,
   type UseQueryOptions,
 } from '@tanstack/react-query';
-import { attachTag, detachTag, getTags, type GetTagsParams } from '@/api/endpoints/admin/tags';
-import type { PaginatedResponse, Tag } from '@/types/api-schema';
+import {
+  attachTag,
+  createTag,
+  deleteTag,
+  detachTag,
+  getTags,
+  updateTag,
+  type GetTagsParams,
+} from '@/api/endpoints/admin/tags';
+import type {
+  CreateTagRequest,
+  PaginatedResponse,
+  Tag,
+  UpdateTagRequest,
+} from '@/types/api-schema';
 import { versionKeys } from './useBookVersions';
 
 /**
@@ -26,6 +39,10 @@ export const tagKeys = {
   lists: () => [...tagKeys.all, 'list'] as const,
   /** Tag list with parameters */
   list: (params: GetTagsParams) => [...tagKeys.lists(), params] as const,
+  /** Tag details */
+  details: () => [...tagKeys.all, 'detail'] as const,
+  /** Tag detail */
+  detail: (id: string) => [...tagKeys.details(), id] as const,
 };
 
 /**
@@ -42,13 +59,76 @@ export const tagKeys = {
  */
 export const useTags = (
   params: GetTagsParams = {},
-  options?: Omit<UseQueryOptions<PaginatedResponse<Tag>>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginatedResponse<Tag> | Tag[]>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: tagKeys.list(params),
     queryFn: () => getTags(params),
     staleTime: 10 * 60 * 1000, // 10 minutes
     ...options,
+  });
+};
+
+/**
+ * Hook for creating a tag
+ */
+export const useCreateTag = (options?: UseMutationOptions<Tag, Error, CreateTagRequest>) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createTag,
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: tagKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+  });
+};
+
+/**
+ * Hook for updating a tag
+ */
+export const useUpdateTag = (
+  options?: UseMutationOptions<Tag, Error, { id: string; data: UpdateTagRequest }>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }) => updateTag(id, data),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: tagKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: tagKeys.detail(variables.id) });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+  });
+};
+
+/**
+ * Hook for deleting a tag
+ */
+export const useDeleteTag = (options?: UseMutationOptions<void, Error, string>) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteTag,
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: tagKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
   });
 };
 
