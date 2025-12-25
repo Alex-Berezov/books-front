@@ -31,7 +31,7 @@ export interface GetTagsParams {
  * Get list of tags
  *
  * @param params - Request parameters
- * @returns Paginated list of tags or array of tags
+ * @returns Paginated list of tags
  *
  * @example
  * ```ts
@@ -40,7 +40,7 @@ export interface GetTagsParams {
  */
 export const getTags = async (
   params: GetTagsParams = {}
-): Promise<PaginatedResponse<Tag> | Tag[]> => {
+): Promise<PaginatedResponse<Tag>> => {
   const { page = 1, limit = 50, search } = params;
 
   const queryParams = new URLSearchParams({
@@ -53,7 +53,7 @@ export const getTags = async (
   }
 
   const endpoint = `/tags?${queryParams.toString()}`;
-  return httpGetAuth<PaginatedResponse<Tag> | Tag[]>(endpoint);
+  return httpGetAuth<PaginatedResponse<Tag>>(endpoint);
 };
 
 /**

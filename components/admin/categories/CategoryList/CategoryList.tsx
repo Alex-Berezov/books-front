@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, type ChangeEvent, type FC } from 'react';
+import { Globe } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useCategories, useDeleteCategory } from '@/api/hooks/useCategories';
 import { CategoryModal } from '@/components/admin/categories/CategoryModal';
+import { CategoryTranslationsModal } from '@/components/admin/categories/CategoryTranslationsModal';
 import { DeleteCategoryModal } from '@/components/admin/categories/DeleteCategoryModal';
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import type { SupportedLang } from '@/lib/i18n/lang';
+import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { Category } from '@/types/api-schema';
 import styles from './CategoryList.module.scss';
 
@@ -23,6 +25,10 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
   const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(undefined);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | undefined>(undefined);
+  const [isTranslationsModalOpen, setIsTranslationsModalOpen] = useState(false);
+  const [categoryForTranslations, setCategoryForTranslations] = useState<Category | undefined>(
+    undefined
+  );
   const { enqueueSnackbar } = useSnackbar();
   // Fetch all categories for client-side filtering
   const limit = 1000;
@@ -99,6 +105,16 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
     setCategoryToDelete(undefined);
   };
 
+  const handleTranslations = (category: Category) => {
+    setCategoryForTranslations(category);
+    setIsTranslationsModalOpen(true);
+  };
+
+  const handleCloseTranslationsModal = () => {
+    setIsTranslationsModalOpen(false);
+    setCategoryForTranslations(undefined);
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -127,7 +143,7 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
               <tr>
                 <th>Name</th>
                 <th>Slug</th>
-                <th>Language</th>
+                <th>Translations</th>
                 <th>Books Count</th>
                 <th>Type</th>
                 <th>Actions</th>
@@ -138,7 +154,29 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
                 <tr key={category.id}>
                   <td>{category.name}</td>
                   <td>{category.slug}</td>
-                  <td>{category.language}</td>
+                  <td>
+                    <div className={styles.translationsCell}>
+                      <div className={styles.flags}>
+                        {category.translations?.map((t) => (
+                          <span
+                            key={t.language}
+                            title={`${t.name} (${t.language.toUpperCase()})`}
+                            className={styles.flag}
+                          >
+                            {LANGUAGE_FLAGS[t.language as SupportedLang] || t.language}
+                          </span>
+                        ))}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleTranslations(category)}
+                        title="Manage Translations"
+                      >
+                        <Globe size={16} />
+                      </Button>
+                    </div>
+                  </td>
                   <td>{category.booksCount || 0}</td>
                   <td>{category.type || '-'}</td>
                   <td>
@@ -177,6 +215,14 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
       )}
 
       <CategoryModal isOpen={isModalOpen} onClose={handleCloseModal} category={selectedCategory} />
+
+      {categoryForTranslations && (
+        <CategoryTranslationsModal
+          isOpen={isTranslationsModalOpen}
+          onClose={handleCloseTranslationsModal}
+          category={categoryForTranslations}
+        />
+      )}
 
       <DeleteCategoryModal
         isOpen={isDeleteModalOpen}

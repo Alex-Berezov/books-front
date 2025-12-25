@@ -18,6 +18,7 @@ export interface Category {
   language: SupportedLang;
   parentId?: UUID | null;
   booksCount?: number;
+  translations?: CategoryTranslation[];
   createdAt: ISODate;
   updatedAt: ISODate;
 }
@@ -53,13 +54,42 @@ export interface DetachCategoryRequest {
 }
 
 /**
+ * Category translation
+ */
+export interface CategoryTranslation {
+  language: string;
+  name: string;
+  slug: string;
+}
+
+/**
+ * Request to create category translation
+ */
+export interface CreateCategoryTranslationRequest {
+  language: string;
+  name: string;
+  slug: string;
+}
+
+/**
+ * Request to update category translation
+ */
+export interface UpdateCategoryTranslationRequest {
+  name?: string;
+  slug?: string;
+}
+
+/**
  * Request to create a new category
  */
 export interface CreateCategoryRequest {
   name: string;
   slug: string;
-  parentId?: UUID | null;
   type?: string;
+  description?: string;
+  parentId?: UUID | null;
+  // language is optional/unused for base category
+  language?: SupportedLang;
 }
 
 /**
@@ -68,6 +98,7 @@ export interface CreateCategoryRequest {
 export interface UpdateCategoryRequest {
   name?: string;
   slug?: string;
-  parentId?: UUID | null;
   type?: string;
+  description?: string;
+  parentId?: UUID | null;
 }

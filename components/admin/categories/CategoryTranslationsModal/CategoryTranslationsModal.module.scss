@@ -1,0 +1,101 @@
+@import '@/styles/tokens.scss';
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.translationsList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.translationItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  background-color: $color-background-primary;
+
+  &:hover {
+    border-color: $color-border-base;
+  }
+}
+
+.translationInfo {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.languageBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-sm;
+  background-color: $color-background-secondary;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  width: fit-content;
+}
+
+.translationName {
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.translationSlug {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  background-color: $color-background-secondary;
+  border-radius: $border-radius-base;
+}
+
+.formTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.emptyState {
+  text-align: center;
+  padding: $spacing-lg;
+  color: $color-text-secondary;
+  font-style: italic;
+}

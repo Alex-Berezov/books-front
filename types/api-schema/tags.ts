@@ -15,8 +15,18 @@ export interface Tag {
   name: string;
   language?: SupportedLang;
   booksCount?: number;
+  translations?: TagTranslation[];
   createdAt: ISODate;
   updatedAt: ISODate;
+}
+
+/**
+ * Tag translation
+ */
+export interface TagTranslation {
+  language: string;
+  name: string;
+  slug: string;
 }
 
 /**

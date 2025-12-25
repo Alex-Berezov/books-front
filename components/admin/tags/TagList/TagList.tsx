@@ -7,6 +7,7 @@ import { useDeleteTag, useTags } from '@/api/hooks/useTags';
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { TagListProps } from './TagList.types';
 import type { Tag } from '@/types/api-schema';
 import { DeleteTagModal } from '../DeleteTagModal';
@@ -146,7 +147,7 @@ export const TagList: FC<TagListProps> = (props) => {
               <tr>
                 <th>Name</th>
                 <th>Slug</th>
-                <th>Language</th>
+                <th>Translations</th>
                 <th>Books Count</th>
                 <th>Created At</th>
                 <th>Actions</th>
@@ -164,7 +165,19 @@ export const TagList: FC<TagListProps> = (props) => {
                   <tr key={tag.id}>
                     <td>{tag.name}</td>
                     <td>{tag.slug}</td>
-                    <td>{tag.language?.toUpperCase() || '—'}</td>
+                    <td>
+                      <div className={styles.flags}>
+                        {tag.translations?.map((t) => (
+                          <span
+                            key={t.language}
+                            title={`${t.name} (${t.language.toUpperCase()})`}
+                            className={styles.flag}
+                          >
+                            {LANGUAGE_FLAGS[t.language as SupportedLang] || t.language}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
                     <td>{tag.booksCount || 0}</td>
                     <td>{new Date(tag.createdAt).toLocaleDateString(lang)}</td>
                     <td className={styles.actions}>

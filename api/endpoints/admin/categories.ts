@@ -10,10 +10,13 @@ import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/
 import type {
   AttachCategoryRequest,
   Category,
+  CategoryTranslation,
   CategoryTree,
   CreateCategoryRequest,
+  CreateCategoryTranslationRequest,
   PaginatedResponse,
   UpdateCategoryRequest,
+  UpdateCategoryTranslationRequest,
 } from '@/types/api-schema';
 
 /**
@@ -96,6 +99,60 @@ export const updateCategory = async (
 ): Promise<Category> => {
   const endpoint = `/categories/${id}`;
   return httpPatchAuth<Category>(endpoint, data);
+};
+
+/**
+ * Get category translations
+ *
+ * @param id - Category ID
+ * @returns List of category translations
+ */
+export const getCategoryTranslations = async (id: string): Promise<CategoryTranslation[]> => {
+  const endpoint = `/categories/${id}/translations`;
+  return httpGetAuth<CategoryTranslation[]>(endpoint);
+};
+
+/**
+ * Create category translation
+ *
+ * @param id - Category ID
+ * @param data - Translation data
+ * @returns Created translation
+ */
+export const createCategoryTranslation = async (
+  id: string,
+  data: CreateCategoryTranslationRequest
+): Promise<CategoryTranslation> => {
+  const endpoint = `/categories/${id}/translations`;
+  return httpPostAuth<CategoryTranslation>(endpoint, data);
+};
+
+/**
+ * Update category translation
+ *
+ * @param id - Category ID
+ * @param language - Language code
+ * @param data - Translation data
+ * @returns Updated translation
+ */
+export const updateCategoryTranslation = async (
+  id: string,
+  language: string,
+  data: UpdateCategoryTranslationRequest
+): Promise<CategoryTranslation> => {
+  const endpoint = `/categories/${id}/translations/${language}`;
+  return httpPatchAuth<CategoryTranslation>(endpoint, data);
+};
+
+/**
+ * Delete category translation
+ *
+ * @param id - Category ID
+ * @param language - Language code
+ */
+export const deleteCategoryTranslation = async (id: string, language: string): Promise<void> => {
+  const endpoint = `/categories/${id}/translations/${language}`;
+  return httpDeleteAuth(endpoint);
 };
 
 /**

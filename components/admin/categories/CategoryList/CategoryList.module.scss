@@ -76,6 +76,23 @@
   gap: $spacing-xs;
 }
 
+.translationsCell {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.flags {
+  display: flex;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+}
+
+.flag {
+  font-size: $font-size-lg;
+  cursor: help;
+}
+
 .pagination {
   display: flex;
   justify-content: center;

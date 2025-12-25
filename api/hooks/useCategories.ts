@@ -15,19 +15,26 @@ import {
 import {
   attachCategory,
   createCategory,
+  createCategoryTranslation,
   deleteCategory,
+  deleteCategoryTranslation,
   detachCategory,
   getCategories,
   getCategoriesTree,
+  getCategoryTranslations,
   updateCategory,
+  updateCategoryTranslation,
   type GetCategoriesParams,
 } from '@/api/endpoints/admin/categories';
 import type {
   Category,
+  CategoryTranslation,
   CategoryTree,
   CreateCategoryRequest,
+  CreateCategoryTranslationRequest,
   PaginatedResponse,
   UpdateCategoryRequest,
+  UpdateCategoryTranslationRequest,
 } from '@/types/api-schema';
 import { versionKeys } from './useBookVersions';
 
@@ -43,6 +50,8 @@ export const categoryKeys = {
   list: (params: GetCategoriesParams) => [...categoryKeys.lists(), params] as const,
   /** Category tree */
   tree: () => [...categoryKeys.all, 'tree'] as const,
+  /** Category translations */
+  translations: (id: string) => [...categoryKeys.all, id, 'translations'] as const,
 };
 
 /**
@@ -92,6 +101,24 @@ export const useCategoriesTree = (
 };
 
 /**
+ * Hook for getting category translations
+ *
+ * @param id - Category ID
+ * @param options - React Query options
+ */
+export const useCategoryTranslations = (
+  id: string,
+  options?: Omit<UseQueryOptions<CategoryTranslation[]>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery({
+    queryKey: categoryKeys.translations(id),
+    queryFn: () => getCategoryTranslations(id),
+    enabled: !!id,
+    ...options,
+  });
+};
+
+/**
  * Hook for creating a new category
  */
 export const useCreateCategory = (
@@ -100,21 +127,41 @@ export const useCreateCategory = (
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data) => createCategory(data),
-    ...options,
-    onSuccess: (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
-        data,
-        variables,
-        context
-      );
+    mutationFn: createCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
     },
+    ...options,
   });
 };
 
 /**
- * Hook for updating a category
+ * Hook for creating category translation
+ */
+export const useCreateCategoryTranslation = (
+  options?: UseMutationOptions<
+    CategoryTranslation,
+    Error,
+    { id: string; data: CreateCategoryTranslationRequest }
+  >
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }) => createCategoryTranslation(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.translations(id) });
+      // Also invalidate lists/tree as they might show translation info
+      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
+    },
+    ...options,
+  });
+};
+
+/**
+ * Hook for updating an existing category
  */
 export const useUpdateCategory = (
   options?: UseMutationOptions<Category, Error, { id: string; data: UpdateCategoryRequest }>
@@ -123,15 +170,34 @@ export const useUpdateCategory = (
 
   return useMutation({
     mutationFn: ({ id, data }) => updateCategory(id, data),
-    ...options,
-    onSuccess: (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
-        data,
-        variables,
-        context
-      );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
     },
+    ...options,
+  });
+};
+
+/**
+ * Hook for updating category translation
+ */
+export const useUpdateCategoryTranslation = (
+  options?: UseMutationOptions<
+    CategoryTranslation,
+    Error,
+    { id: string; language: string; data: UpdateCategoryTranslationRequest }
+  >
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, language, data }) => updateCategoryTranslation(id, language, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.translations(id) });
+      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
+    },
+    ...options,
   });
 };
 
@@ -222,15 +288,30 @@ export const useDeleteCategory = (options?: UseMutationOptions<void, Error, stri
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => deleteCategory(id),
-    ...options,
-    onSuccess: (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
-        data,
-        variables,
-        context
-      );
+    mutationFn: deleteCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
     },
+    ...options,
+  });
+};
+
+/**
+ * Hook for deleting category translation
+ */
+export const useDeleteCategoryTranslation = (
+  options?: UseMutationOptions<void, Error, { id: string; language: string }>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, language }) => deleteCategoryTranslation(id, language),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.translations(id) });
+      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
+    },
+    ...options,
   });
 };
