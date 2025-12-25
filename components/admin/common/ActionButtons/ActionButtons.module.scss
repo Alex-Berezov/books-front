@@ -1,0 +1,32 @@
+@import '@/styles/tokens.scss';
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: $border-radius-base;
+  background: transparent;
+  color: $color-text-secondary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0; // Reset padding for buttons
+
+  &:hover {
+    background: $color-background-secondary;
+    color: $color-primary;
+  }
+
+  &.delete:hover {
+    color: $color-error;
+    background: rgba($color-error, 0.1);
+  }
+
+  // Ensure icons are centered and sized correctly
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}

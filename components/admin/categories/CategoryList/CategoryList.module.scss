@@ -71,6 +71,11 @@
   }
 }
 
+.actions {
+  display: flex;
+  gap: $spacing-xs;
+}
+
 .pagination {
   display: flex;
   justify-content: center;

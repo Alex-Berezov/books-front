@@ -281,7 +281,13 @@
 }
 
 .actionsCell {
-  text-align: right;
+  white-space: nowrap;
+  width: 1%; // Shrink to fit content
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-xs;
 }
 
 .editButton {

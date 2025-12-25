@@ -5,6 +5,7 @@ import { useSnackbar } from 'notistack';
 import { useCategories, useDeleteCategory } from '@/api/hooks/useCategories';
 import { CategoryModal } from '@/components/admin/categories/CategoryModal';
 import { DeleteCategoryModal } from '@/components/admin/categories/DeleteCategoryModal';
+import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -141,18 +142,9 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
                   <td>{category.booksCount || 0}</td>
                   <td>{category.type || '-'}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(category)}>
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(category)}
-                        style={{ color: 'var(--color-error)' }}
-                      >
-                        Delete
-                      </Button>
+                    <div className={styles.actions}>
+                      <EditButton onClick={() => handleEdit(category)} />
+                      <DeleteButton onClick={() => handleDelete(category)} />
                     </div>
                   </td>
                 </tr>

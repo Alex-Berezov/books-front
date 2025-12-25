@@ -1,7 +1,7 @@
 import type { FC } from 'react';
-import { Eye, Headphones, FileText, Edit, Trash2 } from 'lucide-react';
+import { Eye, Headphones, FileText } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/common/Button';
+import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
 import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './BookListTable.module.scss';
@@ -129,24 +129,14 @@ export const BookTable: FC<BookTableProps> = (props) => {
                 {/* Actions */}
                 <td className={styles.actionsCell}>
                   <div className={styles.actions}>
-                    <Link
+                    <EditButton
                       href={`/admin/${lang}/books/versions/${displayVersion?.id || 'new'}?bookId=${book.id}`}
-                      className={styles.actionButton}
-                      title="Edit"
-                    >
-                      <Edit size={16} />
-                    </Link>
+                    />
                     {isAdmin && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <DeleteButton
                         onClick={() => onDeleteClick(book.id, displayTitle)}
-                        className={`${styles.actionButton} ${styles.delete}`}
                         title="Delete"
-                        ariaLabel="Delete book"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
+                      />
                     )}
                   </div>
                 </td>

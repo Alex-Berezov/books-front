@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/common/Button';
+import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
 import type { PageTableProps } from '../PageListTable.types';
 import styles from '../PageListTable.module.scss';
 
@@ -52,19 +52,14 @@ export const PageTable: FC<PageTableProps> = (props) => {
                 })}
               </td>
               <td className={styles.actionsCell}>
-                <Link href={`/admin/${lang}/pages/${pageItem.id}`} className={styles.editButton}>
-                  Edit
-                </Link>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => onDelete(pageItem.id, pageItem.title)}
-                  disabled={isDeletingPage}
-                  loading={isDeletingPage}
-                  title="Delete page"
-                >
-                  Delete
-                </Button>
+                <div className={styles.actions}>
+                  <EditButton href={`/admin/${lang}/pages/${pageItem.id}`} />
+                  <DeleteButton
+                    onClick={() => onDelete(pageItem.id, pageItem.title)}
+                    disabled={isDeletingPage}
+                    title="Delete page"
+                  />
+                </div>
               </td>
             </tr>
           ))}

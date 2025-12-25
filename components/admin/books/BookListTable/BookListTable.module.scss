@@ -260,30 +260,6 @@
     display: flex;
     gap: $spacing-xs;
   }
-
-  .actionButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: $border-radius-base;
-    background: transparent;
-    color: $color-text-secondary;
-    cursor: pointer;
-    transition: all $transition-fast;
-
-    &:hover {
-      background: $color-background-secondary;
-      color: $color-primary;
-    }
-
-    &.delete:hover {
-      color: $color-error;
-      background: rgba($color-error, 0.1);
-    }
-  }
 }
 
 // Empty state

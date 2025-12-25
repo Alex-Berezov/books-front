@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { ChangeEvent, FC } from 'react';
 import { useSnackbar } from 'notistack';
 import { useDeleteTag, useTags } from '@/api/hooks/useTags';
+import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { TagListProps } from './TagList.types';
@@ -167,12 +168,8 @@ export const TagList: FC<TagListProps> = (props) => {
                     <td>{tag.booksCount || 0}</td>
                     <td>{new Date(tag.createdAt).toLocaleDateString(lang)}</td>
                     <td className={styles.actions}>
-                      <Button size="sm" variant="ghost" onClick={() => handleEdit(tag)}>
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleDelete(tag)}>
-                        Delete
-                      </Button>
+                      <EditButton onClick={() => handleEdit(tag)} />
+                      <DeleteButton onClick={() => handleDelete(tag)} />
                     </td>
                   </tr>
                 ))
