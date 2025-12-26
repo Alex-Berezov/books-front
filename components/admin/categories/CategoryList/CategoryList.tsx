@@ -155,19 +155,26 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
                   <td>{category.name}</td>
                   <td>{category.slug}</td>
                   <td>
-                    <div className={styles.translationsCell}>
-                      <div className={styles.flags}>
-                        {category.translations?.map((translation: CategoryTranslation) => (
-                          <span
-                            key={translation.language}
-                            title={`${translation.name} (${translation.language.toUpperCase()})`}
-                            className={styles.flag}
-                          >
-                            {LANGUAGE_FLAGS[translation.language as SupportedLang] ||
-                              translation.language}
-                          </span>
-                        ))}
-                      </div>
+                    <div className={styles.flags}>
+                      <span title="English (EN)" className={styles.flag}>
+                        {LANGUAGE_FLAGS['en']}
+                      </span>
+                      {category.translations?.map((translation: CategoryTranslation) => (
+                        <span
+                          key={translation.language}
+                          title={`${translation.name} (${translation.language.toUpperCase()})`}
+                          className={styles.flag}
+                        >
+                          {LANGUAGE_FLAGS[translation.language as SupportedLang] ||
+                            translation.language}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td>{category.booksCount || 0}</td>
+                  <td>{category.type || '-'}</td>
+                  <td>
+                    <div className={styles.actions}>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -176,12 +183,6 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
                       >
                         <Globe size={16} />
                       </Button>
-                    </div>
-                  </td>
-                  <td>{category.booksCount || 0}</td>
-                  <td>{category.type || '-'}</td>
-                  <td>
-                    <div className={styles.actions}>
                       <EditButton onClick={() => handleEdit(category)} />
                       <DeleteButton onClick={() => handleDelete(category)} />
                     </div>
@@ -202,7 +203,7 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
           >
             Previous
           </Button>
-          <span style={{ margin: '0 1rem', alignSelf: 'center' }}>
+          <span className={styles.pageInfo}>
             Page {page} of {totalPages}
           </span>
           <Button

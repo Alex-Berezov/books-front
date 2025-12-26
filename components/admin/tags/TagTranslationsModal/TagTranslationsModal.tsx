@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import {
-  useCategoryTranslations,
-  useCreateCategoryTranslation,
-  useDeleteCategoryTranslation,
-  useUpdateCategoryTranslation,
-} from '@/api/hooks/useCategories';
+  useCreateTagTranslation,
+  useDeleteTagTranslation,
+  useTagTranslations,
+  useUpdateTagTranslation,
+} from '@/api/hooks/useTags';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import {
@@ -14,33 +14,33 @@ import {
   SUPPORTED_LANGS,
   type SupportedLang,
 } from '@/lib/i18n/lang';
-import type { Category, CategoryTranslation } from '@/types/api-schema';
+import type { Tag, TagTranslation } from '@/types/api-schema';
 import { TranslationForm } from './TranslationForm';
 import { TranslationsList } from './TranslationsList';
-import type { TranslationFormData } from './CategoryTranslationsModal.types';
-import styles from './CategoryTranslationsModal.module.scss';
+import type { TranslationFormData } from './TagTranslationsModal.types';
+import styles from './TagTranslationsModal.module.scss';
 
-interface CategoryTranslationsModalProps {
+interface TagTranslationsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  category: Category;
+  tag: Tag;
 }
 
-export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps) => {
-  const { isOpen, onClose, category } = props;
+export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
+  const { isOpen, onClose, tag } = props;
   const [editingLang, setEditingLang] = useState<string | null>(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState<TranslationFormData | undefined>(undefined);
 
-  const { data: translations = [], isLoading } = useCategoryTranslations(category.id, {
+  const { data: translations = [], isLoading } = useTagTranslations(tag.id, {
     enabled: isOpen,
   });
 
-  const createMutation = useCreateCategoryTranslation();
-  const updateMutation = useUpdateCategoryTranslation();
-  const deleteMutation = useDeleteCategoryTranslation();
+  const createMutation = useCreateTagTranslation();
+  const updateMutation = useUpdateTagTranslation();
+  const deleteMutation = useDeleteTagTranslation();
 
-  const handleEdit = (translation: CategoryTranslation) => {
+  const handleEdit = (translation: TagTranslation) => {
     setEditingLang(translation.language);
     setFormData({
       language: translation.language as SupportedLang,
@@ -52,36 +52,7 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
 
   const handleDelete = async (language: string) => {
     if (confirm('Are you sure you want to delete this translation?')) {
-      await deleteMutation.mutateAsync({ id: category.id, language });
-    }
-  };
-
-  const handleCancelForm = () => {
-    setIsFormVisible(false);
-    setEditingLang(null);
-    setFormData(undefined);
-  };
-
-  const onSubmit = async (data: TranslationFormData) => {
-    try {
-      if (editingLang) {
-        await updateMutation.mutateAsync({
-          id: category.id,
-          language: editingLang,
-          data: {
-            name: data.name,
-            slug: data.slug,
-          },
-        });
-      } else {
-        await createMutation.mutateAsync({
-          id: category.id,
-          data,
-        });
-      }
-      handleCancelForm();
-    } catch (error) {
-      console.error('Failed to save translation:', error);
+      await deleteMutation.mutateAsync({ id: tag.id, language });
     }
   };
 
@@ -103,11 +74,40 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
     setIsFormVisible(true);
   };
 
+  const handleCancelForm = () => {
+    setIsFormVisible(false);
+    setEditingLang(null);
+    setFormData(undefined);
+  };
+
+  const onSubmit = async (data: TranslationFormData) => {
+    try {
+      if (editingLang) {
+        await updateMutation.mutateAsync({
+          id: tag.id,
+          language: editingLang,
+          data: {
+            name: data.name,
+            slug: data.slug,
+          },
+        });
+      } else {
+        await createMutation.mutateAsync({
+          id: tag.id,
+          data,
+        });
+      }
+      handleCancelForm();
+    } catch (error) {
+      console.error('Failed to save translation:', error);
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onCancel={onClose}
-      title={`Translations for "${category.name}"`}
+      title={`Translations for "${tag.name}"`}
       size="lg"
       showFooter={false}
     >
@@ -135,12 +135,12 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
           </>
         )}
 
-        {isFormVisible && (
+        {isFormVisible && formData && (
           <TranslationForm
-            editingLang={editingLang}
-            availableLanguages={availableLanguages}
             initialData={formData}
-            isSubmitting={createMutation.isPending || updateMutation.isPending}
+            availableLanguages={availableLanguages}
+            isEditing={!!editingLang}
+            isLoading={createMutation.isPending || updateMutation.isPending}
             onSubmit={onSubmit}
             onCancel={handleCancelForm}
           />

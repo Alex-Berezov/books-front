@@ -15,16 +15,21 @@ import {
 import {
   attachTag,
   createTag,
+  createTagTranslation,
   deleteTag,
+  deleteTagTranslation,
   detachTag,
+  getTagTranslations,
   getTags,
   updateTag,
+  updateTagTranslation,
   type GetTagsParams,
 } from '@/api/endpoints/admin/tags';
 import type {
   CreateTagRequest,
   PaginatedResponse,
   Tag,
+  TagTranslation,
   UpdateTagRequest,
 } from '@/types/api-schema';
 import { versionKeys } from './useBookVersions';
@@ -43,6 +48,8 @@ export const tagKeys = {
   details: () => [...tagKeys.all, 'detail'] as const,
   /** Tag detail */
   detail: (id: string) => [...tagKeys.details(), id] as const,
+  /** Tag translations */
+  translations: (id: string) => [...tagKeys.detail(id), 'translations'] as const,
 };
 
 /**
@@ -203,6 +210,94 @@ export const useDetachTag = (
     onSuccess: (data, variables, context) => {
       // Invalidate version data for update
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+  });
+};
+
+/**
+ * Hook for getting tag translations
+ */
+export const useTagTranslations = (
+  tagId: string,
+  options?: Omit<UseQueryOptions<TagTranslation[]>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery({
+    queryKey: tagKeys.translations(tagId),
+    queryFn: () => getTagTranslations(tagId),
+    enabled: !!tagId,
+    ...options,
+  });
+};
+
+/**
+ * Hook for creating tag translation
+ */
+export const useCreateTagTranslation = (
+  options?: UseMutationOptions<TagTranslation, Error, { id: string; data: TagTranslation }>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }) => createTagTranslation(id, data),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: tagKeys.translations(variables.id) });
+      queryClient.invalidateQueries({ queryKey: tagKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+  });
+};
+
+/**
+ * Hook for updating tag translation
+ */
+export const useUpdateTagTranslation = (
+  options?: UseMutationOptions<
+    TagTranslation,
+    Error,
+    { id: string; language: string; data: Partial<TagTranslation> }
+  >
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, language, data }) => updateTagTranslation(id, language, data),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: tagKeys.translations(variables.id) });
+      queryClient.invalidateQueries({ queryKey: tagKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+  });
+};
+
+/**
+ * Hook for deleting tag translation
+ */
+export const useDeleteTagTranslation = (
+  options?: UseMutationOptions<void, Error, { id: string; language: string }>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, language }) => deleteTagTranslation(id, language),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: tagKeys.translations(variables.id) });
+      queryClient.invalidateQueries({ queryKey: tagKeys.lists() });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,

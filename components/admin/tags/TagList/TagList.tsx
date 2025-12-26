@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { ChangeEvent, FC } from 'react';
+import { Globe } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useDeleteTag, useTags } from '@/api/hooks/useTags';
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
@@ -12,6 +13,7 @@ import type { TagListProps } from './TagList.types';
 import type { Tag, TagTranslation } from '@/types/api-schema';
 import { DeleteTagModal } from '../DeleteTagModal';
 import { TagModal } from '../TagModal';
+import { TagTranslationsModal } from '../TagTranslationsModal';
 import styles from './TagList.module.scss';
 
 const PAGE_SIZE = 1000;
@@ -33,6 +35,7 @@ export const TagList: FC<TagListProps> = (props) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
   const [deletingTag, setDeletingTag] = useState<Tag | null>(null);
+  const [translatingTag, setTranslatingTag] = useState<Tag | null>(null);
 
   // Fetch tags
   const { data, isLoading, error } = useTags({
@@ -84,6 +87,10 @@ export const TagList: FC<TagListProps> = (props) => {
 
   const handleEdit = (tag: Tag) => {
     setEditingTag(tag);
+  };
+
+  const handleTranslations = (tag: Tag) => {
+    setTranslatingTag(tag);
   };
 
   const handleDelete = (tag: Tag) => {
@@ -149,14 +156,13 @@ export const TagList: FC<TagListProps> = (props) => {
                 <th>Slug</th>
                 <th>Translations</th>
                 <th>Books Count</th>
-                <th>Created At</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {tags.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className={styles.emptyState}>
+                  <td colSpan={5} className={styles.emptyState}>
                     No tags found
                   </td>
                 </tr>
@@ -167,6 +173,9 @@ export const TagList: FC<TagListProps> = (props) => {
                     <td>{tag.slug}</td>
                     <td>
                       <div className={styles.flags}>
+                        <span title="English (EN)" className={styles.flag}>
+                          {LANGUAGE_FLAGS['en']}
+                        </span>
                         {tag.translations?.map((translation: TagTranslation) => (
                           <span
                             key={translation.language}
@@ -180,8 +189,16 @@ export const TagList: FC<TagListProps> = (props) => {
                       </div>
                     </td>
                     <td>{tag.booksCount || 0}</td>
-                    <td>{new Date(tag.createdAt).toLocaleDateString(lang)}</td>
                     <td className={styles.actions}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleTranslations(tag)}
+                        aria-label="Manage translations"
+                        title="Manage translations"
+                      >
+                        <Globe size={16} />
+                      </Button>
                       <EditButton onClick={() => handleEdit(tag)} />
                       <DeleteButton onClick={() => handleDelete(tag)} />
                     </td>
@@ -219,6 +236,14 @@ export const TagList: FC<TagListProps> = (props) => {
           onClose={() => setEditingTag(null)}
           tag={editingTag}
           lang={lang}
+        />
+      )}
+
+      {translatingTag && (
+        <TagTranslationsModal
+          isOpen={!!translatingTag}
+          onClose={() => setTranslatingTag(null)}
+          tag={translatingTag}
         />
       )}
 

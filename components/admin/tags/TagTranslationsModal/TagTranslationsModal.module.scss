@@ -97,18 +97,3 @@
   gap: $spacing-sm;
   margin-top: $spacing-sm;
 }
-
-.emptyState {
-  text-align: center;
-  padding: $spacing-lg;
-  color: $color-text-secondary;
-  font-style: italic;
-}
-
-.deleteButton {
-  color: $color-error;
-
-  &:hover {
-    color: darken($color-error, 10%);
-  }
-}

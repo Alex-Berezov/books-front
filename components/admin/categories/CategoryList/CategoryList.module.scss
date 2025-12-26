@@ -73,13 +73,8 @@
 
 .actions {
   display: flex;
-  gap: $spacing-xs;
-}
-
-.translationsCell {
-  display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: $spacing-xs;
 }
 
 .flags {
@@ -97,6 +92,13 @@
   display: flex;
   justify-content: center;
   margin-top: $spacing-lg;
+}
+
+.pageInfo {
+  margin: 0 $spacing-md;
+  align-self: center;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
 }
 
 .emptyState {
