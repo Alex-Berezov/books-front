@@ -86,6 +86,11 @@
   color: $color-text-primary;
 }
 
+.errorText {
+  font-size: $font-size-xs;
+  color: $color-error;
+}
+
 .formActions {
   display: flex;
   justify-content: flex-end;

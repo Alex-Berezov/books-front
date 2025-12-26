@@ -38,9 +38,7 @@ export interface GetTagsParams {
  * const tags = await getTags({ page: 1, limit: 50, search: 'motiv' });
  * ```
  */
-export const getTags = async (
-  params: GetTagsParams = {}
-): Promise<PaginatedResponse<Tag>> => {
+export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResponse<Tag>> => {
   const { page = 1, limit = 50, search } = params;
 
   const queryParams = new URLSearchParams({

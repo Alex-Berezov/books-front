@@ -1,23 +1,26 @@
 import { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Edit, Plus, Trash2 } from 'lucide-react';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Edit, Globe, Trash2, Plus, X } from 'lucide-react';
-
-import { Modal } from '@/components/common/Modal';
-import { Button } from '@/components/common/Button';
-import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
 import {
   useCategoryTranslations,
   useCreateCategoryTranslation,
-  useUpdateCategoryTranslation,
   useDeleteCategoryTranslation,
+  useUpdateCategoryTranslation,
 } from '@/api/hooks/useCategories';
-import { SUPPORTED_LANGS, LANGUAGE_LABELS, LANGUAGE_FLAGS } from '@/lib/i18n/lang';
+import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
+import { Modal } from '@/components/common/Modal';
+import { Select } from '@/components/common/Select';
+import {
+  LANGUAGE_FLAGS,
+  LANGUAGE_LABELS,
+  SUPPORTED_LANGS,
+  type SupportedLang,
+} from '@/lib/i18n/lang';
 import { generateSlug } from '@/lib/utils/slug';
 import type { Category, CategoryTranslation } from '@/types/api-schema';
-
 import styles from './CategoryTranslationsModal.module.scss';
 
 interface CategoryTranslationsModalProps {
@@ -65,7 +68,6 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
   });
 
   const watchedName = watch('name');
-  const watchedLanguage = watch('language');
 
   // Auto-generate slug from name
   useEffect(() => {
@@ -77,7 +79,7 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
   const handleEdit = (translation: CategoryTranslation) => {
     setEditingLang(translation.language);
     reset({
-      language: translation.language as any,
+      language: translation.language as SupportedLang,
       name: translation.name,
       slug: translation.slug,
     });
@@ -169,8 +171,8 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
                   <div key={translation.language} className={styles.translationItem}>
                     <div className={styles.translationInfo}>
                       <div className={styles.languageBadge}>
-                        {LANGUAGE_FLAGS[translation.language as any]}{' '}
-                        {LANGUAGE_LABELS[translation.language as any]}
+                        {LANGUAGE_FLAGS[translation.language as SupportedLang]}{' '}
+                        {LANGUAGE_LABELS[translation.language as SupportedLang]}
                       </div>
                       <span className={styles.translationName}>{translation.name}</span>
                       <span className={styles.translationSlug}>{translation.slug}</span>
@@ -216,31 +218,40 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
                   <Select
                     {...field}
                     options={availableLanguages}
-                    error={errors.language?.message}
+                    error={!!errors.language}
                     disabled={!!editingLang}
                   />
                 )}
               />
+              {errors.language?.message && (
+                <span className={styles.errorText}>{errors.language.message}</span>
+              )}
             </div>
 
             <div className={styles.field}>
               <label className={styles.label}>Name</label>
-              <Input error={errors.name?.message} {...register('name')} />
+              <Input error={!!errors.name} {...register('name')} />
+              {errors.name?.message && (
+                <span className={styles.errorText}>{errors.name.message}</span>
+              )}
             </div>
 
             <div className={styles.field}>
               <label className={styles.label}>Slug</label>
-              <Input error={errors.slug?.message} {...register('slug')} />
+              <Input error={!!errors.slug} {...register('slug')} />
+              {errors.slug?.message && (
+                <span className={styles.errorText}>{errors.slug.message}</span>
+              )}
             </div>
 
             <div className={styles.formActions}>
-              <Button variant="outline" onClick={handleCancelForm} type="button">
+              <Button variant="secondary" onClick={handleCancelForm} type="button">
                 Cancel
               </Button>
               <Button
                 variant="primary"
                 type="submit"
-                isLoading={createMutation.isPending || updateMutation.isPending}
+                loading={createMutation.isPending || updateMutation.isPending}
               >
                 Save
               </Button>

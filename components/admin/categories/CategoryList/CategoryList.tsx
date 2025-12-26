@@ -11,7 +11,7 @@ import { EditButton, DeleteButton } from '@/components/admin/common/ActionButton
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
-import type { Category } from '@/types/api-schema';
+import type { Category, CategoryTranslation } from '@/types/api-schema';
 import styles from './CategoryList.module.scss';
 
 interface CategoryListProps {
@@ -157,13 +157,14 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
                   <td>
                     <div className={styles.translationsCell}>
                       <div className={styles.flags}>
-                        {category.translations?.map((t) => (
+                        {category.translations?.map((translation: CategoryTranslation) => (
                           <span
-                            key={t.language}
-                            title={`${t.name} (${t.language.toUpperCase()})`}
+                            key={translation.language}
+                            title={`${translation.name} (${translation.language.toUpperCase()})`}
                             className={styles.flag}
                           >
-                            {LANGUAGE_FLAGS[t.language as SupportedLang] || t.language}
+                            {LANGUAGE_FLAGS[translation.language as SupportedLang] ||
+                              translation.language}
                           </span>
                         ))}
                       </div>

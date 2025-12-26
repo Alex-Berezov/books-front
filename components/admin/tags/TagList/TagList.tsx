@@ -9,7 +9,7 @@ import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { TagListProps } from './TagList.types';
-import type { Tag } from '@/types/api-schema';
+import type { Tag, TagTranslation } from '@/types/api-schema';
 import { DeleteTagModal } from '../DeleteTagModal';
 import { TagModal } from '../TagModal';
 import styles from './TagList.module.scss';
@@ -167,13 +167,14 @@ export const TagList: FC<TagListProps> = (props) => {
                     <td>{tag.slug}</td>
                     <td>
                       <div className={styles.flags}>
-                        {tag.translations?.map((t) => (
+                        {tag.translations?.map((translation: TagTranslation) => (
                           <span
-                            key={t.language}
-                            title={`${t.name} (${t.language.toUpperCase()})`}
+                            key={translation.language}
+                            title={`${translation.name} (${translation.language.toUpperCase()})`}
                             className={styles.flag}
                           >
-                            {LANGUAGE_FLAGS[t.language as SupportedLang] || t.language}
+                            {LANGUAGE_FLAGS[translation.language as SupportedLang] ||
+                              translation.language}
                           </span>
                         ))}
                       </div>

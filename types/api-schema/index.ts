@@ -58,10 +58,13 @@ export type {
   AttachCategoryRequest,
   Category,
   CategoryBooksResponse,
+  CategoryTranslation,
   CategoryTree,
   CreateCategoryRequest,
+  CreateCategoryTranslationRequest,
   DetachCategoryRequest,
   UpdateCategoryRequest,
+  UpdateCategoryTranslationRequest,
 } from './categories';
 
 // Tags
@@ -71,6 +74,7 @@ export type {
   DetachTagRequest,
   Tag,
   TagBooksResponse,
+  TagTranslation,
   UpdateTagRequest,
 } from './tags';
 
