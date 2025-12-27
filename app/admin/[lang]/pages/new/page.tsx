@@ -12,14 +12,20 @@ interface NewPageProps {
   params: {
     lang: SupportedLang;
   };
+  searchParams: {
+    translationGroupId?: string;
+    targetLang?: string;
+  };
 }
 
 /**
  * New CMS page creation page
  */
 export default function NewPage(props: NewPageProps) {
-  const { params } = props;
+  const { params, searchParams } = props;
   const { lang } = params;
+  const translationGroupId = searchParams?.translationGroupId;
+  const targetLang = searchParams?.targetLang as SupportedLang | undefined;
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -63,13 +69,14 @@ export default function NewPage(props: NewPageProps) {
 
     // Create page with nested seo object (if there's data)
     createMutation.mutate({
-      lang,
+      lang: data.language, // Use selected language from form, not current admin lang
       data: {
         slug: data.slug,
         title: data.title,
         type: data.type,
         content: data.content,
         seo: hasSeoData ? seo : undefined, // ✅ Backend will automatically create SEO entity
+        translationGroupId: translationGroupId || null,
       },
     });
   };
@@ -83,7 +90,12 @@ export default function NewPage(props: NewPageProps) {
         </Button>
       </div>
 
-      <PageForm lang={lang} onSubmit={handleSubmit} isSubmitting={createMutation.isPending} />
+      <PageForm
+        lang={targetLang || lang}
+        onSubmit={handleSubmit}
+        isSubmitting={createMutation.isPending}
+        translationGroupId={translationGroupId}
+      />
     </div>
   );
 }

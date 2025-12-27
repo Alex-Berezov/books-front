@@ -4,7 +4,7 @@ import type { ErrorStateProps } from '../PageListTable.types';
 import styles from '../PageListTable.module.scss';
 
 /**
- * Состояние ошибки при загрузке списка страниц
+ * Error state when loading the list of pages
  */
 export const ErrorState: FC<ErrorStateProps> = (props) => {
   const { lang, errorMessage } = props;
@@ -18,11 +18,7 @@ export const ErrorState: FC<ErrorStateProps> = (props) => {
         </Link>
       </div>
       <div className={styles.error}>
-        <p>API endpoint not available yet</p>
-        <p className={styles.errorMessage}>
-          The /pages endpoint is not implemented on the backend yet. You can still create new pages
-          using the button above.
-        </p>
+        <p className={styles.errorMessage}>Failed to load pages</p>
         <p className={styles.errorMessage}>Error: {errorMessage}</p>
       </div>
     </div>

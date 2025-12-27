@@ -1,5 +1,5 @@
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { PublicationStatus } from '@/types/api-schema';
+import type { PageGroup, PublicationStatus } from '@/types/api-schema';
 
 /**
  * Пропсы для компонента PageListTable
@@ -57,15 +57,8 @@ export interface PaginationControlsProps {
  * Пропсы для компонента PageTable
  */
 export interface PageTableProps {
-  /** Массив страниц для отображения */
-  pages: Array<{
-    id: string;
-    title: string;
-    slug: string;
-    language: string;
-    status: PublicationStatus;
-    updatedAt: string;
-  }>;
+  /** Массив групп страниц для отображения */
+  groups: PageGroup[];
   /** Текущий язык для формирования ссылок */
   lang: SupportedLang;
   /** Флаг загрузки удаления */

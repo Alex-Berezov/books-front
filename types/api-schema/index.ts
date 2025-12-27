@@ -81,7 +81,9 @@ export type {
 // Pages (CMS)
 export type {
   CreatePageRequest,
+  PageGroup,
   PageResponse,
+  PageTranslation,
   SeoData,
   SeoInput,
   SeoResolveRequest,

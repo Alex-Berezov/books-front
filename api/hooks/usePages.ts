@@ -16,6 +16,7 @@ import {
   createPage,
   deletePage,
   getPageById,
+  getPageGroup,
   getPages,
   publishPage,
   unpublishPage,
@@ -24,6 +25,7 @@ import {
 } from '@/api/endpoints/admin/pages';
 import type {
   CreatePageRequest,
+  PageGroup,
   PageResponse,
   PaginatedResponse,
   UpdatePageRequest,
@@ -43,6 +45,10 @@ export const pageKeys = {
   details: () => [...pageKeys.all, 'detail'] as const,
   /** Page details by ID */
   detail: (id: string) => [...pageKeys.details(), id] as const,
+  /** Page groups */
+  groups: () => [...pageKeys.all, 'group'] as const,
+  /** Page group by ID */
+  group: (id: string) => [...pageKeys.groups(), id] as const,
 };
 
 /**
@@ -63,7 +69,7 @@ export const pageKeys = {
  */
 export const usePages = (
   params: GetPagesParams = {},
-  options?: Omit<UseQueryOptions<PaginatedResponse<PageResponse>>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginatedResponse<PageGroup>>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: pageKeys.list(params),
@@ -97,9 +103,25 @@ export const usePage = (
     queryKey: pageKeys.detail(pageId),
     queryFn: () => getPageById(pageId),
     enabled: !!pageId,
-    staleTime: 0, // Always consider data stale
-    refetchOnMount: true, // Always refetch when component mounts
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    ...options,
+  });
+};
+
+/**
+ * Hook for getting page group (translations)
+ *
+ * @param groupId - Translation Group ID
+ * @param options - React Query options
+ * @returns React Query result with list of pages in the group
+ */
+export const usePageGroup = (
+  groupId: string,
+  options?: Omit<UseQueryOptions<PageResponse[]>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery({
+    queryKey: pageKeys.group(groupId),
+    queryFn: () => getPageGroup(groupId),
+    enabled: !!groupId,
     ...options,
   });
 };

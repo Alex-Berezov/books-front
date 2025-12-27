@@ -59,12 +59,14 @@ export type PageFormData = z.infer<typeof pageSchema>;
  * Page form component props
  */
 export interface PageFormProps {
-  /** Current interface language */
+  /** Admin interface language */
   lang: SupportedLang;
-  /** Existing page data (for editing) */
+  /** Initial data for editing */
   initialData?: PageResponse;
-  /** Callback on successful form submission */
-  onSubmit: (data: PageFormData) => void | Promise<void>;
-  /** Loading flag (e.g., when submitting to server) */
+  /** Submit handler */
+  onSubmit: (data: PageFormData) => Promise<void>;
+  /** Loading state */
   isSubmitting?: boolean;
+  /** Translation Group ID (for creating new translation) */
+  translationGroupId?: string | null;
 }

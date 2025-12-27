@@ -42,6 +42,16 @@ export interface SeoData {
 }
 
 /**
+ * Page translation info
+ */
+export interface PageTranslation {
+  id: UUID;
+  language: SupportedLang;
+  slug: string;
+  title: string;
+}
+
+/**
  * Response with page information
  */
 export interface PageResponse {
@@ -54,8 +64,18 @@ export interface PageResponse {
   status: PublicationStatus;
   seoId?: number | null; // Backend returns seoId, not seo object
   seo?: SeoData; // May be populated from relation, but not always
+  translationGroupId?: string | null;
+  translations?: PageTranslation[];
   createdAt: ISODate;
   updatedAt: ISODate;
+}
+
+/**
+ * Page Group (for grouped list view)
+ */
+export interface PageGroup {
+  translationGroupId: string;
+  pages: PageResponse[];
 }
 
 /**
@@ -71,6 +91,7 @@ export interface CreatePageRequest {
   content: string;
   language?: SupportedLang; // Ignored by backend, taken from :lang in URL
   seo?: SeoInput; // Nested SEO object (optional)
+  translationGroupId?: string | null;
 }
 
 /**

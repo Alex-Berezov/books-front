@@ -237,17 +237,85 @@
 
 .langBadge {
   display: inline-block;
-  padding: $spacing-xs $spacing-sm;
+  padding: 2px 6px;
   background: $color-background-secondary;
+  border: 1px solid $color-border-base;
   border-radius: $border-radius-sm;
   font-size: $font-size-xs;
-  font-weight: $font-weight-semibold;
+  font-weight: $font-weight-bold;
   color: $color-text-secondary;
-  text-transform: uppercase;
+}
+
+.translationsList {
+  display: flex;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+}
+
+.langBadgeLink {
+  background: rgba($color-info, 0.1);
+  color: $color-info;
+  border-color: rgba($color-info, 0.2);
+  text-decoration: none;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: rgba($color-info, 0.2);
+  }
+
+  &.published {
+    background: rgba($color-success, 0.1);
+    color: $color-success;
+    border-color: rgba($color-success, 0.2);
+
+    &:hover {
+      background: rgba($color-success, 0.2);
+    }
+  }
+
+  &.draft {
+    background: rgba($color-warning, 0.1);
+    color: $color-warning;
+    border-color: rgba($color-warning, 0.2);
+
+    &:hover {
+      background: rgba($color-warning, 0.2);
+    }
+  }
+
+  &.archived {
+    background: rgba($color-text-secondary, 0.1);
+    color: $color-text-secondary;
+    border-color: rgba($color-text-secondary, 0.2);
+
+    &:hover {
+      background: rgba($color-text-secondary, 0.2);
+    }
+  }
+}
+
+.langBadgeCreate {
+  background: transparent;
+  color: $color-text-tertiary;
+  border-style: dashed;
+  text-decoration: none;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: $color-primary;
+    border-color: $color-primary;
+    background: rgba($color-primary, 0.05);
+  }
+}
+
+.noTranslations {
+  color: $color-text-disabled;
+  font-size: $font-size-sm;
 }
 
 .statusCell {
   text-align: center;
+  white-space: nowrap;
 }
 
 .statusBadge {

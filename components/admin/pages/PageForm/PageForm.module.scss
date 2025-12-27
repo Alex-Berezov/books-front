@@ -77,6 +77,8 @@
 }
 
 .textarea {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
   resize: vertical;
   font-family: $font-family-mono;
   line-height: 1.6;
@@ -257,4 +259,65 @@
     height: auto;
     display: block;
   }
+}
+
+// Translations Section
+.translationsSection {
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+  background: $color-background-primary;
+  padding: $spacing-lg;
+  margin-top: $spacing-xl;
+}
+
+.translationsTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-md 0;
+}
+
+.translationList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.translationRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+}
+
+.translationInfo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.langBadge {
+  text-transform: uppercase;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.currentBadge {
+  font-size: $font-size-xs;
+  background-color: rgba($color-info, 0.1);
+  color: $color-info;
+  padding: 2px $spacing-xs;
+  border-radius: $border-radius-sm;
+}
+
+.translationTitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.editingText {
+  font-size: $font-size-sm;
+  color: $color-text-disabled;
 }

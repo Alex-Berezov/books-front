@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { usePageGroup } from '@/api/hooks/usePages';
 import {
   SeoBasicSection,
   SeoOpenGraphSection,
@@ -15,6 +16,7 @@ import type { PageFormData, PageFormProps } from './PageForm.types';
 import styles from './PageForm.module.scss';
 import { pageSchema } from './PageForm.types';
 import { BasicInfoSection } from './sections/BasicInfoSection';
+import { TranslationsSection } from './sections/TranslationsSection';
 
 // Re-export types for external usage
 export type { PageFormData, PageFormProps } from './PageForm.types';
@@ -33,7 +35,24 @@ export type { PageFormData, PageFormProps } from './PageForm.types';
  * - SeoTwitterSection (Twitter Card)
  */
 export const PageForm: FC<PageFormProps> = (props) => {
-  const { lang, initialData, onSubmit, isSubmitting = false } = props;
+  const { lang, initialData, onSubmit, isSubmitting = false, translationGroupId } = props;
+
+  // Determine the group ID to use
+  const effectiveGroupId = initialData?.translationGroupId || translationGroupId;
+
+  // Always fetch group pages if we have a group ID, to ensure we have the latest list of translations
+  // This fixes the issue where "Create" is shown instead of "Edit" if initialData.translations is incomplete
+  const { data: groupPages } = usePageGroup(effectiveGroupId || '', {
+    enabled: !!effectiveGroupId,
+  });
+
+  const translations =
+    groupPages?.map((p) => ({
+      id: p.id,
+      language: p.language,
+      slug: p.slug,
+      title: p.title,
+    })) || initialData?.translations;
 
   // Initialize form with react-hook-form
   const {
@@ -128,6 +147,13 @@ export const PageForm: FC<PageFormProps> = (props) => {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+      {/* Translations */}
+      <TranslationsSection
+        currentLang={initialData?.language || lang}
+        translations={translations}
+        translationGroupId={effectiveGroupId}
+      />
+
       {/* Basic information and content */}
       <BasicInfoSection
         control={control}

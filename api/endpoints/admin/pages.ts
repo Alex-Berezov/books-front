@@ -9,6 +9,7 @@
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   CreatePageRequest,
+  PageGroup,
   PageResponse,
   PaginatedResponse,
   UpdatePageRequest,
@@ -26,71 +27,51 @@ export interface GetPagesParams {
   search?: string;
   /** Filter by publication status */
   status?: 'draft' | 'published' | 'archived';
-  /** Admin interface language (default 'en') */
-  lang?: string;
 }
 
 /**
  * Get list of all pages (for admin panel)
  *
  * @param params - Request parameters
- * @returns Paginated list of pages
+ * @returns Paginated list of page groups
  *
  * @example
  * ```ts
- * const pages = await getPages({ page: 1, limit: 20, status: 'published', lang: 'en' });
+ * const pages = await getPages({ page: 1, limit: 20 });
  * ```
  */
 export const getPages = async (
   params: GetPagesParams = {}
-): Promise<PaginatedResponse<PageResponse>> => {
-  const { page = 1, limit = 20, search, status, lang = 'en' } = params;
+): Promise<PaginatedResponse<PageGroup>> => {
+  const searchParams = new URLSearchParams();
 
-  const queryParams = new URLSearchParams({
-    page: String(page),
-    limit: String(limit),
-  });
+  if (params.page) searchParams.append('page', params.page.toString());
+  if (params.limit) searchParams.append('limit', params.limit.toString());
+  if (params.search) searchParams.append('search', params.search);
+  if (params.status) searchParams.append('status', params.status);
 
-  if (search) {
-    queryParams.append('search', search);
-  }
+  const queryString = searchParams.toString();
+  const endpoint = queryString ? `/admin/pages?${queryString}` : '/admin/pages';
 
-  if (status) {
-    queryParams.append('status', status);
-  }
-
-  const endpoint = `/admin/${lang}/pages?${queryParams.toString()}`;
-  const response = await httpGetAuth<PaginatedResponse<PageResponse> | PageResponse[]>(endpoint);
-
-  // Temporary workaround: if backend returns array instead of paginated response,
-  // wrap it in correct format
-  if (Array.isArray(response)) {
-    return {
-      data: response,
-      meta: {
-        page,
-        limit,
-        total: response.length,
-        totalPages: Math.ceil(response.length / limit),
-      },
-    };
-  }
-
-  return response;
+  return httpGetAuth<PaginatedResponse<PageGroup>>(endpoint);
 };
 
 /**
- * Get page details by ID (admin endpoint)
+ * Get page group (translations)
  *
- * IMPORTANT: Uses /admin/pages/:id WITHOUT :lang (like versions)
+ * @param groupId - Translation Group ID
+ * @returns List of pages in the group
+ */
+export const getPageGroup = async (groupId: string): Promise<PageResponse[]> => {
+  const endpoint = `/admin/pages/group/${groupId}`;
+  return httpGetAuth<PageResponse[]>(endpoint);
+};
+
+/**
+ * Get page by ID
  *
  * @param pageId - Page ID
- * @returns Detailed information about the page
- *
- * @example
- * ```ts
- * const page = await getPageById('uuid-here');
- * ```
+ * @returns Page details
  */
 export const getPageById = async (pageId: string): Promise<PageResponse> => {
   const endpoint = `/admin/pages/${pageId}`;
@@ -98,21 +79,11 @@ export const getPageById = async (pageId: string): Promise<PageResponse> => {
 };
 
 /**
- * Create a new page
+ * Create new page
  *
- * @param data - Data for creating the page
+ * @param data - Page data
  * @param lang - Admin interface language (default 'en')
  * @returns Created page
- *
- * @example
- * ```ts
- * const page = await createPage({
- *   slug: 'about-us',
- *   title: 'About Us',
- *   content: '# About Us\n\nWe are...',
- *   language: 'en'
- * }, 'en');
- * ```
  */
 export const createPage = async (data: CreatePageRequest, lang = 'en'): Promise<PageResponse> => {
   const endpoint = `/admin/${lang}/pages`;
@@ -126,13 +97,6 @@ export const createPage = async (data: CreatePageRequest, lang = 'en'): Promise<
  * @param data - Data for update
  * @param lang - Admin interface language (default 'en')
  * @returns Updated page
- *
- * @example
- * ```ts
- * const page = await updatePage('uuid-here', {
- *   title: 'Updated Title'
- * }, 'en');
- * ```
  */
 export const updatePage = async (
   pageId: string,
@@ -149,11 +113,6 @@ export const updatePage = async (
  * @param pageId - Page ID
  * @param lang - Admin interface language (default 'en')
  * @returns Updated page with published status
- *
- * @example
- * ```ts
- * await publishPage('uuid-here', 'en');
- * ```
  */
 export const publishPage = async (pageId: string, lang = 'en'): Promise<PageResponse> => {
   const endpoint = `/admin/${lang}/pages/${pageId}/publish`;
@@ -166,11 +125,6 @@ export const publishPage = async (pageId: string, lang = 'en'): Promise<PageResp
  * @param pageId - Page ID
  * @param lang - Admin interface language (default 'en')
  * @returns Updated page with draft status
- *
- * @example
- * ```ts
- * await unpublishPage('uuid-here', 'en');
- * ```
  */
 export const unpublishPage = async (pageId: string, lang = 'en'): Promise<PageResponse> => {
   const endpoint = `/admin/${lang}/pages/${pageId}/unpublish`;
@@ -180,15 +134,10 @@ export const unpublishPage = async (pageId: string, lang = 'en'): Promise<PageRe
 /**
  * Delete page
  *
- * @param pageId - Page ID to delete
+ * @param pageId - Page ID
  * @param lang - Admin interface language (default 'en')
- *
- * @example
- * ```ts
- * await deletePage('uuid-here', 'en');
- * ```
  */
 export const deletePage = async (pageId: string, lang = 'en'): Promise<void> => {
   const endpoint = `/admin/${lang}/pages/${pageId}`;
-  return httpDeleteAuth<void>(endpoint);
+  return httpDeleteAuth(endpoint);
 };

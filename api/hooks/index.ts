@@ -45,6 +45,7 @@ export {
   pageKeys,
   usePages,
   usePage,
+  usePageGroup,
   useCreatePage,
   useUpdatePage,
   usePublishPage,

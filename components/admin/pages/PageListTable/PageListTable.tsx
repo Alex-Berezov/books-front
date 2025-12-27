@@ -18,34 +18,33 @@ import { SearchForm } from './ui/SearchForm';
 import { StatusFilter } from './ui/StatusFilter';
 
 /**
- * Таблица со списком CMS страниц для админки
+ * CMS Pages List Table
  *
- * Отображает список всех страниц с пагинацией, поиском и фильтрацией
+ * Displays list of all pages with pagination, search and filtering
  */
 export const PageListTable: FC<PageListTableProps> = (props) => {
   const { lang } = props;
   const { enqueueSnackbar } = useSnackbar();
 
-  // State для управления пагинацией, поиском и фильтрами
+  // State for pagination, search and filters
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const [statusFilter, setStatusFilter] = useState<PublicationStatus | 'all'>('all');
 
-  // State для модалки подтверждения удаления
+  // State for delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [pageToDelete, setPageToDelete] = useState<{ id: string; title: string } | null>(null);
 
-  // Получаем данные через React Query
+  // Fetch data via React Query
   const { data, isLoading, error, refetch } = usePages({
     page,
     limit: 20,
     search: search || undefined,
     status: statusFilter !== 'all' ? statusFilter : undefined,
-    lang,
   });
 
-  // Мутация для удаления страницы
+  // Mutation for deleting page
   const deleteMutation = useDeletePage({
     onSuccess: () => {
       enqueueSnackbar('Page deleted successfully', { variant: 'success' });
@@ -58,15 +57,15 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
     },
   });
 
-  // Обработчик удаления страницы
+  // Handler for deleting page
   const handleDelete = (pageId: string, pageTitle: string) => {
-    // Открываем модалку подтверждения
+    // Open confirmation modal
     setPageToDelete({ id: pageId, title: pageTitle });
     setIsDeleteModalOpen(true);
   };
 
   /**
-   * Подтверждение удаления страницы
+   * Confirm page deletion
    */
   const handleConfirmDelete = () => {
     if (pageToDelete) {
@@ -75,34 +74,34 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
   };
 
   /**
-   * Отмена удаления (закрытие модалки)
+   * Cancel deletion (close modal)
    */
   const handleCancelDelete = () => {
     setIsDeleteModalOpen(false);
     setPageToDelete(null);
   };
 
-  // Обработчик поиска
+  // Search handler
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setSearch(searchValue);
     setPage(1);
   };
 
-  // Обработчик очистки поиска
+  // Clear search handler
   const handleClearSearch = () => {
     setSearchValue('');
     setSearch('');
     setPage(1);
   };
 
-  // Обработчик изменения фильтра статуса
+  // Status filter change handler
   const handleStatusFilterChange = (status: PublicationStatus | 'all') => {
     setStatusFilter(status);
     setPage(1);
   };
 
-  // Обработчики пагинации
+  // Pagination handlers
   const handlePreviousPage = () => {
     setPage((p) => Math.max(1, p - 1));
   };
@@ -123,12 +122,12 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
     return <ErrorState lang={lang} errorMessage={error.message} />;
   }
 
-  // Проверка на отсутствие данных
+  // Check for no data
   if (!data) {
     return <ErrorState lang={lang} errorMessage="No data available" />;
   }
 
-  // Проверка на правильный формат данных
+  // Check for valid data format
   if (Array.isArray(data) || !data.meta || !data.data) {
     enqueueSnackbar('Invalid API response format received', { variant: 'error' });
     return (
@@ -139,19 +138,19 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
     );
   }
 
-  // Вычисляем данные пагинации
+  // Calculate pagination data
   const totalPages = data.meta.totalPages || 0;
   const totalItems = data.meta.total || 0;
-  const pages = data.data || [];
+  const groups = data.data || [];
 
   // Empty state
-  if (pages.length === 0) {
+  if (groups.length === 0) {
     return <EmptyState lang={lang} search={search} />;
   }
 
   return (
     <div className={styles.container}>
-      {/* Header с кнопкой создания */}
+      {/* Header with create button */}
       <div className={styles.header}>
         <div className={styles.titleRow}>
           <h1 className={styles.title}>Pages Management</h1>
@@ -160,7 +159,7 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
           </Link>
         </div>
 
-        {/* Форма поиска */}
+        {/* Search form */}
         <SearchForm
           searchValue={searchValue}
           search={search}
@@ -169,11 +168,11 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
           onClearSearch={handleClearSearch}
         />
 
-        {/* Фильтр по статусу */}
+        {/* Status filter */}
         <StatusFilter statusFilter={statusFilter} onStatusFilterChange={handleStatusFilterChange} />
       </div>
 
-      {/* Пагинация сверху */}
+      {/* Pagination top */}
       {totalPages > 1 && (
         <div className={styles.paginationTop}>
           <span className={styles.paginationInfo}>
@@ -182,15 +181,15 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
         </div>
       )}
 
-      {/* Таблица страниц */}
+      {/* Pages table */}
       <PageTable
-        pages={pages}
+        groups={groups}
         lang={lang}
         isDeletingPage={deleteMutation.isPending}
         onDelete={handleDelete}
       />
 
-      {/* Пагинация снизу */}
+      {/* Pagination bottom */}
       {totalPages > 1 && (
         <PaginationControls
           currentPage={page}
@@ -200,7 +199,7 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
         />
       )}
 
-      {/* Модалка подтверждения удаления */}
+      {/* Delete confirmation modal */}
       <Modal
         isOpen={isDeleteModalOpen}
         title="Delete Page"
