@@ -1,0 +1,141 @@
+@import '@/styles/tokens.scss';
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin: 0;
+}
+
+.searchContainer {
+  margin-bottom: $spacing-lg;
+}
+
+.treeContainer {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.nodeContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.nodeContent {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm $spacing-md;
+  background-color: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  transition: background-color 0.2s ease;
+  margin-left: calc(var(--indent-level, 0) * 24px);
+
+  &:hover {
+    background-color: $color-background-secondary;
+
+    .actions {
+      opacity: 1;
+    }
+  }
+}
+
+.expandButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: $spacing-xs;
+  color: $color-text-secondary;
+  cursor: pointer;
+  border-radius: $border-radius-sm;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+
+  &:hover {
+    background-color: $color-background-secondary;
+    color: $color-text-primary;
+  }
+
+  &.expanded {
+    transform: rotate(90deg);
+  }
+
+  &.placeholder {
+    cursor: default;
+    &:hover {
+      background-color: transparent;
+    }
+  }
+}
+
+.nodeInfo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.nodeName {
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.nodeSlug {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.nodeType {
+  font-size: $font-size-xs;
+  padding: 2px 6px;
+  background-color: $color-background-secondary;
+  border-radius: $border-radius-sm;
+  color: $color-text-secondary;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  opacity: 0; // Hidden by default, shown on hover
+  transition: opacity 0.2s ease;
+}
+
+.childrenContainer {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+  // Indentation is handled by padding-left in the component style prop or here
+  // But since we want dynamic indentation based on level, we might handle it in JS or use a fixed margin here
+  // Let's use a fixed margin for children container relative to parent
+  // However, the requirement said "level * 24px".
+  // If we nest childrenContainer inside nodeContainer, we can just add margin-left.
+}
+
+.emptyState {
+  padding: $spacing-xl;
+  text-align: center;
+  color: $color-text-secondary;
+  background-color: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+}
+
+.loadingState {
+  padding: $spacing-xl;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -21,4 +21,5 @@ export interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   category?: Category; // If provided, it's edit mode
+  initialParentId?: string | null;
 }

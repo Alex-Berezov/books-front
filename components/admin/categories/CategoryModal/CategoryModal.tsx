@@ -19,7 +19,7 @@ import {
 } from './CategoryModal.types';
 
 export const CategoryModal: FC<CategoryModalProps> = (props) => {
-  const { isOpen, onClose, category } = props;
+  const { isOpen, onClose, category, initialParentId } = props;
   const isEditMode = !!category;
   const {
     register,
@@ -34,7 +34,7 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
     defaultValues: {
       name: '',
       slug: '',
-      parentId: null,
+      parentId: initialParentId || null,
       type: CATEGORY_TYPES[0],
     },
   });
@@ -57,12 +57,12 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
         reset({
           name: '',
           slug: '',
-          parentId: null,
+          parentId: initialParentId || null,
           type: CATEGORY_TYPES[0],
         });
       }
     }
-  }, [isOpen, category, reset]);
+  }, [isOpen, category, initialParentId, reset]);
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
@@ -143,7 +143,7 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
                 onChange={field.onChange}
                 error={errors.slug?.message}
                 sourceValue={watch('name')}
-                entityType="book" // Using 'book' as a fallback since category is not supported yet in SlugInput types
+                entityType="category"
                 // We handle validation manually in onSubmit for now
               />
             )}

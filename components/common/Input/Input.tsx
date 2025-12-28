@@ -66,6 +66,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     id,
     autoFocus = false,
     autoComplete,
+    leftIcon,
   } = props;
 
   const [showPassword, setShowPassword] = useState(false);
@@ -103,6 +104,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     error && styles.error,
     disabled && styles.disabled,
     loading && styles.loading,
+    leftIcon && styles.hasLeftIcon,
     className,
   ]
     .filter(Boolean)
@@ -112,6 +114,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
 
   return (
     <div className={classNames}>
+      {leftIcon && <span className={styles.leftIcon}>{leftIcon}</span>}
       <input
         ref={ref}
         type={inputType}

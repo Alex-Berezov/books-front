@@ -1,4 +1,4 @@
-import type { ChangeEvent, FocusEvent } from 'react';
+import type { ChangeEvent, FocusEvent, ReactNode } from 'react';
 
 /**
  * Input size options
@@ -126,4 +126,9 @@ export interface InputProps {
    * HTML autocomplete attribute
    */
   autoComplete?: string;
+
+  /**
+   * Icon to display on the left side
+   */
+  leftIcon?: ReactNode;
 }

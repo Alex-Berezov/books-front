@@ -8,14 +8,18 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { checkBookSlugUniqueness, checkPageSlugUniqueness } from '@/api/endpoints/slug-validation';
+import {
+  checkBookSlugUniqueness,
+  checkCategorySlugUniqueness,
+  checkPageSlugUniqueness,
+} from '@/api/endpoints/slug-validation';
 import type { SlugValidationResult } from '@/api/endpoints/slug-validation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
  * Entity type for slug validation
  */
-export type SlugEntityType = 'page' | 'book';
+export type SlugEntityType = 'page' | 'book' | 'category';
 
 /**
  * Slug validation status
@@ -115,6 +119,8 @@ export const useSlugValidation = (params: UseSlugValidationParams): UseSlugValid
             throw new Error('Language is required for page slug validation');
           }
           validationResult = await checkPageSlugUniqueness(slug, lang, excludeId);
+        } else if (entityType === 'category') {
+          validationResult = await checkCategorySlugUniqueness(slug, excludeId);
         } else {
           // entityType === 'book'
           validationResult = await checkBookSlugUniqueness(slug, excludeId);

@@ -1,12 +1,5 @@
-import { CategoryList } from '@/components/admin/categories/CategoryList';
-import type { SupportedLang } from '@/lib/i18n/lang';
+import { CategoryTree } from '@/components/admin/categories/CategoryTree/CategoryTree';
 import type { Metadata } from 'next';
-
-interface CategoriesPageProps {
-  params: {
-    lang: SupportedLang;
-  };
-}
 
 export const metadata: Metadata = {
   title: 'Categories Management',
@@ -16,8 +9,6 @@ export const metadata: Metadata = {
 /**
  * Categories management page (admin panel)
  */
-export default function CategoriesPage(props: CategoriesPageProps) {
-  const { params } = props;
-
-  return <CategoryList lang={params.lang} />;
+export default function CategoriesPage() {
+  return <CategoryTree />;
 }
