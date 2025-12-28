@@ -163,7 +163,7 @@ export const httpPost = async <T>(
   const response = await fetch(url, {
     method: HTTP_METHOD.POST,
     headers,
-    body: isFormData ? (body as FormData) : (body ? JSON.stringify(body) : undefined),
+    body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
     ...options,
   });
 
@@ -199,7 +199,7 @@ export const httpPatch = async <T>(
   const response = await fetch(url, {
     method: HTTP_METHOD.PATCH,
     headers,
-    body: isFormData ? (body as FormData) : (body ? JSON.stringify(body) : undefined),
+    body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
     ...options,
   });
 
@@ -263,7 +263,7 @@ export const httpPut = async <T>(
   const response = await fetch(url, {
     method: HTTP_METHOD.PUT,
     headers,
-    body: isFormData ? (body as FormData) : (body ? JSON.stringify(body) : undefined),
+    body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
     ...options,
   });
 

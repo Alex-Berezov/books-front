@@ -182,7 +182,8 @@
   overflow: hidden;
   box-shadow: $shadow-sm;
 
-  th, td {
+  th,
+  td {
     padding: $spacing-sm $spacing-md;
     text-align: left;
     border-bottom: 1px solid $color-border-light;
@@ -215,7 +216,7 @@
   tr:hover .listActions {
     opacity: 1;
   }
-  
+
   .listActionButton {
     padding: $spacing-xs;
     border: none;
@@ -223,9 +224,9 @@
     cursor: pointer;
     color: $color-text-secondary;
     border-radius: $border-radius-sm;
-    
+
     &:hover {
-      background-color: rgba(0,0,0,0.05);
+      background-color: rgba(0, 0, 0, 0.05);
       color: $color-primary;
     }
 

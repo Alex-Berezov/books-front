@@ -32,10 +32,10 @@ const mapBackendItemToMediaFile = (item: BackendMediaItem): MediaFile => {
   const type: MediaType = item.contentType.startsWith('image/')
     ? 'image'
     : item.contentType.startsWith('video/')
-    ? 'video'
-    : item.contentType.startsWith('audio/')
-    ? 'audio'
-    : 'document';
+      ? 'video'
+      : item.contentType.startsWith('audio/')
+        ? 'audio'
+        : 'document';
 
   // Extract filename from key (e.g. "covers/.../file.png" -> "file.png")
   const filename = item.key.split('/').pop() || item.key;
@@ -52,9 +52,7 @@ const mapBackendItemToMediaFile = (item: BackendMediaItem): MediaFile => {
   };
 };
 
-export const getMediaFiles = async (
-  params: GetMediaParams = {}
-): Promise<MediaResponse> => {
+export const getMediaFiles = async (params: GetMediaParams = {}): Promise<MediaResponse> => {
   const { page = 1, limit = 20, type, search } = params;
 
   const queryParams = new URLSearchParams({

@@ -15,14 +15,8 @@ interface MediaToolbarProps {
 }
 
 export const MediaToolbar: FC<MediaToolbarProps> = (props) => {
-  const {
-    search,
-    onSearchChange,
-    typeFilter,
-    onTypeFilterChange,
-    viewMode,
-    onViewModeChange,
-  } = props;
+  const { search, onSearchChange, typeFilter, onTypeFilterChange, viewMode, onViewModeChange } =
+    props;
 
   const typeOptions = [
     { value: 'all', label: 'All Types' },

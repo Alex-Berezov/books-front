@@ -61,7 +61,7 @@
   .fileInfo {
     flex: 1;
     min-width: 0;
-    
+
     .fileName {
       display: block;
       white-space: nowrap;
@@ -97,7 +97,11 @@
     align-items: center;
     justify-content: center;
 
-    &.success { color: var(--color-success); }
-    &.error { color: var(--color-error); }
+    &.success {
+      color: var(--color-success);
+    }
+    &.error {
+      color: var(--color-error);
+    }
   }
 }

@@ -18,13 +18,7 @@ export const DeleteMediaModal: FC<DeleteMediaModalProps> = ({
   isDeleting,
 }) => {
   return (
-    <Modal
-      isOpen={isOpen}
-      onCancel={onClose}
-      title="Delete File"
-      size="sm"
-      showFooter={false}
-    >
+    <Modal isOpen={isOpen} onCancel={onClose} title="Delete File" size="sm" showFooter={false}>
       <div className="flex flex-col gap-4">
         <p>
           Are you sure you want to delete <strong>{fileName}</strong>? This action cannot be undone.
@@ -33,11 +27,7 @@ export const DeleteMediaModal: FC<DeleteMediaModalProps> = ({
           <Button variant="secondary" onClick={onClose} disabled={isDeleting}>
             Cancel
           </Button>
-          <Button 
-            variant="danger" 
-            onClick={onConfirm} 
-            isLoading={isDeleting}
-          >
+          <Button variant="danger" onClick={onConfirm} isLoading={isDeleting}>
             Delete
           </Button>
         </div>
