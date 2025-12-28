@@ -1,0 +1,252 @@
+@import '@/styles/mixins.scss';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  padding: $spacing-lg;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+
+  h1 {
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-bold;
+    color: $color-text-primary;
+    margin: 0;
+  }
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  background-color: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  margin-bottom: $spacing-md;
+
+  @include mobile {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.filters {
+  display: flex;
+  gap: $spacing-md;
+  flex: 1;
+
+  @include mobile {
+    flex-direction: column;
+  }
+}
+
+.search {
+  flex: 1;
+  max-width: 400px;
+}
+
+.viewToggle {
+  display: flex;
+  gap: $spacing-xs;
+  padding: $spacing-xs;
+  background-color: $color-background-secondary;
+  border-radius: $border-radius-base;
+}
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xs;
+  border: none;
+  background: none;
+  color: $color-text-secondary;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    color: $color-text-primary;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  &.active {
+    color: $color-primary;
+    background-color: $color-background-primary;
+    box-shadow: $shadow-sm;
+  }
+}
+
+// Grid View
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: $spacing-md;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background-color: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: $shadow-md;
+    border-color: $color-primary-hover;
+  }
+}
+
+.preview {
+  height: 150px;
+  background-color: $color-background-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative; // Added for absolute positioning of actions
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .icon {
+    color: $color-text-secondary;
+    width: 48px;
+    height: 48px;
+  }
+
+  // Actions overlay for Grid View
+  .actions {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-sm;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  &:hover .actions {
+    opacity: 1;
+  }
+}
+
+.actionButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: $color-text-secondary;
+  transition: all 0.2s;
+
+  &:hover {
+    color: $color-primary;
+    transform: scale(1.1);
+  }
+
+  &.delete:hover {
+    color: $color-error;
+  }
+}
+
+// List View
+.list {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: $color-background-primary;
+  border-radius: $border-radius-base;
+  overflow: hidden;
+  box-shadow: $shadow-sm;
+
+  th, td {
+    padding: $spacing-sm $spacing-md;
+    text-align: left;
+    border-bottom: 1px solid $color-border-light;
+  }
+
+  th {
+    background-color: $color-background-secondary;
+    font-weight: $font-weight-medium;
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover {
+    background-color: $color-background-secondary;
+  }
+
+  // List view actions
+  .listActions {
+    display: flex;
+    gap: $spacing-sm;
+    justify-content: flex-end;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  tr:hover .listActions {
+    opacity: 1;
+  }
+  
+  .listActionButton {
+    padding: $spacing-xs;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: $color-text-secondary;
+    border-radius: $border-radius-sm;
+    
+    &:hover {
+      background-color: rgba(0,0,0,0.05);
+      color: $color-primary;
+    }
+
+    &.delete:hover {
+      color: $color-error;
+    }
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xxl;
+  color: $color-text-secondary;
+  gap: $spacing-md;
+
+  svg {
+    width: 64px;
+    height: 64px;
+    color: $color-border-base;
+  }
+}

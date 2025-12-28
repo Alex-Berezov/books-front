@@ -38,7 +38,8 @@ export {
 } from './useCategories';
 
 // Tags
-export { tagKeys, useTags, useAttachTag, useDetachTag } from './useTags';
+export * from './useTags';
+export * from './useMedia';
 
 // CMS Pages
 export {

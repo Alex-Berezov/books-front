@@ -78,6 +78,15 @@ export type {
   UpdateTagRequest,
 } from './tags';
 
+// Media
+export type {
+  GetMediaParams,
+  MediaResponse,
+  UploadMediaResponse,
+  MediaFile,
+  MediaType,
+} from './media';
+
 // Pages (CMS)
 export type {
   CreatePageRequest,

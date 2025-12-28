@@ -1,0 +1,47 @@
+@import '@/styles/tokens.scss';
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  margin-top: $spacing-lg;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 $spacing-xs;
+  border: 1px solid $color-border-base;
+  background-color: $color-background-primary;
+  color: $color-text-primary;
+  border-radius: $border-radius-base;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: $font-size-sm;
+
+  &:hover:not(:disabled) {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: $color-background-secondary;
+  }
+
+  &.active {
+    background-color: $color-primary;
+    color: $color-text-inverse;
+    border-color: $color-primary;
+  }
+}
+
+.dots {
+  color: $color-text-secondary;
+  padding: 0 $spacing-xs;
+}

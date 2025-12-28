@@ -1,0 +1,103 @@
+@import '@/styles/mixins.scss';
+@import '@/styles/tokens.scss';
+
+.dropzone {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+
+  &:hover,
+  &.active {
+    border-color: var(--color-primary);
+    background-color: rgba(var(--color-primary-rgb), 0.05);
+    color: var(--color-primary);
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+  }
+}
+
+.progressList {
+  margin-top: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.progressItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+
+  .fileIcon {
+    width: 20px;
+    height: 20px;
+    color: var(--color-text-secondary);
+  }
+
+  .fileInfo {
+    flex: 1;
+    min-width: 0;
+    
+    .fileName {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 500;
+    }
+
+    .fileSize {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-tertiary);
+    }
+  }
+
+  .progressBar {
+    width: 100px;
+    height: 4px;
+    background-color: var(--color-border);
+    border-radius: 2px;
+    overflow: hidden;
+
+    .progressFill {
+      height: 100%;
+      background-color: var(--color-primary);
+      transition: width 0.2s ease;
+    }
+  }
+
+  .status {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.success { color: var(--color-success); }
+    &.error { color: var(--color-error); }
+  }
+}

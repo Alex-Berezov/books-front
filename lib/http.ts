@@ -32,12 +32,15 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5
  * Creates headers for HTTP request
  *
  * @param options - Request options with token and language
+ * @param isFormData - Whether the request body is FormData (don't set Content-Type)
  * @returns Ready headers for fetch
  */
-const createHeaders = (options?: HttpRequestOptions): HeadersInit => {
-  const headers: HeadersInit = {
-    [HTTP_HEADER.CONTENT_TYPE]: HEADER_VALUE.JSON,
-  };
+const createHeaders = (options?: HttpRequestOptions, isFormData = false): HeadersInit => {
+  const headers: HeadersInit = {};
+
+  if (!isFormData) {
+    headers[HTTP_HEADER.CONTENT_TYPE] = HEADER_VALUE.JSON;
+  }
 
   // Add Authorization header if token exists
   if (options?.accessToken) {
@@ -154,12 +157,13 @@ export const httpPost = async <T>(
   options?: HttpRequestOptions
 ): Promise<T> => {
   const url = `${API_BASE_URL}${endpoint}`;
-  const headers = createHeaders(options);
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const headers = createHeaders(options, isFormData);
 
   const response = await fetch(url, {
     method: HTTP_METHOD.POST,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: isFormData ? (body as FormData) : (body ? JSON.stringify(body) : undefined),
     ...options,
   });
 
@@ -189,12 +193,13 @@ export const httpPatch = async <T>(
   options?: HttpRequestOptions
 ): Promise<T> => {
   const url = `${API_BASE_URL}${endpoint}`;
-  const headers = createHeaders(options);
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const headers = createHeaders(options, isFormData);
 
   const response = await fetch(url, {
     method: HTTP_METHOD.PATCH,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: isFormData ? (body as FormData) : (body ? JSON.stringify(body) : undefined),
     ...options,
   });
 
@@ -252,12 +257,13 @@ export const httpPut = async <T>(
   options?: HttpRequestOptions
 ): Promise<T> => {
   const url = `${API_BASE_URL}${endpoint}`;
-  const headers = createHeaders(options);
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const headers = createHeaders(options, isFormData);
 
   const response = await fetch(url, {
     method: HTTP_METHOD.PUT,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: isFormData ? (body as FormData) : (body ? JSON.stringify(body) : undefined),
     ...options,
   });
 
