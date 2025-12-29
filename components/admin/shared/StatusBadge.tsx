@@ -1,7 +1,15 @@
 import type { FC } from 'react';
 import styles from './StatusBadge.module.scss';
 
-export type StatusType = 'published' | 'draft' | 'archived' | 'active' | 'inactive' | 'hidden' | 'visible' | string;
+export type StatusType =
+  | 'published'
+  | 'draft'
+  | 'archived'
+  | 'active'
+  | 'inactive'
+  | 'hidden'
+  | 'visible'
+  | string;
 
 interface StatusBadgeProps {
   status: StatusType;
