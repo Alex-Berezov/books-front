@@ -1,0 +1,198 @@
+@import '@/styles/tokens.scss';
+@import '@/styles/mixins.scss';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.container {
+  padding: $spacing-lg;
+  background: $color-background-primary;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-sm;
+}
+
+// Header
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin: 0;
+}
+
+.loading,
+.error {
+  padding: $spacing-xl;
+  text-align: center;
+  color: $color-text-secondary;
+}
+
+.error {
+  color: $color-error;
+}
+
+.errorMessage {
+  margin-top: $spacing-sm;
+  font-size: $font-size-sm;
+}
+
+.empty {
+  padding: $spacing-xl;
+  text-align: center;
+  color: $color-text-secondary;
+  background: $color-background-secondary;
+  border-radius: $border-radius-base;
+}
+
+// Search & Filter
+.searchContainer {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filterSelect {
+  min-width: 150px;
+}
+
+// Table
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+
+  th,
+  td {
+    padding: $spacing-md;
+    text-align: left;
+    border-bottom: 1px solid $color-border-light;
+  }
+
+  th {
+    background: $color-background-secondary;
+    font-weight: $font-weight-medium;
+    color: $color-text-secondary;
+    white-space: nowrap;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+// User info in table
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: $color-background-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-text-secondary;
+  font-weight: $font-weight-bold;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.userEmail {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+// Badges
+.roleBadge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: $border-radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  background: $color-background-secondary;
+  color: $color-text-secondary;
+  margin-right: $spacing-xs;
+
+  &.admin {
+    background: rgba($color-primary, 0.1);
+    color: $color-primary;
+  }
+
+  &.content_manager {
+    background: rgba($color-warning, 0.1);
+    color: $color-warning;
+  }
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: 2px 8px;
+  border-radius: $border-radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+
+  &.active {
+    background: rgba($color-success, 0.1);
+    color: $color-success;
+  }
+
+  &.inactive {
+    background: rgba($color-text-disabled, 0.1);
+    color: $color-text-disabled;
+  }
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+// Pagination
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: $spacing-lg;
+}

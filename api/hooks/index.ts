@@ -53,4 +53,13 @@ export {
   useUnpublishPage,
   useDeletePage,
 } from './usePages';
-export * from './useComments';
+export {
+  commentKeys,
+  useComments,
+  useUpdateCommentStatus,
+  useDeleteComment,
+  useReplyToComment,
+} from './useComments';
+
+// Users
+export { userKeys, useUsers } from './useUsers';

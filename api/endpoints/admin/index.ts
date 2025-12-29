@@ -41,3 +41,6 @@ export * from './tags';
 
 // Media Domain
 export * from './media';
+
+// Users Domain
+export * from './users';

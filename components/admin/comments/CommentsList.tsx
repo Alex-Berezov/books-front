@@ -114,11 +114,7 @@ export const CommentsList: FC = () => {
 
       {data?.meta && data.meta.totalPages > 1 && (
         <div className={styles.pagination}>
-          <Pagination
-            currentPage={page}
-            totalPages={data.meta.totalPages}
-            onPageChange={setPage}
-          />
+          <Pagination currentPage={page} totalPages={data.meta.totalPages} onPageChange={setPage} />
         </div>
       )}
 

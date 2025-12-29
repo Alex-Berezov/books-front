@@ -23,16 +23,8 @@ export const CommentItem: FC<CommentItemProps> = (props) => {
     isDeleting = false,
   } = props;
 
-  const {
-    id,
-    content,
-    authorName,
-    authorEmail,
-    bookTitle,
-    createdAt,
-    status,
-    repliesCount,
-  } = comment;
+  const { id, content, authorName, authorEmail, bookTitle, createdAt, status, repliesCount } =
+    comment;
 
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     dateStyle: 'medium',
@@ -44,17 +36,13 @@ export const CommentItem: FC<CommentItemProps> = (props) => {
     <div className={styles.item}>
       <div className={styles.header}>
         <div className={styles.author}>
-          <div className={styles.avatar}>
-            {authorName.charAt(0).toUpperCase()}
-          </div>
+          <div className={styles.avatar}>{authorName.charAt(0).toUpperCase()}</div>
           <div className={styles.info}>
             <span className={styles.name}>{authorName}</span>
             {authorEmail && <span className={styles.email}>{authorEmail}</span>}
           </div>
         </div>
-        <div className={`${styles.status} ${styles[status]}`}>
-          {status}
-        </div>
+        <div className={`${styles.status} ${styles[status]}`}>{status}</div>
       </div>
 
       <div className={styles.book}>

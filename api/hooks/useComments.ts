@@ -7,9 +7,15 @@ import type {
 } from '@/types/api-schema/comments';
 import type { UUID } from '@/types/api-schema/common';
 
+export const commentKeys = {
+  all: ['comments'] as const,
+  lists: () => [...commentKeys.all, 'list'] as const,
+  list: (params: GetCommentsParams) => [...commentKeys.lists(), params] as const,
+};
+
 export const useComments = (params: GetCommentsParams) => {
   return useQuery({
-    queryKey: ['comments', params],
+    queryKey: commentKeys.list(params),
     queryFn: () => commentsApi.getComments(params),
   });
 };
