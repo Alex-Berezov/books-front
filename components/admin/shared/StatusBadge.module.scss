@@ -1,0 +1,43 @@
+@import '@/styles/tokens.scss';
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  text-transform: capitalize;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.success {
+  background-color: rgba($color-success, 0.1);
+  color: $color-success;
+  border: 1px solid rgba($color-success, 0.2);
+}
+
+.warning {
+  background-color: rgba($color-warning, 0.1);
+  color: $color-warning;
+  border: 1px solid rgba($color-warning, 0.2);
+}
+
+.error {
+  background-color: rgba($color-error, 0.1);
+  color: $color-error;
+  border: 1px solid rgba($color-error, 0.2);
+}
+
+.info {
+  background-color: rgba($color-info, 0.1);
+  color: $color-info;
+  border: 1px solid rgba($color-info, 0.2);
+}
+
+.default {
+  background-color: $color-background-secondary;
+  color: $color-text-secondary;
+  border: 1px solid $color-border-base;
+}
