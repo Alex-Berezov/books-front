@@ -4,7 +4,10 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 /**
  * Format date for admin interface
  */
-export const formatDate = (date: string | Date | undefined | null, lang: SupportedLang = 'en'): string => {
+export const formatDate = (
+  date: string | Date | undefined | null,
+  lang: SupportedLang = 'en'
+): string => {
   if (!date) return '-';
   const dateStr = date instanceof Date ? date.toISOString() : date;
   return formatBaseDate(dateStr, lang);
@@ -13,10 +16,13 @@ export const formatDate = (date: string | Date | undefined | null, lang: Support
 /**
  * Format date with time
  */
-export const formatDateTime = (date: string | Date | undefined | null, lang: SupportedLang = 'en'): string => {
+export const formatDateTime = (
+  date: string | Date | undefined | null,
+  lang: SupportedLang = 'en'
+): string => {
   if (!date) return '-';
   const d = date instanceof Date ? date : new Date(date);
-  
+
   return new Intl.DateTimeFormat(lang, {
     year: 'numeric',
     month: 'short',
