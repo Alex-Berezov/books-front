@@ -47,17 +47,10 @@ export const UserEditClient: FC<UserEditClientProps> = ({ userId, lang }) => {
       <div className={styles.header}>
         <h1 className={styles.title}>Edit User: {user.displayName || user.email}</h1>
         <div className={styles.headerActions}>
-          <Button
-            variant="secondary"
-            onClick={() => setIsPasswordModalOpen(true)}
-          >
+          <Button variant="secondary" onClick={() => setIsPasswordModalOpen(true)}>
             Reset Password
           </Button>
-          <Button
-            variant="danger"
-            onClick={handleDelete}
-            loading={deleteUser.isPending}
-          >
+          <Button variant="danger" onClick={handleDelete} loading={deleteUser.isPending}>
             Delete User
           </Button>
         </div>
@@ -67,7 +60,7 @@ export const UserEditClient: FC<UserEditClientProps> = ({ userId, lang }) => {
         <div className={styles.mainColumn}>
           <UserForm initialData={user} lang={lang} />
         </div>
-        
+
         <div className={styles.sideColumn}>
           <UserRoleManager user={user} />
         </div>

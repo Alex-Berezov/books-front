@@ -2,12 +2,7 @@
  * React Query hooks for working with users
  */
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type UseQueryOptions,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import {
   assignRole,
   createUser,
@@ -88,8 +83,7 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: UUID; data: UpdateUserRequest }) =>
-      updateUser(id, data),
+    mutationFn: ({ id, data }: { id: UUID; data: UpdateUserRequest }) => updateUser(id, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: userKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
@@ -118,8 +112,7 @@ export const useAssignRole = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, role }: { id: UUID; role: string }) =>
-      assignRole(id, role),
+    mutationFn: ({ id, role }: { id: UUID; role: string }) => assignRole(id, role),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: userKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
@@ -134,8 +127,7 @@ export const useRevokeRole = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, role }: { id: UUID; role: string }) =>
-      revokeRole(id, role),
+    mutationFn: ({ id, role }: { id: UUID; role: string }) => revokeRole(id, role),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: userKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
@@ -148,7 +140,6 @@ export const useRevokeRole = () => {
  */
 export const useResetPassword = () => {
   return useMutation({
-    mutationFn: ({ id, password }: { id: UUID; password: string }) =>
-      resetPassword(id, password),
+    mutationFn: ({ id, password }: { id: UUID; password: string }) => resetPassword(id, password),
   });
 };

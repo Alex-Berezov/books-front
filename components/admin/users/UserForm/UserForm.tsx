@@ -91,7 +91,7 @@ export const UserForm: FC<UserFormProps> = ({ initialData, lang }) => {
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Basic Information</h3>
-        
+
         <div className={styles.row}>
           <div className={styles.fieldWrapper}>
             <Input
@@ -125,9 +125,7 @@ export const UserForm: FC<UserFormProps> = ({ initialData, lang }) => {
             error={!!errors.email}
             fullWidth
           />
-          {errors.email && (
-            <span className={styles.errorMessage}>{errors.email.message}</span>
-          )}
+          {errors.email && <span className={styles.errorMessage}>{errors.email.message}</span>}
         </div>
 
         {!isEditMode && (
@@ -146,25 +144,15 @@ export const UserForm: FC<UserFormProps> = ({ initialData, lang }) => {
         )}
 
         <div className={styles.fieldWrapper}>
-          <Checkbox
-            label="Active User"
-            {...register('isActive')}
-          />
+          <Checkbox label="Active User" {...register('isActive')} />
         </div>
       </div>
 
       <div className={styles.actions}>
-        <Button
-          variant="secondary"
-          onClick={() => router.back()}
-          disabled={isSubmitting}
-        >
+        <Button variant="secondary" onClick={() => router.back()} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button
-          type="submit"
-          loading={isSubmitting}
-        >
+        <Button type="submit" loading={isSubmitting}>
           {isEditMode ? 'Save Changes' : 'Create User'}
         </Button>
       </div>

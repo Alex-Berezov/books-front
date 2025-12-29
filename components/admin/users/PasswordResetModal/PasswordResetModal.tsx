@@ -11,13 +11,15 @@ import { Modal } from '@/components/common/Modal';
 import type { UUID } from '@/types/api-schema/common';
 import styles from './PasswordResetModal.module.scss';
 
-const passwordSchema = z.object({
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
+const passwordSchema = z
+  .object({
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
@@ -27,13 +29,9 @@ interface PasswordResetModalProps {
   onClose: () => void;
 }
 
-export const PasswordResetModal: FC<PasswordResetModalProps> = ({
-  userId,
-  isOpen,
-  onClose,
-}) => {
+export const PasswordResetModal: FC<PasswordResetModalProps> = ({ userId, isOpen, onClose }) => {
   const resetPassword = useResetPassword();
-  
+
   const {
     register,
     handleSubmit,
@@ -55,12 +53,7 @@ export const PasswordResetModal: FC<PasswordResetModalProps> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onCancel={onClose}
-      title="Reset Password"
-      showFooter={false}
-    >
+    <Modal isOpen={isOpen} onCancel={onClose} title="Reset Password" showFooter={false}>
       <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
         <div className={styles.fieldWrapper}>
           <Input
@@ -74,7 +67,7 @@ export const PasswordResetModal: FC<PasswordResetModalProps> = ({
             <span className={styles.errorMessage}>{errors.password.message}</span>
           )}
         </div>
-        
+
         <div className={styles.fieldWrapper}>
           <Input
             placeholder="Confirm Password"
@@ -89,18 +82,10 @@ export const PasswordResetModal: FC<PasswordResetModalProps> = ({
         </div>
 
         <div className={styles.actions}>
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            disabled={isSubmitting}
-            type="button"
-          >
+          <Button variant="secondary" onClick={onClose} disabled={isSubmitting} type="button">
             Cancel
           </Button>
-          <Button
-            type="submit"
-            loading={isSubmitting}
-          >
+          <Button type="submit" loading={isSubmitting}>
             Reset Password
           </Button>
         </div>

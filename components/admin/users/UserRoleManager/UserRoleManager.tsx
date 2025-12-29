@@ -25,7 +25,7 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({ user }) => {
 
   const handleAddRole = async () => {
     if (!selectedRole) return;
-    
+
     try {
       await assignRole.mutateAsync({ id: user.id, role: selectedRole });
       setSelectedRole('');
@@ -44,9 +44,7 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({ user }) => {
     }
   };
 
-  const availableRolesToAdd = AVAILABLE_ROLES.filter(
-    (role) => !user.roles.includes(role.value)
-  );
+  const availableRolesToAdd = AVAILABLE_ROLES.filter((role) => !user.roles.includes(role.value));
 
   return (
     <div className={styles.container}>

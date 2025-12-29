@@ -4,12 +4,7 @@
  * API endpoints for working with users.
  */
 
-import {
-  httpDeleteAuth,
-  httpGetAuth,
-  httpPatchAuth,
-  httpPostAuth,
-} from '@/lib/http-client';
+import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type { UUID } from '@/types/api-schema/common';
 import type {
   CreateUserRequest,
@@ -25,9 +20,7 @@ import type {
  * @param params - Request parameters
  * @returns Paginated list of users
  */
-export const getUsers = async (
-  params: GetUsersParams = {}
-): Promise<UsersResponse> => {
+export const getUsers = async (params: GetUsersParams = {}): Promise<UsersResponse> => {
   const { page = 1, limit = 20, search, role, isActive } = params;
 
   const queryParams = new URLSearchParams({
@@ -78,10 +71,7 @@ export const createUser = async (data: CreateUserRequest): Promise<User> => {
  * @param data - Data to update
  * @returns Updated user
  */
-export const updateUser = async (
-  id: UUID,
-  data: UpdateUserRequest
-): Promise<User> => {
+export const updateUser = async (id: UUID, data: UpdateUserRequest): Promise<User> => {
   return httpPatchAuth<User>(`/users/${id}`, data);
 };
 
