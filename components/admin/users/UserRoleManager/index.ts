@@ -1,0 +1,1 @@
+export { UserRoleManager } from './UserRoleManager';

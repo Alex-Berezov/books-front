@@ -59,3 +59,32 @@ export interface UsersResponse {
     totalPages: number;
   };
 }
+
+/**
+ * Request to create a new user
+ */
+export interface CreateUserRequest {
+  email: string;
+  password?: string; // Optional if generated or sent via email
+  firstName?: string;
+  lastName?: string;
+  roles?: RoleName[];
+  isActive?: boolean;
+}
+
+/**
+ * Request to update a user
+ */
+export interface UpdateUserRequest {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  isActive?: boolean;
+}
+
+/**
+ * Request to change password
+ */
+export interface ChangePasswordRequest {
+  password: string;
+}

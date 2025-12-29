@@ -1,0 +1,58 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  padding: $spacing-lg;
+  background: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-lg;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.rolesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  background-color: $color-background-secondary;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.removeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: none;
+  color: $color-text-secondary;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: $color-error;
+  }
+}
+
+.addRole {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: center;
+  margin-top: $spacing-sm;
+}
