@@ -36,7 +36,8 @@ export type { GetTagsParams } from './tags';
 
 // CMS Pages Domain
 export * from './pages';
-export type { GetPagesParams } from './pages';
+export * from './comments';
+export * from './tags';
 
 // Media Domain
 export * from './media';

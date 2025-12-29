@@ -1,6 +1,6 @@
 import type { FC } from 'react';
-import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
+import { Modal } from '@/components/common/Modal';
 
 interface DeleteMediaModalProps {
   isOpen: boolean;
@@ -27,7 +27,7 @@ export const DeleteMediaModal: FC<DeleteMediaModalProps> = ({
           <Button variant="secondary" onClick={onClose} disabled={isDeleting}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={onConfirm} isLoading={isDeleting}>
+          <Button variant="danger" onClick={onConfirm} loading={isDeleting}>
             Delete
           </Button>
         </div>

@@ -14,11 +14,11 @@ import {
   SUPPORTED_LANGS,
   type SupportedLang,
 } from '@/lib/i18n/lang';
+import type { TranslationFormData } from './TagTranslationsModal.types';
 import type { Tag, TagTranslation } from '@/types/api-schema';
+import styles from './TagTranslationsModal.module.scss';
 import { TranslationForm } from './TranslationForm';
 import { TranslationsList } from './TranslationsList';
-import type { TranslationFormData } from './TagTranslationsModal.types';
-import styles from './TagTranslationsModal.module.scss';
 
 interface TagTranslationsModalProps {
   isOpen: boolean;

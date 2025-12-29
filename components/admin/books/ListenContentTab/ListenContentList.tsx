@@ -15,10 +15,10 @@ export const ListenContentList: FC<ListenContentListProps> = ({ chapters, onEdit
         <div key={chapter.id} className={styles.chapterItem}>
           <div className={styles.chapterInfo}>
             <div className={styles.chapterTitle}>
-              {chapter.orderIndex}. {chapter.title || 'Untitled Audio Chapter'}
+              {chapter.number}. {chapter.title || 'Untitled Audio Chapter'}
             </div>
             <div className={styles.chapterMeta}>
-              {chapter.isFree ? '🆓 Free' : '🔒 Premium'}
+              {/* TODO: Add isFree to Chapter type if needed */}
               {chapter.duration && ` • ${Math.floor(chapter.duration / 60)} min`}
             </div>
           </div>

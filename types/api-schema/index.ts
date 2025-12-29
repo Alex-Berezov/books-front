@@ -107,3 +107,13 @@ export type {
   ReadingProgress,
   UpdateProgressRequest,
 } from './bookshelf';
+
+// Comments
+export type {
+  Comment,
+  CommentStatus,
+  GetCommentsParams,
+  CommentsResponse,
+  UpdateCommentStatusRequest,
+  ReplyToCommentRequest,
+} from './comments';

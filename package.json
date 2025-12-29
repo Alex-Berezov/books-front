@@ -11,7 +11,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "validate": "./scripts/validate-work.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -28,6 +29,7 @@
     "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.65.0",
     "typescript": "^5.9.3",
+    "use-debounce": "^10.0.6",
     "zod": "^4.1.12"
   },
   "devDependencies": {

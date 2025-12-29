@@ -53,3 +53,4 @@ export {
   useUnpublishPage,
   useDeletePage,
 } from './usePages';
+export * from './useComments';

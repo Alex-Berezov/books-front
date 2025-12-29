@@ -1,0 +1,43 @@
+@import '@/styles/tokens.scss';
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: $spacing-sm $spacing-md;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  background: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: $shadow-focus;
+  }
+
+  &.error {
+    border-color: $color-error;
+  }
+
+  &:disabled {
+    background: $color-background-secondary;
+    color: $color-text-disabled;
+    cursor: not-allowed;
+  }
+}
+
+.errorText {
+  font-size: $font-size-xs;
+  color: $color-error;
+  margin-top: -$spacing-sm;
+}

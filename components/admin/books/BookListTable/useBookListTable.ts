@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSnackbar } from 'notistack';
 import { useBooks, useDeleteBook } from '@/api/hooks';
-import type { SupportedLang } from '@/lib/i18n/lang';
 import type { StatusFilter } from './BookListSearch';
+import type { SupportedLang } from '@/lib/i18n/lang';
 
 interface UseBookListTableProps {
   lang: SupportedLang;

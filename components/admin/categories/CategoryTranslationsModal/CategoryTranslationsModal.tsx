@@ -14,11 +14,11 @@ import {
   SUPPORTED_LANGS,
   type SupportedLang,
 } from '@/lib/i18n/lang';
+import type { TranslationFormData } from './CategoryTranslationsModal.types';
 import type { Category, CategoryTranslation } from '@/types/api-schema';
+import styles from './CategoryTranslationsModal.module.scss';
 import { TranslationForm } from './TranslationForm';
 import { TranslationsList } from './TranslationsList';
-import type { TranslationFormData } from './CategoryTranslationsModal.types';
-import styles from './CategoryTranslationsModal.module.scss';
 
 interface CategoryTranslationsModalProps {
   isOpen: boolean;
