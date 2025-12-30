@@ -1,7 +1,10 @@
 'use client';
 
 import type { FC } from 'react';
+import Link from 'next/link';
+import { Edit, Trash2 } from 'lucide-react';
 import { Pagination } from '@/components/admin/shared/Pagination';
+import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { formatDate } from '@/lib/utils/date';
@@ -29,6 +32,7 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
     // Handlers
     handleRoleFilterChange,
     handleStatusFilterChange,
+    handleDeleteUser,
   } = useUsersTable({ lang });
 
   if (isLoading) {
@@ -50,14 +54,17 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
     );
   }
 
-  const users = data?.data || [];
-  const totalPages = data?.meta.totalPages || 0;
+  const users = data?.items || [];
+  const totalPages = data?.total && data?.limit ? Math.ceil(data.total / data.limit) : 0;
 
   return (
     <div className={styles.root}>
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Users Management</h1>
+          <Link href={`/admin/${lang}/users/new`}>
+            <Button>Add User</Button>
+          </Link>
         </div>
 
         <div className={styles.searchContainer}>
@@ -109,6 +116,7 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
                   <th>Status</th>
                   <th>Last Login</th>
                   <th>Joined</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -135,7 +143,7 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
                       </div>
                     </td>
                     <td>
-                      {user.roles.map((role) => (
+                      {user.roles?.map((role) => (
                         <span key={role} className={`${styles.roleBadge} ${styles[role]}`}>
                           {role.replace('_', ' ')}
                         </span>
@@ -153,6 +161,24 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
                     </td>
                     <td>{user.lastLoginAt ? formatDate(user.lastLoginAt, lang) : 'Never'}</td>
                     <td>{formatDate(user.createdAt, lang)}</td>
+                    <td>
+                      <div className={styles.actions}>
+                        <Link href={`/admin/${lang}/users/${user.id}`}>
+                          <Button variant="ghost" size="sm" ariaLabel="Edit user">
+                            <Edit size={16} />
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          ariaLabel="Delete user"
+                          onClick={() => handleDeleteUser(user.id)}
+                          className={styles.deleteButton}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

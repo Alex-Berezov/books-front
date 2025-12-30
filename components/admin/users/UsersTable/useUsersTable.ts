@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useUsers } from '@/api/hooks/useUsers';
+import { useUsers, useDeleteUser } from '@/api/hooks/useUsers';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { RoleName } from '@/types/api-schema';
+import type { UUID } from '@/types/api-schema/common';
 
 interface UseUsersTableProps {
   lang: SupportedLang;
@@ -45,6 +46,9 @@ export const useUsersTable = ({ lang: _lang }: UseUsersTableProps) => {
     isActive: isActiveFilter,
   });
 
+  // Mutations
+  const deleteUser = useDeleteUser();
+
   // Handlers
   const handleRoleFilterChange = (role: string) => {
     setRoleFilter(role === 'all' ? undefined : (role as RoleName));
@@ -58,6 +62,17 @@ export const useUsersTable = ({ lang: _lang }: UseUsersTableProps) => {
       setIsActiveFilter(status === 'active');
     }
     setPage(1);
+  };
+
+  const handleDeleteUser = async (id: UUID) => {
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      try {
+        await deleteUser.mutateAsync(id);
+      } catch (error) {
+        console.error('Failed to delete user:', error);
+        alert('Failed to delete user');
+      }
+    }
   };
 
   return {
@@ -77,5 +92,6 @@ export const useUsersTable = ({ lang: _lang }: UseUsersTableProps) => {
     // Handlers
     handleRoleFilterChange,
     handleStatusFilterChange,
+    handleDeleteUser,
   };
 };

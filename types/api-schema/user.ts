@@ -51,13 +51,10 @@ export interface GetUsersParams {
  * Response for users list
  */
 export interface UsersResponse {
-  data: User[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+  items: User[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 /**
@@ -65,7 +62,7 @@ export interface UsersResponse {
  */
 export interface CreateUserRequest {
   email: string;
-  password?: string; // Optional if generated or sent via email
+  password: string;
   firstName?: string;
   lastName?: string;
   roles?: RoleName[];
@@ -80,6 +77,8 @@ export interface UpdateUserRequest {
   firstName?: string;
   lastName?: string;
   isActive?: boolean;
+  password?: string; // Optional for admin reset
+  roles?: RoleName[]; // Admin can update roles
 }
 
 /**

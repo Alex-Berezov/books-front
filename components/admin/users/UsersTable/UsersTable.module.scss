@@ -19,6 +19,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: $spacing-lg;
 }
 
 .title {
@@ -97,6 +98,19 @@
 
   tr:last-child td {
     border-bottom: none;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.deleteButton {
+  color: $color-error;
+
+  &:hover {
+    background-color: rgba($color-error, 0.1);
   }
 }
 
