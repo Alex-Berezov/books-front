@@ -2,14 +2,16 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
+import { FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useSnackbar } from 'notistack';
 import { useDeletePage, usePages } from '@/api/hooks';
+import { EmptyState } from '@/components/admin/shared';
+import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import type { PageListTableProps } from './PageListTable.types';
 import type { PublicationStatus } from '@/types/api-schema';
 import styles from './PageListTable.module.scss';
-import { EmptyState } from './sections/EmptyState';
 import { ErrorState } from './sections/ErrorState';
 // import { LoadingState } from './sections/LoadingState';
 import { PageTable } from './ui/PageTable';
@@ -142,11 +144,6 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
   const totalItems = data?.meta?.total || 0;
   const groups = data?.data || [];
 
-  // Empty state
-  if (!isLoading && groups.length === 0) {
-    return <EmptyState lang={lang} search={search} />;
-  }
-
   return (
     <div className={styles.container}>
       {/* Header with create button */}
@@ -181,13 +178,36 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
       )}
 
       {/* Pages table */}
-      <PageTable
-        groups={groups}
-        lang={lang}
-        isDeletingPage={deleteMutation.isPending}
-        onDelete={handleDelete}
-        isLoading={isLoading}
-      />
+      {isLoading ? (
+        <PageTable
+          groups={[]}
+          lang={lang}
+          isDeletingPage={deleteMutation.isPending}
+          onDelete={handleDelete}
+          isLoading={true}
+        />
+      ) : groups.length === 0 ? (
+        <EmptyState
+          title="No pages found"
+          description={search ? 'Try a different search term' : 'Create your first page'}
+          icon={<FileText />}
+          action={
+            !search && (
+              <Link href={`/admin/${lang}/pages/new`}>
+                <Button>Create Page</Button>
+              </Link>
+            )
+          }
+        />
+      ) : (
+        <PageTable
+          groups={groups}
+          lang={lang}
+          isDeletingPage={deleteMutation.isPending}
+          onDelete={handleDelete}
+          isLoading={false}
+        />
+      )}
 
       {/* Pagination bottom */}
       {totalPages > 1 && (

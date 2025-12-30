@@ -10,7 +10,7 @@ import { MediaList } from '@/components/admin/media/MediaList';
 import { MediaPreviewModal } from '@/components/admin/media/MediaPreviewModal';
 import { MediaToolbar } from '@/components/admin/media/MediaToolbar';
 import { UploadModal } from '@/components/admin/media/UploadModal';
-import { Skeleton } from '@/components/admin/shared';
+import { EmptyState, Skeleton } from '@/components/admin/shared';
 import { Pagination } from '@/components/admin/shared/Pagination';
 import { Button } from '@/components/common/Button';
 import type { MediaType, MediaFile } from '@/types/api-schema/media';
@@ -123,10 +123,19 @@ export default function MediaPage() {
           </div>
         )
       ) : !data?.data?.length ? (
-        <div className={styles.emptyState}>
-          <FolderOpen />
-          <p>No media files found</p>
-        </div>
+        <EmptyState
+          title="No media files found"
+          description={search ? 'Try a different search term' : 'Upload your first media file'}
+          icon={<FolderOpen />}
+          action={
+            !search && (
+              <Button onClick={() => setIsUploadModalOpen(true)}>
+                <Upload size={18} style={{ marginRight: 8 }} />
+                Upload Files
+              </Button>
+            )
+          }
+        />
       ) : (
         <>
           {viewMode === 'grid' ? (

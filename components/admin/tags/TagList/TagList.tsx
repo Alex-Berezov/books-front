@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import type { ChangeEvent, FC } from 'react';
-import { Globe } from 'lucide-react';
+import { Globe, Tags } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useDeleteTag, useTags } from '@/api/hooks/useTags';
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
-import { Skeleton } from '@/components/admin/shared';
+import { EmptyState, Skeleton } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
@@ -180,6 +180,15 @@ export const TagList: FC<TagListProps> = (props) => {
               ))}
             </tbody>
           </table>
+        ) : tags.length === 0 ? (
+          <EmptyState
+            title="No tags found"
+            description={searchValue ? 'Try adjusting your search query' : 'Create your first tag'}
+            icon={<Tags />}
+            action={
+              !searchValue && <Button onClick={() => setIsCreateModalOpen(true)}>Create Tag</Button>
+            }
+          />
         ) : (
           <table className={styles.table}>
             <thead>
@@ -192,51 +201,43 @@ export const TagList: FC<TagListProps> = (props) => {
               </tr>
             </thead>
             <tbody>
-              {tags.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className={styles.emptyState}>
-                    No tags found
+              {tags.map((tag) => (
+                <tr key={tag.id}>
+                  <td>{tag.name}</td>
+                  <td>{tag.slug}</td>
+                  <td>
+                    <div className={styles.flags}>
+                      <span title="English (EN)" className={styles.flag}>
+                        {LANGUAGE_FLAGS['en']}
+                      </span>
+                      {tag.translations?.map((translation: TagTranslation) => (
+                        <span
+                          key={translation.language}
+                          title={`${translation.name} (${translation.language.toUpperCase()})`}
+                          className={styles.flag}
+                        >
+                          {LANGUAGE_FLAGS[translation.language as SupportedLang] ||
+                            translation.language}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td>{tag.booksCount || 0}</td>
+                  <td className={styles.actions}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleTranslations(tag)}
+                      aria-label="Manage translations"
+                      title="Manage translations"
+                    >
+                      <Globe size={16} />
+                    </Button>
+                    <EditButton onClick={() => handleEdit(tag)} />
+                    <DeleteButton onClick={() => handleDelete(tag)} />
                   </td>
                 </tr>
-              ) : (
-                tags.map((tag) => (
-                  <tr key={tag.id}>
-                    <td>{tag.name}</td>
-                    <td>{tag.slug}</td>
-                    <td>
-                      <div className={styles.flags}>
-                        <span title="English (EN)" className={styles.flag}>
-                          {LANGUAGE_FLAGS['en']}
-                        </span>
-                        {tag.translations?.map((translation: TagTranslation) => (
-                          <span
-                            key={translation.language}
-                            title={`${translation.name} (${translation.language.toUpperCase()})`}
-                            className={styles.flag}
-                          >
-                            {LANGUAGE_FLAGS[translation.language as SupportedLang] ||
-                              translation.language}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td>{tag.booksCount || 0}</td>
-                    <td className={styles.actions}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleTranslations(tag)}
-                        aria-label="Manage translations"
-                        title="Manage translations"
-                      >
-                        <Globe size={16} />
-                      </Button>
-                      <EditButton onClick={() => handleEdit(tag)} />
-                      <DeleteButton onClick={() => handleDelete(tag)} />
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
         )}

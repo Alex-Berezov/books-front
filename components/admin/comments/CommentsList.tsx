@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
-import { Search } from 'lucide-react';
+import { MessageSquare, Search } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import {
   useComments,
@@ -10,7 +10,7 @@ import {
   useDeleteComment,
   useReplyToComment,
 } from '@/api/hooks/useComments';
-import { Skeleton } from '@/components/admin/shared';
+import { EmptyState, Skeleton } from '@/components/admin/shared';
 import { ConfirmDialog } from '@/components/admin/shared/ConfirmDialog';
 import { Pagination } from '@/components/admin/shared/Pagination';
 import { Input } from '@/components/common/Input';
@@ -114,7 +114,13 @@ export const CommentsList: FC = () => {
             </div>
           ))
         ) : data?.data.length === 0 ? (
-          <div className={styles.empty}>No comments found</div>
+          <EmptyState
+            title="No comments found"
+            description={
+              search ? 'Try a different search term' : 'No comments have been posted yet'
+            }
+            icon={<MessageSquare />}
+          />
         ) : (
           data?.data.map((comment: Comment) => (
             <CommentItem

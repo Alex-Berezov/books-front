@@ -1,7 +1,10 @@
 'use client';
 
 import type { FC } from 'react';
+import { BookOpen } from 'lucide-react';
 import { CreateBookModal, DeleteBookModal } from '@/components/admin/books';
+import { EmptyState } from '@/components/admin/shared';
+import { Button } from '@/components/common/Button';
 import type { BookListTableProps } from './BookListTable.types';
 import { BookListHeader } from './BookListHeader';
 import { BookListPagination } from './BookListPagination';
@@ -91,10 +94,20 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
             isLoading={true}
           />
         ) : books.length === 0 ? (
-          <div className={styles.empty}>
-            <p>No books found</p>
-            {searchValue && <p>Try adjusting your search query</p>}
-          </div>
+          <EmptyState
+            title="No books found"
+            description={
+              searchValue
+                ? 'Try adjusting your search query'
+                : 'Get started by creating your first book'
+            }
+            icon={<BookOpen />}
+            action={
+              !searchValue && (
+                <Button onClick={() => setIsCreateModalOpen(true)}>Create Book</Button>
+              )
+            }
+          />
         ) : (
           <>
             <BookTable

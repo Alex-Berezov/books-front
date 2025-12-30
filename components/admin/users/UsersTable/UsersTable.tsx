@@ -1,9 +1,9 @@
 'use client';
 
 import type { FC } from 'react';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Users } from 'lucide-react';
 import Link from 'next/link';
-import { Skeleton } from '@/components/admin/shared';
+import { EmptyState, Skeleton } from '@/components/admin/shared';
 import { Pagination } from '@/components/admin/shared/Pagination';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -102,40 +102,55 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Roles</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
                   <th>Status</th>
-                  <th>Last Login</th>
                   <th>Joined</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <tr key={index}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i}>
                     <td>
-                      <div className={styles.userInfo}>
-                        <Skeleton variant="avatar" className={styles.avatar} />
-                        <div className={styles.userDetails} style={{ width: '100%' }}>
-                          <Skeleton variant="text" width="60%" />
-                          <Skeleton variant="text" width="80%" />
-                        </div>
-                      </div>
+                      <Skeleton variant="text" width={120} />
                     </td>
-                    <td><Skeleton variant="text" width={80} /></td>
-                    <td><Skeleton variant="text" width={60} /></td>
-                    <td><Skeleton variant="text" width={100} /></td>
-                    <td><Skeleton variant="text" width={100} /></td>
-                    <td><Skeleton variant="button" width={80} /></td>
+                    <td>
+                      <Skeleton variant="text" width={180} />
+                    </td>
+                    <td>
+                      <Skeleton variant="text" width={80} />
+                    </td>
+                    <td>
+                      <Skeleton variant="text" width={60} />
+                    </td>
+                    <td>
+                      <Skeleton variant="text" width={100} />
+                    </td>
+                    <td>
+                      <Skeleton variant="button" width={80} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : users.length === 0 ? (
-          <div className={styles.empty}>
-            <p>No users found</p>
-          </div>
+          <EmptyState
+            title="No users found"
+            description={
+              searchValue ? 'Try adjusting your search query' : 'No users registered yet'
+            }
+            icon={<Users />}
+            action={
+              !searchValue && (
+                <Link href={`/admin/${lang}/users/new`}>
+                  <Button>Add User</Button>
+                </Link>
+              )
+            }
+          />
         ) : (
           <div className={styles.tableWrapper}>
             <table className={styles.table}>

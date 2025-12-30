@@ -1,4 +1,4 @@
-import { UserRole } from '@/types/api-schema';
+import type { RoleName } from '@/types/api-schema';
 
 /**
  * Status colors mapping for badges
@@ -17,19 +17,19 @@ export const STATUS_COLORS = {
 /**
  * Role labels mapping
  */
-export const ROLE_LABELS: Record<UserRole, string> = {
-  [UserRole.ADMIN]: 'Administrator',
-  [UserRole.CONTENT_MANAGER]: 'Content Manager',
-  [UserRole.USER]: 'User',
+export const ROLE_LABELS: Record<RoleName, string> = {
+  admin: 'Administrator',
+  content_manager: 'Content Manager',
+  user: 'User',
 };
 
 /**
  * Role colors mapping
  */
-export const ROLE_COLORS: Record<UserRole, 'blue' | 'green' | 'default'> = {
-  [UserRole.ADMIN]: 'blue',
-  [UserRole.CONTENT_MANAGER]: 'green',
-  [UserRole.USER]: 'default',
+export const ROLE_COLORS: Record<RoleName, 'blue' | 'green' | 'default'> = {
+  admin: 'blue',
+  content_manager: 'green',
+  user: 'default',
 };
 
 /**
