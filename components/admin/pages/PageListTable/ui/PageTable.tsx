@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import Link from 'next/link';
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
+import { Skeleton } from '@/components/admin/shared';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { PageTableProps } from '../PageListTable.types';
 import type { PageGroup } from '@/types/api-schema';
@@ -96,8 +97,55 @@ const PageTableRow: FC<PageTableRowProps> = ({ group, lang, isDeletingPage, onDe
  *
  * Displays a table with title, slug, translations, status, updated date and actions
  */
-export const PageTable: FC<PageTableProps> = (props) => {
-  const { groups, lang, isDeletingPage, onDelete } = props;
+export const PageTable: FC<PageTableProps & { isLoading?: boolean }> = ({
+  groups,
+  lang,
+  isDeletingPage,
+  onDelete,
+  isLoading,
+}) => {
+  if (isLoading) {
+    return (
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Slug</th>
+              <th>Translations</th>
+              <th>Status</th>
+              <th>Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <tr key={index}>
+                <td>
+                  <Skeleton variant="text" width="80%" />
+                </td>
+                <td>
+                  <Skeleton variant="text" width="60%" />
+                </td>
+                <td>
+                  <Skeleton variant="text" width={120} />
+                </td>
+                <td>
+                  <Skeleton variant="text" width={80} />
+                </td>
+                <td>
+                  <Skeleton variant="text" width={100} />
+                </td>
+                <td>
+                  <Skeleton variant="button" width={80} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.tableWrapper}>

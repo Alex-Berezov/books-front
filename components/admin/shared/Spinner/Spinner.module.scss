@@ -1,0 +1,45 @@
+@import '@/styles/tokens.scss';
+
+.spinner {
+  display: inline-block;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: currentColor;
+  animation: spin 1s ease-in-out infinite;
+
+  &.sm {
+    width: $icon-size-sm;
+    height: $icon-size-sm;
+    border-width: 2px;
+  }
+
+  &.md {
+    width: $icon-size-lg;
+    height: $icon-size-lg;
+    border-width: 3px;
+  }
+
+  &.lg {
+    width: $icon-size-xxl;
+    height: $icon-size-xxl;
+    border-width: 4px;
+  }
+
+  &.primary {
+    color: $color-primary;
+    border-color: rgba($color-primary, 0.2);
+    border-top-color: $color-primary;
+  }
+
+  &.white {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+    border-top-color: #fff;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

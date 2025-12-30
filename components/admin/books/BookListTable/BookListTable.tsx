@@ -46,17 +46,8 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
     handleConfirmDelete,
   } = useBookListTable({ lang });
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Books Management</h1>
-        </div>
-        <div className={styles.loading}>Loading books...</div>
-      </div>
-    );
-  }
+  // Loading state handled in render
+  // if (isLoading) { ... }
 
   // Error state
   if (error) {
@@ -91,7 +82,15 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
         />
 
         {/* Books table */}
-        {books.length === 0 ? (
+        {isLoading ? (
+          <BookTable
+            books={[]}
+            lang={lang}
+            isAdmin={isAdmin}
+            onDeleteClick={handleOpenDeleteModal}
+            isLoading={true}
+          />
+        ) : books.length === 0 ? (
           <div className={styles.empty}>
             <p>No books found</p>
             {searchValue && <p>Try adjusting your search query</p>}

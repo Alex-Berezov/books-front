@@ -10,6 +10,7 @@ import {
   useDeleteComment,
   useReplyToComment,
 } from '@/api/hooks/useComments';
+import { Skeleton } from '@/components/admin/shared';
 import { ConfirmDialog } from '@/components/admin/shared/ConfirmDialog';
 import { Pagination } from '@/components/admin/shared/Pagination';
 import { Input } from '@/components/common/Input';
@@ -95,7 +96,23 @@ export const CommentsList: FC = () => {
 
       <div className={styles.list}>
         {isLoading ? (
-          <div className={styles.empty}>Loading comments...</div>
+          Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              style={{ padding: '1.5rem', borderBottom: '1px solid var(--color-border-light)' }}
+            >
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                <Skeleton variant="avatar" />
+                <div style={{ flex: 1 }}>
+                  <Skeleton variant="text" width="200px" style={{ marginBottom: '4px' }} />
+                  <Skeleton variant="text" width="150px" />
+                </div>
+                <Skeleton variant="button" width="100px" />
+              </div>
+              <Skeleton variant="text" width="100%" style={{ marginBottom: '8px' }} />
+              <Skeleton variant="text" width="80%" />
+            </div>
+          ))
         ) : data?.data.length === 0 ? (
           <div className={styles.empty}>No comments found</div>
         ) : (

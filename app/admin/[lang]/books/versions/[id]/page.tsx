@@ -13,6 +13,7 @@ import {
   SummaryTab,
   TagsPanel,
 } from '@/components/admin/books';
+import { Spinner } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
@@ -53,7 +54,7 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
-        <p>Loading...</p>
+        <Spinner size="lg" />
       </div>
     );
   }

@@ -6,6 +6,7 @@ import { useSnackbar } from 'notistack';
 import { useCategoriesTree, useDeleteCategory } from '@/api/hooks/useCategories';
 import { CategoryModal } from '@/components/admin/categories/CategoryModal';
 import { DeleteCategoryModal } from '@/components/admin/categories/DeleteCategoryModal';
+import { Skeleton } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { Category, CategoryTree as CategoryTreeType } from '@/types/api-schema';
@@ -95,7 +96,35 @@ export const CategoryTree: FC = () => {
   };
 
   if (isLoading) {
-    return <div className={styles.loadingState}>Loading categories...</div>;
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Categories</h1>
+          <Skeleton variant="button" width={140} />
+        </div>
+        <div className={styles.searchContainer}>
+          <Skeleton variant="rect" height={40} style={{ borderRadius: '4px' }} />
+        </div>
+        <div className={styles.tree}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              style={{ padding: '12px 0', borderBottom: '1px solid var(--color-border-light)' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Skeleton variant="rect" width={20} height={20} />
+                <Skeleton variant="text" width={200} />
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                  <Skeleton variant="button" width={32} />
+                  <Skeleton variant="button" width={32} />
+                  <Skeleton variant="button" width={32} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (isError) {

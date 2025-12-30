@@ -1,8 +1,9 @@
 'use client';
 
 import type { FC } from 'react';
-import Link from 'next/link';
 import { Edit, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { Skeleton } from '@/components/admin/shared';
 import { Pagination } from '@/components/admin/shared/Pagination';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -36,14 +37,8 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
   } = useUsersTable({ lang });
 
   if (isLoading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading users...</div>
-      </div>
-    );
-  }
-
-  if (error) {
+    // Loading state handled in render
+  } else if (error) {
     return (
       <div className={styles.container}>
         <div className={styles.error}>
@@ -102,7 +97,42 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
           </div>
         </div>
 
-        {users.length === 0 ? (
+        {isLoading ? (
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Roles</th>
+                  <th>Status</th>
+                  <th>Last Login</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <tr key={index}>
+                    <td>
+                      <div className={styles.userInfo}>
+                        <Skeleton variant="avatar" className={styles.avatar} />
+                        <div className={styles.userDetails} style={{ width: '100%' }}>
+                          <Skeleton variant="text" width="60%" />
+                          <Skeleton variant="text" width="80%" />
+                        </div>
+                      </div>
+                    </td>
+                    <td><Skeleton variant="text" width={80} /></td>
+                    <td><Skeleton variant="text" width={60} /></td>
+                    <td><Skeleton variant="text" width={100} /></td>
+                    <td><Skeleton variant="text" width={100} /></td>
+                    <td><Skeleton variant="button" width={80} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : users.length === 0 ? (
           <div className={styles.empty}>
             <p>No users found</p>
           </div>

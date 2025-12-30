@@ -1,3 +1,4 @@
+import { Spinner } from '@/components/admin/shared';
 import styles from './loading.module.scss';
 
 /**
@@ -8,11 +9,7 @@ import styles from './loading.module.scss';
 export default function AdminLoading() {
   return (
     <div className={styles.loadingContainer}>
-      <div className={styles.spinner}>
-        <div className={styles.spinnerRing}></div>
-        <div className={styles.spinnerRing}></div>
-        <div className={styles.spinnerRing}></div>
-      </div>
+      <Spinner size="lg" variant="primary" />
       <p className={styles.loadingText}>Loading...</p>
     </div>
   );

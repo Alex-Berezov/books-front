@@ -6,6 +6,7 @@ import { useSnackbar } from 'notistack';
 import { usePage, useUpdatePage } from '@/api/hooks';
 import { PageForm, type PageFormData } from '@/components/admin/pages/PageForm';
 import { PagePublishPanel } from '@/components/admin/pages/PagePublishPanel';
+import { Spinner } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
@@ -107,7 +108,9 @@ const EditPage: FC<EditPageProps> = (props) => {
   if (isLoading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading page...</div>
+        <div className={styles.loading}>
+          <Spinner size="lg" />
+        </div>
       </div>
     );
   }

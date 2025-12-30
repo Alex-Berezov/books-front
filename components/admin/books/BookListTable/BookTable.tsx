@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { Eye, Headphones, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
+import { Skeleton } from '@/components/admin/shared';
 import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './BookListTable.module.scss';
@@ -11,10 +12,58 @@ interface BookTableProps {
   lang: SupportedLang;
   isAdmin: boolean;
   onDeleteClick: (id: string, title: string) => void;
+  isLoading?: boolean;
 }
 
 export const BookTable: FC<BookTableProps> = (props) => {
-  const { books, lang, isAdmin, onDeleteClick } = props;
+  const { books, lang, isAdmin, onDeleteClick, isLoading } = props;
+
+  if (isLoading) {
+    return (
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>TITLE</th>
+              <th>SLUG</th>
+              <th>CONTENT</th>
+              <th>VERSIONS</th>
+              <th>UPDATED</th>
+              <th>STATUS</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <tr key={index}>
+                <td>
+                  <Skeleton variant="text" width="80%" />
+                </td>
+                <td>
+                  <Skeleton variant="text" width="60%" />
+                </td>
+                <td>
+                  <Skeleton variant="text" width={40} />
+                </td>
+                <td>
+                  <Skeleton variant="text" width={60} />
+                </td>
+                <td>
+                  <Skeleton variant="text" width={80} />
+                </td>
+                <td>
+                  <Skeleton variant="text" width={60} />
+                </td>
+                <td>
+                  <Skeleton variant="button" width={80} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.tableWrapper}>

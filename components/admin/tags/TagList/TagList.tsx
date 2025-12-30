@@ -6,6 +6,7 @@ import { Globe } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useDeleteTag, useTags } from '@/api/hooks/useTags';
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
+import { Skeleton } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
@@ -147,7 +148,38 @@ export const TagList: FC<TagListProps> = (props) => {
 
       <div className={styles.tableContainer}>
         {isLoading ? (
-          <div className={styles.loadingState}>Loading...</div>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Translations</th>
+                <th>Books Count</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i}>
+                  <td>
+                    <Skeleton variant="text" width="60%" />
+                  </td>
+                  <td>
+                    <Skeleton variant="text" width="40%" />
+                  </td>
+                  <td>
+                    <Skeleton variant="text" width={100} />
+                  </td>
+                  <td>
+                    <Skeleton variant="text" width={40} />
+                  </td>
+                  <td>
+                    <Skeleton variant="button" width={80} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
           <table className={styles.table}>
             <thead>

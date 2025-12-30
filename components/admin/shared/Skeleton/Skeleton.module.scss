@@ -1,0 +1,48 @@
+@import '@/styles/tokens.scss';
+
+.skeleton {
+  background-color: $color-background-secondary;
+  border-radius: $border-radius-base;
+  animation: pulse 1.5s ease-in-out infinite;
+  width: 100%;
+  height: 100%;
+
+  &.circle {
+    border-radius: $border-radius-round;
+  }
+
+  &.text {
+    height: $font-size-base;
+    margin-bottom: $spacing-xs;
+    border-radius: $border-radius-sm;
+  }
+
+  &.title {
+    height: $font-size-xl;
+    margin-bottom: $spacing-sm;
+    border-radius: $border-radius-sm;
+  }
+
+  &.avatar {
+    width: $icon-size-xxl;
+    height: $icon-size-xxl;
+    border-radius: $border-radius-round;
+  }
+
+  &.button {
+    height: 32px; // Standard button height
+    border-radius: $border-radius-base;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}

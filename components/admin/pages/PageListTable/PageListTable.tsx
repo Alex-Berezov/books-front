@@ -11,7 +11,7 @@ import type { PublicationStatus } from '@/types/api-schema';
 import styles from './PageListTable.module.scss';
 import { EmptyState } from './sections/EmptyState';
 import { ErrorState } from './sections/ErrorState';
-import { LoadingState } from './sections/LoadingState';
+// import { LoadingState } from './sections/LoadingState';
 import { PageTable } from './ui/PageTable';
 import { PaginationControls } from './ui/PaginationControls';
 import { SearchForm } from './ui/SearchForm';
@@ -112,10 +112,8 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
     }
   };
 
-  // Loading state
-  if (isLoading) {
-    return <LoadingState lang={lang} />;
-  }
+  // Loading state handled in render
+  // if (isLoading) { ... }
 
   // Error state
   if (error) {
@@ -123,12 +121,12 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
   }
 
   // Check for no data
-  if (!data) {
+  if (!data && !isLoading) {
     return <ErrorState lang={lang} errorMessage="No data available" />;
   }
 
   // Check for valid data format
-  if (Array.isArray(data) || !data.meta || !data.data) {
+  if (!isLoading && (Array.isArray(data) || !data?.meta || !data?.data)) {
     enqueueSnackbar('Invalid API response format received', { variant: 'error' });
     return (
       <ErrorState
@@ -139,12 +137,13 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
   }
 
   // Calculate pagination data
-  const totalPages = data.meta.totalPages || 0;
-  const totalItems = data.meta.total || 0;
-  const groups = data.data || [];
+  // Calculate pagination data
+  const totalPages = data?.meta?.totalPages || 0;
+  const totalItems = data?.meta?.total || 0;
+  const groups = data?.data || [];
 
   // Empty state
-  if (groups.length === 0) {
+  if (!isLoading && groups.length === 0) {
     return <EmptyState lang={lang} search={search} />;
   }
 
@@ -187,6 +186,7 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
         lang={lang}
         isDeletingPage={deleteMutation.isPending}
         onDelete={handleDelete}
+        isLoading={isLoading}
       />
 
       {/* Pagination bottom */}
@@ -198,7 +198,6 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
           onNext={handleNextPage}
         />
       )}
-
       {/* Delete confirmation modal */}
       <Modal
         isOpen={isDeleteModalOpen}

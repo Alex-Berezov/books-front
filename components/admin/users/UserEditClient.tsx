@@ -3,6 +3,7 @@
 import { type FC, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useDeleteUser } from '@/api/hooks/useUsers';
+import { Spinner } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import type { UUID } from '@/types/api-schema/common';
 import { PasswordResetModal } from './PasswordResetModal';
@@ -35,7 +36,11 @@ export const UserEditClient: FC<UserEditClientProps> = ({ userId, lang }) => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className={styles.loadingContainer}>
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   if (error || !user) {

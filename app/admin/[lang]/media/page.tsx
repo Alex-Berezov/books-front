@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FolderOpen, Upload, Loader2 } from 'lucide-react';
+import { FolderOpen, Upload } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useMediaFiles, useDeleteMedia } from '@/api/hooks/useMedia';
 import { DeleteMediaModal } from '@/components/admin/media/DeleteMediaModal';
@@ -10,6 +10,7 @@ import { MediaList } from '@/components/admin/media/MediaList';
 import { MediaPreviewModal } from '@/components/admin/media/MediaPreviewModal';
 import { MediaToolbar } from '@/components/admin/media/MediaToolbar';
 import { UploadModal } from '@/components/admin/media/UploadModal';
+import { Skeleton } from '@/components/admin/shared';
 import { Pagination } from '@/components/admin/shared/Pagination';
 import { Button } from '@/components/common/Button';
 import type { MediaType, MediaFile } from '@/types/api-schema/media';
@@ -86,9 +87,41 @@ export default function MediaPage() {
       />
 
       {isLoading ? (
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="animate-spin text-primary" size={40} />
-        </div>
+        viewMode === 'grid' ? (
+          <div className={styles.grid}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className={styles.card}>
+                <Skeleton variant="rect" height={160} style={{ borderRadius: '8px 8px 0 0' }} />
+                <div className={styles.cardContent} style={{ padding: '12px' }}>
+                  <Skeleton variant="text" width="80%" />
+                  <Skeleton variant="text" width="40%" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.list}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: '1rem',
+                  borderBottom: '1px solid var(--color-border-light)',
+                  display: 'flex',
+                  gap: '1rem',
+                  alignItems: 'center',
+                }}
+              >
+                <Skeleton variant="rect" width={48} height={48} style={{ borderRadius: '4px' }} />
+                <div style={{ flex: 1 }}>
+                  <Skeleton variant="text" width="200px" />
+                  <Skeleton variant="text" width="100px" />
+                </div>
+                <Skeleton variant="button" width={80} />
+              </div>
+            ))}
+          </div>
+        )
       ) : !data?.data?.length ? (
         <div className={styles.emptyState}>
           <FolderOpen />
