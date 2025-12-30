@@ -21,15 +21,20 @@ import type {
  * @returns Paginated list of users
  */
 export const getUsers = async (params: GetUsersParams = {}): Promise<UsersResponse> => {
-  const { page = 1, limit = 20, search, role, isActive } = params;
+  const { page, limit, search, role, isActive } = params;
 
-  const queryParams = new URLSearchParams({
-    page: String(page),
-    limit: String(limit),
-  });
+  const queryParams = new URLSearchParams();
+
+  if (page) {
+    queryParams.append('page', String(page));
+  }
+
+  if (limit) {
+    queryParams.append('limit', String(limit));
+  }
 
   if (search) {
-    queryParams.append('search', search);
+    queryParams.append('q', search);
   }
 
   if (role) {

@@ -38,9 +38,9 @@ export const useUsersTable = ({ lang: _lang }: UseUsersTableProps) => {
 
   // Fetch data
   const { data, isLoading, error } = useUsers({
-    page,
-    limit: 10,
-    search: debouncedSearch,
+    page: page === 1 ? undefined : page,
+    limit: undefined, // Use backend default
+    search: debouncedSearch || undefined,
     role: roleFilter,
     isActive: isActiveFilter,
   });
