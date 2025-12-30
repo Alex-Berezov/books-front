@@ -10,15 +10,17 @@
  * - SnackbarProvider (Notistack for notifications)
  */
 
-import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEffect, useState, type ReactNode } from 'react';
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider } from 'antd';
 import { SessionProvider } from 'next-auth/react';
 import { SnackbarProvider } from 'notistack';
+import { ToastConfigurator } from '@/components/common/ToastConfigurator';
 import { SESSION_SETTINGS } from '@/lib/auth/constants';
 import { setSession } from '@/lib/http-client/auth';
 import { QUERY_CACHE_TIME } from '@/lib/queryClient.constants';
+import { toast } from '@/lib/utils/toast';
+import { ApiError } from '@/types/api';
 import type { Session } from 'next-auth';
 import { colors } from '@/styles/tokens';
 
@@ -52,6 +54,24 @@ export const AppProviders = (props: AppProvidersProps) => {
             refetchOnWindowFocus: false,
           },
         },
+        queryCache: new QueryCache({
+          onError: (error) => {
+            // Global error handling for queries
+            // Only show toast for server errors (5xx)
+            if (error instanceof ApiError && error.statusCode >= 500) {
+              toast.error(`Server Error: ${error.message}`);
+            }
+          },
+        }),
+        mutationCache: new MutationCache({
+          onError: (error) => {
+            // Global error handling for mutations
+            // Show toast for server errors (5xx)
+            if (error instanceof ApiError && error.statusCode >= 500) {
+              toast.error(`Server Error: ${error.message}`);
+            }
+          },
+        }),
       })
   );
 
@@ -81,6 +101,7 @@ export const AppProviders = (props: AppProvidersProps) => {
             }}
             autoHideDuration={4000}
           >
+            <ToastConfigurator />
             {children}
           </SnackbarProvider>
         </ConfigProvider>

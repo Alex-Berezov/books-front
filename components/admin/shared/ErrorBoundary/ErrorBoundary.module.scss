@@ -1,0 +1,23 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  padding: $spacing-lg;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  background-color: $color-background-primary;
+  text-align: center;
+  margin: $spacing-md 0;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+  color: $color-error;
+  margin-bottom: $spacing-sm;
+}
+
+.message {
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+  font-size: $font-size-sm;
+}

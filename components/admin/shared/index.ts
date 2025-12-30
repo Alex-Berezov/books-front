@@ -7,3 +7,4 @@ export * from './ConfirmDialog';
 export * from './Pagination';
 export * from './Skeleton/Skeleton';
 export * from './Spinner/Spinner';
+export * from './ErrorBoundary/ErrorBoundary';
