@@ -1,0 +1,94 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.previewContainer {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 16 / 9;
+  background-color: $color-background-secondary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.hasImage {
+    border-style: solid;
+  }
+
+  &.empty {
+    border-style: dashed;
+    cursor: pointer;
+    transition: border-color 0.2s;
+
+    &:hover {
+      border-color: $color-primary;
+    }
+  }
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  color: $color-text-secondary;
+  padding: $spacing-md;
+  text-align: center;
+}
+
+.actions {
+  position: absolute;
+  top: $spacing-xs;
+  right: $spacing-xs;
+  display: flex;
+  gap: $spacing-xs;
+  opacity: 0;
+  transition: opacity 0.2s;
+
+  .previewContainer:hover & {
+    opacity: 1;
+  }
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+}
+
+.error {
+  font-size: $font-size-xs;
+  color: $color-error;
+}

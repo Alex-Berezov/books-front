@@ -10,9 +10,16 @@ interface MediaGridProps {
   onSelect?: (file: MediaFile) => void;
   onDelete?: (file: MediaFile) => void;
   onCopyUrl?: (file: MediaFile) => void;
+  selectedId?: string;
 }
 
-export const MediaGrid: FC<MediaGridProps> = ({ files, onSelect, onDelete, onCopyUrl }) => {
+export const MediaGrid: FC<MediaGridProps> = ({
+  files,
+  onSelect,
+  onDelete,
+  onCopyUrl,
+  selectedId,
+}) => {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   const handleImageError = (id: string) => {
@@ -47,7 +54,7 @@ export const MediaGrid: FC<MediaGridProps> = ({ files, onSelect, onDelete, onCop
       {files.map((file) => (
         <div
           key={file.id}
-          className={styles.card}
+          className={`${styles.card} ${selectedId === file.id ? styles.selected : ''}`}
           onClick={() => onSelect?.(file)}
           role="button"
           tabIndex={0}

@@ -1,0 +1,83 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 70vh; // Fixed height for the modal content
+  max-height: 800px;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid $color-border-light;
+  margin-bottom: $spacing-md;
+}
+
+.tab {
+  padding: $spacing-md $spacing-lg;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: $color-text-secondary;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    color: $color-primary;
+  }
+
+  &.active {
+    color: $color-primary;
+    border-bottom-color: $color-primary;
+  }
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-sm;
+  position: relative;
+}
+
+.libraryContainer {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  height: 100%;
+}
+
+.gridContainer {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  padding: $spacing-sm;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1px solid $color-border-light;
+  margin-top: $spacing-md;
+}
+
+.selectedInfo {
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.previewThumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: $border-radius-sm;
+  border: 1px solid $color-border-light;
+}

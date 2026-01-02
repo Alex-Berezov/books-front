@@ -194,6 +194,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
         />
 
         <SeoOpenGraphSection<PageFormData>
+          control={control}
           errors={errors}
           isSubmitting={isSubmitting}
           ogDescriptionField="seoOgDescription"

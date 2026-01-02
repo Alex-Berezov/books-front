@@ -1,8 +1,11 @@
 'use client';
 
 import type { FC } from 'react';
+import { Controller } from 'react-hook-form';
+import { MediaPicker } from '@/components/admin/common/MediaPicker';
 import { Input } from '@/components/common/Input';
 import type {
+  Control,
   FieldErrors,
   FieldValues,
   Path,
@@ -14,6 +17,8 @@ import { FormField } from './ui/FormField';
 import { SeoCollapsible } from './ui/SeoCollapsible';
 
 export interface SeoOpenGraphSectionProps<TFormData extends FieldValues> {
+  /** React Hook Form control */
+  control: Control<TFormData>;
   /** React Hook Form register */
   register: UseFormRegister<TFormData>;
   /** Validation errors */
@@ -46,6 +51,7 @@ export const SeoOpenGraphSection = <TFormData extends FieldValues>(
   props: SeoOpenGraphSectionProps<TFormData>
 ): ReturnType<FC> => {
   const {
+    control,
     register,
     errors,
     watch,
@@ -109,22 +115,13 @@ export const SeoOpenGraphSection = <TFormData extends FieldValues>(
         label="OG Image URL"
         required
       >
-        <Input
-          disabled={isSubmitting}
-          id={ogImageUrlField}
-          placeholder="https://example.com/images/og-image.jpg"
-          type="url"
-          fullWidth
-          {...register(ogImageUrlField)}
+        <Controller
+          name={ogImageUrlField}
+          control={control}
+          render={({ field }) => (
+            <MediaPicker value={field.value} onChange={field.onChange} disabled={isSubmitting} />
+          )}
         />
-
-        {/* Image preview */}
-        {watch(ogImageUrlField) && (
-          <div className={styles.imagePreview}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt="OG Image Preview" src={watch(ogImageUrlField) as string} />
-          </div>
-        )}
       </FormField>
     </SeoCollapsible>
   );

@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
+import { MediaPicker } from '@/components/admin/common/MediaPicker';
 import { Checkbox } from '@/components/common/Checkbox';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
@@ -25,19 +26,18 @@ export const MediaSection: FC<MediaSectionProps> = ({ register, control, errors 
       <h2 className={styles.sectionTitle}>Media & Type</h2>
 
       <div className={styles.field}>
-        <label className={styles.label} htmlFor="coverImageUrl">
-          Cover Image URL
-        </label>
-        <Input
-          id="coverImageUrl"
-          placeholder="https://example.com/cover.jpg"
-          type="url"
-          fullWidth
-          {...register('coverImageUrl')}
+        <Controller
+          name="coverImageUrl"
+          control={control}
+          render={({ field }) => (
+            <MediaPicker
+              label="Cover Image"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.coverImageUrl?.message}
+            />
+          )}
         />
-        {errors.coverImageUrl && (
-          <span className={styles.error}>{errors.coverImageUrl.message}</span>
-        )}
       </div>
 
       <div className={styles.field}>

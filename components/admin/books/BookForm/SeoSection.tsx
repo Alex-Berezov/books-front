@@ -56,6 +56,7 @@ export const SeoSection: FC<SeoSectionProps> = (props) => {
       />
 
       <SeoOpenGraphSection<BookFormData>
+        control={control}
         errors={errors}
         isSubmitting={isSubmitting}
         ogDescriptionField="seoOgDescription"
