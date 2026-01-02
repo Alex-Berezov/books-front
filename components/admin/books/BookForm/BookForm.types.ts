@@ -77,6 +77,8 @@ export interface BookFormProps {
   initialTitle?: string;
   /** Initial author (from URL params) */
   initialAuthor?: string;
+  /** List of languages that already exist for this book */
+  existingLanguages?: SupportedLang[];
   /** Callback on successful form submission */
   onSubmit: (data: BookFormData) => void | Promise<void>;
   /** Loading flag (e.g., when submitting to server) */

@@ -11,6 +11,20 @@
   font-weight: $font-weight-semibold;
 }
 
+.originalTitle {
+  margin-bottom: $spacing-lg;
+  padding: $spacing-md;
+  background-color: $color-background-secondary;
+  border-radius: $border-radius-base;
+  color: $color-text-secondary;
+  font-size: $font-size-base;
+
+  strong {
+    color: $color-text-primary;
+    font-weight: $font-weight-medium;
+  }
+}
+
 .errorContainer {
   padding: $spacing-xl;
 }

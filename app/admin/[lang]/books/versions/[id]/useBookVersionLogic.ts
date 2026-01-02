@@ -71,14 +71,16 @@ export const useBookVersionLogic = (versionId: string) => {
    * Categories change handler
    */
   const handleCategoriesChange = () => {
-    enqueueSnackbar('Categories updated successfully', { variant: 'success' });
+    refetch();
+    // enqueueSnackbar('Categories updated successfully', { variant: 'success' });
   };
 
   /**
    * Tags change handler
    */
   const handleTagsChange = () => {
-    enqueueSnackbar('Tags updated successfully', { variant: 'success' });
+    refetch();
+    // enqueueSnackbar('Tags updated successfully', { variant: 'success' });
   };
 
   /**

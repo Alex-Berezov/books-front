@@ -5,7 +5,14 @@
  */
 
 // Books
-export { bookKeys, useBooks, useCreateBook, useDeleteBook, useUpdateBook } from './useBooks';
+export {
+  bookKeys,
+  useBook,
+  useBooks,
+  useCreateBook,
+  useDeleteBook,
+  useUpdateBook,
+} from './useBooks';
 
 // Book Versions
 export {

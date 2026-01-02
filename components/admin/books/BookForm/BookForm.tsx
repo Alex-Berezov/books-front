@@ -23,6 +23,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
     initialData,
     initialTitle,
     initialAuthor,
+    existingLanguages = [],
     onSubmit,
     isSubmitting = false,
     id,
@@ -49,6 +50,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
         bookId={initialData?.bookId}
         control={control}
         errors={errors}
+        existingLanguages={existingLanguages}
         isEditMode={!!initialData}
         register={register}
         setValue={setValue}

@@ -3,7 +3,7 @@ import { Controller } from 'react-hook-form';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
-import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { BookFormData } from './BookForm.types';
 import type {
   Control,
@@ -22,13 +22,25 @@ interface BasicInfoSectionProps {
   setValue: UseFormSetValue<BookFormData>;
   isEditMode: boolean;
   bookId?: string;
+  existingLanguages?: SupportedLang[];
 }
 
 export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
-  const { register, control, errors, watch, setValue, isEditMode, bookId } = props;
+  const {
+    register,
+    control,
+    errors,
+    watch,
+    setValue,
+    isEditMode,
+    bookId,
+    existingLanguages = [],
+  } = props;
 
   // Language options
-  const languageOptions = SUPPORTED_LANGS.map((langCode) => ({
+  const languageOptions = SUPPORTED_LANGS.filter(
+    (langCode) => isEditMode || !existingLanguages.includes(langCode)
+  ).map((langCode) => ({
     label: langCode.toUpperCase(),
     value: langCode,
   }));

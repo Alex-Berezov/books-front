@@ -3,7 +3,7 @@
 import type { FC } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSnackbar } from 'notistack';
-import { useCreateBookVersion, useUpsertVersionSeo } from '@/api/hooks';
+import { useBook, useCreateBookVersion, useUpsertVersionSeo } from '@/api/hooks';
 import { BookForm } from '@/components/admin/books';
 import type { BookFormData } from '@/components/admin/books';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -36,6 +36,21 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
   const bookId = searchParams.get('bookId');
   const titleFromUrl = searchParams.get('title');
   const authorFromUrl = searchParams.get('author');
+
+  // Fetch book details to check existing versions
+  const { data: book } = useBook(bookId || '', {
+    enabled: !!bookId,
+  });
+
+  const existingLanguages =
+    book?.versions?.map((v) => v.language).filter((l): l is SupportedLang => !!l) || [];
+  const englishVersion = book?.versions?.find((v) => v.language === 'en');
+
+  // Only pre-fill if it's the first version (no versions exist yet)
+  const shouldPreFill = !book?.versions || book.versions.length === 0;
+
+  const initialTitle = shouldPreFill ? titleFromUrl || undefined : undefined;
+  const initialAuthor = shouldPreFill ? authorFromUrl || undefined : undefined;
 
   // Mutation for creating version
   const createMutation = useCreateBookVersion({
@@ -126,10 +141,16 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Create New Book Version</h1>
+      {englishVersion && (
+        <div className={styles.originalTitle}>
+          Original Title (EN): <strong>{englishVersion.title}</strong>
+        </div>
+      )}
       <BookForm
         bookId={bookId}
-        initialTitle={titleFromUrl || undefined}
-        initialAuthor={authorFromUrl || undefined}
+        initialTitle={initialTitle}
+        initialAuthor={initialAuthor}
+        existingLanguages={existingLanguages}
         isSubmitting={createMutation.isPending || seoMutation.isPending}
         lang={lang}
         onSubmit={handleSubmit}
