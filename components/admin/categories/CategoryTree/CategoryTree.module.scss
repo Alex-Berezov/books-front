@@ -98,10 +98,17 @@
 
 .nodeType {
   font-size: $font-size-xs;
-  padding: 2px 6px;
-  background-color: $color-background-secondary;
-  border-radius: $border-radius-sm;
   color: $color-text-secondary;
+  background-color: $color-background-secondary;
+  padding: 2px 6px;
+  border-radius: $border-radius-sm;
+}
+
+.flags {
+  display: flex;
+  gap: $spacing-xs;
+  margin-left: $spacing-sm;
+  font-size: $font-size-lg; // Make flags a bit larger
 }
 
 .actions {

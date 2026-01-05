@@ -5,6 +5,7 @@ import { Plus, Search } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useCategoriesTree, useDeleteCategory } from '@/api/hooks/useCategories';
 import { CategoryModal } from '@/components/admin/categories/CategoryModal';
+import { CategoryTranslationsModal } from '@/components/admin/categories/CategoryTranslationsModal';
 import { DeleteCategoryModal } from '@/components/admin/categories/DeleteCategoryModal';
 import { Skeleton } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
@@ -24,6 +25,11 @@ export const CategoryTree: FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(undefined);
   const [initialParentId, setInitialParentId] = useState<string | null>(null);
+
+  const [isTranslationsModalOpen, setIsTranslationsModalOpen] = useState(false);
+  const [categoryForTranslations, setCategoryForTranslations] = useState<Category | undefined>(
+    undefined
+  );
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | undefined>(undefined);
@@ -76,6 +82,11 @@ export const CategoryTree: FC = () => {
     setSelectedCategory(category);
     setInitialParentId(null);
     setIsModalOpen(true);
+  };
+
+  const handleTranslations = (category: CategoryTreeType) => {
+    setCategoryForTranslations(category);
+    setIsTranslationsModalOpen(true);
   };
 
   const handleDelete = (category: CategoryTreeType) => {
@@ -150,33 +161,36 @@ export const CategoryTree: FC = () => {
       </div>
 
       <div className={styles.treeContainer}>
-        {!filteredTree || filteredTree.length === 0 ? (
-          <div className={styles.emptyState}>
-            {search
-              ? 'No categories found matching your search.'
-              : 'No categories found. Create your first category!'}
-          </div>
-        ) : (
-          filteredTree.map((node) => (
-            <CategoryTreeNode
-              key={node.id}
-              node={node}
-              level={0}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onAddSubcategory={handleAddSubcategory}
-              forceExpand={!!search}
-            />
-          ))
-        )}
+        {filteredTree.map((node) => (
+          <CategoryTreeNode
+            key={node.id}
+            node={node}
+            level={0}
+            onEdit={handleEdit}
+            onTranslations={handleTranslations}
+            onDelete={handleDelete}
+            onAddSubcategory={handleAddSubcategory}
+            forceExpand={!!search.trim()}
+          />
+        ))}
       </div>
 
-      <CategoryModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        category={selectedCategory}
-        initialParentId={initialParentId}
-      />
+      {isModalOpen && (
+        <CategoryModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          category={selectedCategory}
+          initialParentId={initialParentId}
+        />
+      )}
+
+      {isTranslationsModalOpen && categoryForTranslations && (
+        <CategoryTranslationsModal
+          isOpen={isTranslationsModalOpen}
+          onClose={() => setIsTranslationsModalOpen(false)}
+          category={categoryForTranslations}
+        />
+      )}
 
       <DeleteCategoryModal
         isOpen={isDeleteModalOpen}
