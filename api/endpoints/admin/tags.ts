@@ -48,7 +48,7 @@ export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResp
   });
 
   if (search) {
-    queryParams.append('search', search);
+    queryParams.append('q', search);
   }
 
   const endpoint = `/tags?${queryParams.toString()}`;

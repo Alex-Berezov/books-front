@@ -49,25 +49,6 @@
   margin-bottom: $spacing-md;
 }
 
-.searchInput {
-  width: 100%;
-  padding: $spacing-sm $spacing-md;
-  border: 1px solid $color-border-base;
-  border-radius: $border-radius-base;
-  font-size: $font-size-sm;
-  transition: border-color $transition-fast;
-
-  &:focus {
-    outline: none;
-    border-color: $color-primary;
-    box-shadow: $shadow-focus;
-  }
-
-  &::placeholder {
-    color: $color-text-tertiary;
-  }
-}
-
 .searchResults {
   margin-bottom: $spacing-md;
   border: 1px solid $color-border-light;

@@ -13,7 +13,6 @@ export const TagsSearchInput: FC<TagsSearchInputProps> = (props) => {
   return (
     <div className={styles.searchContainer}>
       <Input
-        className={styles.searchInput}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search tags..."
         type="text"

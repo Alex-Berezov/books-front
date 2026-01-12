@@ -1,5 +1,4 @@
-import type { FC } from 'react';
-import { Button } from '@/components/common/Button';
+import type { FC, KeyboardEvent } from 'react';
 import type { Tag } from '@/types/api-schema';
 import styles from './TagsPanel.module.scss';
 
@@ -11,6 +10,43 @@ interface TagsSearchResultsProps {
   isTagSelected: (tagId: string) => boolean;
   onTagToggle: (tagId: string) => void;
 }
+
+interface TagItemProps {
+  tag: Tag;
+  isSelected: boolean;
+  isPending: boolean;
+  onToggle: (id: string) => void;
+}
+
+const TagItem: FC<TagItemProps> = ({ tag, isSelected, isPending, onToggle }) => {
+  const handleClick = () => {
+    if (!isPending) {
+      onToggle(tag.id);
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (!isPending) {
+        onToggle(tag.id);
+      }
+    }
+  };
+
+  return (
+    <div
+      className={`${styles.tagButton} ${isSelected ? styles.selected : ''}`}
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
+      <span>{tag.name}</span>
+      {isSelected && <span className={styles.checkmark}>✓</span>}
+    </div>
+  );
+};
 
 export const TagsSearchResults: FC<TagsSearchResultsProps> = (props) => {
   const { searchQuery, isLoading, tags, isPending, isTagSelected, onTagToggle } = props;
@@ -29,24 +65,15 @@ export const TagsSearchResults: FC<TagsSearchResultsProps> = (props) => {
 
       {!isLoading && tags && tags.length > 0 && (
         <div className={styles.resultsList}>
-          {tags.map((tag) => {
-            const isSelected = isTagSelected(tag.id);
-
-            return (
-              <Button
-                key={tag.id}
-                variant="secondary"
-                size="sm"
-                className={`${styles.tagButton} ${isSelected ? styles.selected : ''}`}
-                disabled={isPending}
-                onClick={() => onTagToggle(tag.id)}
-                active={isSelected}
-              >
-                <span>{tag.name}</span>
-                {isSelected && <span className={styles.checkmark}>✓</span>}
-              </Button>
-            );
-          })}
+          {tags.map((tag) => (
+            <TagItem
+              key={tag.id}
+              tag={tag}
+              isSelected={isTagSelected(tag.id)}
+              isPending={isPending}
+              onToggle={onTagToggle}
+            />
+          ))}
         </div>
       )}
 

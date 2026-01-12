@@ -115,19 +115,6 @@ export const useBookVersionLogic = (versionId: string) => {
     if (formData.seoOgImageUrl) seoData.ogImageUrl = formData.seoOgImageUrl;
     if (formData.seoTwitterCard) seoData.twitterCard = formData.seoTwitterCard;
 
-    console.log('🔍 SEO Form Data:', {
-      seoMetaTitle: formData.seoMetaTitle,
-      seoMetaDescription: formData.seoMetaDescription,
-      seoCanonicalUrl: formData.seoCanonicalUrl,
-      seoRobots: formData.seoRobots,
-      seoOgTitle: formData.seoOgTitle,
-      seoOgDescription: formData.seoOgDescription,
-      seoOgImageUrl: formData.seoOgImageUrl,
-      seoTwitterCard: formData.seoTwitterCard,
-    });
-    console.log('📦 SEO Data to send:', seoData);
-    console.log('📊 SEO Data keys count:', Object.keys(seoData).length);
-
     // Convert form data to API format (without SEO)
     const requestData: UpdateBookVersionRequest = {
       title: formData.title,
@@ -141,34 +128,21 @@ export const useBookVersionLogic = (versionId: string) => {
 
     // Send update request
     try {
-      console.log('📤 Sending PATCH request for version update...');
       await updateMutation.mutateAsync({
         versionId,
         data: requestData,
       });
-      console.log('✅ PATCH request completed');
 
       // If SEO data exists, send it separately
       if (Object.keys(seoData).length > 0) {
-        console.log('📤 Sending PUT request for SEO update with data:', seoData);
         await seoMutation.mutateAsync({
           versionId,
           data: seoData,
         });
-        console.log('✅ PUT SEO request completed');
-      } else {
-        console.log(
-          '⚠️ SEO data is empty, skipping PUT request. Keys:',
-          Object.keys(seoData).length
-        );
       }
 
       // Force refetch to get fresh data from backend
-      console.log('🔄 Refetching version data...');
       const refetchResult = await refetch();
-      console.log('✅ Refetch completed');
-      console.log('📥 Refetched data:', refetchResult.data);
-      console.log('📥 SEO in refetched data:', refetchResult.data?.seo);
 
       // ⚠️ WARNING: Check if backend returned all SEO fields
       const sentFields = Object.keys(seoData);
