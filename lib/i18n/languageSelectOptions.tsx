@@ -1,4 +1,5 @@
-import { SUPPORTED_LANGS, LANGUAGE_LABELS, LANGUAGE_FLAGS } from '@/lib/i18n/lang';
+import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
+import { SUPPORTED_LANGS, LANGUAGE_LABELS } from '@/lib/i18n/lang';
 
 /**
  * Generate language selector options for Ant Design Select component
@@ -9,7 +10,7 @@ export const getLanguageSelectOptions = () => {
   return SUPPORTED_LANGS.map((lang) => ({
     label: (
       <span>
-        {LANGUAGE_FLAGS[lang]} {LANGUAGE_LABELS[lang]}
+        {FLAG_COMPONENTS[lang]} {LANGUAGE_LABELS[lang]}
       </span>
     ),
     value: lang,

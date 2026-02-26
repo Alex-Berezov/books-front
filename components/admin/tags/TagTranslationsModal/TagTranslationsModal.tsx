@@ -8,12 +8,8 @@ import {
 } from '@/api/hooks/useTags';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
-import {
-  LANGUAGE_FLAGS,
-  LANGUAGE_LABELS,
-  SUPPORTED_LANGS,
-  type SupportedLang,
-} from '@/lib/i18n/lang';
+import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
+import { LANGUAGE_LABELS, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { TranslationFormData } from './TagTranslationsModal.types';
 import type { Tag, TagTranslation } from '@/types/api-schema';
 import styles from './TagTranslationsModal.module.scss';
@@ -61,7 +57,11 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
       lang !== 'en' && (!translations.some((t) => t.language === lang) || lang === editingLang)
   ).map((lang) => ({
     value: lang,
-    label: `${LANGUAGE_FLAGS[lang]} ${LANGUAGE_LABELS[lang]}`,
+    label: (
+      <span>
+        {FLAG_COMPONENTS[lang]} {LANGUAGE_LABELS[lang]}
+      </span>
+    ),
   }));
 
   const handleAddNew = () => {

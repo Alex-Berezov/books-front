@@ -5,7 +5,8 @@ import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useBook } from '@/api/hooks/useBooks';
-import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
+import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
+import { type SupportedLang } from '@/lib/i18n/lang';
 import styles from './BookVersionSwitcher.module.scss';
 
 interface BookVersionSwitcherProps {
@@ -52,7 +53,7 @@ export const BookVersionSwitcher: FC<BookVersionSwitcherProps> = (props) => {
       <div className={styles.versionList}>
         {sortedVersions.map((version) => {
           const isActive = version.id === currentVersionId;
-          const flag = version.language ? LANGUAGE_FLAGS[version.language] : '🌐';
+          const flag = version.language ? FLAG_COMPONENTS[version.language as SupportedLang] : '🌐';
 
           return (
             <Link

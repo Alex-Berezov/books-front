@@ -10,7 +10,8 @@ import { DeleteCategoryModal } from '@/components/admin/categories/DeleteCategor
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
+import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
+import { type SupportedLang } from '@/lib/i18n/lang';
 import type { Category, CategoryTranslation } from '@/types/api-schema';
 import styles from './CategoryList.module.scss';
 
@@ -18,7 +19,8 @@ interface CategoryListProps {
   lang: SupportedLang;
 }
 
-export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
+export const CategoryList: FC<CategoryListProps> = (props) => {
+  const { lang: _lang } = props;
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -157,7 +159,7 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
                   <td>
                     <div className={styles.flags}>
                       <span title="English (EN)" className={styles.flag}>
-                        {LANGUAGE_FLAGS['en']}
+                        {FLAG_COMPONENTS['en']}
                       </span>
                       {category.translations?.map((translation: CategoryTranslation) => (
                         <span
@@ -165,7 +167,7 @@ export const CategoryList: FC<CategoryListProps> = ({ lang: _lang }) => {
                           title={`${translation.name} (${translation.language.toUpperCase()})`}
                           className={styles.flag}
                         >
-                          {LANGUAGE_FLAGS[translation.language as SupportedLang] ||
+                          {FLAG_COMPONENTS[translation.language as SupportedLang] ||
                             translation.language}
                         </span>
                       ))}

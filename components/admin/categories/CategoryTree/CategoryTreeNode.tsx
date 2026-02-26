@@ -9,7 +9,8 @@ import {
   EditButton,
   TranslationsButton,
 } from '@/components/admin/common/ActionButtons';
-import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
+import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
+import { type SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTree } from '@/types/api-schema';
 import styles from './CategoryTree.module.scss';
 
@@ -23,15 +24,16 @@ interface CategoryTreeNodeProps {
   forceExpand?: boolean;
 }
 
-export const CategoryTreeNode: FC<CategoryTreeNodeProps> = ({
-  node,
-  level,
-  onEdit,
-  onTranslations,
-  onDelete,
-  onAddSubcategory,
-  forceExpand = false,
-}) => {
+export const CategoryTreeNode: FC<CategoryTreeNodeProps> = (props) => {
+  const {
+    node,
+    level,
+    onEdit,
+    onTranslations,
+    onDelete,
+    onAddSubcategory,
+    forceExpand = false,
+  } = props;
   const [isExpanded, setIsExpanded] = useState(level === 0 || forceExpand); // Expand root level by default
   const hasChildren = node.children && node.children.length > 0;
 
@@ -90,13 +92,13 @@ export const CategoryTreeNode: FC<CategoryTreeNodeProps> = ({
           {node.type && <span className={styles.nodeType}>{node.type}</span>}
           <div className={styles.flags}>
             <span title={node.name}>
-              {LANGUAGE_FLAGS[(node.language || 'en') as SupportedLang]}
+              {FLAG_COMPONENTS[(node.language || 'en') as SupportedLang]}
             </span>
             {translations
               ?.filter((t) => t.language !== (node.language || 'en'))
               .map((t) => (
                 <span key={t.language} title={t.name}>
-                  {LANGUAGE_FLAGS[t.language as SupportedLang]}
+                  {FLAG_COMPONENTS[t.language as SupportedLang]}
                 </span>
               ))}
           </div>

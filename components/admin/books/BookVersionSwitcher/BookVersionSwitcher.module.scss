@@ -41,7 +41,7 @@
   }
 
   &.active {
-    background-color: #e6f7ff;
+    background-color: lighten($color-primary, 42%);
     border-color: $color-primary;
     color: $color-primary;
     font-weight: $font-weight-medium;
@@ -49,6 +49,8 @@
 }
 
 .flag {
+  display: flex;
+  align-items: center;
   font-size: 1.2em;
   line-height: 1;
 }

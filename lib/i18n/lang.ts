@@ -8,6 +8,10 @@ export const LANGUAGE_LABELS: Record<SupportedLang, string> = {
   pt: 'Português',
 };
 
+/**
+ * @deprecated Use FLAG_COMPONENTS from '@/lib/i18n/FlagIcon' for cross-platform SVG flags.
+ * Emoji flags do not render on Windows.
+ */
 export const LANGUAGE_FLAGS: Record<SupportedLang, string> = {
   en: '🇬🇧',
   es: '🇪🇸',

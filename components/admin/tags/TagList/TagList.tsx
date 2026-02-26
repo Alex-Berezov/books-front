@@ -9,7 +9,8 @@ import { EditButton, DeleteButton } from '@/components/admin/common/ActionButton
 import { EmptyState, Skeleton } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
+import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
+import { type SupportedLang } from '@/lib/i18n/lang';
 import type { TagListProps } from './TagList.types';
 import type { Tag, TagTranslation } from '@/types/api-schema';
 import { DeleteTagModal } from '../DeleteTagModal';
@@ -208,7 +209,7 @@ export const TagList: FC<TagListProps> = (props) => {
                   <td>
                     <div className={styles.flags}>
                       <span title="English (EN)" className={styles.flag}>
-                        {LANGUAGE_FLAGS['en']}
+                        {FLAG_COMPONENTS['en']}
                       </span>
                       {tag.translations?.map((translation: TagTranslation) => (
                         <span
@@ -216,7 +217,7 @@ export const TagList: FC<TagListProps> = (props) => {
                           title={`${translation.name} (${translation.language.toUpperCase()})`}
                           className={styles.flag}
                         >
-                          {LANGUAGE_FLAGS[translation.language as SupportedLang] ||
+                          {FLAG_COMPONENTS[translation.language as SupportedLang] ||
                             translation.language}
                         </span>
                       ))}

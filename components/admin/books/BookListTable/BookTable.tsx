@@ -3,7 +3,8 @@ import { Eye, Headphones, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
 import { Skeleton } from '@/components/admin/shared';
-import { LANGUAGE_FLAGS, type SupportedLang } from '@/lib/i18n/lang';
+import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
+import { type SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './BookListTable.module.scss';
 
@@ -136,7 +137,9 @@ export const BookTable: FC<BookTableProps> = (props) => {
                 <td className={styles.versionsCell}>
                   <div className={styles.versionFlags}>
                     {book.versions?.map((version) => {
-                      const flag = version.language ? LANGUAGE_FLAGS[version.language] : '🌐';
+                      const flag = version.language
+                        ? FLAG_COMPONENTS[version.language as SupportedLang]
+                        : '🌐';
                       return (
                         <Link
                           key={version.id}
@@ -158,7 +161,9 @@ export const BookTable: FC<BookTableProps> = (props) => {
                 <td className={styles.statusCell}>
                   <div className={styles.statusList}>
                     {book.versions?.map((version) => {
-                      const flag = version.language ? LANGUAGE_FLAGS[version.language] : '🌐';
+                      const flag = version.language
+                        ? FLAG_COMPONENTS[version.language as SupportedLang]
+                        : '🌐';
                       const vStatus = version.status || 'draft';
                       return (
                         <div key={version.id} className={styles.statusItem}>

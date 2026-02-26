@@ -1,6 +1,7 @@
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
-import { LANGUAGE_FLAGS, LANGUAGE_LABELS, type SupportedLang } from '@/lib/i18n/lang';
+import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
+import { LANGUAGE_LABELS, type SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTranslation } from '@/types/api-schema';
 import styles from './CategoryTranslationsModal.module.scss';
 
@@ -11,12 +12,8 @@ interface TranslationsListProps {
   onDelete: (language: string) => void;
 }
 
-export const TranslationsList = ({
-  translations,
-  isLoading,
-  onEdit,
-  onDelete,
-}: TranslationsListProps) => {
+export const TranslationsList = (props: TranslationsListProps) => {
+  const { translations, isLoading, onEdit, onDelete } = props;
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -31,7 +28,7 @@ export const TranslationsList = ({
         <div key={translation.language} className={styles.translationItem}>
           <div className={styles.translationInfo}>
             <div className={styles.languageBadge}>
-              {LANGUAGE_FLAGS[translation.language as SupportedLang]}{' '}
+              {FLAG_COMPONENTS[translation.language as SupportedLang]}{' '}
               {LANGUAGE_LABELS[translation.language as SupportedLang]}
             </div>
             <span className={styles.translationName}>{translation.name}</span>

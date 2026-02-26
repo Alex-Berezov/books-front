@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/common/Button';
@@ -10,7 +11,7 @@ import { translationSchema, type TranslationFormData } from './CategoryTranslati
 
 interface TranslationFormProps {
   editingLang: string | null;
-  availableLanguages: { value: string; label: string }[];
+  availableLanguages: { value: string; label: ReactNode }[];
   initialData?: TranslationFormData;
   isSubmitting: boolean;
   onSubmit: (data: TranslationFormData) => Promise<void>;

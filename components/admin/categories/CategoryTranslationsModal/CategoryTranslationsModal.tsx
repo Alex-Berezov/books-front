@@ -8,12 +8,8 @@ import {
 } from '@/api/hooks/useCategories';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
-import {
-  LANGUAGE_FLAGS,
-  LANGUAGE_LABELS,
-  SUPPORTED_LANGS,
-  type SupportedLang,
-} from '@/lib/i18n/lang';
+import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
+import { LANGUAGE_LABELS, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { TranslationFormData } from './CategoryTranslationsModal.types';
 import type { Category, CategoryTranslation } from '@/types/api-schema';
 import styles from './CategoryTranslationsModal.module.scss';
@@ -90,7 +86,11 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
       lang !== 'en' && (!translations.some((t) => t.language === lang) || lang === editingLang)
   ).map((lang) => ({
     value: lang,
-    label: `${LANGUAGE_FLAGS[lang]} ${LANGUAGE_LABELS[lang]}`,
+    label: (
+      <span>
+        {FLAG_COMPONENTS[lang]} {LANGUAGE_LABELS[lang]}
+      </span>
+    ),
   }));
 
   const handleAddNew = () => {
