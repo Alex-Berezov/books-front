@@ -53,7 +53,7 @@ export const UserForm: FC<UserFormProps> = ({ initialData, lang }) => {
     register,
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields },
     reset,
   } = useForm<UserFormData>({
     resolver: zodResolver(isEditMode ? updateUserSchema : createUserSchema),
@@ -90,7 +90,7 @@ export const UserForm: FC<UserFormProps> = ({ initialData, lang }) => {
             lastName: data.lastName,
             isActive: data.isActive,
             roles: data.roles as RoleName[],
-            password: data.password || undefined,
+            password: dirtyFields.password && data.password ? data.password : undefined,
           },
         });
       } else {
@@ -174,8 +174,9 @@ export const UserForm: FC<UserFormProps> = ({ initialData, lang }) => {
 
         <div className={styles.fieldWrapper}>
           <Input
-            placeholder={isEditMode ? 'New Password (leave empty to keep current)' : 'Password'}
+            placeholder={isEditMode ? 'Leave empty to keep current password' : 'Password'}
             type="password"
+            autoComplete="new-password"
             {...register('password')}
             error={!!errors.password}
             fullWidth

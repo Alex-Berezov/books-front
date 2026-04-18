@@ -1,0 +1,54 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build output
+.next
+out
+build
+dist
+
+# Source control
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Env files (secrets — passed via build-args / env_file)
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Tests
+__tests__
+e2e
+test-results
+playwright-report
+coverage
+.nyc_output
+setupTests.ts
+vitest.config.ts
+playwright.config.ts
+
+# Documentation
+*.md
+docs/
+LICENSE
+
+# CI
+.github
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+scripts
+*.log
+.cache

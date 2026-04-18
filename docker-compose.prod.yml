@@ -1,0 +1,23 @@
+services:
+  frontend:
+    image: ghcr.io/${GHCR_OWNER:-bibliaris}/bibliaris-frontend:${IMAGE_TAG:-latest}
+    container_name: bibliaris-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+    env_file:
+      - /opt/bibliaris-frontend/app/.env.production
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
