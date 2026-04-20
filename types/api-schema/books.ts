@@ -148,3 +148,28 @@ export interface UpdateBookVersionRequest {
   /** URL for referral links */
   referralUrl?: string;
 }
+
+/**
+ * Book summary (пересказ/выжимка) for a specific book version
+ */
+export interface BookSummaryDetail {
+  id: UUID;
+  /** Brief overview / summary text */
+  summary: string;
+  /** Analysis / key takeaways */
+  analysis?: string;
+  /** Major themes */
+  themes?: string;
+}
+
+/**
+ * Request to upsert book summary for a version
+ */
+export interface UpsertBookSummaryRequest {
+  /** Brief overview / summary text */
+  summary: string;
+  /** Analysis / key takeaways */
+  analysis?: string;
+  /** Major themes */
+  themes?: string;
+}

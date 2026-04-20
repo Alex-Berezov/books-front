@@ -25,6 +25,9 @@ export {
   useUpsertVersionSeo,
 } from './useBookVersions';
 
+// Book Summaries
+export { summaryKeys, useBookSummary, useUpsertBookSummary } from './useBookSummary';
+
 // Chapters
 export {
   chapterKeys,

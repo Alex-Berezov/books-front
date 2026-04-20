@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { Spinner } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import type { SummaryTabProps } from './SummaryTab.types';
 import { SummaryFormField } from './SummaryFormField';
@@ -16,7 +17,15 @@ import { useSummaryTab } from './useSummaryTab';
  * - Themes and analysis (themes and analysis)
  */
 export const SummaryTab: FC<SummaryTabProps> = (props) => {
-  const { formData, handleFieldChange, handleSave } = useSummaryTab(props);
+  const { formData, handleFieldChange, handleSave, isLoading, isSaving } = useSummaryTab(props);
+
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -52,7 +61,9 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
         value={formData.themes}
       />
 
-      <Button onClick={handleSave}>Save Summary</Button>
+      <Button onClick={handleSave} loading={isSaving} disabled={isSaving}>
+        Save Summary
+      </Button>
     </div>
   );
 };

@@ -23,6 +23,9 @@ export type { GetBooksParams } from './books';
 // Book Versions Domain
 export * from './bookVersions';
 
+// Book Summaries Domain
+export * from './bookSummaries';
+
 // Chapters Domain
 export * from './chapters';
 

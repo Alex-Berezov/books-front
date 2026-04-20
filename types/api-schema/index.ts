@@ -35,12 +35,14 @@ export type { UserMeResponse } from './user';
 // Books
 export type {
   BookOverview,
+  BookSummaryDetail,
   BookVersion,
   BookVersionDetail,
   CreateBookRequest,
   CreateBookResponse,
   CreateBookVersionRequest,
   UpdateBookVersionRequest,
+  UpsertBookSummaryRequest,
   VersionPreview,
 } from './books';
 
