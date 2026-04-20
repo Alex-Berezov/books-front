@@ -3,9 +3,10 @@
 import { useEffect } from 'react';
 import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
+import { RichTextEditor } from '@/components/common/RichTextEditor';
 import styles from './ChapterModal.module.scss';
 import { type ChapterFormData, type ChapterModalProps, chapterSchema } from './ChapterModal.types';
 
@@ -22,6 +23,7 @@ export const ChapterModal: FC<ChapterModalProps> = (props) => {
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors },
   } = useForm<ChapterFormData>({
@@ -91,13 +93,22 @@ export const ChapterModal: FC<ChapterModalProps> = (props) => {
 
         <div className={styles.field}>
           <label className={styles.label} htmlFor="content">
-            Content (Markdown)
+            Content
           </label>
-          <textarea
-            id="content"
-            className={styles.textarea}
-            placeholder="# Chapter Content..."
-            {...register('content')}
+          <Controller
+            name="content"
+            control={control}
+            render={({ field }) => (
+              <RichTextEditor
+                id="content"
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                placeholder="Write chapter content..."
+                error={!!errors.content}
+                minHeight="280px"
+              />
+            )}
           />
           {errors.content && <span className={styles.error}>{errors.content.message}</span>}
         </div>

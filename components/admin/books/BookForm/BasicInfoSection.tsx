@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { Input } from '@/components/common/Input';
+import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
@@ -126,12 +127,20 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
         <label className={styles.label} htmlFor="description">
           Description
         </label>
-        <textarea
-          className={styles.textarea}
-          id="description"
-          placeholder="Enter book description"
-          rows={5}
-          {...register('description')}
+        <Controller
+          name="description"
+          control={control}
+          render={({ field }) => (
+            <RichTextEditor
+              id="description"
+              value={field.value ?? ''}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              placeholder="Enter book description"
+              error={!!errors.description}
+              minHeight="160px"
+            />
+          )}
         />
         {errors.description && <span className={styles.error}>{errors.description.message}</span>}
       </div>

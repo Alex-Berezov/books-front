@@ -15,13 +15,7 @@ interface SkeletonProps {
  * Used to display a placeholder while content is loading
  */
 export const Skeleton: FC<SkeletonProps> = (props) => {
-  const { 
-    className, 
-    style, 
-    variant = 'rect',
-    width,
-    height
-  } = props;
+  const { className, style, variant = 'rect', width, height } = props;
 
   const customStyle: CSSProperties = {
     ...style,
@@ -30,8 +24,8 @@ export const Skeleton: FC<SkeletonProps> = (props) => {
   };
 
   return (
-    <div 
-      className={classNames(styles.skeleton, styles[variant], className)} 
+    <div
+      className={classNames(styles.skeleton, styles[variant], className)}
       style={customStyle}
       aria-hidden="true"
     />

@@ -1,0 +1,132 @@
+@import '@/styles/tokens.scss';
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  background-color: $color-background-primary;
+  transition:
+    border-color $transition-fast,
+    box-shadow $transition-fast;
+
+  &:focus-within {
+    border-color: $color-primary;
+    box-shadow: $shadow-focus;
+  }
+}
+
+.wrapperError {
+  border-color: $color-error;
+
+  &:focus-within {
+    border-color: $color-error;
+    box-shadow: 0 0 0 2px rgba($color-error, 0.2);
+  }
+}
+
+.wrapperDisabled {
+  background-color: $color-background-tertiary;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.editor {
+  flex: 1;
+  padding: $spacing-sm $spacing-md;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  color: $color-text-primary;
+  overflow-y: auto;
+
+  // Target the ProseMirror editable area
+  :global(.ProseMirror) {
+    outline: none;
+    min-height: inherit;
+
+    > * + * {
+      margin-top: $spacing-sm;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: $font-weight-semibold;
+      line-height: $line-height-tight;
+      margin-top: $spacing-md;
+      margin-bottom: $spacing-xs;
+    }
+
+    h1 {
+      font-size: $font-size-xl;
+    }
+
+    h2 {
+      font-size: $font-size-lg;
+    }
+
+    h3 {
+      font-size: $font-size-base;
+    }
+
+    ul,
+    ol {
+      padding-left: $spacing-lg;
+      margin: 0;
+    }
+
+    li + li {
+      margin-top: $spacing-xs;
+    }
+
+    a {
+      color: $color-primary;
+      text-decoration: underline;
+
+      &:hover {
+        color: $color-primary-hover;
+      }
+    }
+
+    blockquote {
+      border-left: 3px solid $color-border-base;
+      padding-left: $spacing-md;
+      color: $color-text-secondary;
+      margin: 0;
+    }
+
+    code {
+      background-color: $color-background-secondary;
+      padding: 2px 4px;
+      border-radius: $border-radius-sm;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: $color-background-secondary;
+      padding: $spacing-sm $spacing-md;
+      border-radius: $border-radius-base;
+      overflow-x: auto;
+
+      code {
+        background: none;
+        padding: 0;
+      }
+    }
+
+    // Placeholder styling (tiptap placeholder extension)
+    p.is-editor-empty:first-child::before {
+      content: attr(data-placeholder);
+      float: left;
+      color: $color-text-tertiary;
+      pointer-events: none;
+      height: 0;
+    }
+  }
+}

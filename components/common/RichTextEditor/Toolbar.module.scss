@@ -1,0 +1,68 @@
+@import '@/styles/tokens.scss';
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  border-bottom: 1px solid $color-border-light;
+  background-color: $color-background-tertiary;
+  border-top-left-radius: $border-radius-base;
+  border-top-right-radius: $border-radius-base;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background-color: $color-border-base;
+  margin: 0 $spacing-xs;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: $border-radius-sm;
+  background-color: transparent;
+  color: $color-text-primary;
+  cursor: pointer;
+  transition:
+    background-color $transition-fast,
+    border-color $transition-fast,
+    color $transition-fast;
+
+  &:hover:not(:disabled) {
+    background-color: $color-background-secondary;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.buttonActive {
+  background-color: rgba($color-primary, 0.1);
+  color: $color-primary;
+  border-color: rgba($color-primary, 0.2);
+
+  &:hover:not(:disabled) {
+    background-color: rgba($color-primary, 0.15);
+  }
+}
+
+.icon {
+  width: $icon-size-sm;
+  height: $icon-size-sm;
+}

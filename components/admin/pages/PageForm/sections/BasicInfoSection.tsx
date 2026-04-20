@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { FormField } from '@/components/admin/common/SeoSections';
 import { Input } from '@/components/common/Input';
+import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
@@ -147,18 +148,26 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
 
         <FormField
           error={errors.content?.message}
-          hint="You can use Markdown formatting: # Heading, **bold**, *italic*, [link](url), etc."
+          hint="Use the toolbar to format the content: headings, lists, links, quotes, etc."
           id="content"
-          label="Page Content (Markdown supported)"
+          label="Page Content"
           required
         >
-          <textarea
-            className={styles.textarea}
-            disabled={isSubmitting}
-            id="content"
-            placeholder="# About Us&#10;&#10;We are a team of passionate readers..."
-            rows={15}
-            {...register('content')}
+          <Controller
+            name="content"
+            control={control}
+            render={({ field }) => (
+              <RichTextEditor
+                id="content"
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                disabled={isSubmitting}
+                placeholder="About Us..."
+                error={!!errors.content}
+                minHeight="320px"
+              />
+            )}
           />
         </FormField>
       </div>

@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Modal } from '@/components/common/Modal';
+import { RichTextEditor } from '@/components/common/RichTextEditor';
 import styles from './ReplyCommentModal.module.scss';
 
 const replySchema = z.object({
@@ -23,12 +24,13 @@ export const ReplyCommentModal: FC<ReplyCommentModalProps> = (props) => {
   const { isOpen, isLoading = false, onClose, onSubmit } = props;
 
   const {
-    register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<ReplyFormData>({
     resolver: zodResolver(replySchema),
+    defaultValues: { content: '' },
   });
 
   useEffect(() => {
@@ -52,11 +54,21 @@ export const ReplyCommentModal: FC<ReplyCommentModalProps> = (props) => {
       onCancel={onClose}
     >
       <form className={styles.form} onSubmit={handleSubmit(handleFormSubmit)}>
-        <textarea
-          {...register('content')}
-          className={`${styles.textarea} ${errors.content ? styles.error : ''}`}
-          placeholder="Write your reply here..."
-          disabled={isLoading}
+        <Controller
+          name="content"
+          control={control}
+          render={({ field }) => (
+            <RichTextEditor
+              value={field.value ?? ''}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              disabled={isLoading}
+              placeholder="Write your reply here..."
+              error={!!errors.content}
+              minHeight="140px"
+              ariaLabel="Reply content"
+            />
+          )}
         />
         {errors.content && <span className={styles.errorText}>{errors.content.message}</span>}
       </form>
