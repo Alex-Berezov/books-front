@@ -5,6 +5,7 @@
  */
 
 import type { ISODate, PaginatedResponse, SupportedLang, UUID } from './common';
+import type { SeoData, SeoInput } from './pages';
 
 /**
  * Book category
@@ -55,11 +56,20 @@ export interface DetachCategoryRequest {
 
 /**
  * Category translation
+ *
+ * Localized representation of a category. In addition to name/slug may
+ * contain a long-form description (shown on the public category page) and
+ * SEO metadata used for the category listing page in the given language.
  */
 export interface CategoryTranslation {
   language: string;
   name: string;
   slug: string;
+  /** Long description/content (HTML) displayed on the public category page */
+  description?: string | null;
+  /** SEO metadata for the localized category page */
+  seoId?: number | null;
+  seo?: SeoData | null;
 }
 
 /**
@@ -69,6 +79,8 @@ export interface CreateCategoryTranslationRequest {
   language: string;
   name: string;
   slug: string;
+  description?: string | null;
+  seo?: SeoInput;
 }
 
 /**
@@ -77,6 +89,8 @@ export interface CreateCategoryTranslationRequest {
 export interface UpdateCategoryTranslationRequest {
   name?: string;
   slug?: string;
+  description?: string | null;
+  seo?: SeoInput;
 }
 
 /**

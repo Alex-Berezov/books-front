@@ -11,7 +11,13 @@ import { Modal } from '@/components/common/Modal';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { LANGUAGE_LABELS, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { TranslationFormData } from './CategoryTranslationsModal.types';
-import type { Category, CategoryTranslation } from '@/types/api-schema';
+import type {
+  Category,
+  CategoryTranslation,
+  CreateCategoryTranslationRequest,
+  SeoInput,
+  UpdateCategoryTranslationRequest,
+} from '@/types/api-schema';
 import styles from './CategoryTranslationsModal.module.scss';
 import { TranslationForm } from './TranslationForm';
 import { TranslationsList } from './TranslationsList';
@@ -21,6 +27,40 @@ interface CategoryTranslationsModalProps {
   onClose: () => void;
   category: Category;
 }
+
+/**
+ * Build `SeoInput` from form data. Empty strings are converted to `null`
+ * so the backend can distinguish "unset" from "explicitly empty".
+ */
+const buildSeoInput = (data: TranslationFormData): SeoInput => ({
+  metaTitle: data.seoMetaTitle || null,
+  metaDescription: data.seoMetaDescription || null,
+  canonicalUrl: data.seoCanonicalUrl || null,
+  robots: data.seoRobots || null,
+  ogTitle: data.seoOgTitle || null,
+  ogDescription: data.seoOgDescription || null,
+  ogImageUrl: data.seoOgImageUrl || null,
+  twitterCard: data.seoTwitterCard || null,
+});
+
+/**
+ * Map an existing `CategoryTranslation` to form data shape.
+ */
+const translationToFormData = (translation: CategoryTranslation): TranslationFormData => ({
+  language: translation.language as SupportedLang,
+  name: translation.name,
+  slug: translation.slug,
+  description: translation.description ?? '',
+  seoMetaTitle: translation.seo?.metaTitle ?? '',
+  seoMetaDescription: translation.seo?.metaDescription ?? '',
+  seoCanonicalUrl: translation.seo?.canonicalUrl ?? '',
+  seoRobots: translation.seo?.robots ?? 'index, follow',
+  seoOgTitle: translation.seo?.ogTitle ?? '',
+  seoOgDescription: translation.seo?.ogDescription ?? '',
+  seoOgImageUrl: translation.seo?.ogImageUrl ?? '',
+  seoTwitterCard:
+    (translation.seo?.twitterCard as 'summary' | 'summary_large_image' | '') || 'summary',
+});
 
 export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps) => {
   const { isOpen, onClose, category } = props;
@@ -38,11 +78,7 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
 
   const handleEdit = (translation: CategoryTranslation) => {
     setEditingLang(translation.language);
-    setFormData({
-      language: translation.language as SupportedLang,
-      name: translation.name,
-      slug: translation.slug,
-    });
+    setFormData(translationToFormData(translation));
     setIsFormVisible(true);
   };
 
@@ -60,19 +96,31 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
 
   const onSubmit = async (data: TranslationFormData) => {
     try {
+      const seo = buildSeoInput(data);
+
       if (editingLang) {
+        const payload: UpdateCategoryTranslationRequest = {
+          name: data.name,
+          slug: data.slug,
+          description: data.description || null,
+          seo,
+        };
         await updateMutation.mutateAsync({
           id: category.id,
           language: editingLang,
-          data: {
-            name: data.name,
-            slug: data.slug,
-          },
+          data: payload,
         });
       } else {
+        const payload: CreateCategoryTranslationRequest = {
+          language: data.language,
+          name: data.name,
+          slug: data.slug,
+          description: data.description || null,
+          seo,
+        };
         await createMutation.mutateAsync({
           id: category.id,
-          data,
+          data: payload,
         });
       }
       handleCancelForm();
@@ -99,6 +147,15 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
       language: availableLanguages[0]?.value as SupportedLang,
       name: '',
       slug: '',
+      description: '',
+      seoMetaTitle: '',
+      seoMetaDescription: '',
+      seoCanonicalUrl: '',
+      seoRobots: 'index, follow',
+      seoOgTitle: '',
+      seoOgDescription: '',
+      seoOgImageUrl: '',
+      seoTwitterCard: 'summary',
     });
     setIsFormVisible(true);
   };
@@ -108,7 +165,7 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
       isOpen={isOpen}
       onCancel={onClose}
       title={`Translations for "${category.name}"`}
-      size="lg"
+      size="xl"
       showFooter={false}
     >
       <div className={styles.modalContent}>
