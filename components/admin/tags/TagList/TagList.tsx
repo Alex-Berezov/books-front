@@ -211,16 +211,18 @@ export const TagList: FC<TagListProps> = (props) => {
                       <span title="English (EN)" className={styles.flag}>
                         {FLAG_COMPONENTS['en']}
                       </span>
-                      {tag.translations?.map((translation: TagTranslation) => (
-                        <span
-                          key={translation.language}
-                          title={`${translation.name} (${translation.language.toUpperCase()})`}
-                          className={styles.flag}
-                        >
-                          {FLAG_COMPONENTS[translation.language as SupportedLang] ||
-                            translation.language}
-                        </span>
-                      ))}
+                      {tag.translations
+                        ?.filter((translation: TagTranslation) => translation.language !== 'en')
+                        .map((translation: TagTranslation) => (
+                          <span
+                            key={translation.language}
+                            title={`${translation.name} (${translation.language.toUpperCase()})`}
+                            className={styles.flag}
+                          >
+                            {FLAG_COMPONENTS[translation.language as SupportedLang] ||
+                              translation.language}
+                          </span>
+                        ))}
                     </div>
                   </td>
                   <td>{tag.booksCount || 0}</td>

@@ -161,16 +161,20 @@ export const CategoryList: FC<CategoryListProps> = (props) => {
                       <span title="English (EN)" className={styles.flag}>
                         {FLAG_COMPONENTS['en']}
                       </span>
-                      {category.translations?.map((translation: CategoryTranslation) => (
-                        <span
-                          key={translation.language}
-                          title={`${translation.name} (${translation.language.toUpperCase()})`}
-                          className={styles.flag}
-                        >
-                          {FLAG_COMPONENTS[translation.language as SupportedLang] ||
-                            translation.language}
-                        </span>
-                      ))}
+                      {category.translations
+                        ?.filter(
+                          (translation: CategoryTranslation) => translation.language !== 'en'
+                        )
+                        .map((translation: CategoryTranslation) => (
+                          <span
+                            key={translation.language}
+                            title={`${translation.name} (${translation.language.toUpperCase()})`}
+                            className={styles.flag}
+                          >
+                            {FLAG_COMPONENTS[translation.language as SupportedLang] ||
+                              translation.language}
+                          </span>
+                        ))}
                     </div>
                   </td>
                   <td>{category.booksCount || 0}</td>
