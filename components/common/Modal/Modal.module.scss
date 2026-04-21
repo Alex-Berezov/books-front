@@ -35,6 +35,9 @@
   box-shadow: $shadow-xl;
   width: 90%;
   max-width: 500px; // Default (md)
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   animation: slideUp $transition-base;
 
   &.sm {
@@ -72,6 +75,7 @@
   justify-content: space-between;
   padding: $spacing-lg;
   border-bottom: 1px solid $color-border-light;
+  flex-shrink: 0;
 }
 
 .title {
@@ -108,6 +112,9 @@
   color: $color-text-primary;
   font-size: $font-size-base;
   line-height: $line-height-base;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* Footer with buttons */
@@ -117,6 +124,7 @@
   gap: $spacing-md;
   padding: $spacing-lg;
   border-top: 1px solid $color-border-light;
+  flex-shrink: 0;
 }
 
 .button {

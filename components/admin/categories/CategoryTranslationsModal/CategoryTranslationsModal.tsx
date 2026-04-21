@@ -130,8 +130,7 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
   };
 
   const availableLanguages = SUPPORTED_LANGS.filter(
-    (lang) =>
-      lang !== 'en' && (!translations.some((t) => t.language === lang) || lang === editingLang)
+    (lang) => !translations.some((t) => t.language === lang) || lang === editingLang
   ).map((lang) => ({
     value: lang,
     label: (
