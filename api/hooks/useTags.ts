@@ -27,10 +27,12 @@ import {
 } from '@/api/endpoints/admin/tags';
 import type {
   CreateTagRequest,
+  CreateTagTranslationRequest,
   PaginatedResponse,
   Tag,
   TagTranslation,
   UpdateTagRequest,
+  UpdateTagTranslationRequest,
 } from '@/types/api-schema';
 import { versionKeys } from './useBookVersions';
 
@@ -238,7 +240,11 @@ export const useTagTranslations = (
  * Hook for creating tag translation
  */
 export const useCreateTagTranslation = (
-  options?: UseMutationOptions<TagTranslation, Error, { id: string; data: TagTranslation }>
+  options?: UseMutationOptions<
+    TagTranslation,
+    Error,
+    { id: string; data: CreateTagTranslationRequest }
+  >
 ) => {
   const queryClient = useQueryClient();
 
@@ -264,7 +270,7 @@ export const useUpdateTagTranslation = (
   options?: UseMutationOptions<
     TagTranslation,
     Error,
-    { id: string; language: string; data: Partial<TagTranslation> }
+    { id: string; language: string; data: UpdateTagTranslationRequest }
   >
 ) => {
   const queryClient = useQueryClient();

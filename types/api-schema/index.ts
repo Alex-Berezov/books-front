@@ -73,11 +73,13 @@ export type {
 export type {
   AttachTagRequest,
   CreateTagRequest,
+  CreateTagTranslationRequest,
   DetachTagRequest,
   Tag,
   TagBooksResponse,
   TagTranslation,
   UpdateTagRequest,
+  UpdateTagTranslationRequest,
 } from './tags';
 
 // Media

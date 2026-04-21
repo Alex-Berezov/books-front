@@ -11,7 +11,13 @@ import { Modal } from '@/components/common/Modal';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { LANGUAGE_LABELS, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { TranslationFormData } from './TagTranslationsModal.types';
-import type { Tag, TagTranslation } from '@/types/api-schema';
+import type {
+  CreateTagTranslationRequest,
+  SeoInput,
+  Tag,
+  TagTranslation,
+  UpdateTagTranslationRequest,
+} from '@/types/api-schema';
 import styles from './TagTranslationsModal.module.scss';
 import { TranslationForm } from './TranslationForm';
 import { TranslationsList } from './TranslationsList';
@@ -21,6 +27,40 @@ interface TagTranslationsModalProps {
   onClose: () => void;
   tag: Tag;
 }
+
+/**
+ * Build `SeoInput` from form data. Empty strings are converted to `null`
+ * so the backend can distinguish "unset" from "explicitly empty".
+ */
+const buildSeoInput = (data: TranslationFormData): SeoInput => ({
+  metaTitle: data.seoMetaTitle || null,
+  metaDescription: data.seoMetaDescription || null,
+  canonicalUrl: data.seoCanonicalUrl || null,
+  robots: data.seoRobots || null,
+  ogTitle: data.seoOgTitle || null,
+  ogDescription: data.seoOgDescription || null,
+  ogImageUrl: data.seoOgImageUrl || null,
+  twitterCard: data.seoTwitterCard || null,
+});
+
+/**
+ * Map an existing `TagTranslation` to form data shape.
+ */
+const translationToFormData = (translation: TagTranslation): TranslationFormData => ({
+  language: translation.language as SupportedLang,
+  name: translation.name,
+  slug: translation.slug,
+  description: translation.description ?? '',
+  seoMetaTitle: translation.seo?.metaTitle ?? '',
+  seoMetaDescription: translation.seo?.metaDescription ?? '',
+  seoCanonicalUrl: translation.seo?.canonicalUrl ?? '',
+  seoRobots: translation.seo?.robots ?? 'index, follow',
+  seoOgTitle: translation.seo?.ogTitle ?? '',
+  seoOgDescription: translation.seo?.ogDescription ?? '',
+  seoOgImageUrl: translation.seo?.ogImageUrl ?? '',
+  seoTwitterCard:
+    (translation.seo?.twitterCard as 'summary' | 'summary_large_image' | '') || 'summary',
+});
 
 export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
   const { isOpen, onClose, tag } = props;
@@ -38,11 +78,7 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
 
   const handleEdit = (translation: TagTranslation) => {
     setEditingLang(translation.language);
-    setFormData({
-      language: translation.language as SupportedLang,
-      name: translation.name,
-      slug: translation.slug,
-    });
+    setFormData(translationToFormData(translation));
     setIsFormVisible(true);
   };
 
@@ -69,6 +105,15 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
       language: availableLanguages[0]?.value as SupportedLang,
       name: '',
       slug: '',
+      description: '',
+      seoMetaTitle: '',
+      seoMetaDescription: '',
+      seoCanonicalUrl: '',
+      seoRobots: 'index, follow',
+      seoOgTitle: '',
+      seoOgDescription: '',
+      seoOgImageUrl: '',
+      seoTwitterCard: 'summary',
     });
     setIsFormVisible(true);
   };
@@ -81,19 +126,31 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
 
   const onSubmit = async (data: TranslationFormData) => {
     try {
+      const seo = buildSeoInput(data);
+
       if (editingLang) {
+        const payload: UpdateTagTranslationRequest = {
+          name: data.name,
+          slug: data.slug,
+          description: data.description || null,
+          seo,
+        };
         await updateMutation.mutateAsync({
           id: tag.id,
           language: editingLang,
-          data: {
-            name: data.name,
-            slug: data.slug,
-          },
+          data: payload,
         });
       } else {
+        const payload: CreateTagTranslationRequest = {
+          language: data.language,
+          name: data.name,
+          slug: data.slug,
+          description: data.description || null,
+          seo,
+        };
         await createMutation.mutateAsync({
           id: tag.id,
-          data,
+          data: payload,
         });
       }
       handleCancelForm();
@@ -107,7 +164,7 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
       isOpen={isOpen}
       onCancel={onClose}
       title={`Translations for "${tag.name}"`}
-      size="lg"
+      size="xl"
       showFooter={false}
     >
       <div className={styles.modalContent}>

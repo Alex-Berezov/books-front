@@ -5,6 +5,7 @@
  */
 
 import type { ISODate, PaginatedResponse, SupportedLang, UUID } from './common';
+import type { SeoData, SeoInput } from './pages';
 
 /**
  * Book tag
@@ -22,11 +23,41 @@ export interface Tag {
 
 /**
  * Tag translation
+ *
+ * Localized representation of a tag. In addition to name/slug may
+ * contain a long-form description (shown on the public tag page) and
+ * SEO metadata used for the tag listing page in the given language.
  */
 export interface TagTranslation {
   language: string;
   name: string;
   slug: string;
+  /** Long description/content (HTML) displayed on the public tag page */
+  description?: string | null;
+  /** SEO metadata for the localized tag page */
+  seoId?: number | null;
+  seo?: SeoData | null;
+}
+
+/**
+ * Request to create tag translation
+ */
+export interface CreateTagTranslationRequest {
+  language: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  seo?: SeoInput;
+}
+
+/**
+ * Request to update tag translation
+ */
+export interface UpdateTagTranslationRequest {
+  name?: string;
+  slug?: string;
+  description?: string | null;
+  seo?: SeoInput;
 }
 
 /**

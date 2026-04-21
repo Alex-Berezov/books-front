@@ -10,10 +10,12 @@ import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/
 import type {
   AttachTagRequest,
   CreateTagRequest,
+  CreateTagTranslationRequest,
   PaginatedResponse,
   Tag,
   TagTranslation,
   UpdateTagRequest,
+  UpdateTagTranslationRequest,
 } from '@/types/api-schema';
 
 /**
@@ -132,7 +134,7 @@ export const getTagTranslations = async (id: string): Promise<TagTranslation[]> 
  */
 export const createTagTranslation = async (
   id: string,
-  data: TagTranslation
+  data: CreateTagTranslationRequest
 ): Promise<TagTranslation> => {
   return httpPostAuth<TagTranslation>(`/tags/${id}/translations`, data);
 };
@@ -148,7 +150,7 @@ export const createTagTranslation = async (
 export const updateTagTranslation = async (
   id: string,
   language: string,
-  data: Partial<Omit<TagTranslation, 'language'>>
+  data: UpdateTagTranslationRequest
 ): Promise<TagTranslation> => {
   return httpPatchAuth<TagTranslation>(`/tags/${id}/translations/${language}`, data);
 };
