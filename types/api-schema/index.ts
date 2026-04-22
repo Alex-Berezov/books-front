@@ -102,6 +102,16 @@ export type {
   MediaType,
 } from './media';
 
+// Uploads
+export type {
+  ConfirmUploadRequest,
+  MediaAsset,
+  PresignUploadRequest,
+  PresignUploadResponse,
+  UploadLimits,
+  UploadLimitsCategory,
+} from './uploads';
+
 // Pages (CMS)
 export type {
   CreatePageRequest,

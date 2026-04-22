@@ -49,6 +49,9 @@ export {
   useUpdateAudioChapter,
 } from './useAudioChapters';
 
+// Uploads
+export { uploadsKeys, useUploadsLimits } from './useUploadsLimits';
+
 // Categories
 export {
   categoryKeys,
