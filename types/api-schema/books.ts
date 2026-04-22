@@ -75,6 +75,8 @@ export interface BookVersion {
   description?: string;
   isFree: boolean;
   status: PublicationStatus;
+  /** Optional preview audio MediaAsset id (audio versions). See contract §5. */
+  previewMediaId?: UUID | null;
   chapters: Chapter[];
   createdAt: ISODate;
   updatedAt: ISODate;
@@ -97,6 +99,8 @@ export interface BookVersionDetail {
   status: PublicationStatus;
   publishedAt?: ISODate;
   referralUrl?: string;
+  /** Optional preview audio MediaAsset id (audio versions). See contract §5. */
+  previewMediaId?: UUID | null;
   /** SEO metadata (full SEO entity) */
   seo?: SeoData;
   /** Attached categories */
@@ -147,6 +151,8 @@ export interface UpdateBookVersionRequest {
   isFree?: boolean;
   /** URL for referral links */
   referralUrl?: string;
+  /** Preview audio MediaAsset id (nullable to clear). See contract §5. */
+  previewMediaId?: UUID | null;
 }
 
 /**

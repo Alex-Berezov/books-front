@@ -42,6 +42,7 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
     activeTab,
     setActiveTab,
     isSubmitting,
+    publishBlockedReason,
     handleSubmit,
     handlePublishSuccess,
     handleUnpublishSuccess,
@@ -151,6 +152,7 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
           <PublishPanel
             onPublishSuccess={handlePublishSuccess}
             onUnpublishSuccess={handleUnpublishSuccess}
+            publishBlockedReason={publishBlockedReason}
             status={version.status}
             versionId={versionId}
           />

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import {
+  useAudioChapters,
   useBookVersion,
   useUpdateBook,
   useUpdateBookVersion,
@@ -22,6 +23,19 @@ export const useBookVersionLogic = (versionId: string) => {
 
   // Load version data
   const { data: version, error, isLoading, refetch } = useBookVersion(versionId);
+
+  // For audio versions, fetch chapters to validate publish-readiness.
+  const isAudioVersion = version?.type === 'audio';
+  const { data: audioChaptersData } = useAudioChapters(versionId, undefined, {
+    enabled: isAudioVersion,
+  });
+  const audioChaptersCount = audioChaptersData?.items.length ?? 0;
+
+  // Publish is blocked when an audio version has no audio chapters yet.
+  const publishBlockedReason =
+    isAudioVersion && audioChaptersCount === 0
+      ? 'Add at least one audio chapter before publishing this audio version.'
+      : null;
 
   // Mutation for updating version
   const updateMutation = useUpdateBookVersion({
@@ -180,6 +194,7 @@ export const useBookVersionLogic = (versionId: string) => {
     activeTab,
     setActiveTab,
     isSubmitting,
+    publishBlockedReason,
     handleSubmit,
     handlePublishSuccess,
     handleUnpublishSuccess,

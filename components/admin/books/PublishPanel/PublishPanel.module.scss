@@ -134,6 +134,21 @@
   line-height: $line-height-base;
 }
 
+.warning {
+  margin-bottom: $spacing-md;
+  padding: $spacing-md;
+  background: rgba($color-warning, 0.08);
+  border-left: 3px solid $color-warning;
+  border-radius: $border-radius-base;
+}
+
+.warningText {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  line-height: $line-height-base;
+}
+
 /* Modal window */
 
 .modalOverlay {

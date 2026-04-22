@@ -16,7 +16,7 @@ import { usePublishPanel } from './usePublishPanel';
  * with action confirmation.
  */
 export const PublishPanel: FC<PublishPanelProps> = (props) => {
-  const { status } = props;
+  const { status, publishBlockedReason } = props;
   const {
     showConfirmModal,
     actionType,
@@ -28,6 +28,8 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
     handleCloseConfirmModal,
     handleConfirmAction,
   } = usePublishPanel(props);
+
+  const hasBlockingReason = Boolean(publishBlockedReason);
 
   return (
     <>
@@ -44,6 +46,12 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
           status={status}
         />
 
+        {hasBlockingReason && !isPublished && (
+          <div className={styles.warning} role="alert">
+            <p className={styles.warningText}>{publishBlockedReason}</p>
+          </div>
+        )}
+
         <div className={styles.actions}>
           {isPublished ? (
             <Button
@@ -59,7 +67,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
               variant="success"
               fullWidth
               loading={isLoading}
-              disabled={isArchived}
+              disabled={isArchived || hasBlockingReason}
               onClick={() => handleOpenConfirmModal('publish')}
             >
               Publish
