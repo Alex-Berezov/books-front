@@ -1,7 +1,8 @@
 /**
  * Types for Chapters endpoints
  *
- * Book chapters, creation, editing, reordering
+ * Text chapters of a book version. Audio chapters live in a separate entity —
+ * see `./audioChapters.ts`.
  */
 
 import type { ISODate, UUID } from './common';
@@ -14,9 +15,8 @@ export interface Chapter {
   versionId: UUID;
   number: number;
   title?: string;
-  content?: string; // For text versions
-  audioUrl?: string; // For audio versions
-  duration?: number; // In seconds for audio
+  /** Chapter content (markdown) */
+  content?: string;
   createdAt: ISODate;
   updatedAt: ISODate;
 }
@@ -29,9 +29,8 @@ export interface ChapterDetail {
   versionId: UUID;
   number: number;
   title?: string;
-  content?: string; // For text versions (markdown)
-  audioUrl?: string; // For audio versions
-  duration?: number; // In seconds for audio
+  /** Chapter content (markdown) */
+  content?: string;
   createdAt: ISODate;
   updatedAt: ISODate;
 }
@@ -44,12 +43,8 @@ export interface CreateChapterRequest {
   number: number;
   /** Chapter title */
   title?: string;
-  /** Chapter content (markdown) for text versions */
+  /** Chapter content (markdown) */
   content?: string;
-  /** Audio file URL for audio versions */
-  audioUrl?: string;
-  /** Duration in seconds for audio */
-  duration?: number;
 }
 
 /**
@@ -62,10 +57,6 @@ export interface UpdateChapterRequest {
   title?: string;
   /** Chapter content (markdown) */
   content?: string;
-  /** Audio file URL */
-  audioUrl?: string;
-  /** Duration in seconds */
-  duration?: number;
 }
 
 /**

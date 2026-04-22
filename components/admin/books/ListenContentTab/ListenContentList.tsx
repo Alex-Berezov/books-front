@@ -1,10 +1,10 @@
 import type { FC } from 'react';
 import { Button } from '@/components/common/Button';
-import type { Chapter } from '@/types/api-schema';
+import type { AudioChapter } from '@/types/api-schema';
 import styles from '../ReadContentTab/ReadContentTab.module.scss';
 
 interface ListenContentListProps {
-  chapters: Chapter[];
+  chapters: AudioChapter[];
   onEditChapter: (id: string) => void;
 }
 

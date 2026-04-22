@@ -46,7 +46,7 @@ export type {
   VersionPreview,
 } from './books';
 
-// Chapters
+// Chapters (text)
 export type {
   Chapter,
   ChapterDetail,
@@ -54,6 +54,17 @@ export type {
   ReorderChaptersRequest,
   UpdateChapterRequest,
 } from './chapters';
+
+// Audio Chapters
+export type {
+  AudioChapter,
+  AudioChapterDetail,
+  AudioChaptersListResponse,
+  CreateAudioChapterRequest,
+  GetAudioChaptersParams,
+  ReorderAudioChaptersRequest,
+  UpdateAudioChapterRequest,
+} from './audioChapters';
 
 // Categories
 export type {

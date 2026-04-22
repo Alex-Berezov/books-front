@@ -1,13 +1,16 @@
 import { useSnackbar } from 'notistack';
-import { useChapters } from '@/api/hooks';
 import type { ListenContentTabProps } from './ListenContentTab.types';
+import type { AudioChapter } from '@/types/api-schema';
 
 export const useListenContentTab = (props: ListenContentTabProps) => {
-  const { versionId } = props;
+  const { versionId: _versionId } = props;
   const { enqueueSnackbar } = useSnackbar();
 
-  // Load chapters (audio)
-  const { data: chapters, error, isLoading } = useChapters(versionId);
+  // TODO (Phase 4): Replace this stub with `useAudioChapters(versionId)` once the
+  // audio chapter hooks from Phase 1 are available.
+  const audioChapters: AudioChapter[] = [];
+  const isLoading = false as boolean;
+  const error = null as Error | null;
 
   /**
    * Audio file upload handler
@@ -36,8 +39,6 @@ export const useListenContentTab = (props: ListenContentTabProps) => {
   };
 
   // Filter only audio chapters
-  const audioChapters = chapters?.filter((ch) => ch.audioUrl) || [];
-
   return {
     audioChapters,
     isLoading,
