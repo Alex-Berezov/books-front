@@ -1,50 +1,148 @@
+import { useState } from 'react';
 import { useSnackbar } from 'notistack';
+import {
+  useAudioChapters,
+  useCreateAudioChapter,
+  useDeleteAudioChapter,
+  useUpdateAudioChapter,
+} from '@/api/hooks';
+import { toUserMessage } from '@/lib/errors';
+import type { AudioChapterFormData } from './AudioChapterModal.types';
 import type { ListenContentTabProps } from './ListenContentTab.types';
 import type { AudioChapter } from '@/types/api-schema';
 
 export const useListenContentTab = (props: ListenContentTabProps) => {
-  const { versionId: _versionId } = props;
+  const { versionId } = props;
   const { enqueueSnackbar } = useSnackbar();
 
-  // TODO (Phase 4): Replace this stub with `useAudioChapters(versionId)` once the
-  // audio chapter hooks from Phase 1 are available.
-  const audioChapters: AudioChapter[] = [];
-  const isLoading = false as boolean;
-  const error = null as Error | null;
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingChapter, setEditingChapter] = useState<AudioChapter | undefined>(undefined);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingChapterId, setDeletingChapterId] = useState<string | null>(null);
 
-  /**
-   * Audio file upload handler
-   */
-  const handleUploadAudio = () => {
-    // TODO (M3.2.3): Implement audio upload
-    enqueueSnackbar('Audio upload not yet implemented', { variant: 'info' });
-  };
+  // API hooks — useAudioChapters returns `{ items, total, page, limit }`
+  const { data, error, isLoading } = useAudioChapters(versionId);
+  const audioChapters = data?.items ?? [];
 
-  /**
-   * Audio chapter creation handler
-   */
+  const createMutation = useCreateAudioChapter();
+  const updateMutation = useUpdateAudioChapter();
+  const deleteMutation = useDeleteAudioChapter();
+
   const handleAddAudioChapter = () => {
-    // TODO (M3.2.3): Implement audio chapter creation
-    enqueueSnackbar('Audio chapter creation not yet implemented', { variant: 'info' });
+    setEditingChapter(undefined);
+    setIsModalOpen(true);
   };
 
-  /**
-   * Audio chapter edit handler
-   */
   const handleEditAudioChapter = (chapterId: string) => {
-    // TODO (M3.2.3): Implement audio chapter editing
-    enqueueSnackbar(`Audio chapter editing not yet implemented (ID: ${chapterId})`, {
-      variant: 'info',
-    });
+    const chapter = audioChapters.find((c) => c.id === chapterId);
+    if (chapter) {
+      setEditingChapter(chapter);
+      setIsModalOpen(true);
+    }
   };
 
-  // Filter only audio chapters
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingChapter(undefined);
+  };
+
+  const handleSaveAudioChapter = async (formData: AudioChapterFormData) => {
+    try {
+      if (editingChapter) {
+        await updateMutation.mutateAsync({
+          audioChapterId: editingChapter.id,
+          bookVersionId: versionId,
+          data: {
+            number: formData.number,
+            title: formData.title,
+            audioUrl: formData.audioUrl,
+            mediaId: formData.mediaId ?? null,
+            duration: formData.duration,
+            description: formData.description ?? null,
+            transcript: formData.transcript ?? null,
+          },
+        });
+        enqueueSnackbar('Audio chapter updated', { variant: 'success' });
+      } else {
+        await createMutation.mutateAsync({
+          bookVersionId: versionId,
+          data: {
+            number: formData.number,
+            title: formData.title,
+            audioUrl: formData.audioUrl,
+            mediaId: formData.mediaId ?? null,
+            duration: formData.duration,
+            description: formData.description ?? null,
+            transcript: formData.transcript ?? null,
+          },
+        });
+        enqueueSnackbar('Audio chapter created', { variant: 'success' });
+      }
+      handleCloseModal();
+    } catch (err) {
+      console.error('Failed to save audio chapter:', err);
+      enqueueSnackbar(toUserMessage(err), { variant: 'error' });
+    }
+  };
+
+  const handleDeleteAudioChapter = (chapterId: string) => {
+    setDeletingChapterId(chapterId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeletingChapterId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingChapterId) return;
+    try {
+      await deleteMutation.mutateAsync({
+        audioChapterId: deletingChapterId,
+        bookVersionId: versionId,
+      });
+      enqueueSnackbar('Audio chapter deleted', { variant: 'success' });
+      handleCloseDeleteModal();
+    } catch (err) {
+      console.error('Failed to delete audio chapter:', err);
+      enqueueSnackbar(toUserMessage(err), { variant: 'error' });
+    }
+  };
+
+  // Empty-state upload entry point simply opens the create modal — the
+  // AudioPicker inside handles the actual file upload.
+  const handleUploadAudio = () => {
+    handleAddAudioChapter();
+  };
+
+  const nextChapterNumber =
+    audioChapters.length > 0 ? Math.max(...audioChapters.map((c) => c.number)) + 1 : 1;
+
+  const totalDurationSeconds = audioChapters.reduce((sum, c) => sum + (c.duration ?? 0), 0);
+
   return {
     audioChapters,
     isLoading,
-    error,
-    handleUploadAudio,
+    error: (error as Error | null) ?? null,
+    // Modal state
+    isModalOpen,
+    editingChapter,
+    isDeleteModalOpen,
+    nextChapterNumber,
+    totalDurationSeconds,
+    // Handlers
     handleAddAudioChapter,
     handleEditAudioChapter,
+    handleDeleteAudioChapter,
+    handleCloseModal,
+    handleSaveAudioChapter,
+    handleCloseDeleteModal,
+    handleConfirmDelete,
+    handleUploadAudio,
+    // Loading states
+    isSubmitting: createMutation.isPending || updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 };

@@ -113,3 +113,11 @@
   font-size: $font-size-sm;
   margin-top: $spacing-sm;
 }
+
+.totalDuration {
+  margin-top: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  text-align: right;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
