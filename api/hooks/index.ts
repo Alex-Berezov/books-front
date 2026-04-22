@@ -38,6 +38,17 @@ export {
   useReorderChapters,
 } from './useChapters';
 
+// Audio Chapters
+export {
+  audioChapterKeys,
+  useAudioChapter,
+  useAudioChapters,
+  useCreateAudioChapter,
+  useDeleteAudioChapter,
+  useReorderAudioChapters,
+  useUpdateAudioChapter,
+} from './useAudioChapters';
+
 // Categories
 export {
   categoryKeys,
