@@ -1,0 +1,120 @@
+@import '@/styles/tokens.scss';
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-xs;
+  padding: $spacing-lg;
+  border: 2px dashed $color-border-base;
+  border-radius: $border-radius-base;
+  background-color: $color-background-secondary;
+  color: $color-text-secondary;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  &:hover,
+  &.dragActive {
+    border-color: $color-primary;
+    background-color: rgba($color-primary, 0.04);
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.dropzoneTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.dropzoneHint {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.selected {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  background-color: $color-background-primary;
+}
+
+.selectedHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+}
+
+.selectedName {
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  word-break: break-all;
+}
+
+.selectedMeta {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.selectedUrl {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  word-break: break-all;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.progressBar {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  background-color: $color-background-secondary;
+  border-radius: $border-radius-base;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: $color-primary;
+  transition: width 0.15s ease;
+}
+
+.progressLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.error {
+  font-size: $font-size-xs;
+  color: $color-error;
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
