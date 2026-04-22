@@ -52,6 +52,14 @@ export {
 // Uploads
 export { uploadsKeys, useUploadsLimits } from './useUploadsLimits';
 
+// Public audio (player)
+export {
+  publicAudioKeys,
+  usePublicAudioChapters,
+  useRecordView,
+  useUpdateAudioProgress,
+} from './usePublicAudio';
+
 // Categories
 export {
   categoryKeys,

@@ -130,8 +130,12 @@ export type {
   AddToBookshelfRequest,
   BookshelfItem,
   ReadingProgress,
+  UpdateAudioProgressRequest,
   UpdateProgressRequest,
 } from './bookshelf';
+
+// Views
+export type { RecordViewRequest, ViewSource } from './views';
 
 // Comments
 export type {

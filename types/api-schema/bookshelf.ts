@@ -49,3 +49,16 @@ export interface UpdateProgressRequest {
   position: number;
   percentage: number;
 }
+
+/**
+ * Request body for `PUT /me/progress/:versionId` — audio variant.
+ *
+ * See FRONTEND_ITER2_CONTRACT.md §7.3. All fields are optional; the backend
+ * patches whichever fields are sent.
+ */
+export interface UpdateAudioProgressRequest {
+  /** Chapter `number` (1..n) of the currently playing audio chapter. */
+  audioChapterNumber?: number;
+  /** Playback position in seconds (float >= 0). */
+  position?: number;
+}
