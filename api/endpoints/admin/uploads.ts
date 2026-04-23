@@ -174,11 +174,11 @@ export const uploadAudioFile = async (
 
   await uploadBinaryWithProgress(presign.uploadUrl, presign.token, file, options);
 
-  const { url } = await resolveUploadedUrl(presign.key);
+  const { publicUrl } = await resolveUploadedUrl(presign.key);
 
   return confirmUpload({
     key: presign.key,
-    url,
+    url: publicUrl,
     contentType,
     size: file.size,
   });

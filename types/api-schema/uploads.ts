@@ -79,7 +79,8 @@ export interface PresignUploadResponse {
  * into its public URL after a successful presigned upload.
  */
 export interface UploadsConfirmResponse {
-  url: string;
+  key: string;
+  publicUrl: string;
 }
 
 /**
