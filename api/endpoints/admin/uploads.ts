@@ -7,9 +7,9 @@
  *     POST /media/upload (multipart)          → MediaAsset
  *
  *   Variant B (presigned, recommended for audio):
- *     POST /uploads/presign  { key, contentType, size }   → { token, url, key }
- *     POST /uploads/direct   (binary body + Bearer token) → 204
- *     POST /media/confirm    { key, contentType, size }   → MediaAsset
+ *     POST /uploads/presign  { type: 'audio' | 'cover', contentType, size } → { token, uploadUrl, key }
+ *     POST /uploads/direct   (binary body + X-Upload-Token header)          → 201
+ *     POST /media/confirm    { key, contentType, size }                     → MediaAsset
  *
  * `uploadAudioFile` orchestrates Variant B with an `onProgress` callback so
  * callers can drive a progress bar.
@@ -58,8 +58,9 @@ export interface UploadProgressOptions {
 }
 
 /**
- * PUT the binary body to a presigned URL using XHR to get upload progress.
+ * POST the binary body to a presigned URL using XHR to get upload progress.
  *
+ * Auth is conveyed via `X-Upload-Token` (scoped, short-lived).
  * Resolves on HTTP 2xx. Rejects with `ApiError` on non-2xx or transport error.
  */
 const uploadBinaryWithProgress = (
@@ -71,7 +72,7 @@ const uploadBinaryWithProgress = (
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.setRequestHeader('X-Upload-Token', token);
     if (file.type) {
       xhr.setRequestHeader('Content-Type', file.type);
     }
@@ -132,21 +133,12 @@ const uploadBinaryWithProgress = (
 };
 
 /**
- * Build a storage key for an audio upload.
- *
- * The backend may namespace / rewrite it; the final key is whatever
- * `presign` returns. We just give it a sensible default.
- */
-const buildAudioStorageKey = (file: File): string => {
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '_');
-  return `audio/${Date.now()}-${safeName}`;
-};
-
-/**
  * Full audio-upload flow (Variant B) with progress reporting.
  *
  * 1. `POST /uploads/presign` — obtain the upload URL + scoped token.
- * 2. `POST /uploads/direct` — stream the file (XHR, progress events).
+ *    Backend generates the storage key; we only declare `type: 'audio'`.
+ * 2. `POST /uploads/direct` — stream the file (XHR, progress events,
+ *    `X-Upload-Token` header).
  * 3. `POST /media/confirm` — backend kicks off ffprobe.
  *
  * Note: `MediaAsset.duration` may still be `null` right after confirm —
@@ -158,16 +150,15 @@ export const uploadAudioFile = async (
   file: File,
   options: UploadProgressOptions = {}
 ): Promise<MediaAsset> => {
-  const key = buildAudioStorageKey(file);
   const contentType = file.type || 'audio/mpeg';
 
   const presign = await presignUpload({
-    key,
+    type: 'audio',
     contentType,
     size: file.size,
   });
 
-  await uploadBinaryWithProgress(presign.url, presign.token, file, options);
+  await uploadBinaryWithProgress(presign.uploadUrl, presign.token, file, options);
 
   return confirmUpload({
     key: presign.key,

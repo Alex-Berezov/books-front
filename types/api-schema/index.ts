@@ -108,6 +108,7 @@ export type {
   MediaAsset,
   PresignUploadRequest,
   PresignUploadResponse,
+  UploadAssetType,
   UploadLimits,
   UploadLimitsCategory,
 } from './uploads';
