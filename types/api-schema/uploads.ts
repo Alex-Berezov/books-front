@@ -75,10 +75,22 @@ export interface PresignUploadResponse {
 }
 
 /**
+ * Response of `POST /uploads/confirm?key=...` — resolves the storage key
+ * into its public URL after a successful presigned upload.
+ */
+export interface UploadsConfirmResponse {
+  url: string;
+}
+
+/**
  * Request body for `POST /media/confirm`.
+ *
+ * `url` is required by the backend validator (must be a well-formed URL).
+ * Obtain it from `POST /uploads/confirm?key=...`.
  */
 export interface ConfirmUploadRequest {
   key: string;
+  url: string;
   contentType: string;
   size: number;
 }

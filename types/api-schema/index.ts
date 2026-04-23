@@ -111,6 +111,7 @@ export type {
   UploadAssetType,
   UploadLimits,
   UploadLimitsCategory,
+  UploadsConfirmResponse,
 } from './uploads';
 
 // Pages (CMS)

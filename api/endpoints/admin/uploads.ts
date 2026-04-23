@@ -7,9 +7,10 @@
  *     POST /media/upload (multipart)          → MediaAsset
  *
  *   Variant B (presigned, recommended for audio):
- *     POST /uploads/presign  { type: 'audio' | 'cover', contentType, size } → { token, uploadUrl, key }
- *     POST /uploads/direct   (binary body + X-Upload-Token header)          → 201
- *     POST /media/confirm    { key, contentType, size }                     → MediaAsset
+ *     POST /uploads/presign        { type, contentType, size }            → { token, uploadUrl, key }
+ *     POST /uploads/direct         (binary + X-Upload-Token header)       → 201
+ *     POST /uploads/confirm?key=…                                          → { url }
+ *     POST /media/confirm          { key, url, contentType, size }        → MediaAsset
  *
  * `uploadAudioFile` orchestrates Variant B with an `onProgress` callback so
  * callers can drive a progress bar.
@@ -24,6 +25,7 @@ import type {
   PresignUploadRequest,
   PresignUploadResponse,
   UploadLimits,
+  UploadsConfirmResponse,
 } from '@/types/api-schema';
 
 /**
@@ -45,6 +47,17 @@ export const presignUpload = async (data: PresignUploadRequest): Promise<Presign
  */
 export const confirmUpload = async (data: ConfirmUploadRequest): Promise<MediaAsset> => {
   return httpPostAuth<MediaAsset>('/media/confirm', data);
+};
+
+/**
+ * Resolve the public URL for a key after a successful presigned upload.
+ *
+ * This must be called between `/uploads/direct` and `/media/confirm`: the
+ * backend validator on `/media/confirm` requires a well-formed `url`.
+ */
+export const resolveUploadedUrl = async (key: string): Promise<UploadsConfirmResponse> => {
+  const search = new URLSearchParams({ key }).toString();
+  return httpPostAuth<UploadsConfirmResponse>(`/uploads/confirm?${search}`, undefined);
 };
 
 /**
@@ -139,7 +152,8 @@ const uploadBinaryWithProgress = (
  *    Backend generates the storage key; we only declare `type: 'audio'`.
  * 2. `POST /uploads/direct` — stream the file (XHR, progress events,
  *    `X-Upload-Token` header).
- * 3. `POST /media/confirm` — backend kicks off ffprobe.
+ * 3. `POST /uploads/confirm?key=…` — resolve the public URL for the key.
+ * 4. `POST /media/confirm` — create/update `MediaAsset`, kicks off ffprobe.
  *
  * Note: `MediaAsset.duration` may still be `null` right after confirm —
  * re-fetch the asset (or rely on ffprobe settling within ~500 ms) if the
@@ -160,8 +174,11 @@ export const uploadAudioFile = async (
 
   await uploadBinaryWithProgress(presign.uploadUrl, presign.token, file, options);
 
+  const { url } = await resolveUploadedUrl(presign.key);
+
   return confirmUpload({
     key: presign.key,
+    url,
     contentType,
     size: file.size,
   });
