@@ -1,0 +1,8 @@
+test(audio): cover admin endpoints + hooks, restore coverage thresholds to 70/70/60/50
+
+- __tests__/api/endpoints/admin/audioChapters.test.ts: CRUD + reorder + 403
+- __tests__/api/endpoints/admin/uploads.test.ts: presigned flow, X-Upload-Token contract, progress, AbortSignal, 4xx/5xx propagation, one-step multipart (XHR stub)
+- __tests__/api/hooks/useAudioChapters.test.tsx: query keys, list/detail, create/update/delete/reorder invalidation + onError
+- setupTests.ts: add jsdom shims (HTMLMediaElement.play/pause/load, URL.createObjectURL, ResizeObserver, matchMedia)
+- vitest.config.ts: restore thresholds to 70/70/60/50
+- docs/audio-feature/IMPLEMENTATION_NOTES.md: mark Phase 7.5 done
