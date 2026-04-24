@@ -1,7 +1,7 @@
 /**
  * Types for view tracking endpoint.
  *
- * `POST /views` records a view for analytics. See FRONTEND_ITER2_CONTRACT.md §7.1.
+ * `POST /views` records a view for analytics. See books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md §7.1.
  * Anonymous views are allowed; authenticated views attach the user automatically.
  */
 

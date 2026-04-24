@@ -1,7 +1,7 @@
 /**
  * Upload Endpoints
  *
- * Implements the upload flow described in `FRONTEND_ITER2_CONTRACT.md` §4:
+ * Implements the upload flow described in `books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md` §4:
  *
  *   Variant A (one-step, small files):
  *     POST /media/upload (multipart)          → MediaAsset

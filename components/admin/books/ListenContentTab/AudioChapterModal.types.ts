@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { AudioChapter } from '@/types/api-schema';
 
 /**
- * Hard limits mirroring the backend validation (see FRONTEND_ITER2_CONTRACT.md §3).
+ * Hard limits mirroring the backend validation (see books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md §3).
  */
 export const AUDIO_TITLE_MAX = 255;
 export const AUDIO_DESCRIPTION_MAX = 5000;

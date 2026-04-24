@@ -1,7 +1,7 @@
 /**
  * Public audio endpoints.
  *
- * See FRONTEND_ITER2_CONTRACT.md §3 (public list), §7.1 (`POST /views`),
+ * See books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md §3 (public list), §7.1 (`POST /views`),
  * §7.3 (`PUT /me/progress/:versionId` audio variant).
  */
 

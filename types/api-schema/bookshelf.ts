@@ -53,7 +53,7 @@ export interface UpdateProgressRequest {
 /**
  * Request body for `PUT /me/progress/:versionId` — audio variant.
  *
- * See FRONTEND_ITER2_CONTRACT.md §7.3. All fields are optional; the backend
+ * See books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md §7.3. All fields are optional; the backend
  * patches whichever fields are sent.
  */
 export interface UpdateAudioProgressRequest {

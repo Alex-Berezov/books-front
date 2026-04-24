@@ -1,7 +1,7 @@
 /**
  * Types for Uploads and MediaAsset endpoints
  *
- * See `FRONTEND_ITER2_CONTRACT.md` §4 (MediaAsset) and §4.3-4.4 (upload flow).
+ * See `books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md` §4 (MediaAsset) and §4.3-4.4 (upload flow).
  */
 
 import type { ISODate, UUID } from './common';
