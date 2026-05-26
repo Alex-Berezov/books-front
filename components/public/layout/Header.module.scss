@@ -1,0 +1,216 @@
+@import '@/styles/tokens.scss';
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: var(--bibliaris-green);
+  color: var(--bibliaris-green-foreground);
+  box-shadow: $shadow-sm;
+  width: 100%;
+}
+
+.container {
+  max-width: $layout-max-width-xl;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+.topRow {
+  display: flex;
+  height: 56px;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.logoIcon {
+  color: var(--gold);
+}
+
+.logoText {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+}
+
+.searchContainer {
+  display: none;
+  flex: 1;
+  max-width: 400px;
+
+  @media (min-width: $breakpoint-sm) {
+    display: flex;
+  }
+}
+
+.searchInput {
+  :global {
+    .ant-input {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+      border-color: rgba(255, 255, 255, 0.2) !important;
+      color: var(--bibliaris-green-foreground) !important;
+
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.5) !important;
+      }
+
+      &:focus {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        border-color: rgba(255, 255, 255, 0.4) !important;
+      }
+    }
+
+    .ant-input-search-button {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      border-color: rgba(255, 255, 255, 0.2) !important;
+      color: var(--gold) !important;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.25) !important;
+      }
+    }
+  }
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.mobileMenuBtn {
+  color: var(--bibliaris-green-foreground) !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  @media (min-width: $breakpoint-sm) {
+    display: none !important;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+}
+
+.mobileSearchBtn {
+  color: var(--bibliaris-green-foreground) !important;
+
+  @media (min-width: $breakpoint-sm) {
+    display: none !important;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+}
+
+.desktopAudioBtn {
+  color: var(--bibliaris-green-foreground) !important;
+  display: none !important;
+
+  @media (min-width: $breakpoint-sm) {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+}
+
+.actionBtn {
+  color: var(--bibliaris-green-foreground) !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+}
+
+.signInBtn {
+  background-color: var(--gold) !important;
+  border-color: var(--gold) !important;
+  color: var(--gold-foreground) !important;
+  font-weight: $font-weight-medium;
+
+  &:hover {
+    opacity: 0.9 !important;
+  }
+}
+
+.desktopNav {
+  display: none;
+  align-items: center;
+  gap: $spacing-sm;
+  padding-bottom: $spacing-sm;
+
+  @media (min-width: $breakpoint-sm) {
+    display: flex;
+  }
+}
+
+.navLink {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-base;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.drawer {
+  :global {
+    .ant-drawer-content {
+      background-color: var(--bibliaris-green) !important;
+      color: var(--bibliaris-green-foreground) !important;
+    }
+    .ant-drawer-header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    .ant-drawer-title {
+      color: var(--gold) !important;
+    }
+    .ant-drawer-close {
+      color: var(--bibliaris-green-foreground) !important;
+    }
+  }
+}
+
+.mobileNav {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.mobileNavLink {
+  color: var(--bibliaris-green-foreground);
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  transition: background-color $transition-fast;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+  }
+}

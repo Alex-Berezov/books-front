@@ -1,8 +1,11 @@
+import { ConfigProvider } from 'antd';
 import { notFound } from 'next/navigation';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Footer } from '@/components/public/layout/Footer';
+import { Header } from '@/components/public/layout/Header';
 import { isSupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import styles from '@/styles/layouts.module.scss';
+import { colors } from '@/styles/tokens';
 
 type Props = {
   children: React.ReactNode;
@@ -33,17 +36,19 @@ export default async function PublicLayout({ children, params }: Props) {
   }
 
   return (
-    <div className={styles.publicLayout}>
-      <header className={styles.publicHeader}>
-        <h1>Bibliaris</h1>
-        <LanguageSwitcher />
-      </header>
-
-      <main className={styles.publicMain}>{children}</main>
-
-      <footer className={styles.publicFooter}>
-        <p>© 2025 Bibliaris. All rights reserved.</p>
-      </footer>
-    </div>
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: colors.publicPrimary,
+          borderRadius: 8,
+        },
+      }}
+    >
+      <div className={styles.publicLayout}>
+        <Header />
+        <main className={styles.publicMain}>{children}</main>
+        <Footer />
+      </div>
+    </ConfigProvider>
   );
 }

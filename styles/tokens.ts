@@ -37,6 +37,23 @@ export const colors = {
   borderLight: '#f0f0f0',
   borderBase: '#d9d9d9',
   borderDark: '#434343',
+
+  // Public Site (BIBLIARIS)
+  publicPrimary: 'oklch(0.55 0.13 68)',
+  publicPrimaryForeground: 'oklch(0.99 0.005 75)',
+  bibliarisGreen: 'oklch(0.28 0.04 140)',
+  bibliarisGreenForeground: 'oklch(0.95 0.01 80)',
+  gold: 'oklch(0.72 0.16 80)',
+  goldForeground: 'oklch(0.2 0.04 65)',
+  publicBackground: 'oklch(0.98 0.008 75)',
+  publicForeground: 'oklch(0.2 0.02 60)',
+
+  // Public Site Dark Mode
+  publicPrimaryDark: 'oklch(0.65 0.14 70)',
+  bibliarisGreenDark: 'oklch(0.22 0.04 140)',
+  goldDark: 'oklch(0.68 0.15 78)',
+  publicBackgroundDark: 'oklch(0.14 0.015 60)',
+  publicForegroundDark: 'oklch(0.95 0.01 75)',
 } as const;
 
 export const spacing = {

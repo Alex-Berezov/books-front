@@ -114,3 +114,21 @@ $breakpoint-sm: 768px;
 $breakpoint-md: 1024px;
 $breakpoint-lg: 1280px;
 $breakpoint-xl: 1536px;
+
+// Public Site (BIBLIARIS) Theme Tokens
+$color-public-primary: oklch(0.55 0.13 68); // Terracotta #b05b35
+$color-public-primary-foreground: oklch(0.99 0.005 75);
+$color-bibliaris-green: oklch(0.28 0.04 140); // Dark Green #263f2e
+$color-bibliaris-green-foreground: oklch(0.95 0.01 80);
+$color-gold: oklch(0.72 0.16 80); // Gold #c89f55
+$color-gold-foreground: oklch(0.2 0.04 65);
+$color-public-background: oklch(0.98 0.008 75);
+$color-public-foreground: oklch(0.2 0.02 60);
+
+// Dark Mode overrides for public site (used via custom selectors/classes)
+$color-public-primary-dark: oklch(0.65 0.14 70);
+$color-bibliaris-green-dark: oklch(0.22 0.04 140);
+$color-gold-dark: oklch(0.68 0.15 78);
+$color-public-background-dark: oklch(0.14 0.015 60);
+$color-public-foreground-dark: oklch(0.95 0.01 75);
+

@@ -4,6 +4,32 @@
   margin: 0;
 }
 
+:root {
+  --radius: 0.5rem;
+  --public-background: oklch(0.98 0.008 75);
+  --public-foreground: oklch(0.2 0.02 60);
+  --public-primary: oklch(0.55 0.13 68);
+  --public-primary-foreground: oklch(0.99 0.005 75);
+  --bibliaris-green: oklch(0.28 0.04 140);
+  --bibliaris-green-foreground: oklch(0.95 0.01 80);
+  --gold: oklch(0.72 0.16 80);
+  --gold-foreground: oklch(0.2 0.04 65);
+  --public-border: oklch(0.88 0.015 72);
+}
+
+.dark {
+  --public-background: oklch(0.14 0.015 60);
+  --public-foreground: oklch(0.95 0.01 75);
+  --public-primary: oklch(0.65 0.14 70);
+  --public-primary-foreground: oklch(0.14 0.015 60);
+  --bibliaris-green: oklch(0.22 0.04 140);
+  --bibliaris-green-foreground: oklch(0.92 0.01 80);
+  --gold: oklch(0.68 0.15 78);
+  --gold-foreground: oklch(0.14 0.04 65);
+  --public-border: oklch(1 0 0 / 10%);
+}
+
+
 html,
 body {
   max-width: 100vw;

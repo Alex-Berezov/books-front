@@ -1,0 +1,117 @@
+@import '@/styles/tokens.scss';
+
+.footer {
+  background-color: var(--bibliaris-green);
+  color: var(--bibliaris-green-foreground);
+  margin-top: $spacing-xxl;
+  width: 100%;
+}
+
+.container {
+  max-width: $layout-max-width-xl;
+  margin: 0 auto;
+  padding: $spacing-xxl $spacing-md $spacing-xl;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-xl;
+
+  @media (min-width: $breakpoint-sm) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.about {
+  @media (min-width: $breakpoint-sm) {
+    grid-column: span 1;
+  }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+}
+
+.logoIcon {
+  color: var(--gold);
+}
+
+.logoText {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+}
+
+.description {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: $line-height-relaxed;
+}
+
+.sectionTitle {
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-base;
+  margin-bottom: $spacing-md;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.linksList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.link {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color $transition-fast;
+  text-decoration: none;
+
+  &:hover {
+    color: #ffffff;
+  }
+}
+
+.bottomRow {
+  margin-top: $spacing-xxl;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+
+  @media (min-width: $breakpoint-sm) {
+    flex-direction: row;
+  }
+}
+
+.copyright {
+  font-size: $font-size-xs;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.legalLinks {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.legalLink {
+  font-size: $font-size-xs;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color $transition-fast;
+  text-decoration: none;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
