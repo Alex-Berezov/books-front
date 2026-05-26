@@ -1,0 +1,67 @@
+@import '@/styles/tokens.scss';
+
+.section {
+  padding: $spacing-md 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+  margin: 0;
+}
+
+.viewMoreBtn {
+  color: var(--public-primary) !important;
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+  font-weight: $font-weight-medium;
+  padding: 0 $spacing-xs !important;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+  }
+}
+
+.carousel {
+  display: flex;
+  gap: $spacing-md;
+  overflow-x: auto;
+  padding-bottom: $spacing-sm;
+  scrollbar-width: none; // Firefox
+
+  &::-webkit-scrollbar {
+    display: none; // Chrome, Safari
+  }
+}
+
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  width: 144px;
+  flex-shrink: 0;
+}
+
+.skeletonCover {
+  width: 144px !important;
+  height: 208px !important;
+  border-radius: $border-radius-lg !important;
+}
+
+.empty {
+  width: 100%;
+  padding: $spacing-xl 0;
+  text-align: center;
+  color: var(--public-foreground);
+  opacity: 0.6;
+  font-size: $font-size-sm;
+}

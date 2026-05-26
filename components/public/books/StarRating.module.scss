@@ -1,0 +1,32 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.stars {
+  display: flex;
+  align-items: center;
+}
+
+.starIcon {
+  stroke-width: 2px;
+}
+
+.filled {
+  fill: var(--gold) !important;
+  color: var(--gold) !important;
+}
+
+.empty {
+  fill: transparent !important;
+  color: var(--public-border) !important;
+}
+
+.count {
+  font-size: $font-size-xs;
+  color: var(--public-foreground);
+  opacity: 0.6;
+}

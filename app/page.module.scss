@@ -1,18 +1,233 @@
 @import '@/styles/tokens.scss';
+@import '@/styles/mixins.scss';
 
-.pageContainer {
-  padding: $spacing-xxl;
+.main {
+  min-height: 100vh;
+  background-color: var(--public-background);
+  color: var(--public-foreground);
+  overflow-x: hidden;
+}
+
+.bannerContainer {
+  background: linear-gradient(to bottom, rgba(38, 63, 46, 0.1) 0%, transparent 100%);
+  padding: $spacing-xl 0;
+
+  @media (min-width: $breakpoint-sm) {
+    padding: $spacing-xxl 0 $spacing-xl 0;
+  }
+}
+
+.bannerContent {
+  max-width: $layout-max-width-xl;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-xl;
+
+  @media (min-width: $breakpoint-sm) {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: $spacing-lg $spacing-md;
+  }
+}
+
+.bannerText {
+  flex: 1;
+  max-width: 600px;
   text-align: center;
 
-  h1 {
-    color: $color-text-primary;
-    font-size: $font-size-xxl;
-    margin-bottom: $spacing-lg;
+  @media (min-width: $breakpoint-sm) {
+    text-align: left;
   }
+}
 
-  p {
-    color: $color-text-secondary;
-    font-size: $font-size-base;
-    margin-bottom: $spacing-md;
+.bannerTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  margin-bottom: $spacing-md;
+  color: var(--public-foreground);
+
+  @media (min-width: $breakpoint-sm) {
+    font-size: $font-size-xxl;
   }
+}
+
+.bannerSubtitle {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.8;
+  margin-bottom: $spacing-lg;
+  line-height: $line-height-base;
+
+  @media (min-width: $breakpoint-sm) {
+    font-size: $font-size-base;
+  }
+}
+
+.bannerActions {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-sm;
+
+  @media (min-width: $breakpoint-sm) {
+    justify-content: flex-start;
+  }
+}
+
+.primaryBtn {
+  background-color: var(--public-primary) !important;
+  border-color: var(--public-primary) !important;
+  color: var(--public-primary-foreground) !important;
+
+  &:hover {
+    opacity: 0.9 !important;
+  }
+}
+
+.secondaryBtn {
+  background-color: transparent !important;
+  border-color: var(--public-primary) !important;
+  color: var(--public-primary) !important;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+  }
+}
+
+.bookStack {
+  display: none;
+  align-items: flex-end;
+  gap: $spacing-sm;
+
+  @media (min-width: $breakpoint-sm) {
+    display: flex;
+  }
+}
+
+.stackSkeleton {
+  width: 90px !important;
+  border-radius: $border-radius-lg !important;
+}
+
+.stackBook {
+  width: 90px;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-md;
+  overflow: hidden;
+  transition: transform $transition-fast, box-shadow $transition-fast;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: $shadow-lg;
+  }
+}
+
+.stackCover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sectionsContainer {
+  max-width: $layout-max-width-xl;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+// Genres Section
+.genresSection {
+  padding: $spacing-md 0;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+  margin: 0;
+}
+
+.viewMoreBtn {
+  color: var(--public-primary) !important;
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+  font-weight: $font-weight-medium;
+  padding: 0 $spacing-xs !important;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+  }
+}
+
+.genresCarousel {
+  display: flex;
+  gap: $spacing-md;
+  overflow-x: auto;
+  padding-bottom: $spacing-sm;
+  scrollbar-width: none; // Firefox
+
+  &::-webkit-scrollbar {
+    display: none; // Chrome, Safari
+  }
+}
+
+.genreSkeletonCard {
+  width: 160px !important;
+  height: 96px !important;
+  border-radius: $border-radius-xl !important;
+  flex-shrink: 0;
+}
+
+.genreCard {
+  position: relative;
+  width: 160px;
+  height: 96px;
+  border-radius: $border-radius-xl;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: $spacing-sm;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: transform $transition-fast;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+.genreOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
+  z-index: 1;
+}
+
+.genreInfo {
+  position: relative;
+  z-index: 2;
+  color: #ffffff;
+}
+
+.genreName {
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  margin: 0;
+  line-height: $line-height-tight;
+}
+
+.genreCount {
+  font-size: $font-size-xs;
+  margin: 0;
+  opacity: 0.7;
 }
