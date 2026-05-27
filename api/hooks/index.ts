@@ -95,3 +95,9 @@ export {
 
 // Users
 export { userKeys, useUsers } from './useUsers';
+
+// Progress
+export { useUpdateTextProgress } from './useProgress';
+
+// Public Chapters
+export { usePublicChapters } from './usePublic';

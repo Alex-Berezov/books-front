@@ -14,7 +14,19 @@ import type {
   CategoryBooksResponse,
   TagBooksResponse,
   SeoResolveResponse,
+  ChapterDetail,
 } from '@/types/api-schema';
+
+/**
+ * Get public chapters list for a book version
+ *
+ * @param versionId - Book version ID
+ * @returns Array of chapters
+ */
+export const getPublicChapters = async (versionId: string): Promise<ChapterDetail[]> => {
+  const endpoint = `/versions/${versionId}/chapters`;
+  return httpGet<ChapterDetail[]>(endpoint);
+};
 
 /**
  * Get book overview

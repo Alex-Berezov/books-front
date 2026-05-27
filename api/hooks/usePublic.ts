@@ -16,6 +16,7 @@ import type {
   CategoryBooksResponse,
   TagBooksResponse,
   SeoResolveResponse,
+  ChapterDetail,
 } from '@/types/api-schema';
 
 /**
@@ -203,6 +204,26 @@ export const useSeoResolve = (
     queryKey: queryKeys.seoResolve(lang, type, id),
     queryFn: () => publicApi.resolveSeo(lang, type, id),
     staleTime: staleTimeConfig.seo,
+    ...options,
+  });
+};
+
+/**
+ * Hook for getting public chapters of a book version
+ *
+ * @param versionId - Book version ID
+ * @param options - React Query options
+ * @returns Query result with chapters list
+ */
+export const usePublicChapters = (
+  versionId: string,
+  options?: Omit<UseQueryOptions<ChapterDetail[], ApiError>, 'queryKey' | 'queryFn'>
+): UseQueryResult<ChapterDetail[], ApiError> => {
+  return useQuery<ChapterDetail[], ApiError>({
+    queryKey: ['publicChapters', versionId],
+    queryFn: () => publicApi.getPublicChapters(versionId),
+    staleTime: staleTimeConfig.public,
+    enabled: !!versionId,
     ...options,
   });
 };
