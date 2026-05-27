@@ -14,7 +14,8 @@ interface BookCardProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-function getAuthorSlug(author: string) {
+function getAuthorSlug(author?: string) {
+  if (!author || typeof author !== 'string') return '';
   return encodeURIComponent(author.trim().toLowerCase().replace(/\s+/g, '-'));
 }
 
@@ -68,12 +69,14 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
           {book.title}
         </Link>
 
-        <Link
-          href={`/${lang}/author/${getAuthorSlug(book.author)}`}
-          className={`${styles.author} ${textClass}`}
-        >
-          {book.author}
-        </Link>
+        {book.author && (
+          <Link
+            href={`/${lang}/author/${getAuthorSlug(book.author)}`}
+            className={`${styles.author} ${textClass}`}
+          >
+            {book.author}
+          </Link>
+        )}
 
         {book.rating !== undefined && book.rating !== null && (
           <StarRating rating={book.rating} size="sm" showCount={false} />
