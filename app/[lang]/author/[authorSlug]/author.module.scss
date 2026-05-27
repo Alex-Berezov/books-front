@@ -40,7 +40,7 @@
 .avatar {
   width: 96px;
   height: 96px;
-  border-radius: $border-radius-circle;
+  border-radius: $border-radius-round;
   background-color: var(--public-background);
   border: 1px solid rgba(0, 0, 0, 0.08);
   display: flex;
@@ -62,7 +62,7 @@
 }
 
 .name {
-  font-size: $font-size-3xl;
+  font-size: $font-size-xxl;
   font-weight: $font-weight-bold;
   color: var(--public-foreground);
   margin: 0;
@@ -115,7 +115,7 @@
 
 .empty {
   text-align: center;
-  padding: $spacing-3xl $spacing-md;
+  padding: $spacing-xxl $spacing-md;
   border: 1px dashed rgba(0, 0, 0, 0.1);
   border-radius: $border-radius-lg;
   display: flex;
@@ -123,7 +123,7 @@
   align-items: center;
   gap: $spacing-md;
   max-width: 400px;
-  margin: $spacing-2xl auto;
+  margin: $spacing-xxl auto;
 }
 
 .emptyIcon {

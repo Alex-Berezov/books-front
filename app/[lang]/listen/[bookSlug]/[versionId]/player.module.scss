@@ -49,7 +49,7 @@
   display: flex;
   align-items: center;
   padding: $spacing-sm $spacing-md;
-  border-radius: $border-radius-md;
+  border-radius: $border-radius-lg;
   background-color: transparent;
   border: none;
   text-align: left;
@@ -102,13 +102,13 @@
 .coverContainer {
   width: 220px;
   height: 220px;
-  border-radius: $border-radius-2xl;
+  border-radius: $border-radius-xl;
   box-shadow: $shadow-lg;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: transform $transition-normal;
+  transition: transform $transition-base;
 
   &:hover {
     transform: scale(1.03);
@@ -122,7 +122,7 @@
 }
 
 .coverLetter {
-  font-size: $font-size-6xl;
+  font-size: $font-size-xxxl;
   font-weight: $font-weight-bold;
   color: #ffffff;
   opacity: 0.3;
@@ -252,7 +252,7 @@
   font-size: 11px;
   font-weight: $font-weight-medium;
   padding: 4px $spacing-sm;
-  border-radius: $border-radius-md;
+  border-radius: $border-radius-lg;
   background-color: transparent;
   border: 1px solid rgba(0, 0, 0, 0.1);
   color: var(--public-foreground);
@@ -284,7 +284,7 @@
 }
 
 .skeletonCover {
-  border-radius: $border-radius-2xl !important;
+  border-radius: $border-radius-xl !important;
 }
 
 .skeletonText {

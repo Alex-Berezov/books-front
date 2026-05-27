@@ -90,7 +90,7 @@
 }
 
 .title {
-  font-size: $font-size-3xl;
+  font-size: $font-size-xxl;
   font-weight: $font-weight-bold;
   color: var(--public-foreground);
   margin: 0;
@@ -200,7 +200,7 @@
 
 .tabsWrapper {
   margin-top: $spacing-xl;
-  margin-bottom: $spacing-2xl;
+  margin-bottom: $spacing-xxl;
 }
 
 .tabContent {
@@ -208,7 +208,7 @@
 }
 
 .description {
-  font-size: $font-size-md;
+  font-size: $font-size-base;
   line-height: $line-height-relaxed;
   color: var(--public-foreground);
   opacity: 0.9;
@@ -244,7 +244,7 @@
 
 .relatedSection {
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  padding-top: $spacing-2xl;
+  padding-top: $spacing-xxl;
 }
 
 .sectionTitle {
