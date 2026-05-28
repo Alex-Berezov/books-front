@@ -32,6 +32,14 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
   const coverClass = styles[`cover-${size}`] || styles['cover-md'];
   const textClass = styles[`text-${size}`] || styles['text-md'];
 
+  const currentLangVersion = book.versions?.find((v) => v.language === lang);
+  const displayVersion = currentLangVersion || book.versions?.[0];
+
+  const title = displayVersion?.title || book.title || '';
+  const author = displayVersion?.author || book.author || '';
+  const coverUrl = displayVersion?.coverImageUrl || displayVersion?.coverUrl || book.coverUrl || '';
+  const rating = book.rating !== undefined && book.rating !== null ? book.rating : 5.0;
+
   // Determine if it is a new release (created in last 30 days)
   const isNewRelease =
     new Date().getTime() - new Date(book.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000;
@@ -46,17 +54,12 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
           className={isNewRelease ? styles.showRibbon : styles.hideRibbon}
         >
           <div className={`${styles.coverContainer} ${coverClass}`}>
-            {book.coverUrl ? (
-              <img
-                src={book.coverUrl}
-                alt={book.title}
-                className={styles.coverImage}
-                loading="lazy"
-              />
+            {coverUrl ? (
+              <img src={coverUrl} alt={title} className={styles.coverImage} loading="lazy" />
             ) : (
               <div className={styles.coverPlaceholder}>
                 <BookOpen size={size === 'sm' ? 24 : 32} className={styles.placeholderIcon} />
-                <span className={styles.placeholderText}>{book.title}</span>
+                <span className={styles.placeholderText}>{title}</span>
               </div>
             )}
           </div>
@@ -66,21 +69,19 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
       {/* Book Metadata */}
       <div className={styles.metadata}>
         <Link href={`/${lang}/book/${slug}`} className={`${styles.title} ${textClass}`}>
-          {book.title}
+          {title}
         </Link>
 
-        {book.author && (
+        {author && (
           <Link
-            href={`/${lang}/author/${getAuthorSlug(book.author)}`}
+            href={`/${lang}/author/${getAuthorSlug(author)}`}
             className={`${styles.author} ${textClass}`}
           >
-            {book.author}
+            {author}
           </Link>
         )}
 
-        {book.rating !== undefined && book.rating !== null && (
-          <StarRating rating={book.rating} size="sm" showCount={false} />
-        )}
+        <StarRating rating={rating} size="sm" showCount={false} />
 
         <div className={styles.actions}>
           {hasText && (
