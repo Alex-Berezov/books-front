@@ -117,10 +117,10 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
             <p className={styles.author}>
               by{' '}
               <Link
-                href={`/${supportedLang}/author/${encodeURIComponent(book.author.trim().toLowerCase().replace(/\s+/g, '-'))}`}
+                href={`/${supportedLang}/author/${encodeURIComponent((book.author || '').trim().toLowerCase().replace(/\s+/g, '-'))}`}
                 className={styles.authorLink}
               >
-                {book.author}
+                {book.author || 'Unknown'}
               </Link>
             </p>
 
@@ -236,7 +236,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
               {book.language && (
                 <div className={styles.metaItem}>
                   <Globe size={16} />
-                  <span>Language: {book.language.toUpperCase()}</span>
+                  <span>Language: {(book.language || '').toUpperCase()}</span>
                 </div>
               )}
             </div>
@@ -276,7 +276,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                     )}
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Language</span>
-                      <span className={styles.detailValue}>{book.language.toUpperCase()}</span>
+                      <span className={styles.detailValue}>
+                        {(book.language || '').toUpperCase()}
+                      </span>
                     </div>
                   </div>
                 ),
