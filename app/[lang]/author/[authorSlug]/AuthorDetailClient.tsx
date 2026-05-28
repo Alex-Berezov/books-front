@@ -31,7 +31,9 @@ export default function AuthorDetailClient({ lang, authorSlug, displayName }: Pr
   // Fetch all books to filter by author on the client
   const { data: booksData, isLoading } = useBooks({ limit: 100 });
 
-  const allBooks = booksData?.data || [];
+  const allBooks = (booksData?.data || []).filter((book) =>
+    book.versions?.some((v) => v.status === 'published')
+  );
   const authorBooks = allBooks.filter(
     (b: BookOverview) => b.author && b.author.toLowerCase() === searchName.toLowerCase()
   );

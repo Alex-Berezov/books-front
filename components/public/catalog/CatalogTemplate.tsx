@@ -44,8 +44,8 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   const loading = categorySlug ? loadingCatBooks : loadingAllBooks;
   const currentCategory = categorySlug ? categoryBooksData?.category : null;
   const rawBooks = (
-    categorySlug ? categoryBooksData?.data || [] : allBooksData?.data || []
-  ) as BookOverview[];
+    (categorySlug ? categoryBooksData?.data || [] : allBooksData?.data || []) as BookOverview[]
+  ).filter((book) => book.versions?.some((v) => v.status === 'published'));
 
   // 2. Client-side filtering & sorting (type, sort, search)
   let filteredBooks = [...rawBooks];

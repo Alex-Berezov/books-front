@@ -74,7 +74,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   const textVersion = book.versions?.find((v) => v.type === 'text');
   const audioVersion = book.versions?.find((v) => v.type === 'audio');
 
-  const relatedBooks = (relatedBooksData?.data || []).filter((b) => b.id !== book.id).slice(0, 6);
+  const relatedBooks = (relatedBooksData?.data || [])
+    .filter((b) => b.id !== book.id && b.versions?.some((v) => v.status === 'published'))
+    .slice(0, 6);
 
   const coverBgColor = '#8B7355'; // Fallback background color
 

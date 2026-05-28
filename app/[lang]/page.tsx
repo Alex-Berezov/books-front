@@ -21,7 +21,9 @@ export default function PublicLangPage({ params }: Props) {
   const { data: booksData, isLoading: loadingBooks } = useBooks({ limit: 100 });
   const { data: categoriesData, isLoading: loadingCats } = useCategories({ limit: 50 });
 
-  const allBooks = booksData?.data || [];
+  const allBooks = (booksData?.data || []).filter((book) =>
+    book.versions?.some((v) => v.status === 'published')
+  );
   const categories = categoriesData?.data || [];
 
   // Filter & Sort books
