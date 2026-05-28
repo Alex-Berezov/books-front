@@ -173,10 +173,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   legacyBehavior
                 >
                   <Button
-                    type="primary"
                     size="large"
                     icon={<BookOpen size={18} />}
-                    className={styles.actionBtn}
+                    className={styles.secondaryBtn}
                   >
                     {textVersion.isFree ? 'Read Free' : 'Read'}
                   </Button>
@@ -186,7 +185,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   size="large"
                   icon={<BookOpen size={18} />}
                   disabled
-                  className={styles.actionBtn}
+                  className={styles.secondaryBtn}
                 >
                   Read
                 </Button>
