@@ -10,10 +10,12 @@ import {
   ChevronLeft,
   Calendar,
   Globe,
+  FileText,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useBooks } from '@/api/hooks/useBooks';
+import { useBookSummary } from '@/api/hooks/useBookSummary';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
@@ -45,6 +47,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
 
   // Simple state for bookshelf mockup/placeholder
   const [inBookshelf, setInBookshelf] = useState(false);
+  const [activeTabKey, setActiveTabKey] = useState('about');
 
   if (isLoading && !book) {
     return (
@@ -71,8 +74,13 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
     );
   }
 
-  const textVersion = book.versions?.find((v) => v.type === 'text');
-  const audioVersion = book.versions?.find((v) => v.type === 'audio');
+  const versionIds = book.versionIds;
+  const textVersion = versionIds?.text
+    ? book.versions?.find((v) => v.id === versionIds.text)
+    : null;
+  const audioVersion = versionIds?.audio
+    ? book.versions?.find((v) => v.id === versionIds.audio)
+    : null;
 
   const relatedBooks = (relatedBooksData?.data || [])
     .filter((b) => b.id !== book.id && b.versions?.some((v) => v.status === 'published'))
@@ -133,7 +141,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
               </div>
             )}
 
-            {/* Categories & Tags */}
+            {/* Categories */}
             <div className={styles.tagsContainer}>
               {book.categories?.map((cat) => {
                 const trans =
@@ -150,16 +158,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                       border: '1px solid var(--public-primary)',
                     }}
                   />
-                );
-              })}
-              {book.tags?.map((tag) => {
-                const trans =
-                  tag.translations?.find((t) => t.language === supportedLang) ||
-                  tag.translations?.[0];
-                return (
-                  <span key={tag.id} className={styles.tag}>
-                    #{trans?.name || tag.id}
-                  </span>
                 );
               })}
             </div>
@@ -216,6 +214,23 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                 </Button>
               )}
 
+              {book.hasSummary && (
+                <Button
+                  size="large"
+                  icon={<FileText size={18} />}
+                  className={styles.secondaryBtn}
+                  onClick={() => {
+                    setActiveTabKey('summary');
+                    const el = document.getElementById('book-tabs-section');
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  Summary
+                </Button>
+              )}
+
               <Button
                 size="large"
                 icon={inBookshelf ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
@@ -225,6 +240,27 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                 {inBookshelf ? 'In Bookshelf' : 'Add to Bookshelf'}
               </Button>
             </div>
+
+            {/* Tags (moved below actions) */}
+            {book.tags && book.tags.length > 0 && (
+              <div className={styles.bookTagsContainer}>
+                {book.tags.map((tag) => {
+                  const trans =
+                    tag.translations?.find((t) => t.language === supportedLang) ||
+                    tag.translations?.[0];
+                  const tagName = trans?.name || tag.id;
+                  return (
+                    <Link
+                      key={tag.id}
+                      href={`/${supportedLang}/catalog?q=${encodeURIComponent(tagName)}`}
+                      className={styles.tagButton}
+                    >
+                      {tagName}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Meta details */}
             <div className={styles.metadataList}>
@@ -245,9 +281,10 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
         </div>
 
         {/* Tabs section */}
-        <div className={styles.tabsWrapper}>
+        <div id="book-tabs-section" className={styles.tabsWrapper}>
           <Tabs
-            defaultActiveKey="about"
+            activeKey={activeTabKey}
+            onChange={setActiveTabKey}
             items={[
               {
                 key: 'about',
@@ -284,6 +321,23 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   </div>
                 ),
               },
+              ...(book.hasSummary
+                ? [
+                    {
+                      key: 'summary',
+                      label: 'Summary',
+                      children: (
+                        <div className={styles.tabContent}>
+                          <BookSummaryTab
+                            versionId={
+                              textVersion?.id || audioVersion?.id || book.versions?.[0]?.id || ''
+                            }
+                          />
+                        </div>
+                      ),
+                    },
+                  ]
+                : []),
             ]}
           />
         </div>
@@ -301,5 +355,39 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
         )}
       </div>
     </main>
+  );
+}
+
+function BookSummaryTab({ versionId }: { versionId: string }) {
+  const { data: summaryData, isLoading } = useBookSummary(versionId);
+
+  if (isLoading) {
+    return <Skeleton active paragraph={{ rows: 6 }} />;
+  }
+
+  if (!summaryData) {
+    return <p>No summary available for this version.</p>;
+  }
+
+  return (
+    <div className={styles.summaryContainer}>
+      {summaryData.summary && (
+        <div className={styles.summarySection}>
+          <div dangerouslySetInnerHTML={{ __html: summaryData.summary }} />
+        </div>
+      )}
+      {summaryData.analysis && (
+        <div className={styles.summarySection} style={{ marginTop: '24px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>Analysis</h3>
+          <div dangerouslySetInnerHTML={{ __html: summaryData.analysis }} />
+        </div>
+      )}
+      {summaryData.themes && (
+        <div className={styles.summarySection} style={{ marginTop: '24px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>Themes</h3>
+          <div dangerouslySetInnerHTML={{ __html: summaryData.themes }} />
+        </div>
+      )}
+    </div>
   );
 }

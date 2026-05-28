@@ -54,7 +54,13 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
     const searchLower = search.toLowerCase();
     filteredBooks = filteredBooks.filter(
       (b: BookOverview) =>
-        b.title.toLowerCase().includes(searchLower) || b.author.toLowerCase().includes(searchLower)
+        b.title.toLowerCase().includes(searchLower) ||
+        b.author.toLowerCase().includes(searchLower) ||
+        b.tags?.some(
+          (t) =>
+            t.id.toLowerCase().includes(searchLower) ||
+            t.translations?.some((tr) => tr.name.toLowerCase().includes(searchLower))
+        )
     );
   }
 

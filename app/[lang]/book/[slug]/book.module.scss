@@ -294,3 +294,27 @@
   color: var(--public-foreground);
   opacity: 0.6;
 }
+
+.bookTagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
+}
+
+.tagButton {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: var(--public-foreground) !important;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: $border-radius-round;
+  text-decoration: none;
+  transition: background-color $transition-fast, color $transition-fast;
+
+  &:hover {
+    background-color: var(--public-primary);
+    color: #fff !important;
+  }
+}

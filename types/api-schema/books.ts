@@ -45,6 +45,19 @@ export interface BookOverview {
   versions: VersionPreview[];
   createdAt: ISODate;
   updatedAt: ISODate;
+  versionIds?: {
+    text: string | null;
+    audio: string | null;
+  };
+  hasText?: boolean;
+  hasAudio?: boolean;
+  hasSummary?: boolean;
+  seo?: {
+    main?: SeoData | null;
+    read?: SeoData | null;
+    listen?: SeoData | null;
+    summary?: SeoData | null;
+  } | null;
 }
 
 /**
