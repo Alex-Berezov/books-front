@@ -1,41 +1,230 @@
-/**
- * Sign In page styles
- */
-
 @import '@/styles/tokens.scss';
 
 .container {
   display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--public-background);
+
+  @media (min-width: $breakpoint-sm) {
+    flex-direction: row;
+  }
+}
+
+.sidebar {
+  display: none;
+  background-color: $color-bibliaris-green;
+  color: $color-bibliaris-green-foreground;
+  padding: $spacing-xl;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background: $color-background-secondary;
-  padding: $spacing-lg;
+  width: 40%;
+  position: relative;
+  overflow: hidden;
+
+  @media (min-width: $breakpoint-sm) {
+    display: flex;
+  }
+
+  @media (min-width: $breakpoint-md) {
+    width: 50%;
+  }
+
+  // Elegant decorative background pattern
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(200, 159, 85, 0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+}
+
+.sidebarContent {
+  max-width: 400px;
+  text-align: center;
+  z-index: 1;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+.logoIcon {
+  font-size: 2.5rem;
+  color: $color-gold;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+}
+
+.brandName {
+  font-size: 2.5rem;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.1em;
+  color: $color-gold;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tagline {
+  font-size: $font-size-lg;
+  line-height: $line-height-relaxed;
+  opacity: 0.85;
+  margin-bottom: $spacing-xxl;
+}
+
+.featuresList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  text-align: left;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  font-size: $font-size-base;
+  color: $color-bibliaris-green-foreground;
+
+  .checkIcon {
+    color: $color-gold;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+}
+
+.formSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl $spacing-lg;
 }
 
 .formWrapper {
   width: 100%;
   max-width: 400px;
-  padding: $spacing-xxl;
-  background: $color-background-primary;
-  border-radius: 8px;
-  box-shadow: $shadow-md;
 }
 
-.header {
+.mobileHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
   margin-bottom: $spacing-xl;
-  text-align: center;
 
-  h2 {
-    margin-bottom: $spacing-xs;
+  @media (min-width: $breakpoint-sm) {
+    display: none;
   }
+
+  .logoIcon {
+    font-size: 1.75rem;
+    color: var(--public-primary);
+  }
+
+  .brandName {
+    font-size: 1.5rem;
+    color: var(--public-foreground);
+    letter-spacing: 0.05em;
+  }
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+  margin-bottom: $spacing-xs !important;
+}
+
+.subtitle {
+  color: var(--public-foreground);
+  opacity: 0.6;
+  font-size: $font-size-sm;
+  display: block;
+  margin-bottom: $spacing-xl;
 }
 
 .alert {
   margin-bottom: $spacing-lg;
 }
 
+.form {
+  :global {
+    .ant-form-item-label > label {
+      color: var(--public-foreground);
+      font-weight: $font-weight-medium;
+    }
+
+    .ant-input-affix-wrapper-lg {
+      border-radius: $border-radius-lg;
+      border-color: rgba(0, 0, 0, 0.1);
+
+      &:hover, &-focused {
+        border-color: var(--public-primary);
+      }
+    }
+
+    .ant-btn-primary {
+      background-color: var(--public-primary);
+      border-color: var(--public-primary);
+      border-radius: $border-radius-lg;
+      height: auto;
+      padding: 10px $spacing-lg;
+      font-weight: $font-weight-semibold;
+      box-shadow: 0 4px 12px rgba(var(--public-primary), 0.15);
+
+      &:hover {
+        background-color: var(--public-primary-hover) !important;
+        border-color: var(--public-primary-hover) !important;
+      }
+    }
+  }
+}
+
 .footer {
-  margin-top: $spacing-lg;
+  margin-top: $spacing-xl;
   text-align: center;
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.7;
+
+  a {
+    color: var(--public-primary);
+    font-weight: $font-weight-semibold;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.successScreen {
+  text-align: center;
+  padding: $spacing-xl 0;
+
+  .successIcon {
+    font-size: 4rem;
+    color: $color-success;
+    margin-bottom: $spacing-xl;
+  }
+
+  .successTitle {
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-bold;
+    color: var(--public-foreground);
+    margin-bottom: $spacing-sm !important;
+  }
+
+  .successText {
+    color: var(--public-foreground);
+    opacity: 0.7;
+    margin-bottom: $spacing-xxl;
+  }
 }

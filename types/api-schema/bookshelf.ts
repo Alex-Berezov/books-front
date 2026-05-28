@@ -33,6 +33,8 @@ export interface ReadingProgress {
   userId: UUID;
   versionId: UUID;
   chapterId?: UUID;
+  chapterNumber?: number | null;
+  audioChapterNumber?: number | null;
   position: number; // Position in chapter (offset for text, seconds for audio)
   percentage: number; // Percentage read/listened
   lastReadAt: ISODate;

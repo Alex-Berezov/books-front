@@ -8,7 +8,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/auth';
 import { STAFF_ROLES } from '@/lib/auth/constants';
-import { ADMIN_LANG_REGEX, DEFAULT_REDIRECT_LANG } from '@/lib/middleware.constants';
+import { DEFAULT_REDIRECT_LANG } from '@/lib/middleware.constants';
 
 /**
  * Check if path is admin route
@@ -18,13 +18,18 @@ const isAdminRoute = (pathname: string): boolean => {
 };
 
 /**
- * Extract language from admin path
- *
- * @param pathname - URL path
- * @returns language from path or default language
+ * Check if path is private reader or player route
  */
-const extractLangFromAdminPath = (pathname: string): string => {
-  const match = pathname.match(ADMIN_LANG_REGEX);
+const isPrivateRoute = (pathname: string): boolean => {
+  // Matches /[lang]/read/... or /[lang]/listen/...
+  return /\/(?:read|listen)\//.test(pathname);
+};
+
+/**
+ * Extract language from path (handles admin and public paths)
+ */
+const extractLangFromPath = (pathname: string): string => {
+  const match = pathname.match(/^\/(?:admin\/)?([a-z]{2})/);
   return match ? match[1] : DEFAULT_REDIRECT_LANG;
 };
 
@@ -33,6 +38,17 @@ const extractLangFromAdminPath = (pathname: string): string => {
  */
 export default auth((req) => {
   const { pathname } = req.nextUrl;
+
+  // Protect private routes (read/listen)
+  if (isPrivateRoute(pathname)) {
+    const session = req.auth;
+    if (!session || !session.user) {
+      const lang = extractLangFromPath(pathname);
+      const signInUrl = new URL(`/${lang}/auth/sign-in`, req.url);
+      signInUrl.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(signInUrl);
+    }
+  }
 
   // Check only admin routes
   if (!isAdminRoute(pathname)) {
@@ -44,7 +60,7 @@ export default auth((req) => {
 
   // If no session - redirect to login
   if (!session || !session.user) {
-    const lang = extractLangFromAdminPath(pathname);
+    const lang = extractLangFromPath(pathname);
     const signInUrl = new URL(`/${lang}/auth/sign-in`, req.url);
     signInUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(signInUrl);
@@ -56,7 +72,7 @@ export default auth((req) => {
 
   // If no required role - show 403
   if (!hasStaffRole) {
-    const lang = extractLangFromAdminPath(pathname);
+    const lang = extractLangFromPath(pathname);
     return NextResponse.redirect(new URL(`/${lang}/403`, req.url));
   }
 

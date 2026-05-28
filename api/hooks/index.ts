@@ -97,7 +97,10 @@ export {
 export { userKeys, useUsers } from './useUsers';
 
 // Progress
-export { useUpdateTextProgress } from './useProgress';
+export { useProgress, useUpdateTextProgress } from './useProgress';
 
 // Public Chapters
 export { usePublicChapters } from './usePublic';
+
+// Bookshelf
+export { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from './useBookshelf';

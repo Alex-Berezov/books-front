@@ -13,6 +13,9 @@ vi.mock('next/navigation', () => ({
   useSearchParams: vi.fn(() => ({
     get: vi.fn(),
   })),
+  useParams: vi.fn(() => ({
+    lang: 'en',
+  })),
 }));
 
 // Mock next-auth/react
@@ -84,9 +87,9 @@ describe('SignInPage', () => {
         redirect: false,
         email: 'test@example.com',
         password: 'password123',
-        callbackUrl: '/admin/en', // Default callback
+        callbackUrl: '/en', // Default callback
       });
-      expect(pushMock).toHaveBeenCalledWith('/admin/en');
+      expect(pushMock).toHaveBeenCalledWith('/en');
     });
   });
 });
