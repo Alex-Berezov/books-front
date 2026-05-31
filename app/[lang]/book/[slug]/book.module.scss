@@ -7,9 +7,9 @@
 }
 
 .container {
-  max-width: 1200px;
+  max-width: $layout-max-width-xl;
   margin: 0 auto;
-  padding: 0 $spacing-lg;
+  padding: 0 $spacing-md;
 }
 
 .backBtn {
@@ -316,8 +316,8 @@
 
   &:hover,
   &:active {
-    background-color: #372513;
-    border-color: #372513;
-    color: #fff !important;
+    background-color: #f0e6da;
+    border-color: #f0e6da;
+    color: #3c2a18 !important;
   }
 }
