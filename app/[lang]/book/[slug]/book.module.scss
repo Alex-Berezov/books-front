@@ -310,12 +310,14 @@
   color: var(--public-foreground) !important;
   background-color: transparent;
   border: 1px solid rgba(0, 0, 0, 0.25);
-  border-radius: $border-radius-round;
+  border-radius: 3.5px;
   text-decoration: none;
-  transition: background-color $transition-fast, border-color $transition-fast;
+  transition: background-color $transition-fast, border-color $transition-fast, color $transition-fast;
 
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.06);
-    border-color: rgba(0, 0, 0, 0.45);
+  &:hover,
+  &:active {
+    background-color: #372513;
+    border-color: #372513;
+    color: #fff !important;
   }
 }
