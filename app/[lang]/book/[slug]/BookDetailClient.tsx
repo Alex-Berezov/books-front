@@ -15,7 +15,6 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useBooks } from '@/api/hooks/useBooks';
-import { useBookSummary } from '@/api/hooks/useBookSummary';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
@@ -215,20 +214,19 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
               )}
 
               {book.hasSummary && (
-                <Button
-                  size="large"
-                  icon={<FileText size={18} />}
-                  className={styles.secondaryBtn}
-                  onClick={() => {
-                    setActiveTabKey('summary');
-                    const el = document.getElementById('book-tabs-section');
-                    if (el) {
-                      el.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
+                <Link
+                  href={`/${supportedLang}/summary/${slug}/${textVersion?.id || audioVersion?.id || book.versions?.[0]?.id || ''}`}
+                  passHref
+                  legacyBehavior
                 >
-                  Summary
-                </Button>
+                  <Button
+                    size="large"
+                    icon={<FileText size={18} />}
+                    className={styles.secondaryBtn}
+                  >
+                    Summary
+                  </Button>
+                </Link>
               )}
 
               <Button
@@ -321,23 +319,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   </div>
                 ),
               },
-              ...(book.hasSummary
-                ? [
-                    {
-                      key: 'summary',
-                      label: 'Summary',
-                      children: (
-                        <div className={styles.tabContent}>
-                          <BookSummaryTab
-                            versionId={
-                              textVersion?.id || audioVersion?.id || book.versions?.[0]?.id || ''
-                            }
-                          />
-                        </div>
-                      ),
-                    },
-                  ]
-                : []),
             ]}
           />
         </div>
@@ -355,39 +336,5 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
         )}
       </div>
     </main>
-  );
-}
-
-function BookSummaryTab({ versionId }: { versionId: string }) {
-  const { data: summaryData, isLoading } = useBookSummary(versionId);
-
-  if (isLoading) {
-    return <Skeleton active paragraph={{ rows: 6 }} />;
-  }
-
-  if (!summaryData) {
-    return <p>No summary available for this version.</p>;
-  }
-
-  return (
-    <div className={styles.summaryContainer}>
-      {summaryData.summary && (
-        <div className={styles.summarySection}>
-          <div dangerouslySetInnerHTML={{ __html: summaryData.summary }} />
-        </div>
-      )}
-      {summaryData.analysis && (
-        <div className={styles.summarySection} style={{ marginTop: '24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>Analysis</h3>
-          <div dangerouslySetInnerHTML={{ __html: summaryData.analysis }} />
-        </div>
-      )}
-      {summaryData.themes && (
-        <div className={styles.summarySection} style={{ marginTop: '24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>Themes</h3>
-          <div dangerouslySetInnerHTML={{ __html: summaryData.themes }} />
-        </div>
-      )}
-    </div>
   );
 }

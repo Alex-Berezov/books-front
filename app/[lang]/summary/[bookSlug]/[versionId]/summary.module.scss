@@ -1,0 +1,130 @@
+@import '@/styles/tokens.scss';
+
+.summaryPage {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #faf8f5;
+  color: #3c2a18;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding: 0 $spacing-lg;
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(55, 37, 19, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  min-width: 0;
+}
+
+.backBtn {
+  color: #3c2a18 !important;
+  &:hover {
+    background-color: rgba(55, 37, 19, 0.05) !important;
+  }
+}
+
+.bookInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bookTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.pageSubtitle {
+  font-size: $font-size-xs;
+  opacity: 0.7;
+}
+
+.mainContent {
+  flex: 1;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  padding: $spacing-xxl $spacing-lg;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: $border-radius-lg;
+  padding: $spacing-xxl;
+  border: 1px solid rgba(55, 37, 19, 0.08);
+  box-shadow: 0 4px 20px rgba(55, 37, 19, 0.03);
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xl;
+  color: #372513;
+  text-align: center;
+}
+
+.section {
+  margin-bottom: $spacing-xxl;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: #372513;
+  margin-bottom: $spacing-md;
+  border-bottom: 2px solid #f0e6da;
+  padding-bottom: $spacing-xs;
+}
+
+.bodyText {
+  font-size: $font-size-base;
+  line-height: 1.8;
+  color: #4e3c2c;
+  
+  p {
+    margin-bottom: $spacing-md;
+  }
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: $spacing-xl;
+  max-width: 680px;
+  margin: 0 auto;
+  gap: $spacing-lg;
+  width: 100%;
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: $spacing-xl;
+  text-align: center;
+  gap: $spacing-md;
+}
