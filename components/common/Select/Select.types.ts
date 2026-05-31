@@ -154,4 +154,9 @@ export interface SelectProps<T = string> {
    * Popup container (for positioning in modals)
    */
   getPopupContainer?: (triggerNode: HTMLElement) => HTMLElement;
+
+  /**
+   * Class name for the dropdown popup
+   */
+  popupClassName?: string;
 }

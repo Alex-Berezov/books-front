@@ -84,6 +84,7 @@ export const Select = forwardRef<RefSelectProps, SelectProps>((props, ref) => {
     filterOption,
     maxTagCount,
     getPopupContainer,
+    popupClassName,
   } = props;
 
   // Map our sizes to antd sizes
@@ -155,6 +156,7 @@ export const Select = forwardRef<RefSelectProps, SelectProps>((props, ref) => {
       filterOption={filterOption ?? (showSearch ? defaultFilterOption : undefined)}
       maxTagCount={maxTagCount}
       getPopupContainer={getPopupContainer}
+      popupClassName={popupClassName}
       status={error ? 'error' : undefined}
       style={fullWidth ? { width: '100%' } : undefined}
     />

@@ -22,6 +22,14 @@ vi.mock('@/lib/i18n/languageSelectOptions', () => ({
   ],
 }));
 
+// Mock useBookOverview hook
+vi.mock('@/api/hooks/usePublic', () => ({
+  useBookOverview: () => ({
+    data: null,
+    isLoading: false,
+  }),
+}));
+
 // Mock Ant Design Select
 vi.mock('antd', async (importOriginal) => {
   const actual = await importOriginal<typeof import('antd')>();
