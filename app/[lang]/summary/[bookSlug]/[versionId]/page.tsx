@@ -63,7 +63,7 @@ export default function BookSummaryPage({ params }: Props) {
       </header>
 
       {/* Main Content */}
-      <main className={styles.mainContent}>
+      <div className={styles.mainContent}>
         <article className={styles.card}>
           <h1 className={styles.title}>{book.title} — Summary</h1>
 
@@ -97,7 +97,7 @@ export default function BookSummaryPage({ params }: Props) {
             </section>
           )}
         </article>
-      </main>
+      </div>
     </div>
   );
 }

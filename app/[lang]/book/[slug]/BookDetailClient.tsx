@@ -92,7 +92,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   };
 
   return (
-    <main className={styles.bookPage}>
+    <div className={styles.bookPage}>
       <div className={styles.container}>
         {/* Back Button */}
         <Button
@@ -340,6 +340,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
           </section>
         )}
       </div>
-    </main>
+    </div>
   );
 }

@@ -50,7 +50,7 @@ export default function AuthorDetailClient({ lang, authorSlug, displayName }: Pr
       : null;
 
   return (
-    <main className={styles.authorPage}>
+    <div className={styles.authorPage}>
       <div className={styles.container}>
         {/* Back Button */}
         <Button
@@ -121,6 +121,6 @@ export default function AuthorDetailClient({ lang, authorSlug, displayName }: Pr
           )}
         </section>
       </div>
-    </main>
+    </div>
   );
 }

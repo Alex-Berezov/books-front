@@ -239,7 +239,7 @@ export default function TextReaderPage({ params }: Props) {
       </Drawer>
 
       {/* Main Content Area */}
-      <main ref={contentRef} className={styles.contentArea}>
+      <div ref={contentRef} className={styles.contentArea}>
         <div className={styles.contentContainer}>
           {currentChapter ? (
             <article>
@@ -258,7 +258,7 @@ export default function TextReaderPage({ params }: Props) {
             </div>
           )}
         </div>
-      </main>
+      </div>
 
       {/* Footer Controls */}
       <footer className={styles.footer}>

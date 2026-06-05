@@ -18,7 +18,7 @@ export default function GenresPage({ params }: Props) {
   const categories = categoriesData?.data || [];
 
   return (
-    <main className={styles.genresPage}>
+    <div className={styles.genresPage}>
       <div className={styles.container}>
         <h1 className={styles.title}>Browse Genres</h1>
         <p className={styles.subtitle}>Discover books across every genre and style</p>
@@ -51,6 +51,6 @@ export default function GenresPage({ params }: Props) {
               })}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

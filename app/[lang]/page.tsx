@@ -59,7 +59,7 @@ export default function PublicLangPage({ params }: Props) {
     .slice(0, 8);
 
   return (
-    <main className={styles.main}>
+    <div className={styles.main}>
       {/* Banner */}
       <div className={styles.bannerContainer}>
         <div className={styles.bannerContent}>
@@ -198,6 +198,6 @@ export default function PublicLangPage({ params }: Props) {
           />
         )}
       </div>
-    </main>
+    </div>
   );
 }

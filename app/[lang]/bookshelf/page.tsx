@@ -225,7 +225,7 @@ export default function BookshelfPage() {
   // Skeletons while loading session or shelf data
   if (status === 'loading' || (status === 'authenticated' && isShelfLoading)) {
     return (
-      <main className={styles.pageContainer}>
+      <div className={styles.pageContainer}>
         <div className={styles.container}>
           <div className={styles.header}>
             <div>
@@ -247,14 +247,14 @@ export default function BookshelfPage() {
             ))}
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   // Not authenticated screen
   if (status === 'unauthenticated' || !session) {
     return (
-      <main className={styles.pageContainer}>
+      <div className={styles.pageContainer}>
         <div className={styles.unauthContainer}>
           <BookFilled className={styles.unauthIcon} />
           <h1 className={styles.unauthTitle}>Your Bookshelf</h1>
@@ -280,7 +280,7 @@ export default function BookshelfPage() {
             </Button>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -327,7 +327,7 @@ export default function BookshelfPage() {
   ];
 
   return (
-    <main className={styles.pageContainer}>
+    <div className={styles.pageContainer}>
       <div className={styles.container}>
         <div className={styles.header}>
           <div>
@@ -364,6 +364,6 @@ export default function BookshelfPage() {
           <Tabs defaultActiveKey="all" items={tabItems} />
         )}
       </div>
-    </main>
+    </div>
   );
 }

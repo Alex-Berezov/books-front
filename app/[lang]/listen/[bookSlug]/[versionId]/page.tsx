@@ -251,7 +251,7 @@ export default function AudioPlayerPage({ params }: Props) {
       </Drawer>
 
       {/* Player Main Panel */}
-      <main className={styles.main}>
+      <div className={styles.main}>
         {/* Album Art Cover */}
         <div className={styles.coverContainer} style={{ backgroundColor: coverColor }}>
           {book?.coverUrl ? (
@@ -357,7 +357,7 @@ export default function AudioPlayerPage({ params }: Props) {
             ))}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

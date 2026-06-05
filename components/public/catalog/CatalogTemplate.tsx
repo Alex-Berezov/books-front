@@ -131,7 +131,7 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
             : 'All Books';
 
   return (
-    <main className={styles.catalogPage}>
+    <div className={styles.catalogPage}>
       <div className={styles.container}>
         <div className={styles.layout}>
           {/* Sidebar Filters */}
@@ -210,6 +210,6 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
