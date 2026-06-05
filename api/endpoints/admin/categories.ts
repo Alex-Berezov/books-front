@@ -57,7 +57,7 @@ export const getCategories = async (
   }
 
   const endpoint = `/categories?${queryParams.toString()}`;
-  return httpGetAuth<PaginatedResponse<Category>>(endpoint);
+  return httpGetAuth<PaginatedResponse<Category>>(endpoint, { requireAuth: false });
 };
 
 /**
@@ -72,7 +72,7 @@ export const getCategories = async (
  */
 export const getCategoriesTree = async (): Promise<CategoryTree[]> => {
   const endpoint = `/categories/tree`;
-  return httpGetAuth<CategoryTree[]>(endpoint);
+  return httpGetAuth<CategoryTree[]>(endpoint, { requireAuth: false });
 };
 
 /**

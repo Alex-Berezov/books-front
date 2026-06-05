@@ -54,7 +54,7 @@ export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResp
   }
 
   const endpoint = `/tags?${queryParams.toString()}`;
-  return httpGetAuth<PaginatedResponse<Tag>>(endpoint);
+  return httpGetAuth<PaginatedResponse<Tag>>(endpoint, { requireAuth: false });
 };
 
 /**

@@ -18,7 +18,7 @@ import type { BookSummaryDetail, UpsertBookSummaryRequest } from '@/types/api-sc
  */
 export const getBookSummary = async (versionId: string): Promise<BookSummaryDetail | null> => {
   const endpoint = `/versions/${versionId}/summary`;
-  return httpGetAuth<BookSummaryDetail | null>(endpoint);
+  return httpGetAuth<BookSummaryDetail | null>(endpoint, { requireAuth: false });
 };
 
 /**

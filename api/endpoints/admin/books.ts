@@ -46,7 +46,7 @@ export const getBooks = async (
   });
 
   const endpoint = `/books?${queryParams.toString()}`;
-  return httpGetAuth<PaginatedResponse<BookOverview>>(endpoint);
+  return httpGetAuth<PaginatedResponse<BookOverview>>(endpoint, { requireAuth: false });
 };
 
 /**
@@ -114,5 +114,5 @@ export const updateBook = async (
  */
 export const getBook = async (bookId: string): Promise<BookOverview> => {
   const endpoint = `/books/${bookId}`;
-  return httpGetAuth<BookOverview>(endpoint);
+  return httpGetAuth<BookOverview>(endpoint, { requireAuth: false });
 };
