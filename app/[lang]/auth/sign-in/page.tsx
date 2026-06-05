@@ -10,10 +10,11 @@
 import type { FC } from 'react';
 import { useState } from 'react';
 import { LockOutlined, MailOutlined, BookOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { Form, Input, Button, Alert, Typography } from 'antd';
+import { Form, Input, Alert, Typography } from 'antd';
 import Link from 'next/link';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { Button } from '@/components/common/Button';
 import styles from './sign-in.module.scss';
 
 const { Title, Text } = Typography;
@@ -155,7 +156,7 @@ const SignInPage: FC = () => {
             </Form.Item>
 
             <Form.Item>
-              <Button type="primary" htmlType="submit" loading={isLoading} block>
+              <Button variant="primary" type="submit" loading={isLoading} fullWidth>
                 Sign In
               </Button>
             </Form.Item>

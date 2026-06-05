@@ -1,12 +1,13 @@
 'use client';
 
-import { Button, Badge, Skeleton } from 'antd';
+import { Badge, Skeleton } from 'antd';
 import { ListFilter as Filter, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useBooks } from '@/api/hooks/useBooks';
 import { useCategories } from '@/api/hooks/useCategories';
 import { useCategoryBooks } from '@/api/hooks/usePublic';
+import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview, VersionPreview } from '@/types/api-schema';
@@ -196,7 +197,7 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
               <div className={styles.empty}>
                 <Filter className={styles.emptyIcon} size={48} />
                 <p className={styles.emptyText}>No books found.</p>
-                <Button type="primary" onClick={handleClearFilters} className={styles.clearBtn}>
+                <Button variant="primary" onClick={handleClearFilters} className={styles.clearBtn}>
                   Clear Filters
                 </Button>
               </div>

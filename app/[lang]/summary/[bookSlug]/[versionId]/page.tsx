@@ -1,10 +1,11 @@
 'use client';
 
-import { Button, Skeleton } from 'antd';
+import { Skeleton } from 'antd';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useBookSummary } from '@/api/hooks/useBookSummary';
 import { useBookOverview } from '@/api/hooks/usePublic';
+import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './summary.module.scss';
 
@@ -39,7 +40,9 @@ export default function BookSummaryPage({ params }: Props) {
       <div className={styles.errorContainer}>
         <h2>Summary not found</h2>
         <p>We couldn&apos;t load the summary for this book version.</p>
-        <Button onClick={() => router.back()}>Go Back</Button>
+        <Button variant="secondary" onClick={() => router.back()}>
+          Go Back
+        </Button>
       </div>
     );
   }
@@ -50,8 +53,9 @@ export default function BookSummaryPage({ params }: Props) {
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <Button
-            type="text"
-            icon={<ArrowLeft size={18} />}
+            variant="ghost"
+            shape="circle"
+            leftIcon={<ArrowLeft size={18} />}
             onClick={() => router.back()}
             className={styles.backBtn}
           />

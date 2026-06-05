@@ -10,9 +10,10 @@
 import type { FC } from 'react';
 import { useState } from 'react';
 import { LockOutlined, MailOutlined, BookOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { Form, Input, Button, Alert, Typography } from 'antd';
+import { Form, Input, Alert, Typography } from 'antd';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
+import { Button } from '@/components/common/Button';
 import { httpPost } from '@/lib/http';
 import styles from './register.module.scss';
 
@@ -107,9 +108,9 @@ const RegisterPage: FC = () => {
                 credentials.
               </Text>
               <Button
-                type="primary"
-                size="large"
-                block
+                variant="primary"
+                size="lg"
+                fullWidth
                 onClick={() => router.push(`/${lang}/auth/sign-in`)}
               >
                 Go to Sign In
@@ -196,7 +197,7 @@ const RegisterPage: FC = () => {
                 </Form.Item>
 
                 <Form.Item>
-                  <Button type="primary" htmlType="submit" loading={isLoading} block>
+                  <Button variant="primary" type="submit" loading={isLoading} fullWidth>
                     Create Account
                   </Button>
                 </Form.Item>

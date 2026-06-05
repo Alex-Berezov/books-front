@@ -1,9 +1,10 @@
 'use client';
 
-import { Button, Divider, Skeleton } from 'antd';
+import { Divider, Skeleton } from 'antd';
 import { ChevronLeft, BookOpen, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useBooks } from '@/api/hooks/useBooks';
+import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
@@ -54,8 +55,8 @@ export default function AuthorDetailClient({ lang, authorSlug, displayName }: Pr
       <div className={styles.container}>
         {/* Back Button */}
         <Button
-          type="text"
-          icon={<ChevronLeft size={16} />}
+          variant="ghost"
+          leftIcon={<ChevronLeft size={16} />}
           onClick={() => router.back()}
           className={styles.backBtn}
         >
@@ -108,7 +109,7 @@ export default function AuthorDetailClient({ lang, authorSlug, displayName }: Pr
               <p className={styles.emptyText}>
                 We do not have any books by this author in our library yet.
               </p>
-              <Button type="primary" onClick={() => router.push(`/${supportedLang}/catalog`)}>
+              <Button variant="primary" onClick={() => router.push(`/${supportedLang}/catalog`)}>
                 Browse Catalog
               </Button>
             </div>

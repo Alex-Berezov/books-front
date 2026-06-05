@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Button, Drawer, Slider, Skeleton, Tooltip } from 'antd';
+import { Drawer, Slider, Skeleton, Tooltip } from 'antd';
 import { ChevronLeft, ChevronRight, Settings, ArrowLeft, BookOpen, List } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useUpdateTextProgress } from '@/api/hooks/useProgress';
 import { useBookOverview, usePublicChapters } from '@/api/hooks/usePublic';
+import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ChapterDetail } from '@/types/api-schema';
 import styles from './reader.module.scss';
@@ -123,8 +124,9 @@ export default function TextReaderPage({ params }: Props) {
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <Button
-            type="text"
-            icon={<ArrowLeft size={18} />}
+            variant="ghost"
+            shape="circle"
+            leftIcon={<ArrowLeft size={18} />}
             onClick={() => router.back()}
             className={styles.iconBtn}
           />
@@ -137,16 +139,18 @@ export default function TextReaderPage({ params }: Props) {
         <div className={styles.headerRight}>
           <Tooltip title="Table of contents">
             <Button
-              type="text"
-              icon={<List size={18} />}
+              variant="ghost"
+              shape="circle"
+              leftIcon={<List size={18} />}
               onClick={() => setShowToc(true)}
               className={styles.iconBtn}
             />
           </Tooltip>
           <Tooltip title="Settings">
             <Button
-              type="text"
-              icon={<Settings size={18} />}
+              variant="ghost"
+              shape="circle"
+              leftIcon={<Settings size={18} />}
               onClick={() => setShowSettings(true)}
               className={styles.iconBtn}
             />
@@ -263,10 +267,10 @@ export default function TextReaderPage({ params }: Props) {
       {/* Footer Controls */}
       <footer className={styles.footer}>
         <Button
-          type="text"
+          variant="ghost"
           onClick={goToPrevChapter}
           disabled={currentChapterIndex === 0}
-          icon={<ChevronLeft size={16} />}
+          leftIcon={<ChevronLeft size={16} />}
           className={styles.footerBtn}
         >
           Prev
@@ -292,10 +296,10 @@ export default function TextReaderPage({ params }: Props) {
         </div>
 
         <Button
-          type="text"
+          variant="ghost"
           onClick={goToNextChapter}
           disabled={currentChapterIndex >= chapters.length - 1}
-          icon={<ChevronRight size={16} />}
+          rightIcon={<ChevronRight size={16} />}
           className={styles.footerBtn}
         >
           Next

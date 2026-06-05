@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Button, Drawer, Slider, Skeleton } from 'antd';
+import { Drawer, Slider, Skeleton } from 'antd';
 import {
   Play,
   Pause,
@@ -21,6 +21,7 @@ import {
   useRecordView,
   useUpdateAudioProgress,
 } from '@/api/hooks/usePublicAudio';
+import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './player.module.scss';
 
@@ -193,7 +194,9 @@ export default function AudioPlayerPage({ params }: Props) {
             ? 'This audiobook has no chapters yet.'
             : 'Failed to load audio chapters.'}
         </p>
-        <Button onClick={() => router.back()}>Go Back</Button>
+        <Button variant="secondary" onClick={() => router.back()}>
+          Go Back
+        </Button>
       </div>
     );
   }
@@ -207,15 +210,17 @@ export default function AudioPlayerPage({ params }: Props) {
       {/* Header */}
       <header className={styles.header}>
         <Button
-          type="text"
-          icon={<ArrowLeft size={18} />}
+          variant="ghost"
+          shape="circle"
+          leftIcon={<ArrowLeft size={18} />}
           onClick={() => router.back()}
           className={styles.backBtn}
         />
         <span className={styles.headerTitle}>Now Playing</span>
         <Button
-          type="text"
-          icon={<List size={18} />}
+          variant="ghost"
+          shape="circle"
+          leftIcon={<List size={18} />}
           onClick={() => setShowChapters(true)}
           className={styles.listBtn}
         />
@@ -288,35 +293,39 @@ export default function AudioPlayerPage({ params }: Props) {
         {/* Player Core Controls */}
         <div className={styles.controls}>
           <Button
-            type="text"
-            icon={<SkipBack size={22} />}
+            variant="ghost"
+            shape="circle"
+            leftIcon={<SkipBack size={22} />}
             onClick={() => setCurrentChapterIndex((i) => Math.max(0, i - 1))}
             disabled={currentChapterIndex === 0}
             className={styles.controlBtn}
           />
           <Button
-            type="text"
-            icon={<RotateCcw size={22} />}
+            variant="ghost"
+            shape="circle"
+            leftIcon={<RotateCcw size={22} />}
             onClick={() => handleSkip(-15)}
             className={styles.controlBtn}
           />
           <Button
-            type="primary"
+            variant="primary"
             shape="circle"
-            size="large"
-            icon={isPlaying ? <Pause size={24} /> : <Play size={24} />}
+            size="lg"
+            leftIcon={isPlaying ? <Pause size={24} /> : <Play size={24} />}
             onClick={() => setIsPlaying(!isPlaying)}
             className={styles.playBtn}
           />
           <Button
-            type="text"
-            icon={<RotateCw size={22} />}
+            variant="ghost"
+            shape="circle"
+            leftIcon={<RotateCw size={22} />}
             onClick={() => handleSkip(15)}
             className={styles.controlBtn}
           />
           <Button
-            type="text"
-            icon={<SkipForward size={22} />}
+            variant="ghost"
+            shape="circle"
+            leftIcon={<SkipForward size={22} />}
             onClick={() => setCurrentChapterIndex((i) => Math.min(chapters.length - 1, i + 1))}
             disabled={currentChapterIndex >= chapters.length - 1}
             className={styles.controlBtn}
@@ -327,8 +336,9 @@ export default function AudioPlayerPage({ params }: Props) {
         <div className={styles.footerControls}>
           <div className={styles.volumeControl}>
             <Button
-              type="text"
-              icon={isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              variant="ghost"
+              shape="circle"
+              leftIcon={isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
               onClick={() => setIsMuted(!isMuted)}
               className={styles.volumeBtn}
             />

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Tabs, Button, Badge, Skeleton } from 'antd';
+import { Tabs, Badge, Skeleton } from 'antd';
 import {
   BookOpen,
   Headphones,
@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useBooks } from '@/api/hooks/useBooks';
 import { useBookOverview } from '@/api/hooks/usePublic';
+import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -68,7 +69,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
     return (
       <div className={styles.errorContainer}>
         <p className={styles.errorText}>Book not found or an error occurred.</p>
-        <Button onClick={() => router.back()}>Go Back</Button>
+        <Button variant="secondary" onClick={() => router.back()}>
+          Go Back
+        </Button>
       </div>
     );
   }
@@ -96,8 +99,8 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
       <div className={styles.container}>
         {/* Back Button */}
         <Button
-          type="text"
-          icon={<ChevronLeft size={16} />}
+          variant="ghost"
+          leftIcon={<ChevronLeft size={16} />}
           onClick={() => router.back()}
           className={styles.backBtn}
         >
@@ -170,8 +173,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   legacyBehavior
                 >
                   <Button
-                    size="large"
-                    icon={<BookOpen size={18} />}
+                    variant="secondary"
+                    size="lg"
+                    leftIcon={<BookOpen size={18} />}
                     className={styles.secondaryBtn}
                   >
                     {textVersion.isFree ? 'Read Free' : 'Read'}
@@ -179,8 +183,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                 </Link>
               ) : (
                 <Button
-                  size="large"
-                  icon={<BookOpen size={18} />}
+                  variant="secondary"
+                  size="lg"
+                  leftIcon={<BookOpen size={18} />}
                   disabled
                   className={styles.secondaryBtn}
                 >
@@ -195,8 +200,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   legacyBehavior
                 >
                   <Button
-                    size="large"
-                    icon={<Headphones size={18} />}
+                    variant="secondary"
+                    size="lg"
+                    leftIcon={<Headphones size={18} />}
                     className={styles.secondaryBtn}
                   >
                     Listen
@@ -204,8 +210,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                 </Link>
               ) : (
                 <Button
-                  size="large"
-                  icon={<Headphones size={18} />}
+                  variant="secondary"
+                  size="lg"
+                  leftIcon={<Headphones size={18} />}
                   disabled
                   className={styles.secondaryBtn}
                 >
@@ -220,8 +227,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   legacyBehavior
                 >
                   <Button
-                    size="large"
-                    icon={<FileText size={18} />}
+                    variant="secondary"
+                    size="lg"
+                    leftIcon={<FileText size={18} />}
                     className={styles.secondaryBtn}
                   >
                     Summary
@@ -230,8 +238,10 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
               )}
 
               <Button
-                size="large"
-                icon={inBookshelf ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+                variant="secondary"
+                size="lg"
+                active={inBookshelf}
+                leftIcon={inBookshelf ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
                 onClick={handleBookshelfToggle}
                 className={inBookshelf ? styles.bookshelfActiveBtn : styles.secondaryBtn}
               >

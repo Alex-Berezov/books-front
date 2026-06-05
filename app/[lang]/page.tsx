@@ -1,10 +1,11 @@
 'use client';
 
-import { Button, Skeleton } from 'antd';
+import { Skeleton } from 'antd';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useBooks } from '@/api/hooks/useBooks';
 import { useCategories } from '@/api/hooks/useCategories';
+import { Button } from '@/components/common/Button';
 import { BookSection } from '@/components/public/books/BookSection';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from '../page.module.scss';
@@ -71,12 +72,12 @@ export default function PublicLangPage({ params }: Props) {
             </p>
             <div className={styles.bannerActions}>
               <Link href={`/${supportedLang}/catalog`} passHref legacyBehavior>
-                <Button type="primary" size="large" className={styles.primaryBtn}>
+                <Button variant="primary" size="lg" className={styles.primaryBtn}>
                   Browse Library
                 </Button>
               </Link>
               <Link href={`/${supportedLang}/catalog?type=audio`} passHref legacyBehavior>
-                <Button size="large" className={styles.secondaryBtn}>
+                <Button variant="secondary" size="lg" className={styles.secondaryBtn}>
                   Audiobooks
                 </Button>
               </Link>
@@ -127,7 +128,7 @@ export default function PublicLangPage({ params }: Props) {
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Genres</h2>
             <Link href={`/${supportedLang}/genres`} passHref legacyBehavior>
-              <Button type="text" className={styles.viewMoreBtn}>
+              <Button variant="ghost" className={styles.viewMoreBtn}>
                 View All <ChevronRight size={16} />
               </Button>
             </Link>

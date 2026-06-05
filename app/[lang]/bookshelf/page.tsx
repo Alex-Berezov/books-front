@@ -15,13 +15,14 @@ import {
   PlayCircleOutlined,
   RightOutlined,
 } from '@ant-design/icons';
-import { Tabs, Button, Badge, Skeleton, Modal, message } from 'antd';
+import { Tabs, Badge, Skeleton, Modal, message } from 'antd';
 import { Headphones } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
 import { useProgress } from '@/api/hooks/useProgress';
+import { Button } from '@/components/common/Button';
 import type { BookshelfItemDto } from '@/api/endpoints/bookshelf';
 import styles from './bookshelf.module.scss';
 
@@ -156,8 +157,8 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
           {isAudio ? (
             <Link href={`/${lang}/listen/${bookSlug}/${version.id}`} passHref legacyBehavior>
               <Button
-                type="primary"
-                size="small"
+                variant="primary"
+                size="sm"
                 className={`${styles.actionBtn} ${styles.continueBtn}`}
               >
                 <PlayCircleOutlined /> Listen
@@ -166,8 +167,8 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
           ) : (
             <Link href={`/${lang}/read/${bookSlug}/${version.id}`} passHref legacyBehavior>
               <Button
-                type="primary"
-                size="small"
+                variant="primary"
+                size="sm"
                 className={`${styles.actionBtn} ${styles.continueBtn}`}
               >
                 <BookOutlined /> {progress ? 'Continue Reading' : 'Start Reading'}
@@ -176,9 +177,9 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
           )}
 
           <Button
-            size="small"
-            type="text"
-            icon={<DeleteOutlined />}
+            size="sm"
+            variant="ghost"
+            leftIcon={<DeleteOutlined />}
             className={styles.removeBtn}
             onClick={handleRemoveClick}
           />
@@ -264,15 +265,16 @@ export default function BookshelfPage() {
           </p>
           <div className={styles.unauthBtnGroup}>
             <Button
-              type="primary"
-              size="large"
+              variant="primary"
+              size="lg"
               className={styles.signInBtn}
               onClick={() => router.push(`/${lang}/auth/sign-in?callbackUrl=/${lang}/bookshelf`)}
             >
               Sign In
             </Button>
             <Button
-              size="large"
+              variant="secondary"
+              size="lg"
               className={styles.registerBtn}
               onClick={() => router.push(`/${lang}/auth/register`)}
             >
@@ -337,7 +339,7 @@ export default function BookshelfPage() {
             </p>
           </div>
           <Link href={`/${lang}/catalog`} passHref legacyBehavior>
-            <Button className={styles.browseBtn}>
+            <Button variant="secondary" className={styles.browseBtn}>
               Browse Library <RightOutlined />
             </Button>
           </Link>
@@ -352,8 +354,8 @@ export default function BookshelfPage() {
               from our catalog.
             </p>
             <Button
-              type="primary"
-              size="large"
+              variant="primary"
+              size="lg"
               className={styles.emptyBtn}
               onClick={() => router.push(`/${lang}/catalog`)}
             >

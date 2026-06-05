@@ -26,16 +26,38 @@
    CUSTOM VARIANTS (not available in antd)
    ============================================ */
 
-/* Secondary variant - secondary actions */
-.secondary {
-  background: $color-background-primary !important;
-  color: $color-text-primary !important;
-  border-color: $color-border-base !important;
+/* Primary variant - main actions */
+.primary {
+  background-color: var(--public-primary) !important;
+  border-color: var(--public-primary) !important;
+  color: var(--public-primary-foreground) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
   &:hover:not(:disabled) {
-    background: $color-background-secondary !important;
-    border-color: $color-border-dark !important;
-    color: $color-text-primary !important;
+    background-color: var(--public-primary-hover) !important;
+    border-color: var(--public-primary-hover) !important;
+    color: var(--public-primary-foreground) !important;
+  }
+}
+
+/* Secondary variant - secondary actions */
+.secondary {
+  background: transparent !important;
+  color: var(--public-foreground) !important;
+  border-color: var(--public-border) !important;
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.04) !important;
+    border-color: var(--public-foreground) !important;
+    color: var(--public-foreground) !important;
+  }
+}
+
+:global(.dark) {
+  .secondary {
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
   }
 }
 
@@ -68,12 +90,22 @@
 /* Ghost variant - minimal styling */
 .ghost {
   background: transparent !important;
-  color: $color-text-secondary !important;
+  color: var(--public-foreground) !important;
+  opacity: 0.85;
   border-color: transparent !important;
 
   &:hover:not(:disabled) {
-    background: $color-background-secondary !important;
-    color: $color-text-primary !important;
+    background: rgba(0, 0, 0, 0.04) !important;
+    color: var(--public-foreground) !important;
+    opacity: 1;
+  }
+}
+
+:global(.dark) {
+  .ghost {
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
   }
 }
 
@@ -89,19 +121,27 @@
 /* Active state for toggle buttons */
 .active {
   &.secondary {
-    background: $color-primary !important;
-    color: $color-text-inverse !important;
-    border-color: $color-primary !important;
+    background: var(--public-primary) !important;
+    color: var(--public-primary-foreground) !important;
+    border-color: var(--public-primary) !important;
 
     &:hover:not(:disabled) {
-      background: $color-primary-hover !important;
-      border-color: $color-primary-hover !important;
+      background: var(--public-primary-hover) !important;
+      border-color: var(--public-primary-hover) !important;
     }
   }
 
   &.ghost {
-    background: $color-background-secondary !important;
-    color: $color-text-primary !important;
+    background: rgba(0, 0, 0, 0.08) !important;
+    color: var(--public-foreground) !important;
+  }
+}
+
+:global(.dark) {
+  .active {
+    &.ghost {
+      background: rgba(255, 255, 255, 0.15) !important;
+    }
   }
 }
 
