@@ -289,9 +289,14 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                 label: 'About',
                 children: (
                   <div className={styles.tabContent}>
-                    <p className={styles.description}>
-                      {book.description || 'No description available for this book.'}
-                    </p>
+                    {book.description ? (
+                      <div
+                        className={styles.description}
+                        dangerouslySetInnerHTML={{ __html: book.description }}
+                      />
+                    ) : (
+                      <p className={styles.description}>No description available for this book.</p>
+                    )}
                   </div>
                 ),
               },
