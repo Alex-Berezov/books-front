@@ -45,7 +45,36 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   const currentCategory = categorySlug ? categoryBooksData?.category : null;
   const rawBooks = (
     (categorySlug ? categoryBooksData?.data || [] : allBooksData?.data || []) as BookOverview[]
-  ).filter((book) => book.versions?.some((v) => v.status === 'published'));
+  )
+    .filter((book) => book.versions?.some((v) => v.status === 'published'))
+    .map((book) => {
+      const currentLangVersion = book.versions?.find((v) => v.language === lang);
+      const displayVersion = currentLangVersion || book.versions?.[0];
+
+      const tagsMap = new Map();
+      interface TagDetails {
+        id: string;
+        translations?: Array<{ language: string; name: string }>;
+      }
+      interface VersionWithTags {
+        tags?: Array<{ tag?: TagDetails }>;
+      }
+      (book.versions as VersionWithTags[] | undefined)?.forEach((v) => {
+        v.tags?.forEach((t) => {
+          const tagObj = t.tag;
+          if (tagObj && tagObj.id) {
+            tagsMap.set(tagObj.id, tagObj);
+          }
+        });
+      });
+
+      return {
+        ...book,
+        title: displayVersion?.title || book.title || '',
+        author: displayVersion?.author || book.author || '',
+        tags: Array.from(tagsMap.values()),
+      };
+    });
 
   // 2. Client-side filtering & sorting (type, sort, search)
   let filteredBooks = [...rawBooks];
@@ -98,7 +127,7 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
         : sort === 'popular'
           ? 'Popular Books'
           : search
-            ? `Search: "${search}"`
+            ? search
             : 'All Books';
 
   return (
