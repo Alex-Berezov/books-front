@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Tabs, Badge, Skeleton } from 'antd';
+import { Tabs, Skeleton } from 'antd';
 import {
   BookOpen,
   Headphones,
@@ -150,16 +150,11 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   cat.translations?.find((t) => t.language === supportedLang) ||
                   cat.translations?.[0];
                 return (
-                  <Badge
-                    key={cat.id}
-                    className={styles.categoryBadge}
-                    count={trans?.name || cat.id}
-                    style={{
-                      backgroundColor: 'transparent',
-                      color: 'var(--public-primary)',
-                      border: '1px solid var(--public-primary)',
-                    }}
-                  />
+                  <Link key={cat.id} href={`/${supportedLang}/catalog/${cat.id}`} passHref legacyBehavior>
+                    <Button variant="secondary" size="sm">
+                      {trans?.name || cat.id}
+                    </Button>
+                  </Link>
                 );
               })}
             </div>
@@ -176,7 +171,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                     variant="secondary"
                     size="lg"
                     leftIcon={<BookOpen size={18} />}
-                    className={styles.secondaryBtn}
                   >
                     {textVersion.isFree ? 'Read Free' : 'Read'}
                   </Button>
@@ -187,7 +181,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   size="lg"
                   leftIcon={<BookOpen size={18} />}
                   disabled
-                  className={styles.secondaryBtn}
                 >
                   Read
                 </Button>
@@ -203,7 +196,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                     variant="secondary"
                     size="lg"
                     leftIcon={<Headphones size={18} />}
-                    className={styles.secondaryBtn}
                   >
                     Listen
                   </Button>
@@ -214,7 +206,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   size="lg"
                   leftIcon={<Headphones size={18} />}
                   disabled
-                  className={styles.secondaryBtn}
                 >
                   Listen
                 </Button>
@@ -230,7 +221,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                     variant="secondary"
                     size="lg"
                     leftIcon={<FileText size={18} />}
-                    className={styles.secondaryBtn}
                   >
                     Summary
                   </Button>
@@ -243,7 +233,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                 active={inBookshelf}
                 leftIcon={inBookshelf ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
                 onClick={handleBookshelfToggle}
-                className={inBookshelf ? styles.bookshelfActiveBtn : styles.secondaryBtn}
               >
                 {inBookshelf ? 'In Bookshelf' : 'Add to Bookshelf'}
               </Button>
@@ -261,9 +250,12 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                     <Link
                       key={tag.id}
                       href={`/${supportedLang}/catalog?q=${encodeURIComponent(tagName)}`}
-                      className={styles.tagButton}
+                      passHref
+                      legacyBehavior
                     >
-                      {tagName}
+                      <Button variant="secondary" size="sm">
+                        {tagName}
+                      </Button>
                     </Link>
                   );
                 })}
