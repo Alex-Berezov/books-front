@@ -46,10 +46,9 @@ export interface ReadingProgress {
  * Request to update reading progress
  */
 export interface UpdateProgressRequest {
-  versionId: UUID;
-  chapterId?: UUID;
+  chapterNumber?: number;
+  audioChapterNumber?: number;
   position: number;
-  percentage: number;
 }
 
 /**

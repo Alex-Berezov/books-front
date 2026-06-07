@@ -57,7 +57,13 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
         : `${minutes}m ${seconds}s`;
       progressPct = 50; // default indicator for audiobooks in progress
     } else {
-      progressPct = typeof progress.percentage === 'number' ? progress.percentage : 0;
+      const chaptersCount = version.chaptersCount || 0;
+      const chapterIndex = (progress.chapterNumber || 1) - 1;
+      const positionOffset = typeof progress.position === 'number' ? progress.position : 0;
+      progressPct =
+        chaptersCount > 0
+          ? Math.min(100, Math.round(((chapterIndex + positionOffset) / chaptersCount) * 100))
+          : 0;
       progressLabel = progress.chapterNumber
         ? `Ch. ${progress.chapterNumber} • ${progressPct}%`
         : `${progressPct}%`;

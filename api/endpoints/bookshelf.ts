@@ -17,6 +17,7 @@ export interface BookVersionPreview {
   coverImageUrl: string;
   type: string;
   isFree: boolean;
+  chaptersCount: number;
   createdAt: ISODate;
   updatedAt: ISODate;
   book?: {

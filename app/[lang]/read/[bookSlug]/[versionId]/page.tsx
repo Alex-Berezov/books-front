@@ -59,8 +59,8 @@ export default function TextReaderPage({ params }: Props) {
 
   useEffect(() => {
     if (chapters.length > 0 && progressData && !hasRestoredProgress) {
-      if (progressData.chapterId) {
-        const idx = chapters.findIndex((c) => c.id === progressData.chapterId);
+      if (progressData.chapterNumber) {
+        const idx = chapters.findIndex((c) => c.number === progressData.chapterNumber);
         if (idx !== -1) {
           setCurrentChapterIndex(idx);
         }
@@ -79,16 +79,12 @@ export default function TextReaderPage({ params }: Props) {
 
   const saveProgress = useCallback(
     (chapter: ChapterDetail) => {
-      const percentage =
-        chapters.length > 0 ? Math.round(((currentChapterIndex + 1) / chapters.length) * 100) : 0;
       updateProgressMutation.mutate({
-        versionId,
-        chapterId: chapter.id,
+        chapterNumber: chapter.number,
         position: 0,
-        percentage,
       });
     },
-    [chapters.length, currentChapterIndex, versionId, updateProgressMutation]
+    [updateProgressMutation]
   );
 
   // Keep save progress ref to avoid dependency changes re-triggering effects
