@@ -144,11 +144,12 @@ export default function PublicLangPage({ params }: Props) {
                     cat.translations?.find((t) => t.language === supportedLang) ||
                     cat.translations?.[0];
                   const name = translation?.name || cat.id;
+                  const catSlug = translation?.slug || cat.slug || cat.id;
 
                   return (
                     <Link
                       key={cat.id}
-                      href={`/${supportedLang}/catalog/${cat.id}`}
+                      href={`/${supportedLang}/catalog/${catSlug}`}
                       className={styles.genreCard}
                       style={{ backgroundColor: 'var(--bibliaris-green)' }}
                     >

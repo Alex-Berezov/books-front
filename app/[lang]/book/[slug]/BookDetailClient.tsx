@@ -171,10 +171,11 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                 const trans =
                   cat.translations?.find((t) => t.language === supportedLang) ||
                   cat.translations?.[0];
+                const catSlug = trans?.slug || cat.slug || cat.id;
                 return (
                   <Link
                     key={cat.id}
-                    href={`/${supportedLang}/catalog/${cat.id}`}
+                    href={`/${supportedLang}/catalog/${catSlug}`}
                     passHref
                     legacyBehavior
                   >

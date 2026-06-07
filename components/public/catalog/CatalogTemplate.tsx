@@ -154,12 +154,16 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
                   const trans =
                     cat.translations?.find((t) => t.language === lang) || cat.translations?.[0];
                   const name = trans?.name || cat.id;
-                  const isActive = categorySlug === cat.id;
+                  const catSlug = trans?.slug || cat.slug || cat.id;
+                  const isActive =
+                    categorySlug === trans?.slug ||
+                    categorySlug === cat.slug ||
+                    categorySlug === cat.id;
 
                   return (
                     <Link
                       key={cat.id}
-                      href={`/${lang}/catalog/${cat.id}`}
+                      href={`/${lang}/catalog/${catSlug}`}
                       className={`${styles.genreLink} ${isActive ? styles.activeGenre : ''}`}
                     >
                       {name}

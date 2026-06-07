@@ -33,11 +33,12 @@ export default function GenresPage({ params }: Props) {
                   cat.translations?.find((t) => t.language === supportedLang) ||
                   cat.translations?.[0];
                 const name = trans?.name || cat.id;
+                const catSlug = trans?.slug || cat.slug || cat.id;
 
                 return (
                   <Link
                     key={cat.id}
-                    href={`/${supportedLang}/catalog/${cat.id}`}
+                    href={`/${supportedLang}/catalog/${catSlug}`}
                     className={styles.genreCard}
                     style={{ backgroundColor: 'var(--bibliaris-green)' }}
                   >
