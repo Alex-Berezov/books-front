@@ -109,6 +109,7 @@ export default function TextReaderPage({ params }: Props) {
     if (contentRef.current) {
       contentRef.current.scrollTop = 0;
     }
+    window.scrollTo(0, 0);
   }, [currentChapterIndex]);
 
   // Trigger progress save timer when chapter index/content changes
