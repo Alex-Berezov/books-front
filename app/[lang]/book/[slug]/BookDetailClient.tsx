@@ -14,7 +14,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useBooks } from '@/api/hooks/useBooks';
+import { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
@@ -45,8 +47,13 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   // Fetch related/all books for "You Might Also Like"
   const { data: relatedBooksData } = useBooks({ limit: 10 });
 
-  // Simple state for bookshelf mockup/placeholder
-  const [inBookshelf, setInBookshelf] = useState(false);
+  const { status } = useSession();
+  const { data: bookshelfData } = useBookshelf(1, 100, {
+    enabled: status === 'authenticated',
+  });
+  const addToBookshelfMutation = useAddToBookshelf();
+  const removeFromBookshelfMutation = useRemoveFromBookshelf();
+
   const [activeTabKey, setActiveTabKey] = useState('about');
 
   if (isLoading && !book) {
@@ -84,15 +91,30 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
     ? book.versions?.find((v) => v.id === versionIds.audio)
     : null;
 
+  const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
+
+  const inBookshelf = !!bookshelfData?.items?.some((item) => item.bookVersion.id === versionId);
+
+  const handleBookshelfToggle = () => {
+    if (status !== 'authenticated') {
+      router.push(`/${supportedLang}/auth/sign-in?callbackUrl=/${supportedLang}/book/${slug}`);
+      return;
+    }
+
+    if (!versionId) return;
+
+    if (inBookshelf) {
+      removeFromBookshelfMutation.mutate(versionId);
+    } else {
+      addToBookshelfMutation.mutate(versionId);
+    }
+  };
+
   const relatedBooks = (relatedBooksData?.data || [])
     .filter((b) => b.id !== book.id && b.versions?.some((v) => v.status === 'published'))
     .slice(0, 6);
 
   const coverBgColor = '#8B7355'; // Fallback background color
-
-  const handleBookshelfToggle = () => {
-    setInBookshelf(!inBookshelf);
-  };
 
   return (
     <div className={styles.bookPage}>
@@ -150,7 +172,12 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   cat.translations?.find((t) => t.language === supportedLang) ||
                   cat.translations?.[0];
                 return (
-                  <Link key={cat.id} href={`/${supportedLang}/catalog/${cat.id}`} passHref legacyBehavior>
+                  <Link
+                    key={cat.id}
+                    href={`/${supportedLang}/catalog/${cat.id}`}
+                    passHref
+                    legacyBehavior
+                  >
                     <Button variant="secondary" size="sm">
                       {trans?.name || cat.id}
                     </Button>
@@ -167,21 +194,12 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   passHref
                   legacyBehavior
                 >
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    leftIcon={<BookOpen size={18} />}
-                  >
+                  <Button variant="secondary" size="lg" leftIcon={<BookOpen size={18} />}>
                     {textVersion.isFree ? 'Read Free' : 'Read'}
                   </Button>
                 </Link>
               ) : (
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  leftIcon={<BookOpen size={18} />}
-                  disabled
-                >
+                <Button variant="secondary" size="lg" leftIcon={<BookOpen size={18} />} disabled>
                   Read
                 </Button>
               )}
@@ -192,21 +210,12 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   passHref
                   legacyBehavior
                 >
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    leftIcon={<Headphones size={18} />}
-                  >
+                  <Button variant="secondary" size="lg" leftIcon={<Headphones size={18} />}>
                     Listen
                   </Button>
                 </Link>
               ) : (
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  leftIcon={<Headphones size={18} />}
-                  disabled
-                >
+                <Button variant="secondary" size="lg" leftIcon={<Headphones size={18} />} disabled>
                   Listen
                 </Button>
               )}
@@ -217,11 +226,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   passHref
                   legacyBehavior
                 >
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    leftIcon={<FileText size={18} />}
-                  >
+                  <Button variant="secondary" size="lg" leftIcon={<FileText size={18} />}>
                     Summary
                   </Button>
                 </Link>
@@ -231,6 +236,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                 variant="secondary"
                 size="lg"
                 active={inBookshelf}
+                loading={addToBookshelfMutation.isPending || removeFromBookshelfMutation.isPending}
                 leftIcon={inBookshelf ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
                 onClick={handleBookshelfToggle}
               >
