@@ -5,6 +5,7 @@
 import {
   useQuery,
   useMutation,
+  useQueryClient,
   type UseQueryOptions,
   type UseQueryResult,
 } from '@tanstack/react-query';
@@ -36,8 +37,13 @@ export const useProgress = (
  * @param versionId - Book version ID
  */
 export const useUpdateTextProgress = (versionId: string) => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: UpdateProgressRequest) => updateTextProgress(versionId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.readingProgress(versionId) });
+      queryClient.invalidateQueries({ queryKey: ['bookshelf'] });
+    },
     onError: (err) => {
       console.warn('Failed to update text progress:', err);
     },

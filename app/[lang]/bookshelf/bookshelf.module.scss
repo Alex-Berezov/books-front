@@ -291,8 +291,19 @@
 }
 
 .badge {
-  font-size: 10px;
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  border-radius: $border-radius-sm;
+  line-height: 1.2;
+
+  .anticon {
+    font-size: 11px;
+    margin-right: 0 !important;
+  }
 }
 
 .progressSection {

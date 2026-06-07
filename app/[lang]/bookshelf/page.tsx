@@ -15,7 +15,7 @@ import {
   PlayCircleOutlined,
   RightOutlined,
 } from '@ant-design/icons';
-import { Tabs, Badge, Skeleton, Modal, message } from 'antd';
+import { Tabs, Skeleton, Modal, message } from 'antd';
 import { Headphones } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -57,7 +57,7 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
         : `${minutes}m ${seconds}s`;
       progressPct = 50; // default indicator for audiobooks in progress
     } else {
-      progressPct = Math.min(100, Math.round(progress.position * 100));
+      progressPct = typeof progress.percentage === 'number' ? progress.percentage : 0;
       progressLabel = progress.chapterNumber
         ? `Ch. ${progress.chapterNumber} • ${progressPct}%`
         : `${progressPct}%`;
@@ -94,35 +94,21 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
 
         <div className={styles.badgeGroup}>
           {isAudio ? (
-            <Badge
-              count={
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <Headphones size={12} />
-                  Audiobook
-                </span>
-              }
-              className={styles.badge}
-              style={{ backgroundColor: '#c89f55', color: '#fff' }}
-            />
+            <span className={styles.badge} style={{ backgroundColor: '#c89f55', color: '#fff' }}>
+              <Headphones size={12} />
+              Audiobook
+            </span>
           ) : (
-            <Badge
-              count={
-                <span>
-                  <BookOutlined style={{ marginRight: 4 }} />
-                  Text
-                </span>
-              }
-              className={styles.badge}
-              style={{ backgroundColor: '#263f2e', color: '#fff' }}
-            />
+            <span className={styles.badge} style={{ backgroundColor: '#263f2e', color: '#fff' }}>
+              <BookOutlined />
+              Text
+            </span>
           )}
 
           {version.isFree && (
-            <Badge
-              count="Free"
-              className={styles.badge}
-              style={{ backgroundColor: '#52c41a', color: '#fff' }}
-            />
+            <span className={styles.badge} style={{ backgroundColor: '#52c41a', color: '#fff' }}>
+              Free
+            </span>
           )}
         </div>
 

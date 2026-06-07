@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Drawer, Slider, Skeleton, Tooltip } from 'antd';
 import { ChevronLeft, ChevronRight, Settings, ArrowLeft, BookOpen, List } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useUpdateTextProgress } from '@/api/hooks/useProgress';
+import { useSession } from 'next-auth/react';
+import { useProgress, useUpdateTextProgress } from '@/api/hooks/useProgress';
 import { useBookOverview, usePublicChapters } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -41,14 +42,32 @@ export default function TextReaderPage({ params }: Props) {
 
   // Fetch public chapters for the text version
   const { data: chaptersData, isLoading } = usePublicChapters(versionId);
-  const chapters = chaptersData || [];
+  const chapters = useMemo(() => chaptersData || [], [chaptersData]);
+
+  const { data: session } = useSession();
+  const { data: progressData } = useProgress(versionId, {
+    enabled: !!session?.user,
+  });
 
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
+  const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
   const [fontSize, setFontSize] = useState<FontSize>('md');
   const [lineHeight, setLineHeight] = useState(1.8);
   const [theme, setTheme] = useState<Theme>('light');
   const [showToc, setShowToc] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  useEffect(() => {
+    if (chapters.length > 0 && progressData && !hasRestoredProgress) {
+      if (progressData.chapterId) {
+        const idx = chapters.findIndex((c) => c.id === progressData.chapterId);
+        if (idx !== -1) {
+          setCurrentChapterIndex(idx);
+        }
+      }
+      setHasRestoredProgress(true);
+    }
+  }, [chapters, progressData, hasRestoredProgress]);
 
   const contentRef = useRef<HTMLDivElement>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,22 +91,30 @@ export default function TextReaderPage({ params }: Props) {
     [chapters.length, currentChapterIndex, versionId, updateProgressMutation]
   );
 
-  const debouncedSave = useCallback(
-    (chapter: ChapterDetail) => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => {
-        saveProgress(chapter);
-      }, 3000);
-    },
-    [saveProgress]
-  );
+  // Keep save progress ref to avoid dependency changes re-triggering effects
+  const saveProgressRef = useRef(saveProgress);
+  useEffect(() => {
+    saveProgressRef.current = saveProgress;
+  }, [saveProgress]);
 
+  const debouncedSave = useCallback((chapter: ChapterDetail) => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      saveProgressRef.current(chapter);
+    }, 3000);
+  }, []);
+
+  // Reset scroll position only when chapter index changes
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+    }
+  }, [currentChapterIndex]);
+
+  // Trigger progress save timer when chapter index/content changes
   useEffect(() => {
     if (currentChapter) {
       debouncedSave(currentChapter);
-      if (contentRef.current) {
-        contentRef.current.scrollTop = 0;
-      }
     }
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -251,9 +278,8 @@ export default function TextReaderPage({ params }: Props) {
               <div
                 className={`${styles.chapterBody} ${fontSizeMap[fontSize]}`}
                 style={{ lineHeight: lineHeight }}
-              >
-                {currentChapter.content}
-              </div>
+                dangerouslySetInnerHTML={{ __html: currentChapter.content || '' }}
+              />
             </article>
           ) : (
             <div className={styles.emptyState}>
