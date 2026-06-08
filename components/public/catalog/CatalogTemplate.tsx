@@ -115,9 +115,10 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   };
 
   // Determine page title
-  // For categories, find language translation
-  const catTranslation = currentCategory?.translations?.find((t) => t.language === lang);
-  const categoryName = catTranslation?.name || currentCategory?.id || '';
+  // For categories, find language translation (check singular translation or search translations array)
+  const catTranslation =
+    currentCategory?.translation || currentCategory?.translations?.find((t) => t.language === lang);
+  const categoryName = catTranslation?.name || currentCategory?.name || currentCategory?.id || '';
 
   const pageTitle = categorySlug
     ? categoryName

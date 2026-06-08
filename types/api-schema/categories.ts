@@ -20,6 +20,7 @@ export interface Category {
   parentId?: UUID | null;
   booksCount?: number;
   translations?: CategoryTranslation[];
+  translation?: CategoryTranslation | null;
   createdAt: ISODate;
   updatedAt: ISODate;
 }
