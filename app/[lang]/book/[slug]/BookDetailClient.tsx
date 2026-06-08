@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Tabs, Skeleton } from 'antd';
 import {
   BookOpen,
@@ -15,12 +16,15 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { rateBook } from '@/api/endpoints/rating';
 import { useBooks } from '@/api/hooks/useBooks';
 import { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
+import { queryKeys } from '@/lib/queryClient';
+import { toast } from '@/lib/utils/toast';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './book.module.scss';
@@ -55,6 +59,33 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   const removeFromBookshelfMutation = useRemoveFromBookshelf();
 
   const [activeTabKey, setActiveTabKey] = useState('about');
+
+  const queryClient = useQueryClient();
+  const [userRating, setUserRating] = useState<number>(0);
+  const [isRatingPending, setIsRatingPending] = useState(false);
+
+  const handleRateBook = async (score: number) => {
+    if (!book) return;
+    if (status !== 'authenticated') {
+      router.push(`/${supportedLang}/auth/sign-in?callbackUrl=/${supportedLang}/book/${slug}`);
+      return;
+    }
+    setIsRatingPending(true);
+    try {
+      await rateBook(book.id, score);
+      setUserRating(score);
+      toast.success('Thank you for rating this book!');
+      // Invalidate query to get new average rating
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.bookOverview(supportedLang, slug),
+      });
+    } catch (err) {
+      toast.error('Failed to submit rating. Please try again.');
+      console.error(err);
+    } finally {
+      setIsRatingPending(false);
+    }
+  };
 
   if (isLoading && !book) {
     return (
@@ -162,6 +193,21 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
               <div className={styles.ratingRow}>
                 <StarRating rating={book.rating} size="md" showCount={false} />
                 <span className={styles.ratingVal}>{book.rating.toFixed(1)} / 5</span>
+              </div>
+            )}
+
+            {status === 'authenticated' && (
+              <div className={styles.myRatingRow}>
+                <span className={styles.myRatingLabel}>
+                  {(supportedLang as string) === 'ru' ? 'Оценить книгу:' : 'Rate this book:'}
+                </span>
+                <StarRating
+                  rating={userRating}
+                  size="md"
+                  showCount={false}
+                  interactive={!isRatingPending}
+                  onRate={handleRateBook}
+                />
               </div>
             )}
 

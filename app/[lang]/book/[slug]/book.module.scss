@@ -120,6 +120,19 @@
   gap: $spacing-sm;
 }
 
+.myRatingRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-top: $spacing-xs;
+}
+
+.myRatingLabel {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.7;
+}
+
 .ratingVal {
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
