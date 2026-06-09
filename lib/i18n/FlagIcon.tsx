@@ -82,9 +82,25 @@ const PT = ({ size = 16 }: FlagIconProps) => (
   </svg>
 );
 
+const RU = ({ size = 16 }: FlagIconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 300 200"
+    width={size}
+    height={size * (200 / 300)}
+    className={styles.flagIcon}
+    aria-label="Русский"
+  >
+    <rect width="300" height="200" fill="#fff" />
+    <rect width="300" height="133.33" y="66.67" fill="#0039a6" />
+    <rect width="300" height="66.67" y="133.33" fill="#d52b1e" />
+  </svg>
+);
+
 export const FLAG_COMPONENTS: Record<SupportedLang, React.ReactNode> = {
   en: <GB />,
   es: <ES />,
   fr: <FR />,
   pt: <PT />,
+  ru: <RU />,
 };

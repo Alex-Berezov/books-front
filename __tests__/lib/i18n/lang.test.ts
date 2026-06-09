@@ -10,7 +10,7 @@ describe('i18n Utils', () => {
 
     it('should return false for unsupported languages', () => {
       expect(isSupportedLang('de')).toBe(false);
-      expect(isSupportedLang('ru')).toBe(false);
+      expect(isSupportedLang('it')).toBe(false);
     });
   });
 

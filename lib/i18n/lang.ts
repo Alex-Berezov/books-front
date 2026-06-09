@@ -1,4 +1,4 @@
-export const SUPPORTED_LANGS = ['en', 'es', 'fr', 'pt'] as const;
+export const SUPPORTED_LANGS = ['en', 'es', 'fr', 'pt', 'ru'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
 
 export const LANGUAGE_LABELS: Record<SupportedLang, string> = {
@@ -6,6 +6,7 @@ export const LANGUAGE_LABELS: Record<SupportedLang, string> = {
   es: 'Español',
   fr: 'Français',
   pt: 'Português',
+  ru: 'Русский',
 };
 
 /**
@@ -17,6 +18,7 @@ export const LANGUAGE_FLAGS: Record<SupportedLang, string> = {
   es: '🇪🇸',
   fr: '🇫🇷',
   pt: '🇵🇹',
+  ru: '🇷🇺',
 };
 
 export const isSupportedLang = (lang: string): lang is SupportedLang => {
