@@ -7,7 +7,11 @@ import { getLangFromPath, switchLangInPath, type SupportedLang } from '@/lib/i18
 import { getLanguageSelectOptions } from '@/lib/i18n/languageSelectOptions';
 import styles from './LanguageSwitcher.module.scss';
 
-export const LanguageSwitcher = () => {
+interface LanguageSwitcherProps {
+  variant?: 'public' | 'admin';
+}
+
+export const LanguageSwitcher = ({ variant = 'public' }: LanguageSwitcherProps) => {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -53,7 +57,7 @@ export const LanguageSwitcher = () => {
       value={currentLang}
       onChange={handleLanguageChange}
       options={options}
-      className={styles.languageSwitcher}
+      className={`${styles.languageSwitcher} ${variant === 'admin' ? styles.admin : ''}`}
       popupClassName={styles.languageSwitcherPopup}
       ariaLabel="Select language"
     />

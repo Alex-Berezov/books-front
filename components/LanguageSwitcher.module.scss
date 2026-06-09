@@ -3,6 +3,29 @@
 .languageSwitcher {
   min-width: 130px;
 
+  &.admin {
+    :global {
+      .ant-select-selector {
+        background-color: transparent !important;
+        border-color: rgba(0, 0, 0, 0.15) !important;
+        color: rgba(0, 0, 0, 0.85) !important;
+
+        &:hover {
+          border-color: #c89f55 !important;
+          background-color: rgba(0, 0, 0, 0.04) !important;
+        }
+      }
+
+      .ant-select-selection-item {
+        color: rgba(0, 0, 0, 0.85) !important;
+      }
+
+      .ant-select-arrow {
+        color: rgba(0, 0, 0, 0.45) !important;
+      }
+    }
+  }
+
   :global {
     .ant-select-selector {
       background-color: rgba(255, 255, 255, 0.08) !important;
