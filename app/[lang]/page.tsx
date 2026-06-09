@@ -35,7 +35,16 @@ export default function PublicLangPage({ params }: Props) {
     .slice(0, 10);
 
   const audiobooks = allBooks
-    .filter((b) => b.versions?.some((v) => v.type === 'audio'))
+    .filter(
+      (b) =>
+        b.hasAudio ||
+        b.versions?.some(
+          (v) =>
+            v.type === 'audio' ||
+            ((v as unknown as { _count?: { audioChapters: number } })._count?.audioChapters || 0) >
+              0
+        )
+    )
     .slice(0, 10);
 
   // Filter classics and fantasy by category slug
