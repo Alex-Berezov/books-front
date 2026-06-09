@@ -12,6 +12,7 @@ import {
   Calendar,
   Globe,
   FileText,
+  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -325,6 +326,14 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
 
             {/* Meta details */}
             <div className={styles.metadataList}>
+              {book.author && (
+                <div className={styles.metaItem}>
+                  <User size={16} />
+                  <span>
+                    {t('book.author')}: {book.author}
+                  </span>
+                </div>
+              )}
               {book.publicationYear && (
                 <div className={styles.metaItem}>
                   <Calendar size={16} />
