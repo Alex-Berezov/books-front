@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Tabs, Skeleton } from 'antd';
+import { Skeleton } from 'antd';
 import {
   BookOpen,
   Headphones,
@@ -59,8 +59,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   });
   const addToBookshelfMutation = useAddToBookshelf();
   const removeFromBookshelfMutation = useRemoveFromBookshelf();
-
-  const [activeTabKey, setActiveTabKey] = useState('about');
 
   const queryClient = useQueryClient();
   const [userRating, setUserRating] = useState<number>(0);
@@ -347,54 +345,17 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
           </div>
         </div>
 
-        {/* Tabs section */}
-        <div id="book-tabs-section" className={styles.tabsWrapper}>
-          <Tabs
-            activeKey={activeTabKey}
-            onChange={setActiveTabKey}
-            items={[
-              {
-                key: 'about',
-                label: t('book.about'),
-                children: (
-                  <div className={styles.tabContent}>
-                    {book.description ? (
-                      <div
-                        className={styles.description}
-                        dangerouslySetInnerHTML={{ __html: book.description }}
-                      />
-                    ) : (
-                      <p className={styles.description}>{t('book.noDescription')}</p>
-                    )}
-                  </div>
-                ),
-              },
-              {
-                key: 'details',
-                label: t('book.details'),
-                children: (
-                  <div className={styles.detailsGrid}>
-                    <div className={styles.detailRow}>
-                      <span className={styles.detailLabel}>{t('book.author')}</span>
-                      <span className={styles.detailValue}>{book.author}</span>
-                    </div>
-                    {book.publicationYear && (
-                      <div className={styles.detailRow}>
-                        <span className={styles.detailLabel}>{t('book.publicationYear')}</span>
-                        <span className={styles.detailValue}>{book.publicationYear}</span>
-                      </div>
-                    )}
-                    <div className={styles.detailRow}>
-                      <span className={styles.detailLabel}>{t('book.languageLabel')}</span>
-                      <span className={styles.detailValue}>
-                        {(book.language || '').toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-                ),
-              },
-            ]}
-          />
+        {/* Description section */}
+        <div className={styles.descriptionWrapper}>
+          <h2 className={styles.descriptionTitle}>{t('book.about')}</h2>
+          {book.description ? (
+            <div
+              className={styles.description}
+              dangerouslySetInnerHTML={{ __html: book.description }}
+            />
+          ) : (
+            <p className={styles.description}>{t('book.noDescription')}</p>
+          )}
         </div>
 
         {/* You Might Also Like */}

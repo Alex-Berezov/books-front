@@ -211,13 +211,19 @@
   opacity: 0.7;
 }
 
-.tabsWrapper {
+.descriptionWrapper {
   margin-top: $spacing-xl;
   margin-bottom: $spacing-xxl;
 }
 
-.tabContent {
-  padding-top: $spacing-md;
+.descriptionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-md;
+  color: var(--public-foreground);
+  border-bottom: 2px solid var(--public-primary);
+  display: inline-block;
+  padding-bottom: $spacing-xs;
 }
 
 .description {
@@ -226,33 +232,6 @@
   color: var(--public-foreground);
   opacity: 0.9;
   max-width: 800px;
-}
-
-.detailsGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: $spacing-md;
-  max-width: 500px;
-  padding-top: $spacing-md;
-}
-
-.detailRow {
-  display: flex;
-  justify-content: space-between;
-  padding-bottom: $spacing-xs;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-}
-
-.detailLabel {
-  font-size: $font-size-sm;
-  color: var(--public-foreground);
-  opacity: 0.6;
-}
-
-.detailValue {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  color: var(--public-foreground);
 }
 
 .relatedSection {
