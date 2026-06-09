@@ -33,7 +33,8 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
       : book.versions?.some(
           (v) =>
             v.type === 'audio' ||
-            (v as unknown as { _count?: { audioChapters: number } })._count?.audioChapters > 0
+            ((v as unknown as { _count?: { audioChapters: number } })._count?.audioChapters || 0) >
+              0
         );
 
   const cardClass = styles[`card-${size}`] || styles['card-md'];
