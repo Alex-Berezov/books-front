@@ -25,8 +25,16 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
   const slug = book.slug || book.id;
 
   // Check version types available
-  const hasText = book.versions?.some((v) => v.type === 'text');
-  const hasAudio = book.versions?.some((v) => v.type === 'audio');
+  const hasText =
+    book.hasText !== undefined ? book.hasText : book.versions?.some((v) => v.type === 'text');
+  const hasAudio =
+    book.hasAudio !== undefined
+      ? book.hasAudio
+      : book.versions?.some(
+          (v) =>
+            v.type === 'audio' ||
+            (v as unknown as { _count?: { audioChapters: number } })._count?.audioChapters > 0
+        );
 
   const cardClass = styles[`card-${size}`] || styles['card-md'];
   const coverClass = styles[`cover-${size}`] || styles['cover-md'];
