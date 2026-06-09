@@ -16,6 +16,7 @@ vi.mock('next/navigation', () => ({
   useParams: vi.fn(() => ({
     lang: 'en',
   })),
+  usePathname: vi.fn(() => '/en'),
 }));
 
 // Mock next-auth/react

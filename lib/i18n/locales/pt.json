@@ -1,0 +1,192 @@
+{
+  "header": {
+    "popular": "Popular",
+    "newReleases": "Novidades",
+    "audiobooks": "Audiolivros",
+    "genres": "Gêneros",
+    "regional": "Literatura Regional",
+    "menu": "Menu",
+    "searchPlaceholder": "Buscar livros, autores...",
+    "myBookshelf": "Minha Estante",
+    "signOut": "Sair",
+    "signIn": "Entrar"
+  },
+  "footer": {
+    "description": "Sua biblioteca digital. Descubra, leia e ouça milhares de livros a qualquer hora, em qualquer lugar.",
+    "explore": "Explorar",
+    "popularBooks": "Livros Populares",
+    "newReleases": "Novidades",
+    "audiobooks": "Audiolivros",
+    "browseGenres": "Navegar pelos Gêneros",
+    "account": "Conta",
+    "signIn": "Entrar",
+    "createAccount": "Criar Conta",
+    "myBookshelf": "Minha Estante",
+    "genresTitle": "Gêneros",
+    "classicLiterature": "Literatura Clássica",
+    "fantasy": "Fantasia",
+    "scienceFiction": "Ficção Científica",
+    "mystery": "Mistério",
+    "romance": "Romance",
+    "copyright": "Bibliaris. Todos os direitos reservados.",
+    "privacyPolicy": "Política de Privacidade",
+    "termsOfService": "Termos de Serviço"
+  },
+  "home": {
+    "title": "Sua biblioteca digital, selecionada para você",
+    "subtitle": "Leia e ouça milhares de livros. Crie sua estante pessoal e acompanhe seu progresso de leitura.",
+    "browseLibrary": "Explorar Biblioteca",
+    "audiobooks": "Audiolivros",
+    "topPopular": "Mais Populares",
+    "genres": "Gêneros",
+    "newReleases": "Novidades",
+    "classicLiterature": "Literatura Clássica",
+    "fantasyAdventure": "Fantasia e Aventura",
+    "viewAll": "Ver tudo",
+    "booksCount": "livros"
+  },
+  "genres": {
+    "title": "Navegar pelos Gêneros",
+    "subtitle": "Descubra livros de todos os gêneros e estilos",
+    "booksCount": "livros"
+  },
+  "catalog": {
+    "sidebarTitle": "Gêneros",
+    "allBooks": "Todos os livros",
+    "audiobooksOnly": "Apenas audiolivros",
+    "newReleases": "Novidades",
+    "popular": "Popular",
+    "booksFound": "livros encontrados",
+    "noBooksFound": "Nenhum livro encontrado.",
+    "clearFilters": "Limpar filtros"
+  },
+  "book": {
+    "back": "Voltar",
+    "by": "por",
+    "unknownAuthor": "Desconhecido",
+    "rateBook": "Avalie este livro:",
+    "ratingSuccess": "Obrigado por avaliar este livro!",
+    "ratingError": "Falha ao enviar avaliação. Tente novamente.",
+    "notFound": "Livro não encontrado ou ocorreu um erro.",
+    "readFree": "Ler grátis",
+    "read": "Ler",
+    "listen": "Ouvir",
+    "summary": "Resumo",
+    "inBookshelf": "Na Estante",
+    "addToBookshelf": "Adicionar à Estante",
+    "published": "Publicado:",
+    "language": "Idioma:",
+    "about": "Sobre",
+    "details": "Detalhes",
+    "noDescription": "Nenhuma descrição disponível para este livro.",
+    "author": "Autor",
+    "publicationYear": "Ano de publicação",
+    "languageLabel": "Idioma",
+    "youMightLike": "Você também pode gostar"
+  },
+  "author": {
+    "back": "Voltar",
+    "booksInLibrary": "na biblioteca",
+    "audiobooksAvailable": "Audiolivros disponíveis",
+    "avgRating": "Avaliação Média",
+    "booksBy": "Livros de",
+    "noBooksFound": "Nenhum livro encontrado",
+    "emptyText": "Ainda não temos livros deste autor em nossa biblioteca.",
+    "browseCatalog": "Explorar Catálogo"
+  },
+  "bookshelf": {
+    "title": "Minha Estante",
+    "booksSaved": "livros salvos na estante",
+    "browseLibrary": "Explorar Biblioteca",
+    "emptyTitle": "Sua estante está vazia",
+    "emptyText": "Comece a construir sua biblioteca pessoal adicionando livros que deseja ler ou ouvir do nosso catálogo.",
+    "exploreBooks": "Explorar Livros",
+    "removeTitle": "Remover da Estante?",
+    "removeConfirm": "Tem certeza que deseja remover \"{title}\" da sua estante? Seu progresso de leitura será mantido.",
+    "removeBtn": "Remover",
+    "cancelBtn": "Cancelar",
+    "removeSuccess": "\"{title}\" removido da estante",
+    "removeFail": "Falha ao remover livro da estante",
+    "tabs": {
+      "all": "Todos",
+      "reading": "Livros de texto",
+      "audio": "Audiolivros"
+    },
+    "card": {
+      "audiobook": "Audiolivro",
+      "text": "Texto",
+      "free": "Grátis",
+      "readingProgress": "Progresso de leitura",
+      "continue": "Continuar lendo",
+      "start": "Começar a ler",
+      "listen": "Ouvir"
+    }
+  },
+  "reader": {
+    "toc": "Sumário",
+    "settings": "Ajustes de Leitura",
+    "theme": "Tema",
+    "fontSize": "Tamanho da fonte",
+    "lineHeight": "Espaçamento",
+    "noChapters": "Nenhum capítulo disponível para esta versão do livro.",
+    "prev": "Anterior",
+    "next": "Próximo",
+    "chapterProgress": "Capítulo",
+    "of": "de",
+    "noChaptersLabel": "Sem capítulos",
+    "themes": {
+      "light": "Claro",
+      "sepia": "Sépia",
+      "dark": "Escuro"
+    }
+  },
+  "player": {
+    "nowPlaying": "Reproduzindo agora",
+    "chapters": "Capítulos",
+    "noChapters": "Este audiolivro ainda não tem capítulos.",
+    "chaptersFail": "Falha ao carregar capítulos de áudio.",
+    "goBack": "Voltar"
+  },
+  "auth": {
+    "sidebar": {
+      "tagline": "Sua biblioteca digital espera por você. Milhares de livros e audiolivros ao seu alcance.",
+      "feat1": "Acesse milhares de livros instantaneamente",
+      "feat2": "Ouça audiolivros em qualquer lugar",
+      "feat3": "Acompanhe seu progresso de leitura",
+      "feat4": "Construa sua estante pessoal"
+    },
+    "signin": {
+      "title": "Bem-vindo de volta",
+      "subtitle": "Faça login em sua conta para continuar lendo",
+      "errorTitle": "Erro de Autenticação",
+      "emailLabel": "E-mail",
+      "emailRequired": "Por favor, digite seu e-mail",
+      "emailInvalid": "Por favor, digite um e-mail válido",
+      "passwordLabel": "Senha",
+      "passwordRequired": "Por favor, digite sua senha",
+      "submitBtn": "Entrar",
+      "noAccount": "Não tem uma conta?",
+      "createOne": "Cadastre-se"
+    },
+    "register": {
+      "successTitle": "Conta Criada!",
+      "successText": "Sua conta foi criada com sucesso. Agora você pode entrar usando suas credenciais.",
+      "successBtn": "Ir para a página de login",
+      "title": "Crie sua conta",
+      "subtitle": "Junte-se a milhares de leitores no Bibliaris",
+      "errorTitle": "Erro de Registro",
+      "emailLabel": "E-mail",
+      "emailRequired": "Por favor, digite seu e-mail",
+      "emailInvalid": "Por favor, digite um e-mail válido",
+      "passwordLabel": "Senha",
+      "passwordRequired": "Por favor, digite sua senha",
+      "passwordLength": "A senha deve ter pelo menos 6 caracteres",
+      "confirmLabel": "Confirmar Senha",
+      "confirmRequired": "Por favor, confirme sua senha",
+      "confirmMatch": "As senhas não coincidem",
+      "submitBtn": "Criar Conta",
+      "hasAccount": "Já tem uma conta?",
+      "signinLink": "Entrar"
+    }
+  }
+}

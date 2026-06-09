@@ -9,6 +9,7 @@ import { useCategories } from '@/api/hooks/useCategories';
 import { useCategoryBooks } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview, VersionPreview } from '@/types/api-schema';
 import styles from './CatalogTemplate.module.scss';
@@ -21,6 +22,7 @@ interface CatalogTemplateProps {
 export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const { data: categoriesData } = useCategories({ limit: 50 });
   const categories = categoriesData?.data || [];
 
@@ -130,14 +132,14 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   const pageTitle = categorySlug
     ? categoryName
     : type === 'audio'
-      ? 'Audiobooks'
+      ? t('header.audiobooks')
       : sort === 'new'
-        ? 'New Releases'
+        ? t('header.newReleases')
         : sort === 'popular'
-          ? 'Popular Books'
+          ? t('catalog.popular')
           : search
             ? search
-            : 'All Books';
+            : t('catalog.allBooks');
 
   return (
     <div className={styles.catalogPage}>
@@ -147,7 +149,7 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
           <aside className={styles.sidebar}>
             <div className={styles.stickySidebar}>
               <h3 className={styles.sidebarTitle}>
-                <SlidersHorizontal size={16} /> Genres
+                <SlidersHorizontal size={16} /> {t('catalog.sidebarTitle')}
               </h3>
               <div className={styles.genresList}>
                 <Link
@@ -156,7 +158,7 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
                     !categorySlug && !type && !sort ? styles.activeGenre : ''
                   }`}
                 >
-                  All Books
+                  {t('catalog.allBooks')}
                 </Link>
                 {categories.map((cat) => {
                   const trans =
@@ -187,12 +189,18 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
             <div className={styles.contentHeader}>
               <div>
                 <h1 className={styles.title}>{pageTitle}</h1>
-                {!loading && <p className={styles.count}>{filteredBooks.length} books found</p>}
+                {!loading && (
+                  <p className={styles.count}>
+                    {filteredBooks.length} {t('catalog.booksFound')}
+                  </p>
+                )}
               </div>
               <div className={styles.badges}>
-                {type === 'audio' && <Badge status="processing" text="Audiobooks only" />}
-                {sort === 'new' && <Badge status="warning" text="New Releases" />}
-                {sort === 'popular' && <Badge status="success" text="Popular" />}
+                {type === 'audio' && (
+                  <Badge status="processing" text={t('catalog.audiobooksOnly')} />
+                )}
+                {sort === 'new' && <Badge status="warning" text={t('catalog.newReleases')} />}
+                {sort === 'popular' && <Badge status="success" text={t('catalog.popular')} />}
               </div>
             </div>
 
@@ -208,9 +216,9 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
             ) : filteredBooks.length === 0 ? (
               <div className={styles.empty}>
                 <Filter className={styles.emptyIcon} size={48} />
-                <p className={styles.emptyText}>No books found.</p>
+                <p className={styles.emptyText}>{t('catalog.noBooksFound')}</p>
                 <Button variant="primary" onClick={handleClearFilters} className={styles.clearBtn}>
-                  Clear Filters
+                  {t('catalog.clearFilters')}
                 </Button>
               </div>
             ) : (

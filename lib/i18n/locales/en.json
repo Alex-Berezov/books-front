@@ -1,0 +1,192 @@
+{
+  "header": {
+    "popular": "Popular",
+    "newReleases": "New Releases",
+    "audiobooks": "Audiobooks",
+    "genres": "Genres",
+    "regional": "Regional Literature",
+    "menu": "Menu",
+    "searchPlaceholder": "Search books, authors...",
+    "myBookshelf": "My Bookshelf",
+    "signOut": "Sign Out",
+    "signIn": "Sign In"
+  },
+  "footer": {
+    "description": "Your digital library. Discover, read, and listen to thousands of books anytime, anywhere.",
+    "explore": "Explore",
+    "popularBooks": "Popular Books",
+    "newReleases": "New Releases",
+    "audiobooks": "Audiobooks",
+    "browseGenres": "Browse Genres",
+    "account": "Account",
+    "signIn": "Sign In",
+    "createAccount": "Create Account",
+    "myBookshelf": "My Bookshelf",
+    "genresTitle": "Genres",
+    "classicLiterature": "Classic Literature",
+    "fantasy": "Fantasy",
+    "scienceFiction": "Science Fiction",
+    "mystery": "Mystery",
+    "romance": "Romance",
+    "copyright": "Bibliaris. All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
+  },
+  "home": {
+    "title": "Your Digital Library, Curated for You",
+    "subtitle": "Read and listen to thousands of books. Build your personal bookshelf and track your reading progress.",
+    "browseLibrary": "Browse Library",
+    "audiobooks": "Audiobooks",
+    "topPopular": "Top Popular",
+    "genres": "Genres",
+    "newReleases": "New Releases",
+    "classicLiterature": "Classic Literature",
+    "fantasyAdventure": "Fantasy & Adventure",
+    "viewAll": "View All",
+    "booksCount": "books"
+  },
+  "genres": {
+    "title": "Browse Genres",
+    "subtitle": "Discover books across every genre and style",
+    "booksCount": "books"
+  },
+  "catalog": {
+    "sidebarTitle": "Genres",
+    "allBooks": "All Books",
+    "audiobooksOnly": "Audiobooks only",
+    "newReleases": "New Releases",
+    "popular": "Popular",
+    "booksFound": "books found",
+    "noBooksFound": "No books found.",
+    "clearFilters": "Clear Filters"
+  },
+  "book": {
+    "back": "Back",
+    "by": "by",
+    "unknownAuthor": "Unknown",
+    "rateBook": "Rate this book:",
+    "ratingSuccess": "Thank you for rating this book!",
+    "ratingError": "Failed to submit rating. Please try again.",
+    "notFound": "Book not found or an error occurred.",
+    "readFree": "Read Free",
+    "read": "Read",
+    "listen": "Listen",
+    "summary": "Summary",
+    "inBookshelf": "In Bookshelf",
+    "addToBookshelf": "Add to Bookshelf",
+    "published": "Published:",
+    "language": "Language:",
+    "about": "About",
+    "details": "Details",
+    "noDescription": "No description available for this book.",
+    "author": "Author",
+    "publicationYear": "Publication Year",
+    "languageLabel": "Language",
+    "youMightLike": "You Might Also Like"
+  },
+  "author": {
+    "back": "Back",
+    "booksInLibrary": "in library",
+    "audiobooksAvailable": "Audiobooks available",
+    "avgRating": "Avg Rating",
+    "booksBy": "Books by",
+    "noBooksFound": "No books found",
+    "emptyText": "We do not have any books by this author in our library yet.",
+    "browseCatalog": "Browse Catalog"
+  },
+  "bookshelf": {
+    "title": "My Bookshelf",
+    "booksSaved": "saved on your shelf",
+    "browseLibrary": "Browse Library",
+    "emptyTitle": "Your bookshelf is empty",
+    "emptyText": "Start building your personal library by adding books you want to read or listen to from our catalog.",
+    "exploreBooks": "Explore Books",
+    "removeTitle": "Remove from Bookshelf?",
+    "removeConfirm": "Are you sure you want to remove \"{title}\" from your bookshelf? Your reading progress will be preserved.",
+    "removeBtn": "Remove",
+    "cancelBtn": "Cancel",
+    "removeSuccess": "Removed \"{title}\" from bookshelf",
+    "removeFail": "Failed to remove book from bookshelf",
+    "tabs": {
+      "all": "All",
+      "reading": "Text Books",
+      "audio": "Audiobooks"
+    },
+    "card": {
+      "audiobook": "Audiobook",
+      "text": "Text",
+      "free": "Free",
+      "readingProgress": "Reading Progress",
+      "continue": "Continue Reading",
+      "start": "Start Reading",
+      "listen": "Listen"
+    }
+  },
+  "reader": {
+    "toc": "Table of Contents",
+    "settings": "Reading Settings",
+    "theme": "Theme",
+    "fontSize": "Font Size",
+    "lineHeight": "Line Height",
+    "noChapters": "No chapters available for this book version.",
+    "prev": "Prev",
+    "next": "Next",
+    "chapterProgress": "Chapter",
+    "of": "of",
+    "noChaptersLabel": "No chapters",
+    "themes": {
+      "light": "Light",
+      "sepia": "Sepia",
+      "dark": "Dark"
+    }
+  },
+  "player": {
+    "nowPlaying": "Now Playing",
+    "chapters": "Chapters",
+    "noChapters": "This audiobook has no chapters yet.",
+    "chaptersFail": "Failed to load audio chapters.",
+    "goBack": "Go Back"
+  },
+  "auth": {
+    "sidebar": {
+      "tagline": "Your digital library awaits. Thousands of books and audiobooks at your fingertips.",
+      "feat1": "Access thousands of books instantly",
+      "feat2": "Listen to audiobooks anywhere",
+      "feat3": "Track your reading progress",
+      "feat4": "Build your personal bookshelf"
+    },
+    "signin": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account to continue reading",
+      "errorTitle": "Authentication Error",
+      "emailLabel": "Email",
+      "emailRequired": "Please enter your email",
+      "emailInvalid": "Please enter a valid email",
+      "passwordLabel": "Password",
+      "passwordRequired": "Please enter your password",
+      "submitBtn": "Sign In",
+      "noAccount": "Don't have an account?",
+      "createOne": "Create one"
+    },
+    "register": {
+      "successTitle": "Account Created!",
+      "successText": "Your account has been successfully created. You can now sign in using your credentials.",
+      "successBtn": "Go to Sign In",
+      "title": "Create your account",
+      "subtitle": "Join thousands of readers on Bibliaris",
+      "errorTitle": "Registration Error",
+      "emailLabel": "Email",
+      "emailRequired": "Please enter your email",
+      "emailInvalid": "Please enter a valid email",
+      "passwordLabel": "Password",
+      "passwordRequired": "Please enter your password",
+      "passwordLength": "Password must be at least 6 characters",
+      "confirmLabel": "Confirm Password",
+      "confirmRequired": "Please confirm your password",
+      "confirmMatch": "Passwords do not match",
+      "submitBtn": "Create Account",
+      "hasAccount": "Already have an account?",
+      "signinLink": "Sign in"
+    }
+  }
+}

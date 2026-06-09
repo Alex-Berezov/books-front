@@ -22,6 +22,7 @@ import {
   useUpdateAudioProgress,
 } from '@/api/hooks/usePublicAudio';
 import { Button } from '@/components/common/Button';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './player.module.scss';
 
@@ -43,6 +44,7 @@ export default function AudioPlayerPage({ params }: Props) {
   const { lang, bookSlug, versionId } = params;
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
+  const { t } = useTranslation();
 
   // Fetch book details
   const { data: book, isLoading: loadingBook } = useBookOverview(supportedLang, bookSlug);
@@ -190,12 +192,10 @@ export default function AudioPlayerPage({ params }: Props) {
     return (
       <div className={styles.errorContainer}>
         <p className={styles.errorText}>
-          {chapters.length === 0
-            ? 'This audiobook has no chapters yet.'
-            : 'Failed to load audio chapters.'}
+          {chapters.length === 0 ? t('player.noChapters') : t('player.chaptersFail')}
         </p>
         <Button variant="secondary" onClick={() => router.back()}>
-          Go Back
+          {t('player.goBack')}
         </Button>
       </div>
     );
@@ -216,7 +216,7 @@ export default function AudioPlayerPage({ params }: Props) {
           onClick={() => router.back()}
           className={styles.backBtn}
         />
-        <span className={styles.headerTitle}>Now Playing</span>
+        <span className={styles.headerTitle}>{t('player.nowPlaying')}</span>
         <Button
           variant="ghost"
           shape="circle"
@@ -228,7 +228,7 @@ export default function AudioPlayerPage({ params }: Props) {
 
       {/* Chapters Drawer */}
       <Drawer
-        title="Chapters"
+        title={t('player.chapters')}
         placement="right"
         onClose={() => setShowChapters(false)}
         open={showChapters}

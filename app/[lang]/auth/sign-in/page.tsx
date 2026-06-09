@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/common/Button';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './sign-in.module.scss';
 
 const { Title, Text } = Typography;
@@ -31,6 +32,7 @@ const SignInPage: FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
+  const { t } = useTranslation();
   const lang = (params?.lang as string) || 'en';
 
   // Default redirect path based on lang
@@ -79,15 +81,13 @@ const SignInPage: FC = () => {
             <BookOutlined className={styles.logoIcon} />
             <span className={styles.brandName}>BIBLIARIS</span>
           </div>
-          <p className={styles.tagline}>
-            Your digital library awaits. Thousands of books and audiobooks at your fingertips.
-          </p>
+          <p className={styles.tagline}>{t('auth.sidebar.tagline')}</p>
           <div className={styles.featuresList}>
             {[
-              'Access thousands of books instantly',
-              'Listen to audiobooks anywhere',
-              'Track your reading progress',
-              'Build your personal bookshelf',
+              t('auth.sidebar.feat1'),
+              t('auth.sidebar.feat2'),
+              t('auth.sidebar.feat3'),
+              t('auth.sidebar.feat4'),
             ].map((feat) => (
               <div key={feat} className={styles.featureItem}>
                 <CheckCircleOutlined className={styles.checkIcon} />
@@ -108,13 +108,13 @@ const SignInPage: FC = () => {
           </div>
 
           <Title level={2} className={styles.title}>
-            Welcome back
+            {t('auth.signin.title')}
           </Title>
-          <Text className={styles.subtitle}>Sign in to your account to continue reading</Text>
+          <Text className={styles.subtitle}>{t('auth.signin.subtitle')}</Text>
 
           {error && (
             <Alert
-              message="Authentication Error"
+              message={t('auth.signin.errorTitle')}
               description={error}
               type="error"
               showIcon
@@ -134,10 +134,10 @@ const SignInPage: FC = () => {
           >
             <Form.Item
               name="email"
-              label="Email"
+              label={t('auth.signin.emailLabel')}
               rules={[
-                { required: true, message: 'Please enter your email' },
-                { type: 'email', message: 'Please enter a valid email' },
+                { required: true, message: t('auth.signin.emailRequired') },
+                { type: 'email', message: t('auth.signin.emailInvalid') },
               ]}
             >
               <Input prefix={<MailOutlined />} placeholder="you@example.com" autoComplete="email" />
@@ -145,8 +145,8 @@ const SignInPage: FC = () => {
 
             <Form.Item
               name="password"
-              label="Password"
-              rules={[{ required: true, message: 'Please enter your password' }]}
+              label={t('auth.signin.passwordLabel')}
+              rules={[{ required: true, message: t('auth.signin.passwordRequired') }]}
             >
               <Input.Password
                 prefix={<LockOutlined />}
@@ -157,13 +157,14 @@ const SignInPage: FC = () => {
 
             <Form.Item>
               <Button variant="primary" type="submit" loading={isLoading} fullWidth>
-                Sign In
+                {t('auth.signin.submitBtn')}
               </Button>
             </Form.Item>
           </Form>
 
           <div className={styles.footer}>
-            Don&apos;t have an account? <Link href={`/${lang}/auth/register`}>Create one</Link>
+            {t('auth.signin.noAccount')}{' '}
+            <Link href={`/${lang}/auth/register`}>{t('auth.signin.createOne')}</Link>
           </div>
         </div>
       </div>

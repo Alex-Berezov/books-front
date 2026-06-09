@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 import { useProgress, useUpdateTextProgress } from '@/api/hooks/useProgress';
 import { useBookOverview, usePublicChapters } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ChapterDetail } from '@/types/api-schema';
 import styles from './reader.module.scss';
@@ -36,6 +37,7 @@ export default function TextReaderPage({ params }: Props) {
   const { lang, bookSlug, versionId } = params;
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
+  const { t } = useTranslation();
 
   // Fetch book overview for the header/metadata
   const { data: book } = useBookOverview(supportedLang, bookSlug);
@@ -161,7 +163,7 @@ export default function TextReaderPage({ params }: Props) {
         </div>
 
         <div className={styles.headerRight}>
-          <Tooltip title="Table of contents">
+          <Tooltip title={t('reader.toc')}>
             <Button
               variant="ghost"
               shape="circle"
@@ -170,7 +172,7 @@ export default function TextReaderPage({ params }: Props) {
               className={styles.iconBtn}
             />
           </Tooltip>
-          <Tooltip title="Settings">
+          <Tooltip title={t('reader.settings')}>
             <Button
               variant="ghost"
               shape="circle"
@@ -184,7 +186,7 @@ export default function TextReaderPage({ params }: Props) {
 
       {/* Table of Contents Drawer */}
       <Drawer
-        title="Table of Contents"
+        title={t('reader.toc')}
         placement="left"
         onClose={() => setShowToc(false)}
         open={showToc}
@@ -212,7 +214,7 @@ export default function TextReaderPage({ params }: Props) {
 
       {/* Settings Drawer */}
       <Drawer
-        title="Reading Settings"
+        title={t('reader.settings')}
         placement="right"
         onClose={() => setShowSettings(false)}
         open={showSettings}
@@ -220,24 +222,24 @@ export default function TextReaderPage({ params }: Props) {
         width={280}
       >
         <div className={styles.settingsSection}>
-          <h4 className={styles.settingsTitle}>Theme</h4>
+          <h4 className={styles.settingsTitle}>{t('reader.theme')}</h4>
           <div className={styles.themeSelector}>
-            {(Object.keys(themeMap) as Theme[]).map((t) => (
+            {(Object.keys(themeMap) as Theme[]).map((tKey) => (
               <button
-                key={t}
-                onClick={() => setTheme(t)}
-                className={`${styles.themeBtn} ${styles[`themeBtn-${t}`]} ${
-                  theme === t ? styles.activeThemeBtn : ''
+                key={tKey}
+                onClick={() => setTheme(tKey)}
+                className={`${styles.themeBtn} ${styles[`themeBtn-${tKey}`]} ${
+                  theme === tKey ? styles.activeThemeBtn : ''
                 }`}
               >
-                {themeMap[t].label}
+                {t(`reader.themes.${tKey}`)}
               </button>
             ))}
           </div>
         </div>
 
         <div className={styles.settingsSection}>
-          <h4 className={styles.settingsTitle}>Font Size</h4>
+          <h4 className={styles.settingsTitle}>{t('reader.fontSize')}</h4>
           <div className={styles.fontSizeSelector}>
             {(Object.keys(fontSizeMap) as FontSize[]).map((size) => (
               <button
@@ -254,7 +256,9 @@ export default function TextReaderPage({ params }: Props) {
         </div>
 
         <div className={styles.settingsSection}>
-          <h4 className={styles.settingsTitle}>Line Height ({lineHeight})</h4>
+          <h4 className={styles.settingsTitle}>
+            {t('reader.lineHeight')} ({lineHeight})
+          </h4>
           <Slider
             min={1.2}
             max={2.4}
@@ -281,7 +285,7 @@ export default function TextReaderPage({ params }: Props) {
           ) : (
             <div className={styles.emptyState}>
               <BookOpen size={48} className={styles.emptyIcon} />
-              <p className={styles.emptyText}>No chapters available for this book version.</p>
+              <p className={styles.emptyText}>{t('reader.noChapters')}</p>
             </div>
           )}
         </div>
@@ -296,14 +300,14 @@ export default function TextReaderPage({ params }: Props) {
           leftIcon={<ChevronLeft size={16} />}
           className={styles.footerBtn}
         >
-          Prev
+          {t('reader.prev')}
         </Button>
 
         <div className={styles.progressContainer}>
           <span className={styles.progressText}>
             {chapters.length > 0
-              ? `Chapter ${currentChapterIndex + 1} of ${chapters.length}`
-              : 'No chapters'}
+              ? `${t('reader.chapterProgress')} ${currentChapterIndex + 1} ${t('reader.of')} ${chapters.length}`
+              : t('reader.noChaptersLabel')}
           </span>
           <div className={styles.progressBarBg}>
             <div
@@ -325,7 +329,7 @@ export default function TextReaderPage({ params }: Props) {
           rightIcon={<ChevronRight size={16} />}
           className={styles.footerBtn}
         >
-          Next
+          {t('reader.next')}
         </Button>
       </footer>
     </div>

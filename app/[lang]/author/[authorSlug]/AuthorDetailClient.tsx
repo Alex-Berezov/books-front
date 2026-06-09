@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useBooks } from '@/api/hooks/useBooks';
 import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './author.module.scss';
@@ -27,6 +28,7 @@ function decodeAuthorSlug(slug: string): string {
 export default function AuthorDetailClient({ lang, authorSlug, displayName }: Props) {
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
+  const { t } = useTranslation();
   const searchName = decodeAuthorSlug(authorSlug ?? '');
 
   // Fetch all books to filter by author on the client
@@ -60,7 +62,7 @@ export default function AuthorDetailClient({ lang, authorSlug, displayName }: Pr
           onClick={() => router.back()}
           className={styles.backBtn}
         >
-          Back
+          {t('author.back')}
         </Button>
 
         {/* Author Hero */}
@@ -75,12 +77,16 @@ export default function AuthorDetailClient({ lang, authorSlug, displayName }: Pr
                 <>
                   <span className={styles.statItem}>
                     <BookOpen size={16} />
-                    {totalBooks} {totalBooks === 1 ? 'book' : 'books'} in library
+                    {totalBooks} {totalBooks === 1 ? 'book' : 'books'} {t('author.booksInLibrary')}
                   </span>
                   {hasAudiobooks && (
-                    <span className={styles.audioAvailable}>Audiobooks available</span>
+                    <span className={styles.audioAvailable}>{t('author.audiobooksAvailable')}</span>
                   )}
-                  {avgRating && <span className={styles.statItem}>★ {avgRating} Avg Rating</span>}
+                  {avgRating && (
+                    <span className={styles.statItem}>
+                      ★ {avgRating} {t('author.avgRating')}
+                    </span>
+                  )}
                 </>
               )}
             </div>
@@ -91,7 +97,9 @@ export default function AuthorDetailClient({ lang, authorSlug, displayName }: Pr
 
         {/* Books section */}
         <section className={styles.booksSection}>
-          <h2 className={styles.sectionTitle}>Books by {finalDisplayName}</h2>
+          <h2 className={styles.sectionTitle}>
+            {t('author.booksBy')} {finalDisplayName}
+          </h2>
 
           {isLoading ? (
             <div className={styles.booksGrid}>
@@ -105,12 +113,10 @@ export default function AuthorDetailClient({ lang, authorSlug, displayName }: Pr
           ) : authorBooks.length === 0 ? (
             <div className={styles.empty}>
               <BookOpen size={48} className={styles.emptyIcon} />
-              <h3 className={styles.emptyTitle}>No books found</h3>
-              <p className={styles.emptyText}>
-                We do not have any books by this author in our library yet.
-              </p>
+              <h3 className={styles.emptyTitle}>{t('author.noBooksFound')}</h3>
+              <p className={styles.emptyText}>{t('author.emptyText')}</p>
               <Button variant="primary" onClick={() => router.push(`/${supportedLang}/catalog`)}>
-                Browse Catalog
+                {t('author.browseCatalog')}
               </Button>
             </div>
           ) : (

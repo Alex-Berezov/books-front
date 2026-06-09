@@ -23,6 +23,7 @@ import { useBookOverview } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { queryKeys } from '@/lib/queryClient';
 import { toast } from '@/lib/utils/toast';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -38,6 +39,7 @@ type Props = {
 export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
+  const { t } = useTranslation();
 
   // Fetch book overview using the public api hook, fallback to initial data
   const {
@@ -74,13 +76,13 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
     try {
       await rateBook(book.id, score);
       setUserRating(score);
-      toast.success('Thank you for rating this book!');
+      toast.success(t('book.ratingSuccess'));
       // Invalidate query to get new average rating
       await queryClient.invalidateQueries({
         queryKey: queryKeys.bookOverview(supportedLang, slug),
       });
     } catch (err) {
-      toast.error('Failed to submit rating. Please try again.');
+      toast.error(t('book.ratingError'));
       console.error(err);
     } finally {
       setIsRatingPending(false);
@@ -106,9 +108,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   if (error || !book) {
     return (
       <div className={styles.errorContainer}>
-        <p className={styles.errorText}>Book not found or an error occurred.</p>
+        <p className={styles.errorText}>{t('book.notFound')}</p>
         <Button variant="secondary" onClick={() => router.back()}>
-          Go Back
+          {t('book.back')}
         </Button>
       </div>
     );
@@ -157,7 +159,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
           onClick={() => router.back()}
           className={styles.backBtn}
         >
-          Back
+          {t('book.back')}
         </Button>
 
         {/* Hero Section */}
@@ -180,12 +182,12 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
           <div className={styles.infoWrapper}>
             <h1 className={styles.title}>{book.title}</h1>
             <p className={styles.author}>
-              by{' '}
+              {t('book.by')}{' '}
               <Link
                 href={`/${supportedLang}/author/${encodeURIComponent((book.author || '').trim().toLowerCase().replace(/\s+/g, '-'))}`}
                 className={styles.authorLink}
               >
-                {book.author || 'Unknown'}
+                {book.author || t('book.unknownAuthor')}
               </Link>
             </p>
 
@@ -198,9 +200,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
 
             {status === 'authenticated' && (
               <div className={styles.myRatingRow}>
-                <span className={styles.myRatingLabel}>
-                  {(supportedLang as string) === 'ru' ? 'Оценить книгу:' : 'Rate this book:'}
-                </span>
+                <span className={styles.myRatingLabel}>{t('book.rateBook')}</span>
                 <StarRating
                   rating={userRating}
                   size="md"
@@ -242,12 +242,12 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   legacyBehavior
                 >
                   <Button variant="secondary" size="lg" leftIcon={<BookOpen size={18} />}>
-                    {textVersion.isFree ? 'Read Free' : 'Read'}
+                    {textVersion.isFree ? t('book.readFree') : t('book.read')}
                   </Button>
                 </Link>
               ) : (
                 <Button variant="secondary" size="lg" leftIcon={<BookOpen size={18} />} disabled>
-                  Read
+                  {t('book.read')}
                 </Button>
               )}
 
@@ -258,12 +258,12 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   legacyBehavior
                 >
                   <Button variant="secondary" size="lg" leftIcon={<Headphones size={18} />}>
-                    Listen
+                    {t('book.listen')}
                   </Button>
                 </Link>
               ) : (
                 <Button variant="secondary" size="lg" leftIcon={<Headphones size={18} />} disabled>
-                  Listen
+                  {t('book.listen')}
                 </Button>
               )}
 
@@ -274,7 +274,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   legacyBehavior
                 >
                   <Button variant="secondary" size="lg" leftIcon={<FileText size={18} />}>
-                    Summary
+                    {t('book.summary')}
                   </Button>
                 </Link>
               )}
@@ -287,7 +287,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                 leftIcon={inBookshelf ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
                 onClick={handleBookshelfToggle}
               >
-                {inBookshelf ? 'In Bookshelf' : 'Add to Bookshelf'}
+                {inBookshelf ? t('book.inBookshelf') : t('book.addToBookshelf')}
               </Button>
             </div>
 
@@ -320,13 +320,17 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
               {book.publicationYear && (
                 <div className={styles.metaItem}>
                   <Calendar size={16} />
-                  <span>Published: {book.publicationYear}</span>
+                  <span>
+                    {t('book.published')} {book.publicationYear}
+                  </span>
                 </div>
               )}
               {book.language && (
                 <div className={styles.metaItem}>
                   <Globe size={16} />
-                  <span>Language: {(book.language || '').toUpperCase()}</span>
+                  <span>
+                    {t('book.language')} {(book.language || '').toUpperCase()}
+                  </span>
                 </div>
               )}
             </div>
@@ -341,7 +345,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
             items={[
               {
                 key: 'about',
-                label: 'About',
+                label: t('book.about'),
                 children: (
                   <div className={styles.tabContent}>
                     {book.description ? (
@@ -350,28 +354,28 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                         dangerouslySetInnerHTML={{ __html: book.description }}
                       />
                     ) : (
-                      <p className={styles.description}>No description available for this book.</p>
+                      <p className={styles.description}>{t('book.noDescription')}</p>
                     )}
                   </div>
                 ),
               },
               {
                 key: 'details',
-                label: 'Details',
+                label: t('book.details'),
                 children: (
                   <div className={styles.detailsGrid}>
                     <div className={styles.detailRow}>
-                      <span className={styles.detailLabel}>Author</span>
+                      <span className={styles.detailLabel}>{t('book.author')}</span>
                       <span className={styles.detailValue}>{book.author}</span>
                     </div>
                     {book.publicationYear && (
                       <div className={styles.detailRow}>
-                        <span className={styles.detailLabel}>Publication Year</span>
+                        <span className={styles.detailLabel}>{t('book.publicationYear')}</span>
                         <span className={styles.detailValue}>{book.publicationYear}</span>
                       </div>
                     )}
                     <div className={styles.detailRow}>
-                      <span className={styles.detailLabel}>Language</span>
+                      <span className={styles.detailLabel}>{t('book.languageLabel')}</span>
                       <span className={styles.detailValue}>
                         {(book.language || '').toUpperCase()}
                       </span>
@@ -386,7 +390,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
         {/* You Might Also Like */}
         {relatedBooks.length > 0 && (
           <section className={styles.relatedSection}>
-            <h2 className={styles.sectionTitle}>You Might Also Like</h2>
+            <h2 className={styles.sectionTitle}>{t('book.youMightLike')}</h2>
             <div className={styles.booksGrid}>
               {relatedBooks.map((b) => (
                 <BookCard key={b.id} book={b} size="md" />

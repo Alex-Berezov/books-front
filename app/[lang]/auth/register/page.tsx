@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/common/Button';
 import { httpPost } from '@/lib/http';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './register.module.scss';
 
 const { Title, Text } = Typography;
@@ -31,6 +32,7 @@ interface RegisterFormValues {
 const RegisterPage: FC = () => {
   const router = useRouter();
   const params = useParams();
+  const { t } = useTranslation();
   const lang = (params?.lang as string) || 'en';
 
   const [isLoading, setIsLoading] = useState(false);
@@ -69,15 +71,13 @@ const RegisterPage: FC = () => {
             <BookOutlined className={styles.logoIcon} />
             <span className={styles.brandName}>BIBLIARIS</span>
           </div>
-          <p className={styles.tagline}>
-            Your digital library awaits. Thousands of books and audiobooks at your fingertips.
-          </p>
+          <p className={styles.tagline}>{t('auth.sidebar.tagline')}</p>
           <div className={styles.featuresList}>
             {[
-              'Access thousands of books instantly',
-              'Listen to audiobooks anywhere',
-              'Track your reading progress',
-              'Build your personal bookshelf',
+              t('auth.sidebar.feat1'),
+              t('auth.sidebar.feat2'),
+              t('auth.sidebar.feat3'),
+              t('auth.sidebar.feat4'),
             ].map((feat) => (
               <div key={feat} className={styles.featureItem}>
                 <CheckCircleOutlined className={styles.checkIcon} />
@@ -101,31 +101,28 @@ const RegisterPage: FC = () => {
             <div className={styles.successScreen}>
               <CheckCircleOutlined className={styles.successIcon} />
               <Title level={2} className={styles.successTitle}>
-                Account Created!
+                {t('auth.register.successTitle')}
               </Title>
-              <Text className={styles.successText}>
-                Your account has been successfully created. You can now sign in using your
-                credentials.
-              </Text>
+              <Text className={styles.successText}>{t('auth.register.successText')}</Text>
               <Button
                 variant="primary"
                 size="lg"
                 fullWidth
                 onClick={() => router.push(`/${lang}/auth/sign-in`)}
               >
-                Go to Sign In
+                {t('auth.register.successBtn')}
               </Button>
             </div>
           ) : (
             <>
               <Title level={2} className={styles.title}>
-                Create your account
+                {t('auth.register.title')}
               </Title>
-              <Text className={styles.subtitle}>Join thousands of readers on Bibliaris</Text>
+              <Text className={styles.subtitle}>{t('auth.register.subtitle')}</Text>
 
               {error && (
                 <Alert
-                  message="Registration Error"
+                  message={t('auth.register.errorTitle')}
                   description={error}
                   type="error"
                   showIcon
@@ -145,10 +142,10 @@ const RegisterPage: FC = () => {
               >
                 <Form.Item
                   name="email"
-                  label="Email"
+                  label={t('auth.register.emailLabel')}
                   rules={[
-                    { required: true, message: 'Please enter your email' },
-                    { type: 'email', message: 'Please enter a valid email' },
+                    { required: true, message: t('auth.register.emailRequired') },
+                    { type: 'email', message: t('auth.register.emailInvalid') },
                   ]}
                 >
                   <Input
@@ -160,10 +157,10 @@ const RegisterPage: FC = () => {
 
                 <Form.Item
                   name="password"
-                  label="Password"
+                  label={t('auth.register.passwordLabel')}
                   rules={[
-                    { required: true, message: 'Please enter your password' },
-                    { min: 6, message: 'Password must be at least 6 characters' },
+                    { required: true, message: t('auth.register.passwordRequired') },
+                    { min: 6, message: t('auth.register.passwordLength') },
                   ]}
                 >
                   <Input.Password
@@ -175,16 +172,16 @@ const RegisterPage: FC = () => {
 
                 <Form.Item
                   name="confirmPassword"
-                  label="Confirm Password"
+                  label={t('auth.register.confirmLabel')}
                   dependencies={['password']}
                   rules={[
-                    { required: true, message: 'Please confirm your password' },
+                    { required: true, message: t('auth.register.confirmRequired') },
                     ({ getFieldValue }) => ({
                       validator(_, value) {
                         if (!value || getFieldValue('password') === value) {
                           return Promise.resolve();
                         }
-                        return Promise.reject(new Error('Passwords do not match'));
+                        return Promise.reject(new Error(t('auth.register.confirmMatch')));
                       },
                     }),
                   ]}
@@ -198,13 +195,14 @@ const RegisterPage: FC = () => {
 
                 <Form.Item>
                   <Button variant="primary" type="submit" loading={isLoading} fullWidth>
-                    Create Account
+                    {t('auth.register.submitBtn')}
                   </Button>
                 </Form.Item>
               </Form>
 
               <div className={styles.footer}>
-                Already have an account? <Link href={`/${lang}/auth/sign-in`}>Sign in</Link>
+                {t('auth.register.hasAccount')}{' '}
+                <Link href={`/${lang}/auth/sign-in`}>{t('auth.register.signinLink')}</Link>
               </div>
             </>
           )}

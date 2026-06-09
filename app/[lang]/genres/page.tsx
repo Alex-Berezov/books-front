@@ -3,6 +3,7 @@
 import { Skeleton } from 'antd';
 import Link from 'next/link';
 import { useCategories } from '@/api/hooks/useCategories';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 
@@ -13,6 +14,7 @@ type Props = {
 export default function GenresPage({ params }: Props) {
   const { lang } = params;
   const supportedLang = lang as SupportedLang;
+  const { t } = useTranslation();
 
   const { data: categoriesData, isLoading } = useCategories({ limit: 50 });
   const categories = categoriesData?.data || [];
@@ -20,8 +22,8 @@ export default function GenresPage({ params }: Props) {
   return (
     <div className={styles.genresPage}>
       <div className={styles.container}>
-        <h1 className={styles.title}>Browse Genres</h1>
-        <p className={styles.subtitle}>Discover books across every genre and style</p>
+        <h1 className={styles.title}>{t('genres.title')}</h1>
+        <p className={styles.subtitle}>{t('genres.subtitle')}</p>
 
         <div className={styles.grid}>
           {isLoading
@@ -45,7 +47,9 @@ export default function GenresPage({ params }: Props) {
                     <div className={styles.overlay} />
                     <div className={styles.info}>
                       <p className={styles.name}>{name}</p>
-                      <p className={styles.count}>{cat.booksCount || 0} books</p>
+                      <p className={styles.count}>
+                        {cat.booksCount || 0} {t('genres.booksCount')}
+                      </p>
                     </div>
                   </Link>
                 );

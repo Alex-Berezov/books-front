@@ -7,6 +7,7 @@ import { useBooks } from '@/api/hooks/useBooks';
 import { useCategories } from '@/api/hooks/useCategories';
 import { Button } from '@/components/common/Button';
 import { BookSection } from '@/components/public/books/BookSection';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from '../page.module.scss';
 
@@ -17,6 +18,7 @@ type Props = {
 export default function PublicLangPage({ params }: Props) {
   const { lang } = params;
   const supportedLang = lang as SupportedLang;
+  const { t } = useTranslation();
 
   // Fetch books (limit 100 for client-side sorting and filtering)
   const { data: booksData, isLoading: loadingBooks } = useBooks({ limit: 100 });
@@ -74,20 +76,17 @@ export default function PublicLangPage({ params }: Props) {
       <div className={styles.bannerContainer}>
         <div className={styles.bannerContent}>
           <div className={styles.bannerText}>
-            <h1 className={styles.bannerTitle}>Your Digital Library, Curated for You</h1>
-            <p className={styles.bannerSubtitle}>
-              Read and listen to thousands of books. Build your personal bookshelf and track your
-              reading progress.
-            </p>
+            <h1 className={styles.bannerTitle}>{t('home.title')}</h1>
+            <p className={styles.bannerSubtitle}>{t('home.subtitle')}</p>
             <div className={styles.bannerActions}>
               <Link href={`/${supportedLang}/catalog`} passHref legacyBehavior>
                 <Button variant="primary" size="lg" className={styles.primaryBtn}>
-                  Browse Library
+                  {t('home.browseLibrary')}
                 </Button>
               </Link>
               <Link href={`/${supportedLang}/catalog?type=audio`} passHref legacyBehavior>
                 <Button variant="secondary" size="lg" className={styles.secondaryBtn}>
-                  Audiobooks
+                  {t('home.audiobooks')}
                 </Button>
               </Link>
             </div>
@@ -126,7 +125,7 @@ export default function PublicLangPage({ params }: Props) {
       <div className={styles.sectionsContainer}>
         {/* Top Popular */}
         <BookSection
-          title="Top Popular"
+          title={t('home.topPopular')}
           books={popularBooks}
           viewMoreHref={`/${supportedLang}/catalog?sort=popular`}
           loading={loadingBooks}
@@ -135,10 +134,10 @@ export default function PublicLangPage({ params }: Props) {
         {/* Genres Row */}
         <section className={styles.genresSection}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Genres</h2>
+            <h2 className={styles.sectionTitle}>{t('home.genres')}</h2>
             <Link href={`/${supportedLang}/genres`} passHref legacyBehavior>
               <Button variant="ghost" className={styles.viewMoreBtn}>
-                View All <ChevronRight size={16} />
+                {t('home.viewAll')} <ChevronRight size={16} />
               </Button>
             </Link>
           </div>
@@ -165,7 +164,9 @@ export default function PublicLangPage({ params }: Props) {
                       <div className={styles.genreOverlay} />
                       <div className={styles.genreInfo}>
                         <p className={styles.genreName}>{name}</p>
-                        <p className={styles.genreCount}>{cat.booksCount || 0} books</p>
+                        <p className={styles.genreCount}>
+                          {cat.booksCount || 0} {t('home.booksCount')}
+                        </p>
                       </div>
                     </Link>
                   );
@@ -175,7 +176,7 @@ export default function PublicLangPage({ params }: Props) {
 
         {/* New Releases */}
         <BookSection
-          title="New Releases"
+          title={t('home.newReleases')}
           books={newReleases}
           viewMoreHref={`/${supportedLang}/catalog?sort=new`}
           loading={loadingBooks}
@@ -183,7 +184,7 @@ export default function PublicLangPage({ params }: Props) {
 
         {/* Audiobooks */}
         <BookSection
-          title="Audiobooks"
+          title={t('home.audiobooks')}
           books={audiobooks}
           viewMoreHref={`/${supportedLang}/catalog?type=audio`}
           loading={loadingBooks}
@@ -192,7 +193,7 @@ export default function PublicLangPage({ params }: Props) {
         {/* Classic Literature */}
         {classicBooks.length > 0 && (
           <BookSection
-            title="Classic Literature"
+            title={t('home.classicLiterature')}
             books={classicBooks}
             viewMoreHref={`/${supportedLang}/catalog/classics`}
             loading={loadingBooks}
@@ -202,7 +203,7 @@ export default function PublicLangPage({ params }: Props) {
         {/* Fantasy & Adventure */}
         {fantasyBooks.length > 0 && (
           <BookSection
-            title="Fantasy & Adventure"
+            title={t('home.fantasyAdventure')}
             books={fantasyBooks}
             viewMoreHref={`/${supportedLang}/catalog/fantasy`}
             loading={loadingBooks}

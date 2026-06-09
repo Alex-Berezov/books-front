@@ -4,11 +4,13 @@ import { BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getLangFromPath } from '@/lib/i18n/lang';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './Footer.module.scss';
 
 export function Footer() {
   const pathname = usePathname();
   const lang = getLangFromPath(pathname);
+  const { t } = useTranslation();
 
   return (
     <footer className={styles.footer}>
@@ -19,85 +21,82 @@ export function Footer() {
               <BookOpen className={styles.logoIcon} />
               <span className={styles.logoText}>BIBLIARIS</span>
             </div>
-            <p className={styles.description}>
-              Your digital library. Discover, read, and listen to thousands of books anytime,
-              anywhere.
-            </p>
+            <p className={styles.description}>{t('footer.description')}</p>
           </div>
 
           <div>
-            <h4 className={styles.sectionTitle}>Explore</h4>
+            <h4 className={styles.sectionTitle}>{t('footer.explore')}</h4>
             <ul className={styles.linksList}>
               <li>
                 <Link href={`/${lang}/catalog?sort=popular`} className={styles.link}>
-                  Popular Books
+                  {t('footer.popularBooks')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/catalog?sort=new`} className={styles.link}>
-                  New Releases
+                  {t('footer.newReleases')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/catalog?type=audio`} className={styles.link}>
-                  Audiobooks
+                  {t('footer.audiobooks')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/genres`} className={styles.link}>
-                  Browse Genres
+                  {t('footer.browseGenres')}
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className={styles.sectionTitle}>Account</h4>
+            <h4 className={styles.sectionTitle}>{t('footer.account')}</h4>
             <ul className={styles.linksList}>
               <li>
                 <Link href={`/${lang}/auth/sign-in`} className={styles.link}>
-                  Sign In
+                  {t('footer.signIn')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/auth/register`} className={styles.link}>
-                  Create Account
+                  {t('footer.createAccount')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/bookshelf`} className={styles.link}>
-                  My Bookshelf
+                  {t('footer.myBookshelf')}
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className={styles.sectionTitle}>Genres</h4>
+            <h4 className={styles.sectionTitle}>{t('footer.genresTitle')}</h4>
             <ul className={styles.linksList}>
               <li>
                 <Link href={`/${lang}/catalog/classic-literature`} className={styles.link}>
-                  Classic Literature
+                  {t('footer.classicLiterature')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/catalog/fantasy`} className={styles.link}>
-                  Fantasy
+                  {t('footer.fantasy')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/catalog/science-fiction`} className={styles.link}>
-                  Science Fiction
+                  {t('footer.scienceFiction')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/catalog/mystery`} className={styles.link}>
-                  Mystery
+                  {t('footer.mystery')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/catalog/romance`} className={styles.link}>
-                  Romance
+                  {t('footer.romance')}
                 </Link>
               </li>
             </ul>
@@ -106,14 +105,14 @@ export function Footer() {
 
         <div className={styles.bottomRow}>
           <p className={styles.copyright}>
-            &copy; {new Date().getFullYear()} Bibliaris. All rights reserved.
+            &copy; {new Date().getFullYear()} {t('footer.copyright')}
           </p>
           <div className={styles.legalLinks}>
             <Link href={`/${lang}/privacy`} className={styles.legalLink}>
-              Privacy Policy
+              {t('footer.privacyPolicy')}
             </Link>
             <Link href={`/${lang}/terms`} className={styles.legalLink}>
-              Terms of Service
+              {t('footer.termsOfService')}
             </Link>
           </div>
         </div>

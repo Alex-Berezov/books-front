@@ -8,21 +8,23 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { getLangFromPath, type SupportedLang } from '@/lib/i18n/lang';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { MenuProps } from 'antd';
 import styles from './Header.module.scss';
 
-const getNavLinks = (lang: SupportedLang) => [
-  { label: 'Popular', href: `/${lang}/catalog?sort=popular` },
-  { label: 'New Releases', href: `/${lang}/catalog?sort=new` },
-  { label: 'Audiobooks', href: `/${lang}/catalog?type=audio` },
-  { label: 'Genres', href: `/${lang}/genres` },
-  { label: 'Regional Literature', href: `/${lang}/catalog?regional=true` },
+const getNavLinks = (lang: SupportedLang, t: (key: string) => string) => [
+  { label: t('header.popular'), href: `/${lang}/catalog?sort=popular` },
+  { label: t('header.newReleases'), href: `/${lang}/catalog?sort=new` },
+  { label: t('header.audiobooks'), href: `/${lang}/catalog?type=audio` },
+  { label: t('header.genres'), href: `/${lang}/genres` },
+  { label: t('header.regional'), href: `/${lang}/catalog?regional=true` },
 ];
 
 export function Header() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useTranslation();
   const lang = getLangFromPath(pathname);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,12 +37,12 @@ export function Header() {
     }
   };
 
-  const navLinks = getNavLinks(lang);
+  const navLinks = getNavLinks(lang, t);
 
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'bookshelf',
-      label: <Link href={`/${lang}/bookshelf`}>My Bookshelf</Link>,
+      label: <Link href={`/${lang}/bookshelf`}>{t('header.myBookshelf')}</Link>,
     },
     {
       type: 'divider',
@@ -48,7 +50,7 @@ export function Header() {
     {
       key: 'signout',
       danger: true,
-      label: 'Sign Out',
+      label: t('header.signOut'),
       onClick: () => signOut({ callbackUrl: `/${lang}` }),
     },
   ];
@@ -66,7 +68,7 @@ export function Header() {
           />
 
           <Drawer
-            title="Menu"
+            title={t('header.menu')}
             placement="left"
             onClose={() => setMobileOpen(false)}
             open={mobileOpen}
@@ -99,7 +101,7 @@ export function Header() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onSearch={handleSearchSubmit}
-              placeholder="Search books, authors..."
+              placeholder={t('header.searchPlaceholder')}
               enterButton={<Search size={16} />}
               className={styles.searchInput}
             />
@@ -119,7 +121,7 @@ export function Header() {
               icon={<Headphones size={20} />}
               className={styles.desktopAudioBtn}
               onClick={() => router.push(`/${lang}/catalog?type=audio`)}
-              title="Audiobooks"
+              title={t('header.audiobooks')}
             />
 
             <LanguageSwitcher />
@@ -131,7 +133,7 @@ export function Header() {
                   icon={<BookMarked size={20} />}
                   className={styles.actionBtn}
                   onClick={() => router.push(`/${lang}/bookshelf`)}
-                  title="My Bookshelf"
+                  title={t('header.myBookshelf')}
                 />
                 <Dropdown
                   menu={{ items: userMenuItems }}
@@ -147,7 +149,7 @@ export function Header() {
                 className={styles.signInBtn}
                 onClick={() => router.push(`/${lang}/auth/sign-in`)}
               >
-                Sign In
+                {t('header.signIn')}
               </Button>
             )}
           </div>

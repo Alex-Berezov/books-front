@@ -23,6 +23,7 @@ import { useSession } from 'next-auth/react';
 import { useBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
 import { useProgress } from '@/api/hooks/useProgress';
 import { Button } from '@/components/common/Button';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { BookshelfItemDto } from '@/api/endpoints/bookshelf';
 import styles from './bookshelf.module.scss';
 
@@ -36,6 +37,7 @@ interface BookshelfCardProps {
 const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
   const version = item.bookVersion;
   const bookSlug = version.book?.slug || version.bookId;
+  const { t } = useTranslation();
 
   // Query progress for this specific version
   const { data: progress } = useProgress(version.id, {
@@ -48,12 +50,14 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
   let progressPct = 0;
   let progressLabel = '';
 
+  const chapterAbbr = lang === 'en' || lang === 'fr' ? 'Ch.' : 'Cap.';
+
   if (progress) {
     if (isAudio) {
       const minutes = Math.floor(progress.position / 60);
       const seconds = Math.floor(progress.position % 60);
       progressLabel = progress.audioChapterNumber
-        ? `Ch. ${progress.audioChapterNumber} • ${minutes}m ${seconds}s`
+        ? `${chapterAbbr} ${progress.audioChapterNumber} • ${minutes}m ${seconds}s`
         : `${minutes}m ${seconds}s`;
       progressPct = 50; // default indicator for audiobooks in progress
     } else {
@@ -65,7 +69,7 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
           ? Math.min(100, Math.round(((chapterIndex + positionOffset) / chaptersCount) * 100))
           : 0;
       progressLabel = progress.chapterNumber
-        ? `Ch. ${progress.chapterNumber} • ${progressPct}%`
+        ? `${chapterAbbr} ${progress.chapterNumber} • ${progressPct}%`
         : `${progressPct}%`;
     }
   }
@@ -102,18 +106,18 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
           {isAudio ? (
             <span className={styles.badge} style={{ backgroundColor: '#c89f55', color: '#fff' }}>
               <Headphones size={12} />
-              Audiobook
+              {t('bookshelf.card.audiobook')}
             </span>
           ) : (
             <span className={styles.badge} style={{ backgroundColor: '#263f2e', color: '#fff' }}>
               <BookOutlined />
-              Text
+              {t('bookshelf.card.text')}
             </span>
           )}
 
           {version.isFree && (
             <span className={styles.badge} style={{ backgroundColor: '#52c41a', color: '#fff' }}>
-              Free
+              {t('bookshelf.card.free')}
             </span>
           )}
         </div>
@@ -121,7 +125,7 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
         {progress && (
           <div className={styles.progressSection}>
             <div className={styles.progressLabel}>
-              <span>Reading Progress</span>
+              <span>{t('bookshelf.card.readingProgress')}</span>
               <span>{progressLabel}</span>
             </div>
             <div
@@ -153,7 +157,7 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
                 size="sm"
                 className={`${styles.actionBtn} ${styles.continueBtn}`}
               >
-                <PlayCircleOutlined /> Listen
+                <PlayCircleOutlined /> {t('bookshelf.card.listen')}
               </Button>
             </Link>
           ) : (
@@ -163,7 +167,8 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
                 size="sm"
                 className={`${styles.actionBtn} ${styles.continueBtn}`}
               >
-                <BookOutlined /> {progress ? 'Continue Reading' : 'Start Reading'}
+                <BookOutlined />{' '}
+                {progress ? t('bookshelf.card.continue') : t('bookshelf.card.start')}
               </Button>
             </Link>
           )}
@@ -185,6 +190,7 @@ export default function BookshelfPage() {
   const { data: session, status } = useSession();
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation();
   const lang = (params?.lang as string) || 'en';
 
   const page = 1;
@@ -199,17 +205,17 @@ export default function BookshelfPage() {
 
   const handleRemove = (versionId: string, title: string) => {
     Modal.confirm({
-      title: 'Remove from Bookshelf?',
-      content: `Are you sure you want to remove "${title}" from your bookshelf? Your reading progress will be preserved.`,
-      okText: 'Remove',
+      title: t('bookshelf.removeTitle'),
+      content: t('bookshelf.removeConfirm', { title }),
+      okText: t('bookshelf.removeBtn'),
       okType: 'danger',
-      cancelText: 'Cancel',
+      cancelText: t('bookshelf.cancelBtn'),
       onOk: async () => {
         try {
           await removeMutation.mutateAsync(versionId);
-          message.success(`Removed "${title}" from bookshelf`);
+          message.success(t('bookshelf.removeSuccess', { title }));
         } catch {
-          message.error('Failed to remove book from bookshelf');
+          message.error(t('bookshelf.removeFail'));
         }
       },
     });
@@ -250,10 +256,17 @@ export default function BookshelfPage() {
       <div className={styles.pageContainer}>
         <div className={styles.unauthContainer}>
           <BookFilled className={styles.unauthIcon} />
-          <h1 className={styles.unauthTitle}>Your Bookshelf</h1>
+          <h1 className={styles.unauthTitle}>{t('bookshelf.title')}</h1>
           <p className={styles.unauthText}>
-            Sign in to access your personal bookshelf, track your reading progress, and pick up
-            where you left off.
+            {lang === 'ru'
+              ? 'Войдите, чтобы получить доступ к своей книжной полке, отслеживать прогресс чтения и продолжать с того места, где остановились.'
+              : lang === 'es'
+                ? 'Inicie sesión para acceder a su estantería personal, realizar un seguimiento de su progreso de lectura y continuar donde lo dejó.'
+                : lang === 'fr'
+                  ? 'Connectez-vous pour accéder à votre bibliothèque personnelle, suivre votre progression de lecture et reprendre là où vous vous étiez arrêté.'
+                  : lang === 'pt'
+                    ? 'Faça login para acessar sua estante pessoal, acompanhar seu progresso de leitura e continuar de onde parou.'
+                    : 'Sign in to access your personal bookshelf, track your reading progress, and pick up where you left off.'}
           </p>
           <div className={styles.unauthBtnGroup}>
             <Button
@@ -262,7 +275,11 @@ export default function BookshelfPage() {
               className={styles.signInBtn}
               onClick={() => router.push(`/${lang}/auth/sign-in?callbackUrl=/${lang}/bookshelf`)}
             >
-              Sign In
+              {t('bookshelf.card.listen')
+                .replace('Listen', 'Sign In')
+                .replace('Escuchar', 'Iniciar Sesión')
+                .replace('Écouter', 'Se Connecter')
+                .replace('Ouvir', 'Entrar')}
             </Button>
             <Button
               variant="secondary"
@@ -270,7 +287,7 @@ export default function BookshelfPage() {
               className={styles.registerBtn}
               onClick={() => router.push(`/${lang}/auth/register`)}
             >
-              Create Account
+              {t('footer.createAccount')}
             </Button>
           </div>
         </div>
@@ -287,7 +304,7 @@ export default function BookshelfPage() {
   const tabItems = [
     {
       key: 'all',
-      label: `All (${items.length})`,
+      label: `${t('bookshelf.tabs.all')} (${items.length})`,
       children: (
         <div className={styles.grid}>
           {items.map((item) => (
@@ -298,7 +315,7 @@ export default function BookshelfPage() {
     },
     {
       key: 'reading',
-      label: `Text Books (${readingItems.length})`,
+      label: `${t('bookshelf.tabs.reading')} (${readingItems.length})`,
       children: (
         <div className={styles.grid}>
           {readingItems.map((item) => (
@@ -309,7 +326,7 @@ export default function BookshelfPage() {
     },
     {
       key: 'audio',
-      label: `Audiobooks (${audioItems.length})`,
+      label: `${t('bookshelf.tabs.audio')} (${audioItems.length})`,
       children: (
         <div className={styles.grid}>
           {audioItems.map((item) => (
@@ -325,14 +342,14 @@ export default function BookshelfPage() {
       <div className={styles.container}>
         <div className={styles.header}>
           <div>
-            <h1 className={styles.headerTitle}>My Bookshelf</h1>
+            <h1 className={styles.headerTitle}>{t('bookshelf.title')}</h1>
             <p className={styles.headerSubtitle}>
-              {items.length} {items.length === 1 ? 'book' : 'books'} saved on your shelf
+              {items.length} {items.length === 1 ? 'book' : 'books'} {t('bookshelf.booksSaved')}
             </p>
           </div>
           <Link href={`/${lang}/catalog`} passHref legacyBehavior>
             <Button variant="secondary" className={styles.browseBtn}>
-              Browse Library <RightOutlined />
+              {t('bookshelf.browseLibrary')} <RightOutlined />
             </Button>
           </Link>
         </div>
@@ -340,18 +357,15 @@ export default function BookshelfPage() {
         {items.length === 0 ? (
           <div className={styles.emptyContainer}>
             <BookOutlined className={styles.emptyIcon} />
-            <h2 className={styles.emptyTitle}>Your bookshelf is empty</h2>
-            <p className={styles.emptyText}>
-              Start building your personal library by adding books you want to read or listen to
-              from our catalog.
-            </p>
+            <h2 className={styles.emptyTitle}>{t('bookshelf.emptyTitle')}</h2>
+            <p className={styles.emptyText}>{t('bookshelf.emptyText')}</p>
             <Button
               variant="primary"
               size="lg"
               className={styles.emptyBtn}
               onClick={() => router.push(`/${lang}/catalog`)}
             >
-              Explore Books
+              {t('bookshelf.exploreBooks')}
             </Button>
           </div>
         ) : (
