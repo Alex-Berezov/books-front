@@ -7,7 +7,7 @@ import type { PageResponse } from '@/types/api-schema';
  */
 export const pageSchema = z.object({
   /** Page language */
-  language: z.enum(['en', 'es', 'fr', 'pt']),
+  language: z.enum(['en', 'es', 'fr', 'pt', 'ru']),
   /** Page type (required field!) */
   type: z.enum(['generic', 'category_index', 'author_index']),
   /** Page title */

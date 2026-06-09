@@ -10,7 +10,8 @@ const titles: Record<SupportedLang, string> = {
   en: 'Book Catalog - Bibliaris',
   es: 'Catálogo de Libros - Bibliaris',
   fr: 'Catalogue de Livres - Bibliaris',
-  pt: 'Catálogo de Livros - Bibliaris',
+  pt: 'Catálogo de Libros - Bibliaris',
+  ru: 'Каталог Книг - Bibliaris',
 };
 
 const descriptions: Record<SupportedLang, string> = {
@@ -18,6 +19,7 @@ const descriptions: Record<SupportedLang, string> = {
   es: 'Explore nuestro amplio catálogo de libros. Lea en línea, escuche audiolibros en varios idiomas y cree su biblioteca digital.',
   fr: 'Parcourez notre vaste catalogue de livres. Lisez en ligne, écoutez des livres audio en plusieurs langues et créez votre bibliothèque numérique.',
   pt: 'Navegue pelo nosso extenso catálogo de livros. Leia online, ouça audiolivros em vários idiomas e crie sua biblioteca digital.',
+  ru: 'Просматривайте наш обширный каталог книг. Читайте онлайн, слушайте аудиокниги на разных языках и создавайте свою цифровую библиотеку.',
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

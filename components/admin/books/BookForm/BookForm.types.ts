@@ -13,7 +13,7 @@ export const bookVersionSchema = z.object({
     .max(100, 'Slug is too long')
     .regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
   /** Book version language */
-  language: z.enum(['en', 'es', 'fr', 'pt']),
+  language: z.enum(['en', 'es', 'fr', 'pt', 'ru']),
   /** Book title */
   title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
   /** Book author */
