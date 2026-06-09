@@ -41,8 +41,13 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
   const coverClass = styles[`cover-${size}`] || styles['cover-md'];
   const textClass = styles[`text-${size}`] || styles['text-md'];
 
-  const currentLangVersion = book.versions?.find((v) => v.language === lang);
-  const displayVersion = currentLangVersion || book.versions?.[0];
+  const currentLangVersion = book.versions?.find(
+    (v) => v.language === lang && v.status === 'published'
+  );
+  const displayVersion =
+    currentLangVersion ||
+    book.versions?.find((v) => v.status === 'published') ||
+    book.versions?.[0];
 
   const title = displayVersion?.title || book.title || '';
   const author = displayVersion?.author || book.author || '';

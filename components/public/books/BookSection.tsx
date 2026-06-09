@@ -3,6 +3,7 @@
 import { Button, Skeleton } from 'antd';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { BookOverview } from '@/types/api-schema';
 import { BookCard } from './BookCard';
 import styles from './BookSection.module.scss';
@@ -22,6 +23,8 @@ export function BookSection({
   loading = false,
   size = 'md',
 }: BookSectionProps) {
+  const { t } = useTranslation();
+
   return (
     <section className={styles.section}>
       <div className={styles.header}>
@@ -29,7 +32,7 @@ export function BookSection({
         {viewMoreHref && (
           <Link href={viewMoreHref} passHref legacyBehavior>
             <Button type="text" className={styles.viewMoreBtn}>
-              View More <ChevronRight size={16} />
+              {t('home.viewMore')} <ChevronRight size={16} />
             </Button>
           </Link>
         )}

@@ -35,7 +35,7 @@ export default function AuthorDetailClient({ lang, authorSlug, displayName }: Pr
   const { data: booksData, isLoading } = useBooks({ limit: 100 });
 
   const allBooks = (booksData?.data || []).filter((book) =>
-    book.versions?.some((v) => v.status === 'published')
+    book.versions?.some((v) => v.language === supportedLang && v.status === 'published')
   );
   const authorBooks = allBooks.filter(
     (b: BookOverview) => b.author && b.author.toLowerCase() === searchName.toLowerCase()

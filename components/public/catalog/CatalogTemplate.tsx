@@ -49,10 +49,15 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   const rawBooks = (
     (categorySlug ? categoryBooksData?.data || [] : allBooksData?.data || []) as BookOverview[]
   )
-    .filter((book) => book.versions?.some((v) => v.status === 'published'))
+    .filter((book) => book.versions?.some((v) => v.language === lang && v.status === 'published'))
     .map((book) => {
-      const currentLangVersion = book.versions?.find((v) => v.language === lang);
-      const displayVersion = currentLangVersion || book.versions?.[0];
+      const currentLangVersion = book.versions?.find(
+        (v) => v.language === lang && v.status === 'published'
+      );
+      const displayVersion =
+        currentLangVersion ||
+        book.versions?.find((v) => v.status === 'published') ||
+        book.versions?.[0];
 
       const tagsMap = new Map();
       interface TagDetails {

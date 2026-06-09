@@ -126,7 +126,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
 
   const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
 
-  const inBookshelf = !!bookshelfData?.items?.some((item) => item.bookVersion.id === versionId);
+  const inBookshelf = !!bookshelfData?.items?.some(
+    (item) => item.bookVersion.bookId === book.id || item.bookVersion.id === versionId
+  );
 
   const handleBookshelfToggle = () => {
     if (status !== 'authenticated') {
@@ -137,14 +139,22 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
     if (!versionId) return;
 
     if (inBookshelf) {
-      removeFromBookshelfMutation.mutate(versionId);
+      const existingItem = bookshelfData?.items?.find(
+        (item) => item.bookVersion.bookId === book.id || item.bookVersion.id === versionId
+      );
+      const idToRemove = existingItem?.bookVersion.id || versionId;
+      removeFromBookshelfMutation.mutate(idToRemove);
     } else {
       addToBookshelfMutation.mutate(versionId);
     }
   };
 
   const relatedBooks = (relatedBooksData?.data || [])
-    .filter((b) => b.id !== book.id && b.versions?.some((v) => v.status === 'published'))
+    .filter(
+      (b) =>
+        b.id !== book.id &&
+        b.versions?.some((v) => v.language === supportedLang && v.status === 'published')
+    )
     .slice(0, 6);
 
   const coverBgColor = '#8B7355'; // Fallback background color

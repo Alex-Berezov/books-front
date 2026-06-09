@@ -25,7 +25,7 @@ export default function PublicLangPage({ params }: Props) {
   const { data: categoriesData, isLoading: loadingCats } = useCategories({ limit: 50 });
 
   const allBooks = (booksData?.data || []).filter((book) =>
-    book.versions?.some((v) => v.status === 'published')
+    book.versions?.some((v) => v.language === supportedLang && v.status === 'published')
   );
   const categories = categoriesData?.data || [];
 
