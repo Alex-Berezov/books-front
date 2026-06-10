@@ -244,7 +244,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
 
             {/* Actions */}
             <div className={styles.actions}>
-              {textVersion ? (
+              {textVersion && (
                 <Link
                   href={`/${supportedLang}/read/${slug}/${textVersion.id}`}
                   passHref
@@ -254,13 +254,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                     {textVersion.isFree ? t('book.readFree') : t('book.read')}
                   </Button>
                 </Link>
-              ) : (
-                <Button variant="secondary" size="lg" leftIcon={<BookOpen size={18} />} disabled>
-                  {t('book.read')}
-                </Button>
               )}
 
-              {audioVersion ? (
+              {audioVersion && (
                 <Link
                   href={`/${supportedLang}/listen/${slug}/${audioVersion.id}`}
                   passHref
@@ -270,10 +266,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                     {t('book.listen')}
                   </Button>
                 </Link>
-              ) : (
-                <Button variant="secondary" size="lg" leftIcon={<Headphones size={18} />} disabled>
-                  {t('book.listen')}
-                </Button>
               )}
 
               {book.hasSummary && (
