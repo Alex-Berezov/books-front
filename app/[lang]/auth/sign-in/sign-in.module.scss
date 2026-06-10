@@ -205,6 +205,32 @@
   }
 }
 
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: $spacing-lg 0;
+  color: var(--public-foreground);
+  opacity: 0.5;
+  font-weight: $font-weight-medium;
+  font-size: $font-size-sm;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  &:not(:empty)::before {
+    margin-right: $spacing-md;
+  }
+
+  &:not(:empty)::after {
+    margin-left: $spacing-md;
+  }
+}
+
 .successScreen {
   text-align: center;
   padding: $spacing-xl 0;

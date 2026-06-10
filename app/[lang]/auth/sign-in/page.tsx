@@ -9,7 +9,14 @@
 
 import type { FC } from 'react';
 import { useState } from 'react';
-import { LockOutlined, MailOutlined, BookOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import {
+  LockOutlined,
+  MailOutlined,
+  BookOutlined,
+  CheckCircleOutlined,
+  GoogleOutlined,
+  FacebookOutlined,
+} from '@ant-design/icons';
 import { Form, Input, Alert, Typography } from 'antd';
 import Link from 'next/link';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
@@ -161,6 +168,40 @@ const SignInPage: FC = () => {
               </Button>
             </Form.Item>
           </Form>
+
+          <div className={styles.divider}>
+            <span>{t('auth.signin.or')}</span>
+          </div>
+
+          <div
+            className={styles.socialButtons}
+            style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}
+          >
+            <Button
+              variant="secondary"
+              fullWidth
+              leftIcon={<GoogleOutlined style={{ color: '#ea4335' }} />}
+              onClick={() => {
+                setIsLoading(true);
+                signIn('google', { callbackUrl });
+              }}
+              disabled={isLoading}
+            >
+              Google
+            </Button>
+            <Button
+              variant="secondary"
+              fullWidth
+              leftIcon={<FacebookOutlined style={{ color: '#1877f2' }} />}
+              onClick={() => {
+                setIsLoading(true);
+                signIn('facebook', { callbackUrl });
+              }}
+              disabled={isLoading}
+            >
+              Facebook
+            </Button>
+          </div>
 
           <div className={styles.footer}>
             {t('auth.signin.noAccount')}{' '}

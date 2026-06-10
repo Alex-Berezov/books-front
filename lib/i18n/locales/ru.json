@@ -167,7 +167,8 @@
       "passwordRequired": "Пожалуйста, введите пароль",
       "submitBtn": "Войти",
       "noAccount": "Нет аккаунта?",
-      "createOne": "Создать аккаунт"
+      "createOne": "Создать аккаунт",
+      "or": "или"
     },
     "register": {
       "successTitle": "Аккаунт создан!",

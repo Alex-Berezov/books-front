@@ -167,7 +167,8 @@
       "passwordRequired": "Por favor, digite sua senha",
       "submitBtn": "Entrar",
       "noAccount": "Não tem uma conta?",
-      "createOne": "Cadastre-se"
+      "createOne": "Cadastre-se",
+      "or": "ou"
     },
     "register": {
       "successTitle": "Conta Criada!",

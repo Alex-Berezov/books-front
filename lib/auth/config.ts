@@ -10,6 +10,8 @@
  */
 
 import CredentialsProvider from 'next-auth/providers/credentials';
+import Facebook from 'next-auth/providers/facebook';
+import Google from 'next-auth/providers/google';
 import type { User, Session, Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import {
@@ -176,6 +178,14 @@ export const authOptions = {
         }
       },
     }),
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
+    Facebook({
+      clientId: process.env.AUTH_FACEBOOK_ID,
+      clientSecret: process.env.AUTH_FACEBOOK_SECRET,
+    }),
   ],
 
   // Callbacks for JWT and session handling
@@ -188,18 +198,66 @@ export const authOptions = {
     async jwt(params: JWTCallbackParams): Promise<JWT> {
       const { token, user, account } = params;
 
-      // On first login - save tokens from authorize
+      // On first login - save tokens from authorize or sync via OAuth
       if (account && user) {
-        return {
-          ...token,
-          id: user.id,
-          email: user.email,
-          displayName: user.displayName,
-          roles: user.roles,
-          accessToken: user.accessToken,
-          refreshToken: user.refreshToken,
-          accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
-        };
+        if (account.provider === 'credentials') {
+          return {
+            ...token,
+            id: user.id,
+            email: user.email,
+            displayName: user.displayName,
+            roles: user.roles,
+            accessToken: user.accessToken,
+            refreshToken: user.refreshToken,
+            accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
+          };
+        } else {
+          // OAuth Login (Google, Facebook)
+          try {
+            const API_BASE_URL =
+              process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.bibliaris.com/api';
+
+            const response = await fetch(`${API_BASE_URL}/auth/social`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email: user.email,
+                name: user.name || undefined,
+                avatarUrl: user.image || undefined,
+                provider: account.provider,
+              }),
+            });
+
+            if (!response.ok) {
+              console.error('Failed to sync social login with backend:', response.status);
+              return {
+                ...token,
+                error: AuthErrorType.INVALID_CREDENTIALS,
+              };
+            }
+
+            const data = await response.json();
+
+            return {
+              ...token,
+              id: data.user.id,
+              email: data.user.email,
+              displayName: data.user.displayName || data.user.name,
+              roles: data.user.roles || [],
+              accessToken: data.accessToken,
+              refreshToken: data.refreshToken,
+              accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
+            };
+          } catch (error) {
+            console.error('Error in social login JWT callback:', error);
+            return {
+              ...token,
+              error: AuthErrorType.REFRESH_TOKEN_ERROR,
+            };
+          }
+        }
       }
 
       // Token still valid - return as is
