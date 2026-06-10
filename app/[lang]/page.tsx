@@ -37,15 +37,10 @@ export default function PublicLangPage({ params }: Props) {
     .slice(0, 10);
 
   const audiobooks = allBooks
-    .filter(
-      (b) =>
-        b.hasAudio ||
-        b.versions?.some(
-          (v) =>
-            v.type === 'audio' ||
-            ((v as unknown as { _count?: { audioChapters: number } })._count?.audioChapters || 0) >
-              0
-        )
+    .filter((b) =>
+      b.versions?.some(
+        (v) => v.language === supportedLang && v.status === 'published' && v.type === 'audio'
+      )
     )
     .slice(0, 10);
 

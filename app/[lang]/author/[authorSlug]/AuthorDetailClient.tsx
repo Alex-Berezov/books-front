@@ -43,7 +43,11 @@ export default function AuthorDetailClient({ lang, authorSlug, displayName }: Pr
 
   const finalDisplayName = authorBooks.length > 0 ? authorBooks[0].author : displayName;
   const totalBooks = authorBooks.length;
-  const hasAudiobooks = authorBooks.some((b) => b.versions?.some((v) => v.type === 'audio'));
+  const hasAudiobooks = authorBooks.some((b) =>
+    b.versions?.some(
+      (v) => v.language === supportedLang && v.status === 'published' && v.type === 'audio'
+    )
+  );
   const ratings = authorBooks
     .map((b) => b.rating)
     .filter((r): r is number => typeof r === 'number');

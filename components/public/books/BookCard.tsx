@@ -24,18 +24,20 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
   const lang = getLangFromPath(pathname);
   const slug = book.slug || book.id;
 
-  // Check version types available
+  // Check version types available for current language
   const hasText =
-    book.hasText !== undefined ? book.hasText : book.versions?.some((v) => v.type === 'text');
+    book.versions?.some(
+      (v) => v.language === lang && v.status === 'published' && v.type === 'text'
+    ) ??
+    book.hasText ??
+    false;
+
   const hasAudio =
-    book.hasAudio !== undefined
-      ? book.hasAudio
-      : book.versions?.some(
-          (v) =>
-            v.type === 'audio' ||
-            ((v as unknown as { _count?: { audioChapters: number } })._count?.audioChapters || 0) >
-              0
-        );
+    book.versions?.some(
+      (v) => v.language === lang && v.status === 'published' && v.type === 'audio'
+    ) ??
+    book.hasAudio ??
+    false;
 
   const cardClass = styles[`card-${size}`] || styles['card-md'];
   const coverClass = styles[`cover-${size}`] || styles['cover-md'];

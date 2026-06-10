@@ -102,15 +102,10 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   }
 
   if (type === 'audio') {
-    filteredBooks = filteredBooks.filter(
-      (b: BookOverview) =>
-        b.hasAudio ||
-        b.versions?.some(
-          (v: VersionPreview) =>
-            v.type === 'audio' ||
-            ((v as unknown as { _count?: { audioChapters: number } })._count?.audioChapters || 0) >
-              0
-        )
+    filteredBooks = filteredBooks.filter((b: BookOverview) =>
+      b.versions?.some(
+        (v: VersionPreview) => v.language === lang && v.status === 'published' && v.type === 'audio'
+      )
     );
   }
 
