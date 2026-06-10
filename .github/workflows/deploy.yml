@@ -56,6 +56,7 @@ jobs:
         with:
           context: .
           push: true
+          provenance: false
           tags: |
             ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
