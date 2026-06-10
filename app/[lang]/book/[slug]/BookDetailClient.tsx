@@ -123,6 +123,19 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
     ? book.versions?.find((v) => v.id === versionIds.audio)
     : null;
 
+  const textHasSummary = textVersion
+    ? ((textVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0
+    : false;
+  const audioHasSummary = audioVersion
+    ? ((audioVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0
+    : false;
+  const hasSummary = textHasSummary || audioHasSummary;
+  const summaryVersionId = textHasSummary
+    ? textVersion?.id
+    : audioHasSummary
+      ? audioVersion?.id
+      : null;
+
   const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
 
   const inBookshelf = !!bookshelfData?.items?.some(
@@ -268,9 +281,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                 </Link>
               )}
 
-              {book.hasSummary && (
+              {hasSummary && summaryVersionId && (
                 <Link
-                  href={`/${supportedLang}/summary/${slug}/${textVersion?.id || audioVersion?.id || book.versions?.[0]?.id || ''}`}
+                  href={`/${supportedLang}/summary/${slug}/${summaryVersionId}`}
                   passHref
                   legacyBehavior
                 >
