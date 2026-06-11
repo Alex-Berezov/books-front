@@ -161,9 +161,14 @@
       margin-bottom: 12px; // Reduced from default 24px
     }
 
+    .ant-form-item-label {
+      padding-bottom: 4px !important; // Reduced from default 8px
+    }
+
     .ant-form-item-label > label {
       color: var(--public-foreground);
       font-weight: $font-weight-medium;
+      height: auto !important;
     }
 
     .ant-input-affix-wrapper-lg {
