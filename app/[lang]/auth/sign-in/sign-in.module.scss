@@ -157,6 +157,10 @@
 
 .form {
   :global {
+    .ant-form-item {
+      margin-bottom: 12px; // Reduced from default 24px
+    }
+
     .ant-form-item-label > label {
       color: var(--public-foreground);
       font-weight: $font-weight-medium;

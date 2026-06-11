@@ -15,7 +15,6 @@ import {
   BookOutlined,
   CheckCircleOutlined,
   GoogleOutlined,
-  FacebookOutlined,
 } from '@ant-design/icons';
 import { Form, Input, Alert, Typography } from 'antd';
 import Link from 'next/link';
@@ -188,18 +187,6 @@ const SignInPage: FC = () => {
               disabled={isLoading}
             >
               Google
-            </Button>
-            <Button
-              variant="secondary"
-              fullWidth
-              leftIcon={<FacebookOutlined style={{ color: '#1877f2' }} />}
-              onClick={() => {
-                setIsLoading(true);
-                signIn('facebook', { callbackUrl });
-              }}
-              disabled={isLoading}
-            >
-              Facebook
             </Button>
           </div>
 

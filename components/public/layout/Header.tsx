@@ -116,13 +116,15 @@ export function Header() {
               onClick={() => router.push(`/${lang}/catalog`)}
             />
 
-            <Button
-              type="text"
-              icon={<Headphones size={20} />}
-              className={styles.desktopAudioBtn}
-              onClick={() => router.push(`/${lang}/catalog?type=audio`)}
-              title={t('header.audiobooks')}
-            />
+            {!pathname?.includes('/auth/sign-in') && !pathname?.includes('/auth/register') && (
+              <Button
+                type="text"
+                icon={<Headphones size={20} />}
+                className={styles.desktopAudioBtn}
+                onClick={() => router.push(`/${lang}/catalog?type=audio`)}
+                title={t('header.audiobooks')}
+              />
+            )}
 
             <LanguageSwitcher />
 
