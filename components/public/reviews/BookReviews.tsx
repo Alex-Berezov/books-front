@@ -316,14 +316,14 @@ function ReviewItem({
     }
   );
 
-  const displayName = comment.user.nickname || comment.user.name || 'User';
+  const displayName = comment.user?.nickname || comment.user?.name || 'User';
   const initialLetter = displayName.charAt(0).toUpperCase();
 
   return (
     <div className={`${styles.reviewItem} ${isReply ? styles.replyItem : ''}`}>
       <div className={styles.itemHeader}>
         <div className={styles.authorInfo}>
-          {comment.user.avatarUrl ? (
+          {comment.user?.avatarUrl ? (
             <Image
               src={comment.user.avatarUrl}
               alt={displayName}
@@ -374,7 +374,7 @@ function ReviewItem({
           </button>
         )}
 
-        {(currentUserId === comment.user.id || currentUserId) && (
+        {(currentUserId === comment.user?.id || currentUserId) && (
           <button onClick={() => onDelete(comment.id)} className={styles.deleteBtn}>
             <Trash2 size={14} />
           </button>
