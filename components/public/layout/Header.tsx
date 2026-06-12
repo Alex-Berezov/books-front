@@ -41,6 +41,10 @@ export function Header() {
 
   const userMenuItems: MenuProps['items'] = [
     {
+      key: 'profile',
+      label: <Link href={`/${lang}/profile`}>{t('profile.cabinet')}</Link>,
+    },
+    {
       key: 'bookshelf',
       label: <Link href={`/${lang}/bookshelf`}>{t('header.myBookshelf')}</Link>,
     },
