@@ -214,5 +214,32 @@
     "unauthTitle": "Personal Profile",
     "unauthText": "Sign in to manage your profile, customize your unique nickname, and view your reviews.",
     "signIn": "Sign In"
+  },
+  "reviews": {
+    "title": "Reviews & Comments",
+    "writeReview": "Write a Review",
+    "rating": "Your Rating",
+    "placeholder": "Write your review of the book...",
+    "submit": "Submit",
+    "reply": "Reply",
+    "cancel": "Cancel",
+    "signInToRate": "Sign in to rate the book and leave a review",
+    "signIn": "Sign In",
+    "sortByPopular": "Most Popular",
+    "sortByNew": "Newest First",
+    "loadMore": "Load More",
+    "noComments": "No reviews yet. Be the first to leave one!",
+    "writeReply": "Write a reply...",
+    "replyPlaceholder": "Your reply to this comment...",
+    "deleteConfirm": "Are you sure you want to delete this comment?",
+    "submitting": "Submitting...",
+    "enterReviewText": "Please enter review text",
+    "reviewPublished": "Review published!",
+    "reviewPublishFail": "Failed to publish review",
+    "commentDeleted": "Comment deleted",
+    "commentDeleteFail": "Failed to delete comment",
+    "reactionFail": "Failed to register reaction",
+    "replyAdded": "Reply added",
+    "replyAddFail": "Failed to add reply"
   }
 }

@@ -214,5 +214,32 @@
     "unauthTitle": "Perfil Pessoal",
     "unauthText": "Faça login para gerenciar seu perfil, personalizar seu apelido único e visualizar suas avaliações.",
     "signIn": "Entrar"
+  },
+  "reviews": {
+    "title": "Avaliações e comentários",
+    "writeReview": "Escrever uma avaliação",
+    "rating": "Sua classificação",
+    "placeholder": "Escreva sua avaliação do livro...",
+    "submit": "Enviar",
+    "reply": "Responder",
+    "cancel": "Cancelar",
+    "signInToRate": "Faça login para avaliar o livro e deixar um comentário",
+    "signIn": "Entrar",
+    "sortByPopular": "Mais populares",
+    "sortByNew": "Mais recentes",
+    "loadMore": "Carregar mais",
+    "noComments": "Ainda não há avaliações. Seja o primeiro a deixar uma!",
+    "writeReply": "Escrever uma resposta...",
+    "replyPlaceholder": "Sua resposta a este comentário...",
+    "deleteConfirm": "Tem certeza de que deseja excluir este comentário?",
+    "submitting": "Enviando...",
+    "enterReviewText": "Por favor, digite o texto da avaliação",
+    "reviewPublished": "Avaliação publicada!",
+    "reviewPublishFail": "Falha ao publicar avaliação",
+    "commentDeleted": "Comentário excluído",
+    "commentDeleteFail": "Falha ao excluir comentário",
+    "reactionFail": "Falha ao registrar reação",
+    "replyAdded": "Resposta adicionada",
+    "replyAddFail": "Falha ao adicionar resposta"
   }
 }

@@ -214,5 +214,32 @@
     "unauthTitle": "Perfil Personal",
     "unauthText": "Inicie sesión para administrar su perfil, personalizar su apodo único y ver sus reseñas.",
     "signIn": "Iniciar sesión"
+  },
+  "reviews": {
+    "title": "Reseñas y comentarios",
+    "writeReview": "Escribir una reseña",
+    "rating": "Tu calificación",
+    "placeholder": "Escribe tu reseña del libro...",
+    "submit": "Enviar",
+    "reply": "Responder",
+    "cancel": "Cancelar",
+    "signInToRate": "Inicia sesión para calificar el libro y dejar una reseña",
+    "signIn": "Iniciar sesión",
+    "sortByPopular": "Más populares",
+    "sortByNew": "Más recientes",
+    "loadMore": "Cargar más",
+    "noComments": "Aún no hay reseñas. ¡Sé el primero en dejar una!",
+    "writeReply": "Escribir una respuesta...",
+    "replyPlaceholder": "Tu respuesta a este comentario...",
+    "deleteConfirm": "¿Estás seguro de que deseas eliminar este comentario?",
+    "submitting": "Enviando...",
+    "enterReviewText": "Por favor ingresa el texto de la reseña",
+    "reviewPublished": "¡Reseña publicada!",
+    "reviewPublishFail": "Error al publicar la reseña",
+    "commentDeleted": "Comentario eliminado",
+    "commentDeleteFail": "Error al eliminar el comentario",
+    "reactionFail": "Error al registrar la reacción",
+    "replyAdded": "Respuesta agregada",
+    "replyAddFail": "Error al agregar la respuesta"
   }
 }

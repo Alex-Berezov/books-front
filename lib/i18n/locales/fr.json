@@ -214,5 +214,32 @@
     "unauthTitle": "Profil Personnel",
     "unauthText": "Connectez-vous pour gérer votre profil, personnaliser votre pseudonyme unique et afficher vos critiques.",
     "signIn": "Se connecter"
+  },
+  "reviews": {
+    "title": "Critiques et commentaires",
+    "writeReview": "Écrire une critique",
+    "rating": "Votre note",
+    "placeholder": "Écrivez votre critique du livre...",
+    "submit": "Envoyer",
+    "reply": "Répondre",
+    "cancel": "Annuler",
+    "signInToRate": "Connectez-vous pour noter le livre et laisser une critique",
+    "signIn": "Se connecter",
+    "sortByPopular": "Les plus populaires",
+    "sortByNew": "Les plus récents",
+    "loadMore": "Charger plus",
+    "noComments": "Pas encore de critiques. Soyez le premier à en laisser une !",
+    "writeReply": "Écrire une réponse...",
+    "replyPlaceholder": "Votre réponse à ce commentaire...",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce commentaire ?",
+    "submitting": "Envoi...",
+    "enterReviewText": "Veuillez entrer le texte de la critique",
+    "reviewPublished": "Critique publiée !",
+    "reviewPublishFail": "Échec de la publication de la critique",
+    "commentDeleted": "Commentaire supprimé",
+    "commentDeleteFail": "Échec de la suppression du commentaire",
+    "reactionFail": "Échec de l'enregistrement de la réaction",
+    "replyAdded": "Réponse ajoutée",
+    "replyAddFail": "Échec de l'ajout de la réponse"
   }
 }

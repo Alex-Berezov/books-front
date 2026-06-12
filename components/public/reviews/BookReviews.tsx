@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ThumbsUp, ThumbsDown, MessageSquare, Trash2, Send, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
@@ -13,6 +14,7 @@ import {
 } from '@/api/hooks/useBookComments';
 import { Button } from '@/components/common/Button';
 import { StarRating } from '@/components/public/books/StarRating';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { toast } from '@/lib/utils/toast';
 import type { ClientComment } from '@/types/api-schema';
 import styles from './BookReviews.module.scss';
@@ -23,53 +25,11 @@ interface BookReviewsProps {
   bookSlug: string;
 }
 
-const LOCAL_DICTS: Record<string, Record<string, string>> = {
-  ru: {
-    reviews: 'Отзывы и комментарии',
-    writeReview: 'Оставить отзыв',
-    rating: 'Ваша оценка',
-    placeholder: 'Напишите ваш отзыв о книге...',
-    submit: 'Отправить',
-    reply: 'Ответить',
-    cancel: 'Отмена',
-    signInToRate: 'Войдите, чтобы оценить книгу и оставить отзыв',
-    signIn: 'Войти',
-    sortByPopular: 'Сначала популярные',
-    sortByNew: 'Сначала новые',
-    loadMore: 'Показать еще',
-    noComments: 'Отзывов пока нет. Будьте первыми!',
-    writeReply: 'Написать ответ...',
-    replyPlaceholder: 'Ваш ответ на комментарий...',
-    deleteConfirm: 'Вы уверены, что хотите удалить этот комментарий?',
-    submitting: 'Отправка...',
-  },
-  en: {
-    reviews: 'Reviews & Comments',
-    writeReview: 'Write a Review',
-    rating: 'Your Rating',
-    placeholder: 'Write your review of the book...',
-    submit: 'Submit',
-    reply: 'Reply',
-    cancel: 'Cancel',
-    signInToRate: 'Sign in to rate the book and leave a review',
-    signIn: 'Sign In',
-    sortByPopular: 'Most Popular',
-    sortByNew: 'Newest First',
-    loadMore: 'Load More',
-    noComments: 'No reviews yet. Be the first to leave one!',
-    writeReply: 'Write a reply...',
-    replyPlaceholder: 'Your reply to this comment...',
-    deleteConfirm: 'Are you sure you want to delete this comment?',
-    submitting: 'Submitting...',
-  },
-};
-
 export default function BookReviews({ bookVersionId, lang, bookSlug }: BookReviewsProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { t } = useTranslation();
   const isAuthenticated = status === 'authenticated';
-
-  const dict = LOCAL_DICTS[lang] || LOCAL_DICTS.en;
 
   const [sortBy, setSortBy] = useState<'date' | 'popularity'>('popularity');
   const [page, setPage] = useState(1);
@@ -94,7 +54,7 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
     e.preventDefault();
     if (!isAuthenticated) return;
     if (!reviewText.trim()) {
-      toast.error(lang === 'ru' ? 'Введите текст отзыва' : 'Please enter review text');
+      toast.error(t('reviews.enterReviewText'));
       return;
     }
 
@@ -104,21 +64,21 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
         text: reviewText.trim(),
         rating,
       });
-      toast.success(lang === 'ru' ? 'Отзыв опубликован!' : 'Review published!');
+      toast.success(t('reviews.reviewPublished'));
       setReviewText('');
       setRating(null);
     } catch {
-      toast.error(lang === 'ru' ? 'Не удалось опубликовать отзыв' : 'Failed to publish review');
+      toast.error(t('reviews.reviewPublishFail'));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm(dict.deleteConfirm)) return;
+    if (!window.confirm(t('reviews.deleteConfirm'))) return;
     try {
       await deleteCommentMutation.mutateAsync(id);
-      toast.success(lang === 'ru' ? 'Комментарий удален' : 'Comment deleted');
+      toast.success(t('reviews.commentDeleted'));
     } catch {
-      toast.error(lang === 'ru' ? 'Не удалось удалить комментарий' : 'Failed to delete comment');
+      toast.error(t('reviews.commentDeleteFail'));
     }
   };
 
@@ -133,7 +93,7 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
     <div className={styles.reviewsSection}>
       <div className={styles.header}>
         <h2 className={styles.sectionTitle}>
-          {dict.reviews} <span className={styles.countBadge}>{data?.total || 0}</span>
+          {t('reviews.title')} <span className={styles.countBadge}>{data?.total || 0}</span>
         </h2>
 
         <div className={styles.controls}>
@@ -145,8 +105,8 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
               setPage(1);
             }}
           >
-            <option value="popularity">{dict.sortByPopular}</option>
-            <option value="date">{dict.sortByNew}</option>
+            <option value="popularity">{t('reviews.sortByPopular')}</option>
+            <option value="date">{t('reviews.sortByNew')}</option>
           </select>
         </div>
       </div>
@@ -155,7 +115,7 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
       {isAuthenticated ? (
         <form onSubmit={handleCreateReview} className={styles.reviewForm}>
           <div className={styles.ratingFormRow}>
-            <span className={styles.ratingLabel}>{dict.rating}:</span>
+            <span className={styles.ratingLabel}>{t('reviews.rating')}:</span>
             <StarRating
               rating={rating ?? 0}
               size="md"
@@ -167,7 +127,7 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
           <div className={styles.textareaWrapper}>
             <textarea
               className={styles.textarea}
-              placeholder={dict.placeholder}
+              placeholder={t('reviews.placeholder')}
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
               rows={4}
@@ -188,9 +148,9 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
         </form>
       ) : (
         <div className={styles.authBanner}>
-          <p>{dict.signInToRate}</p>
+          <p>{t('reviews.signInToRate')}</p>
           <Button variant="secondary" onClick={handleSignInRedirect}>
-            {dict.signIn}
+            {t('reviews.signIn')}
           </Button>
         </div>
       )}
@@ -207,7 +167,6 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
               key={comment.id}
               comment={comment}
               lang={lang}
-              dict={dict}
               onDelete={handleDelete}
               bookVersionId={bookVersionId}
               currentUserId={session?.user?.id}
@@ -220,12 +179,12 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
               onClick={() => setPage((prev) => prev + 1)}
               disabled={isLoading}
             >
-              {isLoading ? <Loader2 className={styles.spinner} size={16} /> : dict.loadMore}
+              {isLoading ? <Loader2 className={styles.spinner} size={16} /> : t('reviews.loadMore')}
             </button>
           )}
         </div>
       ) : (
-        <div className={styles.noComments}>{dict.noComments}</div>
+        <div className={styles.noComments}>{t('reviews.noComments')}</div>
       )}
     </div>
   );
@@ -234,7 +193,6 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
 interface ReviewItemProps {
   comment: ClientComment;
   lang: string;
-  dict: Record<string, string>;
   onDelete: (id: string) => void;
   bookVersionId: string;
   currentUserId?: string;
@@ -244,13 +202,13 @@ interface ReviewItemProps {
 function ReviewItem({
   comment,
   lang,
-  dict,
   onDelete,
   bookVersionId,
   currentUserId,
   isReply = false,
 }: ReviewItemProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyText, setReplyText] = useState('');
 
@@ -264,26 +222,6 @@ function ReviewItem({
     likesOffset: number;
     dislikesOffset: number;
   } | null>(null);
-
-  // We can fetch reaction counts. But let's check comment model from api listing first:
-  // comment has likes & dislikes count?
-  // Let's check comment type: in schema.prisma, Like model contains commentId.
-  // Wait! In comment.dto.ts: does CommentDto contain likes and dislikes counts?
-  // Let's check comment.dto.ts on the backend. Yes, in comment.dto.ts:
-  // Let's view CommentDto inside backend module comments.
-  // Wait, let's look at comments.service.ts on the backend.
-  // In comments.service.ts, the list endpoint does not fetch reaction counts?
-  // Wait, let's open comments.service.ts and search for likes or reactions count.
-  // Ah! Line 38: sortBy === 'popularity' ? { likes: { _count: 'desc' } } : { createdAt: 'desc' }
-  // And `findMany` includes:
-  // children: true, rating: true, user: { select: ... }
-  // Wait! It does not include likes count in returned fields?
-  // Let's check comment.dto.ts on the backend. Let's run a search for `likes` or `dislikes` in `comments.controller.ts` or `comment.dto.ts`.
-  // Wait! Let's search inside `d:\newDev\books\src\modules\comments\dto\comment.dto.ts`.
-  // Wait, we viewed `comment.dto.ts` earlier and it did not have likes/dislikes counts.
-  // But wait, the client can use the `useCommentLikes` hook to query counts for each comment, OR we can fetch them.
-  // Let's look at `useCommentLikes(target, targetId)` that we implemented in `useBookComments.ts`!
-  // Yes, we can just use the `useCommentLikes('comment', comment.id)` hook for each comment to fetch and update the likes and dislikes count dynamically and reactively! This is incredibly clean, handles cache state perfectly, and decouples reaction counts from comment lists.
 
   // Fetch reaction counts for this comment
   const { data: likesData } = useCommentLikes('comment', comment.id);
@@ -347,7 +285,7 @@ function ReviewItem({
     } catch {
       // Rollback
       setReactionOverride(null);
-      toast.error(lang === 'ru' ? 'Не удалось поставить оценку' : 'Failed to register reaction');
+      toast.error(t('reviews.reactionFail'));
     }
   };
 
@@ -361,11 +299,11 @@ function ReviewItem({
         parentId: comment.id,
         text: replyText.trim(),
       });
-      toast.success(lang === 'ru' ? 'Ответ добавлен' : 'Reply added');
+      toast.success(t('reviews.replyAdded'));
       setReplyText('');
       setShowReplyForm(false);
     } catch {
-      toast.error(lang === 'ru' ? 'Не удалось добавить ответ' : 'Failed to add reply');
+      toast.error(t('reviews.replyAddFail'));
     }
   };
 
@@ -386,7 +324,14 @@ function ReviewItem({
       <div className={styles.itemHeader}>
         <div className={styles.authorInfo}>
           {comment.user.avatarUrl ? (
-            <img src={comment.user.avatarUrl} alt={displayName} className={styles.avatar} />
+            <Image
+              src={comment.user.avatarUrl}
+              alt={displayName}
+              width={40}
+              height={40}
+              className={styles.avatar}
+              unoptimized
+            />
           ) : (
             <div className={styles.avatarPlaceholder}>{initialLetter}</div>
           )}
@@ -425,13 +370,11 @@ function ReviewItem({
         {!isReply && (
           <button onClick={() => setShowReplyForm(!showReplyForm)} className={styles.actionBtn}>
             <MessageSquare size={14} />
-            <span>{dict.reply}</span>
+            <span>{t('reviews.reply')}</span>
           </button>
         )}
 
         {(currentUserId === comment.user.id || currentUserId) && (
-          // In a real app we might verify if user has moderate roles, but simple delete button check works:
-          // Owner can delete or moderators can delete
           <button onClick={() => onDelete(comment.id)} className={styles.deleteBtn}>
             <Trash2 size={14} />
           </button>
@@ -443,7 +386,7 @@ function ReviewItem({
         <form onSubmit={handleReplySubmit} className={styles.replyForm}>
           <textarea
             className={styles.replyTextarea}
-            placeholder={dict.replyPlaceholder}
+            placeholder={t('reviews.replyPlaceholder')}
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
             rows={2}
@@ -451,7 +394,7 @@ function ReviewItem({
           />
           <div className={styles.replyFormActions}>
             <Button variant="ghost" size="sm" onClick={() => setShowReplyForm(false)}>
-              {dict.cancel}
+              {t('reviews.cancel')}
             </Button>
             <Button
               variant="secondary"
@@ -460,7 +403,7 @@ function ReviewItem({
               loading={createCommentMutation.isPending}
               disabled={!replyText.trim()}
             >
-              {dict.submit}
+              {t('reviews.submit')}
             </Button>
           </div>
         </form>
@@ -474,7 +417,6 @@ function ReviewItem({
               key={child.id}
               comment={child}
               lang={lang}
-              dict={dict}
               onDelete={onDelete}
               bookVersionId={bookVersionId}
               currentUserId={currentUserId}
