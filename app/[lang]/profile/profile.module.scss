@@ -1,0 +1,418 @@
+@import '@/styles/tokens.scss';
+
+.pageContainer {
+  min-height: 100vh;
+  padding: $spacing-xl 0;
+  background-color: var(--public-background);
+}
+
+.container {
+  max-width: $layout-max-width-xl;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+.headerTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+  margin-bottom: $spacing-xl;
+}
+
+.profileLayoutGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-xl;
+  align-items: start;
+
+  @media (min-width: 992px) {
+    grid-template-columns: 320px 1fr;
+  }
+}
+
+.profileCard {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: $border-radius-xl;
+  padding: $spacing-xl;
+  box-shadow: $shadow-md;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profileForm {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.avatarRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: $spacing-lg;
+}
+
+.avatarWrapper {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border-radius: $border-radius-round;
+  overflow: hidden;
+  box-shadow: $shadow-md;
+  cursor: pointer;
+  background-color: var(--public-primary);
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  transition: transform $transition-fast;
+
+  &:hover {
+    transform: scale(1.02);
+
+    .avatarHoverOverlay {
+      opacity: 1;
+    }
+  }
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+}
+
+.avatarHoverOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-xs;
+  opacity: 0;
+  transition: opacity $transition-fast;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: var(--public-foreground);
+  opacity: 0.8;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: $spacing-sm;
+  color: var(--public-foreground);
+  opacity: 0.4;
+}
+
+.input {
+  width: 100%;
+  padding: $spacing-sm $spacing-md $spacing-sm ($spacing-xl + $spacing-xs);
+  border-radius: $border-radius-lg;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: rgba(255, 255, 255, 0.8);
+  color: var(--public-foreground);
+  font-size: $font-size-sm;
+  outline: none;
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+
+  &:focus:not(:disabled) {
+    border-color: var(--public-primary);
+    box-shadow: 0 0 0 2px rgba(var(--public-primary-rgb), 0.1);
+  }
+}
+
+.inputDisabled {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--public-foreground);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hint {
+  font-size: $font-size-xs;
+  color: var(--public-foreground);
+  opacity: 0.5;
+  line-height: $line-height-tight;
+}
+
+.saveBtn {
+  margin-top: $spacing-md;
+  width: 100%;
+  justify-content: center;
+}
+
+.activitiesCard {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: $border-radius-xl;
+  padding: $spacing-xl;
+  box-shadow: $shadow-md;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+  margin: 0 0 $spacing-xs 0;
+}
+
+.sectionDesc {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.6;
+  margin: 0 0 $spacing-xl 0;
+}
+
+.activitiesList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.activityItem {
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: $border-radius-lg;
+  padding: $spacing-md $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  transition: box-shadow $transition-fast;
+
+  &:hover {
+    box-shadow: $shadow-sm;
+  }
+}
+
+.bookHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding-bottom: $spacing-sm;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.bookCover {
+  width: 32px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: $border-radius-sm;
+  box-shadow: $shadow-sm;
+}
+
+.bookCoverPlaceholder {
+  width: 32px;
+  height: 46px;
+  background-color: var(--public-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: $font-weight-bold;
+  font-size: $font-size-xs;
+  border-radius: $border-radius-sm;
+}
+
+.bookMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+.bookLink {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: var(--public-foreground);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--public-primary);
+  }
+}
+
+.bookAuthor {
+  font-size: $font-size-xs;
+  color: var(--public-foreground);
+  opacity: 0.6;
+}
+
+.parentReference {
+  background-color: rgba(0, 0, 0, 0.02);
+  border-left: 2px solid rgba(0, 0, 0, 0.06);
+  padding: $spacing-xs $spacing-sm;
+  font-size: $font-size-xs;
+  color: var(--public-foreground);
+  opacity: 0.7;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  svg {
+    opacity: 0.6;
+    margin-bottom: 2px;
+  }
+}
+
+.parentText {
+  margin: 0;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.activityText {
+  font-size: $font-size-sm;
+  line-height: $line-height-base;
+  color: var(--public-foreground);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.activityDate {
+  font-size: $font-size-xs;
+  color: var(--public-foreground);
+  opacity: 0.4;
+  margin-top: auto;
+}
+
+.repliesBlock {
+  margin-top: $spacing-sm;
+  border-top: 1px dashed rgba(0, 0, 0, 0.05);
+  padding-top: $spacing-sm;
+}
+
+.repliesTitle {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: var(--public-foreground);
+  opacity: 0.6;
+}
+
+.repliesList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.replyItem {
+  background-color: rgba(0, 0, 0, 0.015);
+  padding: $spacing-sm;
+  border-radius: $border-radius-base;
+}
+
+.replyAuthor {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: var(--public-foreground);
+  opacity: 0.8;
+}
+
+.replyText {
+  font-size: $font-size-xs;
+  margin: 2px 0 0 0;
+  color: var(--public-foreground);
+  opacity: 0.7;
+}
+
+.emptyActivities {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  padding: $spacing-xxl 0;
+  color: var(--public-foreground);
+  opacity: 0.5;
+
+  p {
+    margin: 0;
+    font-size: $font-size-base;
+  }
+}
+
+.loadingSpinner {
+  display: flex;
+  justify-content: center;
+  padding: $spacing-xxl 0;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: var(--public-primary);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Unauth banner
+.unauthContainer {
+  max-width: 480px;
+  margin: $spacing-xxl auto;
+  padding: $spacing-xxl $spacing-xl;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-md;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: $spacing-md;
+}
+
+.unauthIcon {
+  color: var(--public-primary);
+  opacity: 0.8;
+}
+
+.unauthTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+  margin: 0;
+}
+
+.unauthText {
+  font-size: $font-size-base;
+  color: var(--public-foreground);
+  opacity: 0.7;
+  margin: 0 0 $spacing-md 0;
+  line-height: $line-height-base;
+}

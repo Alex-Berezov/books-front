@@ -190,5 +190,29 @@
       "hasAccount": "¿Ya tienes cuenta?",
       "signinLink": "Inicia sesión"
     }
+  },
+  "profile": {
+    "cabinet": "Perfil Personal",
+    "email": "Correo electrónico",
+    "name": "Nombre visible",
+    "nickname": "Apodo único",
+    "nicknameHint": "Solo se permiten letras, números y guiones bajos",
+    "save": "Guardar cambios",
+    "saving": "Guardando...",
+    "uploading": "Subiendo...",
+    "uploadError": "No se pudo subir el avatar",
+    "avatarUploaded": "Avatar subido con éxito",
+    "updateSuccess": "¡Perfil actualizado con éxito!",
+    "updateError": "No se pudo actualizar el perfil",
+    "myActivities": "Mis actividades",
+    "activitiesDesc": "Historial de sus reseñas y comentarios sobre libros",
+    "repliedTo": "Respondió a",
+    "replies": "Respuestas",
+    "noActivities": "Aún no ha dejado ninguna reseña o comentario.",
+    "exploreCatalog": "Explorar catálogo",
+    "invalidNickname": "El apodo debe contener solo letras, números y guiones bajos.",
+    "unauthTitle": "Perfil Personal",
+    "unauthText": "Inicie sesión para administrar su perfil, personalizar su apodo único y ver sus reseñas.",
+    "signIn": "Iniciar sesión"
   }
 }

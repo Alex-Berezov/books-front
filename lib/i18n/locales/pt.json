@@ -190,5 +190,29 @@
       "hasAccount": "Já tem uma conta?",
       "signinLink": "Entrar"
     }
+  },
+  "profile": {
+    "cabinet": "Perfil Pessoal",
+    "email": "Endereço de e-mail",
+    "name": "Nome de exibição",
+    "nickname": "Apelido único",
+    "nicknameHint": "Apenas letras, números e sublinhados são permitidos",
+    "save": "Salvar alterações",
+    "saving": "Salvando...",
+    "uploading": "Enviando...",
+    "uploadError": "Falha ao carregar avatar",
+    "avatarUploaded": "Avatar enviado com sucesso",
+    "updateSuccess": "Perfil atualizado com sucesso!",
+    "updateError": "Falha ao atualizar perfil",
+    "myActivities": "Minhas atividades",
+    "activitiesDesc": "Histórico de suas avaliações e comentários sobre livros",
+    "repliedTo": "Respondeu a",
+    "replies": "Respostas",
+    "noActivities": "Você ainda não deixou nenhuma avaliação ou comentário.",
+    "exploreCatalog": "Explorar catálogo",
+    "invalidNickname": "O apelido deve conter apenas letras, números e sublinhados.",
+    "unauthTitle": "Perfil Pessoal",
+    "unauthText": "Faça login para gerenciar seu perfil, personalizar seu apelido único e visualizar suas avaliações.",
+    "signIn": "Entrar"
   }
 }

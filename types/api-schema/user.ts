@@ -13,6 +13,7 @@ export interface UserMeResponse {
   id: UUID;
   email: string;
   displayName?: string;
+  nickname?: string;
   avatarUrl?: string;
   languagePreference?: SupportedLang;
   roles: RoleName[];

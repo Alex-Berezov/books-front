@@ -190,5 +190,29 @@
       "hasAccount": "Already have an account?",
       "signinLink": "Sign in"
     }
+  },
+  "profile": {
+    "cabinet": "Personal Profile",
+    "email": "Email address",
+    "name": "Display Name",
+    "nickname": "Unique Nickname",
+    "nicknameHint": "Only letters, numbers and underscores are allowed",
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "uploading": "Uploading...",
+    "uploadError": "Failed to upload avatar",
+    "avatarUploaded": "Avatar uploaded",
+    "updateSuccess": "Profile updated successfully!",
+    "updateError": "Failed to update profile",
+    "myActivities": "My Activities",
+    "activitiesDesc": "History of your reviews and comments on books",
+    "repliedTo": "Replied to",
+    "replies": "Replies",
+    "noActivities": "You have not left any reviews or comments yet.",
+    "exploreCatalog": "Explore Catalog",
+    "invalidNickname": "Nickname must contain only letters, numbers and underscores.",
+    "unauthTitle": "Personal Profile",
+    "unauthText": "Sign in to manage your profile, customize your unique nickname, and view your reviews.",
+    "signIn": "Sign In"
   }
 }

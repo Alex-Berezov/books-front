@@ -190,5 +190,29 @@
       "hasAccount": "Vous avez déjà un compte ?",
       "signinLink": "Se connecter"
     }
+  },
+  "profile": {
+    "cabinet": "Profil Personnel",
+    "email": "Adresse e-mail",
+    "name": "Nom d'affichage",
+    "nickname": "Pseudonyme unique",
+    "nicknameHint": "Seuls les lettres, les chiffres et les traits de soulignement sont autorisés",
+    "save": "Enregistrer les modifications",
+    "saving": "Enregistrement...",
+    "uploading": "Téléchargement...",
+    "uploadError": "Échec du téléchargement de l'avatar",
+    "avatarUploaded": "Avatar téléchargé avec succès",
+    "updateSuccess": "Profil mis à jour avec succès !",
+    "updateError": "Échec de la mise à jour du profil",
+    "myActivities": "Mes activités",
+    "activitiesDesc": "Historique de vos critiques et commentaires sur les livres",
+    "repliedTo": "A répondu à",
+    "replies": "Réponses",
+    "noActivities": "Vous n'avez pas encore laissé de critiques ou de commentaires.",
+    "exploreCatalog": "Explorer le catalogue",
+    "invalidNickname": "Le pseudonyme ne doit contenir que des lettres, des chiffres et des traits de soulignement.",
+    "unauthTitle": "Profil Personnel",
+    "unauthText": "Connectez-vous pour gérer votre profil, personnaliser votre pseudonyme unique et afficher vos critiques.",
+    "signIn": "Se connecter"
   }
 }

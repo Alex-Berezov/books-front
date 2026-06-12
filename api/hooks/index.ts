@@ -106,7 +106,7 @@ export {
 
 // Users
 export { userKeys, useUsers } from './useUsers';
-export { useMe, useUpdateProfile, useUserActivities } from './useAuth';
+export { useMe, useUpdateProfile, useUserActivities, useUploadAvatar } from './useAuth';
 
 // Progress
 export { useProgress, useUpdateTextProgress } from './useProgress';

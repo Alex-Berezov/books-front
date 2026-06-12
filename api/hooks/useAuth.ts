@@ -73,3 +73,12 @@ export const useUserActivities = (
     ...options,
   });
 };
+
+/**
+ * Hook to upload avatar using direct presigned flow
+ */
+export const useUploadAvatar = () => {
+  return useMutation<string, ApiError, { file: File; onProgress?: (percent: number) => void }>({
+    mutationFn: ({ file, onProgress }) => authApi.uploadAvatar(file, onProgress),
+  });
+};

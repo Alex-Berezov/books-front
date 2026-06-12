@@ -1,4 +1,4 @@
-import { httpGetAuth, httpPatchAuth } from '@/lib/http-client';
+import { httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type { UserMeResponse, UpdateProfileRequest, UserActivity } from '@/types/api-schema';
 
 /**
@@ -39,4 +39,76 @@ export const getUserActivities = async (): Promise<UserActivity[]> => {
   return httpGetAuth<UserActivity[]>('/users/me/activities', {
     requireAuth: true,
   });
+};
+
+/**
+ * Helper to upload binary files directly to the uploads direct path with token
+ */
+const uploadBinaryDirect = (
+  uploadUrl: string,
+  token: string,
+  file: File,
+  onProgress?: (percent: number) => void
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+    xhr.open('POST', `${apiBaseUrl}${uploadUrl}`, true);
+    xhr.setRequestHeader('x-upload-token', token);
+    xhr.setRequestHeader('content-type', file.type);
+
+    if (onProgress && xhr.upload) {
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          onProgress(percent);
+        }
+      });
+    }
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+      } else {
+        reject(new Error(`Upload failed with status ${xhr.status}`));
+      }
+    });
+
+    xhr.addEventListener('error', () => reject(new Error('Network error during upload')));
+    xhr.send(file);
+  });
+};
+
+/**
+ * Direct file upload flow for avatars
+ *
+ * @param file - Image file to upload
+ * @param onProgress - Optional callback for upload progress
+ * @returns Resolved public URL of the uploaded image
+ */
+export const uploadAvatar = async (
+  file: File,
+  onProgress?: (percent: number) => void
+): Promise<string> => {
+  // 1. Get presigned details
+  const presign = await httpPostAuth<{ key: string; url: string; token: string }>(
+    '/uploads/presign',
+    {
+      type: 'cover',
+      contentType: file.type,
+      size: file.size,
+    }
+  );
+
+  // 2. Stream binary data to S3 / Local storage
+  await uploadBinaryDirect(presign.url, presign.token, file, onProgress);
+
+  // 3. Confirm upload key to get public Url
+  const search = new URLSearchParams({ key: presign.key }).toString();
+  const confirm = await httpPostAuth<{ publicUrl: string }>(
+    `/uploads/confirm?${search}`,
+    undefined
+  );
+
+  return confirm.publicUrl;
 };
