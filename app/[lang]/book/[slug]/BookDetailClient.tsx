@@ -24,6 +24,7 @@ import { useBookOverview } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
+import BookReviews from '@/components/public/reviews/BookReviews';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { queryKeys } from '@/lib/queryClient';
 import { toast } from '@/lib/utils/toast';
@@ -371,6 +372,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
             <p className={styles.description}>{t('book.noDescription')}</p>
           )}
         </div>
+
+        {/* Book Reviews and Comments */}
+        {versionId && <BookReviews bookVersionId={versionId} lang={lang} bookSlug={slug} />}
 
         {/* You Might Also Like */}
         {relatedBooks.length > 0 && (

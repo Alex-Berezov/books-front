@@ -1,0 +1,384 @@
+@import '@/styles/tokens.scss';
+
+.reviewsSection {
+  margin-top: $spacing-xxl;
+  padding-top: $spacing-xl;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  max-width: 800px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+}
+
+.sectionTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.countBadge {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  background-color: rgba(var(--public-primary-rgb), 0.1);
+  color: var(--public-primary);
+  padding: 2px 8px;
+  border-radius: $border-radius-full;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+}
+
+.sortSelect {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-base;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: var(--public-background);
+  color: var(--public-foreground);
+  font-size: $font-size-sm;
+  cursor: pointer;
+  outline: none;
+  transition: border-color $transition-fast;
+
+  &:focus {
+    border-color: var(--public-primary);
+  }
+}
+
+.reviewForm {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: $border-radius-xl;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-xl;
+  box-shadow: $shadow-sm;
+}
+
+.ratingFormRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.ratingLabel {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--public-foreground);
+}
+
+.textareaWrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.textarea {
+  width: 100%;
+  padding: $spacing-md ($spacing-xl + $spacing-sm) $spacing-md $spacing-md;
+  border-radius: $border-radius-lg;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: rgba(255, 255, 255, 0.8);
+  color: var(--public-foreground);
+  font-size: $font-size-base;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+
+  &:focus {
+    border-color: var(--public-primary);
+    box-shadow: 0 0 0 2px rgba(var(--public-primary-rgb), 0.1);
+  }
+}
+
+.submitBtn {
+  position: absolute;
+  right: $spacing-sm;
+  bottom: $spacing-sm;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--public-primary);
+  color: white;
+  border: none;
+  border-radius: $border-radius-lg;
+  cursor: pointer;
+  transition: background-color $transition-fast, transform $transition-fast;
+
+  &:hover:not(:disabled) {
+    background-color: var(--public-primary-hover);
+    transform: scale(1.05);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.authBanner {
+  background: rgba(var(--public-primary-rgb), 0.04);
+  border: 1px dashed rgba(var(--public-primary-rgb), 0.25);
+  border-radius: $border-radius-xl;
+  padding: $spacing-lg;
+  text-align: center;
+  margin-bottom: $spacing-xl;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+
+  p {
+    margin: 0;
+    font-size: $font-size-base;
+    color: var(--public-foreground);
+    opacity: 0.8;
+  }
+}
+
+.reviewsList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.reviewItem {
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: $border-radius-xl;
+  padding: $spacing-lg;
+  position: relative;
+  transition: box-shadow $transition-fast;
+
+  &:hover {
+    box-shadow: $shadow-sm;
+  }
+}
+
+.replyItem {
+  background: rgba(0, 0, 0, 0.02);
+  border: none;
+  border-left: 2px solid rgba(0, 0, 0, 0.06);
+  padding: $spacing-md $spacing-lg;
+  margin-top: $spacing-md;
+  border-radius: 0 $border-radius-lg $border-radius-lg 0;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $spacing-sm;
+}
+
+.authorInfo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: $border-radius-round;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  width: 40px;
+  height: 40px;
+  border-radius: $border-radius-round;
+  background-color: var(--public-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: $font-weight-bold;
+  font-size: $font-size-base;
+}
+
+.authorMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+.authorName {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: var(--public-foreground);
+}
+
+.date {
+  font-size: $font-size-xs;
+  color: var(--public-foreground);
+  opacity: 0.5;
+}
+
+.commentText {
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  color: var(--public-foreground);
+  margin: 0 0 $spacing-md 0;
+  white-space: pre-wrap;
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-top: $spacing-sm;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  background: none;
+  border: none;
+  font-size: $font-size-xs;
+  color: var(--public-foreground);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity $transition-fast, color $transition-fast;
+
+  &:hover {
+    opacity: 1;
+    color: var(--public-primary);
+  }
+
+  svg {
+    transition: transform $transition-fast;
+  }
+
+  &:active svg {
+    transform: scale(1.2);
+  }
+}
+
+.activeLike {
+  opacity: 1;
+  color: var(--color-success);
+}
+
+.activeDislike {
+  opacity: 1;
+  color: var(--color-error);
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  color: var(--color-error);
+  opacity: 0.4;
+  cursor: pointer;
+  margin-left: auto;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.replyForm {
+  margin-top: $spacing-md;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: $border-radius-lg;
+  padding: $spacing-md;
+}
+
+.replyTextarea {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-base;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: white;
+  color: var(--public-foreground);
+  font-size: $font-size-sm;
+  resize: vertical;
+  min-height: 50px;
+  outline: none;
+  margin-bottom: $spacing-sm;
+}
+
+.replyFormActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+}
+
+.replies {
+  margin-top: $spacing-sm;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.loadMoreBtn {
+  display: block;
+  width: 100%;
+  padding: $spacing-md;
+  background-color: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: $border-radius-lg;
+  color: var(--public-foreground);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: background-color $transition-fast;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.noComments {
+  text-align: center;
+  padding: $spacing-xl;
+  color: var(--public-foreground);
+  opacity: 0.5;
+  font-size: $font-size-base;
+}
+
+.loadingList {
+  display: flex;
+  justify-content: center;
+  padding: $spacing-xl;
+}
+
+.mainSpinner {
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+  color: var(--public-primary);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
