@@ -12,6 +12,7 @@ import type { ISODate, RoleName, SupportedLang, UUID } from './common';
 export interface UserMeResponse {
   id: UUID;
   email: string;
+  name?: string;
   displayName?: string;
   nickname?: string;
   avatarUrl?: string;
