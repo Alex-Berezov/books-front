@@ -45,7 +45,7 @@ vi.mock('@/lib/i18n/useTranslation', () => ({
       const translations: Record<string, string> = {
         'profile.cabinet': 'Personal Profile',
         'profile.email': 'Email address',
-        'profile.name': 'Display Name',
+        'profile.name': 'Full Name',
         'profile.nickname': 'Unique Nickname',
         'profile.nicknameHint': 'Only letters, numbers and underscores are allowed',
         'profile.save': 'Save Changes',
@@ -187,7 +187,7 @@ describe('ProfilePage', () => {
 
     // Check fields
     expect(screen.getByLabelText(/Email address/i)).toHaveValue('john@example.com');
-    expect(screen.getByLabelText(/Display Name/i)).toHaveValue('John Doe');
+    expect(screen.getByLabelText(/Full Name/i)).toHaveValue('John Doe');
     expect(screen.getByLabelText(/Unique Nickname/i)).toHaveValue('john_doe');
 
     // Check activity list
@@ -273,7 +273,7 @@ describe('ProfilePage', () => {
 
     render(<ProfilePage />);
 
-    const nameInput = screen.getByLabelText(/Display Name/i);
+    const nameInput = screen.getByLabelText(/Full Name/i);
     fireEvent.change(nameInput, { target: { value: 'John Updated' } });
 
     const nicknameInput = screen.getByLabelText(/Unique Nickname/i);

@@ -194,7 +194,7 @@
   "profile": {
     "cabinet": "Perfil Personal",
     "email": "Correo electrónico",
-    "name": "Nombre visible",
+    "name": "Nombre completo",
     "nickname": "Apodo único",
     "nicknameHint": "Solo se permiten letras, números y guiones bajos",
     "save": "Guardar cambios",

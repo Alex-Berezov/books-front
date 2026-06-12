@@ -194,7 +194,7 @@
   "profile": {
     "cabinet": "Perfil Pessoal",
     "email": "Endereço de e-mail",
-    "name": "Nome de exibição",
+    "name": "Nome completo",
     "nickname": "Apelido único",
     "nicknameHint": "Apenas letras, números e sublinhados são permitidos",
     "save": "Salvar alterações",
