@@ -1,12 +1,5 @@
-/**
- * Endpoints for authorized users
- *
- * Contains typed functions for working with user data
- * that require authorization.
- */
-
-import { httpGetAuth } from '@/lib/http-client';
-import type { UserMeResponse } from '@/types/api-schema';
+import { httpGetAuth, httpPatchAuth } from '@/lib/http-client';
+import type { UserMeResponse, UpdateProfileRequest, UserActivity } from '@/types/api-schema';
 
 /**
  * Get current user data
@@ -21,6 +14,29 @@ import type { UserMeResponse } from '@/types/api-schema';
  */
 export const getMe = async (): Promise<UserMeResponse> => {
   return httpGetAuth<UserMeResponse>('/users/me', {
+    requireAuth: true,
+  });
+};
+
+/**
+ * Update user profile settings
+ *
+ * @param data - Profile update payload
+ * @returns Updated user profile data
+ */
+export const updateProfile = async (data: UpdateProfileRequest): Promise<UserMeResponse> => {
+  return httpPatchAuth<UserMeResponse>('/users/profile', data, {
+    requireAuth: true,
+  });
+};
+
+/**
+ * Get current user activities (comments, parents, and replies)
+ *
+ * @returns Array of user activities
+ */
+export const getUserActivities = async (): Promise<UserActivity[]> => {
+  return httpGetAuth<UserActivity[]>('/users/me/activities', {
     requireAuth: true,
   });
 };

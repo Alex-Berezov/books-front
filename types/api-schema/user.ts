@@ -87,3 +87,43 @@ export interface UpdateUserRequest {
 export interface ChangePasswordRequest {
   password: string;
 }
+
+// --- Client profile & cabinet types ---
+
+export interface UpdateProfileRequest {
+  name?: string;
+  nickname?: string;
+  avatarUrl?: string;
+  languagePreference?: SupportedLang;
+}
+
+export interface UserActivityBookVersion {
+  id: UUID;
+  title: string;
+  author: string;
+  coverImageUrl: string | null;
+  slug: string;
+}
+
+export interface UserActivityParentOrChildComment {
+  id: UUID;
+  text: string;
+  createdAt: ISODate;
+  user: {
+    id: UUID;
+    email: string;
+    name: string | null;
+    nickname: string | null;
+    avatarUrl: string | null;
+  };
+}
+
+export interface UserActivity {
+  id: UUID;
+  text: string;
+  createdAt: ISODate;
+  parentId: UUID | null;
+  bookVersion: UserActivityBookVersion | null;
+  parent: UserActivityParentOrChildComment | null;
+  replies: UserActivityParentOrChildComment[];
+}

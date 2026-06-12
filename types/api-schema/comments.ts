@@ -35,3 +35,75 @@ export interface UpdateCommentStatusRequest {
 export interface ReplyToCommentRequest {
   content: string;
 }
+
+// --- Client comments & reviews types ---
+
+export interface CommentUser {
+  id: UUID;
+  email: string;
+  name: string | null;
+  nickname: string | null;
+  avatarUrl: string | null;
+}
+
+export interface ClientComment {
+  id: UUID;
+  parentId?: UUID | null;
+  bookVersionId?: UUID | null;
+  chapterId?: UUID | null;
+  audioChapterId?: UUID | null;
+  ratingId?: UUID | null;
+  ratingScore?: number | null;
+  text: string;
+  isHidden: boolean;
+  isDeleted: boolean;
+  createdAt: ISODate;
+  updatedAt: ISODate;
+  user: CommentUser;
+  children: ClientComment[];
+}
+
+export interface CreateCommentRequest {
+  parentId?: UUID | null;
+  bookVersionId?: UUID | null;
+  chapterId?: UUID | null;
+  audioChapterId?: UUID | null;
+  text: string;
+  rating?: number | null; // Rating score (1-5)
+}
+
+export interface GetBookCommentsParams {
+  target: 'version' | 'chapter' | 'audio';
+  targetId: UUID;
+  page?: number;
+  limit?: number;
+  sortBy?: 'date' | 'popularity';
+}
+
+export interface BookCommentsResponse {
+  items: ClientComment[];
+  total: number;
+  page: number;
+  limit: number;
+  hasNext: boolean;
+}
+
+// --- Reaction / Likes types ---
+
+export interface ToggleLikeRequest {
+  commentId?: UUID;
+  bookVersionId?: UUID;
+  isLike?: boolean; // Default true (like)
+}
+
+export interface ToggleLikeResponse {
+  liked: boolean;
+  isLike: boolean;
+  likes: number;
+  dislikes: number;
+}
+
+export interface LikeCountResponse {
+  likes: number;
+  dislikes: number;
+}

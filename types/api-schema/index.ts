@@ -30,7 +30,13 @@ export type {
 } from './auth';
 
 // User
-export type { UserMeResponse } from './user';
+export type {
+  UserMeResponse,
+  UpdateProfileRequest,
+  UserActivityBookVersion,
+  UserActivityParentOrChildComment,
+  UserActivity,
+} from './user';
 
 // Books
 export type {
@@ -147,4 +153,12 @@ export type {
   CommentsResponse,
   UpdateCommentStatusRequest,
   ReplyToCommentRequest,
+  CommentUser,
+  ClientComment,
+  CreateCommentRequest,
+  GetBookCommentsParams,
+  BookCommentsResponse,
+  ToggleLikeRequest,
+  ToggleLikeResponse,
+  LikeCountResponse,
 } from './comments';

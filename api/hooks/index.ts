@@ -93,8 +93,20 @@ export {
   useReplyToComment,
 } from './useComments';
 
+// Client-facing book reviews, comments, and reactions
+export {
+  bookCommentsKeys,
+  useBookComments,
+  useCreateBookComment,
+  useUpdateBookComment,
+  useDeleteBookComment,
+  useToggleCommentReaction,
+  useCommentLikes,
+} from './useBookComments';
+
 // Users
 export { userKeys, useUsers } from './useUsers';
+export { useMe, useUpdateProfile, useUserActivities } from './useAuth';
 
 // Progress
 export { useProgress, useUpdateTextProgress } from './useProgress';
