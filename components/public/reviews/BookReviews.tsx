@@ -218,32 +218,36 @@ function ReviewItem({
   const toggleReactionMutation = useToggleCommentReaction();
   const createCommentMutation = useCreateBookComment();
 
-  // Optimistic reactions
-  const [reactionOverride, setReactionOverride] = useState<{
+  // Confirmed server state for the user's current reaction
+  const [userReaction, setUserReaction] = useState<{
     liked: boolean;
     isLike: boolean;
-    likesOffset: number;
-    dislikesOffset: number;
+    likes: number;
+    dislikes: number;
+  } | null>(null);
+
+  // Pending optimistic state (only used while mutation is in-flight)
+  const [optimistic, setOptimistic] = useState<{
+    liked: boolean;
+    isLike: boolean;
+    likes: number;
+    dislikes: number;
   } | null>(null);
 
   // Fetch reaction counts for this comment
   const { data: likesData } = useCommentLikes('comment', comment.id);
 
-  // Use optimistic offsets only while mutation is pending
+  // Determine the source of truth: optimistic (if in-flight) > userReaction (after first toggle) > server data
   const isPending = toggleReactionMutation.isPending;
+  const effectiveState = isPending && optimistic ? optimistic : (userReaction ?? null);
 
-  const currentLikes =
-    isPending && reactionOverride
-      ? Math.max(0, (likesData?.likes ?? 0) + reactionOverride.likesOffset)
-      : (likesData?.likes ?? 0);
+  const serverLikes = likesData?.likes ?? 0;
+  const serverDislikes = likesData?.dislikes ?? 0;
 
-  const currentDislikes =
-    isPending && reactionOverride
-      ? Math.max(0, (likesData?.dislikes ?? 0) + reactionOverride.dislikesOffset)
-      : (likesData?.dislikes ?? 0);
-
-  const isLiked = reactionOverride?.liked && reactionOverride?.isLike;
-  const isDisliked = reactionOverride?.liked && !reactionOverride?.isLike;
+  const currentLikes = effectiveState?.likes ?? serverLikes;
+  const currentDislikes = effectiveState?.dislikes ?? serverDislikes;
+  const isLiked = effectiveState?.liked === true && effectiveState?.isLike === true;
+  const isDisliked = effectiveState?.liked === true && effectiveState?.isLike === false;
 
   const handleReact = async (isLike: boolean) => {
     if (!currentUserId) {
@@ -251,49 +255,71 @@ function ReviewItem({
       return;
     }
 
-    // Determine target changes for optimistic updates
-    let likesOffset = 0;
-    let dislikesOffset = 0;
-    let nextLiked = true;
+    // Prevent clicks while a mutation is in-flight
+    if (toggleReactionMutation.isPending) return;
 
-    if (reactionOverride && reactionOverride.liked) {
-      if (reactionOverride.isLike === isLike) {
-        // Toggle off
+    // Use confirmed state as the base for optimistic prediction
+    const base = userReaction ?? {
+      liked: false,
+      isLike: true,
+      likes: serverLikes,
+      dislikes: serverDislikes,
+    };
+
+    let nextLiked: boolean;
+    let nextLikes = base.likes;
+    let nextDislikes = base.dislikes;
+
+    if (base.liked) {
+      if (base.isLike === isLike) {
+        // Same button → toggle off (remove reaction)
         nextLiked = false;
-        if (isLike) likesOffset = -1;
-        else dislikesOffset = -1;
+        if (isLike) nextLikes = Math.max(0, nextLikes - 1);
+        else nextDislikes = Math.max(0, nextDislikes - 1);
       } else {
-        // Toggle switch
+        // Different button → switch reaction
+        nextLiked = true;
         if (isLike) {
-          likesOffset = 1;
-          dislikesOffset = -1;
+          nextLikes += 1;
+          nextDislikes = Math.max(0, nextDislikes - 1);
         } else {
-          likesOffset = -1;
-          dislikesOffset = 1;
+          nextLikes = Math.max(0, nextLikes - 1);
+          nextDislikes += 1;
         }
       }
     } else {
-      // First reaction
-      if (isLike) likesOffset = 1;
-      else dislikesOffset = 1;
+      // No existing reaction → create new
+      nextLiked = true;
+      if (isLike) nextLikes += 1;
+      else nextDislikes += 1;
     }
 
-    setReactionOverride({
+    const optimisticState = {
       liked: nextLiked,
       isLike,
-      likesOffset,
-      dislikesOffset,
-    });
+      likes: nextLikes,
+      dislikes: nextDislikes,
+    };
+
+    setOptimistic(optimisticState);
 
     try {
-      await toggleReactionMutation.mutateAsync({
+      const response = await toggleReactionMutation.mutateAsync({
         commentId: comment.id,
         isLike,
       });
+      // Update confirmed state from server response
+      setUserReaction({
+        liked: response.liked,
+        isLike: response.isLike,
+        likes: response.likes,
+        dislikes: response.dislikes,
+      });
     } catch {
-      // Rollback
-      setReactionOverride(null);
+      // Rollback: clear optimistic, keep previous confirmed state
       toast.error(t('reviews.reactionFail'));
+    } finally {
+      setOptimistic(null);
     }
   };
 
