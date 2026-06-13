@@ -43,6 +43,7 @@ export const useCreateBookComment = () => {
     mutationFn: (data: CreateCommentRequest) => commentsApi.createComment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookCommentsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ['userActivities'] });
     },
   });
 };
@@ -57,6 +58,7 @@ export const useUpdateBookComment = () => {
     mutationFn: ({ id, text }) => commentsApi.updateComment(id, text),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookCommentsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ['userActivities'] });
     },
   });
 };
@@ -71,6 +73,7 @@ export const useDeleteBookComment = () => {
     mutationFn: (id: string) => commentsApi.deleteComment(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookCommentsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ['userActivities'] });
     },
   });
 };
