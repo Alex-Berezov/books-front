@@ -17,7 +17,9 @@ import { bookKeys } from '@/api/hooks/useBooks';
 import { Button } from '@/components/common/Button';
 import { StarRating } from '@/components/public/books/StarRating';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { queryKeys } from '@/lib/queryClient';
 import { toast } from '@/lib/utils/toast';
+import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ClientComment } from '@/types/api-schema';
 import styles from './BookReviews.module.scss';
 
@@ -91,6 +93,12 @@ export default function BookReviews({
     try {
       await deleteCommentMutation.mutateAsync(id);
       toast.success(t('reviews.commentDeleted'));
+      if (bookId) {
+        queryClient.invalidateQueries({ queryKey: bookKeys.userRating(bookId) });
+      }
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bookOverview(lang as SupportedLang, bookSlug),
+      });
     } catch {
       toast.error(t('reviews.commentDeleteFail'));
     }
