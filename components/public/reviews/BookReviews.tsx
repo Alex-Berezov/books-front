@@ -170,6 +170,7 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
               onDelete={handleDelete}
               bookVersionId={bookVersionId}
               currentUserId={session?.user?.id}
+              currentUserRoles={session?.user?.roles}
             />
           ))}
 
@@ -196,6 +197,7 @@ interface ReviewItemProps {
   onDelete: (id: string) => void;
   bookVersionId: string;
   currentUserId?: string;
+  currentUserRoles?: string[];
   isReply?: boolean;
 }
 
@@ -205,6 +207,7 @@ function ReviewItem({
   onDelete,
   bookVersionId,
   currentUserId,
+  currentUserRoles,
   isReply = false,
 }: ReviewItemProps) {
   const router = useRouter();
@@ -374,7 +377,9 @@ function ReviewItem({
           </button>
         )}
 
-        {(currentUserId === comment.user?.id || currentUserId) && (
+        {((currentUserId && currentUserId === comment.user?.id) ||
+          currentUserRoles?.includes('admin') ||
+          currentUserRoles?.includes('content_manager')) && (
           <button onClick={() => onDelete(comment.id)} className={styles.deleteBtn}>
             <Trash2 size={14} />
           </button>
@@ -420,6 +425,7 @@ function ReviewItem({
               onDelete={onDelete}
               bookVersionId={bookVersionId}
               currentUserId={currentUserId}
+              currentUserRoles={currentUserRoles}
               isReply
             />
           ))}
