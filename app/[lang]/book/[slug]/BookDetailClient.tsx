@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Skeleton } from 'antd';
 import {
@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { rateBook } from '@/api/endpoints/rating';
-import { useBooks } from '@/api/hooks/useBooks';
+import { useBooks, useUserBookRating, bookKeys } from '@/api/hooks/useBooks';
 import { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
@@ -63,8 +63,19 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   const removeFromBookshelfMutation = useRemoveFromBookshelf();
 
   const queryClient = useQueryClient();
+  const { data: userRatingData } = useUserBookRating(book?.id || '', {
+    enabled: !!book?.id && status === 'authenticated',
+  });
+
   const [userRating, setUserRating] = useState<number>(0);
   const [isRatingPending, setIsRatingPending] = useState(false);
+
+  // Sync user rating from server
+  useEffect(() => {
+    if (userRatingData?.score !== undefined && userRatingData?.score !== null) {
+      setUserRating(userRatingData.score);
+    }
+  }, [userRatingData]);
 
   const handleRateBook = async (score: number) => {
     if (!book) return;
@@ -77,9 +88,12 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
       await rateBook(book.id, score);
       setUserRating(score);
       toast.success(t('book.ratingSuccess'));
-      // Invalidate query to get new average rating
+      // Invalidate query to get new average rating and user rating
       await queryClient.invalidateQueries({
         queryKey: queryKeys.bookOverview(supportedLang, slug),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: bookKeys.userRating(book.id),
       });
     } catch (err) {
       toast.error(t('book.ratingError'));
@@ -374,7 +388,15 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
         </div>
 
         {/* Book Reviews and Comments */}
-        {versionId && <BookReviews bookVersionId={versionId} lang={lang} bookSlug={slug} />}
+        {versionId && (
+          <BookReviews
+            bookVersionId={versionId}
+            lang={lang}
+            bookSlug={slug}
+            bookId={book.id}
+            hasRated={!!userRatingData?.score}
+          />
+        )}
 
         {/* You Might Also Like */}
         {relatedBooks.length > 0 && (

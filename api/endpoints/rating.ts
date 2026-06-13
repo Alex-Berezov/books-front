@@ -2,7 +2,7 @@
  * Rating API endpoints
  */
 
-import { httpPostAuth } from '@/lib/http-client';
+import { httpPostAuth, httpGetAuth } from '@/lib/http-client';
 import type { UUID } from '@/types/api-schema/common';
 
 export interface RateBookResponse {
@@ -14,6 +14,10 @@ export interface RateBookResponse {
   updatedAt: string;
 }
 
+export interface UserRatingResponse {
+  score: number | null;
+}
+
 /**
  * Submit rating for a book
  *
@@ -23,4 +27,14 @@ export interface RateBookResponse {
 export const rateBook = async (bookId: string, score: number): Promise<RateBookResponse> => {
   const endpoint = `/books/${bookId}/rate`;
   return httpPostAuth<RateBookResponse>(endpoint, { score });
+};
+
+/**
+ * Get current user rating for a book
+ *
+ * @param bookId - Book ID
+ */
+export const getUserBookRating = async (bookId: string): Promise<UserRatingResponse> => {
+  const endpoint = `/books/${bookId}/my-rating`;
+  return httpGetAuth<UserRatingResponse>(endpoint);
 };

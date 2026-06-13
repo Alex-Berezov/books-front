@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ThumbsUp, ThumbsDown, MessageSquare, Trash2, Send, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -12,6 +13,7 @@ import {
   useToggleCommentReaction,
   useCommentLikes,
 } from '@/api/hooks/useBookComments';
+import { bookKeys } from '@/api/hooks/useBooks';
 import { Button } from '@/components/common/Button';
 import { StarRating } from '@/components/public/books/StarRating';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -23,10 +25,19 @@ interface BookReviewsProps {
   bookVersionId: string;
   lang: string;
   bookSlug: string;
+  bookId?: string;
+  hasRated?: boolean;
 }
 
-export default function BookReviews({ bookVersionId, lang, bookSlug }: BookReviewsProps) {
+export default function BookReviews({
+  bookVersionId,
+  lang,
+  bookSlug,
+  bookId,
+  hasRated = false,
+}: BookReviewsProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: session, status } = useSession();
   const { t } = useTranslation();
   const isAuthenticated = status === 'authenticated';
@@ -62,11 +73,14 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
       await createCommentMutation.mutateAsync({
         bookVersionId,
         text: reviewText.trim(),
-        rating,
+        rating: hasRated ? null : rating,
       });
       toast.success(t('reviews.reviewPublished'));
       setReviewText('');
       setRating(null);
+      if (bookId) {
+        queryClient.invalidateQueries({ queryKey: bookKeys.userRating(bookId) });
+      }
     } catch {
       toast.error(t('reviews.reviewPublishFail'));
     }
@@ -114,16 +128,18 @@ export default function BookReviews({ bookVersionId, lang, bookSlug }: BookRevie
       {/* Review input form */}
       {isAuthenticated ? (
         <form onSubmit={handleCreateReview} className={styles.reviewForm}>
-          <div className={styles.ratingFormRow}>
-            <span className={styles.ratingLabel}>{t('reviews.rating')}:</span>
-            <StarRating
-              rating={rating ?? 0}
-              size="md"
-              showCount={false}
-              interactive
-              onRate={(val) => setRating(val)}
-            />
-          </div>
+          {!hasRated && (
+            <div className={styles.ratingFormRow}>
+              <span className={styles.ratingLabel}>{t('reviews.rating')}:</span>
+              <StarRating
+                rating={rating ?? 0}
+                size="md"
+                showCount={false}
+                interactive
+                onRate={(val) => setRating(val)}
+              />
+            </div>
+          )}
           <div className={styles.textareaWrapper}>
             <textarea
               className={styles.textarea}

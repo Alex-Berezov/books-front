@@ -20,6 +20,7 @@ import {
   updateBook,
   type GetBooksParams,
 } from '@/api/endpoints/admin/books';
+import { getUserBookRating, type UserRatingResponse } from '@/api/endpoints/rating';
 import type {
   BookOverview,
   CreateBookRequest,
@@ -41,6 +42,8 @@ export const bookKeys = {
   details: () => [...bookKeys.all, 'detail'] as const,
   /** Book details by ID */
   detail: (id: string) => [...bookKeys.details(), id] as const,
+  /** Current user rating for specific book */
+  userRating: (bookId: string) => [...bookKeys.all, 'userRating', bookId] as const,
 };
 
 /**
@@ -215,6 +218,22 @@ export const useBook = (
     queryKey: bookKeys.detail(bookId),
     queryFn: () => getBook(bookId),
     enabled: !!bookId,
+    ...options,
+  });
+};
+
+/**
+ * Hook for getting user rating for specific book
+ */
+export const useUserBookRating = (
+  bookId: string,
+  options?: Omit<UseQueryOptions<UserRatingResponse, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<UserRatingResponse, Error>({
+    queryKey: bookKeys.userRating(bookId),
+    queryFn: () => getUserBookRating(bookId),
+    enabled: !!bookId,
+    staleTime: 5 * 60 * 1000,
     ...options,
   });
 };
