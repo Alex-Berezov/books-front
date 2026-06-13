@@ -222,20 +222,16 @@ function ReviewItem({
   const [reactionOverride, setReactionOverride] = useState<{
     liked: boolean;
     isLike: boolean;
-    likesOffset: number;
-    dislikesOffset: number;
+    likes: number;
+    dislikes: number;
   } | null>(null);
 
   // Fetch reaction counts for this comment
   const { data: likesData } = useCommentLikes('comment', comment.id);
 
-  const currentLikes = reactionOverride
-    ? Math.max(0, (likesData?.likes ?? 0) + reactionOverride.likesOffset)
-    : (likesData?.likes ?? 0);
+  const currentLikes = reactionOverride ? reactionOverride.likes : (likesData?.likes ?? 0);
 
-  const currentDislikes = reactionOverride
-    ? Math.max(0, (likesData?.dislikes ?? 0) + reactionOverride.dislikesOffset)
-    : (likesData?.dislikes ?? 0);
+  const currentDislikes = reactionOverride ? reactionOverride.dislikes : (likesData?.dislikes ?? 0);
 
   const isLiked = reactionOverride?.liked && reactionOverride?.isLike;
   const isDisliked = reactionOverride?.liked && !reactionOverride?.isLike;
@@ -246,38 +242,40 @@ function ReviewItem({
       return;
     }
 
-    // Determine target changes for optimistic updates
-    let likesOffset = 0;
-    let dislikesOffset = 0;
+    const baseLikes = likesData?.likes ?? 0;
+    const baseDislikes = likesData?.dislikes ?? 0;
+
+    let nextLikes = baseLikes;
+    let nextDislikes = baseDislikes;
     let nextLiked = true;
 
-    if (reactionOverride) {
+    if (reactionOverride && reactionOverride.liked) {
       if (reactionOverride.isLike === isLike) {
         // Toggle off
         nextLiked = false;
-        if (isLike) likesOffset = -1;
-        else dislikesOffset = -1;
+        if (isLike) nextLikes = Math.max(0, baseLikes - 1);
+        else nextDislikes = Math.max(0, baseDislikes - 1);
       } else {
         // Toggle switch
         if (isLike) {
-          likesOffset = 1;
-          dislikesOffset = -1;
+          nextLikes = baseLikes + 1;
+          nextDislikes = Math.max(0, baseDislikes - 1);
         } else {
-          likesOffset = -1;
-          dislikesOffset = 1;
+          nextLikes = Math.max(0, baseLikes - 1);
+          nextDislikes = baseDislikes + 1;
         }
       }
     } else {
       // First reaction
-      if (isLike) likesOffset = 1;
-      else dislikesOffset = 1;
+      if (isLike) nextLikes = baseLikes + 1;
+      else nextDislikes = baseDislikes + 1;
     }
 
     setReactionOverride({
       liked: nextLiked,
       isLike,
-      likesOffset,
-      dislikesOffset,
+      likes: nextLikes,
+      dislikes: nextDislikes,
     });
 
     try {
