@@ -1,3 +1,4 @@
+import { permanentRedirect } from 'next/navigation';
 import { getBookOverview, resolveSeo } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -70,6 +71,11 @@ export default async function BookDetailPage({ params }: Props) {
     seoData = await resolveSeo(supportedLang, 'book', slug);
   } catch (error) {
     console.error('Error loading book overview or SEO on server:', error);
+  }
+
+  // Redirect to correct localized slug if requested slug is outdated/incorrect
+  if (initialBook && initialBook.slug && initialBook.slug !== slug) {
+    permanentRedirect(`/${lang}/book/${initialBook.slug}`);
   }
 
   return (
