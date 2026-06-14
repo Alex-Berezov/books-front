@@ -115,14 +115,47 @@ export interface SeoResolveRequest {
   id: UUID;
 }
 
+export interface SeoMeta {
+  title: string;
+  description?: string;
+  robots: string;
+  canonicalUrl: string;
+}
+
+export interface SeoOpenGraphImage {
+  url: string;
+  alt?: string;
+}
+
+export interface SeoOpenGraph {
+  title: string;
+  description?: string;
+  type: string;
+  url: string;
+  image?: SeoOpenGraphImage;
+}
+
+export interface SeoTwitter {
+  card: string;
+  site?: string;
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+export interface SeoHreflang {
+  rel: string;
+  hreflang: string;
+  href: string;
+}
+
 /**
  * Response with resolved SEO data
  */
 export interface SeoResolveResponse {
-  title: string;
-  description: string;
-  keywords: string[];
-  ogImage?: string;
-  canonicalUrl: string;
-  alternates: Record<SupportedLang, string>;
+  meta: SeoMeta;
+  openGraph: SeoOpenGraph;
+  twitter: SeoTwitter;
+  hreflang: SeoHreflang[];
+  schema?: Record<string, unknown>;
 }

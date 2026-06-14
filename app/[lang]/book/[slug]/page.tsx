@@ -12,24 +12,44 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supportedLang = lang as SupportedLang;
 
   try {
-    const book = await getBookOverview(supportedLang, slug);
-    const seo = await resolveSeo(supportedLang, 'book', book.id);
+    const seo = await resolveSeo(supportedLang, 'book', slug);
+
+    const alternatesLanguages: Record<string, string> = {};
+    seo.hreflang?.forEach((item) => {
+      if (item.hreflang) {
+        alternatesLanguages[item.hreflang] = item.href;
+      }
+    });
 
     return {
-      title: seo.title || book.title,
-      description: seo.description || book.description,
-      keywords: seo.keywords || [],
+      title: seo.meta.title,
+      description: seo.meta.description || undefined,
+      robots: seo.meta.robots || undefined,
       alternates: {
-        canonical: seo.canonicalUrl || undefined,
-        languages: seo.alternates || {},
+        canonical: seo.meta.canonicalUrl || undefined,
+        languages: alternatesLanguages,
       },
-      openGraph: seo.ogImage
-        ? {
-            title: seo.title || book.title,
-            description: seo.description || book.description,
-            images: [{ url: seo.ogImage }],
-          }
-        : undefined,
+      openGraph: {
+        title: seo.openGraph.title,
+        description: seo.openGraph.description || undefined,
+        type: 'book',
+        url: seo.openGraph.url,
+        images: seo.openGraph.image
+          ? [
+              {
+                url: seo.openGraph.image.url,
+                alt: seo.openGraph.image.alt,
+              },
+            ]
+          : undefined,
+      },
+      twitter: {
+        card: (seo.twitter.card as 'summary' | 'summary_large_image') || 'summary',
+        site: seo.twitter.site || undefined,
+        title: seo.twitter.title || undefined,
+        description: seo.twitter.description || undefined,
+        images: seo.twitter.image ? [seo.twitter.image] : undefined,
+      },
     };
   } catch (error) {
     console.error('Error generating metadata for book:', error);
@@ -44,11 +64,23 @@ export default async function BookDetailPage({ params }: Props) {
   const supportedLang = lang as SupportedLang;
 
   let initialBook;
+  let seoData;
   try {
     initialBook = await getBookOverview(supportedLang, slug);
+    seoData = await resolveSeo(supportedLang, 'book', slug);
   } catch (error) {
-    console.error('Error loading book overview on server:', error);
+    console.error('Error loading book overview or SEO on server:', error);
   }
 
-  return <BookDetailClient slug={slug} lang={lang} initialBook={initialBook} />;
+  return (
+    <>
+      {seoData?.schema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(seoData.schema) }}
+        />
+      )}
+      <BookDetailClient slug={slug} lang={lang} initialBook={initialBook} />
+    </>
+  );
 }
