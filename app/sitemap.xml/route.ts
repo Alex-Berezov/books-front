@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { getBooks } from '@/api/endpoints/admin/books';
 import { getCategories } from '@/api/endpoints/admin/categories';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
@@ -7,16 +8,25 @@ import type {
   CategoryTranslation,
   VersionPreview,
 } from '@/types/api-schema';
-import type { MetadataRoute } from 'next';
 
 export const dynamic = 'force-dynamic';
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+interface SitemapItem {
+  url: string;
+  lastModified?: Date | string;
+  changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+  priority?: number;
+  alternates?: {
+    languages?: Record<string, string>;
+  };
+}
+
+export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bibliaris.com';
   const cleanBaseUrl = baseUrl.replace(/\/$/, '');
   const defaultLang = 'en';
 
-  const sitemapItems: MetadataRoute.Sitemap = [];
+  const sitemapItems: SitemapItem[] = [];
 
   // Helper to generate alternate URLs for a given route template
   const getAlternates = (languages: readonly string[], pathBuilder: (lang: string) => string) => {
@@ -29,7 +39,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   };
 
   // 1. Static Pages
-  // Localized versions of home, catalog, genres, and policies
   const staticRoutes = ['', '/genres', '/catalog', '/privacy', '/terms', '/deletion'];
   staticRoutes.forEach((route) => {
     SUPPORTED_LANGS.forEach((lang) => {
@@ -194,5 +203,42 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   });
 
-  return sitemapItems;
+  // Convert sitemap items to XML
+  const xmlItems = sitemapItems.map((item) => {
+    let itemXml = '  <url>\n';
+    itemXml += `    <loc>${item.url}</loc>\n`;
+    if (item.lastModified) {
+      const dateStr =
+        typeof item.lastModified === 'string'
+          ? item.lastModified
+          : (item.lastModified as Date).toISOString();
+      itemXml += `    <lastmod>${dateStr}</lastmod>\n`;
+    }
+    if (item.changeFrequency) {
+      itemXml += `    <changefreq>${item.changeFrequency}</changefreq>\n`;
+    }
+    if (item.priority !== undefined) {
+      itemXml += `    <priority>${item.priority.toFixed(1)}</priority>\n`;
+    }
+    if (item.alternates?.languages) {
+      Object.entries(item.alternates.languages).forEach(([lang, href]) => {
+        itemXml += `    <xhtml:link rel="alternate" hreflang="${lang}" href="${href}" />\n`;
+      });
+    }
+    itemXml += '  </url>';
+    return itemXml;
+  });
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${xmlItems.join('\n')}
+</urlset>`;
+
+  return new NextResponse(xml, {
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=0, must-revalidate',
+    },
+  });
 }
