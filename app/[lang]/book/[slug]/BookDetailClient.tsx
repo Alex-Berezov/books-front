@@ -388,14 +388,30 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   </span>
                 </div>
               )}
-              {book.publicationYear && (
+              {book.firstPublishedYear ? (
+                <div className={styles.metaItem}>
+                  <Calendar size={16} />
+                  <span>
+                    {t('book.firstPublished')} {book.firstPublishedYear}
+                  </span>
+                </div>
+              ) : null}
+              {book.editionPublishedYear ? (
+                <div className={styles.metaItem}>
+                  <Calendar size={16} />
+                  <span>
+                    {t('book.editionPublished')} {book.editionPublishedYear}
+                  </span>
+                </div>
+              ) : null}
+              {!book.firstPublishedYear && !book.editionPublishedYear && book.publicationYear ? (
                 <div className={styles.metaItem}>
                   <Calendar size={16} />
                   <span>
                     {t('book.published')} {book.publicationYear}
                   </span>
                 </div>
-              )}
+              ) : null}
               {book.language && (
                 <div className={styles.metaItem}>
                   <Globe size={16} />

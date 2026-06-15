@@ -105,6 +105,11 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
       type: formData.type,
       isFree: formData.isFree,
       referralUrl: formData.referralUrl || undefined,
+      primaryCategoryId: formData.primaryCategoryId || null,
+      firstPublishedYear: formData.firstPublishedYear ? Number(formData.firstPublishedYear) : null,
+      editionPublishedYear: formData.editionPublishedYear
+        ? Number(formData.editionPublishedYear)
+        : null,
     };
 
     // Send creation request

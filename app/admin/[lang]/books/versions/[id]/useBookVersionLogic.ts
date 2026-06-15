@@ -139,6 +139,10 @@ export const useBookVersionLogic = (versionId: string) => {
       isFree: formData.isFree,
       referralUrl: formData.referralUrl || undefined,
       primaryCategoryId: formData.primaryCategoryId || null,
+      firstPublishedYear: formData.firstPublishedYear ? Number(formData.firstPublishedYear) : null,
+      editionPublishedYear: formData.editionPublishedYear
+        ? Number(formData.editionPublishedYear)
+        : null,
     };
 
     // Send update request

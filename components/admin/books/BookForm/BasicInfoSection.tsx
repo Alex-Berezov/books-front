@@ -163,6 +163,42 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
         </span>
       </div>
 
+      <div className={styles.fieldRow}>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="firstPublishedYear">
+            First Published Year
+          </label>
+          <Input
+            id="firstPublishedYear"
+            placeholder="e.g. 1890"
+            type="number"
+            fullWidth
+            {...register('firstPublishedYear')}
+          />
+          {errors.firstPublishedYear && (
+            <span className={styles.error}>{errors.firstPublishedYear.message}</span>
+          )}
+          <span className={styles.hint}>Historical year of first publication</span>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="editionPublishedYear">
+            Edition Published Year
+          </label>
+          <Input
+            id="editionPublishedYear"
+            placeholder="e.g. 1891"
+            type="number"
+            fullWidth
+            {...register('editionPublishedYear')}
+          />
+          {errors.editionPublishedYear && (
+            <span className={styles.error}>{errors.editionPublishedYear.message}</span>
+          )}
+          <span className={styles.hint}>Year of this specific translation/edition</span>
+        </div>
+      </div>
+
       <div className={styles.field}>
         <label className={styles.label} htmlFor="description">
           Description

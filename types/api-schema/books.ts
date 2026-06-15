@@ -39,6 +39,8 @@ export interface BookOverview {
   coverUrl?: string;
   rating?: number;
   publicationYear?: number;
+  firstPublishedYear?: number;
+  editionPublishedYear?: number;
   language: SupportedLang;
   categories: Category[];
   tags: Tag[];
@@ -118,6 +120,8 @@ export interface BookVersionDetail {
   previewMediaId?: UUID | null;
   /** ID основной категории книги для хлебных крошек */
   primaryCategoryId?: UUID | null;
+  firstPublishedYear?: number | null;
+  editionPublishedYear?: number | null;
   /** SEO metadata (full SEO entity) */
   seo?: SeoData;
   /** Attached categories */
@@ -150,6 +154,8 @@ export interface CreateBookVersionRequest {
   referralUrl?: string;
   /** ID основной категории книги для хлебных крошек */
   primaryCategoryId?: UUID | null;
+  firstPublishedYear?: number | null;
+  editionPublishedYear?: number | null;
 }
 
 /**
@@ -174,6 +180,8 @@ export interface UpdateBookVersionRequest {
   previewMediaId?: UUID | null;
   /** ID основной категории книги для хлебных крошек */
   primaryCategoryId?: UUID | null;
+  firstPublishedYear?: number | null;
+  editionPublishedYear?: number | null;
 }
 
 /**

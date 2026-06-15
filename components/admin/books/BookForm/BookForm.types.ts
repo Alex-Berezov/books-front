@@ -58,6 +58,15 @@ export const bookVersionSchema = z.object({
   // Twitter Card
   /** Twitter card type */
   seoTwitterCard: z.enum(['summary', 'summary_large_image', '']),
+
+  /** First published year */
+  firstPublishedYear: z
+    .union([z.number().int().min(1).max(2100), z.literal(''), z.null()])
+    .optional(),
+  /** Edition published year */
+  editionPublishedYear: z
+    .union([z.number().int().min(1).max(2100), z.literal(''), z.null()])
+    .optional(),
 });
 
 /**

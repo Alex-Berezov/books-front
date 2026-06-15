@@ -76,6 +76,8 @@
     "inBookshelf": "In Bookshelf",
     "addToBookshelf": "Add to Bookshelf",
     "published": "Published:",
+    "firstPublished": "First published:",
+    "editionPublished": "Edition published:",
     "language": "Language:",
     "about": "About",
     "details": "Details",

@@ -81,6 +81,17 @@
   line-height: 1.5;
 }
 
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
 .checkboxField {
   display: flex;
   align-items: center;
