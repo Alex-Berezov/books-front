@@ -1,7 +1,25 @@
-import type { FC } from 'react';
 import { BookOutlined } from '@ant-design/icons';
+import { getPageMetadata } from '@/lib/utils/seo';
+import type { SupportedLang } from '@/lib/i18n/lang';
+import type { Metadata } from 'next';
 
-const PrivacyPage: FC = () => {
+type Props = {
+  params: Promise<{ lang: string }> | { lang: string };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang as SupportedLang;
+
+  return getPageMetadata(
+    lang,
+    '/privacy',
+    'Privacy Policy - Bibliaris',
+    'Read our privacy policy to understand how we collect, use, and protect your data.'
+  );
+}
+
+export default async function PrivacyPage() {
   return (
     <div
       style={{
@@ -86,6 +104,4 @@ const PrivacyPage: FC = () => {
       </section>
     </div>
   );
-};
-
-export default PrivacyPage;
+}

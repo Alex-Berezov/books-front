@@ -1,3 +1,5 @@
+import { getPageMetadata } from '@/lib/utils/seo';
+import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import AuthorDetailClient from './AuthorDetailClient';
 
@@ -21,14 +23,15 @@ function toTitleCase(str: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { authorSlug } = await params;
+  const { lang, authorSlug } = await params;
+  const supportedLang = lang as SupportedLang;
   const searchName = decodeAuthorSlug(authorSlug ?? '');
   const displayName = toTitleCase(searchName);
 
-  return {
-    title: `Books by ${displayName} - Bibliaris`,
-    description: `Browse and read books written by ${displayName} on Bibliaris. Discover translation versions, audiobooks, and track your reading progress.`,
-  };
+  const title = `Books by ${displayName} - Bibliaris`;
+  const description = `Browse and read books written by ${displayName} on Bibliaris. Discover translation versions, audiobooks, and track your reading progress.`;
+
+  return getPageMetadata(supportedLang, `/author/${authorSlug}`, title, description);
 }
 
 export default async function AuthorDetailPage({ params }: Props) {

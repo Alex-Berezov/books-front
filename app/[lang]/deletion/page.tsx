@@ -1,7 +1,25 @@
-import type { FC } from 'react';
 import { BookOutlined } from '@ant-design/icons';
+import { getPageMetadata } from '@/lib/utils/seo';
+import type { SupportedLang } from '@/lib/i18n/lang';
+import type { Metadata } from 'next';
 
-const DeletionPage: FC = () => {
+type Props = {
+  params: Promise<{ lang: string }> | { lang: string };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang as SupportedLang;
+
+  return getPageMetadata(
+    lang,
+    '/deletion',
+    'Data Deletion Instructions - Bibliaris',
+    'Instructions on how to request the deletion of your account and personal data associated with Bibliaris.'
+  );
+}
+
+export default async function DeletionPage() {
   return (
     <div
       style={{
@@ -73,6 +91,4 @@ const DeletionPage: FC = () => {
       </section>
     </div>
   );
-};
-
-export default DeletionPage;
+}

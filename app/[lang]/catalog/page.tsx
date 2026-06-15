@@ -1,4 +1,5 @@
 import { CatalogTemplate } from '@/components/public/catalog/CatalogTemplate';
+import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 
@@ -17,7 +18,7 @@ const titles: Record<SupportedLang, string> = {
 
 const descriptions: Record<SupportedLang, string> = {
   en: 'Browse our extensive catalog of books. Read online, listen to audiobooks in multiple languages, and build your digital library.',
-  es: 'Explore nuestro amplio catálogo de libros. Lea en línea, escuche audiolibros en varios idiomas y cree su biblioteca digital.',
+  es: 'Explore nuestro amplio catálogo de libros. Lea en línea, escuche audiolibros в varios idiomas y cree su biblioteca digital.',
   fr: 'Parcourez notre vaste catalogue de livres. Lisez en ligne, écoutez des livres audio en plusieurs langues et créez votre bibliothèque numérique.',
   pt: 'Navegue pelo nosso extenso catálogo de livros. Leia online, ouça audiolivros em vários idiomas e crie sua biblioteca digital.',
   ru: 'Просматривайте наш обширный каталог книг. Читайте онлайн, слушайте аудиокниги на разных языках и создавайте свою цифровую библиотеку.',
@@ -28,16 +29,16 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const sParams = await searchParams;
   const supportedLang = lang as SupportedLang;
 
-  const metadata: Metadata = {
-    title: titles[supportedLang] || titles.en,
-    description: descriptions[supportedLang] || descriptions.en,
-  };
+  const title = titles[supportedLang] || titles.en;
+  const description = descriptions[supportedLang] || descriptions.en;
+
+  const baseMetadata = getPageMetadata(supportedLang, '/catalog', title, description);
 
   if (sParams.q || sParams.type || sParams.sort) {
-    metadata.robots = 'noindex, follow';
+    baseMetadata.robots = 'noindex, follow';
   }
 
-  return metadata;
+  return baseMetadata;
 }
 
 export default async function CatalogPage({ params }: Props) {

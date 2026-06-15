@@ -1,7 +1,25 @@
-import type { FC } from 'react';
 import { BookOutlined } from '@ant-design/icons';
+import { getPageMetadata } from '@/lib/utils/seo';
+import type { SupportedLang } from '@/lib/i18n/lang';
+import type { Metadata } from 'next';
 
-const TermsPage: FC = () => {
+type Props = {
+  params: Promise<{ lang: string }> | { lang: string };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang as SupportedLang;
+
+  return getPageMetadata(
+    lang,
+    '/terms',
+    'Terms of Service - Bibliaris',
+    'Read our terms of service to understand the rules and guidelines for using our digital library.'
+  );
+}
+
+export default async function TermsPage() {
   return (
     <div
       style={{
@@ -84,6 +102,4 @@ const TermsPage: FC = () => {
       </section>
     </div>
   );
-};
-
-export default TermsPage;
+}
