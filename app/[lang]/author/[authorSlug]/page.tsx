@@ -28,8 +28,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const searchName = decodeAuthorSlug(authorSlug ?? '');
   const displayName = toTitleCase(searchName);
 
-  const title = `Books by ${displayName} - Bibliaris`;
-  const description = `Browse and read books written by ${displayName} on Bibliaris. Discover translation versions, audiobooks, and track your reading progress.`;
+  let title = '';
+  let description = '';
+
+  switch (supportedLang) {
+    case 'ru':
+      title = `${displayName} — Книги, биография и цитаты | Bibliaris`;
+      description = `Откройте для себя книги, биографию, цитаты и классические произведения автора ${displayName} на Bibliaris. Читайте и слушайте онлайн бесплатно.`;
+      break;
+    case 'es':
+      title = `${displayName} - Libros, biografía y frases | Bibliaris`;
+      description = `Explora libros, biografía, frases y obras clásicas de ${displayName} en Bibliaris. Lee y escucha en línea gratis.`;
+      break;
+    case 'pt':
+      title = `${displayName} - Livros, biografia e frases | Bibliaris`;
+      description = `Explore livros, biografia, frases e obras clássicas de ${displayName} no Bibliaris. Leia e ouça online gratuitamente.`;
+      break;
+    case 'fr':
+      title = `${displayName} - Livres, biographie et citations | Bibliaris`;
+      description = `Découvrez les livres, la biographie, les citations et les œuvres classiques de ${displayName} sur Bibliaris. Lisez et écoutez gratuitement en ligne.`;
+      break;
+    case 'en':
+    default:
+      title = `${displayName} - Books, Biography & Quotes | Bibliaris`;
+      description = `Explore books, biography, quotes, and classic works by ${displayName} on Bibliaris. Read and listen online for free.`;
+      break;
+  }
 
   return getPageMetadata(supportedLang, `/author/${authorSlug}`, title, description);
 }

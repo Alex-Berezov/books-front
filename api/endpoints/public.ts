@@ -143,7 +143,7 @@ export const getTagBooks = async (
  */
 export const resolveSeo = async (
   lang: SupportedLang,
-  type: 'book' | 'page' | 'category' | 'tag',
+  type: 'book' | 'page' | 'category' | 'tag' | 'catalog',
   id: string
 ): Promise<SeoResolveResponse> => {
   const endpoint = buildLangPath(lang, `/seo/resolve`);

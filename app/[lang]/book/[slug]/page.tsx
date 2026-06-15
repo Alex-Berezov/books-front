@@ -54,8 +54,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch (error) {
     console.error('Error generating metadata for book:', error);
+
+    // Fallback: title-case the slug for a slightly better title than a static string
+    let fallbackTitle = 'Book Details - Bibliaris';
+    if (slug) {
+      const decoded = decodeURIComponent(slug).replace(/-/g, ' ');
+      fallbackTitle =
+        decoded.replace(
+          /\w\S*/g,
+          (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
+        ) + ' - Bibliaris';
+    }
+
     return {
-      title: 'Book Details - Bibliaris',
+      title: fallbackTitle,
     };
   }
 }

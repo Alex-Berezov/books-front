@@ -426,7 +426,17 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
 
         {/* Description section */}
         <div className={styles.descriptionWrapper}>
-          <h2 className={styles.descriptionTitle}>{t('book.about')}</h2>
+          <h2 className={styles.descriptionTitle}>
+            {supportedLang === 'ru'
+              ? `О книге «${book.title}»`
+              : supportedLang === 'es'
+                ? `Sobre el libro «${book.title}»`
+                : supportedLang === 'pt'
+                  ? `Sobre o livro «${book.title}»`
+                  : supportedLang === 'fr'
+                    ? `À propos du livre «${book.title}»`
+                    : `About ${book.title}`}
+          </h2>
           {book.description ? (
             <div
               className={styles.description}
