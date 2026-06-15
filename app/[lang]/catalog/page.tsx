@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 
 type Props = {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ q?: string; type?: string; sort?: string }>;
 };
 
 const titles: Record<SupportedLang, string> = {
@@ -22,14 +23,21 @@ const descriptions: Record<SupportedLang, string> = {
   ru: 'Просматривайте наш обширный каталог книг. Читайте онлайн, слушайте аудиокниги на разных языках и создавайте свою цифровую библиотеку.',
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { lang } = await params;
+  const sParams = await searchParams;
   const supportedLang = lang as SupportedLang;
 
-  return {
+  const metadata: Metadata = {
     title: titles[supportedLang] || titles.en,
     description: descriptions[supportedLang] || descriptions.en,
   };
+
+  if (sParams.q || sParams.type || sParams.sort) {
+    metadata.robots = 'noindex, follow';
+  }
+
+  return metadata;
 }
 
 export default async function CatalogPage({ params }: Props) {
