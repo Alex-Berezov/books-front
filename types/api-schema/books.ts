@@ -42,6 +42,8 @@ export interface BookOverview {
   language: SupportedLang;
   categories: Category[];
   tags: Tag[];
+  primaryCategoryId?: string | null;
+  primaryCategory?: Category | null;
   versions: VersionPreview[];
   createdAt: ISODate;
   updatedAt: ISODate;
@@ -114,6 +116,8 @@ export interface BookVersionDetail {
   referralUrl?: string;
   /** Optional preview audio MediaAsset id (audio versions). See contract §5. */
   previewMediaId?: UUID | null;
+  /** ID основной категории книги для хлебных крошек */
+  primaryCategoryId?: UUID | null;
   /** SEO metadata (full SEO entity) */
   seo?: SeoData;
   /** Attached categories */
@@ -144,6 +148,8 @@ export interface CreateBookVersionRequest {
   isFree: boolean;
   /** URL for referral links (optional) */
   referralUrl?: string;
+  /** ID основной категории книги для хлебных крошек */
+  primaryCategoryId?: UUID | null;
 }
 
 /**
@@ -166,6 +172,8 @@ export interface UpdateBookVersionRequest {
   referralUrl?: string;
   /** Preview audio MediaAsset id (nullable to clear). See contract §5. */
   previewMediaId?: UUID | null;
+  /** ID основной категории книги для хлебных крошек */
+  primaryCategoryId?: UUID | null;
 }
 
 /**

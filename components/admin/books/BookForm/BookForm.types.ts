@@ -21,13 +21,15 @@ export const bookVersionSchema = z.object({
   /** Book description (required) */
   description: z.string().min(1, 'Description is required').max(4000, 'Description is too long'),
   /** Cover image URL (required) */
-  coverImageUrl: z.string().url('Invalid URL').min(1, 'Cover image is required'),
+  coverImageUrl: z.url('Invalid URL'),
   /** Version type */
   type: z.enum(['text', 'audio', 'referral']),
   /** Whether version is free */
   isFree: z.boolean(),
   /** URL for referral links */
-  referralUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  referralUrl: z.url('Invalid URL').optional().or(z.literal('')),
+  /** ID основной категории книги для хлебных крошек */
+  primaryCategoryId: z.uuid('Invalid UUID').nullable().optional().or(z.literal('')),
 
   // ========================================
   // SEO Fields (matching PageForm structure)

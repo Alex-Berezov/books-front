@@ -100,6 +100,23 @@
   margin: 0;
 }
 
+.categoryDescription {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.8;
+  margin-top: $spacing-xs;
+  margin-bottom: $spacing-sm;
+  max-width: 800px;
+  line-height: $line-height-relaxed;
+
+  p {
+    margin-bottom: $spacing-xs;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
 .count {
   font-size: $font-size-sm;
   color: var(--public-foreground);

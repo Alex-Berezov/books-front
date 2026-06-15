@@ -189,6 +189,12 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
             <div className={styles.contentHeader}>
               <div>
                 <h1 className={styles.title}>{pageTitle}</h1>
+                {categorySlug && currentCategory?.description && (
+                  <div
+                    className={styles.categoryDescription}
+                    dangerouslySetInnerHTML={{ __html: currentCategory.description }}
+                  />
+                )}
                 {!loading && (
                   <p className={styles.count}>
                     {filteredBooks.length} {t('catalog.booksFound')}

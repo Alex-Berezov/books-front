@@ -158,4 +158,5 @@ export interface SeoResolveResponse {
   twitter: SeoTwitter;
   hreflang: SeoHreflang[];
   schema?: Record<string, unknown>;
+  breadcrumbPath?: Array<{ name: string; slug: string }> | null;
 }

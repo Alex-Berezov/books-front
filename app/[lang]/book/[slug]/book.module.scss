@@ -12,6 +12,44 @@
   padding: 0 $spacing-md;
 }
 
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.7;
+  margin-bottom: $spacing-md;
+
+  a {
+    color: var(--public-foreground);
+    text-decoration: none;
+    transition: color $transition-fast;
+
+    &:hover {
+      color: var(--public-primary);
+    }
+  }
+
+  .breadcrumbItem {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-xs;
+  }
+
+  .separator {
+    color: var(--public-foreground);
+    opacity: 0.4;
+  }
+
+  .current {
+    font-weight: $font-weight-medium;
+    color: var(--public-foreground);
+    opacity: 0.9;
+  }
+}
+
 .backBtn {
   margin-bottom: $spacing-lg;
   color: var(--public-foreground);

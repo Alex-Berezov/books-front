@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
+import { useCategories } from '@/api/hooks/useCategories';
 import { Input } from '@/components/common/Input';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { Select } from '@/components/common/Select';
@@ -45,6 +46,19 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
     label: langCode.toUpperCase(),
     value: langCode,
   }));
+
+  const { data: categoriesData } = useCategories({ limit: 100 });
+  const categoryOptions = [
+    { label: 'None', value: '' },
+    ...(categoriesData?.data || []).map((cat) => {
+      const trans =
+        cat.translations?.find((t) => t.language === watch('language')) || cat.translations?.[0];
+      return {
+        label: trans?.name || cat.name || cat.id,
+        value: cat.id,
+      };
+    }),
+  ];
 
   return (
     <div className={styles.section}>
@@ -120,6 +134,32 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
         />
         <span className={styles.hint}>
           URL-friendly identifier for the book (lowercase, hyphens only). Example: about-us
+        </span>
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="primaryCategoryId">
+          Primary Category
+        </label>
+        <Controller
+          name="primaryCategoryId"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              value={field.value ?? ''}
+              options={categoryOptions}
+              fullWidth
+              error={!!errors.primaryCategoryId}
+              ariaLabel="Select primary category"
+            />
+          )}
+        />
+        {errors.primaryCategoryId && (
+          <span className={styles.error}>{errors.primaryCategoryId.message}</span>
+        )}
+        <span className={styles.hint}>
+          The primary category is used to construct clean breadcrumbs for the book page.
         </span>
       </div>
 

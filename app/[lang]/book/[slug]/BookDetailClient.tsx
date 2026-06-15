@@ -20,7 +20,7 @@ import { useSession } from 'next-auth/react';
 import { rateBook } from '@/api/endpoints/rating';
 import { useBooks, useUserBookRating, bookKeys } from '@/api/hooks/useBooks';
 import { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
-import { useBookOverview } from '@/api/hooks/usePublic';
+import { useBookOverview, useSeoResolve } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
@@ -31,6 +31,22 @@ import { toast } from '@/lib/utils/toast';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './book.module.scss';
+
+const getHomeName = (lang: string): string => {
+  switch (lang) {
+    case 'ru':
+      return 'Главная';
+    case 'es':
+      return 'Inicio';
+    case 'pt':
+      return 'Início';
+    case 'fr':
+      return 'Accueil';
+    case 'en':
+    default:
+      return 'Home';
+  }
+};
 
 type Props = {
   slug: string;
@@ -51,6 +67,9 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   } = useBookOverview(supportedLang, slug, {
     initialData: initialBook,
   });
+
+  // Fetch SEO data (including breadcrumbs)
+  const { data: seoData } = useSeoResolve(supportedLang, 'book', slug);
 
   // Fetch related/all books for "You Might Also Like"
   const { data: relatedBooksData } = useBooks({ limit: 10 });
@@ -189,6 +208,21 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   return (
     <div className={styles.bookPage}>
       <div className={styles.container}>
+        {/* Breadcrumbs */}
+        <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
+          <Link href={`/${supportedLang}`}>{getHomeName(supportedLang)}</Link>
+          {seoData?.breadcrumbPath?.map((item) => (
+            <span key={item.slug} className={styles.breadcrumbItem}>
+              <span className={styles.separator}>/</span>
+              <Link href={`/${supportedLang}/catalog/${item.slug}`}>{item.name}</Link>
+            </span>
+          ))}
+          <span className={styles.breadcrumbItem}>
+            <span className={styles.separator}>/</span>
+            <span className={styles.current}>{book.title}</span>
+          </span>
+        </nav>
+
         {/* Back Button */}
         <Button
           variant="ghost"
