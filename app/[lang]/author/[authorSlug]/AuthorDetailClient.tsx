@@ -15,6 +15,7 @@ type Props = {
   lang: string;
   authorSlug: string;
   displayName: string;
+  initialBooks?: BookOverview[];
 };
 
 function decodeAuthorSlug(slug: string): string {
@@ -25,14 +26,24 @@ function decodeAuthorSlug(slug: string): string {
   }
 }
 
-export default function AuthorDetailClient({ lang, authorSlug, displayName }: Props) {
+export default function AuthorDetailClient({ lang, authorSlug, displayName, initialBooks }: Props) {
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
   const { t } = useTranslation();
   const searchName = decodeAuthorSlug(authorSlug ?? '');
 
-  // Fetch all books to filter by author on the client
-  const { data: booksData, isLoading } = useBooks({ limit: 100 });
+  // Fetch all books with initial data from SSR
+  const { data: booksData, isLoading } = useBooks(
+    { limit: 100 },
+    {
+      initialData: initialBooks
+        ? {
+            data: initialBooks,
+            meta: { total: initialBooks.length, page: 1, limit: 100, totalPages: 1 },
+          }
+        : undefined,
+    }
+  );
 
   const allBooks = (booksData?.data || []).filter((book) =>
     book.versions?.some((v) => v.language === supportedLang && v.status === 'published')

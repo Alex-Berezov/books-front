@@ -2,7 +2,7 @@ import { ConfigProvider } from 'antd';
 import { notFound } from 'next/navigation';
 import { Footer } from '@/components/public/layout/Footer';
 import { Header } from '@/components/public/layout/Header';
-import { isSupportedLang } from '@/lib/i18n/lang';
+import { isSupportedLang, SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import styles from '@/styles/layouts.module.scss';
 import { colors } from '@/styles/tokens';
@@ -11,6 +11,10 @@ type Props = {
   children: React.ReactNode;
   params: Promise<{ lang: string }>;
 };
+
+export async function generateStaticParams() {
+  return SUPPORTED_LANGS.map((lang) => ({ lang }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params;

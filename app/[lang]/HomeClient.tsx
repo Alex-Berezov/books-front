@@ -9,19 +9,42 @@ import { Button } from '@/components/common/Button';
 import { BookSection } from '@/components/public/books/BookSection';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { BookOverview, Category } from '@/types/api-schema';
 import styles from '../page.module.scss';
 
 type HomeClientProps = {
   lang: string;
+  initialBooks?: BookOverview[];
+  initialCategories?: Category[];
 };
 
-export default function HomeClient({ lang }: HomeClientProps) {
+export default function HomeClient({ lang, initialBooks, initialCategories }: HomeClientProps) {
   const supportedLang = lang as SupportedLang;
   const { t } = useTranslation();
 
   // Fetch books (limit 100 for client-side sorting and filtering)
-  const { data: booksData, isLoading: loadingBooks } = useBooks({ limit: 100 });
-  const { data: categoriesData, isLoading: loadingCats } = useCategories({ limit: 50 });
+  const { data: booksData, isLoading: loadingBooks } = useBooks(
+    { limit: 100 },
+    {
+      initialData: initialBooks
+        ? {
+            data: initialBooks,
+            meta: { total: initialBooks.length, page: 1, limit: 100, totalPages: 1 },
+          }
+        : undefined,
+    }
+  );
+  const { data: categoriesData, isLoading: loadingCats } = useCategories(
+    { limit: 50 },
+    {
+      initialData: initialCategories
+        ? {
+            data: initialCategories,
+            meta: { total: initialCategories.length, page: 1, limit: 50, totalPages: 1 },
+          }
+        : undefined,
+    }
+  );
 
   const allBooks = (booksData?.data || []).filter((book) =>
     book.versions?.some((v) => v.language === supportedLang && v.status === 'published')

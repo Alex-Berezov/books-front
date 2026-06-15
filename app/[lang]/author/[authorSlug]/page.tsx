@@ -1,5 +1,7 @@
+import { getPublicBooks } from '@/api/endpoints/public';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { BookOverview } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import AuthorDetailClient from './AuthorDetailClient';
 
@@ -38,11 +40,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       break;
     case 'es':
       title = `${displayName} - Libros, biografía y frases | Bibliaris`;
-      description = `Explora libros, biografía, frases y obras clásicas de ${displayName} en Bibliaris. Lee y escucha en línea gratis.`;
+      description = `Explora libros, biografía, frases & obras clásicas de ${displayName} en Bibliaris. Lee y escucha en línea gratis.`;
       break;
     case 'pt':
       title = `${displayName} - Livros, biografia e frases | Bibliaris`;
-      description = `Explore livros, biografia, frases e obras clássicas de ${displayName} no Bibliaris. Leia e ouça online gratuitamente.`;
+      description = `Explore livros, biografia, frases e obras clásicas de ${displayName} no Bibliaris. Leia e ouça online gratuitamente.`;
       break;
     case 'fr':
       title = `${displayName} - Livres, biographie et citations | Bibliaris`;
@@ -60,8 +62,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AuthorDetailPage({ params }: Props) {
   const { lang, authorSlug } = await params;
+  const supportedLang = lang as SupportedLang;
   const searchName = decodeAuthorSlug(authorSlug ?? '');
   const displayName = toTitleCase(searchName);
 
-  return <AuthorDetailClient lang={lang} authorSlug={authorSlug} displayName={displayName} />;
+  let initialBooks: BookOverview[] = [];
+  try {
+    const booksRes = await getPublicBooks(supportedLang, { limit: 100 });
+    initialBooks = booksRes.data || [];
+  } catch (error) {
+    console.error('Error fetching author books on server:', error);
+  }
+
+  return (
+    <AuthorDetailClient
+      lang={lang}
+      authorSlug={authorSlug}
+      displayName={displayName}
+      initialBooks={initialBooks}
+    />
+  );
 }

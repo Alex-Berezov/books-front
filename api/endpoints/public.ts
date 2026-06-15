@@ -5,8 +5,7 @@
  * books, pages, categories, tags, etc.
  */
 
-import { httpGet } from '@/lib/http';
-import { buildLangPath } from '@/lib/http';
+import { httpGet, buildLangPath } from '@/lib/http';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   BookOverview,
@@ -15,6 +14,7 @@ import type {
   TagBooksResponse,
   SeoResolveResponse,
   ChapterDetail,
+  PaginatedResponse,
 } from '@/types/api-schema';
 
 /**
@@ -43,6 +43,22 @@ export const getPublicChapters = async (versionId: string): Promise<ChapterDetai
 export const getBookOverview = async (lang: SupportedLang, slug: string): Promise<BookOverview> => {
   const endpoint = buildLangPath(lang, `/books/${slug}/overview`);
   return httpGet<BookOverview>(endpoint, { language: lang });
+};
+
+/**
+ * Get public list of all books with pagination (without auth requirement)
+ */
+export const getPublicBooks = async (
+  lang: SupportedLang,
+  params: { page?: number; limit?: number } = {}
+): Promise<PaginatedResponse<BookOverview>> => {
+  const { page = 1, limit = 20 } = params;
+  const queryParams = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  const endpoint = buildLangPath(lang, `/books?${queryParams.toString()}`);
+  return httpGet<PaginatedResponse<BookOverview>>(endpoint, { language: lang });
 };
 
 /**
