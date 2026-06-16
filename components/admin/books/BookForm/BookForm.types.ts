@@ -67,6 +67,15 @@ export const bookVersionSchema = z.object({
   editionPublishedYear: z
     .union([z.number().int().min(1).max(2100), z.literal(''), z.null()])
     .optional(),
+  originalLanguage: z.string().optional().or(z.literal('')),
+  copyrightStatus: z.string().optional().or(z.literal('')),
+  authorPageUrl: z.string().optional().or(z.literal('')),
+  characters: z.array(z.object({ name: z.string(), description: z.string() })).optional(),
+  quotes: z
+    .array(z.object({ text: z.string(), author: z.string().optional().or(z.literal('')) }))
+    .optional(),
+  faq: z.array(z.object({ question: z.string(), answer: z.string() })).optional(),
+  themes: z.array(z.string()).optional(),
 });
 
 /**

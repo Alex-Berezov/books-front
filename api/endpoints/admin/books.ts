@@ -116,3 +116,10 @@ export const getBook = async (bookId: string): Promise<BookOverview> => {
   const endpoint = `/books/${bookId}`;
   return httpGetAuth<BookOverview>(endpoint, { requireAuth: false });
 };
+
+/**
+ * Get all unique themes across all books.
+ */
+export const getThemes = async (): Promise<string[]> => {
+  return httpGetAuth<string[]>('/books/themes');
+};

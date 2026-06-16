@@ -224,3 +224,111 @@
     display: block;
   }
 }
+
+.arraySection {
+  margin-top: $spacing-md;
+  padding: $spacing-md;
+  background: $color-background-secondary;
+  border-radius: $border-radius-lg;
+  border: 1px dashed $color-border-base;
+  margin-bottom: $spacing-md;
+}
+
+.arraySubTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-xs $spacing-sm;
+  background: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  margin-bottom: $spacing-xs;
+  font-size: $font-size-sm;
+
+  span {
+    color: $color-text-primary;
+  }
+}
+
+.addItemRow {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.themeBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+}
+
+.themeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: 4px $spacing-sm;
+  background: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: 20px;
+  font-size: $font-size-xs;
+  color: $color-text-primary;
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: $color-text-secondary;
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      color: $color-error;
+    }
+  }
+}
+
+.dropdownContainer {
+  position: relative;
+  width: 100%;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdownItem {
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  cursor: pointer;
+  background: $color-background-primary;
+
+  &:hover {
+    background: $color-background-secondary;
+  }
+}

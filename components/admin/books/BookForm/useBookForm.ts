@@ -40,6 +40,13 @@ export const useBookForm = (props: UseBookFormProps) => {
             (initialData.seo?.twitterCard as 'summary' | 'summary_large_image') || 'summary',
           title: initialData.title,
           type: initialData.type,
+          originalLanguage: initialData.originalLanguage || '',
+          copyrightStatus: initialData.copyrightStatus || '',
+          authorPageUrl: initialData.authorPageUrl || '',
+          characters: initialData.characters || [],
+          quotes: initialData.quotes || [],
+          faq: initialData.faq || [],
+          themes: initialData.themes || [],
         }
       : {
           bookSlug: '',
@@ -62,6 +69,13 @@ export const useBookForm = (props: UseBookFormProps) => {
           seoTwitterCard: 'summary',
           title: initialTitle || '',
           type: 'text' as const,
+          originalLanguage: '',
+          copyrightStatus: '',
+          authorPageUrl: '',
+          characters: [],
+          quotes: [],
+          faq: [],
+          themes: [],
         },
   });
 
@@ -92,6 +106,13 @@ export const useBookForm = (props: UseBookFormProps) => {
           (initialData.seo?.twitterCard as 'summary' | 'summary_large_image') || 'summary',
         title: initialData.title,
         type: initialData.type,
+        originalLanguage: initialData.originalLanguage || '',
+        copyrightStatus: initialData.copyrightStatus || '',
+        authorPageUrl: initialData.authorPageUrl || '',
+        characters: initialData.characters || [],
+        quotes: initialData.quotes || [],
+        faq: initialData.faq || [],
+        themes: initialData.themes || [],
       });
     }
   }, [initialData, reset]);

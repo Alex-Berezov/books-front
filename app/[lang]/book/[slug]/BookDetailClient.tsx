@@ -14,6 +14,7 @@ import {
   FileText,
   User,
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -156,6 +157,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   const audioVersion = versionIds?.audio
     ? book.versions?.find((v) => v.id === versionIds.audio)
     : null;
+  const activeVersion = textVersion || audioVersion || book.versions?.[0] || null;
 
   const textHasSummary = textVersion
     ? ((textVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0
@@ -239,7 +241,14 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
           <div className={styles.coverWrapper}>
             <div className={styles.coverImageContainer} style={{ backgroundColor: coverBgColor }}>
               {book.coverUrl ? (
-                <img src={book.coverUrl} alt={book.title} className={styles.coverImg} />
+                <Image
+                  src={book.coverUrl}
+                  alt={book.title}
+                  className={styles.coverImg}
+                  width={200}
+                  height={290}
+                  priority
+                />
               ) : (
                 <div className={styles.coverPlaceholder}>
                   <BookOpen size={48} className={styles.placeholderIcon} />
@@ -255,7 +264,10 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
             <p className={styles.author}>
               {t('book.by')}{' '}
               <Link
-                href={`/${supportedLang}/author/${encodeURIComponent((book.author || '').trim().toLowerCase().replace(/\s+/g, '-'))}`}
+                href={
+                  activeVersion?.authorPageUrl ||
+                  `/${supportedLang}/author/${encodeURIComponent((book.author || '').trim().toLowerCase().replace(/\s+/g, '-'))}`
+                }
                 className={styles.authorLink}
               >
                 {book.author || t('book.unknownAuthor')}
@@ -420,9 +432,41 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   </span>
                 </div>
               )}
+              {activeVersion?.originalLanguage && (
+                <div className={styles.metaItem}>
+                  <Globe size={16} />
+                  <span>
+                    {supportedLang === 'ru' ? 'Оригинальный язык' : 'Original Language'}:{' '}
+                    {activeVersion.originalLanguage}
+                  </span>
+                </div>
+              )}
+              {activeVersion?.copyrightStatus && (
+                <div className={styles.metaItem}>
+                  <FileText size={16} />
+                  <span>
+                    {supportedLang === 'ru' ? 'Правовой статус' : 'Copyright Status'}:{' '}
+                    {activeVersion.copyrightStatus}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Themes Section */}
+        {activeVersion?.themes && activeVersion.themes.length > 0 && (
+          <div className={styles.themesWrapper}>
+            <hr className={styles.divider} />
+            <div className={styles.themesList}>
+              {activeVersion.themes.map((theme) => (
+                <span key={theme} className={styles.themeTag}>
+                  {theme}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Description section */}
         <div className={styles.descriptionWrapper}>
@@ -446,6 +490,55 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
             <p className={styles.description}>{t('book.noDescription')}</p>
           )}
         </div>
+
+        {/* Characters Section */}
+        {activeVersion?.characters && activeVersion.characters.length > 0 && (
+          <section className={styles.detailSection}>
+            <h2 className={styles.detailTitle}>
+              {supportedLang === 'ru' ? 'Персонажи' : 'Main Characters'}
+            </h2>
+            <div className={styles.charactersGrid}>
+              {activeVersion.characters.map((char) => (
+                <div key={char.name} className={styles.characterCard}>
+                  <div className={styles.charName}>{char.name}</div>
+                  <div className={styles.charDesc}>{char.description}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Quotes Section */}
+        {activeVersion?.quotes && activeVersion.quotes.length > 0 && (
+          <section className={styles.detailSection}>
+            <h2 className={styles.detailTitle}>{supportedLang === 'ru' ? 'Цитаты' : 'Quotes'}</h2>
+            <div className={styles.quotesList}>
+              {activeVersion.quotes.map((quote, idx) => (
+                <blockquote key={idx} className={styles.quoteCard}>
+                  <p className={styles.quoteText}>“{quote.text}”</p>
+                  {quote.author && <cite className={styles.quoteAuthor}>— {quote.author}</cite>}
+                </blockquote>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* FAQ Section */}
+        {activeVersion?.faq && activeVersion.faq.length > 0 && (
+          <section className={styles.detailSection} style={{ marginBottom: '2rem' }}>
+            <h2 className={styles.detailTitle}>
+              {supportedLang === 'ru' ? 'Часто задаваемые вопросы' : 'Frequently Asked Questions'}
+            </h2>
+            <div className={styles.faqList}>
+              {activeVersion.faq.map((item, idx) => (
+                <div key={idx} className={styles.faqCard}>
+                  <div className={styles.faqQuestion}>Q: {item.question}</div>
+                  <div className={styles.faqAnswer}>A: {item.answer}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Book Reviews and Comments */}
         {versionId && (

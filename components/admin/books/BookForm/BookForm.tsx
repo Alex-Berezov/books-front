@@ -5,6 +5,7 @@ import { Button } from '@/components/common/Button';
 import type { BookFormProps } from './BookForm.types';
 import { BasicInfoSection } from './BasicInfoSection';
 import styles from './BookForm.module.scss';
+import { DetailInfoSection } from './DetailInfoSection';
 import { MediaSection } from './MediaSection';
 import { SeoSection } from './SeoSection';
 import { useBookForm } from './useBookForm';
@@ -59,6 +60,15 @@ export const BookForm: FC<BookFormProps> = (props) => {
 
       {/* Media & Type */}
       <MediaSection control={control} errors={errors} register={register} />
+
+      {/* Additional Details (Manual Input) */}
+      <DetailInfoSection
+        control={control}
+        errors={errors}
+        register={register}
+        setValue={setValue}
+        watch={watch}
+      />
 
       {/* SEO Settings */}
       <SeoSection

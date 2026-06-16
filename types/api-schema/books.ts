@@ -25,6 +25,13 @@ export interface VersionPreview {
   status?: PublicationStatus;
   chaptersCount: number;
   duration?: number; // In seconds for audio
+  originalLanguage?: string | null;
+  copyrightStatus?: string | null;
+  authorPageUrl?: string | null;
+  characters?: { name: string; description: string }[] | null;
+  quotes?: { text: string; author?: string }[] | null;
+  faq?: { question: string; answer: string }[] | null;
+  themes?: string[] | null;
 }
 
 /**
@@ -122,6 +129,13 @@ export interface BookVersionDetail {
   primaryCategoryId?: UUID | null;
   firstPublishedYear?: number | null;
   editionPublishedYear?: number | null;
+  originalLanguage?: string | null;
+  copyrightStatus?: string | null;
+  authorPageUrl?: string | null;
+  characters?: { name: string; description: string }[] | null;
+  quotes?: { text: string; author?: string }[] | null;
+  faq?: { question: string; answer: string }[] | null;
+  themes?: string[] | null;
   /** SEO metadata (full SEO entity) */
   seo?: SeoData;
   /** Attached categories */
@@ -156,6 +170,13 @@ export interface CreateBookVersionRequest {
   primaryCategoryId?: UUID | null;
   firstPublishedYear?: number | null;
   editionPublishedYear?: number | null;
+  originalLanguage?: string | null;
+  copyrightStatus?: string | null;
+  authorPageUrl?: string | null;
+  characters?: { name: string; description: string }[] | null;
+  quotes?: { text: string; author?: string }[] | null;
+  faq?: { question: string; answer: string }[] | null;
+  themes?: string[] | null;
 }
 
 /**
@@ -182,6 +203,13 @@ export interface UpdateBookVersionRequest {
   primaryCategoryId?: UUID | null;
   firstPublishedYear?: number | null;
   editionPublishedYear?: number | null;
+  originalLanguage?: string | null;
+  copyrightStatus?: string | null;
+  authorPageUrl?: string | null;
+  characters?: { name: string; description: string }[] | null;
+  quotes?: { text: string; author?: string }[] | null;
+  faq?: { question: string; answer: string }[] | null;
+  themes?: string[] | null;
 }
 
 /**

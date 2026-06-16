@@ -18,6 +18,7 @@ import {
   getBook,
   getBooks,
   updateBook,
+  getThemes,
   type GetBooksParams,
 } from '@/api/endpoints/admin/books';
 import { getUserBookRating, type UserRatingResponse } from '@/api/endpoints/rating';
@@ -234,6 +235,18 @@ export const useUserBookRating = (
     queryFn: () => getUserBookRating(bookId),
     enabled: !!bookId,
     staleTime: 5 * 60 * 1000,
+    ...options,
+  });
+};
+
+/**
+ * Hook for getting all unique book themes
+ */
+export const useThemes = (options?: Omit<UseQueryOptions<string[]>, 'queryKey' | 'queryFn'>) => {
+  return useQuery({
+    queryKey: [...bookKeys.all, 'themes'] as const,
+    queryFn: () => getThemes(),
+    staleTime: 10 * 60 * 1000, // 10 minutes
     ...options,
   });
 };

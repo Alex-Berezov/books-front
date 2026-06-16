@@ -351,3 +351,130 @@
     color: #3c2a18 !important;
   }
 }
+
+.themesWrapper {
+  margin-top: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-bottom: $spacing-md;
+}
+
+.themesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.themeTag {
+  display: inline-block;
+  padding: 4px 14px;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: var(--public-foreground);
+  background-color: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.detailSection {
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.detailTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+  margin-bottom: $spacing-md;
+}
+
+.charactersGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.characterCard {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: $border-radius-base;
+  padding: $spacing-md;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.charName {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: var(--public-foreground);
+  margin-bottom: 4px;
+}
+
+.charDesc {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.quotesList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.quoteCard {
+  border-left: 3px solid var(--public-primary, #8b7355);
+  padding-left: $spacing-md;
+  margin: 0;
+}
+
+.quoteText {
+  font-style: italic;
+  font-size: $font-size-base;
+  color: var(--public-foreground);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.quoteAuthor {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.7;
+  text-align: right;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.faqCard {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: $border-radius-base;
+  padding: $spacing-md;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.faqQuestion {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: var(--public-foreground);
+  margin-bottom: $spacing-xs;
+}
+
+.faqAnswer {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.8;
+  line-height: 1.5;
+}
