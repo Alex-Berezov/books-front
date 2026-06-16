@@ -363,10 +363,26 @@
   margin-bottom: $spacing-md;
 }
 
+.themesContainer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.themesLabel {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: var(--public-foreground);
+  opacity: 0.85;
+  margin-right: $spacing-xs;
+}
+
 .themesList {
   display: flex;
   flex-wrap: wrap;
   gap: $spacing-xs;
+  align-items: center;
 }
 
 .themeTag {

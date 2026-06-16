@@ -16,7 +16,8 @@ export const useBookForm = (props: UseBookFormProps) => {
   const { lang, initialData, initialTitle, initialAuthor } = props;
 
   const form = useForm<BookFormData>({
-    resolver: zodResolver(bookVersionSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(bookVersionSchema) as any,
     defaultValues: initialData
       ? {
           bookSlug: initialData.bookSlug || '',

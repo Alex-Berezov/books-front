@@ -458,12 +458,17 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
         {activeVersion?.themes && activeVersion.themes.length > 0 && (
           <div className={styles.themesWrapper}>
             <hr className={styles.divider} />
-            <div className={styles.themesList}>
-              {activeVersion.themes.map((theme) => (
-                <span key={theme} className={styles.themeTag}>
-                  {theme}
-                </span>
-              ))}
+            <div className={styles.themesContainer}>
+              <span className={styles.themesLabel}>
+                {supportedLang === 'ru' ? 'Ключевые темы:' : 'Key Themes:'}
+              </span>
+              <div className={styles.themesList}>
+                {activeVersion.themes.map((theme) => (
+                  <span key={theme} className={styles.themeTag}>
+                    {theme}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         )}

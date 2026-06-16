@@ -61,11 +61,25 @@ export const bookVersionSchema = z.object({
 
   /** First published year */
   firstPublishedYear: z
-    .union([z.number().int().min(1).max(2100), z.literal(''), z.null()])
+    .preprocess(
+      (val) => {
+        if (val === '' || val === undefined || val === null) return '';
+        const num = Number(val);
+        return isNaN(num) ? '' : num;
+      },
+      z.union([z.number().int().min(1).max(2100), z.literal(''), z.null()])
+    )
     .optional(),
   /** Edition published year */
   editionPublishedYear: z
-    .union([z.number().int().min(1).max(2100), z.literal(''), z.null()])
+    .preprocess(
+      (val) => {
+        if (val === '' || val === undefined || val === null) return '';
+        const num = Number(val);
+        return isNaN(num) ? '' : num;
+      },
+      z.union([z.number().int().min(1).max(2100), z.literal(''), z.null()])
+    )
     .optional(),
   originalLanguage: z.string().optional().or(z.literal('')),
   copyrightStatus: z.string().optional().or(z.literal('')),
