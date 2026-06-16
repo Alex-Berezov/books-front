@@ -143,6 +143,14 @@ export const useBookVersionLogic = (versionId: string) => {
       editionPublishedYear: formData.editionPublishedYear
         ? Number(formData.editionPublishedYear)
         : null,
+      originalLanguage: formData.originalLanguage || null,
+      copyrightStatus: formData.copyrightStatus || null,
+      authorPageUrl: formData.authorPageUrl || null,
+      characters:
+        formData.characters && formData.characters.length > 0 ? formData.characters : null,
+      quotes: formData.quotes && formData.quotes.length > 0 ? formData.quotes : null,
+      faq: formData.faq && formData.faq.length > 0 ? formData.faq : null,
+      themes: formData.themes && formData.themes.length > 0 ? formData.themes : null,
     };
 
     // Send update request
