@@ -1,4 +1,9 @@
-import { permanentRedirect } from 'next/navigation';
+import type { Metadata } from 'next';
+import SummaryClient from './SummaryClient';
+
+export const metadata: Metadata = {
+  robots: 'noindex, follow',
+};
 
 type Props = {
   params:
@@ -8,6 +13,5 @@ type Props = {
 
 export default async function Page({ params }: Props) {
   const resolvedParams = await params;
-  const { lang, bookSlug } = resolvedParams;
-  permanentRedirect(`/${lang}/book/${bookSlug}#summary`);
+  return <SummaryClient params={resolvedParams} />;
 }

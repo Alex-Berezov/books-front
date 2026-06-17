@@ -329,8 +329,12 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                 </Link>
               )}
 
-              {hasSummary && (
-                <Link href={`/${supportedLang}/book/${slug}#summary`} passHref legacyBehavior>
+              {hasSummary && versionId && (
+                <Link
+                  href={`/${supportedLang}/summary/${slug}/${versionId}`}
+                  passHref
+                  legacyBehavior
+                >
                   <Button variant="secondary" size="lg" leftIcon={<FileText size={18} />}>
                     {t('book.summary')}
                   </Button>
