@@ -144,7 +144,7 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
 
         <div className={styles.actions}>
           {isAudio ? (
-            <Link href={`/${lang}/listen/${bookSlug}/${version.id}`} passHref legacyBehavior>
+            <Link href={`/${lang}/book/${bookSlug}/listen`} passHref legacyBehavior>
               <Button
                 variant="primary"
                 size="sm"
@@ -154,7 +154,7 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
               </Button>
             </Link>
           ) : (
-            <Link href={`/${lang}/read/${bookSlug}/${version.id}`} passHref legacyBehavior>
+            <Link href={`/${lang}/book/${bookSlug}/read`} passHref legacyBehavior>
               <Button
                 variant="primary"
                 size="sm"
