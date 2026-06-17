@@ -166,11 +166,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
     ? ((audioVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0
     : false;
   const hasSummary = textHasSummary || audioHasSummary;
-  const summaryVersionId = textHasSummary
-    ? textVersion?.id
-    : audioHasSummary
-      ? audioVersion?.id
-      : null;
 
   const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
 
@@ -319,11 +314,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
             {/* Actions */}
             <div className={styles.actions}>
               {textVersion && (
-                <Link
-                  href={`/${supportedLang}/read/${slug}/${textVersion.id}`}
-                  passHref
-                  legacyBehavior
-                >
+                <Link href={`/${supportedLang}/book/${slug}/read`} passHref legacyBehavior>
                   <Button variant="secondary" size="lg" leftIcon={<BookOpen size={18} />}>
                     {textVersion.isFree ? t('book.readFree') : t('book.read')}
                   </Button>
@@ -331,23 +322,15 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
               )}
 
               {audioVersion && (
-                <Link
-                  href={`/${supportedLang}/listen/${slug}/${audioVersion.id}`}
-                  passHref
-                  legacyBehavior
-                >
+                <Link href={`/${supportedLang}/book/${slug}/listen`} passHref legacyBehavior>
                   <Button variant="secondary" size="lg" leftIcon={<Headphones size={18} />}>
                     {t('book.listen')}
                   </Button>
                 </Link>
               )}
 
-              {hasSummary && summaryVersionId && (
-                <Link
-                  href={`/${supportedLang}/summary/${slug}/${summaryVersionId}`}
-                  passHref
-                  legacyBehavior
-                >
+              {hasSummary && (
+                <Link href={`/${supportedLang}/book/${slug}#summary`} passHref legacyBehavior>
                   <Button variant="secondary" size="lg" leftIcon={<FileText size={18} />}>
                     {t('book.summary')}
                   </Button>
@@ -474,7 +457,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
         )}
 
         {/* Description section */}
-        <div className={styles.descriptionWrapper}>
+        <div id="summary" className={styles.descriptionWrapper}>
           <h2 className={styles.descriptionTitle}>
             {supportedLang === 'ru'
               ? `О книге «${book.title}»`

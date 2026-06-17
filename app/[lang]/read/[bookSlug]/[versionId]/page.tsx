@@ -1,14 +1,13 @@
-import type { Metadata } from 'next';
-import ReaderClient from './ReaderClient';
-
-export const metadata: Metadata = {
-  robots: 'noindex, follow',
-};
+import { permanentRedirect } from 'next/navigation';
 
 type Props = {
-  params: { lang: string; bookSlug: string; versionId: string };
+  params:
+    | Promise<{ lang: string; bookSlug: string; versionId: string }>
+    | { lang: string; bookSlug: string; versionId: string };
 };
 
-export default function Page({ params }: Props) {
-  return <ReaderClient params={params} />;
+export default async function Page({ params }: Props) {
+  const resolvedParams = await params;
+  const { lang, bookSlug } = resolvedParams;
+  permanentRedirect(`/${lang}/book/${bookSlug}/read`);
 }

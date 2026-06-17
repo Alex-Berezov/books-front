@@ -227,3 +227,24 @@ export const usePublicChapters = (
     ...options,
   });
 };
+
+/**
+ * Hook for getting reader bootstrap info in a single request.
+ */
+export const useReaderBootstrap = (
+  lang: SupportedLang,
+  slug: string,
+  userId?: string,
+  options?: Omit<
+    UseQueryOptions<publicApi.ReaderBootstrapResponse, ApiError>,
+    'queryKey' | 'queryFn'
+  >
+): UseQueryResult<publicApi.ReaderBootstrapResponse, ApiError> => {
+  return useQuery<publicApi.ReaderBootstrapResponse, ApiError>({
+    queryKey: ['readerBootstrap', lang, slug, userId],
+    queryFn: () => publicApi.getReaderBootstrap(lang, slug, userId),
+    staleTime: staleTimeConfig.public,
+    enabled: !!slug,
+    ...options,
+  });
+};

@@ -45,6 +45,33 @@ export const getBookOverview = async (lang: SupportedLang, slug: string): Promis
   return httpGet<BookOverview>(endpoint, { language: lang });
 };
 
+export interface ReaderBootstrapResponse {
+  bookId: string;
+  versionId: string;
+  title: string;
+  author: string;
+  chapters: ChapterDetail[];
+  lastProgress: {
+    chapterNumber: number | null;
+    position: number;
+  } | null;
+}
+
+/**
+ * Get Reader bootstrap data in a single request.
+ */
+export const getReaderBootstrap = async (
+  lang: SupportedLang,
+  slug: string,
+  userId?: string
+): Promise<ReaderBootstrapResponse> => {
+  const endpoint = buildLangPath(
+    lang,
+    `/books/${slug}/reader-bootstrap${userId ? `?userId=${userId}` : ''}`
+  );
+  return httpGet<ReaderBootstrapResponse>(endpoint, { language: lang });
+};
+
 /**
  * Get public list of all books with pagination (without auth requirement)
  */
