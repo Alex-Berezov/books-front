@@ -1,0 +1,305 @@
+@import '@/styles/tokens.scss';
+
+.playerPage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(var(--public-primary-rgb), 0.05) 0%, var(--public-background) 100%);
+  color: var(--public-foreground);
+}
+
+// Header
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 $spacing-md;
+  flex-shrink: 0;
+}
+
+.backBtn, .listBtn {
+  color: var(--public-foreground);
+  opacity: 0.7;
+
+  &:hover {
+    color: var(--public-primary) !important;
+    opacity: 1;
+  }
+}
+
+.headerTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+// Drawer
+.drawer {
+  .chapterList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+.chapterItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-lg;
+  background-color: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  color: var(--public-foreground);
+  opacity: 0.8;
+  transition: all $transition-fast;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    opacity: 1;
+  }
+}
+
+.activeChapterItem {
+  background-color: var(--public-primary) !important;
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+.chapterNumber {
+  font-size: $font-size-xs;
+  margin-right: $spacing-sm;
+  opacity: 0.6;
+}
+
+.chapterTitleText {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Main Panel
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl $spacing-lg;
+  max-width: 420px;
+  margin: 0 auto;
+  width: 100%;
+  gap: $spacing-xl;
+}
+
+.coverContainer {
+  width: 220px;
+  height: 220px;
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform $transition-base;
+
+  &:hover {
+    transform: scale(1.03);
+  }
+}
+
+.coverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.coverLetter {
+  font-size: $font-size-xxxl;
+  font-weight: $font-weight-bold;
+  color: #ffffff;
+  opacity: 0.3;
+}
+
+.details {
+  text-align: center;
+  width: 100%;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  margin: 0 0 4px 0;
+  line-height: $line-height-tight;
+}
+
+.author {
+  font-size: $font-size-sm;
+  opacity: 0.6;
+  margin: 0 0 $spacing-sm 0;
+}
+
+.chapterTitle {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: var(--public-primary);
+  margin: 0;
+}
+
+// Timeline
+.timeline {
+  width: 100%;
+}
+
+.slider {
+  margin: 0 0 $spacing-xs 0;
+  padding: 4px 0;
+}
+
+.timeLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xs;
+  opacity: 0.5;
+}
+
+// Controls
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-lg;
+  width: 100%;
+}
+
+.controlBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--public-foreground);
+  opacity: 0.7;
+
+  &:hover {
+    color: var(--public-primary) !important;
+    opacity: 1;
+  }
+
+  &:disabled {
+    opacity: 0.25;
+  }
+}
+
+.playBtn {
+  width: 56px !important;
+  height: 56px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--public-primary) !important;
+  border-color: var(--public-primary) !important;
+
+  &:hover {
+    background-color: var(--public-primary-hover) !important;
+    border-color: var(--public-primary-hover) !important;
+  }
+}
+
+// Footer Controls
+.footerControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: $spacing-md;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding-top: $spacing-lg;
+}
+
+.volumeControl {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  flex: 1;
+  max-width: 180px;
+}
+
+.volumeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--public-foreground);
+  opacity: 0.6;
+}
+
+.volumeSlider {
+  flex: 1;
+  margin: 0;
+}
+
+.speedSelector {
+  display: flex;
+  gap: 4px;
+}
+
+.speedBtn {
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  padding: 4px $spacing-sm;
+  border-radius: $border-radius-lg;
+  background-color: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--public-foreground);
+  opacity: 0.7;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    opacity: 1;
+    border-color: var(--public-primary);
+  }
+}
+
+.activeSpeedBtn {
+  background-color: var(--public-primary) !important;
+  color: #ffffff !important;
+  border-color: var(--public-primary) !important;
+  opacity: 1;
+}
+
+// Loading & Error states
+.loadingContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-xl;
+}
+
+.skeletonCover {
+  border-radius: $border-radius-xl !important;
+}
+
+.skeletonText {
+  width: 200px;
+}
+
+.errorContainer {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+}
+
+.errorText {
+  opacity: 0.6;
+}
