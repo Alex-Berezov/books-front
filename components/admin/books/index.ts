@@ -21,3 +21,4 @@ export type { CreateBookModalProps, CreateBookFormData } from './CreateBookModal
 export { DeleteBookModal } from './DeleteBookModal';
 export type { DeleteBookModalProps } from './DeleteBookModal';
 export { BookVersionSwitcher } from './BookVersionSwitcher/BookVersionSwitcher';
+export { ImportModal } from './ImportModal';

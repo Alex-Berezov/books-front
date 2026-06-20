@@ -1,0 +1,24 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.description {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.textarea {
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.error {
+  color: #ff4d4f;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 4px;
+}

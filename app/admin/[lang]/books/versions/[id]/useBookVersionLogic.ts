@@ -9,10 +9,11 @@ import {
   useUpdateBook,
   useUpdateBookVersion,
   useUpsertVersionSeo,
+  useCreateBookVersion,
 } from '@/api/hooks';
 import type { BookFormData, TabType } from '@/components/admin/books';
 import type { ApiError } from '@/types/api';
-import type { UpdateBookVersionRequest } from '@/types/api-schema';
+import type { UpdateBookVersionRequest, CreateBookVersionRequest } from '@/types/api-schema';
 
 export const useBookVersionLogic = (versionId: string) => {
   const router = useRouter();
@@ -20,6 +21,7 @@ export const useBookVersionLogic = (versionId: string) => {
 
   // Active tab state
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [isImporting, setIsImporting] = useState(false);
 
   // Load version data
   const { data: version, error, isLoading, refetch } = useBookVersion(versionId);
@@ -36,6 +38,9 @@ export const useBookVersionLogic = (versionId: string) => {
     isAudioVersion && audioChaptersCount === 0
       ? 'Add at least one audio chapter before publishing this audio version.'
       : null;
+
+  // Mutation for creating new language versions
+  const createVersionMutation = useCreateBookVersion();
 
   // Mutation for updating version
   const updateMutation = useUpdateBookVersion({
@@ -86,7 +91,6 @@ export const useBookVersionLogic = (versionId: string) => {
    */
   const handleCategoriesChange = () => {
     refetch();
-    // enqueueSnackbar('Categories updated successfully', { variant: 'success' });
   };
 
   /**
@@ -94,7 +98,124 @@ export const useBookVersionLogic = (versionId: string) => {
    */
   const handleTagsChange = () => {
     refetch();
-    // enqueueSnackbar('Tags updated successfully', { variant: 'success' });
+  };
+
+  /**
+   * Import book data for 5 languages from ChatGPT JSON
+   */
+  const handleImportJson = async (jsonDataString: string) => {
+    if (!version) return;
+    setIsImporting(true);
+
+    try {
+      const data = JSON.parse(jsonDataString);
+      const bookId = version.bookId;
+
+      // Extract global details
+      const globalData = {
+        originalTitle: data.originalTitle || null,
+        firstPublishedYear: data.firstPublishedYear ? Number(data.firstPublishedYear) : null,
+        editionPublishedYear: data.editionPublishedYear ? Number(data.editionPublishedYear) : null,
+        originalLanguage: data.originalLanguage || null,
+      };
+
+      // We need to fetch the existing versions of this book first to see what languages are already created
+      // We can query the main book container endpoint or check version switcher data
+      const response = await fetch(`/api/books/${bookId}`);
+      if (!response.ok) {
+        throw new Error('Failed to retrieve book container information.');
+      }
+      const bookContainer = await response.json();
+      const existingVersions = bookContainer.versions || [];
+
+      // We iterate over the translations (up to 5 languages: en, ru, es, pt, fr)
+      const targetLanguages = ['en', 'ru', 'es', 'pt', 'fr'];
+      const translations = data.translations || {};
+
+      for (const langKey of targetLanguages) {
+        const trans = translations[langKey];
+        if (!trans) continue;
+
+        // Check if version with this language already exists
+        interface ExistingVersionItem {
+          id: string;
+          language: string;
+        }
+        const matchedVersion = existingVersions.find(
+          (v: ExistingVersionItem) => v.language === langKey
+        );
+
+        const versionPayload = {
+          title: trans.localizedTitle || version.title,
+          author: trans.localizedAuthorName || version.author,
+          description: trans.shortDescription || version.description || '',
+          coverImageUrl: version.coverImageUrl || '',
+          type: version.type,
+          isFree: version.isFree,
+          primaryCategoryId: version.primaryCategoryId || null,
+          copyrightStatus: trans.copyrightStatusSuggestion || version.copyrightStatus || null,
+          alternativeTitles: trans.alternativeTitles || null,
+          shortDescription: trans.shortDescription || null,
+          summaryShort: trans.summaryShort || null,
+          symbols: trans.symbols || null,
+          coverAlt: trans.coverAlt || null,
+          characters: trans.characters || null,
+          quotes: trans.quotes || null,
+          faq: trans.faq || null,
+          themes: trans.themes || null,
+          ...globalData,
+        };
+
+        let currentVersionId = '';
+
+        if (matchedVersion) {
+          // UPDATE existing version
+          currentVersionId = matchedVersion.id;
+          await updateMutation.mutateAsync({
+            versionId: currentVersionId,
+            data: versionPayload as UpdateBookVersionRequest,
+          });
+        } else {
+          // CREATE new language version
+          const createPayload = {
+            language: langKey,
+            ...versionPayload,
+          };
+          const newVersion = await createVersionMutation.mutateAsync({
+            bookId,
+            data: createPayload as CreateBookVersionRequest,
+          });
+          currentVersionId = newVersion.id;
+        }
+
+        // Upsert SEO fields for this language version if available in translations
+        const seoData: Record<string, string> = {};
+        if (trans.metaTitle) seoData.metaTitle = trans.metaTitle;
+        if (trans.metaDescription) seoData.metaDescription = trans.metaDescription;
+        if (trans.ogTitle) seoData.ogTitle = trans.ogTitle;
+        if (trans.ogDescription) seoData.ogDescription = trans.ogDescription;
+        if (trans.ogImageAlt) seoData.ogImageAlt = trans.ogImageAlt;
+
+        if (Object.keys(seoData).length > 0) {
+          await seoMutation.mutateAsync({
+            versionId: currentVersionId,
+            data: seoData,
+          });
+        }
+      }
+
+      enqueueSnackbar('Book data imported successfully across all languages', {
+        variant: 'success',
+      });
+      await refetch();
+    } catch (err) {
+      console.error('Import error:', err);
+      const message = err instanceof Error ? err.message : 'Failed to parse or save imported JSON';
+      enqueueSnackbar(message, { variant: 'error' });
+      throw err;
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   /**
@@ -112,8 +233,6 @@ export const useBookVersionLogic = (versionId: string) => {
           data: { slug: formData.bookSlug },
         });
       } catch (error) {
-        // Error already handled by mutation's onError callback
-        // Don't proceed with version update if slug update failed
         return;
       }
     }
@@ -203,12 +322,14 @@ export const useBookVersionLogic = (versionId: string) => {
       }
     } catch (error) {
       console.error('❌ Error during submit:', error);
-      // Errors are handled by mutation callbacks
     }
   };
 
   const isSubmitting =
-    updateMutation.isPending || updateBookMutation.isPending || seoMutation.isPending;
+    updateMutation.isPending ||
+    updateBookMutation.isPending ||
+    seoMutation.isPending ||
+    isImporting;
 
   return {
     version,
@@ -223,6 +344,8 @@ export const useBookVersionLogic = (versionId: string) => {
     handleUnpublishSuccess,
     handleCategoriesChange,
     handleTagsChange,
+    handleImportJson,
+    isImporting,
     router,
   };
 };

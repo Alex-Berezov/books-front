@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import type { FC } from 'react';
-import { ArrowLeft, Eye, Plus, Save } from 'lucide-react';
+import { ArrowLeft, Eye, Plus, Save, Download } from 'lucide-react';
 import {
   BookForm,
   BookVersionSwitcher,
@@ -12,6 +13,7 @@ import {
   ReadContentTab,
   SummaryTab,
   TagsPanel,
+  ImportModal,
 } from '@/components/admin/books';
 import { Spinner } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
@@ -35,6 +37,8 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
   const { params } = props;
   const { lang, id: versionId } = params;
 
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
   const {
     version,
     error,
@@ -48,6 +52,8 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
     handleUnpublishSuccess,
     handleCategoriesChange,
     handleTagsChange,
+    handleImportJson,
+    isImporting,
     router,
   } = useBookVersionLogic(versionId);
 
@@ -100,6 +106,13 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
           <div className={styles.actionsGroup}>
             <Button
               variant="secondary"
+              leftIcon={<Download size={16} />}
+              onClick={() => setIsImportModalOpen(true)}
+            >
+              Import JSON
+            </Button>
+            <Button
+              variant="secondary"
               leftIcon={<Plus size={16} />}
               onClick={() =>
                 router.push(
@@ -127,6 +140,13 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
           <BookVersionSwitcher bookId={version.bookId} currentVersionId={versionId} lang={lang} />
         </div>
       </div>
+
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onCancel={() => setIsImportModalOpen(false)}
+        onImport={handleImportJson}
+        isLoading={!!isImporting}
+      />
 
       <div className={styles.contentLayout}>
         <div className={styles.mainContent}>
