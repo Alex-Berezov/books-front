@@ -36,6 +36,8 @@ export interface VersionPreview {
   shortDescription?: string | null;
   summaryShort?: string | null;
   symbols?: { title: string; description: string }[] | null;
+  coverAlt?: string | null;
+  originalTitle?: string | null;
 }
 
 /**

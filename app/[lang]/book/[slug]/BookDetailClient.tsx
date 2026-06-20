@@ -238,7 +238,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
               {book.coverUrl ? (
                 <Image
                   src={book.coverUrl}
-                  alt={book.title}
+                  alt={activeVersion?.coverAlt || book.title}
                   className={styles.coverImg}
                   width={200}
                   height={290}
@@ -428,6 +428,15 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   </span>
                 </div>
               )}
+              {activeVersion?.originalTitle && (
+                <div className={styles.metaItem}>
+                  <FileText size={16} />
+                  <span>
+                    {supportedLang === 'ru' ? 'Оригинальное название' : 'Original Title'}:{' '}
+                    {activeVersion.originalTitle}
+                  </span>
+                </div>
+              )}
               {activeVersion?.copyrightStatus && (
                 <div className={styles.metaItem}>
                   <FileText size={16} />
@@ -482,11 +491,6 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                     ? `À propos du livre «${book.title}»`
                     : `About ${book.title}`}
           </h2>
-          {activeVersion?.shortDescription && (
-            <p className={styles.shortDescription}>
-              <strong>{activeVersion.shortDescription}</strong>
-            </p>
-          )}
           {book.description ? (
             <div
               className={styles.description}
