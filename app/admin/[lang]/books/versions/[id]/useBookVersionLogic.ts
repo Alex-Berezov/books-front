@@ -248,6 +248,7 @@ export const useBookVersionLogic = (versionId: string) => {
 
     // Convert form data to API format (without SEO)
     const requestData: UpdateBookVersionRequest = {
+      slug: formData.bookSlug,
       title: formData.title,
       author: formData.author,
       description: formData.description || undefined,

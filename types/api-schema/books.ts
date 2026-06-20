@@ -201,6 +201,8 @@ export interface CreateBookVersionRequest {
  * Request to update book version
  */
 export interface UpdateBookVersionRequest {
+  /** Localized slug for the book version */
+  slug?: string;
   /** Book title */
   title?: string;
   /** Book author */
