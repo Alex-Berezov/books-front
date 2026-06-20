@@ -45,11 +45,12 @@
   background: transparent !important;
   color: var(--public-foreground) !important;
   border-color: var(--public-border) !important;
+  transition: all 0.2s ease-in-out !important;
 
   &:hover:not(:disabled) {
-    background: rgba(0, 0, 0, 0.04) !important;
-    border-color: var(--public-foreground) !important;
-    color: var(--public-foreground) !important;
+    background: rgba(200, 159, 85, 0.08) !important; /* Gold light tint background */
+    border-color: var(--gold, #c89f55) !important;      /* Gold border */
+    color: var(--gold-foreground, #3c2a18) !important;  /* Gold dark text */
   }
 }
 

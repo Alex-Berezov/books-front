@@ -315,7 +315,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
             <div className={styles.actions}>
               {textVersion && (
                 <Link href={`/${supportedLang}/book/${slug}/read`} passHref legacyBehavior>
-                  <Button variant="primary" size="lg" leftIcon={<BookOpen size={18} />}>
+                  <Button variant="secondary" size="lg" leftIcon={<BookOpen size={18} />}>
                     {textVersion.isFree ? t('book.readFree') : t('book.read')}
                   </Button>
                 </Link>
@@ -323,7 +323,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
 
               {audioVersion && (
                 <Link href={`/${supportedLang}/book/${slug}/listen`} passHref legacyBehavior>
-                  <Button variant="primary" size="lg" leftIcon={<Headphones size={18} />}>
+                  <Button variant="secondary" size="lg" leftIcon={<Headphones size={18} />}>
                     {t('book.listen')}
                   </Button>
                 </Link>
@@ -335,7 +335,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   passHref
                   legacyBehavior
                 >
-                  <Button variant="primary" size="lg" leftIcon={<FileText size={18} />}>
+                  <Button variant="secondary" size="lg" leftIcon={<FileText size={18} />}>
                     {t('book.summary')}
                   </Button>
                 </Link>
@@ -513,7 +513,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   passHref
                   legacyBehavior
                 >
-                  <Button variant="primary" size="md" leftIcon={<FileText size={16} />}>
+                  <Button variant="secondary" size="md" leftIcon={<FileText size={16} />}>
                     {t('book.readSummary')}
                   </Button>
                 </Link>
