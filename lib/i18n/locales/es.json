@@ -73,6 +73,7 @@
     "read": "Leer",
     "listen": "Escuchar",
     "summary": "Resumen",
+    "readSummary": "Leer resumen completo",
     "inBookshelf": "En Estantería",
     "addToBookshelf": "Añadir a Estantería",
     "published": "Publicado:",

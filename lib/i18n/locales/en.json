@@ -73,6 +73,7 @@
     "read": "Read",
     "listen": "Listen",
     "summary": "Summary",
+    "readSummary": "Read Full Summary",
     "inBookshelf": "In Bookshelf",
     "addToBookshelf": "Add to Bookshelf",
     "published": "Published:",

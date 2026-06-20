@@ -504,10 +504,21 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
         {/* Summary Short Section */}
         {activeVersion?.summaryShort && (
           <section className={styles.detailSection}>
-            <h2 className={styles.detailTitle}>
-              {supportedLang === 'ru' ? 'Краткое содержание' : 'Summary'}
-            </h2>
+            <h2 className={styles.detailTitle}>{t('book.summary')}</h2>
             <p className={styles.summaryShortText}>{activeVersion.summaryShort}</p>
+            {hasSummary && versionId && (
+              <div className={styles.summaryTeaserAction} style={{ marginTop: '1rem' }}>
+                <Link
+                  href={`/${supportedLang}/summary/${slug}/${versionId}`}
+                  passHref
+                  legacyBehavior
+                >
+                  <Button variant="secondary" size="md" leftIcon={<FileText size={16} />}>
+                    {t('book.readSummary')}
+                  </Button>
+                </Link>
+              </div>
+            )}
           </section>
         )}
 
