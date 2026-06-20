@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
+import { getBook } from '@/api/endpoints/admin/books';
 import {
   useAudioChapters,
   useBookVersion,
@@ -121,11 +122,7 @@ export const useBookVersionLogic = (versionId: string) => {
 
       // We need to fetch the existing versions of this book first to see what languages are already created
       // We can query the main book container endpoint or check version switcher data
-      const response = await fetch(`/api/books/${bookId}`);
-      if (!response.ok) {
-        throw new Error('Failed to retrieve book container information.');
-      }
-      const bookContainer = await response.json();
+      const bookContainer = await getBook(bookId);
       const existingVersions = bookContainer.versions || [];
 
       // We iterate over the translations (up to 5 languages: en, ru, es, pt, fr)
@@ -139,7 +136,7 @@ export const useBookVersionLogic = (versionId: string) => {
         // Check if version with this language already exists
         interface ExistingVersionItem {
           id: string;
-          language: string;
+          language?: string;
         }
         const matchedVersion = existingVersions.find(
           (v: ExistingVersionItem) => v.language === langKey
