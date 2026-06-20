@@ -145,7 +145,7 @@ export const useBookVersionLogic = (versionId: string) => {
         const versionPayload = {
           title: trans.localizedTitle || version.title,
           author: trans.localizedAuthorName || version.author,
-          description: trans.shortDescription || version.description || '',
+          description: trans.description || trans.shortDescription || version.description || '',
           coverImageUrl: version.coverImageUrl || '',
           type: version.type,
           isFree: version.isFree,
