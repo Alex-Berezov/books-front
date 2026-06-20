@@ -31,8 +31,21 @@ export const LanguageSwitcher = ({ variant = 'public' }: LanguageSwitcherProps) 
 
   const handleLanguageChange = (newLang: string | string[]) => {
     // Safe to cast as Select options are typed with SupportedLang
-    const lang = Array.isArray(newLang) ? newLang[0] : newLang;
-    const newPath = switchLangInPath(pathname, lang as SupportedLang);
+    const lang = (Array.isArray(newLang) ? newLang[0] : newLang) as SupportedLang;
+    let newPath = switchLangInPath(pathname, lang);
+
+    if (isBookRelated && book && book.versions) {
+      const targetVersion = book.versions.find((v) => v.language === lang) as
+        | (typeof book.versions[0] & { slug?: string })
+        | undefined;
+      if (targetVersion && targetVersion.slug) {
+        const updatedParts = [...parts];
+        updatedParts[1] = lang;
+        updatedParts[3] = targetVersion.slug;
+        newPath = updatedParts.join('/');
+      }
+    }
+
     router.push(newPath);
   };
 

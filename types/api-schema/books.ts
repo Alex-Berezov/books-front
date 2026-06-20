@@ -16,6 +16,7 @@ import type { Tag } from './tags';
 export interface VersionPreview {
   id: UUID;
   type: VersionType;
+  slug?: string;
   title?: string;
   author?: string;
   language?: SupportedLang;
