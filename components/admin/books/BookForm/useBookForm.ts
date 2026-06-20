@@ -48,6 +48,13 @@ export const useBookForm = (props: UseBookFormProps) => {
           quotes: initialData.quotes || [],
           faq: initialData.faq || [],
           themes: initialData.themes || [],
+          originalTitle: initialData.originalTitle || '',
+          alternativeTitles: initialData.alternativeTitles || [],
+          shortDescription: initialData.shortDescription || '',
+          summaryShort: initialData.summaryShort || '',
+          symbols: initialData.symbols || [],
+          coverAlt: initialData.coverAlt || '',
+          seoOgImageAlt: initialData.seo?.ogImageAlt || '',
         }
       : {
           bookSlug: '',
@@ -77,6 +84,13 @@ export const useBookForm = (props: UseBookFormProps) => {
           quotes: [],
           faq: [],
           themes: [],
+          originalTitle: '',
+          alternativeTitles: [],
+          shortDescription: '',
+          summaryShort: '',
+          symbols: [],
+          coverAlt: '',
+          seoOgImageAlt: '',
         },
   });
 
@@ -114,6 +128,13 @@ export const useBookForm = (props: UseBookFormProps) => {
         quotes: initialData.quotes || [],
         faq: initialData.faq || [],
         themes: initialData.themes || [],
+        originalTitle: initialData.originalTitle || '',
+        alternativeTitles: initialData.alternativeTitles || [],
+        shortDescription: initialData.shortDescription || '',
+        summaryShort: initialData.summaryShort || '',
+        symbols: initialData.symbols || [],
+        coverAlt: initialData.coverAlt || '',
+        seoOgImageAlt: initialData.seo?.ogImageAlt || '',
       });
     }
   }, [initialData, reset]);

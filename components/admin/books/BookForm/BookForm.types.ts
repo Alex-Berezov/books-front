@@ -90,6 +90,17 @@ export const bookVersionSchema = z.object({
     .optional(),
   faq: z.array(z.object({ question: z.string(), answer: z.string() })).optional(),
   themes: z.array(z.string()).optional(),
+  originalTitle: z.string().optional().or(z.literal('')),
+  alternativeTitles: z.array(z.string()).optional(),
+  shortDescription: z
+    .string()
+    .max(300, 'Short description is too long')
+    .optional()
+    .or(z.literal('')),
+  summaryShort: z.string().max(2000, 'Summary is too long').optional().or(z.literal('')),
+  symbols: z.array(z.object({ title: z.string(), description: z.string() })).optional(),
+  coverAlt: z.string().max(200, 'Cover alt is too long').optional().or(z.literal('')),
+  seoOgImageAlt: z.string().max(200, 'OG image alt is too long').optional().or(z.literal('')),
 });
 
 /**

@@ -136,6 +136,12 @@ export interface BookVersionDetail {
   quotes?: { text: string; author?: string }[] | null;
   faq?: { question: string; answer: string }[] | null;
   themes?: string[] | null;
+  originalTitle?: string | null;
+  alternativeTitles?: string[] | null;
+  shortDescription?: string | null;
+  summaryShort?: string | null;
+  symbols?: { title: string; description: string }[] | null;
+  coverAlt?: string | null;
   /** SEO metadata (full SEO entity) */
   seo?: SeoData;
   /** Attached categories */
@@ -177,6 +183,12 @@ export interface CreateBookVersionRequest {
   quotes?: { text: string; author?: string }[] | null;
   faq?: { question: string; answer: string }[] | null;
   themes?: string[] | null;
+  originalTitle?: string | null;
+  alternativeTitles?: string[] | null;
+  shortDescription?: string | null;
+  summaryShort?: string | null;
+  symbols?: { title: string; description: string }[] | null;
+  coverAlt?: string | null;
 }
 
 /**
@@ -210,6 +222,12 @@ export interface UpdateBookVersionRequest {
   quotes?: { text: string; author?: string }[] | null;
   faq?: { question: string; answer: string }[] | null;
   themes?: string[] | null;
+  originalTitle?: string | null;
+  alternativeTitles?: string[] | null;
+  shortDescription?: string | null;
+  summaryShort?: string | null;
+  symbols?: { title: string; description: string }[] | null;
+  coverAlt?: string | null;
 }
 
 /**

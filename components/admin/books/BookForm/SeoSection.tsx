@@ -62,6 +62,7 @@ export const SeoSection: FC<SeoSectionProps> = (props) => {
         ogDescriptionField="seoOgDescription"
         ogImageUrlField="seoOgImageUrl"
         ogTitleField="seoOgTitle"
+        ogImageAltField="seoOgImageAlt"
         register={register}
         styles={styles}
         watch={watch}

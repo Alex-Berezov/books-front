@@ -17,6 +17,7 @@ export interface SeoInput {
   ogTitle?: string | null;
   ogDescription?: string | null;
   ogImageUrl?: string | null;
+  ogImageAlt?: string | null;
   twitterCard?: string | null;
   twitterTitle?: string | null;
   twitterDescription?: string | null;
@@ -34,6 +35,7 @@ export interface SeoData {
   ogTitle?: string | null;
   ogDescription?: string | null;
   ogImageUrl?: string | null;
+  ogImageAlt?: string | null;
   twitterCard?: string | null;
   twitterTitle?: string | null;
   twitterDescription?: string | null;

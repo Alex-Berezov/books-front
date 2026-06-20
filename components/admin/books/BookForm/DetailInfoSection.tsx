@@ -45,6 +45,23 @@ export const DetailInfoSection: FC<DetailInfoSectionProps> = (props) => {
   const [newFaqQuestion, setNewFaqQuestion] = useState('');
   const [newFaqAnswer, setNewFaqAnswer] = useState('');
 
+  // Local state for alternativeTitles
+  const [altTitleInput, setAltTitleInput] = useState('');
+
+  // Local state for adding symbols
+  const [newSymbolTitle, setNewSymbolTitle] = useState('');
+  const [newSymbolDesc, setNewSymbolDesc] = useState('');
+
+  // Manage symbols using useFieldArray
+  const {
+    fields: symbolFields,
+    append: appendSymbol,
+    remove: removeSymbol,
+  } = useFieldArray({
+    control,
+    name: 'symbols',
+  });
+
   // Manage characters using useFieldArray
   const {
     fields: characterFields,
@@ -89,6 +106,23 @@ export const DetailInfoSection: FC<DetailInfoSectionProps> = (props) => {
     setValue(
       'themes',
       currentThemes.filter((t) => t !== theme),
+      { shouldDirty: true }
+    );
+  };
+
+  const currentAltTitles: string[] = watch('alternativeTitles') || [];
+
+  const handleAddAltTitle = (title: string) => {
+    const trimmed = title.trim();
+    if (trimmed && !currentAltTitles.includes(trimmed)) {
+      setValue('alternativeTitles', [...currentAltTitles, trimmed], { shouldDirty: true });
+    }
+  };
+
+  const handleRemoveAltTitle = (title: string) => {
+    setValue(
+      'alternativeTitles',
+      currentAltTitles.filter((t) => t !== title),
       { shouldDirty: true }
     );
   };
@@ -153,6 +187,85 @@ export const DetailInfoSection: FC<DetailInfoSectionProps> = (props) => {
         {errors.authorPageUrl && (
           <span className={styles.error}>{errors.authorPageUrl.message}</span>
         )}
+      </div>
+
+      {/* Alternative Titles */}
+      <div className={styles.arraySection}>
+        <h3 className={styles.arraySubTitle}>Alternative Titles</h3>
+        <div className={styles.themeBadges}>
+          {currentAltTitles.map((title) => (
+            <span key={title} className={styles.themeBadge}>
+              {title}
+              <button type="button" onClick={() => handleRemoveAltTitle(title)}>
+                ✕
+              </button>
+            </span>
+          ))}
+        </div>
+        <div className={styles.addItemRow}>
+          <div style={{ flex: 1 }}>
+            <input
+              className={styles.input}
+              placeholder="Enter alternative title..."
+              value={altTitleInput}
+              onChange={(e) => setAltTitleInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (altTitleInput.trim()) {
+                    handleAddAltTitle(altTitleInput);
+                    setAltTitleInput('');
+                  }
+                }
+              }}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              if (altTitleInput.trim()) {
+                handleAddAltTitle(altTitleInput);
+                setAltTitleInput('');
+              }
+            }}
+          >
+            Add
+          </Button>
+        </div>
+        <span className={styles.hint}>Press Enter or click Add to add an alternative title.</span>
+      </div>
+
+      {/* Short Description */}
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="shortDescription">
+          Short Description (1-2 sentences)
+        </label>
+        <Input
+          id="shortDescription"
+          placeholder="Enter short description"
+          type="text"
+          fullWidth
+          {...register('shortDescription')}
+        />
+        {errors.shortDescription && (
+          <span className={styles.error}>{errors.shortDescription.message}</span>
+        )}
+      </div>
+
+      {/* Short Summary */}
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="summaryShort">
+          Summary (Short, 80-160 words)
+        </label>
+        <textarea
+          className={styles.textarea}
+          id="summaryShort"
+          placeholder="Enter short summary..."
+          rows={4}
+          {...register('summaryShort')}
+        />
+        {errors.summaryShort && <span className={styles.error}>{errors.summaryShort.message}</span>}
       </div>
 
       {/* Themes Manager */}
@@ -286,6 +399,59 @@ export const DetailInfoSection: FC<DetailInfoSectionProps> = (props) => {
             }}
           >
             Add Character
+          </Button>
+        </div>
+      </div>
+
+      {/* Symbols Manager */}
+      <div className={styles.arraySection}>
+        <h3 className={styles.arraySubTitle}>Symbols</h3>
+        <div>
+          {symbolFields.map((field, index) => (
+            <div key={field.id} className={styles.listItem}>
+              <span>
+                <strong>{field.title}</strong> — {field.description}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => removeSymbol(index)}
+                style={{ padding: '4px 8px', height: 'auto' }}
+              >
+                Remove
+              </Button>
+            </div>
+          ))}
+        </div>
+        <div className={styles.addItemRow}>
+          <div style={{ flex: 1 }}>
+            <Input
+              placeholder="Symbol Name / Title (e.g. The Portrait)"
+              value={newSymbolTitle}
+              onChange={(e) => setNewSymbolTitle(e.target.value)}
+              fullWidth
+            />
+          </div>
+          <div style={{ flex: 2 }}>
+            <Input
+              placeholder="Symbol Description"
+              value={newSymbolDesc}
+              onChange={(e) => setNewSymbolDesc(e.target.value)}
+              fullWidth
+            />
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              if (newSymbolTitle.trim() && newSymbolDesc.trim()) {
+                appendSymbol({ title: newSymbolTitle.trim(), description: newSymbolDesc.trim() });
+                setNewSymbolTitle('');
+                setNewSymbolDesc('');
+              }
+            }}
+          >
+            Add Symbol
           </Button>
         </div>
       </div>

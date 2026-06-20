@@ -128,6 +128,7 @@ export const useBookVersionLogic = (versionId: string) => {
     if (formData.seoOgDescription) seoData.ogDescription = formData.seoOgDescription;
     if (formData.seoOgImageUrl) seoData.ogImageUrl = formData.seoOgImageUrl;
     if (formData.seoTwitterCard) seoData.twitterCard = formData.seoTwitterCard;
+    if (formData.seoOgImageAlt) seoData.ogImageAlt = formData.seoOgImageAlt;
 
     // Convert form data to API format (without SEO)
     const requestData: UpdateBookVersionRequest = {
@@ -151,6 +152,15 @@ export const useBookVersionLogic = (versionId: string) => {
       quotes: formData.quotes && formData.quotes.length > 0 ? formData.quotes : null,
       faq: formData.faq && formData.faq.length > 0 ? formData.faq : null,
       themes: formData.themes && formData.themes.length > 0 ? formData.themes : null,
+      originalTitle: formData.originalTitle || null,
+      alternativeTitles:
+        formData.alternativeTitles && formData.alternativeTitles.length > 0
+          ? formData.alternativeTitles
+          : null,
+      shortDescription: formData.shortDescription || null,
+      summaryShort: formData.summaryShort || null,
+      symbols: formData.symbols && formData.symbols.length > 0 ? formData.symbols : null,
+      coverAlt: formData.coverAlt || null,
     };
 
     // Send update request

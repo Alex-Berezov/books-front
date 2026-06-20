@@ -41,6 +41,20 @@ export const MediaSection: FC<MediaSectionProps> = ({ register, control, errors 
       </div>
 
       <div className={styles.field}>
+        <label className={styles.label} htmlFor="coverAlt">
+          Cover Image Alt Text (optional)
+        </label>
+        <Input
+          id="coverAlt"
+          placeholder="e.g. Cover of The Picture of Dorian Gray by Oscar Wilde"
+          type="text"
+          fullWidth
+          {...register('coverAlt')}
+        />
+        {errors.coverAlt && <span className={styles.error}>{errors.coverAlt.message}</span>}
+      </div>
+
+      <div className={styles.field}>
         <label className={styles.label} htmlFor="type">
           Version Type *
         </label>

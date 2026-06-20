@@ -33,6 +33,8 @@ export interface SeoOpenGraphSectionProps<TFormData extends FieldValues> {
   ogDescriptionField: Path<TFormData>;
   /** Path to ogImageUrl field in form data */
   ogImageUrlField: Path<TFormData>;
+  /** Path to ogImageAlt field in form data (optional) */
+  ogImageAltField?: Path<TFormData>;
   /** Styles object with CSS module classes */
   styles: Record<string, string>;
 }
@@ -59,6 +61,7 @@ export const SeoOpenGraphSection = <TFormData extends FieldValues>(
     ogTitleField,
     ogDescriptionField,
     ogImageUrlField,
+    ogImageAltField,
     styles,
   } = props;
 
@@ -123,6 +126,24 @@ export const SeoOpenGraphSection = <TFormData extends FieldValues>(
           )}
         />
       </FormField>
+
+      {ogImageAltField && (
+        <FormField
+          error={errors[ogImageAltField]?.message as string | undefined}
+          hint="Alternative text describing the social sharing image."
+          id={ogImageAltField}
+          label="OG Image Alt Text"
+        >
+          <Input
+            disabled={isSubmitting}
+            id={ogImageAltField}
+            placeholder="e.g. Elegant vintage book cover artwork"
+            type="text"
+            fullWidth
+            {...register(ogImageAltField)}
+          />
+        </FormField>
+      )}
     </SeoCollapsible>
   );
 };

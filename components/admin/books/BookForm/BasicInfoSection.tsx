@@ -103,6 +103,22 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
       </div>
 
       <div className={styles.field}>
+        <label className={styles.label} htmlFor="originalTitle">
+          Original Title (optional)
+        </label>
+        <Input
+          id="originalTitle"
+          placeholder="Enter original book title"
+          type="text"
+          fullWidth
+          {...register('originalTitle')}
+        />
+        {errors.originalTitle && (
+          <span className={styles.error}>{errors.originalTitle.message}</span>
+        )}
+      </div>
+
+      <div className={styles.field}>
         <label className={styles.label} htmlFor="author">
           Author *
         </label>
