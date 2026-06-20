@@ -437,6 +437,15 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                   </span>
                 </div>
               )}
+              {activeVersion?.alternativeTitles && activeVersion.alternativeTitles.length > 0 && (
+                <div className={styles.metaItem}>
+                  <FileText size={16} />
+                  <span>
+                    {supportedLang === 'ru' ? 'Альтернативные названия' : 'Alternative Titles'}:{' '}
+                    {activeVersion.alternativeTitles.join(', ')}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -473,6 +482,11 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                     ? `À propos du livre «${book.title}»`
                     : `About ${book.title}`}
           </h2>
+          {activeVersion?.shortDescription && (
+            <p className={styles.shortDescription}>
+              <strong>{activeVersion.shortDescription}</strong>
+            </p>
+          )}
           {book.description ? (
             <div
               className={styles.description}
@@ -482,6 +496,31 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
             <p className={styles.description}>{t('book.noDescription')}</p>
           )}
         </div>
+
+        {/* Summary Short Section */}
+        {activeVersion?.summaryShort && (
+          <section className={styles.detailSection}>
+            <h2 className={styles.detailTitle}>
+              {supportedLang === 'ru' ? 'Краткое содержание' : 'Summary'}
+            </h2>
+            <p className={styles.summaryShortText}>{activeVersion.summaryShort}</p>
+          </section>
+        )}
+
+        {/* Symbols Section */}
+        {activeVersion?.symbols && activeVersion.symbols.length > 0 && (
+          <section className={styles.detailSection}>
+            <h2 className={styles.detailTitle}>{supportedLang === 'ru' ? 'Символы' : 'Symbols'}</h2>
+            <div className={styles.symbolsGrid}>
+              {activeVersion.symbols.map((symbol) => (
+                <div key={symbol.title} className={styles.symbolCard}>
+                  <div className={styles.symbolTitle}>{symbol.title}</div>
+                  <div className={styles.symbolDesc}>{symbol.description}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Characters Section */}
         {activeVersion?.characters && activeVersion.characters.length > 0 && (

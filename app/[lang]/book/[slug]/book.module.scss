@@ -495,3 +495,49 @@
   opacity: 0.8;
   line-height: 1.5;
 }
+
+.shortDescription {
+  font-size: $font-size-base;
+  line-height: $line-height-relaxed;
+  color: var(--public-foreground);
+  margin-bottom: $spacing-md;
+  opacity: 0.95;
+}
+
+.summaryShortText {
+  font-size: $font-size-base;
+  line-height: $line-height-relaxed;
+  color: var(--public-foreground);
+  opacity: 0.9;
+}
+
+.symbolsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.symbolCard {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: $border-radius-base;
+  padding: $spacing-md;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.symbolTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: var(--public-foreground);
+  margin-bottom: 4px;
+}
+
+.symbolDesc {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.8;
+  line-height: 1.4;
+}

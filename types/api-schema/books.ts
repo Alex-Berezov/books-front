@@ -32,6 +32,10 @@ export interface VersionPreview {
   quotes?: { text: string; author?: string }[] | null;
   faq?: { question: string; answer: string }[] | null;
   themes?: string[] | null;
+  alternativeTitles?: string[] | null;
+  shortDescription?: string | null;
+  summaryShort?: string | null;
+  symbols?: { title: string; description: string }[] | null;
 }
 
 /**
