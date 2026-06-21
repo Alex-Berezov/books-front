@@ -85,6 +85,7 @@ export const Select = forwardRef<RefSelectProps, SelectProps>((props, ref) => {
     maxTagCount,
     getPopupContainer,
     popupClassName,
+    optionLabelProp,
   } = props;
 
   // Map our sizes to antd sizes
@@ -159,6 +160,7 @@ export const Select = forwardRef<RefSelectProps, SelectProps>((props, ref) => {
       popupClassName={popupClassName}
       status={error ? 'error' : undefined}
       style={fullWidth ? { width: '100%' } : undefined}
+      optionLabelProp={optionLabelProp}
     />
   );
 });

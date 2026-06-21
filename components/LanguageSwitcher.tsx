@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import { Select } from '@/components/common/Select';
+import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { getLangFromPath, switchLangInPath, type SupportedLang } from '@/lib/i18n/lang';
 import { getLanguageSelectOptions } from '@/lib/i18n/languageSelectOptions';
 import styles from './LanguageSwitcher.module.scss';
@@ -36,7 +37,7 @@ export const LanguageSwitcher = ({ variant = 'public' }: LanguageSwitcherProps) 
 
     if (isBookRelated && book && book.versions) {
       const targetVersion = book.versions.find((v) => v.language === lang) as
-        | (typeof book.versions[0] & { slug?: string })
+        | ((typeof book.versions)[0] & { slug?: string })
         | undefined;
       if (targetVersion && targetVersion.slug) {
         const updatedParts = [...parts];
@@ -60,10 +61,19 @@ export const LanguageSwitcher = ({ variant = 'public' }: LanguageSwitcherProps) 
   }
 
   const allOptions = getLanguageSelectOptions();
-  const options =
+  const baseOptions =
     bookSlug && availableLangs.size > 0
       ? allOptions.filter((opt) => availableLangs.has(opt.value))
       : allOptions;
+
+  const options = baseOptions.map((opt) => ({
+    ...opt,
+    shortLabel: (
+      <span>
+        {FLAG_COMPONENTS[opt.value as SupportedLang] || null} {(opt.value as string).toUpperCase()}
+      </span>
+    ),
+  }));
 
   return (
     <Select
@@ -73,6 +83,7 @@ export const LanguageSwitcher = ({ variant = 'public' }: LanguageSwitcherProps) 
       className={`${styles.languageSwitcher} ${variant === 'admin' ? styles.admin : ''}`}
       popupClassName={styles.languageSwitcherPopup}
       ariaLabel="Select language"
+      optionLabelProp="shortLabel"
     />
   );
 };

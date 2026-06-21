@@ -55,9 +55,7 @@
     }
 
     .ant-select-arrow {
-      color: var(--bibliaris-green-foreground) !important;
-      opacity: 0.8;
-      font-size: 10px;
+      display: none !important;
     }
   }
 }

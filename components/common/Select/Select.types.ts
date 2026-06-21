@@ -159,4 +159,9 @@ export interface SelectProps<T = string> {
    * Class name for the dropdown popup
    */
   popupClassName?: string;
+
+  /**
+   * Which prop of option to show in the selection box
+   */
+  optionLabelProp?: string;
 }
