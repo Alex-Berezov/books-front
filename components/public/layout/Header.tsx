@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Input, Drawer, Dropdown } from 'antd';
 import { Search, BookOpen, User, BookMarked, Menu, Headphones } from 'lucide-react';
 import Link from 'next/link';
@@ -26,6 +26,11 @@ export function Header() {
   const router = useRouter();
   const { t } = useTranslation();
   const lang = getLangFromPath(pathname);
+
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -59,17 +64,45 @@ export function Header() {
     },
   ];
 
+  const currentFlag =
+    lang === 'ru'
+      ? '🇷🇺'
+      : lang === 'es'
+        ? '🇪🇸'
+        : lang === 'pt'
+          ? '🇵🇹'
+          : lang === 'fr'
+            ? '🇫🇷'
+            : '🇬🇧';
+
   return (
     <header className={styles.header}>
       <div className={styles.container}>
         <div className={styles.topRow}>
           {/* Mobile Menu Button */}
-          <Button
-            type="text"
-            icon={<Menu size={20} />}
-            className={styles.mobileMenuBtn}
-            onClick={() => setMobileOpen(true)}
-          />
+          {isMounted ? (
+            <Button
+              type="text"
+              icon={<Menu size={20} />}
+              className={styles.mobileMenuBtn}
+              onClick={() => setMobileOpen(true)}
+            />
+          ) : (
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--bibliaris-green-foreground)',
+                cursor: 'pointer',
+              }}
+              className={styles.mobileMenuBtn}
+            >
+              <Menu size={20} />
+            </div>
+          )}
 
           <Drawer
             title={t('header.menu')}
@@ -101,62 +134,168 @@ export function Header() {
 
           {/* Search Form (Desktop) */}
           <div className={styles.searchContainer}>
-            <Input.Search
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onSearch={handleSearchSubmit}
-              placeholder={t('header.searchPlaceholder')}
-              enterButton={<Search size={16} />}
-              className={styles.searchInput}
-            />
+            {isMounted ? (
+              <Input.Search
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onSearch={handleSearchSubmit}
+                placeholder={t('header.searchPlaceholder')}
+                enterButton={<Search size={16} />}
+                className={styles.searchInput}
+              />
+            ) : (
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input
+                  type="text"
+                  disabled
+                  placeholder={t('header.searchPlaceholder')}
+                  style={{
+                    width: '100%',
+                    height: '32px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '6px',
+                    padding: '0 36px 0 12px',
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: '1px',
+                    top: '1px',
+                    bottom: '1px',
+                    width: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: '0 5px 5px 0',
+                    color: 'var(--gold)',
+                    borderLeft: '1px solid rgba(255, 255, 255, 0.2)',
+                  }}
+                >
+                  <Search size={16} />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Actions */}
           <div className={styles.actions}>
-            <Button
-              type="text"
-              icon={<Search size={20} />}
-              className={styles.mobileSearchBtn}
-              onClick={() => router.push(`/${lang}/catalog`)}
-            />
-
-            {!pathname?.includes('/auth/sign-in') && !pathname?.includes('/auth/register') && (
-              <Button
-                type="text"
-                icon={<Headphones size={20} />}
-                className={styles.desktopAudioBtn}
-                onClick={() => router.push(`/${lang}/catalog?type=audio`)}
-                title={t('header.audiobooks')}
-              />
-            )}
-
-            <LanguageSwitcher />
-
-            {session?.user ? (
+            {isMounted ? (
               <>
                 <Button
                   type="text"
-                  icon={<BookMarked size={20} />}
-                  className={styles.actionBtn}
-                  onClick={() => router.push(`/${lang}/bookshelf`)}
-                  title={t('header.myBookshelf')}
+                  icon={<Search size={20} />}
+                  className={styles.mobileSearchBtn}
+                  onClick={() => router.push(`/${lang}/catalog`)}
                 />
-                <Dropdown
-                  menu={{ items: userMenuItems }}
-                  placement="bottomRight"
-                  trigger={['click']}
-                >
-                  <Button type="text" icon={<User size={20} />} className={styles.actionBtn} />
-                </Dropdown>
+
+                {!pathname?.includes('/auth/sign-in') && !pathname?.includes('/auth/register') && (
+                  <Button
+                    type="text"
+                    icon={<Headphones size={20} />}
+                    className={styles.desktopAudioBtn}
+                    onClick={() => router.push(`/${lang}/catalog?type=audio`)}
+                    title={t('header.audiobooks')}
+                  />
+                )}
+
+                <LanguageSwitcher />
+
+                {session?.user ? (
+                  <>
+                    <Button
+                      type="text"
+                      icon={<BookMarked size={20} />}
+                      className={styles.actionBtn}
+                      onClick={() => router.push(`/${lang}/bookshelf`)}
+                      title={t('header.myBookshelf')}
+                    />
+                    <Dropdown
+                      menu={{ items: userMenuItems }}
+                      placement="bottomRight"
+                      trigger={['click']}
+                    >
+                      <Button type="text" icon={<User size={20} />} className={styles.actionBtn} />
+                    </Dropdown>
+                  </>
+                ) : (
+                  <Button
+                    type="primary"
+                    className={styles.signInBtn}
+                    onClick={() => router.push(`/${lang}/auth/sign-in`)}
+                  >
+                    {t('header.signIn')}
+                  </Button>
+                )}
               </>
             ) : (
-              <Button
-                type="primary"
-                className={styles.signInBtn}
-                onClick={() => router.push(`/${lang}/auth/sign-in`)}
-              >
-                {t('header.signIn')}
-              </Button>
+              <>
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--bibliaris-green-foreground)',
+                  }}
+                  className={styles.mobileSearchBtn}
+                >
+                  <Search size={20} />
+                </div>
+
+                {!pathname?.includes('/auth/sign-in') && !pathname?.includes('/auth/register') && (
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--bibliaris-green-foreground)',
+                    }}
+                    className={styles.desktopAudioBtn}
+                  >
+                    <Headphones size={20} />
+                  </div>
+                )}
+
+                {/* Language Switcher Placeholder */}
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    height: '32px',
+                    padding: '0 8px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '6px',
+                    color: 'var(--bibliaris-green-foreground)',
+                    fontSize: '14px',
+                    gap: '6px',
+                  }}
+                >
+                  <span>
+                    {currentFlag} {lang.toUpperCase()}
+                  </span>
+                </div>
+
+                {/* Session Action Placeholder */}
+                <div
+                  style={{
+                    width: '80px',
+                    height: '32px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: '6px',
+                  }}
+                  className={styles.pulsingSkeleton}
+                />
+              </>
             )}
           </div>
         </div>

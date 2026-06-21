@@ -214,3 +214,19 @@
     color: #ffffff;
   }
 }
+
+.pulsingSkeleton {
+  animation: headerSkeletonPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes headerSkeletonPulse {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
