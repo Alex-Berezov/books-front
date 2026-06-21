@@ -1,7 +1,8 @@
 @import '@/styles/tokens.scss';
 
 .languageSwitcher {
-  min-width: 130px;
+  min-width: unset !important;
+  width: auto;
 
   &.admin {
     :global {
@@ -28,24 +29,24 @@
 
   :global {
     .ant-select-selector {
-      background-color: rgba(255, 255, 255, 0.08) !important;
-      border-color: rgba(255, 255, 255, 0.2) !important;
-      color: #ffffff !important;
-      border-radius: 6px !important;
+      background-color: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: var(--bibliaris-green-foreground) !important;
+      border-radius: 8px !important;
       transition: all $transition-fast;
       height: 36px !important;
-      padding: 0 12px !important;
+      padding: 0 8px !important;
       display: flex;
       align-items: center;
 
       &:hover {
-        border-color: var(--gold) !important;
-        background-color: rgba(255, 255, 255, 0.12) !important;
+        background-color: rgba(255, 255, 255, 0.1) !important;
       }
     }
 
     .ant-select-selection-item {
-      color: #ffffff !important;
+      color: var(--bibliaris-green-foreground) !important;
       font-weight: 500;
       font-size: 14px;
       display: flex;
@@ -54,7 +55,8 @@
     }
 
     .ant-select-arrow {
-      color: rgba(255, 255, 255, 0.8) !important;
+      color: var(--bibliaris-green-foreground) !important;
+      opacity: 0.8;
       font-size: 10px;
     }
   }
