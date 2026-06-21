@@ -79,8 +79,10 @@
     ]
   },
   "browserslist": [
-    "defaults",
-    "not IE 11",
-    "not op_mini all"
+    "chrome >= 100",
+    "safari >= 15",
+    "firefox >= 100",
+    "edge >= 100",
+    "ios >= 15"
   ]
 }
