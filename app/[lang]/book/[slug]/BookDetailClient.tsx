@@ -89,6 +89,11 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
 
   const [userRating, setUserRating] = useState<number>(0);
   const [isRatingPending, setIsRatingPending] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Sync user rating from server
   useEffect(() => {
@@ -291,89 +296,180 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
 
             {/* Categories */}
             <div className={styles.tagsContainer}>
-              {book.categories?.map((cat) => {
-                const trans =
-                  cat.translations?.find((t) => t.language === supportedLang) ||
-                  cat.translations?.[0];
-                const catSlug = trans?.slug || cat.slug || cat.id;
-                return (
-                  <Link
-                    key={cat.id}
-                    href={`/${supportedLang}/catalog/${catSlug}`}
-                    passHref
-                    legacyBehavior
-                  >
-                    <Button variant="secondary" size="sm">
-                      {trans?.name || cat.id}
-                    </Button>
-                  </Link>
-                );
-              })}
+              {isMounted
+                ? book.categories?.map((cat) => {
+                    const trans =
+                      cat.translations?.find((t) => t.language === supportedLang) ||
+                      cat.translations?.[0];
+                    const catSlug = trans?.slug || cat.slug || cat.id;
+                    return (
+                      <Link
+                        key={cat.id}
+                        href={`/${supportedLang}/catalog/${catSlug}`}
+                        passHref
+                        legacyBehavior
+                      >
+                        <Button variant="secondary" size="sm">
+                          {trans?.name || cat.id}
+                        </Button>
+                      </Link>
+                    );
+                  })
+                : book.categories?.map((cat) => {
+                    const trans =
+                      cat.translations?.find((t) => t.language === supportedLang) ||
+                      cat.translations?.[0];
+                    const name = trans?.name || cat.id;
+                    const width = Math.max(60, name.length * 8 + 24);
+                    return (
+                      <Skeleton.Button
+                        key={cat.id}
+                        active
+                        size="small"
+                        style={{ width, height: 24, borderRadius: 4 }}
+                      />
+                    );
+                  })}
             </div>
 
             {/* Actions */}
             <div className={styles.actions}>
-              {textVersion && (
-                <Link href={`/${supportedLang}/book/${slug}/read`} passHref legacyBehavior>
-                  <Button variant="secondary" size="lg" leftIcon={<BookOpen size={18} />}>
-                    {textVersion.isFree ? t('book.readFree') : t('book.read')}
-                  </Button>
-                </Link>
-              )}
+              {isMounted ? (
+                <>
+                  {textVersion && (
+                    <Link href={`/${supportedLang}/book/${slug}/read`} passHref legacyBehavior>
+                      <Button variant="secondary" size="lg" leftIcon={<BookOpen size={18} />}>
+                        {textVersion.isFree ? t('book.readFree') : t('book.read')}
+                      </Button>
+                    </Link>
+                  )}
 
-              {audioVersion && (
-                <Link href={`/${supportedLang}/book/${slug}/listen`} passHref legacyBehavior>
-                  <Button variant="secondary" size="lg" leftIcon={<Headphones size={18} />}>
-                    {t('book.listen')}
-                  </Button>
-                </Link>
-              )}
+                  {audioVersion && (
+                    <Link href={`/${supportedLang}/book/${slug}/listen`} passHref legacyBehavior>
+                      <Button variant="secondary" size="lg" leftIcon={<Headphones size={18} />}>
+                        {t('book.listen')}
+                      </Button>
+                    </Link>
+                  )}
 
-              {hasSummary && versionId && (
-                <Link
-                  href={`/${supportedLang}/summary/${slug}/${versionId}`}
-                  passHref
-                  legacyBehavior
-                >
-                  <Button variant="secondary" size="lg" leftIcon={<FileText size={18} />}>
-                    {t('book.summary')}
-                  </Button>
-                </Link>
-              )}
+                  {hasSummary && versionId && (
+                    <Link
+                      href={`/${supportedLang}/summary/${slug}/${versionId}`}
+                      passHref
+                      legacyBehavior
+                    >
+                      <Button variant="secondary" size="lg" leftIcon={<FileText size={18} />}>
+                        {t('book.summary')}
+                      </Button>
+                    </Link>
+                  )}
 
-              <Button
-                variant="secondary"
-                size="lg"
-                active={inBookshelf}
-                loading={addToBookshelfMutation.isPending || removeFromBookshelfMutation.isPending}
-                leftIcon={inBookshelf ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
-                onClick={handleBookshelfToggle}
-              >
-                {inBookshelf ? t('book.inBookshelf') : t('book.addToBookshelf')}
-              </Button>
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    active={inBookshelf}
+                    loading={
+                      addToBookshelfMutation.isPending || removeFromBookshelfMutation.isPending
+                    }
+                    leftIcon={inBookshelf ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+                    onClick={handleBookshelfToggle}
+                  >
+                    {inBookshelf ? t('book.inBookshelf') : t('book.addToBookshelf')}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {textVersion && (
+                    <Skeleton.Button
+                      active
+                      size="large"
+                      style={{
+                        width: Math.max(
+                          100,
+                          (textVersion.isFree ? t('book.readFree') : t('book.read')).length * 8 + 48
+                        ),
+                        height: 40,
+                        borderRadius: 6,
+                      }}
+                    />
+                  )}
+                  {audioVersion && (
+                    <Skeleton.Button
+                      active
+                      size="large"
+                      style={{
+                        width: Math.max(100, t('book.listen').length * 8 + 48),
+                        height: 40,
+                        borderRadius: 6,
+                      }}
+                    />
+                  )}
+                  {hasSummary && versionId && (
+                    <Skeleton.Button
+                      active
+                      size="large"
+                      style={{
+                        width: Math.max(100, t('book.summary').length * 8 + 48),
+                        height: 40,
+                        borderRadius: 6,
+                      }}
+                    />
+                  )}
+                  <Skeleton.Button
+                    active
+                    size="large"
+                    style={{
+                      width: Math.max(
+                        120,
+                        (inBookshelf ? t('book.inBookshelf') : t('book.addToBookshelf')).length *
+                          8 +
+                          48
+                      ),
+                      height: 40,
+                      borderRadius: 6,
+                    }}
+                  />
+                </>
+              )}
             </div>
 
             {/* Tags (moved below actions) */}
             {book.tags && book.tags.length > 0 && (
               <div className={styles.bookTagsContainer}>
-                {book.tags.map((tag) => {
-                  const trans =
-                    tag.translations?.find((t) => t.language === supportedLang) ||
-                    tag.translations?.[0];
-                  const tagName = trans?.name || tag.id;
-                  return (
-                    <Link
-                      key={tag.id}
-                      href={`/${supportedLang}/catalog?q=${encodeURIComponent(tagName)}`}
-                      passHref
-                      legacyBehavior
-                    >
-                      <Button variant="secondary" size="sm">
-                        {tagName}
-                      </Button>
-                    </Link>
-                  );
-                })}
+                {isMounted
+                  ? book.tags.map((tag) => {
+                      const trans =
+                        tag.translations?.find((t) => t.language === supportedLang) ||
+                        tag.translations?.[0];
+                      const tagName = trans?.name || tag.id;
+                      return (
+                        <Link
+                          key={tag.id}
+                          href={`/${supportedLang}/catalog?q=${encodeURIComponent(tagName)}`}
+                          passHref
+                          legacyBehavior
+                        >
+                          <Button variant="secondary" size="sm">
+                            {tagName}
+                          </Button>
+                        </Link>
+                      );
+                    })
+                  : book.tags.map((tag) => {
+                      const trans =
+                        tag.translations?.find((t) => t.language === supportedLang) ||
+                        tag.translations?.[0];
+                      const tagName = trans?.name || tag.id;
+                      const width = Math.max(60, tagName.length * 8 + 24);
+                      return (
+                        <Skeleton.Button
+                          key={tag.id}
+                          active
+                          size="small"
+                          style={{ width, height: 24, borderRadius: 4 }}
+                        />
+                      );
+                    })}
               </div>
             )}
 
