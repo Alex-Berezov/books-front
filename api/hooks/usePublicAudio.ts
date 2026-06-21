@@ -2,7 +2,7 @@
  * React Query hooks for the public audio-player flow.
  */
 
-import { useMutation, useQuery, type UseQueryOptions } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import {
   getPublicAudioChapters,
   recordView,
@@ -58,8 +58,13 @@ export const useRecordView = () => {
  * non-blocking (progress can be resent on next tick).
  */
 export const useUpdateAudioProgress = (versionId: string) => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: UpdateAudioProgressRequest) => updateAudioProgress(versionId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookshelf'] });
+      queryClient.invalidateQueries({ queryKey: ['readerBootstrap'] });
+    },
     onError: (err) => {
       console.warn('Failed to update audio progress:', err);
     },

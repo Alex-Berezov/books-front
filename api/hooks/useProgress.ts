@@ -43,6 +43,7 @@ export const useUpdateTextProgress = (versionId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.readingProgress(versionId) });
       queryClient.invalidateQueries({ queryKey: ['bookshelf'] });
+      queryClient.invalidateQueries({ queryKey: ['readerBootstrap'] });
     },
     onError: (err) => {
       console.warn('Failed to update text progress:', err);
