@@ -48,6 +48,7 @@ export const getBookOverview = async (lang: SupportedLang, slug: string): Promis
 export interface ReaderBootstrapResponse {
   bookId: string;
   versionId: string;
+  slug: string;
   title: string;
   author: string;
   chapters: ChapterDetail[];

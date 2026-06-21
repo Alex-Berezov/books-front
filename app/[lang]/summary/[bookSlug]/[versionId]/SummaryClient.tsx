@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Skeleton } from 'antd';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -23,6 +24,13 @@ export default function SummaryClient({ params }: Props) {
 
   // Fetch summary content
   const { data: summaryData, isLoading: isSummaryLoading } = useBookSummary(versionId);
+
+  // Redirect if URL slug is incorrect for this language
+  useEffect(() => {
+    if (book && book.slug && book.slug !== bookSlug) {
+      router.replace(`/${lang}/summary/${book.slug}/${versionId}`);
+    }
+  }, [book, bookSlug, lang, versionId, router]);
 
   const isLoading = isBookLoading || isSummaryLoading;
 

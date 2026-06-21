@@ -73,6 +73,13 @@ export default function ReaderClient({ params }: Props) {
     }
   }, [chapters, bootstrapData, hasRestoredProgress]);
 
+  // Redirect if URL slug is incorrect for this language
+  useEffect(() => {
+    if (bootstrapData && bootstrapData.slug && bootstrapData.slug !== slug) {
+      router.replace(`/${lang}/book/${bootstrapData.slug}/read`);
+    }
+  }, [bootstrapData, slug, lang, router]);
+
   const contentRef = useRef<HTMLDivElement>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

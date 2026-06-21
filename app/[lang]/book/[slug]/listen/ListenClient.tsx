@@ -50,6 +50,13 @@ export default function ListenClient({ params }: Props) {
   const { data: book, isLoading: loadingBook } = useBookOverview(supportedLang, slug);
   const versionId = book?.versionIds?.audio || '';
 
+  // Redirect if URL slug is incorrect for this language
+  useEffect(() => {
+    if (book && book.slug && book.slug !== slug) {
+      router.replace(`/${lang}/book/${book.slug}/listen`);
+    }
+  }, [book, slug, lang, router]);
+
   const {
     data: chaptersData,
     isLoading: loadingChapters,

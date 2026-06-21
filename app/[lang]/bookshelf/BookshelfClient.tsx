@@ -29,7 +29,7 @@ interface BookshelfCardProps {
 
 const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
   const version = item.bookVersion;
-  const bookSlug = version.book?.slug || version.bookId;
+  const bookSlug = version.slug || version.book?.slug || version.bookId;
   const { t } = useTranslation();
 
   // Query progress for this specific version

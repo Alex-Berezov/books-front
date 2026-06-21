@@ -11,6 +11,7 @@ export interface BookVersionPreview {
   id: UUID;
   bookId: UUID;
   language: string;
+  slug?: string;
   title: string;
   author: string;
   description: string;
