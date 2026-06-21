@@ -1,3 +1,4 @@
+import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { auth } from '@/lib/auth/auth';
 import { AppProviders } from '@/providers/AppProviders';
 import '@/styles/globals.css';
@@ -16,7 +17,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body>
-        <AppProviders session={session}>{children}</AppProviders>
+        <AntdRegistry>
+          <AppProviders session={session}>{children}</AppProviders>
+        </AntdRegistry>
       </body>
     </html>
   );
