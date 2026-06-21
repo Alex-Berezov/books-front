@@ -541,3 +541,19 @@
   opacity: 0.8;
   line-height: 1.4;
 }
+
+.pulsingSkeleton {
+  animation: skeletonPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes skeletonPulse {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}

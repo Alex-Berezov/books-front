@@ -55,6 +55,33 @@ type Props = {
   initialBook?: BookOverview;
 };
 
+// Pure HTML placeholder with inline dimensions to prevent CLS without waiting for CSS-in-JS injection
+const ButtonSkeleton = ({
+  width,
+  height,
+  borderRadius = 4,
+}: {
+  width: number;
+  height: number;
+  borderRadius?: number;
+}) => {
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: `${width}px`,
+        height: `${height}px`,
+        borderRadius: `${borderRadius}px`,
+        backgroundColor: 'rgba(0, 0, 0, 0.08)',
+        opacity: 0.6,
+      }}
+      className={styles.pulsingSkeleton}
+    />
+  );
+};
+
 export default function BookDetailClient({ slug, lang, initialBook }: Props) {
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
@@ -322,12 +349,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                     const name = trans?.name || cat.id;
                     const width = Math.max(60, name.length * 8 + 24);
                     return (
-                      <Skeleton.Button
-                        key={cat.id}
-                        active
-                        size="small"
-                        style={{ width, height: 24, borderRadius: 4 }}
-                      />
+                      <ButtonSkeleton key={cat.id} width={width} height={24} borderRadius={4} />
                     );
                   })}
             </div>
@@ -380,54 +402,37 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
               ) : (
                 <>
                   {textVersion && (
-                    <Skeleton.Button
-                      active
-                      size="large"
-                      style={{
-                        width: Math.max(
-                          100,
-                          (textVersion.isFree ? t('book.readFree') : t('book.read')).length * 8 + 48
-                        ),
-                        height: 40,
-                        borderRadius: 6,
-                      }}
+                    <ButtonSkeleton
+                      width={Math.max(
+                        100,
+                        (textVersion.isFree ? t('book.readFree') : t('book.read')).length * 8 + 48
+                      )}
+                      height={40}
+                      borderRadius={6}
                     />
                   )}
                   {audioVersion && (
-                    <Skeleton.Button
-                      active
-                      size="large"
-                      style={{
-                        width: Math.max(100, t('book.listen').length * 8 + 48),
-                        height: 40,
-                        borderRadius: 6,
-                      }}
+                    <ButtonSkeleton
+                      width={Math.max(100, t('book.listen').length * 8 + 48)}
+                      height={40}
+                      borderRadius={6}
                     />
                   )}
                   {hasSummary && versionId && (
-                    <Skeleton.Button
-                      active
-                      size="large"
-                      style={{
-                        width: Math.max(100, t('book.summary').length * 8 + 48),
-                        height: 40,
-                        borderRadius: 6,
-                      }}
+                    <ButtonSkeleton
+                      width={Math.max(100, t('book.summary').length * 8 + 48)}
+                      height={40}
+                      borderRadius={6}
                     />
                   )}
-                  <Skeleton.Button
-                    active
-                    size="large"
-                    style={{
-                      width: Math.max(
-                        120,
-                        (inBookshelf ? t('book.inBookshelf') : t('book.addToBookshelf')).length *
-                          8 +
-                          48
-                      ),
-                      height: 40,
-                      borderRadius: 6,
-                    }}
+                  <ButtonSkeleton
+                    width={Math.max(
+                      120,
+                      (inBookshelf ? t('book.inBookshelf') : t('book.addToBookshelf')).length * 8 +
+                        48
+                    )}
+                    height={40}
+                    borderRadius={6}
                   />
                 </>
               )}
@@ -462,12 +467,7 @@ export default function BookDetailClient({ slug, lang, initialBook }: Props) {
                       const tagName = trans?.name || tag.id;
                       const width = Math.max(60, tagName.length * 8 + 24);
                       return (
-                        <Skeleton.Button
-                          key={tag.id}
-                          active
-                          size="small"
-                          style={{ width, height: 24, borderRadius: 4 }}
-                        />
+                        <ButtonSkeleton key={tag.id} width={width} height={24} borderRadius={4} />
                       );
                     })}
               </div>
