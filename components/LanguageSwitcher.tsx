@@ -66,14 +66,18 @@ export const LanguageSwitcher = ({ variant = 'public' }: LanguageSwitcherProps) 
       ? allOptions.filter((opt) => availableLangs.has(opt.value))
       : allOptions;
 
-  const options = baseOptions.map((opt) => ({
-    ...opt,
-    shortLabel: (
+  const options = baseOptions.map((opt) => {
+    const labelNode = (
       <span>
         {FLAG_COMPONENTS[opt.value as SupportedLang] || null} {(opt.value as string).toUpperCase()}
       </span>
-    ),
-  }));
+    );
+    return {
+      ...opt,
+      label: labelNode,
+      shortLabel: labelNode,
+    };
+  });
 
   return (
     <Select

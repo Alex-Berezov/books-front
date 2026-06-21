@@ -67,9 +67,9 @@ describe('LanguageSwitcher', () => {
     const select = screen.getByLabelText('Select language');
     expect(select).toBeInTheDocument();
 
-    // Check if options are present (English, Español, etc.)
+    // Check if options are present (EN, ES, etc.)
     // Note: In our mock, label is rendered as text inside option
-    expect(screen.getByText(/English/)).toBeInTheDocument();
+    expect(screen.getByText(/EN/)).toBeInTheDocument();
   });
 
   it('switches language on selection', () => {
