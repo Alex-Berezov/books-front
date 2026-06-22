@@ -136,7 +136,11 @@ export default auth((req) => {
  * Matcher configuration - which paths the middleware applies to
  */
 export const config = {
-  // Apply only to admin routes
-  // Exclude static files, API routes and Next.js resources
-  matcher: ['/admin/:lang*/:path*', '/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    '/admin/:lang*/:path*',
+    '/:lang(ru|en|es|fr|pt)/profile/:path*',
+    '/:lang(ru|en|es|fr|pt)/bookshelf/:path*',
+    '/:lang(ru|en|es|fr|pt)/read/:path*',
+    '/:lang(ru|en|es|fr|pt)/listen/:path*',
+  ],
 };

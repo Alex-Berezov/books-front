@@ -66,7 +66,8 @@ const SignInClient: FC = () => {
         // Handle NextAuth errors
         setError(result.error);
       } else if (result?.ok) {
-        // Successful authentication - redirect
+        // Successful authentication - set cookie and redirect
+        document.cookie = 'logged_in=true; path=/; max-age=31536000';
         router.push(callbackUrl);
         router.refresh();
       }

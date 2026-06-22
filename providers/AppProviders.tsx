@@ -35,10 +35,27 @@ interface AppProvidersProps {
 export const AppProviders = (props: AppProvidersProps) => {
   const { children, session } = props;
 
+  const [activeSession, setActiveSession] = useState<Session | null | undefined>(() => {
+    if (session !== undefined) return session;
+    if (typeof window !== 'undefined') {
+      const hasLoggedInCookie = document.cookie
+        .split(';')
+        .some((item) => item.trim().startsWith('logged_in='));
+      if (!hasLoggedInCookie) return null;
+    }
+    return undefined;
+  });
+
   // Initialize session cache in http-client to prevent initial API call
   useEffect(() => {
-    if (session) {
-      setSession(session);
+    if (activeSession) {
+      setSession(activeSession);
+    }
+  }, [activeSession]);
+
+  useEffect(() => {
+    if (session !== undefined) {
+      setActiveSession(session);
     }
   }, [session]);
 
@@ -77,7 +94,7 @@ export const AppProviders = (props: AppProvidersProps) => {
 
   return (
     <SessionProvider
-      session={session} // Pass server session to prevent initial client requests
+      session={activeSession} // Pass active session to prevent initial client requests
       // Optimize session polling to reduce API calls
       basePath="/api/auth" // Explicit base path for better caching
       refetchInterval={SESSION_SETTINGS.REFETCH_INTERVAL_MINUTES * 60 * 1000} // Convert minutes to milliseconds
