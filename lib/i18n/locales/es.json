@@ -196,6 +196,7 @@
   },
   "profile": {
     "cabinet": "Perfil Personal",
+    "changeAvatar": "Cambiar avatar",
     "email": "Correo electrónico",
     "name": "Nombre completo",
     "nickname": "Apodo único",

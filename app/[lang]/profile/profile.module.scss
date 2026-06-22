@@ -66,6 +66,8 @@
   background-color: var(--public-primary);
   border: 3px solid rgba(255, 255, 255, 0.8);
   transition: transform $transition-fast;
+  padding: 0;
+  display: block;
 
   &:hover {
     transform: scale(1.02);

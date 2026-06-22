@@ -147,7 +147,12 @@ export default function ProfileClient() {
             <form onSubmit={handleFormSubmit} className={styles.profileForm}>
               {/* Avatar Selector */}
               <div className={styles.avatarRow}>
-                <div className={styles.avatarWrapper} onClick={handleAvatarClick}>
+                <button
+                  type="button"
+                  className={styles.avatarWrapper}
+                  onClick={handleAvatarClick}
+                  aria-label={t('profile.changeAvatar')}
+                >
                   {avatarUrl ? (
                     <Image
                       src={avatarUrl}
@@ -166,7 +171,7 @@ export default function ProfileClient() {
                     <Upload size={16} />
                     <span>{uploadPercent !== null ? `${uploadPercent}%` : ''}</span>
                   </div>
-                </div>
+                </button>
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -227,9 +232,12 @@ export default function ProfileClient() {
                     onChange={(e) => setNickname(e.target.value)}
                     maxLength={30}
                     placeholder="john_doe"
+                    aria-describedby="profile-nickname-hint"
                   />
                 </div>
-                <span className={styles.hint}>{t('profile.nicknameHint')}</span>
+                <span id="profile-nickname-hint" className={styles.hint}>
+                  {t('profile.nicknameHint')}
+                </span>
               </div>
 
               <Button

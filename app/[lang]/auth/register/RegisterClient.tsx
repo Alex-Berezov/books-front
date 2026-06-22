@@ -43,6 +43,7 @@ const RegisterClient: FC = () => {
   const lang = (params?.lang as string) || 'en';
   const callbackUrl = `/${lang}`;
 
+  const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -141,6 +142,7 @@ const RegisterClient: FC = () => {
               )}
 
               <Form
+                form={form}
                 name="register"
                 onFinish={handleSubmit}
                 autoComplete="off"
@@ -148,57 +150,87 @@ const RegisterClient: FC = () => {
                 size="large"
                 className={styles.form}
               >
-                <Form.Item
-                  name="email"
-                  label={t('auth.register.emailLabel')}
-                  rules={[
-                    { required: true, message: t('auth.register.emailRequired') },
-                    { type: 'email', message: t('auth.register.emailInvalid') },
-                  ]}
-                >
-                  <Input
-                    prefix={<MailOutlined />}
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                  />
+                <Form.Item noStyle shouldUpdate>
+                  {() => {
+                    const errors = form.getFieldError('email');
+                    const hasError = errors.length > 0;
+                    return (
+                      <Form.Item
+                        name="email"
+                        label={t('auth.register.emailLabel')}
+                        rules={[
+                          { required: true, message: t('auth.register.emailRequired') },
+                          { type: 'email', message: t('auth.register.emailInvalid') },
+                        ]}
+                      >
+                        <Input
+                          prefix={<MailOutlined />}
+                          placeholder="you@example.com"
+                          autoComplete="email"
+                          aria-invalid={hasError ? 'true' : 'false'}
+                          aria-describedby={hasError ? 'register_email_help' : undefined}
+                        />
+                      </Form.Item>
+                    );
+                  }}
                 </Form.Item>
 
-                <Form.Item
-                  name="password"
-                  label={t('auth.register.passwordLabel')}
-                  rules={[
-                    { required: true, message: t('auth.register.passwordRequired') },
-                    { min: 6, message: t('auth.register.passwordLength') },
-                  ]}
-                >
-                  <Input.Password
-                    prefix={<LockOutlined />}
-                    placeholder="At least 6 characters"
-                    autoComplete="new-password"
-                  />
+                <Form.Item noStyle shouldUpdate>
+                  {() => {
+                    const errors = form.getFieldError('password');
+                    const hasError = errors.length > 0;
+                    return (
+                      <Form.Item
+                        name="password"
+                        label={t('auth.register.passwordLabel')}
+                        rules={[
+                          { required: true, message: t('auth.register.passwordRequired') },
+                          { min: 6, message: t('auth.register.passwordLength') },
+                        ]}
+                      >
+                        <Input.Password
+                          prefix={<LockOutlined />}
+                          placeholder="At least 6 characters"
+                          autoComplete="new-password"
+                          aria-invalid={hasError ? 'true' : 'false'}
+                          aria-describedby={hasError ? 'register_password_help' : undefined}
+                        />
+                      </Form.Item>
+                    );
+                  }}
                 </Form.Item>
 
-                <Form.Item
-                  name="confirmPassword"
-                  label={t('auth.register.confirmLabel')}
-                  dependencies={['password']}
-                  rules={[
-                    { required: true, message: t('auth.register.confirmRequired') },
-                    ({ getFieldValue }) => ({
-                      validator(_, value) {
-                        if (!value || getFieldValue('password') === value) {
-                          return Promise.resolve();
-                        }
-                        return Promise.reject(new Error(t('auth.register.confirmMatch')));
-                      },
-                    }),
-                  ]}
-                >
-                  <Input.Password
-                    prefix={<LockOutlined />}
-                    placeholder="Repeat your password"
-                    autoComplete="new-password"
-                  />
+                <Form.Item noStyle shouldUpdate>
+                  {() => {
+                    const errors = form.getFieldError('confirmPassword');
+                    const hasError = errors.length > 0;
+                    return (
+                      <Form.Item
+                        name="confirmPassword"
+                        label={t('auth.register.confirmLabel')}
+                        dependencies={['password']}
+                        rules={[
+                          { required: true, message: t('auth.register.confirmRequired') },
+                          ({ getFieldValue }) => ({
+                            validator(_, value) {
+                              if (!value || getFieldValue('password') === value) {
+                                return Promise.resolve();
+                              }
+                              return Promise.reject(new Error(t('auth.register.confirmMatch')));
+                            },
+                          }),
+                        ]}
+                      >
+                        <Input.Password
+                          prefix={<LockOutlined />}
+                          placeholder="Repeat your password"
+                          autoComplete="new-password"
+                          aria-invalid={hasError ? 'true' : 'false'}
+                          aria-describedby={hasError ? 'register_confirmPassword_help' : undefined}
+                        />
+                      </Form.Item>
+                    );
+                  }}
                 </Form.Item>
 
                 <Form.Item>

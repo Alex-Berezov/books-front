@@ -44,6 +44,7 @@ const SignInClient: FC = () => {
   // Default redirect path based on lang
   const callbackUrl = searchParams.get('callbackUrl') || `/${lang}`;
 
+  const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -132,6 +133,7 @@ const SignInClient: FC = () => {
           )}
 
           <Form
+            form={form}
             name="sign-in"
             onFinish={handleSubmit}
             autoComplete="off"
@@ -139,27 +141,51 @@ const SignInClient: FC = () => {
             size="large"
             className={styles.form}
           >
-            <Form.Item
-              name="email"
-              label={t('auth.signin.emailLabel')}
-              rules={[
-                { required: true, message: t('auth.signin.emailRequired') },
-                { type: 'email', message: t('auth.signin.emailInvalid') },
-              ]}
-            >
-              <Input prefix={<MailOutlined />} placeholder="you@example.com" autoComplete="email" />
+            <Form.Item noStyle shouldUpdate>
+              {() => {
+                const errors = form.getFieldError('email');
+                const hasError = errors.length > 0;
+                return (
+                  <Form.Item
+                    name="email"
+                    label={t('auth.signin.emailLabel')}
+                    rules={[
+                      { required: true, message: t('auth.signin.emailRequired') },
+                      { type: 'email', message: t('auth.signin.emailInvalid') },
+                    ]}
+                  >
+                    <Input
+                      prefix={<MailOutlined />}
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      aria-invalid={hasError ? 'true' : 'false'}
+                      aria-describedby={hasError ? 'sign-in_email_help' : undefined}
+                    />
+                  </Form.Item>
+                );
+              }}
             </Form.Item>
 
-            <Form.Item
-              name="password"
-              label={t('auth.signin.passwordLabel')}
-              rules={[{ required: true, message: t('auth.signin.passwordRequired') }]}
-            >
-              <Input.Password
-                prefix={<LockOutlined />}
-                placeholder="••••••••"
-                autoComplete="current-password"
-              />
+            <Form.Item noStyle shouldUpdate>
+              {() => {
+                const errors = form.getFieldError('password');
+                const hasError = errors.length > 0;
+                return (
+                  <Form.Item
+                    name="password"
+                    label={t('auth.signin.passwordLabel')}
+                    rules={[{ required: true, message: t('auth.signin.passwordRequired') }]}
+                  >
+                    <Input.Password
+                      prefix={<LockOutlined />}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      aria-invalid={hasError ? 'true' : 'false'}
+                      aria-describedby={hasError ? 'sign-in_password_help' : undefined}
+                    />
+                  </Form.Item>
+                );
+              }}
             </Form.Item>
 
             <Form.Item>
