@@ -257,6 +257,7 @@
     "selectLanguage": "Choisir la langue",
     "skipToContent": "Aller au contenu principal",
     "sortReviews": "Trier les avis",
-    "footerNavigation": "Navigation de bas de page"
+    "footerNavigation": "Navigation de bas de page",
+    "bookCover": "Couverture de {title} par {author}"
   }
 }

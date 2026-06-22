@@ -5,6 +5,7 @@ import { BookOpen, Headphones } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getLangFromPath } from '@/lib/i18n/lang';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './BookCard.module.scss';
 import { StarRating } from './StarRating';
@@ -22,6 +23,7 @@ function getAuthorSlug(author?: string) {
 export function BookCard({ book, size = 'md' }: BookCardProps) {
   const pathname = usePathname();
   const lang = getLangFromPath(pathname);
+  const { t } = useTranslation();
   const slug = book.slug || book.id;
 
   // Check version types available for current language
@@ -60,8 +62,12 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
   const isNewRelease =
     new Date().getTime() - new Date(book.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000;
 
+  const coverAlt = t('a11y.bookCover')
+    .replace('{title}', title)
+    .replace('{author}', author || t('book.unknownAuthor'));
+
   return (
-    <div className={`${styles.card} ${cardClass}`}>
+    <article className={`${styles.card} ${cardClass}`}>
       {/* Cover Image */}
       <Link href={`/${lang}/book/${slug}`} className={styles.coverLink}>
         <Badge.Ribbon
@@ -71,10 +77,14 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
         >
           <div className={`${styles.coverContainer} ${coverClass}`}>
             {coverUrl ? (
-              <img src={coverUrl} alt={title} className={styles.coverImage} loading="lazy" />
+              <img src={coverUrl} alt={coverAlt} className={styles.coverImage} loading="lazy" />
             ) : (
               <div className={styles.coverPlaceholder}>
-                <BookOpen size={size === 'sm' ? 24 : 32} className={styles.placeholderIcon} />
+                <BookOpen
+                  size={size === 'sm' ? 24 : 32}
+                  className={styles.placeholderIcon}
+                  aria-hidden="true"
+                />
                 <span className={styles.placeholderText}>{title}</span>
               </div>
             )}
@@ -102,18 +112,18 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
         <div className={styles.actions}>
           {hasText && (
             <Link href={`/${lang}/book/${slug}`} className={styles.actionLink} title="Read">
-              <BookOpen size={14} />
+              <BookOpen size={14} aria-hidden="true" />
               <span className={textClass}>Read</span>
             </Link>
           )}
           {hasAudio && (
             <Link href={`/${lang}/book/${slug}#audio`} className={styles.actionLink} title="Listen">
-              <Headphones size={14} />
+              <Headphones size={14} aria-hidden="true" />
               <span className={textClass}>Listen</span>
             </Link>
           )}
         </div>
       </div>
-    </div>
+    </article>
   );
 }

@@ -257,6 +257,7 @@
     "selectLanguage": "Select language",
     "skipToContent": "Skip to main content",
     "sortReviews": "Sort reviews",
-    "footerNavigation": "Footer navigation"
+    "footerNavigation": "Footer navigation",
+    "bookCover": "Cover of {title} by {author}"
   }
 }

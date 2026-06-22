@@ -257,6 +257,7 @@
     "selectLanguage": "Selecionar idioma",
     "skipToContent": "Ir para o conteúdo principal",
     "sortReviews": "Ordenar avaliações",
-    "footerNavigation": "Navegação do rodapé"
+    "footerNavigation": "Navegação do rodapé",
+    "bookCover": "Capa de {title} por {author}"
   }
 }

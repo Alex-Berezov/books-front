@@ -242,17 +242,33 @@ export default async function BookDetailPage({ params }: Props) {
 
         {/* Breadcrumbs */}
         <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
-          <Link href={`/${supportedLang}`}>{getHomeName(supportedLang)}</Link>
-          {seoData?.breadcrumbPath?.map((item: { slug: string; name: string }) => (
-            <span key={item.slug} className={styles.breadcrumbItem}>
-              <span className={styles.separator}>/</span>
-              <Link href={`/${supportedLang}/catalog/${item.slug}`}>{item.name}</Link>
-            </span>
-          ))}
-          <span className={styles.breadcrumbItem}>
-            <span className={styles.separator}>/</span>
-            <span className={styles.current}>{book.title}</span>
-          </span>
+          <ol
+            style={{
+              display: 'inline-flex',
+              listStyle: 'none',
+              padding: 0,
+              margin: 0,
+              flexWrap: 'wrap',
+            }}
+          >
+            <li>
+              <Link href={`/${supportedLang}`}>{getHomeName(supportedLang)}</Link>
+            </li>
+            {seoData?.breadcrumbPath?.map((item: { slug: string; name: string }) => (
+              <li key={item.slug} className={styles.breadcrumbItem}>
+                <span className={styles.separator} aria-hidden="true">
+                  /
+                </span>
+                <Link href={`/${supportedLang}/catalog/${item.slug}`}>{item.name}</Link>
+              </li>
+            ))}
+            <li className={styles.breadcrumbItem} aria-current="page">
+              <span className={styles.separator} aria-hidden="true">
+                /
+              </span>
+              <span className={styles.current}>{book.title}</span>
+            </li>
+          </ol>
         </nav>
 
         {/* Back Button */}

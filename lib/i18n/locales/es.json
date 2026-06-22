@@ -257,6 +257,7 @@
     "selectLanguage": "Seleccionar idioma",
     "skipToContent": "Saltar al contenido principal",
     "sortReviews": "Ordenar reseñas",
-    "footerNavigation": "Navegación del pie de página"
+    "footerNavigation": "Navegación del pie de página",
+    "bookCover": "Portada de {title} por {author}"
   }
 }

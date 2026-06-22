@@ -257,6 +257,7 @@
     "selectLanguage": "Выбрать язык",
     "skipToContent": "Перейти к основному содержимому",
     "sortReviews": "Сортировать отзывы",
-    "footerNavigation": "Навигация в подвале"
+    "footerNavigation": "Навигация в подвале",
+    "bookCover": "Обложка книги «{title}» {author}"
   }
 }
