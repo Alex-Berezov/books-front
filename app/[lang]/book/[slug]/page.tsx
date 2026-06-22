@@ -1,8 +1,71 @@
-import { permanentRedirect } from 'next/navigation';
+import { BookOpen, Calendar, Globe, User, ChevronLeft } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import Link from 'next/link';
+import { permanentRedirect, notFound } from 'next/navigation';
 import { getBookOverview, resolveSeo } from '@/api/endpoints/public';
+import { Button } from '@/components/common/Button';
+import { StarRating } from '@/components/public/books/StarRating';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
-import BookDetailClient from './BookDetailClient';
+import styles from './book.module.scss';
+
+// Dynamically load non-critical sections (reviews and extra details) to exclude their CSS/JS from the main render-blocking bundle
+const BookReviews = dynamic(() => import('@/components/public/reviews/BookReviews'), {
+  ssr: false,
+  loading: () => (
+    <div
+      style={{
+        minHeight: '150px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      Loading reviews...
+    </div>
+  ),
+});
+
+const BookExtraDetails = dynamic(() => import('./BookExtraDetails'), {
+  ssr: false,
+});
+
+// Client Islands for interactivity
+const BookActions = dynamic(() => import('./BookActions'), {
+  ssr: false,
+  loading: () => (
+    <div
+      style={{
+        height: '48px',
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        borderRadius: '6px',
+        width: '200px',
+        animation: 'skeletonPulse 1.5s infinite ease-in-out',
+      }}
+    />
+  ),
+});
+
+const BookRating = dynamic(() => import('./BookRating'), {
+  ssr: false,
+});
+
+const getHomeName = (lang: string): string => {
+  switch (lang) {
+    case 'ru':
+      return 'Главная';
+    case 'es':
+      return 'Inicio';
+    case 'pt':
+      return 'Início';
+    case 'fr':
+      return 'Accueil';
+    case 'en':
+    default:
+      return 'Home';
+  }
+};
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>;
@@ -14,7 +77,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
     const seo = await resolveSeo(supportedLang, 'book', slug);
-
     const alternatesLanguages: Record<string, string> = {};
     seo.hreflang?.forEach((item) => {
       if (item.hreflang) {
@@ -36,12 +98,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         type: 'book',
         url: seo.openGraph.url,
         images: seo.openGraph.image
-          ? [
-              {
-                url: seo.openGraph.image.url,
-                alt: seo.openGraph.image.alt,
-              },
-            ]
+          ? [{ url: seo.openGraph.image.url, alt: seo.openGraph.image.alt }]
           : undefined,
       },
       twitter: {
@@ -54,8 +111,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch (error) {
     console.error('Error generating metadata for book:', error);
-
-    // Fallback: title-case the slug for a slightly better title than a static string
     let fallbackTitle = 'Book Details - Bibliaris';
     if (slug) {
       const decoded = decodeURIComponent(slug).replace(/-/g, ' ');
@@ -65,45 +120,350 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
         ) + ' - Bibliaris';
     }
-
-    return {
-      title: fallbackTitle,
-    };
+    return { title: fallbackTitle };
   }
 }
 
-// Cache the book page on CDN/Cloudflare with Incremental Static Regeneration (ISR)
-// The page will be cached, but if a request comes in after 5 minutes (300 seconds),
-// Next.js will regenerate the page in the background (stale-while-revalidate behavior).
 export const revalidate = 300;
 
 export default async function BookDetailPage({ params }: Props) {
   const { lang, slug } = await params;
   const supportedLang = lang as SupportedLang;
 
-  let initialBook;
+  let book;
   let seoData;
   try {
-    initialBook = await getBookOverview(supportedLang, slug);
+    book = await getBookOverview(supportedLang, slug);
     seoData = await resolveSeo(supportedLang, 'book', slug);
   } catch (error) {
     console.error('Error loading book overview or SEO on server:', error);
   }
 
-  // Redirect to correct localized slug if requested slug is outdated/incorrect
-  if (initialBook && initialBook.slug && initialBook.slug !== slug) {
-    permanentRedirect(`/${lang}/book/${initialBook.slug}`);
+  if (!book) {
+    notFound();
   }
 
+  // Redirect to correct localized slug if requested slug is outdated/incorrect
+  if (book.slug && book.slug !== slug) {
+    permanentRedirect(`/${lang}/book/${book.slug}`);
+  }
+
+  const versionIds = book.versionIds;
+  const textVersion = versionIds?.text
+    ? (book.versions?.find((v) => v.id === versionIds.text) ?? null)
+    : null;
+  const audioVersion = versionIds?.audio
+    ? (book.versions?.find((v) => v.id === versionIds.audio) ?? null)
+    : null;
+  const activeVersion = textVersion || audioVersion || book.versions?.[0] || null;
+
+  const textHasSummary = textVersion
+    ? ((textVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0
+    : false;
+  const audioHasSummary = audioVersion
+    ? ((audioVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0
+    : false;
+  const hasSummary = textHasSummary || audioHasSummary;
+  const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
+
+  const t = (key: string) => {
+    // Basic server-side translation helper for critical texts
+    const translations: Record<SupportedLang, Record<string, string>> = {
+      ru: {
+        'book.by': 'от ',
+        'book.notFound': 'Книга не найдена',
+        'book.back': 'Назад',
+        'book.unknownAuthor': 'Неизвестный автор',
+        'book.published': 'Опубликовано:',
+        'book.language': 'Язык:',
+        'book.firstPublished': 'Первая публикация:',
+        'book.editionPublished': 'Издание:',
+        'book.noDescription': 'Описание отсутствует',
+      },
+      en: {
+        'book.by': 'by ',
+        'book.notFound': 'Book not found',
+        'book.back': 'Back',
+        'book.unknownAuthor': 'Unknown Author',
+        'book.published': 'Published:',
+        'book.language': 'Language:',
+        'book.firstPublished': 'First Published:',
+        'book.editionPublished': 'Edition Published:',
+        'book.noDescription': 'No description available',
+      },
+      es: {
+        'book.by': 'por ',
+        'book.notFound': 'Libro no encontrado',
+        'book.back': 'Volver',
+        'book.unknownAuthor': 'Autor Desconocido',
+        'book.published': 'Publicado:',
+        'book.language': 'Idioma:',
+        'book.firstPublished': 'Primera publicación:',
+        'book.editionPublished': 'Edición publicada:',
+        'book.noDescription': 'No hay descripción disponible',
+      },
+      fr: {
+        'book.by': 'par ',
+        'book.notFound': 'Livre non trouvé',
+        'book.back': 'Retour',
+        'book.unknownAuthor': 'Auteur Inconnu',
+        'book.published': 'Publié:',
+        'book.language': 'Langue:',
+        'book.firstPublished': 'Première publication:',
+        'book.editionPublished': 'Édition publiée:',
+        'book.noDescription': 'Aucune description disponible',
+      },
+      pt: {
+        'book.by': 'por ',
+        'book.notFound': 'Livro não encontrado',
+        'book.back': 'Voltar',
+        'book.unknownAuthor': 'Autor Desconhecido',
+        'book.published': 'Publicado:',
+        'book.language': 'Idioma:',
+        'book.firstPublished': 'Primeira publicação:',
+        'book.editionPublished': 'Edição publicada:',
+        'book.noDescription': 'Nenhuma descrição disponível',
+      },
+    };
+    return translations[supportedLang]?.[key] || key;
+  };
+
+  const coverBgColor = '#8B7355';
+
   return (
-    <>
-      {seoData?.schema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(seoData.schema) }}
-        />
-      )}
-      <BookDetailClient slug={slug} lang={lang} initialBook={initialBook} />
-    </>
+    <div className={styles.bookPage}>
+      <div className={styles.container}>
+        {seoData?.schema && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(seoData.schema) }}
+          />
+        )}
+
+        {/* Breadcrumbs */}
+        <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
+          <Link href={`/${supportedLang}`}>{getHomeName(supportedLang)}</Link>
+          {seoData?.breadcrumbPath?.map((item: { slug: string; name: string }) => (
+            <span key={item.slug} className={styles.breadcrumbItem}>
+              <span className={styles.separator}>/</span>
+              <Link href={`/${supportedLang}/catalog/${item.slug}`}>{item.name}</Link>
+            </span>
+          ))}
+          <span className={styles.breadcrumbItem}>
+            <span className={styles.separator}>/</span>
+            <span className={styles.current}>{book.title}</span>
+          </span>
+        </nav>
+
+        {/* Back Button */}
+        <Link href={`/${supportedLang}`} passHref legacyBehavior>
+          <Button variant="ghost" leftIcon={<ChevronLeft size={16} />} className={styles.backBtn}>
+            {t('book.back')}
+          </Button>
+        </Link>
+
+        {/* Hero Section */}
+        <div className={styles.heroGrid}>
+          {/* Cover */}
+          <div className={styles.coverWrapper}>
+            <div className={styles.coverImageContainer} style={{ backgroundColor: coverBgColor }}>
+              {book.coverUrl ? (
+                <Image
+                  src={book.coverUrl}
+                  alt={activeVersion?.coverAlt || book.title}
+                  className={styles.coverImg}
+                  width={200}
+                  height={290}
+                  priority
+                />
+              ) : (
+                <div className={styles.coverPlaceholder}>
+                  <BookOpen size={48} className={styles.placeholderIcon} />
+                  <span className={styles.placeholderText}>{book.title}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Book Info */}
+          <div className={styles.infoWrapper}>
+            <h1 className={styles.title}>{book.title}</h1>
+            <p className={styles.author}>
+              {t('book.by')}{' '}
+              <Link
+                href={
+                  activeVersion?.authorPageUrl ||
+                  `/${supportedLang}/author/${encodeURIComponent((book.author || '').trim().toLowerCase().replace(/\s+/g, '-'))}`
+                }
+                className={styles.authorLink}
+              >
+                {book.author || t('book.unknownAuthor')}
+              </Link>
+            </p>
+
+            {book.rating !== undefined && book.rating !== null && (
+              <div className={styles.ratingRow}>
+                <StarRating rating={book.rating} size="md" showCount={false} />
+                <span className={styles.ratingVal}>{book.rating.toFixed(1)} / 5</span>
+              </div>
+            )}
+
+            {/* Interactive Rating Island */}
+            <BookRating bookId={book.id} slug={slug} lang={supportedLang} />
+
+            {/* Categories */}
+            <div className={styles.tagsContainer}>
+              {book.categories?.map((cat) => {
+                const trans =
+                  cat.translations?.find((t) => t.language === supportedLang) ||
+                  cat.translations?.[0];
+                const catSlug = trans?.slug || cat.slug || cat.id;
+                return (
+                  <Link
+                    key={cat.id}
+                    href={`/${supportedLang}/catalog/${catSlug}`}
+                    passHref
+                    legacyBehavior
+                  >
+                    <Button variant="secondary" size="sm">
+                      {trans?.name || cat.id}
+                    </Button>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Interactive Actions Island */}
+            <BookActions
+              slug={slug}
+              lang={supportedLang}
+              bookId={book.id}
+              versionId={versionId}
+              textVersion={textVersion}
+              audioVersion={audioVersion}
+              hasSummary={hasSummary}
+            />
+
+            {/* Tags */}
+            {book.tags && book.tags.length > 0 && (
+              <div className={styles.bookTagsContainer}>
+                {book.tags.map((tag) => {
+                  const trans =
+                    tag.translations?.find((t) => t.language === supportedLang) ||
+                    tag.translations?.[0];
+                  const tagName = trans?.name || tag.id;
+                  return (
+                    <Link
+                      key={tag.id}
+                      href={`/${supportedLang}/catalog?q=${encodeURIComponent(tagName)}`}
+                      passHref
+                      legacyBehavior
+                    >
+                      <Button variant="secondary" size="sm">
+                        {tagName}
+                      </Button>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Meta details */}
+            <div className={styles.metadataList}>
+              {book.author && (
+                <div className={styles.metaItem}>
+                  <User size={16} />
+                  <span>
+                    {t('book.author')}: {book.author}
+                  </span>
+                </div>
+              )}
+              {book.firstPublishedYear ? (
+                <div className={styles.metaItem}>
+                  <Calendar size={16} />
+                  <span>
+                    {t('book.firstPublished')} {book.firstPublishedYear}
+                  </span>
+                </div>
+              ) : null}
+              {book.editionPublishedYear ? (
+                <div className={styles.metaItem}>
+                  <Calendar size={16} />
+                  <span>
+                    {t('book.editionPublished')} {book.editionPublishedYear}
+                  </span>
+                </div>
+              ) : null}
+              {book.language && (
+                <div className={styles.metaItem}>
+                  <Globe size={16} />
+                  <span>
+                    {t('book.language')} {(book.language || '').toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Themes Section */}
+        {activeVersion?.themes && activeVersion.themes.length > 0 && (
+          <div className={styles.themesWrapper}>
+            <hr className={styles.divider} />
+            <div className={styles.themesContainer}>
+              <span className={styles.themesLabel}>
+                {supportedLang === 'ru' ? 'Ключевые темы:' : 'Key Themes:'}
+              </span>
+              <div className={styles.themesList}>
+                {activeVersion.themes.map((theme: string) => (
+                  <span key={theme} className={styles.themeTag}>
+                    {theme}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Description section */}
+        <div id="summary" className={styles.descriptionWrapper}>
+          <h2 className={styles.descriptionTitle}>
+            {supportedLang === 'ru'
+              ? `О книге «${book.title}»`
+              : supportedLang === 'es'
+                ? `Sobre el libro «${book.title}»`
+                : supportedLang === 'pt'
+                  ? `Sobre o livro «${book.title}»`
+                  : supportedLang === 'fr'
+                    ? `À propos du livre «${book.title}»`
+                    : `About ${book.title}`}
+          </h2>
+          {book.description ? (
+            <div
+              className={styles.description}
+              dangerouslySetInnerHTML={{ __html: book.description }}
+            />
+          ) : (
+            <p className={styles.description}>{t('book.noDescription')}</p>
+          )}
+        </div>
+
+        {/* Dynamically loaded extra details (FAQ, symbols, quotes, characters) to isolate non-critical CSS/JS */}
+        {activeVersion && (
+          <BookExtraDetails activeVersion={activeVersion} supportedLang={supportedLang} />
+        )}
+
+        {/* Book Reviews and Comments */}
+        {versionId && (
+          <BookReviews
+            bookVersionId={versionId}
+            lang={lang}
+            bookSlug={slug}
+            bookId={book.id}
+            hasRated={false}
+          />
+        )}
+      </div>
+    </div>
   );
 }
