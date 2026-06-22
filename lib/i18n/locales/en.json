@@ -244,5 +244,19 @@
     "reactionFail": "Failed to register reaction",
     "replyAdded": "Reply added",
     "replyAddFail": "Failed to add reply"
+  },
+  "a11y": {
+    "openMenu": "Open main menu",
+    "closeMenu": "Close main menu",
+    "searchBooks": "Search books and authors",
+    "searchSubmit": "Search",
+    "openSearch": "Open search page",
+    "audiobooks": "Audiobooks",
+    "myBookshelf": "My bookshelf",
+    "userMenu": "User menu",
+    "selectLanguage": "Select language",
+    "skipToContent": "Skip to main content",
+    "sortReviews": "Sort reviews",
+    "footerNavigation": "Footer navigation"
   }
 }

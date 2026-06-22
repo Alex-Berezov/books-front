@@ -86,9 +86,12 @@ export function Header() {
           {isMounted ? (
             <Button
               type="text"
-              icon={<Menu size={20} />}
+              icon={<Menu size={20} aria-hidden="true" />}
               className={styles.mobileMenuBtn}
               onClick={() => setMobileOpen(true)}
+              aria-label={t('a11y.openMenu')}
+              aria-controls="mobile-navigation"
+              aria-expanded={mobileOpen}
             />
           ) : (
             <div
@@ -102,8 +105,10 @@ export function Header() {
                 cursor: 'pointer',
               }}
               className={styles.mobileMenuBtn}
+              role="button"
+              aria-label={t('a11y.openMenu')}
             >
-              <Menu size={20} />
+              <Menu size={20} aria-hidden="true" />
             </div>
           )}
 
@@ -115,7 +120,7 @@ export function Header() {
             className={styles.drawer}
             width={280}
           >
-            <div className={styles.mobileNav}>
+            <nav id="mobile-navigation" className={styles.mobileNav} aria-label={t('header.menu')}>
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -126,29 +131,50 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
-            </div>
+            </nav>
           </Drawer>
 
           {/* Logo */}
-          <Link href={`/${lang}`} className={styles.logo}>
-            <BookOpen className={styles.logoIcon} />
-            <span className={styles.logoText}>BIBLIARIS</span>
+          <Link href={`/${lang}`} className={styles.logo} aria-label="BIBLIARIS">
+            <BookOpen className={styles.logoIcon} aria-hidden="true" />
+            <span className={styles.logoText} aria-hidden="true">
+              BIBLIARIS
+            </span>
           </Link>
 
           {/* Search Form (Desktop) */}
           <div className={styles.searchContainer}>
             {isMounted ? (
-              <Input.Search
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onSearch={handleSearchSubmit}
-                placeholder={t('header.searchPlaceholder')}
-                enterButton={<Search size={16} />}
-                className={styles.searchInput}
-              />
+              <form
+                role="search"
+                aria-label={t('a11y.searchBooks')}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSearchSubmit(searchQuery);
+                }}
+                style={{ width: '100%' }}
+              >
+                <label htmlFor="site-search" className="sr-only">
+                  {t('a11y.searchBooks')}
+                </label>
+                <Input.Search
+                  id="site-search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onSearch={handleSearchSubmit}
+                  placeholder={t('header.searchPlaceholder')}
+                  enterButton={<Search size={16} aria-hidden="true" />}
+                  className={styles.searchInput}
+                  aria-label={t('a11y.searchBooks')}
+                />
+              </form>
             ) : (
               <div style={{ position: 'relative', width: '100%' }}>
+                <label htmlFor="site-search-fallback" className="sr-only">
+                  {t('a11y.searchBooks')}
+                </label>
                 <input
+                  id="site-search-fallback"
                   type="text"
                   disabled
                   placeholder={t('header.searchPlaceholder')}
@@ -180,7 +206,7 @@ export function Header() {
                     borderLeft: '1px solid rgba(255, 255, 255, 0.2)',
                   }}
                 >
-                  <Search size={16} />
+                  <Search size={16} aria-hidden="true" />
                 </div>
               </div>
             )}
@@ -192,18 +218,20 @@ export function Header() {
               <>
                 <Button
                   type="text"
-                  icon={<Search size={20} />}
+                  icon={<Search size={20} aria-hidden="true" />}
                   className={styles.mobileSearchBtn}
                   onClick={() => router.push(`/${lang}/catalog`)}
+                  aria-label={t('a11y.openSearch')}
                 />
 
                 {!pathname?.includes('/auth/sign-in') && !pathname?.includes('/auth/register') && (
                   <Button
                     type="text"
-                    icon={<Headphones size={20} />}
+                    icon={<Headphones size={20} aria-hidden="true" />}
                     className={styles.desktopAudioBtn}
                     onClick={() => router.push(`/${lang}/catalog?type=audio`)}
                     title={t('header.audiobooks')}
+                    aria-label={t('a11y.audiobooks')}
                   />
                 )}
 
@@ -213,17 +241,23 @@ export function Header() {
                   <>
                     <Button
                       type="text"
-                      icon={<BookMarked size={20} />}
+                      icon={<BookMarked size={20} aria-hidden="true" />}
                       className={styles.actionBtn}
                       onClick={() => router.push(`/${lang}/bookshelf`)}
                       title={t('header.myBookshelf')}
+                      aria-label={t('a11y.myBookshelf')}
                     />
                     <Dropdown
                       menu={{ items: userMenuItems }}
                       placement="bottomRight"
                       trigger={['click']}
                     >
-                      <Button type="text" icon={<User size={20} />} className={styles.actionBtn} />
+                      <Button
+                        type="text"
+                        icon={<User size={20} aria-hidden="true" />}
+                        className={styles.actionBtn}
+                        aria-label={t('a11y.userMenu')}
+                      />
                     </Dropdown>
                   </>
                 ) : (
@@ -248,8 +282,10 @@ export function Header() {
                     color: 'var(--bibliaris-green-foreground)',
                   }}
                   className={styles.mobileSearchBtn}
+                  role="button"
+                  aria-label={t('a11y.openSearch')}
                 >
-                  <Search size={20} />
+                  <Search size={20} aria-hidden="true" />
                 </div>
 
                 {!pathname?.includes('/auth/sign-in') && !pathname?.includes('/auth/register') && (
@@ -263,8 +299,10 @@ export function Header() {
                       color: 'var(--bibliaris-green-foreground)',
                     }}
                     className={styles.desktopAudioBtn}
+                    role="button"
+                    aria-label={t('a11y.audiobooks')}
                   >
-                    <Headphones size={20} />
+                    <Headphones size={20} aria-hidden="true" />
                   </div>
                 )}
 
@@ -304,7 +342,7 @@ export function Header() {
         </div>
 
         {/* Bottom Nav (Desktop) */}
-        <nav className={styles.desktopNav}>
+        <nav className={styles.desktopNav} aria-label={t('header.menu')}>
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href} className={styles.navLink}>
               {link.label}

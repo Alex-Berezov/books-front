@@ -244,5 +244,19 @@
     "reactionFail": "Falha ao registrar reação",
     "replyAdded": "Resposta adicionada",
     "replyAddFail": "Falha ao adicionar resposta"
+  },
+  "a11y": {
+    "openMenu": "Abrir menu principal",
+    "closeMenu": "Fechar menu principal",
+    "searchBooks": "Pesquisar livros e autores",
+    "searchSubmit": "Pesquisar",
+    "openSearch": "Abrir página de pesquisa",
+    "audiobooks": "Audiolivros",
+    "myBookshelf": "Minha estante",
+    "userMenu": "Menu do usuário",
+    "selectLanguage": "Selecionar idioma",
+    "skipToContent": "Ir para o conteúdo principal",
+    "sortReviews": "Ordenar avaliações",
+    "footerNavigation": "Navegação do rodapé"
   }
 }

@@ -244,5 +244,19 @@
     "reactionFail": "Échec de l'enregistrement de la réaction",
     "replyAdded": "Réponse ajoutée",
     "replyAddFail": "Échec de l'ajout de la réponse"
+  },
+  "a11y": {
+    "openMenu": "Ouvrir le menu principal",
+    "closeMenu": "Fermer le menu principal",
+    "searchBooks": "Rechercher des livres et des auteurs",
+    "searchSubmit": "Rechercher",
+    "openSearch": "Ouvrir la page de recherche",
+    "audiobooks": "Livres audio",
+    "myBookshelf": "Ma bibliothèque",
+    "userMenu": "Menu utilisateur",
+    "selectLanguage": "Choisir la langue",
+    "skipToContent": "Aller au contenu principal",
+    "sortReviews": "Trier les avis",
+    "footerNavigation": "Navigation de bas de page"
   }
 }

@@ -244,5 +244,19 @@
     "reactionFail": "Не удалось поставить оценку",
     "replyAdded": "Ответ добавлен",
     "replyAddFail": "Не удалось добавить ответ"
+  },
+  "a11y": {
+    "openMenu": "Открыть главное меню",
+    "closeMenu": "Закрыть главное меню",
+    "searchBooks": "Искать книги и авторов",
+    "searchSubmit": "Поиск",
+    "openSearch": "Открыть страницу поиска",
+    "audiobooks": "Аудиокниги",
+    "myBookshelf": "Моя книжная полка",
+    "userMenu": "Меню пользователя",
+    "selectLanguage": "Выбрать язык",
+    "skipToContent": "Перейти к основному содержимому",
+    "sortReviews": "Сортировать отзывы",
+    "footerNavigation": "Навигация в подвале"
   }
 }

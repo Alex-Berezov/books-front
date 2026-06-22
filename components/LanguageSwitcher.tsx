@@ -6,6 +6,7 @@ import { Select } from '@/components/common/Select';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { getLangFromPath, switchLangInPath, type SupportedLang } from '@/lib/i18n/lang';
 import { getLanguageSelectOptions } from '@/lib/i18n/languageSelectOptions';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './LanguageSwitcher.module.scss';
 
 interface LanguageSwitcherProps {
@@ -15,6 +16,7 @@ interface LanguageSwitcherProps {
 export const LanguageSwitcher = ({ variant = 'public' }: LanguageSwitcherProps) => {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useTranslation();
 
   // Extract current language from pathname using shared utility
   const currentLang = getLangFromPath(pathname);
@@ -86,7 +88,7 @@ export const LanguageSwitcher = ({ variant = 'public' }: LanguageSwitcherProps) 
       options={options}
       className={`${styles.languageSwitcher} ${variant === 'admin' ? styles.admin : ''}`}
       popupClassName={styles.languageSwitcherPopup}
-      ariaLabel="Select language"
+      ariaLabel={t('a11y.selectLanguage')}
       optionLabelProp="shortLabel"
     />
   );

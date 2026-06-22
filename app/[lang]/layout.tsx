@@ -2,7 +2,8 @@ import { ConfigProvider } from 'antd';
 import { notFound } from 'next/navigation';
 import { Footer } from '@/components/public/layout/Footer';
 import { Header } from '@/components/public/layout/Header';
-import { isSupportedLang, SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { getDictionary } from '@/lib/i18n/dictionaries';
+import { isSupportedLang, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import styles from '@/styles/layouts.module.scss';
 import { colors } from '@/styles/tokens';
@@ -39,6 +40,9 @@ export default async function PublicLayout({ children, params }: Props) {
     notFound();
   }
 
+  const dict = getDictionary(lang as SupportedLang);
+  const skipText = dict.a11y?.skipToContent || 'Skip to main content';
+
   return (
     <ConfigProvider
       theme={{
@@ -49,8 +53,13 @@ export default async function PublicLayout({ children, params }: Props) {
       }}
     >
       <div className={styles.publicLayout}>
+        <a href="#main-content" className="skip-link">
+          {skipText}
+        </a>
         <Header />
-        <main className={styles.publicMain}>{children}</main>
+        <main id="main-content" className={styles.publicMain}>
+          {children}
+        </main>
         <Footer />
       </div>
     </ConfigProvider>

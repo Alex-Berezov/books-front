@@ -15,92 +15,95 @@ export function Footer() {
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
+        <h2 className="sr-only">{t('a11y.footerNavigation')}</h2>
         <div className={styles.grid}>
           <div className={styles.about}>
             <div className={styles.logo}>
-              <BookOpen className={styles.logoIcon} />
+              <BookOpen className={styles.logoIcon} aria-hidden="true" />
               <span className={styles.logoText}>BIBLIARIS</span>
             </div>
             <p className={styles.description}>{t('footer.description')}</p>
           </div>
 
-          <div>
-            <h4 className={styles.sectionTitle}>{t('footer.explore')}</h4>
-            <ul className={styles.linksList}>
-              <li>
-                <Link href={`/${lang}/catalog?sort=popular`} className={styles.link}>
-                  {t('footer.popularBooks')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${lang}/catalog?sort=new`} className={styles.link}>
-                  {t('footer.newReleases')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${lang}/catalog?type=audio`} className={styles.link}>
-                  {t('footer.audiobooks')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${lang}/genres`} className={styles.link}>
-                  {t('footer.browseGenres')}
-                </Link>
-              </li>
-            </ul>
-          </div>
+          <nav aria-label={t('footer.explore')} style={{ display: 'contents' }}>
+            <div>
+              <h3 className={styles.sectionTitle}>{t('footer.explore')}</h3>
+              <ul className={styles.linksList}>
+                <li>
+                  <Link href={`/${lang}/catalog?sort=popular`} className={styles.link}>
+                    {t('footer.popularBooks')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/catalog?sort=new`} className={styles.link}>
+                    {t('footer.newReleases')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/catalog?type=audio`} className={styles.link}>
+                    {t('footer.audiobooks')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/genres`} className={styles.link}>
+                    {t('footer.browseGenres')}
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          <div>
-            <h4 className={styles.sectionTitle}>{t('footer.account')}</h4>
-            <ul className={styles.linksList}>
-              <li>
-                <Link href={`/${lang}/auth/sign-in`} className={styles.link}>
-                  {t('footer.signIn')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${lang}/auth/register`} className={styles.link}>
-                  {t('footer.createAccount')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${lang}/bookshelf`} className={styles.link}>
-                  {t('footer.myBookshelf')}
-                </Link>
-              </li>
-            </ul>
-          </div>
+            <div>
+              <h3 className={styles.sectionTitle}>{t('footer.account')}</h3>
+              <ul className={styles.linksList}>
+                <li>
+                  <Link href={`/${lang}/auth/sign-in`} className={styles.link}>
+                    {t('footer.signIn')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/auth/register`} className={styles.link}>
+                    {t('footer.createAccount')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/bookshelf`} className={styles.link}>
+                    {t('footer.myBookshelf')}
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          <div>
-            <h4 className={styles.sectionTitle}>{t('footer.genresTitle')}</h4>
-            <ul className={styles.linksList}>
-              <li>
-                <Link href={`/${lang}/catalog/classic-literature`} className={styles.link}>
-                  {t('footer.classicLiterature')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${lang}/catalog/fantasy`} className={styles.link}>
-                  {t('footer.fantasy')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${lang}/catalog/science-fiction`} className={styles.link}>
-                  {t('footer.scienceFiction')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${lang}/catalog/mystery`} className={styles.link}>
-                  {t('footer.mystery')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${lang}/catalog/romance`} className={styles.link}>
-                  {t('footer.romance')}
-                </Link>
-              </li>
-            </ul>
-          </div>
+            <div>
+              <h3 className={styles.sectionTitle}>{t('footer.genresTitle')}</h3>
+              <ul className={styles.linksList}>
+                <li>
+                  <Link href={`/${lang}/catalog/classic-literature`} className={styles.link}>
+                    {t('footer.classicLiterature')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/catalog/fantasy`} className={styles.link}>
+                    {t('footer.fantasy')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/catalog/science-fiction`} className={styles.link}>
+                    {t('footer.scienceFiction')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/catalog/mystery`} className={styles.link}>
+                    {t('footer.mystery')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/catalog/romance`} className={styles.link}>
+                    {t('footer.romance')}
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </nav>
         </div>
 
         <div className={styles.bottomRow}>

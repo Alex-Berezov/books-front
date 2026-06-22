@@ -244,5 +244,19 @@
     "reactionFail": "Error al registrar la reacción",
     "replyAdded": "Respuesta agregada",
     "replyAddFail": "Error al agregar la respuesta"
+  },
+  "a11y": {
+    "openMenu": "Abrir menú principal",
+    "closeMenu": "Cerrar menú principal",
+    "searchBooks": "Buscar libros y autores",
+    "searchSubmit": "Buscar",
+    "openSearch": "Abrir página de búsqueda",
+    "audiobooks": "Audiolibros",
+    "myBookshelf": "Mi estantería",
+    "userMenu": "Menú de usuario",
+    "selectLanguage": "Seleccionar idioma",
+    "skipToContent": "Saltar al contenido principal",
+    "sortReviews": "Ordenar reseñas",
+    "footerNavigation": "Navegación del pie de página"
   }
 }

@@ -119,7 +119,11 @@ export default function BookReviews({
         </h2>
 
         <div className={styles.controls}>
+          <label htmlFor="reviews-sort" className="sr-only">
+            {t('a11y.sortReviews')}
+          </label>
           <select
+            id="reviews-sort"
             className={styles.sortSelect}
             value={sortBy}
             onChange={(e) => {
