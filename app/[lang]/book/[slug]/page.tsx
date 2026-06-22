@@ -72,6 +72,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+// Cache the book page on CDN/Cloudflare with Incremental Static Regeneration (ISR)
+// The page will be cached, but if a request comes in after 5 minutes (300 seconds),
+// Next.js will regenerate the page in the background (stale-while-revalidate behavior).
+export const revalidate = 300;
+
 export default async function BookDetailPage({ params }: Props) {
   const { lang, slug } = await params;
   const supportedLang = lang as SupportedLang;
