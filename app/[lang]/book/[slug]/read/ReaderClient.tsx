@@ -162,9 +162,10 @@ export default function ReaderClient({ params }: Props) {
           <Button
             variant="ghost"
             shape="circle"
-            leftIcon={<ArrowLeft size={18} />}
+            leftIcon={<ArrowLeft size={18} aria-hidden="true" />}
             onClick={() => router.back()}
             className={styles.iconBtn}
+            aria-label={t('book.back')}
           />
           <div className={styles.bookInfo}>
             <span className={styles.bookTitle}>{bootstrapData?.title}</span>
@@ -177,18 +178,24 @@ export default function ReaderClient({ params }: Props) {
             <Button
               variant="ghost"
               shape="circle"
-              leftIcon={<List size={18} />}
+              leftIcon={<List size={18} aria-hidden="true" />}
               onClick={() => setShowToc(true)}
               className={styles.iconBtn}
+              aria-label={t('reader.toc')}
+              aria-controls="toc-drawer"
+              aria-expanded={showToc}
             />
           </Tooltip>
           <Tooltip title={t('reader.settings')}>
             <Button
               variant="ghost"
               shape="circle"
-              leftIcon={<Settings size={18} />}
+              leftIcon={<Settings size={18} aria-hidden="true" />}
               onClick={() => setShowSettings(true)}
               className={styles.iconBtn}
+              aria-label={t('reader.settings')}
+              aria-controls="settings-drawer"
+              aria-expanded={showSettings}
             />
           </Tooltip>
         </div>
@@ -202,24 +209,29 @@ export default function ReaderClient({ params }: Props) {
         open={showToc}
         className={styles.drawer}
         width={280}
+        id="toc-drawer"
       >
-        <div className={styles.tocList}>
-          {chapters.map((ch, idx) => (
-            <button
-              key={ch.id}
-              onClick={() => {
-                setCurrentChapterIndex(idx);
-                setShowToc(false);
-              }}
-              className={`${styles.tocItem} ${
-                idx === currentChapterIndex ? styles.activeTocItem : ''
-              }`}
-            >
-              <span className={styles.tocNumber}>{idx + 1}.</span>
-              <span className={styles.tocTitle}>{ch.title}</span>
-            </button>
-          ))}
-        </div>
+        <nav className={styles.tocList} aria-label={t('reader.toc')}>
+          <ol style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {chapters.map((ch, idx) => (
+              <li key={ch.id}>
+                <button
+                  onClick={() => {
+                    setCurrentChapterIndex(idx);
+                    setShowToc(false);
+                  }}
+                  className={`${styles.tocItem} ${
+                    idx === currentChapterIndex ? styles.activeTocItem : ''
+                  }`}
+                  aria-current={idx === currentChapterIndex ? 'location' : undefined}
+                >
+                  <span className={styles.tocNumber}>{idx + 1}.</span>
+                  <span className={styles.tocTitle}>{ch.title}</span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </nav>
       </Drawer>
 
       {/* Settings Drawer */}
@@ -230,8 +242,9 @@ export default function ReaderClient({ params }: Props) {
         open={showSettings}
         className={styles.drawer}
         width={280}
+        id="settings-drawer"
       >
-        <div className={styles.settingsSection}>
+        <div className={styles.settingsSection} role="group" aria-label={t('reader.theme')}>
           <h4 className={styles.settingsTitle}>{t('reader.theme')}</h4>
           <div className={styles.themeSelector}>
             {(Object.keys(themeMap) as Theme[]).map((tKey) => (
@@ -241,6 +254,7 @@ export default function ReaderClient({ params }: Props) {
                 className={`${styles.themeBtn} ${styles[`themeBtn-${tKey}`]} ${
                   theme === tKey ? styles.activeThemeBtn : ''
                 }`}
+                aria-pressed={theme === tKey}
               >
                 {t(`reader.themes.${tKey}`)}
               </button>
@@ -248,7 +262,7 @@ export default function ReaderClient({ params }: Props) {
           </div>
         </div>
 
-        <div className={styles.settingsSection}>
+        <div className={styles.settingsSection} role="group" aria-label={t('reader.fontSize')}>
           <h4 className={styles.settingsTitle}>{t('reader.fontSize')}</h4>
           <div className={styles.fontSizeSelector}>
             {(Object.keys(fontSizeMap) as FontSize[]).map((size) => (
@@ -258,6 +272,7 @@ export default function ReaderClient({ params }: Props) {
                 className={`${styles.fontSizeBtn} ${
                   fontSize === size ? styles.activeFontSizeBtn : ''
                 }`}
+                aria-pressed={fontSize === size}
               >
                 {size.toUpperCase()}
               </button>
@@ -276,6 +291,7 @@ export default function ReaderClient({ params }: Props) {
             value={lineHeight}
             onChange={(v) => setLineHeight(v)}
             tooltip={{ formatter: (v) => `${v}` }}
+            aria-label={t('reader.lineHeight')}
           />
         </div>
       </Drawer>
@@ -294,7 +310,7 @@ export default function ReaderClient({ params }: Props) {
             </article>
           ) : (
             <div className={styles.emptyState}>
-              <BookOpen size={48} className={styles.emptyIcon} />
+              <BookOpen size={48} className={styles.emptyIcon} aria-hidden="true" />
               <p className={styles.emptyText}>{t('reader.noChapters')}</p>
             </div>
           )}
@@ -303,44 +319,51 @@ export default function ReaderClient({ params }: Props) {
 
       {/* Footer Controls */}
       <footer className={styles.footer}>
-        <Button
-          variant="ghost"
-          onClick={goToPrevChapter}
-          disabled={currentChapterIndex === 0}
-          leftIcon={<ChevronLeft size={16} />}
-          className={styles.footerBtn}
+        <nav
+          aria-label={t('a11y.footerNavigation') || 'Reader chapter navigation'}
+          style={{ display: 'contents' }}
         >
-          {t('reader.prev')}
-        </Button>
+          <Button
+            variant="ghost"
+            onClick={goToPrevChapter}
+            disabled={currentChapterIndex === 0}
+            leftIcon={<ChevronLeft size={16} aria-hidden="true" />}
+            className={styles.footerBtn}
+            aria-label={t('a11y.prevChapter')}
+          >
+            {t('reader.prev')}
+          </Button>
 
-        <div className={styles.progressContainer}>
-          <span className={styles.progressText}>
-            {chapters.length > 0
-              ? `${t('reader.chapterProgress')} ${currentChapterIndex + 1} ${t('reader.of')} ${chapters.length}`
-              : t('reader.noChaptersLabel')}
-          </span>
-          <div className={styles.progressBarBg}>
-            <div
-              className={styles.progressBarFill}
-              style={{
-                width:
-                  chapters.length > 0
-                    ? `${((currentChapterIndex + 1) / chapters.length) * 100}%`
-                    : '0%',
-              }}
-            />
+          <div className={styles.progressContainer}>
+            <span className={styles.progressText}>
+              {chapters.length > 0
+                ? `${t('reader.chapterProgress')} ${currentChapterIndex + 1} ${t('reader.of')} ${chapters.length}`
+                : t('reader.noChaptersLabel')}
+            </span>
+            <div className={styles.progressBarBg} aria-hidden="true">
+              <div
+                className={styles.progressBarFill}
+                style={{
+                  width:
+                    chapters.length > 0
+                      ? `${((currentChapterIndex + 1) / chapters.length) * 100}%`
+                      : '0%',
+                }}
+              />
+            </div>
           </div>
-        </div>
 
-        <Button
-          variant="ghost"
-          onClick={goToNextChapter}
-          disabled={currentChapterIndex >= chapters.length - 1}
-          rightIcon={<ChevronRight size={16} />}
-          className={styles.footerBtn}
-        >
-          {t('reader.next')}
-        </Button>
+          <Button
+            variant="ghost"
+            onClick={goToNextChapter}
+            disabled={currentChapterIndex >= chapters.length - 1}
+            rightIcon={<ChevronRight size={16} aria-hidden="true" />}
+            className={styles.footerBtn}
+            aria-label={t('a11y.nextChapter')}
+          >
+            {t('reader.next')}
+          </Button>
+        </nav>
       </footer>
     </div>
   );

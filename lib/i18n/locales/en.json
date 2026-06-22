@@ -258,6 +258,17 @@
     "skipToContent": "Skip to main content",
     "sortReviews": "Sort reviews",
     "footerNavigation": "Footer navigation",
-    "bookCover": "Cover of {title} by {author}"
+    "bookCover": "Cover of {title} by {author}",
+    "play": "Play",
+    "pause": "Pause",
+    "skipBack": "Skip back 15 seconds",
+    "skipForward": "Skip forward 15 seconds",
+    "prevChapter": "Previous chapter",
+    "nextChapter": "Next chapter",
+    "playbackSpeed": "Playback speed",
+    "volume": "Volume",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "audioProgress": "Audio progress"
   }
 }

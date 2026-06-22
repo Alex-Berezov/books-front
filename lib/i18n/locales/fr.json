@@ -258,6 +258,17 @@
     "skipToContent": "Aller au contenu principal",
     "sortReviews": "Trier les avis",
     "footerNavigation": "Navigation de bas de page",
-    "bookCover": "Couverture de {title} par {author}"
+    "bookCover": "Couverture de {title} par {author}",
+    "play": "Lire",
+    "pause": "Pause",
+    "skipBack": "Reculer de 15 secondes",
+    "skipForward": "Avancer de 15 secondes",
+    "prevChapter": "Chapitre précédent",
+    "nextChapter": "Chapitre suivant",
+    "playbackSpeed": "Vitesse de lecture",
+    "volume": "Volume",
+    "mute": "Muet",
+    "unmute": "Activer le son",
+    "audioProgress": "Progression audio"
   }
 }

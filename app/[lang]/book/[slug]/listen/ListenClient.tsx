@@ -14,6 +14,7 @@ import {
   RotateCcw,
   RotateCw,
 } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import {
@@ -219,17 +220,21 @@ export default function ListenClient({ params }: Props) {
         <Button
           variant="ghost"
           shape="circle"
-          leftIcon={<ArrowLeft size={18} />}
+          leftIcon={<ArrowLeft size={18} aria-hidden="true" />}
           onClick={() => router.back()}
           className={styles.backBtn}
+          aria-label={t('book.back')}
         />
         <span className={styles.headerTitle}>{t('player.nowPlaying')}</span>
         <Button
           variant="ghost"
           shape="circle"
-          leftIcon={<List size={18} />}
+          leftIcon={<List size={18} aria-hidden="true" />}
           onClick={() => setShowChapters(true)}
           className={styles.listBtn}
+          aria-label={t('player.chapters')}
+          aria-controls="chapters-drawer"
+          aria-expanded={showChapters}
         />
       </header>
 
@@ -241,8 +246,9 @@ export default function ListenClient({ params }: Props) {
         open={showChapters}
         className={styles.drawer}
         width={280}
+        id="chapters-drawer"
       >
-        <div className={styles.chapterList}>
+        <nav className={styles.chapterList} aria-label={t('player.chapters')}>
           {chapters.map((ch, idx) => (
             <button
               key={ch.id}
@@ -259,7 +265,7 @@ export default function ListenClient({ params }: Props) {
               <span className={styles.chapterTitleText}>{ch.title}</span>
             </button>
           ))}
-        </div>
+        </nav>
       </Drawer>
 
       {/* Player Main Panel */}
@@ -267,7 +273,16 @@ export default function ListenClient({ params }: Props) {
         {/* Album Art Cover */}
         <div className={styles.coverContainer} style={{ backgroundColor: coverColor }}>
           {book?.coverUrl ? (
-            <img src={book.coverUrl} alt={book.title} className={styles.coverImage} />
+            <Image
+              src={book.coverUrl}
+              alt={t('a11y.bookCover')
+                .replace('{title}', book.title || '')
+                .replace('{author}', book.author || t('book.unknownAuthor'))}
+              className={styles.coverImage}
+              width={200}
+              height={200}
+              priority
+            />
           ) : (
             <span className={styles.coverLetter}>{book?.title?.[0] || '?'}</span>
           )}
@@ -290,6 +305,7 @@ export default function ListenClient({ params }: Props) {
             onChange={handleSeek}
             tooltip={{ formatter: (v) => formatTime(v || 0) }}
             className={styles.slider}
+            aria-label={t('a11y.audioProgress')}
           />
           <div className={styles.timeLabels}>
             <span>{formatTime(currentTime)}</span>
@@ -302,47 +318,51 @@ export default function ListenClient({ params }: Props) {
           <Button
             variant="ghost"
             shape="circle"
-            leftIcon={<SkipBack size={22} />}
+            leftIcon={<SkipBack size={22} aria-hidden="true" />}
             onClick={() => setCurrentChapterIndex((i) => Math.max(0, i - 1))}
             disabled={currentChapterIndex === 0}
             className={styles.controlBtn}
+            aria-label={t('a11y.prevChapter')}
           />
 
           <Button
             variant="ghost"
             shape="circle"
-            leftIcon={<RotateCcw size={22} />}
+            leftIcon={<RotateCcw size={22} aria-hidden="true" />}
             onClick={() => handleSkip(-15)}
             className={styles.controlBtn}
+            aria-label={t('a11y.skipBack')}
           />
 
           <button
             onClick={() => setIsPlaying(!isPlaying)}
             className={styles.playBtn}
-            aria-label={isPlaying ? 'Pause' : 'Play'}
+            aria-label={isPlaying ? t('a11y.pause') : t('a11y.play')}
           >
             {isPlaying ? (
-              <Pause size={30} fill="currentColor" />
+              <Pause size={30} fill="currentColor" aria-hidden="true" />
             ) : (
-              <Play size={30} fill="currentColor" className={styles.playIcon} />
+              <Play size={30} fill="currentColor" className={styles.playIcon} aria-hidden="true" />
             )}
           </button>
 
           <Button
             variant="ghost"
             shape="circle"
-            leftIcon={<RotateCw size={22} />}
+            leftIcon={<RotateCw size={22} aria-hidden="true" />}
             onClick={() => handleSkip(15)}
             className={styles.controlBtn}
+            aria-label={t('a11y.skipForward')}
           />
 
           <Button
             variant="ghost"
             shape="circle"
-            leftIcon={<SkipForward size={22} />}
+            leftIcon={<SkipForward size={22} aria-hidden="true" />}
             onClick={() => setCurrentChapterIndex((i) => Math.min(chapters.length - 1, i + 1))}
             disabled={currentChapterIndex === chapters.length - 1}
             className={styles.controlBtn}
+            aria-label={t('a11y.nextChapter')}
           />
         </div>
 
@@ -350,8 +370,11 @@ export default function ListenClient({ params }: Props) {
         <div className={styles.bottomControls}>
           {/* Speed settings dropdown */}
           <div className={styles.speedControl}>
-            <span className={styles.label}>{t('player.speed')}:</span>
+            <label htmlFor="playback-speed-select" className={styles.label}>
+              {t('player.speed') || t('a11y.playbackSpeed')}:
+            </label>
             <select
+              id="playback-speed-select"
               value={speed}
               onChange={(e) => setSpeed(Number(e.target.value))}
               className={styles.speedSelect}
@@ -369,9 +392,16 @@ export default function ListenClient({ params }: Props) {
             <Button
               variant="ghost"
               shape="circle"
-              leftIcon={isMuted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+              leftIcon={
+                isMuted || volume === 0 ? (
+                  <VolumeX size={18} aria-hidden="true" />
+                ) : (
+                  <Volume2 size={18} aria-hidden="true" />
+                )
+              }
               onClick={() => setIsMuted(!isMuted)}
               className={styles.volumeBtn}
+              aria-label={isMuted || volume === 0 ? t('a11y.unmute') : t('a11y.mute')}
             />
             <Slider
               min={0}
@@ -383,6 +413,7 @@ export default function ListenClient({ params }: Props) {
                 if (v > 0) setIsMuted(false);
               }}
               className={styles.volumeSlider}
+              aria-label={t('a11y.volume')}
             />
           </div>
         </div>

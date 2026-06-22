@@ -258,6 +258,17 @@
     "skipToContent": "Перейти к основному содержимому",
     "sortReviews": "Сортировать отзывы",
     "footerNavigation": "Навигация в подвале",
-    "bookCover": "Обложка книги «{title}» {author}"
+    "bookCover": "Обложка книги «{title}» {author}",
+    "play": "Воспроизвести",
+    "pause": "Пауза",
+    "skipBack": "Назад на 15 секунд",
+    "skipForward": "Вперед на 15 секунд",
+    "prevChapter": "Предыдущая глава",
+    "nextChapter": "Следующая глава",
+    "playbackSpeed": "Скорость воспроизведения",
+    "volume": "Громкость",
+    "mute": "Без звука",
+    "unmute": "Включить звук",
+    "audioProgress": "Прогресс аудио"
   }
 }
