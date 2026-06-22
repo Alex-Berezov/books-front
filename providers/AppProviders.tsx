@@ -13,6 +13,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider } from 'antd';
+import { useParams } from 'next/navigation';
 import { SessionProvider } from 'next-auth/react';
 import { SnackbarProvider } from 'notistack';
 import { ToastConfigurator } from '@/components/common/ToastConfigurator';
@@ -34,6 +35,15 @@ interface AppProvidersProps {
  */
 export const AppProviders = (props: AppProvidersProps) => {
   const { children, session } = props;
+  const params = useParams();
+  const lang = params?.lang as string;
+
+  // Dynamically set html lang attribute for accessibility (screen readers)
+  useEffect(() => {
+    if (lang && ['en', 'ru', 'es', 'pt', 'fr'].includes(lang)) {
+      document.documentElement.lang = lang;
+    }
+  }, [lang]);
 
   const [activeSession, setActiveSession] = useState<Session | null | undefined>(() => {
     if (session !== undefined) return session;
