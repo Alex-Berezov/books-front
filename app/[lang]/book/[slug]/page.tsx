@@ -12,9 +12,19 @@ import type { Metadata } from 'next';
 import styles from './book.module.scss';
 
 // Dynamically load non-critical sections (reviews and extra details) to exclude their CSS/JS from the main render-blocking bundle
-const BookReviews = dynamic(() => import('@/components/public/reviews/BookReviews'), {
-  ssr: false,
-  loading: () => (
+const ReviewsLoading = () => {
+  let text = 'Loading reviews...';
+  if (typeof window !== 'undefined') {
+    const segments = window.location.pathname.split('/');
+    const lang = segments[1] as SupportedLang;
+    try {
+      const dict = getDictionary(lang);
+      text = dict.book.loadingReviews || text;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  return (
     <div
       style={{
         minHeight: '150px',
@@ -23,9 +33,14 @@ const BookReviews = dynamic(() => import('@/components/public/reviews/BookReview
         justifyContent: 'center',
       }}
     >
-      Loading reviews...
+      {text}
     </div>
-  ),
+  );
+};
+
+const BookReviews = dynamic(() => import('@/components/public/reviews/BookReviews'), {
+  ssr: false,
+  loading: ReviewsLoading,
 });
 
 const BookExtraDetails = dynamic(() => import('./BookExtraDetails'), {
@@ -39,7 +54,7 @@ const BookActions = dynamic(() => import('./BookActions'), {
     <div
       style={{
         height: '48px',
-        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        backgroundColor: 'var(--skeleton-bg)',
         borderRadius: '6px',
         width: '200px',
         animation: 'skeletonPulse 1.5s infinite ease-in-out',
@@ -51,22 +66,6 @@ const BookActions = dynamic(() => import('./BookActions'), {
 const BookRating = dynamic(() => import('./BookRating'), {
   ssr: false,
 });
-
-const getHomeName = (lang: string): string => {
-  switch (lang) {
-    case 'ru':
-      return 'Главная';
-    case 'es':
-      return 'Inicio';
-    case 'pt':
-      return 'Início';
-    case 'fr':
-      return 'Accueil';
-    case 'en':
-    default:
-      return 'Home';
-  }
-};
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>;
@@ -168,8 +167,11 @@ export default async function BookDetailPage({ params }: Props) {
   const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
 
   const dict = getDictionary(supportedLang);
-
-  const coverBgColor = '#8B7355';
+  const descriptionTitle = dict.book.aboutBook.replace(
+    '{title}',
+    activeVersion?.title || book.title
+  );
+  const coverBgColor = 'var(--cover-placeholder-bg)';
 
   return (
     <div className={styles.bookPage}>
@@ -193,7 +195,7 @@ export default async function BookDetailPage({ params }: Props) {
             }}
           >
             <li>
-              <Link href={`/${supportedLang}`}>{getHomeName(supportedLang)}</Link>
+              <Link href={`/${supportedLang}`}>{dict.book.home}</Link>
             </li>
             {seoData?.breadcrumbPath?.map((item: { slug: string; name: string }) => (
               <li key={item.slug} className={styles.breadcrumbItem}>
@@ -402,9 +404,7 @@ export default async function BookDetailPage({ params }: Props) {
           <div className={styles.themesWrapper}>
             <hr className={styles.divider} />
             <div className={styles.themesContainer}>
-              <span className={styles.themesLabel}>
-                {supportedLang === 'ru' ? 'Ключевые темы:' : 'Key Themes:'}
-              </span>
+              <span className={styles.themesLabel}>{dict.book.themes}</span>
               <div className={styles.themesList}>
                 {activeVersion.themes.map((theme: string) => (
                   <span key={theme} className={styles.themeTag}>
@@ -418,17 +418,7 @@ export default async function BookDetailPage({ params }: Props) {
 
         {/* Description section */}
         <div id="summary" className={styles.descriptionWrapper}>
-          <h2 className={styles.descriptionTitle}>
-            {supportedLang === 'ru'
-              ? `О книге «${activeVersion?.title || book.title}»`
-              : supportedLang === 'es'
-                ? `Sobre el libro «${activeVersion?.title || book.title}»`
-                : supportedLang === 'pt'
-                  ? `Sobre o livro «${activeVersion?.title || book.title}»`
-                  : supportedLang === 'fr'
-                    ? `À propos du livre «${activeVersion?.title || book.title}»`
-                    : `About ${activeVersion?.title || book.title}`}
-          </h2>
+          <h2 className={styles.descriptionTitle}>{descriptionTitle}</h2>
           {book.description ? (
             <div
               className={styles.description}

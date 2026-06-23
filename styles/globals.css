@@ -16,6 +16,8 @@
   --gold: oklch(0.72 0.16 80);
   --gold-foreground: oklch(0.2 0.04 65);
   --public-border: oklch(0.88 0.015 72);
+  --skeleton-bg: rgba(0, 0, 0, 0.05);
+  --cover-placeholder-bg: #8B7355;
 }
 
 .dark {
@@ -29,6 +31,8 @@
   --gold: oklch(0.68 0.15 78);
   --gold-foreground: oklch(0.14 0.04 65);
   --public-border: oklch(1 0 0 / 10%);
+  --skeleton-bg: rgba(255, 255, 255, 0.05);
+  --cover-placeholder-bg: #5c4d3c;
 }
 
 
