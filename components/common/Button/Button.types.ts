@@ -94,4 +94,19 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
    * Button content
    */
   children?: ReactNode;
+
+  /**
+   * Optional link URL. If provided, the button is rendered as an anchor (a) tag.
+   */
+  href?: string;
+
+  /**
+   * Optional link target (e.g. '_blank')
+   */
+  target?: string;
+
+  /**
+   * Optional link rel attribute
+   */
+  rel?: string;
 }

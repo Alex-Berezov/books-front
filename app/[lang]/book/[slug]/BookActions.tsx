@@ -82,7 +82,7 @@ export default function BookActions({
       )}
 
       {hasSummary && versionId && (
-        <Link href={`/${lang}/summary/${slug}/${versionId}`} passHref legacyBehavior>
+        <Link href={`/${lang}/book/${slug}#summary`} passHref legacyBehavior>
           <Button variant="secondary" size="lg" leftIcon={<FileText size={18} />}>
             {t('book.summary')}
           </Button>

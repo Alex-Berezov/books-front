@@ -41,96 +41,104 @@ import styles from './Button.module.scss';
  * </Button>
  * ```
  */
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
-  const {
-    variant = 'primary',
-    size = 'md',
-    shape = 'default',
-    fullWidth = false,
-    loading = false,
-    active = false,
-    leftIcon,
-    rightIcon,
-    type = 'button',
-    form,
-    ariaLabel,
-    disabled,
-    className,
-    children,
-    onClick,
-  } = props;
+export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
+  (props, ref) => {
+    const {
+      variant = 'primary',
+      size = 'md',
+      shape = 'default',
+      fullWidth = false,
+      loading = false,
+      active = false,
+      leftIcon,
+      rightIcon,
+      type = 'button',
+      form,
+      ariaLabel,
+      disabled,
+      className,
+      children,
+      onClick,
+      href,
+      target,
+      rel,
+    } = props;
 
-  // Map our variants to antd types
-  const getAntdType = (): ButtonType => {
-    switch (variant) {
-      case 'primary':
-        return 'primary';
-      case 'ghost':
-        return 'text';
-      case 'link':
-        return 'link';
-      case 'secondary':
-      case 'danger':
-      case 'success':
-      case 'warning':
-      default:
-        return 'default';
-    }
-  };
+    // Map our variants to antd types
+    const getAntdType = (): ButtonType => {
+      switch (variant) {
+        case 'primary':
+          return 'primary';
+        case 'ghost':
+          return 'text';
+        case 'link':
+          return 'link';
+        case 'secondary':
+        case 'danger':
+        case 'success':
+        case 'warning':
+        default:
+          return 'default';
+      }
+    };
 
-  // Map sizes
-  const getAntdSize = () => {
-    switch (size) {
-      case 'sm':
-        return 'small' as const;
-      case 'lg':
-        return 'large' as const;
-      case 'md':
-      default:
-        return 'middle' as const;
-    }
-  };
+    // Map sizes
+    const getAntdSize = () => {
+      switch (size) {
+        case 'sm':
+          return 'small' as const;
+        case 'lg':
+          return 'large' as const;
+        case 'md':
+        default:
+          return 'middle' as const;
+      }
+    };
 
-  // Map shape
-  const getAntdShape = () => {
-    if (shape === 'circle') return 'circle' as const;
-    if (shape === 'round') return 'round' as const;
-    return undefined;
-  };
+    // Map shape
+    const getAntdShape = () => {
+      if (shape === 'circle') return 'circle' as const;
+      if (shape === 'round') return 'round' as const;
+      return undefined;
+    };
 
-  // Build class names for custom styles
-  const classNames = [
-    styles.button,
-    styles[variant],
-    fullWidth && styles.fullWidth,
-    active && styles.active,
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+    // Build class names for custom styles
+    const classNames = [
+      styles.button,
+      styles[variant],
+      fullWidth && styles.fullWidth,
+      active && styles.active,
+      className,
+    ]
+      .filter(Boolean)
+      .join(' ');
 
-  return (
-    <AntButton
-      ref={ref}
-      type={getAntdType()}
-      size={getAntdSize()}
-      shape={getAntdShape()}
-      loading={loading}
-      disabled={disabled}
-      danger={variant === 'danger'}
-      block={fullWidth}
-      icon={leftIcon}
-      htmlType={type}
-      form={form}
-      onClick={onClick}
-      className={classNames}
-      aria-label={ariaLabel}
-    >
-      {!leftIcon && children}
-      {leftIcon && children}
-      {rightIcon && <span className={styles.rightIcon}>{rightIcon}</span>}
-    </AntButton>
-  );
-});
+    return (
+      <AntButton
+        ref={ref}
+        type={getAntdType()}
+        size={getAntdSize()}
+        shape={getAntdShape()}
+        loading={loading}
+        disabled={disabled}
+        danger={variant === 'danger'}
+        block={fullWidth}
+        icon={leftIcon}
+        htmlType={type}
+        form={form}
+        onClick={onClick}
+        className={classNames}
+        aria-label={ariaLabel}
+        href={href}
+        target={target}
+        rel={rel}
+      >
+        {!leftIcon && children}
+        {leftIcon && children}
+        {rightIcon && <span className={styles.rightIcon}>{rightIcon}</span>}
+      </AntButton>
+    );
+  }
+);
 
 Button.displayName = 'Button';
