@@ -3,11 +3,13 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import { permanentRedirect, notFound } from 'next/navigation';
-import { getBookOverview, resolveSeo } from '@/api/endpoints/public';
+import { getBookOverview, resolveSeo, getPublicBooks } from '@/api/endpoints/public';
 import { Button } from '@/components/common/Button';
+import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { BookOverview } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import styles from './book.module.scss';
 
@@ -132,16 +134,55 @@ export default async function BookDetailPage({ params }: Props) {
 
   let book;
   let seoData;
+  let allBooks: BookOverview[] = [];
   try {
     book = await getBookOverview(supportedLang, slug);
     seoData = await resolveSeo(supportedLang, 'book', slug);
+    const booksRes = await getPublicBooks(supportedLang, { page: 1, limit: 100 });
+    allBooks = booksRes.data || [];
   } catch (error) {
-    console.error('Error loading book overview or SEO on server:', error);
+    console.error('Error loading book overview, SEO, or public books on server:', error);
   }
 
   if (!book) {
     notFound();
   }
+
+  // Filter books by the same author (excluding the current book)
+  const authorBooks = book
+    ? allBooks
+        .filter(
+          (b) =>
+            b.id !== book.id &&
+            b.author?.trim().toLowerCase() ===
+              (activeVersion?.author || book.author || '').trim().toLowerCase()
+        )
+        .slice(0, 4)
+    : [];
+
+  // Filter similar books (same categories, excluding the same author books to keep variety)
+  const categoryIds = book?.categories?.map((c) => c.id) || [];
+  let similarBooks = book
+    ? allBooks.filter(
+        (b) =>
+          b.id !== book.id &&
+          b.author?.trim().toLowerCase() !==
+            (activeVersion?.author || book.author || '').trim().toLowerCase() &&
+          b.categories?.some((c) => categoryIds.includes(c.id))
+      )
+    : [];
+
+  // Fallback: if not enough similar books by category, fill with remaining books
+  if (book && similarBooks.length < 4) {
+    const excludedIds = new Set([
+      book.id,
+      ...authorBooks.map((b) => b.id),
+      ...similarBooks.map((b) => b.id),
+    ]);
+    const fillBooks = allBooks.filter((b) => !excludedIds.has(b.id));
+    similarBooks = [...similarBooks, ...fillBooks];
+  }
+  similarBooks = similarBooks.slice(0, 4);
 
   // Redirect to correct localized slug if requested slug is outdated/incorrect
   if (book.slug && book.slug !== slug) {
@@ -443,6 +484,30 @@ export default async function BookDetailPage({ params }: Props) {
             bookId={book.id}
             hasRated={false}
           />
+        )}
+
+        {/* Books by the same author */}
+        {authorBooks.length > 0 && (
+          <section className={styles.relatedSection} style={{ marginTop: '3rem' }}>
+            <h2 className={styles.sectionTitle}>{dict.book.sameAuthor}</h2>
+            <div className={styles.booksGrid}>
+              {authorBooks.map((b) => (
+                <BookCard key={b.id} book={b} size="md" />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* You Might Also Like */}
+        {similarBooks.length > 0 && (
+          <section className={styles.relatedSection} style={{ marginTop: '3rem' }}>
+            <h2 className={styles.sectionTitle}>{dict.book.youMightLike}</h2>
+            <div className={styles.booksGrid}>
+              {similarBooks.map((b) => (
+                <BookCard key={b.id} book={b} size="md" />
+              ))}
+            </div>
+          </section>
         )}
       </div>
     </div>
