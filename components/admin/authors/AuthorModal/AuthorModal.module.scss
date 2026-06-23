@@ -83,9 +83,9 @@
   width: 100%;
   padding: $spacing-sm;
   border: 1px solid $color-border-light;
-  border-radius: $border-radius-md;
+  border-radius: $border-radius-lg;
   font-family: inherit;
-  font-size: $font-size-md;
+  font-size: $font-size-base;
   color: $color-text-primary;
   background-color: $color-background-primary;
   resize: vertical;
@@ -124,7 +124,7 @@
   align-items: flex-start;
   border: 1px solid $color-border-light;
   padding: $spacing-md;
-  border-radius: $border-radius-md;
+  border-radius: $border-radius-lg;
   background-color: $color-background-secondary;
 }
 

@@ -165,7 +165,7 @@
 }
 
 .biographyContent {
-  font-size: $font-size-md;
+  font-size: $font-size-base;
   color: var(--public-foreground);
   line-height: $line-height-relaxed;
   white-space: pre-line;
@@ -193,7 +193,7 @@
   background-color: var(--public-background-card, #ffffff);
   border-left: 4px solid var(--public-primary);
   padding: $spacing-md $spacing-lg;
-  border-radius: $border-radius-md;
+  border-radius: $border-radius-lg;
   box-shadow: $shadow-sm;
   margin: 0;
   display: flex;
@@ -203,7 +203,7 @@
 
 .quoteText {
   font-style: italic;
-  font-size: $font-size-md;
+  font-size: $font-size-base;
   color: var(--public-foreground);
   margin: 0;
 }
@@ -233,7 +233,7 @@
 
 .faqDetails {
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: $border-radius-md;
+  border-radius: $border-radius-lg;
   background-color: var(--public-background-card, #ffffff);
   overflow: hidden;
 
@@ -257,7 +257,7 @@
 
 .faqAnswer {
   padding: $spacing-md;
-  font-size: $font-size-md;
+  font-size: $font-size-base;
   color: var(--public-foreground);
   opacity: 0.85;
   line-height: $line-height-relaxed;
