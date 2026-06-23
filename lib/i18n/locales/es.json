@@ -86,7 +86,11 @@
     "author": "Autor",
     "publicationYear": "Año de publicación",
     "languageLabel": "Idioma",
-    "youMightLike": "También te podría gustar"
+    "youMightLike": "También te podría gustar",
+    "originalTitle": "Título original",
+    "originalLanguage": "Idioma original",
+    "copyrightStatus": "Estado de derechos de autor",
+    "alternativeTitles": "Títulos alternativos"
   },
   "author": {
     "back": "Volver",

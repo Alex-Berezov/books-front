@@ -1,4 +1,4 @@
-import { BookOpen, Calendar, Globe, User, ChevronLeft } from 'lucide-react';
+import { BookOpen, Calendar, Globe, User, ChevronLeft, FileText } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -6,6 +6,7 @@ import { permanentRedirect, notFound } from 'next/navigation';
 import { getBookOverview, resolveSeo } from '@/api/endpoints/public';
 import { Button } from '@/components/common/Button';
 import { StarRating } from '@/components/public/books/StarRating';
+import { getDictionary } from '@/lib/i18n/dictionaries';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import styles from './book.module.scss';
@@ -166,67 +167,7 @@ export default async function BookDetailPage({ params }: Props) {
   const hasSummary = textHasSummary || audioHasSummary;
   const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
 
-  const t = (key: string) => {
-    // Basic server-side translation helper for critical texts
-    const translations: Record<SupportedLang, Record<string, string>> = {
-      ru: {
-        'book.by': 'от ',
-        'book.notFound': 'Книга не найдена',
-        'book.back': 'Назад',
-        'book.unknownAuthor': 'Неизвестный автор',
-        'book.published': 'Опубликовано:',
-        'book.language': 'Язык:',
-        'book.firstPublished': 'Первая публикация:',
-        'book.editionPublished': 'Издание:',
-        'book.noDescription': 'Описание отсутствует',
-      },
-      en: {
-        'book.by': 'by ',
-        'book.notFound': 'Book not found',
-        'book.back': 'Back',
-        'book.unknownAuthor': 'Unknown Author',
-        'book.published': 'Published:',
-        'book.language': 'Language:',
-        'book.firstPublished': 'First Published:',
-        'book.editionPublished': 'Edition Published:',
-        'book.noDescription': 'No description available',
-      },
-      es: {
-        'book.by': 'por ',
-        'book.notFound': 'Libro no encontrado',
-        'book.back': 'Volver',
-        'book.unknownAuthor': 'Autor Desconocido',
-        'book.published': 'Publicado:',
-        'book.language': 'Idioma:',
-        'book.firstPublished': 'Primera publicación:',
-        'book.editionPublished': 'Edición publicada:',
-        'book.noDescription': 'No hay descripción disponible',
-      },
-      fr: {
-        'book.by': 'par ',
-        'book.notFound': 'Livre non trouvé',
-        'book.back': 'Retour',
-        'book.unknownAuthor': 'Auteur Inconnu',
-        'book.published': 'Publié:',
-        'book.language': 'Langue:',
-        'book.firstPublished': 'Première publication:',
-        'book.editionPublished': 'Édition publiée:',
-        'book.noDescription': 'Aucune description disponible',
-      },
-      pt: {
-        'book.by': 'por ',
-        'book.notFound': 'Livro não encontrado',
-        'book.back': 'Voltar',
-        'book.unknownAuthor': 'Autor Desconhecido',
-        'book.published': 'Publicado:',
-        'book.language': 'Idioma:',
-        'book.firstPublished': 'Primeira publicação:',
-        'book.editionPublished': 'Edição publicada:',
-        'book.noDescription': 'Nenhuma descrição disponível',
-      },
-    };
-    return translations[supportedLang]?.[key] || key;
-  };
+  const dict = getDictionary(supportedLang);
 
   const coverBgColor = '#8B7355';
 
@@ -266,7 +207,7 @@ export default async function BookDetailPage({ params }: Props) {
               <span className={styles.separator} aria-hidden="true">
                 /
               </span>
-              <span className={styles.current}>{book.title}</span>
+              <span className={styles.current}>{activeVersion?.title || book.title}</span>
             </li>
           </ol>
         </nav>
@@ -274,7 +215,7 @@ export default async function BookDetailPage({ params }: Props) {
         {/* Back Button */}
         <Link href={`/${supportedLang}`} passHref legacyBehavior>
           <Button variant="ghost" leftIcon={<ChevronLeft size={16} />} className={styles.backBtn}>
-            {t('book.back')}
+            {dict.book.back}
           </Button>
         </Link>
 
@@ -286,7 +227,7 @@ export default async function BookDetailPage({ params }: Props) {
               {book.coverUrl ? (
                 <Image
                   src={book.coverUrl}
-                  alt={activeVersion?.coverAlt || book.title}
+                  alt={activeVersion?.coverAlt || activeVersion?.title || book.title}
                   className={styles.coverImg}
                   width={200}
                   height={290}
@@ -295,7 +236,9 @@ export default async function BookDetailPage({ params }: Props) {
               ) : (
                 <div className={styles.coverPlaceholder}>
                   <BookOpen size={48} className={styles.placeholderIcon} />
-                  <span className={styles.placeholderText}>{book.title}</span>
+                  <span className={styles.placeholderText}>
+                    {activeVersion?.title || book.title}
+                  </span>
                 </div>
               )}
             </div>
@@ -303,17 +246,17 @@ export default async function BookDetailPage({ params }: Props) {
 
           {/* Book Info */}
           <div className={styles.infoWrapper}>
-            <h1 className={styles.title}>{book.title}</h1>
+            <h1 className={styles.title}>{activeVersion?.title || book.title}</h1>
             <p className={styles.author}>
-              {t('book.by')}{' '}
+              {dict.book.by}{' '}
               <Link
                 href={
                   activeVersion?.authorPageUrl ||
-                  `/${supportedLang}/author/${encodeURIComponent((book.author || '').trim().toLowerCase().replace(/\s+/g, '-'))}`
+                  `/${supportedLang}/author/${encodeURIComponent((activeVersion?.author || book.author || '').trim().toLowerCase().replace(/\s+/g, '-'))}`
                 }
                 className={styles.authorLink}
               >
-                {book.author || t('book.unknownAuthor')}
+                {activeVersion?.author || book.author || dict.book.unknownAuthor}
               </Link>
             </p>
 
@@ -386,11 +329,11 @@ export default async function BookDetailPage({ params }: Props) {
 
             {/* Meta details */}
             <div className={styles.metadataList}>
-              {book.author && (
+              {(activeVersion?.author || book.author) && (
                 <div className={styles.metaItem}>
                   <User size={16} />
                   <span>
-                    {t('book.author')}: {book.author}
+                    {dict.book.author}: {activeVersion?.author || book.author}
                   </span>
                 </div>
               )}
@@ -398,7 +341,7 @@ export default async function BookDetailPage({ params }: Props) {
                 <div className={styles.metaItem}>
                   <Calendar size={16} />
                   <span>
-                    {t('book.firstPublished')} {book.firstPublishedYear}
+                    {dict.book.firstPublished} {book.firstPublishedYear}
                   </span>
                 </div>
               ) : null}
@@ -406,7 +349,7 @@ export default async function BookDetailPage({ params }: Props) {
                 <div className={styles.metaItem}>
                   <Calendar size={16} />
                   <span>
-                    {t('book.editionPublished')} {book.editionPublishedYear}
+                    {dict.book.editionPublished} {book.editionPublishedYear}
                   </span>
                 </div>
               ) : null}
@@ -414,7 +357,39 @@ export default async function BookDetailPage({ params }: Props) {
                 <div className={styles.metaItem}>
                   <Globe size={16} />
                   <span>
-                    {t('book.language')} {(book.language || '').toUpperCase()}
+                    {dict.book.language} {(book.language || '').toUpperCase()}
+                  </span>
+                </div>
+              )}
+              {activeVersion?.originalTitle && (
+                <div className={styles.metaItem}>
+                  <FileText size={16} />
+                  <span>
+                    {dict.book.originalTitle}: {activeVersion.originalTitle}
+                  </span>
+                </div>
+              )}
+              {activeVersion?.originalLanguage && (
+                <div className={styles.metaItem}>
+                  <Globe size={16} />
+                  <span>
+                    {dict.book.originalLanguage}: {activeVersion.originalLanguage}
+                  </span>
+                </div>
+              )}
+              {activeVersion?.copyrightStatus && (
+                <div className={styles.metaItem}>
+                  <FileText size={16} />
+                  <span>
+                    {dict.book.copyrightStatus}: {activeVersion.copyrightStatus}
+                  </span>
+                </div>
+              )}
+              {activeVersion?.alternativeTitles && activeVersion.alternativeTitles.length > 0 && (
+                <div className={styles.metaItem}>
+                  <FileText size={16} />
+                  <span>
+                    {dict.book.alternativeTitles}: {activeVersion.alternativeTitles.join(', ')}
                   </span>
                 </div>
               )}
@@ -445,14 +420,14 @@ export default async function BookDetailPage({ params }: Props) {
         <div id="summary" className={styles.descriptionWrapper}>
           <h2 className={styles.descriptionTitle}>
             {supportedLang === 'ru'
-              ? `О книге «${book.title}»`
+              ? `О книге «${activeVersion?.title || book.title}»`
               : supportedLang === 'es'
-                ? `Sobre el libro «${book.title}»`
+                ? `Sobre el libro «${activeVersion?.title || book.title}»`
                 : supportedLang === 'pt'
-                  ? `Sobre o livro «${book.title}»`
+                  ? `Sobre o livro «${activeVersion?.title || book.title}»`
                   : supportedLang === 'fr'
-                    ? `À propos du livre «${book.title}»`
-                    : `About ${book.title}`}
+                    ? `À propos du livre «${activeVersion?.title || book.title}»`
+                    : `About ${activeVersion?.title || book.title}`}
           </h2>
           {book.description ? (
             <div
@@ -460,7 +435,7 @@ export default async function BookDetailPage({ params }: Props) {
               dangerouslySetInnerHTML={{ __html: book.description }}
             />
           ) : (
-            <p className={styles.description}>{t('book.noDescription')}</p>
+            <p className={styles.description}>{dict.book.noDescription}</p>
           )}
         </div>
 

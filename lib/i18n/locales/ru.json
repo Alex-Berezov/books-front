@@ -86,7 +86,11 @@
     "author": "Автор",
     "publicationYear": "Год публикации",
     "languageLabel": "Язык",
-    "youMightLike": "Вам также может понравиться"
+    "youMightLike": "Вам также может понравиться",
+    "originalTitle": "Оригинальное название",
+    "originalLanguage": "Оригинальный язык",
+    "copyrightStatus": "Правовой статус",
+    "alternativeTitles": "Альтернативные названия"
   },
   "author": {
     "back": "Назад",
