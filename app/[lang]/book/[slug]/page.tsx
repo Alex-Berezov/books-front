@@ -148,6 +148,20 @@ export default async function BookDetailPage({ params }: Props) {
     notFound();
   }
 
+  // Redirect to correct localized slug if requested slug is outdated/incorrect
+  if (book.slug && book.slug !== slug) {
+    permanentRedirect(`/${lang}/book/${book.slug}`);
+  }
+
+  const versionIds = book.versionIds;
+  const textVersion = versionIds?.text
+    ? (book.versions?.find((v) => v.id === versionIds.text) ?? null)
+    : null;
+  const audioVersion = versionIds?.audio
+    ? (book.versions?.find((v) => v.id === versionIds.audio) ?? null)
+    : null;
+  const activeVersion = textVersion || audioVersion || book.versions?.[0] || null;
+
   // Filter books by the same author (excluding the current book)
   const authorBooks = book
     ? allBooks
@@ -183,20 +197,6 @@ export default async function BookDetailPage({ params }: Props) {
     similarBooks = [...similarBooks, ...fillBooks];
   }
   similarBooks = similarBooks.slice(0, 4);
-
-  // Redirect to correct localized slug if requested slug is outdated/incorrect
-  if (book.slug && book.slug !== slug) {
-    permanentRedirect(`/${lang}/book/${book.slug}`);
-  }
-
-  const versionIds = book.versionIds;
-  const textVersion = versionIds?.text
-    ? (book.versions?.find((v) => v.id === versionIds.text) ?? null)
-    : null;
-  const audioVersion = versionIds?.audio
-    ? (book.versions?.find((v) => v.id === versionIds.audio) ?? null)
-    : null;
-  const activeVersion = textVersion || audioVersion || book.versions?.[0] || null;
 
   const textHasSummary = textVersion
     ? ((textVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0
