@@ -157,3 +157,109 @@
   height: 208px !important;
   border-radius: $border-radius-lg !important;
 }
+
+.section {
+  margin-top: $spacing-xxl;
+  display: flex;
+  flex-direction: column;
+}
+
+.biographyContent {
+  font-size: $font-size-md;
+  color: var(--public-foreground);
+  line-height: $line-height-relaxed;
+  white-space: pre-line;
+  opacity: 0.85;
+}
+
+.iconTitle {
+  margin-right: $spacing-xs;
+  color: var(--public-primary);
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.quotesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.quoteCard {
+  background-color: var(--public-background-card, #ffffff);
+  border-left: 4px solid var(--public-primary);
+  padding: $spacing-md $spacing-lg;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.quoteText {
+  font-style: italic;
+  font-size: $font-size-md;
+  color: var(--public-foreground);
+  margin: 0;
+}
+
+.quoteSource {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.7;
+}
+
+.similarGrid {
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.similarBtn {
+  border-radius: $border-radius-round !important;
+  font-size: $font-size-sm !important;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.faqDetails {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: $border-radius-md;
+  background-color: var(--public-background-card, #ffffff);
+  overflow: hidden;
+
+  &[open] .faqSummary {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+}
+
+.faqSummary {
+  padding: $spacing-md;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+  color: var(--public-foreground);
+  user-select: none;
+
+  &:hover {
+    color: var(--public-primary);
+  }
+}
+
+.faqAnswer {
+  padding: $spacing-md;
+  font-size: $font-size-md;
+  color: var(--public-foreground);
+  opacity: 0.85;
+  line-height: $line-height-relaxed;
+}
+

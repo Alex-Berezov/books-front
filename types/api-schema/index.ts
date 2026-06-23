@@ -162,3 +162,15 @@ export type {
   ToggleLikeResponse,
   LikeCountResponse,
 } from './comments';
+
+// Authors
+export type {
+  Author,
+  AuthorFaq,
+  AuthorQuote,
+  AuthorTranslation,
+  PublicAuthorDetail,
+  CreateAuthorRequest,
+  UpdateAuthorRequest,
+  CheckAuthorSlugResponse,
+} from './authors';

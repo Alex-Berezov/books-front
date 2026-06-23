@@ -1,0 +1,152 @@
+@import '@/styles/tokens.scss';
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+}
+
+.tabsHeader {
+  display: flex;
+  border-bottom: 1px solid $color-border-light;
+  gap: $spacing-xs;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.tabBtn {
+  background: none;
+  border: none;
+  padding: $spacing-sm $spacing-md;
+  cursor: pointer;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  white-space: nowrap;
+
+  &:hover {
+    color: $color-primary;
+  }
+
+  &.active {
+    color: $color-primary;
+    border-bottom-color: $color-primary;
+  }
+}
+
+.flagIcon {
+  width: 16px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.indicator {
+  font-size: 8px;
+  color: $color-primary;
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: $spacing-xs 2px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+}
+
+.row {
+  display: flex;
+  gap: $spacing-md;
+
+  .field {
+    flex: 1;
+  }
+}
+
+.textarea {
+  width: 100%;
+  padding: $spacing-sm;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  font-family: inherit;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  background-color: $color-background-primary;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+  }
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed $color-border-light;
+  padding-bottom: $spacing-xs;
+}
+
+.subItemRow {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: center;
+}
+
+.quoteText {
+  flex: 3;
+}
+
+.quoteSource {
+  flex: 1;
+}
+
+.faqBlock {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: flex-start;
+  border: 1px solid $color-border-light;
+  padding: $spacing-md;
+  border-radius: $border-radius-md;
+  background-color: $color-background-secondary;
+}
+
+.faqInputs {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  flex: 1;
+}
+
+.removeBtn {
+  color: $color-error !important;
+  &:hover {
+    background-color: rgba($color-error, 0.05) !important;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+  margin-top: $spacing-lg;
+  border-top: 1px solid $color-border-light;
+  padding-top: $spacing-md;
+}

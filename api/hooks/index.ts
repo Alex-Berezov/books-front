@@ -116,3 +116,13 @@ export { usePublicChapters } from './usePublic';
 
 // Bookshelf
 export { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from './useBookshelf';
+
+// Authors
+export {
+  authorKeys,
+  useAuthors,
+  usePublicAuthor,
+  useCreateAuthor,
+  useUpdateAuthor,
+  useDeleteAuthor,
+} from './useAuthors';

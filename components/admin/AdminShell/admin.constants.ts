@@ -3,7 +3,16 @@
  */
 
 import type { ComponentType } from 'react';
-import { BookOpen, FileText, FolderTree, Tags, Image, MessageSquare, Users } from 'lucide-react';
+import {
+  BookOpen,
+  FileText,
+  FolderTree,
+  Tags,
+  Image,
+  MessageSquare,
+  Users,
+  User,
+} from 'lucide-react';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
@@ -25,6 +34,12 @@ export const getAdminMenuItems = (lang: SupportedLang): AdminMenuItem[] => [
     label: 'Books',
     icon: BookOpen,
     path: `/admin/${lang}/books`,
+  },
+  {
+    id: 'authors',
+    label: 'Authors',
+    icon: User,
+    path: `/admin/${lang}/authors`,
   },
   {
     id: 'pages',

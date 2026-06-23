@@ -84,6 +84,7 @@ export const bookVersionSchema = z.object({
   originalLanguage: z.string().optional().or(z.literal('')),
   copyrightStatus: z.string().optional().or(z.literal('')),
   authorPageUrl: z.string().optional().or(z.literal('')),
+  authorId: z.string().optional().or(z.literal('')),
   characters: z.array(z.object({ name: z.string(), description: z.string() })).optional(),
   quotes: z
     .array(z.object({ text: z.string(), author: z.string().optional().or(z.literal('')) }))

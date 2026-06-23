@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
+import { useAuthors } from '@/api/hooks/useAuthors';
 import { useCategories } from '@/api/hooks/useCategories';
 import { Input } from '@/components/common/Input';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
@@ -48,6 +49,9 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
   }));
 
   const { data: categoriesData } = useCategories({ limit: 100 });
+  const { data: authorsData } = useAuthors({ limit: 1000 });
+  const authorsList = authorsData?.data || [];
+  const currentLang = watch('language');
   const categoryOptions = [
     { label: 'None', value: '' },
     ...(categoriesData?.data || []).map((cat) => {
@@ -122,13 +126,62 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
         <label className={styles.label} htmlFor="author">
           Author *
         </label>
-        <Input
-          id="author"
-          placeholder="Enter author name"
-          type="text"
-          fullWidth
-          {...register('author')}
-        />
+        <select
+          id="author-select"
+          className={styles.select}
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            border: '1px solid var(--color-border-light, #d9d9d9)',
+            borderRadius: '6px',
+            backgroundColor: 'var(--color-bg-container, #ffffff)',
+            color: 'var(--color-text, #000000)',
+            marginBottom: '0.5rem',
+          }}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val === 'custom') {
+              setValue('authorId', '');
+            } else if (val === '') {
+              setValue('authorId', '');
+              setValue('author', '');
+              setValue('authorPageUrl', '');
+            } else {
+              const selected = authorsList.find((a) => a.id === val);
+              if (selected) {
+                const trans =
+                  selected.translations?.find((t) => t.language === currentLang) ||
+                  selected.translations?.[0];
+                setValue('author', trans?.name || '');
+                setValue('authorId', selected.id);
+                setValue('authorPageUrl', `/author/${selected.slug}`);
+              }
+            }
+          }}
+          value={watch('authorId') || ''}
+        >
+          <option value="">-- Select Existing Author --</option>
+          {authorsList.map((a) => {
+            const trans =
+              a.translations?.find((t) => t.language === currentLang) || a.translations?.[0];
+            return (
+              <option key={a.id} value={a.id}>
+                {trans?.name || a.slug}
+              </option>
+            );
+          })}
+          <option value="custom">Custom / New Author (Enter manually below)</option>
+        </select>
+
+        {(!watch('authorId') || watch('authorId') === '') && (
+          <Input
+            id="author"
+            placeholder="Enter author name manually"
+            type="text"
+            fullWidth
+            {...register('author')}
+          />
+        )}
         {errors.author && <span className={styles.error}>{errors.author.message}</span>}
       </div>
 

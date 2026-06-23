@@ -15,6 +15,7 @@ import type {
   SeoResolveResponse,
   ChapterDetail,
   PaginatedResponse,
+  PublicAuthorDetail,
 } from '@/types/api-schema';
 
 /**
@@ -194,4 +195,15 @@ export const resolveSeo = async (
   const params = new URLSearchParams({ type, id });
 
   return httpGet<SeoResolveResponse>(`${endpoint}?${params.toString()}`, { language: lang });
+};
+
+/**
+ * Get public author detail by slug
+ */
+export const getPublicAuthorBySlug = async (
+  lang: SupportedLang,
+  slug: string
+): Promise<PublicAuthorDetail> => {
+  const endpoint = buildLangPath(lang, `/authors/${slug}`);
+  return httpGet<PublicAuthorDetail>(endpoint, { language: lang });
 };

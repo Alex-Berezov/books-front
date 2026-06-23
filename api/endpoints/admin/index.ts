@@ -47,3 +47,7 @@ export * from './media';
 
 // Users Domain
 export * from './users';
+
+// Authors Domain
+export * from './authors';
+export type { GetAuthorsParams } from './authors';

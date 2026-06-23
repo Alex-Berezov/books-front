@@ -139,6 +139,7 @@ export interface BookVersionDetail {
   originalLanguage?: string | null;
   copyrightStatus?: string | null;
   authorPageUrl?: string | null;
+  authorId?: UUID | null;
   characters?: { name: string; description: string }[] | null;
   quotes?: { text: string; author?: string }[] | null;
   faq?: { question: string; answer: string }[] | null;

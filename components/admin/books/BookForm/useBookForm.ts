@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookVersionDetail } from '@/types/api-schema';
 import { type BookFormData, bookVersionSchema } from './BookForm.types';
@@ -16,8 +16,7 @@ export const useBookForm = (props: UseBookFormProps) => {
   const { lang, initialData, initialTitle, initialAuthor } = props;
 
   const form = useForm<BookFormData>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(bookVersionSchema) as any,
+    resolver: zodResolver(bookVersionSchema) as unknown as Resolver<BookFormData>,
     defaultValues: initialData
       ? {
           bookSlug: initialData.bookSlug || '',
@@ -44,6 +43,7 @@ export const useBookForm = (props: UseBookFormProps) => {
           originalLanguage: initialData.originalLanguage || '',
           copyrightStatus: initialData.copyrightStatus || '',
           authorPageUrl: initialData.authorPageUrl || '',
+          authorId: initialData.authorId || '',
           characters: initialData.characters || [],
           quotes: initialData.quotes || [],
           faq: initialData.faq || [],
@@ -80,6 +80,7 @@ export const useBookForm = (props: UseBookFormProps) => {
           originalLanguage: '',
           copyrightStatus: '',
           authorPageUrl: '',
+          authorId: '',
           characters: [],
           quotes: [],
           faq: [],
@@ -124,6 +125,7 @@ export const useBookForm = (props: UseBookFormProps) => {
         originalLanguage: initialData.originalLanguage || '',
         copyrightStatus: initialData.copyrightStatus || '',
         authorPageUrl: initialData.authorPageUrl || '',
+        authorId: initialData.authorId || '',
         characters: initialData.characters || [],
         quotes: initialData.quotes || [],
         faq: initialData.faq || [],
