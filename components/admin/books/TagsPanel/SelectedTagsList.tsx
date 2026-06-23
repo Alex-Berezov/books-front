@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/common/Button';
 import type { Tag } from '@/types/api-schema';
 import styles from './TagsPanel.module.scss';
@@ -11,6 +12,18 @@ interface SelectedTagsListProps {
 
 export const SelectedTagsList: FC<SelectedTagsListProps> = (props) => {
   const { tags, isPending, onRemoveTag } = props;
+  const params = useParams();
+  const lang = params?.lang as string;
+
+  const getTagName = (tag: Tag) => {
+    if (tag.translations && lang) {
+      const translation = tag.translations.find((t) => t.language === lang);
+      if (translation) {
+        return translation.name;
+      }
+    }
+    return tag.name;
+  };
 
   if (tags.length === 0) {
     return null;
@@ -22,14 +35,14 @@ export const SelectedTagsList: FC<SelectedTagsListProps> = (props) => {
       <div className={styles.selectedList}>
         {tags.map((tag) => (
           <div className={styles.selectedTag} key={tag.id}>
-            <span>{tag.name}</span>
+            <span>{getTagName(tag)}</span>
             <Button
               variant="ghost"
               size="sm"
               className={styles.removeButton}
               disabled={isPending}
               onClick={() => onRemoveTag(tag.id)}
-              ariaLabel={`Remove ${tag.name}`}
+              ariaLabel={`Remove ${getTagName(tag)}`}
             >
               ×
             </Button>

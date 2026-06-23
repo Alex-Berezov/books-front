@@ -1,4 +1,5 @@
 import type { FC, KeyboardEvent } from 'react';
+import { useParams } from 'next/navigation';
 import type { Tag } from '@/types/api-schema';
 import styles from './TagsPanel.module.scss';
 
@@ -19,6 +20,19 @@ interface TagItemProps {
 }
 
 const TagItem: FC<TagItemProps> = ({ tag, isSelected, isPending, onToggle }) => {
+  const params = useParams();
+  const lang = params?.lang as string;
+
+  const getTagName = () => {
+    if (tag.translations && lang) {
+      const translation = tag.translations.find((t) => t.language === lang);
+      if (translation) {
+        return translation.name;
+      }
+    }
+    return tag.name;
+  };
+
   const handleClick = () => {
     if (!isPending) {
       onToggle(tag.id);
@@ -42,7 +56,7 @@ const TagItem: FC<TagItemProps> = ({ tag, isSelected, isPending, onToggle }) => 
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
-      <span>{tag.name}</span>
+      <span>{getTagName()}</span>
       {isSelected && <span className={styles.checkmark}>✓</span>}
     </div>
   );
