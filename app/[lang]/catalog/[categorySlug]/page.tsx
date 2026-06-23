@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const seo = await resolveSeo(supportedLang, 'category', categorySlug);
 
     const alternatesLanguages: Record<string, string> = {};
-    seo.hreflang?.forEach((item) => {
+    (seo.hreflangs || seo.hreflang)?.forEach((item) => {
       if (item.hreflang) {
         alternatesLanguages[item.hreflang] = item.href;
       }
