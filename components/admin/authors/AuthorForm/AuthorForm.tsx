@@ -1,26 +1,32 @@
 'use client';
 
 import { useEffect, useState, type FC } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useCreateAuthor, useUpdateAuthor } from '@/api/hooks/useAuthors';
+import { MediaPicker } from '@/components/admin/common/MediaPicker/MediaPicker';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import { Modal } from '@/components/common/Modal';
 import { SlugInput } from '@/components/common/SlugInput';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
-import type { Author, AuthorTranslation, AuthorQuote, AuthorFaq } from '@/types/api-schema';
-import styles from './AuthorModal.module.scss';
+import type {
+  Author,
+  AuthorTranslation,
+  AuthorQuote,
+  AuthorFaq,
+  SeoData,
+} from '@/types/api-schema';
+import styles from './AuthorForm.module.scss';
 
-interface AuthorModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  author: Author | null;
+interface AuthorFormProps {
+  author?: Author | null;
   lang: string;
 }
 
-export const AuthorModal: FC<AuthorModalProps> = (props) => {
-  const { isOpen, onClose, author, lang } = props;
+export const AuthorForm: FC<AuthorFormProps> = (props) => {
+  const { author, lang } = props;
+  const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const isEditMode = !!author;
 
@@ -29,6 +35,14 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
 
   // Active tab state: 'general' | SupportedLang
   const [activeTab, setActiveTab] = useState<string>('general');
+  // Collapsible SEO panels per language
+  const [seoExpanded, setSeoExpanded] = useState<Record<SupportedLang, boolean>>({
+    en: false,
+    es: false,
+    fr: false,
+    pt: false,
+    ru: false,
+  });
 
   // Form states
   const [slug, setSlug] = useState('');
@@ -36,6 +50,7 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
   const [deathDate, setDeathDate] = useState('');
   const [wikidataUrl, setWikidataUrl] = useState('');
   const [wikipediaUrl, setWikipediaUrl] = useState('');
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   // Translations states
   const [translations, setTranslations] = useState<
@@ -47,81 +62,69 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
         quotes: AuthorQuote[];
         faq: AuthorFaq[];
         similarSlugs: string;
+        seo: Partial<SeoData>;
       }
     >
   >({
-    en: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-    es: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-    fr: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-    pt: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-    ru: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
+    en: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
+    es: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
+    fr: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
+    pt: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
+    ru: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
   });
 
-  // Reset form when modal opens
+  // Load initial data
   useEffect(() => {
-    if (isOpen) {
-      setActiveTab('general');
-      if (author) {
-        setSlug(author.slug);
-        setBirthDate(author.birthDate || '');
-        setDeathDate(author.deathDate || '');
-        setWikidataUrl(author.wikidataUrl || '');
-        setWikipediaUrl(author.wikipediaUrl || '');
+    if (author) {
+      setSlug(author.slug);
+      setBirthDate(author.birthDate || '');
+      setDeathDate(author.deathDate || '');
+      setWikidataUrl(author.wikidataUrl || '');
+      setWikipediaUrl(author.wikipediaUrl || '');
+      setPhotoUrl(author.photoUrl || null);
 
-        const mappedTrans: Record<
-          SupportedLang,
-          {
-            name: string;
-            biography: string;
-            quotes: AuthorQuote[];
-            faq: AuthorFaq[];
-            similarSlugs: string;
-          }
-        > = {
-          en: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-          es: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-          fr: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-          pt: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-          ru: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-        };
-
-        if (author.translations) {
-          author.translations.forEach((t) => {
-            const l = t.language as SupportedLang;
-            if (mappedTrans[l]) {
-              mappedTrans[l] = {
-                name: t.name,
-                biography: t.biography || '',
-                quotes: (t.quotes as AuthorQuote[]) || [],
-                faq: (t.faq as AuthorFaq[]) || [],
-                similarSlugs: ((t.similarSlugs as string[]) || []).join(', '),
-              };
-            }
-          });
+      const mappedTrans: Record<
+        SupportedLang,
+        {
+          name: string;
+          biography: string;
+          quotes: AuthorQuote[];
+          faq: AuthorFaq[];
+          similarSlugs: string;
+          seo: Partial<SeoData>;
         }
-        setTranslations(mappedTrans);
-      } else {
-        setSlug('');
-        setBirthDate('');
-        setDeathDate('');
-        setWikidataUrl('');
-        setWikipediaUrl('');
-        setTranslations({
-          en: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-          es: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-          fr: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-          pt: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
-          ru: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '' },
+      > = {
+        en: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
+        es: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
+        fr: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
+        pt: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
+        ru: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
+      };
+
+      if (author.translations) {
+        author.translations.forEach((t) => {
+          const l = t.language as SupportedLang;
+          if (mappedTrans[l]) {
+            mappedTrans[l] = {
+              name: t.name,
+              biography: t.biography || '',
+              quotes: (t.quotes as AuthorQuote[]) || [],
+              faq: (t.faq as AuthorFaq[]) || [],
+              similarSlugs: ((t.similarSlugs as string[]) || []).join(', '),
+              seo: t.seo || {},
+            };
+          }
         });
       }
+      setTranslations(mappedTrans);
     }
-  }, [isOpen, author]);
+  }, [author]);
 
   // Translation helpers
   const handleTranslationChange = (
     langKey: SupportedLang,
     field: string,
-    value: string | AuthorQuote[] | AuthorFaq[]
+    value: string | AuthorQuote[] | AuthorFaq[] | Partial<SeoData>
   ) => {
     setTranslations((prev) => ({
       ...prev,
@@ -129,6 +132,26 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
         ...prev[langKey],
         [field]: value,
       },
+    }));
+  };
+
+  const handleSeoChange = (langKey: SupportedLang, field: keyof SeoData, value: string) => {
+    setTranslations((prev) => ({
+      ...prev,
+      [langKey]: {
+        ...prev[langKey],
+        seo: {
+          ...prev[langKey].seo,
+          [field]: value,
+        },
+      },
+    }));
+  };
+
+  const toggleSeo = (langKey: SupportedLang) => {
+    setSeoExpanded((prev) => ({
+      ...prev,
+      [langKey]: !prev[langKey],
     }));
   };
 
@@ -189,6 +212,13 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
     for (const langKey of SUPPORTED_LANGS) {
       const transData = translations[langKey];
       if (transData.name.trim()) {
+        const seoData: Record<string, string | number> = {};
+        Object.entries(transData.seo).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && v !== '') {
+            seoData[k] = v;
+          }
+        });
+
         activeTranslations.push({
           language: langKey,
           name: transData.name.trim(),
@@ -199,6 +229,7 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
             .split(',')
             .map((s) => s.trim())
             .filter(Boolean),
+          seo: Object.keys(seoData).length > 0 ? (seoData as unknown as SeoData) : undefined,
         });
       }
     }
@@ -214,6 +245,7 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
       deathDate: deathDate || null,
       wikidataUrl: wikidataUrl || null,
       wikipediaUrl: wikipediaUrl || null,
+      photoUrl: photoUrl || null,
       translations: activeTranslations,
     };
 
@@ -225,7 +257,7 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
         await createMutation.mutateAsync(payload);
         enqueueSnackbar('Author created successfully', { variant: 'success' });
       }
-      onClose();
+      router.push(`/admin/${lang}/authors`);
     } catch (error) {
       enqueueSnackbar((error as Error).message || 'Failed to save author', { variant: 'error' });
     }
@@ -234,13 +266,7 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onCancel={onClose}
-      title={isEditMode ? 'Edit Author' : 'Create Author'}
-      showFooter={false}
-      size="lg"
-    >
+    <div className={styles.container}>
       <div className={styles.tabsHeader}>
         <button
           type="button"
@@ -269,6 +295,15 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
       <form onSubmit={handleSave} className={styles.form}>
         {activeTab === 'general' && (
           <div className={styles.tabContent}>
+            <div className={styles.mediaSection}>
+              <MediaPicker
+                value={photoUrl}
+                onChange={setPhotoUrl}
+                label="Author Photo"
+                allowedTypes={['image']}
+              />
+            </div>
+
             <div className={styles.field}>
               <label htmlFor="slug" className={styles.label}>
                 Slug *
@@ -361,7 +396,7 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
                   <textarea
                     id={`biography-${langKey}`}
                     className={styles.textarea}
-                    rows={4}
+                    rows={6}
                     value={trans.biography}
                     onChange={(e) => handleTranslationChange(langKey, 'biography', e.target.value)}
                     placeholder="Enter biography details..."
@@ -459,12 +494,150 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
                     placeholder="e.g. oscar-wilde, leo-tolstoy"
                   />
                 </div>
+
+                {/* Localized SEO section */}
+                <div className={styles.seoContainer}>
+                  <button
+                    type="button"
+                    className={styles.seoHeader}
+                    onClick={() => toggleSeo(langKey)}
+                  >
+                    <h3>SEO Settings ({langKey.toUpperCase()})</h3>
+                    <span>{seoExpanded[langKey] ? '▼' : '►'}</span>
+                  </button>
+
+                  {seoExpanded[langKey] && (
+                    <div className={styles.seoContent}>
+                      <div className={styles.field}>
+                        <label htmlFor={`metaTitle-${langKey}`} className={styles.label}>
+                          Meta Title
+                        </label>
+                        <Input
+                          id={`metaTitle-${langKey}`}
+                          value={trans.seo.metaTitle || ''}
+                          onChange={(e) => handleSeoChange(langKey, 'metaTitle', e.target.value)}
+                          placeholder="e.g. Oscar Wilde - Books, Biography & Audiobooks"
+                        />
+                      </div>
+
+                      <div className={styles.field}>
+                        <label htmlFor={`metaDescription-${langKey}`} className={styles.label}>
+                          Meta Description
+                        </label>
+                        <textarea
+                          id={`metaDescription-${langKey}`}
+                          className={styles.textarea}
+                          rows={3}
+                          value={trans.seo.metaDescription || ''}
+                          onChange={(e) =>
+                            handleSeoChange(langKey, 'metaDescription', e.target.value)
+                          }
+                          placeholder="Enter SEO meta description..."
+                        />
+                      </div>
+
+                      <div className={styles.row}>
+                        <div className={styles.field}>
+                          <label htmlFor={`canonicalUrl-${langKey}`} className={styles.label}>
+                            Canonical URL
+                          </label>
+                          <Input
+                            id={`canonicalUrl-${langKey}`}
+                            value={trans.seo.canonicalUrl || ''}
+                            onChange={(e) =>
+                              handleSeoChange(langKey, 'canonicalUrl', e.target.value)
+                            }
+                            placeholder="https://example.com/author/oscar-wilde"
+                          />
+                        </div>
+                        <div className={styles.field}>
+                          <label htmlFor={`robots-${langKey}`} className={styles.label}>
+                            Robots
+                          </label>
+                          <Input
+                            id={`robots-${langKey}`}
+                            value={trans.seo.robots || 'index, follow'}
+                            onChange={(e) => handleSeoChange(langKey, 'robots', e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.field}>
+                        <label htmlFor={`ogTitle-${langKey}`} className={styles.label}>
+                          Open Graph Title
+                        </label>
+                        <Input
+                          id={`ogTitle-${langKey}`}
+                          value={trans.seo.ogTitle || ''}
+                          onChange={(e) => handleSeoChange(langKey, 'ogTitle', e.target.value)}
+                        />
+                      </div>
+
+                      <div className={styles.field}>
+                        <label htmlFor={`ogDescription-${langKey}`} className={styles.label}>
+                          Open Graph Description
+                        </label>
+                        <textarea
+                          id={`ogDescription-${langKey}`}
+                          className={styles.textarea}
+                          rows={3}
+                          value={trans.seo.ogDescription || ''}
+                          onChange={(e) =>
+                            handleSeoChange(langKey, 'ogDescription', e.target.value)
+                          }
+                        />
+                      </div>
+
+                      <div className={styles.row}>
+                        <div className={styles.field}>
+                          <label htmlFor={`ogImageUrl-${langKey}`} className={styles.label}>
+                            Open Graph Image URL
+                          </label>
+                          <Input
+                            id={`ogImageUrl-${langKey}`}
+                            value={trans.seo.ogImageUrl || ''}
+                            onChange={(e) => handleSeoChange(langKey, 'ogImageUrl', e.target.value)}
+                          />
+                        </div>
+                        <div className={styles.field}>
+                          <label htmlFor={`ogImageAlt-${langKey}`} className={styles.label}>
+                            Open Graph Image Alt
+                          </label>
+                          <Input
+                            id={`ogImageAlt-${langKey}`}
+                            value={trans.seo.ogImageAlt || ''}
+                            onChange={(e) => handleSeoChange(langKey, 'ogImageAlt', e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.field}>
+                        <label htmlFor={`twitterCard-${langKey}`} className={styles.label}>
+                          Twitter Card Type
+                        </label>
+                        <select
+                          id={`twitterCard-${langKey}`}
+                          className={styles.select}
+                          value={trans.seo.twitterCard || 'summary'}
+                          onChange={(e) => handleSeoChange(langKey, 'twitterCard', e.target.value)}
+                        >
+                          <option value="summary">Summary</option>
+                          <option value="summary_large_image">Summary Large Image</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })()}
 
         <div className={styles.actions}>
-          <Button variant="ghost" onClick={onClose} type="button">
+          <Button
+            variant="ghost"
+            onClick={() => router.push(`/admin/${lang}/authors`)}
+            type="button"
+          >
             Cancel
           </Button>
           <Button variant="primary" type="submit" loading={isLoading}>
@@ -472,6 +645,6 @@ export const AuthorModal: FC<AuthorModalProps> = (props) => {
           </Button>
         </div>
       </form>
-    </Modal>
+    </div>
   );
 };

@@ -1,2 +1,2 @@
 export { AuthorList } from './AuthorList';
-export { AuthorModal } from './AuthorModal';
+export { AuthorForm } from './AuthorForm/AuthorForm';

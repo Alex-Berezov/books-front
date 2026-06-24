@@ -66,6 +66,7 @@ export default function AuthorDetailClient({
   let quotes: { text: string; source?: string }[] = [];
   let faq: { question: string; answer: string }[] = [];
   let similarAuthors: { name: string; slug: string }[] = [];
+  let photoUrl: string | null = null;
 
   if (isFallback) {
     const allBooks = booksData?.data || [];
@@ -81,6 +82,7 @@ export default function AuthorDetailClient({
     quotes = (dbAuthor.quotes as AuthorQuote[]) || [];
     faq = (dbAuthor.faq as AuthorFaq[]) || [];
     similarAuthors = dbAuthor.similarAuthors || [];
+    photoUrl = dbAuthor.photoUrl || null;
   }
 
   const totalBooks = authorBooks.length;
@@ -177,7 +179,12 @@ export default function AuthorDetailClient({
         {/* Author Hero */}
         <div className={styles.authorHero}>
           <div className={styles.avatar}>
-            <User size={40} className={styles.avatarIcon} />
+            {photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photoUrl} alt={finalDisplayName} className={styles.photo} />
+            ) : (
+              <User size={40} className={styles.avatarIcon} />
+            )}
           </div>
           <div className={styles.heroInfo}>
             <h1 className={styles.name}>{finalDisplayName}</h1>

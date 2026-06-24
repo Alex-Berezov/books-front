@@ -1,5 +1,6 @@
 import type { BookOverview } from './books';
 import type { SupportedLang, UUID } from './common';
+import type { SeoData } from './pages';
 
 export interface AuthorQuote {
   text: string;
@@ -18,6 +19,7 @@ export interface AuthorTranslation {
   quotes?: AuthorQuote[] | null;
   faq?: AuthorFaq[] | null;
   similarSlugs?: string[] | null;
+  seo?: SeoData | null;
 }
 
 export interface Author {
@@ -27,6 +29,7 @@ export interface Author {
   deathDate?: string | null;
   wikidataUrl?: string | null;
   wikipediaUrl?: string | null;
+  photoUrl?: string | null;
   translations?: AuthorTranslation[];
   booksCount?: number;
 }
@@ -38,10 +41,12 @@ export interface PublicAuthorDetail {
   deathDate?: string | null;
   wikidataUrl?: string | null;
   wikipediaUrl?: string | null;
+  photoUrl?: string | null;
   name: string;
   biography?: string | null;
   quotes?: AuthorQuote[] | null;
   faq?: AuthorFaq[] | null;
+  seo?: SeoData | null;
   similarAuthors: { name: string; slug: string }[];
   books: BookOverview[];
 }
@@ -52,6 +57,7 @@ export interface CreateAuthorRequest {
   deathDate?: string | null;
   wikidataUrl?: string | null;
   wikipediaUrl?: string | null;
+  photoUrl?: string | null;
   translations: AuthorTranslation[];
 }
 

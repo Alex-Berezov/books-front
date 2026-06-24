@@ -30,43 +30,86 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const searchName = decodeAuthorSlug(authorSlug ?? '');
   let displayName = toTitleCase(searchName);
 
+  let seoDataFromDb: PublicAuthorDetail['seo'] = null;
   try {
     const author = await getPublicAuthorBySlug(supportedLang, authorSlug);
     if (author && author.name) {
       displayName = author.name;
     }
+    if (author && author.seo) {
+      seoDataFromDb = author.seo;
+    }
   } catch {
     // Fallback if Remote API is not updated yet
   }
 
-  let title = '';
-  let description = '';
+  let fallbackTitle = '';
+  let fallbackDescription = '';
 
   switch (supportedLang) {
     case 'ru':
-      title = `${displayName} — Книги, биография и аудиокниги | Bibliaris`;
-      description = `Откройте для себя книги, биографию, цитаты и классические аудиокниги автора ${displayName} на Bibliaris. Читайте и слушайте онлайн бесплатно.`;
+      fallbackTitle = `${displayName} — Книги, биография и аудиокниги | Bibliaris`;
+      fallbackDescription = `Откройте для себя книги, биографию, цитаты и классические аудиокниги автора ${displayName} на Bibliaris. Читайте и слушайте онлайн бесплатно.`;
       break;
     case 'es':
-      title = `${displayName} - Libros, biografía y audiolibros | Bibliaris`;
-      description = `Explora libros, biografía, frases y audiolibros clásicos de ${displayName} en Bibliaris. Lee y escucha en línea gratis.`;
+      fallbackTitle = `${displayName} - Libros, biografía y audiolibros | Bibliaris`;
+      fallbackDescription = `Explora libros, biografía, frases y audiolibros clásicos de ${displayName} en Bibliaris. Lee y escucha en línea gratis.`;
       break;
     case 'pt':
-      title = `${displayName} - Livros, biografia e audiolivros | Bibliaris`;
-      description = `Explore livros, biografia, frases e audiolivros clássicos de ${displayName} no Bibliaris. Leia e ouça online gratuitamente.`;
+      fallbackTitle = `${displayName} - Livros, biografia e audiolivros | Bibliaris`;
+      fallbackDescription = `Explore livros, biografia, frases e audiolivros clássicos de ${displayName} no Bibliaris. Leia e ouça online gratuitamente.`;
       break;
     case 'fr':
-      title = `${displayName} - Livres, biographie et livres audio | Bibliaris`;
-      description = `Découvrez les livres, la biographie, les citations et les livres audio classiques de ${displayName} sur Bibliaris. Lisez et écoutez gratuitement en ligne.`;
+      fallbackTitle = `${displayName} - Livres, biographie et livres audio | Bibliaris`;
+      fallbackDescription = `Découvrez les livres, la biographie, les citations et les livres audio classiques de ${displayName} sur Bibliaris. Lisez et écoutez gratuitement en ligne.`;
       break;
     case 'en':
     default:
-      title = `${displayName} Books, Biography & Audiobooks | Bibliaris`;
-      description = `Explore books, biography, quotes, and classic audiobooks by ${displayName} on Bibliaris. Read and listen online for free.`;
+      fallbackTitle = `${displayName} Books, Biography & Audiobooks | Bibliaris`;
+      fallbackDescription = `Explore books, biography, quotes, and classic audiobooks by ${displayName} on Bibliaris. Read and listen online for free.`;
       break;
   }
 
-  return getPageMetadata(supportedLang, `/author/${authorSlug}`, title, description);
+  const title = seoDataFromDb?.metaTitle || fallbackTitle;
+  const description = seoDataFromDb?.metaDescription || fallbackDescription;
+
+  const baseMetadata = getPageMetadata(supportedLang, `/author/${authorSlug}`, title, description);
+
+  if (seoDataFromDb) {
+    if (seoDataFromDb.canonicalUrl) {
+      baseMetadata.alternates = {
+        ...baseMetadata.alternates,
+        canonical: seoDataFromDb.canonicalUrl,
+      };
+    }
+    if (seoDataFromDb.robots) {
+      baseMetadata.robots = seoDataFromDb.robots;
+    }
+    baseMetadata.openGraph = {
+      title: seoDataFromDb.ogTitle || title,
+      description: seoDataFromDb.ogDescription || description,
+      url: baseMetadata.openGraph?.url || undefined,
+      type: 'website',
+      images: seoDataFromDb.ogImageUrl
+        ? [
+            {
+              url: seoDataFromDb.ogImageUrl,
+              alt: seoDataFromDb.ogImageAlt || undefined,
+            },
+          ]
+        : undefined,
+    };
+    if (seoDataFromDb.twitterCard) {
+      baseMetadata.twitter = {
+        card: seoDataFromDb.twitterCard as 'summary' | 'summary_large_image',
+        title: seoDataFromDb.ogTitle || title,
+        description: seoDataFromDb.ogDescription || description,
+        images: seoDataFromDb.ogImageUrl ? [seoDataFromDb.ogImageUrl] : undefined,
+      };
+    }
+  }
+
+  return baseMetadata;
 }
 
 export default async function AuthorDetailPage({ params }: Props) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FC } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useAuthors, useDeleteAuthor } from '@/api/hooks/useAuthors';
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
@@ -8,7 +9,6 @@ import { EmptyState, Skeleton } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { Author } from '@/types/api-schema';
-import { AuthorModal } from '../AuthorModal';
 import styles from './AuthorList.module.scss';
 
 interface AuthorListProps {
@@ -16,14 +16,11 @@ interface AuthorListProps {
 }
 
 export const AuthorList: FC<AuthorListProps> = ({ lang }) => {
+  const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
 
   const page = 1;
   const [searchValue, setSearchValue] = useState('');
-
-  // Modals state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeAuthor, setActiveAuthor] = useState<Author | null>(null);
 
   const { data, isLoading, error } = useAuthors({ page, limit: 100 });
   const deleteMutation = useDeleteAuthor();
@@ -42,13 +39,11 @@ export const AuthorList: FC<AuthorListProps> = ({ lang }) => {
   });
 
   const handleCreate = () => {
-    setActiveAuthor(null);
-    setIsModalOpen(true);
+    router.push(`/admin/${lang}/authors/create`);
   };
 
   const handleEdit = (author: Author) => {
-    setActiveAuthor(author);
-    setIsModalOpen(true);
+    router.push(`/admin/${lang}/authors/${author.id}/edit`);
   };
 
   const handleDelete = async (id: string) => {
@@ -150,13 +145,6 @@ export const AuthorList: FC<AuthorListProps> = ({ lang }) => {
           </table>
         </div>
       )}
-
-      <AuthorModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        author={activeAuthor}
-        lang={lang}
-      />
     </div>
   );
 };
