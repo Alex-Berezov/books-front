@@ -9,6 +9,7 @@ import { EmptyState, Skeleton } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { Author } from '@/types/api-schema';
+import { CreateAuthorModal } from '../CreateAuthorModal';
 import styles from './AuthorList.module.scss';
 
 interface AuthorListProps {
@@ -21,6 +22,7 @@ export const AuthorList: FC<AuthorListProps> = ({ lang }) => {
 
   const page = 1;
   const [searchValue, setSearchValue] = useState('');
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const { data, isLoading, error } = useAuthors({ page, limit: 100 });
   const deleteMutation = useDeleteAuthor();
@@ -39,7 +41,7 @@ export const AuthorList: FC<AuthorListProps> = ({ lang }) => {
   });
 
   const handleCreate = () => {
-    router.push(`/admin/${lang}/authors/create`);
+    setIsCreateOpen(true);
   };
 
   const handleEdit = (author: Author) => {
@@ -145,6 +147,8 @@ export const AuthorList: FC<AuthorListProps> = ({ lang }) => {
           </table>
         </div>
       )}
+
+      <CreateAuthorModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} lang={lang} />
     </div>
   );
 };

@@ -64,5 +64,6 @@ export interface CreateAuthorRequest {
 export interface UpdateAuthorRequest extends Partial<CreateAuthorRequest> {}
 export type CheckAuthorSlugResponse = {
   exists: boolean;
+  suggestedSlug?: string;
   existingAuthor?: { id: string; slug: string };
 };
