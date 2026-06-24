@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FC } from 'react';
+import { Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useCreateAuthor, useUpdateAuthor } from '@/api/hooks/useAuthors';
@@ -18,6 +19,7 @@ import type {
   SeoData,
 } from '@/types/api-schema';
 import styles from './AuthorForm.module.scss';
+import { ImportAuthorModal } from './ImportAuthorModal';
 
 interface AuthorFormProps {
   author?: Author | null;
@@ -60,6 +62,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
   // Global life dates
   const [birthDate, setBirthDate] = useState('');
   const [deathDate, setDeathDate] = useState('');
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Translations states containing all localized fields
   const [translations, setTranslations] = useState<Record<SupportedLang, FormTranslationState>>({
@@ -288,6 +291,90 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
     });
   };
 
+  const handleImportJson = (jsonDataString: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = JSON.parse(jsonDataString) as any;
+
+    if (data.birthDate !== undefined) {
+      setBirthDate(data.birthDate || '');
+    }
+    if (data.deathDate !== undefined) {
+      setDeathDate(data.deathDate || '');
+    }
+
+    if (data.translations) {
+      // Find a shared photoUrl across all translations if present
+      const jsonPhotoUrl =
+        SUPPORTED_LANGS.map((l) => data.translations?.[l]?.photoUrl).find(Boolean) || null;
+
+      setTranslations((prev) => {
+        const updated = { ...prev };
+        SUPPORTED_LANGS.forEach((l) => {
+          const trans = data.translations[l];
+          if (trans) {
+            const photoVal = trans.photoUrl || jsonPhotoUrl || prev[l].photoUrl;
+            updated[l] = {
+              name: trans.name || prev[l].name || '',
+              slug: trans.slug || prev[l].slug || '',
+              biography: trans.biography || prev[l].biography || '',
+              wikidataUrl: trans.wikidataUrl || prev[l].wikidataUrl || '',
+              wikipediaUrl: trans.wikipediaUrl || prev[l].wikipediaUrl || '',
+              photoUrl: photoVal,
+              quotes: Array.isArray(trans.quotes) ? trans.quotes : prev[l].quotes || [],
+              faq: Array.isArray(trans.faq) ? trans.faq : prev[l].faq || [],
+              similarSlugs:
+                typeof trans.similarSlugs === 'string'
+                  ? trans.similarSlugs
+                  : Array.isArray(trans.similarSlugs)
+                    ? trans.similarSlugs.join(', ')
+                    : prev[l].similarSlugs || '',
+              seo: {
+                robots: 'index, follow',
+                twitterCard: 'summary',
+                ...prev[l].seo,
+                ...(trans.seo || {}),
+                ogTitle:
+                  trans.seo?.ogTitle ||
+                  trans.seo?.metaTitle ||
+                  trans.metaTitle ||
+                  prev[l].seo.ogTitle ||
+                  '',
+                twitterTitle:
+                  trans.seo?.twitterTitle ||
+                  trans.seo?.metaTitle ||
+                  trans.metaTitle ||
+                  prev[l].seo.twitterTitle ||
+                  '',
+                ogDescription:
+                  trans.seo?.ogDescription ||
+                  trans.seo?.metaDescription ||
+                  trans.metaDescription ||
+                  prev[l].seo.ogDescription ||
+                  '',
+                twitterDescription:
+                  trans.seo?.twitterDescription ||
+                  trans.seo?.metaDescription ||
+                  trans.metaDescription ||
+                  prev[l].seo.twitterDescription ||
+                  '',
+                ogImageUrl: trans.seo?.ogImageUrl || photoVal || prev[l].seo.ogImageUrl || '',
+                canonicalUrl:
+                  trans.seo?.canonicalUrl ||
+                  (trans.slug
+                    ? `https://bibliaris.com/${l}/author/${trans.slug}`
+                    : prev[l].seo.canonicalUrl || ''),
+              },
+            };
+          }
+        });
+        return updated;
+      });
+      enqueueSnackbar('Data imported successfully!', { variant: 'success' });
+    } else {
+      throw new Error('No translations found in JSON.');
+    }
+  };
+
   const toggleSeo = (langKey: SupportedLang) => {
     setSeoExpanded((prev) => ({
       ...prev,
@@ -412,30 +499,47 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.tabsHeader}>
-        <button
+      <div className={styles.headerRow}>
+        <div className={styles.tabsHeader}>
+          <button
+            type="button"
+            className={`${styles.tabBtn} ${activeTab === 'general' ? styles.active : ''}`}
+            onClick={() => setActiveTab('general')}
+          >
+            General Settings
+          </button>
+          {SUPPORTED_LANGS.map((langKey) => {
+            const flag = FLAG_COMPONENTS[langKey];
+            const hasName = !!translations[langKey].name;
+            return (
+              <button
+                key={langKey}
+                type="button"
+                className={`${styles.tabBtn} ${activeTab === langKey ? styles.active : ''}`}
+                onClick={() => setActiveTab(langKey)}
+              >
+                {flag}
+                {langKey.toUpperCase()} {hasName && <span className={styles.indicator}>●</span>}
+              </button>
+            );
+          })}
+        </div>
+        <Button
           type="button"
-          className={`${styles.tabBtn} ${activeTab === 'general' ? styles.active : ''}`}
-          onClick={() => setActiveTab('general')}
+          variant="secondary"
+          size="sm"
+          leftIcon={<Download size={14} />}
+          onClick={() => setIsImportModalOpen(true)}
         >
-          General Settings
-        </button>
-        {SUPPORTED_LANGS.map((langKey) => {
-          const flag = FLAG_COMPONENTS[langKey];
-          const hasName = !!translations[langKey].name;
-          return (
-            <button
-              key={langKey}
-              type="button"
-              className={`${styles.tabBtn} ${activeTab === langKey ? styles.active : ''}`}
-              onClick={() => setActiveTab(langKey)}
-            >
-              {flag}
-              {langKey.toUpperCase()} {hasName && <span className={styles.indicator}>●</span>}
-            </button>
-          );
-        })}
+          Import JSON
+        </Button>
       </div>
+
+      <ImportAuthorModal
+        isOpen={isImportModalOpen}
+        onCancel={() => setIsImportModalOpen(false)}
+        onImport={handleImportJson}
+      />
 
       <form onSubmit={handleSave} className={styles.form}>
         {activeTab === 'general' && (

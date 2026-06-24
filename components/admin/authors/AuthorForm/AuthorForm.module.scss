@@ -16,9 +16,16 @@
   gap: $spacing-md;
 }
 
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid $color-border-light;
+  gap: $spacing-md;
+}
+
 .tabsHeader {
   display: flex;
-  border-bottom: 1px solid $color-border-light;
   gap: $spacing-xs;
   overflow-x: auto;
   padding-bottom: 2px;
