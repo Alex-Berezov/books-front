@@ -14,8 +14,12 @@ export interface AuthorFaq {
 
 export interface AuthorTranslation {
   language: SupportedLang;
+  slug: string;
   name: string;
   biography?: string | null;
+  wikidataUrl?: string | null;
+  wikipediaUrl?: string | null;
+  photoUrl?: string | null;
   quotes?: AuthorQuote[] | null;
   faq?: AuthorFaq[] | null;
   similarSlugs?: string[] | null;
@@ -24,12 +28,9 @@ export interface AuthorTranslation {
 
 export interface Author {
   id: UUID;
-  slug: string;
+  slug: string; // Keep at root for compatibility with general routing or fallback
   birthDate?: string | null;
   deathDate?: string | null;
-  wikidataUrl?: string | null;
-  wikipediaUrl?: string | null;
-  photoUrl?: string | null;
   translations?: AuthorTranslation[];
   booksCount?: number;
 }
@@ -52,12 +53,8 @@ export interface PublicAuthorDetail {
 }
 
 export interface CreateAuthorRequest {
-  slug: string;
   birthDate?: string | null;
   deathDate?: string | null;
-  wikidataUrl?: string | null;
-  wikipediaUrl?: string | null;
-  photoUrl?: string | null;
   translations: AuthorTranslation[];
 }
 

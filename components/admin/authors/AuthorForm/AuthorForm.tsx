@@ -24,6 +24,19 @@ interface AuthorFormProps {
   lang: string;
 }
 
+interface FormTranslationState {
+  name: string;
+  slug: string;
+  biography: string;
+  wikidataUrl: string;
+  wikipediaUrl: string;
+  photoUrl: string | null;
+  quotes: AuthorQuote[];
+  faq: AuthorFaq[];
+  similarSlugs: string;
+  seo: Partial<SeoData>;
+}
+
 export const AuthorForm: FC<AuthorFormProps> = (props) => {
   const { author, lang } = props;
   const router = useRouter();
@@ -44,61 +57,141 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
     ru: false,
   });
 
-  // Form states
-  const [slug, setSlug] = useState('');
+  // Global life dates
   const [birthDate, setBirthDate] = useState('');
   const [deathDate, setDeathDate] = useState('');
-  const [wikidataUrl, setWikidataUrl] = useState('');
-  const [wikipediaUrl, setWikipediaUrl] = useState('');
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
-  // Translations states
-  const [translations, setTranslations] = useState<
-    Record<
-      SupportedLang,
-      {
-        name: string;
-        biography: string;
-        quotes: AuthorQuote[];
-        faq: AuthorFaq[];
-        similarSlugs: string;
-        seo: Partial<SeoData>;
-      }
-    >
-  >({
-    en: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
-    es: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
-    fr: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
-    pt: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
-    ru: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
+  // Translations states containing all localized fields
+  const [translations, setTranslations] = useState<Record<SupportedLang, FormTranslationState>>({
+    en: {
+      name: '',
+      slug: '',
+      biography: '',
+      wikidataUrl: '',
+      wikipediaUrl: '',
+      photoUrl: null,
+      quotes: [],
+      faq: [],
+      similarSlugs: '',
+      seo: {},
+    },
+    es: {
+      name: '',
+      slug: '',
+      biography: '',
+      wikidataUrl: '',
+      wikipediaUrl: '',
+      photoUrl: null,
+      quotes: [],
+      faq: [],
+      similarSlugs: '',
+      seo: {},
+    },
+    fr: {
+      name: '',
+      slug: '',
+      biography: '',
+      wikidataUrl: '',
+      wikipediaUrl: '',
+      photoUrl: null,
+      quotes: [],
+      faq: [],
+      similarSlugs: '',
+      seo: {},
+    },
+    pt: {
+      name: '',
+      slug: '',
+      biography: '',
+      wikidataUrl: '',
+      wikipediaUrl: '',
+      photoUrl: null,
+      quotes: [],
+      faq: [],
+      similarSlugs: '',
+      seo: {},
+    },
+    ru: {
+      name: '',
+      slug: '',
+      biography: '',
+      wikidataUrl: '',
+      wikipediaUrl: '',
+      photoUrl: null,
+      quotes: [],
+      faq: [],
+      similarSlugs: '',
+      seo: {},
+    },
   });
 
   // Load initial data
   useEffect(() => {
     if (author) {
-      setSlug(author.slug);
       setBirthDate(author.birthDate || '');
       setDeathDate(author.deathDate || '');
-      setWikidataUrl(author.wikidataUrl || '');
-      setWikipediaUrl(author.wikipediaUrl || '');
-      setPhotoUrl(author.photoUrl || null);
 
-      const mappedTrans: Record<
-        SupportedLang,
-        {
-          name: string;
-          biography: string;
-          quotes: AuthorQuote[];
-          faq: AuthorFaq[];
-          similarSlugs: string;
-          seo: Partial<SeoData>;
-        }
-      > = {
-        en: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
-        es: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
-        fr: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
-        pt: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
-        ru: { name: '', biography: '', quotes: [], faq: [], similarSlugs: '', seo: {} },
+      const mappedTrans: Record<SupportedLang, FormTranslationState> = {
+        en: {
+          name: '',
+          slug: '',
+          biography: '',
+          wikidataUrl: '',
+          wikipediaUrl: '',
+          photoUrl: null,
+          quotes: [],
+          faq: [],
+          similarSlugs: '',
+          seo: {},
+        },
+        es: {
+          name: '',
+          slug: '',
+          biography: '',
+          wikidataUrl: '',
+          wikipediaUrl: '',
+          photoUrl: null,
+          quotes: [],
+          faq: [],
+          similarSlugs: '',
+          seo: {},
+        },
+        fr: {
+          name: '',
+          slug: '',
+          biography: '',
+          wikidataUrl: '',
+          wikipediaUrl: '',
+          photoUrl: null,
+          quotes: [],
+          faq: [],
+          similarSlugs: '',
+          seo: {},
+        },
+        pt: {
+          name: '',
+          slug: '',
+          biography: '',
+          wikidataUrl: '',
+          wikipediaUrl: '',
+          photoUrl: null,
+          quotes: [],
+          faq: [],
+          similarSlugs: '',
+          seo: {},
+        },
+        ru: {
+          name: '',
+          slug: '',
+          biography: '',
+          wikidataUrl: '',
+          wikipediaUrl: '',
+          photoUrl: null,
+          quotes: [],
+          faq: [],
+          similarSlugs: '',
+          seo: {},
+        },
       };
 
       if (author.translations) {
@@ -107,7 +200,11 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
           if (mappedTrans[l]) {
             mappedTrans[l] = {
               name: t.name,
+              slug: t.slug,
               biography: t.biography || '',
+              wikidataUrl: t.wikidataUrl || '',
+              wikipediaUrl: t.wikipediaUrl || '',
+              photoUrl: t.photoUrl || null,
               quotes: (t.quotes as AuthorQuote[]) || [],
               faq: (t.faq as AuthorFaq[]) || [],
               similarSlugs: ((t.similarSlugs as string[]) || []).join(', '),
@@ -120,12 +217,29 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
     }
   }, [author]);
 
+  // Sync photo across all languages if set in one
+  const handlePhotoChange = (newPhotoUrl: string | null) => {
+    setTranslations((prev) => {
+      const updated = { ...prev };
+      SUPPORTED_LANGS.forEach((l) => {
+        updated[l] = {
+          ...updated[l],
+          photoUrl: newPhotoUrl,
+        };
+        // Also update SEO ogImageUrl if empty
+        if (newPhotoUrl && !updated[l].seo.ogImageUrl) {
+          updated[l].seo = {
+            ...updated[l].seo,
+            ogImageUrl: newPhotoUrl,
+          };
+        }
+      });
+      return updated;
+    });
+  };
+
   // Translation helpers
-  const handleTranslationChange = (
-    langKey: SupportedLang,
-    field: string,
-    value: string | AuthorQuote[] | AuthorFaq[] | Partial<SeoData>
-  ) => {
+  const handleTranslationChange = (langKey: SupportedLang, field: string, value: unknown) => {
     setTranslations((prev) => ({
       ...prev,
       [langKey]: {
@@ -202,16 +316,18 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!slug) {
-      enqueueSnackbar('Slug is required', { variant: 'error' });
-      return;
-    }
-
-    // Filter translations to only save languages that have a name filled
+    // Filter translations to only save languages that have a name and a slug filled
     const activeTranslations: AuthorTranslation[] = [];
     for (const langKey of SUPPORTED_LANGS) {
       const transData = translations[langKey];
       if (transData.name.trim()) {
+        if (!transData.slug.trim()) {
+          enqueueSnackbar(`Slug is required for language ${langKey.toUpperCase()}`, {
+            variant: 'error',
+          });
+          return;
+        }
+
         const seoData: Record<string, string | number> = {};
         Object.entries(transData.seo).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== '') {
@@ -221,8 +337,12 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
 
         activeTranslations.push({
           language: langKey,
+          slug: transData.slug.trim(),
           name: transData.name.trim(),
           biography: transData.biography.trim() || null,
+          wikidataUrl: transData.wikidataUrl.trim() || null,
+          wikipediaUrl: transData.wikipediaUrl.trim() || null,
+          photoUrl: transData.photoUrl || null,
           quotes: transData.quotes.filter((q) => q.text.trim()) || [],
           faq: transData.faq.filter((f) => f.question.trim() && f.answer.trim()) || [],
           similarSlugs: transData.similarSlugs
@@ -240,12 +360,8 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
     }
 
     const payload = {
-      slug,
       birthDate: birthDate || null,
       deathDate: deathDate || null,
-      wikidataUrl: wikidataUrl || null,
-      wikipediaUrl: wikipediaUrl || null,
-      photoUrl: photoUrl || null,
       translations: activeTranslations,
     };
 
@@ -264,6 +380,9 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
+
+  // Global shared photoUrl (retrieved from any language translation, or default null)
+  const sharedPhotoUrl = SUPPORTED_LANGS.map((l) => translations[l].photoUrl).find(Boolean) || null;
 
   return (
     <div className={styles.container}>
@@ -297,26 +416,10 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
           <div className={styles.tabContent}>
             <div className={styles.mediaSection}>
               <MediaPicker
-                value={photoUrl}
-                onChange={setPhotoUrl}
+                value={sharedPhotoUrl}
+                onChange={handlePhotoChange}
                 label="Author Photo"
                 allowedTypes={['image']}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor="slug" className={styles.label}>
-                Slug *
-              </label>
-              <SlugInput
-                id="slug"
-                value={slug}
-                onChange={setSlug}
-                error={!slug ? 'Slug is required' : undefined}
-                sourceValue={translations['en']?.name}
-                entityType="book"
-                lang={lang as SupportedLang}
-                autoGenerate={!isEditMode}
               />
             </div>
 
@@ -344,30 +447,6 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
                 />
               </div>
             </div>
-
-            <div className={styles.field}>
-              <label htmlFor="wikidataUrl" className={styles.label}>
-                Wikidata URL
-              </label>
-              <Input
-                id="wikidataUrl"
-                value={wikidataUrl}
-                onChange={(e) => setWikidataUrl(e.target.value)}
-                placeholder="https://www.wikidata.org/wiki/Q30875"
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor="wikipediaUrl" className={styles.label}>
-                Wikipedia URL
-              </label>
-              <Input
-                id="wikipediaUrl"
-                value={wikipediaUrl}
-                onChange={(e) => setWikipediaUrl(e.target.value)}
-                placeholder="https://en.wikipedia.org/wiki/Oscar_Wilde"
-              />
-            </div>
           </div>
         )}
 
@@ -379,13 +458,57 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
               <div className={styles.tabContent}>
                 <div className={styles.field}>
                   <label htmlFor={`name-${langKey}`} className={styles.label}>
-                    Author Name ({langKey.toUpperCase()})
+                    Author Name ({langKey.toUpperCase()}) *
                   </label>
                   <Input
                     id={`name-${langKey}`}
                     value={trans.name}
                     onChange={(e) => handleTranslationChange(langKey, 'name', e.target.value)}
                     placeholder="e.g. Oscar Wilde"
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label htmlFor={`slug-${langKey}`} className={styles.label}>
+                    Slug ({langKey.toUpperCase()}) *
+                  </label>
+                  <SlugInput
+                    id={`slug-${langKey}`}
+                    value={trans.slug}
+                    onChange={(val) => handleTranslationChange(langKey, 'slug', val)}
+                    error={!trans.slug && trans.name ? 'Slug is required' : undefined}
+                    sourceValue={trans.name}
+                    entityType="book"
+                    lang={langKey}
+                    autoGenerate={!isEditMode || !trans.slug}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label htmlFor={`wikidataUrl-${langKey}`} className={styles.label}>
+                    Wikidata URL ({langKey.toUpperCase()})
+                  </label>
+                  <Input
+                    id={`wikidataUrl-${langKey}`}
+                    value={trans.wikidataUrl}
+                    onChange={(e) =>
+                      handleTranslationChange(langKey, 'wikidataUrl', e.target.value)
+                    }
+                    placeholder="https://www.wikidata.org/wiki/Q30875"
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label htmlFor={`wikipediaUrl-${langKey}`} className={styles.label}>
+                    Wikipedia URL ({langKey.toUpperCase()})
+                  </label>
+                  <Input
+                    id={`wikipediaUrl-${langKey}`}
+                    value={trans.wikipediaUrl}
+                    onChange={(e) =>
+                      handleTranslationChange(langKey, 'wikipediaUrl', e.target.value)
+                    }
+                    placeholder="https://en.wikipedia.org/wiki/Oscar_Wilde"
                   />
                 </div>
 

@@ -101,10 +101,10 @@ export const useCreateAuthorModal = (props: CreateAuthorModalProps) => {
 
     try {
       const newAuthor = await createAuthor({
-        slug: finalSlug,
         translations: [
           {
             language: 'en',
+            slug: finalSlug,
             name: formData.name.trim(),
             biography: '',
             quotes: [],
