@@ -1,3 +1,5 @@
+'use client';
+
 import type { FC } from 'react';
 import { Modal } from '@/components/common/Modal';
 import type { CreateAuthorModalProps } from './CreateAuthorModal.types';
