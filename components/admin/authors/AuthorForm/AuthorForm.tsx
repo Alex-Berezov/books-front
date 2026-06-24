@@ -73,7 +73,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
       quotes: [],
       faq: [],
       similarSlugs: '',
-      seo: {},
+      seo: { robots: 'index, follow', twitterCard: 'summary' },
     },
     es: {
       name: '',
@@ -85,7 +85,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
       quotes: [],
       faq: [],
       similarSlugs: '',
-      seo: {},
+      seo: { robots: 'index, follow', twitterCard: 'summary' },
     },
     fr: {
       name: '',
@@ -97,7 +97,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
       quotes: [],
       faq: [],
       similarSlugs: '',
-      seo: {},
+      seo: { robots: 'index, follow', twitterCard: 'summary' },
     },
     pt: {
       name: '',
@@ -109,7 +109,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
       quotes: [],
       faq: [],
       similarSlugs: '',
-      seo: {},
+      seo: { robots: 'index, follow', twitterCard: 'summary' },
     },
     ru: {
       name: '',
@@ -121,7 +121,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
       quotes: [],
       faq: [],
       similarSlugs: '',
-      seo: {},
+      seo: { robots: 'index, follow', twitterCard: 'summary' },
     },
   });
 
@@ -142,7 +142,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
           quotes: [],
           faq: [],
           similarSlugs: '',
-          seo: {},
+          seo: { robots: 'index, follow', twitterCard: 'summary' },
         },
         es: {
           name: '',
@@ -154,7 +154,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
           quotes: [],
           faq: [],
           similarSlugs: '',
-          seo: {},
+          seo: { robots: 'index, follow', twitterCard: 'summary' },
         },
         fr: {
           name: '',
@@ -166,7 +166,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
           quotes: [],
           faq: [],
           similarSlugs: '',
-          seo: {},
+          seo: { robots: 'index, follow', twitterCard: 'summary' },
         },
         pt: {
           name: '',
@@ -178,7 +178,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
           quotes: [],
           faq: [],
           similarSlugs: '',
-          seo: {},
+          seo: { robots: 'index, follow', twitterCard: 'summary' },
         },
         ru: {
           name: '',
@@ -190,7 +190,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
           quotes: [],
           faq: [],
           similarSlugs: '',
-          seo: {},
+          seo: { robots: 'index, follow', twitterCard: 'summary' },
         },
       };
 
@@ -208,7 +208,11 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
               quotes: (t.quotes as AuthorQuote[]) || [],
               faq: (t.faq as AuthorFaq[]) || [],
               similarSlugs: ((t.similarSlugs as string[]) || []).join(', '),
-              seo: t.seo || {},
+              seo: {
+                robots: 'index, follow',
+                twitterCard: 'summary',
+                ...t.seo,
+              },
             };
           }
         });
@@ -226,13 +230,11 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
           ...updated[l],
           photoUrl: newPhotoUrl,
         };
-        // Also update SEO ogImageUrl if empty
-        if (newPhotoUrl && !updated[l].seo.ogImageUrl) {
-          updated[l].seo = {
-            ...updated[l].seo,
-            ogImageUrl: newPhotoUrl,
-          };
-        }
+        // Always update SEO ogImageUrl to match the photo URL
+        updated[l].seo = {
+          ...updated[l].seo,
+          ogImageUrl: newPhotoUrl || '',
+        };
       });
       return updated;
     });
@@ -240,26 +242,50 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
 
   // Translation helpers
   const handleTranslationChange = (langKey: SupportedLang, field: string, value: unknown) => {
-    setTranslations((prev) => ({
-      ...prev,
-      [langKey]: {
+    setTranslations((prev) => {
+      const updatedTranslation = {
         ...prev[langKey],
         [field]: value,
-      },
-    }));
+      };
+
+      if (field === 'slug') {
+        const slugVal = (value as string) || '';
+        updatedTranslation.seo = {
+          ...updatedTranslation.seo,
+          canonicalUrl: slugVal ? `https://bibliaris.com/${langKey}/author/${slugVal}` : '',
+        };
+      }
+
+      return {
+        ...prev,
+        [langKey]: updatedTranslation,
+      };
+    });
   };
 
   const handleSeoChange = (langKey: SupportedLang, field: keyof SeoData, value: string) => {
-    setTranslations((prev) => ({
-      ...prev,
-      [langKey]: {
-        ...prev[langKey],
-        seo: {
-          ...prev[langKey].seo,
-          [field]: value,
+    setTranslations((prev) => {
+      const updatedSeo = {
+        ...prev[langKey].seo,
+        [field]: value,
+      };
+
+      if (field === 'metaTitle') {
+        updatedSeo.ogTitle = value;
+        updatedSeo.twitterTitle = value;
+      } else if (field === 'metaDescription') {
+        updatedSeo.ogDescription = value;
+        updatedSeo.twitterDescription = value;
+      }
+
+      return {
+        ...prev,
+        [langKey]: {
+          ...prev[langKey],
+          seo: updatedSeo,
         },
-      },
-    }));
+      };
+    });
   };
 
   const toggleSeo = (langKey: SupportedLang) => {
@@ -677,11 +703,17 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
                           <label htmlFor={`robots-${langKey}`} className={styles.label}>
                             Robots
                           </label>
-                          <Input
+                          <select
                             id={`robots-${langKey}`}
+                            className={styles.select}
                             value={trans.seo.robots || 'index, follow'}
                             onChange={(e) => handleSeoChange(langKey, 'robots', e.target.value)}
-                          />
+                          >
+                            <option value="index, follow">index, follow (recommended)</option>
+                            <option value="noindex, follow">noindex, follow</option>
+                            <option value="index, nofollow">index, nofollow</option>
+                            <option value="noindex, nofollow">noindex, nofollow</option>
+                          </select>
                         </div>
                       </div>
 
