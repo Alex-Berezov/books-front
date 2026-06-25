@@ -275,10 +275,8 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
 
       if (field === 'metaTitle') {
         updatedSeo.ogTitle = value;
-        updatedSeo.twitterTitle = value;
       } else if (field === 'metaDescription') {
         updatedSeo.ogDescription = value;
-        updatedSeo.twitterDescription = value;
       }
 
       return {
@@ -339,23 +337,11 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
                   trans.metaTitle ||
                   prev[l].seo.ogTitle ||
                   '',
-                twitterTitle:
-                  trans.seo?.twitterTitle ||
-                  trans.seo?.metaTitle ||
-                  trans.metaTitle ||
-                  prev[l].seo.twitterTitle ||
-                  '',
                 ogDescription:
                   trans.seo?.ogDescription ||
                   trans.seo?.metaDescription ||
                   trans.metaDescription ||
                   prev[l].seo.ogDescription ||
-                  '',
-                twitterDescription:
-                  trans.seo?.twitterDescription ||
-                  trans.seo?.metaDescription ||
-                  trans.metaDescription ||
-                  prev[l].seo.twitterDescription ||
                   '',
                 ogImageUrl: trans.seo?.ogImageUrl || photoVal || prev[l].seo.ogImageUrl || '',
                 canonicalUrl:
