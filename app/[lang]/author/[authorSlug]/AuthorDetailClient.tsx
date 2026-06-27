@@ -248,14 +248,6 @@ export default function AuthorDetailClient({
 
         <Divider className={styles.divider} />
 
-        {/* About / Biography */}
-        {biography && (
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>{headings.about}</h2>
-            <div className={styles.biographyContent}>{biography}</div>
-          </section>
-        )}
-
         {/* Books Section */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>{headings.books}</h2>
@@ -311,6 +303,14 @@ export default function AuthorDetailClient({
                 <BookCard key={book.id} book={book} size="md" />
               ))}
             </div>
+          </section>
+        )}
+
+        {/* About / Biography */}
+        {biography && (
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>{headings.about}</h2>
+            <div className={styles.biographyContent}>{biography}</div>
           </section>
         )}
 
