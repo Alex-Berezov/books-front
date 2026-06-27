@@ -270,3 +270,23 @@
   line-height: $line-height-relaxed;
 }
 
+.externalLinks {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-sm;
+}
+
+.linkItem {
+  font-size: $font-size-sm;
+  color: var(--public-primary);
+  text-decoration: none;
+  font-weight: $font-weight-medium;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+

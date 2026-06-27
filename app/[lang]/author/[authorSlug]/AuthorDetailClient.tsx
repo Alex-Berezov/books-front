@@ -1,7 +1,16 @@
 'use client';
 
 import { Divider, Skeleton } from 'antd';
-import { ChevronLeft, BookOpen, User, Quote, HelpCircle, AudioLines, Users } from 'lucide-react';
+import {
+  ChevronLeft,
+  BookOpen,
+  User,
+  Quote,
+  HelpCircle,
+  AudioLines,
+  Users,
+  ExternalLink,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { usePublicAuthor } from '@/api/hooks/useAuthors';
 import { useBooks } from '@/api/hooks/useBooks';
@@ -40,7 +49,7 @@ export default function AuthorDetailClient({
     authorSlug,
     {
       initialData: authorData || undefined,
-      enabled: !isFallback,
+      enabled: true,
     }
   );
 
@@ -67,15 +76,10 @@ export default function AuthorDetailClient({
   let faq: { question: string; answer: string }[] = [];
   let similarAuthors: { name: string; slug: string }[] = [];
   let photoUrl: string | null = null;
+  let wikidataUrl: string | null = null;
+  let wikipediaUrl: string | null = null;
 
-  if (isFallback) {
-    const allBooks = booksData?.data || [];
-    const searchName = decodeURIComponent(authorSlug).replace(/-/g, ' ');
-    authorBooks = allBooks.filter(
-      (b: BookOverview) => b.author && b.author.toLowerCase() === searchName.toLowerCase()
-    );
-    finalDisplayName = authorBooks.length > 0 ? authorBooks[0].author : displayName;
-  } else if (dbAuthor) {
+  if (dbAuthor) {
     finalDisplayName = dbAuthor.name;
     authorBooks = dbAuthor.books || [];
     biography = dbAuthor.biography || '';
@@ -83,6 +87,15 @@ export default function AuthorDetailClient({
     faq = (dbAuthor.faq as AuthorFaq[]) || [];
     similarAuthors = dbAuthor.similarAuthors || [];
     photoUrl = dbAuthor.photoUrl || null;
+    wikidataUrl = dbAuthor.wikidataUrl || null;
+    wikipediaUrl = dbAuthor.wikipediaUrl || null;
+  } else if (isFallback) {
+    const allBooks = booksData?.data || [];
+    const searchName = decodeURIComponent(authorSlug).replace(/-/g, ' ');
+    authorBooks = allBooks.filter(
+      (b: BookOverview) => b.author && b.author.toLowerCase() === searchName.toLowerCase()
+    );
+    finalDisplayName = authorBooks.length > 0 ? authorBooks[0].author : displayName;
   }
 
   const totalBooks = authorBooks.length;
@@ -206,6 +219,30 @@ export default function AuthorDetailClient({
                 </>
               )}
             </div>
+            {!isLoading && (wikipediaUrl || wikidataUrl) && (
+              <div className={styles.externalLinks}>
+                {wikipediaUrl && (
+                  <a
+                    href={wikipediaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.linkItem}
+                  >
+                    Wikipedia <ExternalLink size={14} />
+                  </a>
+                )}
+                {wikidataUrl && (
+                  <a
+                    href={wikidataUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.linkItem}
+                  >
+                    Wikidata <ExternalLink size={14} />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
