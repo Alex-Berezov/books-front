@@ -124,6 +124,10 @@ export const queryKeys = {
   /** Book overview: ['bookOverview', lang, slug] */
   bookOverview: (lang: string, slug: string) => ['bookOverview', lang, slug] as const,
 
+  /** Public books list: ['publicBooks', lang, params] */
+  publicBooks: (lang: string, params?: { page?: number; limit?: number }) =>
+    ['publicBooks', lang, params || {}] as const,
+
   /** Book versions: ['bookVersions', bookId, filters] */
   bookVersions: (bookId: string, filters?: { lang?: string; type?: string; isFree?: boolean }) =>
     ['bookVersions', bookId, filters] as const,

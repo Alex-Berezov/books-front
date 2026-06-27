@@ -111,8 +111,8 @@ export { useMe, useUpdateProfile, useUserActivities, useUploadAvatar } from './u
 // Progress
 export { useProgress, useUpdateTextProgress } from './useProgress';
 
-// Public Chapters
-export { usePublicChapters } from './usePublic';
+// Public Chapters & Books
+export { usePublicChapters, usePublicBooks } from './usePublic';
 
 // Bookshelf
 export { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from './useBookshelf';

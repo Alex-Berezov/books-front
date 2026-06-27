@@ -3,7 +3,7 @@
 import { Skeleton } from 'antd';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { useBooks } from '@/api/hooks/useBooks';
+import { usePublicBooks } from '@/api/hooks';
 import { useCategories } from '@/api/hooks/useCategories';
 import { Button } from '@/components/common/Button';
 import { BookSection } from '@/components/public/books/BookSection';
@@ -23,7 +23,8 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
   const { t } = useTranslation();
 
   // Fetch books (limit 100 for client-side sorting and filtering)
-  const { data: booksData, isLoading: loadingBooks } = useBooks(
+  const { data: booksData, isLoading: loadingBooks } = usePublicBooks(
+    supportedLang,
     { limit: 100 },
     {
       initialData: initialBooks

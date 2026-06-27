@@ -17,6 +17,7 @@ import type {
   TagBooksResponse,
   SeoResolveResponse,
   ChapterDetail,
+  PaginatedResponse,
 } from '@/types/api-schema';
 
 /**
@@ -245,6 +246,22 @@ export const useReaderBootstrap = (
     queryFn: () => publicApi.getReaderBootstrap(lang, slug, userId),
     staleTime: staleTimeConfig.public,
     enabled: !!slug,
+    ...options,
+  });
+};
+
+/**
+ * Hook for getting public list of all books with pagination
+ */
+export const usePublicBooks = (
+  lang: SupportedLang,
+  params: { page?: number; limit?: number } = {},
+  options?: Omit<UseQueryOptions<PaginatedResponse<BookOverview>, ApiError>, 'queryKey' | 'queryFn'>
+): UseQueryResult<PaginatedResponse<BookOverview>, ApiError> => {
+  return useQuery<PaginatedResponse<BookOverview>, ApiError>({
+    queryKey: queryKeys.publicBooks(lang, params),
+    queryFn: () => publicApi.getPublicBooks(lang, params),
+    staleTime: staleTimeConfig.public,
     ...options,
   });
 };
