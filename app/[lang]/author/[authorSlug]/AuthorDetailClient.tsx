@@ -279,6 +279,14 @@ export default function AuthorDetailClient({
           )}
         </section>
 
+        {/* About / Biography */}
+        {biography && (
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>{headings.about}</h2>
+            <div className={styles.biographyContent}>{biography}</div>
+          </section>
+        )}
+
         {/* Popular Books Section */}
         {!isLoading && textBooks.length > 0 && (
           <section className={styles.section}>
@@ -303,14 +311,6 @@ export default function AuthorDetailClient({
                 <BookCard key={book.id} book={book} size="md" />
               ))}
             </div>
-          </section>
-        )}
-
-        {/* About / Biography */}
-        {biography && (
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>{headings.about}</h2>
-            <div className={styles.biographyContent}>{biography}</div>
           </section>
         )}
 
