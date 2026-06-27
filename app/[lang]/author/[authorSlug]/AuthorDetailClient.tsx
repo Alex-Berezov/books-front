@@ -11,6 +11,7 @@ import {
   Users,
   ExternalLink,
 } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { usePublicAuthor } from '@/api/hooks/useAuthors';
 import { useBooks } from '@/api/hooks/useBooks';
@@ -193,8 +194,15 @@ export default function AuthorDetailClient({
         <div className={styles.authorHero}>
           <div className={styles.avatar}>
             {photoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={photoUrl} alt={finalDisplayName} className={styles.photo} />
+              <Image
+                src={photoUrl}
+                alt={finalDisplayName}
+                className={styles.photo}
+                fill
+                sizes="150px"
+                priority
+                unoptimized
+              />
             ) : (
               <User size={40} className={styles.avatarIcon} />
             )}
@@ -272,8 +280,8 @@ export default function AuthorDetailClient({
             </div>
           ) : (
             <div className={styles.booksGrid}>
-              {authorBooks.map((book) => (
-                <BookCard key={book.id} book={book} size="md" />
+              {authorBooks.map((book, idx) => (
+                <BookCard key={book.id} book={book} size="md" priority={idx === 0} />
               ))}
             </div>
           )}

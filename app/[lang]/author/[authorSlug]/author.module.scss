@@ -48,6 +48,8 @@
   justify-content: center;
   flex-shrink: 0;
   box-shadow: $shadow-sm;
+  position: relative;
+  overflow: hidden;
 }
 
 .avatarIcon {

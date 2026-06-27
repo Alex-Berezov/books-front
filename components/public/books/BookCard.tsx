@@ -2,6 +2,7 @@
 
 import { Badge } from 'antd';
 import { BookOpen, Headphones } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getLangFromPath } from '@/lib/i18n/lang';
@@ -13,6 +14,7 @@ import { StarRating } from './StarRating';
 interface BookCardProps {
   book: BookOverview;
   size?: 'sm' | 'md' | 'lg';
+  priority?: boolean;
 }
 
 function getAuthorSlug(author?: string) {
@@ -20,7 +22,7 @@ function getAuthorSlug(author?: string) {
   return encodeURIComponent(author.trim().toLowerCase().replace(/\s+/g, '-'));
 }
 
-export function BookCard({ book, size = 'md' }: BookCardProps) {
+export function BookCard({ book, size = 'md', priority = false }: BookCardProps) {
   const pathname = usePathname();
   const lang = getLangFromPath(pathname);
   const { t } = useTranslation();
@@ -82,7 +84,15 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
         >
           <div className={`${styles.coverContainer} ${coverClass}`}>
             {coverUrl ? (
-              <img src={coverUrl} alt={coverAlt} className={styles.coverImage} loading="lazy" />
+              <Image
+                src={coverUrl}
+                alt={coverAlt}
+                className={styles.coverImage}
+                fill
+                sizes="(max-width: 768px) 150px, 200px"
+                priority={priority}
+                unoptimized
+              />
             ) : (
               <div className={styles.coverPlaceholder}>
                 <BookOpen
