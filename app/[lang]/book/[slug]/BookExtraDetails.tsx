@@ -69,10 +69,10 @@ export default function BookExtraDetails({ activeVersion, supportedLang }: BookE
           </h2>
           <div className={styles.faqList}>
             {activeVersion.faq.map((item, idx) => (
-              <div key={idx} className={styles.faqCard}>
-                <div className={styles.faqQuestion}>Q: {item.question}</div>
-                <div className={styles.faqAnswer}>A: {item.answer}</div>
-              </div>
+              <details key={idx} className={styles.faqDetails}>
+                <summary className={styles.faqSummary}>{item.question}</summary>
+                <div className={styles.faqAnswer}>{item.answer}</div>
+              </details>
             ))}
           </div>
         </section>
