@@ -428,8 +428,9 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
         }
 
         const seoData: Record<string, string | number> = {};
+        const excludedSeoKeys = ['id', 'createdAt', 'updatedAt', 'seoId', 'authorTranslationId'];
         Object.entries(transData.seo).forEach(([k, v]) => {
-          if (v !== undefined && v !== null && v !== '') {
+          if (!excludedSeoKeys.includes(k) && v !== undefined && v !== null && v !== '') {
             seoData[k] = v;
           }
         });
