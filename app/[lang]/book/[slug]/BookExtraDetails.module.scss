@@ -109,14 +109,14 @@
 }
 
 .faqDetails {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: $border-radius-lg;
-  background-color: var(--public-background-card, #ffffff);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: $border-radius-base;
+  background-color: rgba(0, 0, 0, 0.02);
   overflow: hidden;
 
   &[open] .faqSummary {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    background-color: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background-color: rgba(0, 0, 0, 0.04);
   }
 }
 
