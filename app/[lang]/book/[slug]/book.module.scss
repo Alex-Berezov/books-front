@@ -277,11 +277,16 @@
 .descriptionContainer {
   position: relative;
   margin-bottom: $spacing-md;
+  display: flex;
+  flex-direction: column;
 }
 
 .collapsed {
-  & > *:not(:first-child) {
-    display: none !important;
+  .description {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 
@@ -296,6 +301,8 @@
   display: inline-flex;
   align-items: center;
   transition: opacity $transition-fast;
+  align-self: flex-end;
+  margin-top: $spacing-md;
 
   &:hover {
     opacity: 0.8;

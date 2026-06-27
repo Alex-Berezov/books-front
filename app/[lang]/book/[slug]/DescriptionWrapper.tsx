@@ -20,16 +20,16 @@ export default function DescriptionWrapper({
 
   useEffect(() => {
     if (containerRef.current) {
-      // Find the inner element that contains the description paragraphs
-      const innerDiv = containerRef.current.querySelector(`.${styles.description}`);
+      const innerDiv = containerRef.current.querySelector(`.${styles.description}`) as HTMLElement;
       if (innerDiv) {
-        const paragraphCount = innerDiv.children.length;
-        if (paragraphCount <= 1) {
+        // If scrollHeight is greater than clientHeight, it means it is truncated in collapsed state
+        if (innerDiv.scrollHeight > innerDiv.clientHeight) {
+          setHasMultipleParagraphs(true);
+        } else {
           setHasMultipleParagraphs(false);
-          setIsCollapsed(false); // Make sure it's expanded if there's only 1 paragraph
+          setIsCollapsed(false);
         }
       } else {
-        // Fallback or no description text
         setHasMultipleParagraphs(false);
         setIsCollapsed(false);
       }
