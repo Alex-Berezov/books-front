@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Select as AntdSelect } from 'antd';
 import { Controller } from 'react-hook-form';
 import { useAuthors } from '@/api/hooks/useAuthors';
 import { useCategories } from '@/api/hooks/useCategories';
@@ -126,20 +127,17 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
         <label className={styles.label} htmlFor="author">
           Author *
         </label>
-        <select
+        <AntdSelect
+          showSearch
           id="author-select"
-          className={styles.select}
           style={{
             width: '100%',
-            padding: '0.75rem',
-            border: '1px solid var(--color-border-light, #d9d9d9)',
-            borderRadius: '6px',
-            backgroundColor: 'var(--color-bg-container, #ffffff)',
-            color: 'var(--color-text, #000000)',
             marginBottom: '0.5rem',
           }}
-          onChange={(e) => {
-            const val = e.target.value;
+          size="large"
+          placeholder="-- Select Existing Author --"
+          optionFilterProp="label"
+          onChange={(val) => {
             if (val === 'custom') {
               setValue('authorId', '');
             } else if (val === '') {
@@ -158,20 +156,23 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
               }
             }
           }}
-          value={watch('authorId') || ''}
-        >
-          <option value="">-- Select Existing Author --</option>
-          {authorsList.map((a) => {
-            const trans =
-              a.translations?.find((t) => t.language === currentLang) || a.translations?.[0];
-            return (
-              <option key={a.id} value={a.id}>
-                {trans?.name || a.slug}
-              </option>
-            );
-          })}
-          <option value="custom">Custom / New Author (Enter manually below)</option>
-        </select>
+          value={watch('authorId') || undefined}
+          options={[
+            { label: '-- Select Existing Author --', value: '' },
+            ...authorsList.map((a) => {
+              const trans =
+                a.translations?.find((t) => t.language === currentLang) || a.translations?.[0];
+              return {
+                label: trans?.name || a.slug,
+                value: a.id,
+              };
+            }),
+            { label: 'Custom / New Author (Enter manually below)', value: 'custom' },
+          ]}
+          filterOption={(input, option) =>
+            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+          }
+        />
 
         {(!watch('authorId') || watch('authorId') === '') && (
           <Input
