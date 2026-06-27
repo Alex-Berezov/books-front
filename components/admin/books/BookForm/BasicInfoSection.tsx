@@ -154,7 +154,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
                   selected.translations?.[0];
                 setValue('author', trans?.name || '');
                 setValue('authorId', selected.id);
-                setValue('authorPageUrl', `/author/${selected.slug}`);
+                setValue('authorPageUrl', `/${currentLang}/author/${trans?.slug || ''}`);
               }
             }
           }}
