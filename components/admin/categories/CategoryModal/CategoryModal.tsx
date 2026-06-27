@@ -2,6 +2,7 @@
 
 import { useEffect, type FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Select as AntdSelect } from 'antd';
 import { useForm, Controller } from 'react-hook-form';
 import { checkCategorySlugUniqueness } from '@/api/endpoints/slug-validation';
 import { useCreateCategory, useUpdateCategory, useCategoriesTree } from '@/api/hooks/useCategories';
@@ -125,20 +126,30 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
     >
       <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
         <div className={styles.field}>
-          <label className={styles.label}>Name</label>
-          <Input {...register('name')} error={!!errors.name} placeholder="e.g. Fantasy" />
+          <label className={styles.label} htmlFor="category-name-input">
+            Name
+          </label>
+          <Input
+            id="category-name-input"
+            {...register('name')}
+            error={!!errors.name}
+            placeholder="e.g. Fantasy"
+          />
           {errors.name?.message && (
             <span className={styles.errorMessage}>{errors.name.message}</span>
           )}
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Slug</label>
+          <label className={styles.label} htmlFor="category-slug-input">
+            Slug
+          </label>
           <Controller
             name="slug"
             control={control}
             render={({ field }) => (
               <SlugInput
+                id="category-slug-input"
                 value={field.value}
                 onChange={field.onChange}
                 error={errors.slug?.message}
@@ -151,16 +162,28 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Parent Category (Optional)</label>
+          <label className={styles.label} htmlFor="category-parent-select">
+            Parent Category (Optional)
+          </label>
           <Controller
             name="parentId"
             control={control}
             render={({ field }) => (
-              <Select
-                options={[{ label: 'None', value: '' }, ...getCategoryOptions()]}
-                value={field.value || ''}
+              <AntdSelect
+                showSearch
+                id="category-parent-select"
+                placeholder="Select parent category"
+                optionFilterProp="label"
+                style={{ width: '100%' }}
+                size="large"
+                value={field.value || undefined}
                 onChange={(val) => field.onChange(val || null)}
-                error={!!errors.parentId}
+                onBlur={field.onBlur}
+                options={[{ label: 'None', value: '' }, ...getCategoryOptions()]}
+                status={errors.parentId ? 'error' : undefined}
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
               />
             )}
           />
@@ -170,12 +193,15 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Type</label>
+          <label className={styles.label} htmlFor="category-type-select">
+            Type
+          </label>
           <Controller
             name="type"
             control={control}
             render={({ field }) => (
               <Select
+                name="category-type-select"
                 options={CATEGORY_TYPES.map((t) => ({ label: t, value: t }))}
                 value={field.value}
                 onChange={field.onChange}
