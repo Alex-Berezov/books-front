@@ -8,6 +8,7 @@ import { useCreateAuthor, useUpdateAuthor } from '@/api/hooks/useAuthors';
 import { MediaPicker } from '@/components/admin/common/MediaPicker/MediaPicker';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { SlugInput } from '@/components/common/SlugInput';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
@@ -633,13 +634,11 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
                   <label htmlFor={`biography-${langKey}`} className={styles.label}>
                     Biography ({langKey.toUpperCase()})
                   </label>
-                  <textarea
-                    id={`biography-${langKey}`}
-                    className={styles.textarea}
-                    rows={6}
+                  <RichTextEditor
                     value={trans.biography}
-                    onChange={(e) => handleTranslationChange(langKey, 'biography', e.target.value)}
+                    onChange={(val) => handleTranslationChange(langKey, 'biography', val)}
                     placeholder="Enter biography details..."
+                    ariaLabel={`Biography details for ${langKey}`}
                   />
                 </div>
 

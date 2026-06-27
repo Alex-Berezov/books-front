@@ -291,7 +291,10 @@ export default function AuthorDetailClient({
         {biography && (
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>{headings.about}</h2>
-            <div className={styles.biographyContent}>{biography}</div>
+            <div
+              className={styles.biographyContent}
+              dangerouslySetInnerHTML={{ __html: biography }}
+            />
           </section>
         )}
 
