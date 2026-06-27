@@ -5,6 +5,8 @@ import type { BookOverview, PublicAuthorDetail } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import AuthorDetailClient from './AuthorDetailClient';
 
+export const revalidate = 300;
+
 type Props = {
   params: Promise<{ lang: string; authorSlug: string }>;
 };
