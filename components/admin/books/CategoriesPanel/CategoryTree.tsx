@@ -1,5 +1,4 @@
 import type { FC } from 'react';
-import { Button } from '@/components/common/Button';
 import { Checkbox } from '@/components/common/Checkbox';
 import type { CategoryTree as CategoryTreeType } from '@/types/api-schema';
 import styles from './CategoriesPanel.module.scss';
@@ -29,25 +28,11 @@ export const CategoryTree: FC<CategoryTreeProps> = ({
     <ul className={styles.categoryList}>
       {categories.map((category) => {
         const isSelected = isCategorySelected(category.id);
-        const isExpanded = expandedCategories.has(category.id);
         const hasChildren = category.children && category.children.length > 0;
 
         return (
           <li className={styles.categoryItem} key={category.id}>
             <div className={styles.categoryRow}>
-              {hasChildren && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`${styles.expandButton} ${isExpanded ? styles.expanded : ''}`}
-                  onClick={() => onToggleExpand(category.id)}
-                  ariaLabel={isExpanded ? 'Collapse' : 'Expand'}
-                >
-                  ▶
-                </Button>
-              )}
-              {!hasChildren && <div className={styles.expandPlaceholder} />}
-
               <div className={styles.categoryLabel}>
                 <Checkbox
                   checked={isSelected}
@@ -66,7 +51,7 @@ export const CategoryTree: FC<CategoryTreeProps> = ({
               </div>
             </div>
 
-            {hasChildren && isExpanded && (
+            {hasChildren && (
               <CategoryTree
                 categories={category.children}
                 expandedCategories={expandedCategories}

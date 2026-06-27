@@ -1,12 +1,34 @@
 'use client';
 
-import type { FC } from 'react';
+import { useState, type FC } from 'react';
 import { Network } from 'lucide-react';
+import { Input } from '@/components/common/Input';
 import type { CategoriesPanelProps } from './CategoriesPanel.types';
+import type { CategoryTree as CategoryTreeType } from '@/types/api-schema';
 import styles from './CategoriesPanel.module.scss';
 import { CategoryTree } from './CategoryTree';
 import { SelectedCategoriesList } from './SelectedCategoriesList';
 import { useCategoriesPanel } from './useCategoriesPanel';
+
+function filterCategoriesTree(tree: CategoryTreeType[], query: string): CategoryTreeType[] {
+  if (!query) return tree;
+  const lowerQuery = query.toLowerCase();
+  return tree
+    .map((node) => {
+      const filteredChildren = node.children ? filterCategoriesTree(node.children, query) : [];
+      const isMatch =
+        node.name.toLowerCase().includes(lowerQuery) ||
+        (node.type && node.type.toLowerCase().includes(lowerQuery));
+      if (isMatch || filteredChildren.length > 0) {
+        return {
+          ...node,
+          children: filteredChildren,
+        };
+      }
+      return null;
+    })
+    .filter((node): node is CategoryTreeType => node !== null);
+}
 
 /**
  * Book version categories management panel
@@ -15,6 +37,7 @@ import { useCategoriesPanel } from './useCategoriesPanel';
  */
 export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
   const { selectedCategories } = props;
+  const [searchQuery, setSearchQuery] = useState('');
   const {
     categoriesTree,
     isLoading,
@@ -24,6 +47,8 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
     toggleExpand,
     handleCategoryToggle,
   } = useCategoriesPanel(props);
+
+  const filteredTree = categoriesTree ? filterCategoriesTree(categoriesTree, searchQuery) : [];
 
   return (
     <div className={styles.panel}>
@@ -37,6 +62,18 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
         )}
       </div>
 
+      {/* Search Input */}
+      {!isLoading && categoriesTree && (
+        <div className={styles.searchWrapper}>
+          <Input
+            placeholder="Search categories..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            fullWidth
+          />
+        </div>
+      )}
+
       {isLoading && (
         <div className={styles.loading}>
           <p>Loading categories...</p>
@@ -46,7 +83,7 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
       {!isLoading && categoriesTree && (
         <div className={styles.treeContainer}>
           <CategoryTree
-            categories={categoriesTree}
+            categories={filteredTree}
             expandedCategories={expandedCategories}
             isCategorySelected={isCategorySelected}
             isPending={isPending}
