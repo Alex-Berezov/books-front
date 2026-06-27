@@ -215,13 +215,20 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
           name="primaryCategoryId"
           control={control}
           render={({ field }) => (
-            <Select
-              {...field}
-              value={field.value ?? ''}
+            <AntdSelect
+              showSearch
+              placeholder="Select primary category"
+              optionFilterProp="label"
+              style={{ width: '100%' }}
+              size="large"
+              value={field.value || undefined}
+              onChange={(val) => field.onChange(val || null)}
+              onBlur={field.onBlur}
               options={categoryOptions}
-              fullWidth
-              error={!!errors.primaryCategoryId}
-              ariaLabel="Select primary category"
+              status={errors.primaryCategoryId ? 'error' : undefined}
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
             />
           )}
         />
