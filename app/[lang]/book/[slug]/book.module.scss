@@ -274,6 +274,35 @@
   opacity: 0.9;
 }
 
+.descriptionContainer {
+  position: relative;
+  margin-bottom: $spacing-md;
+}
+
+.collapsed {
+  & > *:not(:first-child) {
+    display: none !important;
+  }
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  color: var(--public-primary);
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+}
+
 .relatedSection {
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   padding-top: $spacing-xxl;

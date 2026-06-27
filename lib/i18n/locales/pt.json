@@ -95,7 +95,9 @@
     "originalTitle": "Título original",
     "originalLanguage": "Idioma original",
     "copyrightStatus": "Status dos direitos autorais",
-    "alternativeTitles": "Títulos alternativos"
+    "alternativeTitles": "Títulos alternativos",
+    "showMore": "Mostrar mais",
+    "showLess": "Mostrar menos"
   },
   "author": {
     "back": "Voltar",

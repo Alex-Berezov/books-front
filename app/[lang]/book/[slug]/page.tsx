@@ -12,6 +12,7 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import styles from './book.module.scss';
+import DescriptionWrapper from './DescriptionWrapper';
 
 // Dynamically load non-critical sections (reviews and extra details) to exclude their CSS/JS from the main render-blocking bundle
 const ReviewsLoading = () => {
@@ -460,14 +461,16 @@ export default async function BookDetailPage({ params }: Props) {
         {/* Description section */}
         <div id="summary" className={styles.descriptionWrapper}>
           <h2 className={styles.descriptionTitle}>{descriptionTitle}</h2>
-          {book.description ? (
-            <div
-              className={styles.description}
-              dangerouslySetInnerHTML={{ __html: book.description }}
-            />
-          ) : (
-            <p className={styles.description}>{dict.book.noDescription}</p>
-          )}
+          <DescriptionWrapper showMoreText={dict.book.showMore} showLessText={dict.book.showLess}>
+            {book.description ? (
+              <div
+                className={styles.description}
+                dangerouslySetInnerHTML={{ __html: book.description }}
+              />
+            ) : (
+              <p className={styles.description}>{dict.book.noDescription}</p>
+            )}
+          </DescriptionWrapper>
         </div>
 
         {/* Dynamically loaded extra details (FAQ, symbols, quotes, characters) to isolate non-critical CSS/JS */}
