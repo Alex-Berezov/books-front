@@ -54,6 +54,11 @@ export default auth((req) => {
   const host = req.headers.get('host') || req.nextUrl.host;
   const proto = req.headers.get('x-forwarded-proto') || 'https';
 
+  // Instant redirect for root path '/' to default language
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL(`/${DEFAULT_REDIRECT_LANG}`, req.url));
+  }
+
   let shouldRedirect = false;
   let targetHost = host;
   let targetProto = proto;
@@ -137,6 +142,7 @@ export default auth((req) => {
  */
 export const config = {
   matcher: [
+    '/',
     '/admin/:lang*/:path*',
     '/:lang(ru|en|es|fr|pt)/profile/:path*',
     '/:lang(ru|en|es|fr|pt)/bookshelf/:path*',
