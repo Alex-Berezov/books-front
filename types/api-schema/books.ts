@@ -51,6 +51,7 @@ export interface BookOverview {
   author: string;
   description?: string;
   coverUrl?: string;
+  coverImageUrl?: string;
   rating?: number;
   publicationYear?: number;
   firstPublishedYear?: number;

@@ -55,7 +55,12 @@ export function BookCard({ book, size = 'md' }: BookCardProps) {
 
   const title = displayVersion?.title || book.title || '';
   const author = displayVersion?.author || book.author || '';
-  const coverUrl = displayVersion?.coverImageUrl || displayVersion?.coverUrl || book.coverUrl || '';
+  const coverUrl =
+    displayVersion?.coverImageUrl ||
+    displayVersion?.coverUrl ||
+    book.coverUrl ||
+    book.coverImageUrl ||
+    '';
   const rating = book.rating !== undefined && book.rating !== null ? book.rating : 5.0;
 
   // Determine if it is a new release (created in last 30 days)
