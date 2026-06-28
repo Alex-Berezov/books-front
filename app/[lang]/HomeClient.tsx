@@ -1,7 +1,8 @@
 'use client';
 
 import { Skeleton } from 'antd';
-import { ChevronRight } from 'lucide-react';
+import { BookOpen, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePublicBooks } from '@/api/hooks';
 import { useCategories } from '@/api/hooks/useCategories';
@@ -88,6 +89,25 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
     )
     .slice(0, 8);
 
+  // Helper to get cover URL from book
+  const getCoverUrl = (book: BookOverview): string => {
+    const currentLangVersion = book.versions?.find(
+      (v) => v.language === supportedLang && v.status === 'published'
+    );
+    const displayVersion =
+      currentLangVersion ||
+      book.versions?.find((v) => v.status === 'published') ||
+      book.versions?.[0];
+
+    return (
+      displayVersion?.coverImageUrl ||
+      displayVersion?.coverUrl ||
+      book.coverUrl ||
+      book.coverImageUrl ||
+      ''
+    );
+  };
+
   return (
     <div className={styles.main}>
       {/* Banner */}
@@ -121,21 +141,34 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
                     style={{ height: 130 + i * 15 }}
                   />
                 ))
-              : newReleases.slice(0, 4).map((book, i) => (
-                  <Link
-                    key={book.id}
-                    href={`/${supportedLang}/book/${book.slug || book.id}`}
-                    className={styles.stackBook}
-                    style={{
-                      height: 130 + i * 15,
-                      backgroundColor: 'var(--bibliaris-green)',
-                    }}
-                  >
-                    {book.coverUrl && (
-                      <img src={book.coverUrl} alt={book.title} className={styles.stackCover} />
-                    )}
-                  </Link>
-                ))}
+              : newReleases.slice(0, 4).map((book, i) => {
+                  const coverUrl = getCoverUrl(book);
+                  return (
+                    <Link
+                      key={book.id}
+                      href={`/${supportedLang}/book/${book.slug || book.id}`}
+                      className={styles.stackBook}
+                      style={{
+                        height: 130 + i * 15,
+                        backgroundColor: 'var(--bibliaris-green)',
+                      }}
+                    >
+                      {coverUrl ? (
+                        <Image
+                          src={coverUrl}
+                          alt={book.title || 'Book cover'}
+                          fill
+                          sizes="90px"
+                          className={styles.stackCover}
+                        />
+                      ) : (
+                        <div className={styles.stackCoverPlaceholder}>
+                          <BookOpen size={24} />
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
           </div>
         </div>
       </div>
