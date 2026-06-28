@@ -10,7 +10,7 @@
 
 Bibliaris is a modern web platform for discovering, reading, and listening to classic literature in multiple languages. Built with Next.js 14 App Router, TypeScript, and a robust backend API.
 
-**Supported Languages:** English, Spanish, French, Portuguese
+**Supported Languages:** English, Spanish, French, Portuguese, Russian
 
 ## 📋 Current Status
 
@@ -68,7 +68,7 @@ Key rules:
 ```
 books-app-front/
 ├── app/
-│   ├── [lang]/              # Public pages with i18n (en|es|fr|pt)
+│   ├── [lang]/              # Public pages with i18n (en|es|fr|pt|ru)
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   ├── admin/[lang]/        # Admin panel with i18n
@@ -137,12 +137,13 @@ yarn format:check # Check code formatting
 
 ## 🌍 Internationalization
 
-The app supports 4 languages with URL-based routing:
+The app supports 5 languages with URL-based routing:
 
 - `/en` - English
 - `/es` - Spanish (Español)
 - `/fr` - French (Français)
 - `/pt` - Portuguese (Português)
+- `/ru` - Russian (Русский)
 
 Language is determined by URL prefix and validated on the server side.
 

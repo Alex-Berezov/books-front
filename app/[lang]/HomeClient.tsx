@@ -110,7 +110,7 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
             </div>
           </div>
 
-          {/* Book Stack */}
+          {/* Book Stack - 4 latest published books */}
           <div className={styles.bookStack}>
             {loadingBooks
               ? Array.from({ length: 4 }).map((_, i) => (
@@ -121,7 +121,7 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
                     style={{ height: 130 + i * 15 }}
                   />
                 ))
-              : allBooks.slice(0, 4).map((book, i) => (
+              : newReleases.slice(0, 4).map((book, i) => (
                   <Link
                     key={book.id}
                     href={`/${supportedLang}/book/${book.slug || book.id}`}
