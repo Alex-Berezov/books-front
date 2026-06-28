@@ -30,14 +30,23 @@ export default function GenresClient({ lang }: GenresClientProps) {
     };
   };
 
-  // Calculate total books count for a category (including children)
+  // Calculate total books count for a category (sum of children only for parents)
   const getTotalBooksCount = (category: CategoryTree): number => {
-    const ownCount = category.booksCount || 0;
-    const childrenCount = category.children?.reduce(
-      (sum, child) => sum + getTotalBooksCount(child),
-      0
-    );
-    return ownCount + childrenCount;
+    // For parent categories, sum only children counts
+    if (category.children && category.children.length > 0) {
+      return category.children.reduce((sum, child) => sum + (child.booksCount || 0), 0);
+    }
+    // For leaf categories, return own count
+    return category.booksCount || 0;
+  };
+
+  // Check if category has any books (directly or in children)
+  const hasBooks = (category: CategoryTree): boolean => {
+    if (category.booksCount && category.booksCount > 0) return true;
+    if (category.children && category.children.length > 0) {
+      return category.children.some((child) => child.booksCount && child.booksCount > 0);
+    }
+    return false;
   };
 
   return (
@@ -61,49 +70,54 @@ export default function GenresClient({ lang }: GenresClientProps) {
           </div>
         ) : (
           <div className={styles.categoriesList}>
-            {categoriesTree?.map((parentCategory) => {
-              const parentTranslated = getTranslated(parentCategory);
-              const totalBooksCount = getTotalBooksCount(parentCategory);
+            {categoriesTree
+              ?.filter((parentCategory) => hasBooks(parentCategory))
+              .map((parentCategory) => {
+                const parentTranslated = getTranslated(parentCategory);
+                const totalBooksCount = getTotalBooksCount(parentCategory);
 
-              return (
-                <div key={parentCategory.id} className={styles.categoryGroup}>
-                  <div className={styles.categoryHeader}>
-                    <Link
-                      href={`/${supportedLang}/catalog/${parentTranslated.slug}`}
-                      className={styles.categoryTitle}
-                    >
-                      {parentTranslated.name}
-                    </Link>
-                    <ChevronRight size={16} className={styles.chevron} />
-                    <span className={styles.totalCount}>
-                      {totalBooksCount} {t('genres.booksCount')}
-                    </span>
-                  </div>
+                // Filter children that have books
+                const childrenWithBooks = parentCategory.children?.filter(
+                  (child) => child.booksCount && child.booksCount > 0
+                );
 
-                  {parentCategory.children && parentCategory.children.length > 0 && (
-                    <div className={styles.subcategories}>
-                      {parentCategory.children.map((child) => {
-                        const childTranslated = getTranslated(child);
-                        const childBooksCount = child.booksCount || 0;
-
-                        return (
-                          <Link
-                            key={child.id}
-                            href={`/${supportedLang}/catalog/${childTranslated.slug}`}
-                            className={styles.subcategoryLink}
-                          >
-                            <span className={styles.subcategoryName}>{childTranslated.name}</span>
-                            {childBooksCount > 0 && (
-                              <span className={styles.subcategoryCount}>{childBooksCount}</span>
-                            )}
-                          </Link>
-                        );
-                      })}
+                return (
+                  <div key={parentCategory.id} className={styles.categoryGroup}>
+                    <div className={styles.categoryHeader}>
+                      <Link
+                        href={`/${supportedLang}/catalog/${parentTranslated.slug}`}
+                        className={styles.categoryTitle}
+                      >
+                        {parentTranslated.name}
+                      </Link>
+                      <ChevronRight size={16} className={styles.chevron} />
+                      <span className={styles.totalCount}>
+                        {totalBooksCount} {t('genres.booksCount')}
+                      </span>
                     </div>
-                  )}
-                </div>
-              );
-            })}
+
+                    {childrenWithBooks && childrenWithBooks.length > 0 && (
+                      <div className={styles.subcategories}>
+                        {childrenWithBooks.map((child) => {
+                          const childTranslated = getTranslated(child);
+                          const childBooksCount = child.booksCount || 0;
+
+                          return (
+                            <Link
+                              key={child.id}
+                              href={`/${supportedLang}/catalog/${childTranslated.slug}`}
+                              className={styles.subcategoryLink}
+                            >
+                              <span className={styles.subcategoryName}>{childTranslated.name}</span>
+                              <span className={styles.subcategoryCount}>{childBooksCount}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
           </div>
         )}
       </div>
