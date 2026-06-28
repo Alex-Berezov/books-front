@@ -35,6 +35,7 @@ export const MediaSection: FC<MediaSectionProps> = ({ register, control, errors 
               value={field.value}
               onChange={field.onChange}
               error={errors.coverImageUrl?.message}
+              aspectRatio="vertical"
             />
           )}
         />

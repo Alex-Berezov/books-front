@@ -141,7 +141,7 @@ export const useBookForm = (props: UseBookFormProps) => {
     }
   }, [initialData, reset]);
 
-  // Auto-fill OG and Twitter fields when entering Meta Title and Meta Description
+  // Auto-fill OG and Twitter fields when entering Meta Title, Meta Description, and Cover Image/Alt
   useEffect(() => {
     const subscription = watch((value, { name }) => {
       // Auto-fill on Meta Title input
@@ -156,6 +156,20 @@ export const useBookForm = (props: UseBookFormProps) => {
         const newDescription = value.seoMetaDescription || '';
         // Always sync OG Description with Meta Description
         setValue('seoOgDescription', newDescription, { shouldValidate: false, shouldDirty: false });
+      }
+
+      // Auto-fill on Cover Image URL
+      if (name === 'coverImageUrl') {
+        const newCoverImage = value.coverImageUrl || '';
+        // Always sync OG Image URL with Cover Image URL
+        setValue('seoOgImageUrl', newCoverImage, { shouldValidate: false, shouldDirty: false });
+      }
+
+      // Auto-fill on Cover Image Alt Text
+      if (name === 'coverAlt') {
+        const newCoverAlt = value.coverAlt || '';
+        // Always sync OG Image Alt with Cover Alt
+        setValue('seoOgImageAlt', newCoverAlt, { shouldValidate: false, shouldDirty: false });
       }
     });
 

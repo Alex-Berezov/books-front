@@ -15,8 +15,6 @@
 .previewContainer {
   position: relative;
   width: 100%;
-  max-width: 300px;
-  aspect-ratio: 16 / 9;
   background-color: $color-background-secondary;
   border: 1px solid $color-border-base;
   border-radius: $border-radius-sm;
@@ -40,10 +38,26 @@
   }
 }
 
+.ratioLandscape {
+  max-width: 300px;
+  aspect-ratio: 16 / 9;
+}
+
+.ratioVertical {
+  max-width: 205px;
+  aspect-ratio: 205 / 290;
+}
+
+.ratioSquare {
+  max-width: 200px;
+  aspect-ratio: 1 / 1;
+}
+
 .previewImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .placeholder {

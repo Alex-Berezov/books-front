@@ -538,6 +538,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
                 onChange={handlePhotoChange}
                 label="Author Photo"
                 allowedTypes={['image']}
+                aspectRatio="square"
               />
             </div>
 
