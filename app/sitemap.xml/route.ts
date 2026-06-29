@@ -13,6 +13,7 @@ export async function GET() {
       `${cleanBaseUrl}/sitemaps/sitemap-books-${lang}-1.xml`,
       `${cleanBaseUrl}/sitemaps/sitemap-genres-${lang}.xml`,
       `${cleanBaseUrl}/sitemaps/sitemap-authors-${lang}.xml`,
+      `${cleanBaseUrl}/sitemaps/sitemap-tags-${lang}.xml`,
     ]),
   ];
 

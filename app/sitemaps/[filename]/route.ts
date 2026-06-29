@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getBooks } from '@/api/endpoints/admin/books';
 import { getCategories } from '@/api/endpoints/admin/categories';
+import { getTags } from '@/api/endpoints/admin/tags';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type {
   BookOverview,
   Category,
   CategoryTranslation,
+  Tag,
+  TagTranslation,
   VersionPreview,
 } from '@/types/api-schema';
 
@@ -40,7 +43,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
   // 1. Static Sitemap
   if (filename === 'sitemap-static.xml') {
-    const staticRoutes = ['', '/genres', '/catalog', '/privacy', '/terms', '/deletion'];
+    const staticRoutes = ['', '/genres', '/tags', '/catalog', '/privacy', '/terms', '/deletion'];
     staticRoutes.forEach((route) => {
       SUPPORTED_LANGS.forEach((lang) => {
         const url = `${cleanBaseUrl}/${lang}${route}`;
@@ -219,6 +222,65 @@ export async function GET(request: Request, { params }: { params: { filename: st
           });
         });
       }
+    }
+  }
+  // 5. Tags Sitemap: sitemap-tags-[lang].xml
+  else if (filename.startsWith('sitemap-tags-') && filename.endsWith('.xml')) {
+    const lang = filename.substring('sitemap-tags-'.length, filename.length - '.xml'.length);
+    if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
+      let tags: Tag[] = [];
+      try {
+        const tagsRes = await getTags({ limit: 1000 });
+        tags = tagsRes?.data || [];
+      } catch (error) {
+        console.error(`Error fetching tags for sitemap (${lang}):`, error);
+      }
+
+      tags.forEach((tag) => {
+        // Skip tags without books
+        if (!tag.booksCount || tag.booksCount === 0) return;
+
+        const hasTranslation = tag.translations?.some(
+          (t: TagTranslation) => t.language === lang && t.slug
+        );
+        if (!hasTranslation) return;
+
+        const currentTranslation = tag.translations?.find(
+          (t: TagTranslation) => t.language === lang
+        );
+        if (!currentTranslation?.slug) return;
+
+        const url = `${cleanBaseUrl}/${lang}/tag/${currentTranslation.slug}`;
+
+        const alternates: Record<string, string> = {};
+        const translatedLangs = SUPPORTED_LANGS.filter((l) =>
+          tag.translations?.some((t: TagTranslation) => t.language === l && t.slug)
+        );
+
+        translatedLangs.forEach((l) => {
+          const trans = tag.translations?.find((t: TagTranslation) => t.language === l);
+          if (trans?.slug) {
+            alternates[l] = `${cleanBaseUrl}/${l}/tag/${trans.slug}`;
+          }
+        });
+
+        const defaultTrans =
+          tag.translations?.find((t: TagTranslation) => t.language === defaultLang) ||
+          tag.translations?.[0];
+        if (defaultTrans?.slug) {
+          alternates['x-default'] = `${cleanBaseUrl}/${defaultLang}/tag/${defaultTrans.slug}`;
+        }
+
+        sitemapItems.push({
+          url,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.6,
+          alternates: {
+            languages: alternates,
+          },
+        });
+      });
     }
   }
 
