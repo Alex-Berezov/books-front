@@ -140,7 +140,12 @@ export default async function BookDetailPage({ params }: Props) {
     book = await getBookOverview(supportedLang, slug);
     seoData = await resolveSeo(supportedLang, 'book', slug);
     const booksRes = await getPublicBooks(supportedLang, { page: 1, limit: 100 });
-    allBooks = booksRes.data || [];
+    // Filter out books without published versions in the current language
+    allBooks = (booksRes.data || []).filter((bookItem) =>
+      bookItem.versions?.some(
+        (version) => version.language === supportedLang && version.status === 'published'
+      )
+    );
   } catch (error) {
     console.error('Error loading book overview, SEO, or public books on server:', error);
   }
@@ -156,10 +161,10 @@ export default async function BookDetailPage({ params }: Props) {
 
   const versionIds = book.versionIds;
   const textVersion = versionIds?.text
-    ? (book.versions?.find((v) => v.id === versionIds.text) ?? null)
+    ? (book.versions?.find((version) => version.id === versionIds.text) ?? null)
     : null;
   const audioVersion = versionIds?.audio
-    ? (book.versions?.find((v) => v.id === versionIds.audio) ?? null)
+    ? (book.versions?.find((version) => version.id === versionIds.audio) ?? null)
     : null;
   const activeVersion = textVersion || audioVersion || book.versions?.[0] || null;
 
@@ -167,23 +172,23 @@ export default async function BookDetailPage({ params }: Props) {
   const authorBooks = book
     ? allBooks
         .filter(
-          (b) =>
-            b.id !== book.id &&
-            b.author?.trim().toLowerCase() ===
+          (bookItem) =>
+            bookItem.id !== book.id &&
+            bookItem.author?.trim().toLowerCase() ===
               (activeVersion?.author || book.author || '').trim().toLowerCase()
         )
         .slice(0, 4)
     : [];
 
   // Filter similar books (same categories, excluding the same author books to keep variety)
-  const categoryIds = book?.categories?.map((c) => c.id) || [];
+  const categoryIds = book?.categories?.map((category) => category.id) || [];
   let similarBooks = book
     ? allBooks.filter(
-        (b) =>
-          b.id !== book.id &&
-          b.author?.trim().toLowerCase() !==
+        (bookItem) =>
+          bookItem.id !== book.id &&
+          bookItem.author?.trim().toLowerCase() !==
             (activeVersion?.author || book.author || '').trim().toLowerCase() &&
-          b.categories?.some((c) => categoryIds.includes(c.id))
+          bookItem.categories?.some((category) => categoryIds.includes(category.id))
       )
     : [];
 
@@ -191,10 +196,10 @@ export default async function BookDetailPage({ params }: Props) {
   if (book && similarBooks.length < 4) {
     const excludedIds = new Set([
       book.id,
-      ...authorBooks.map((b) => b.id),
-      ...similarBooks.map((b) => b.id),
+      ...authorBooks.map((bookItem) => bookItem.id),
+      ...similarBooks.map((bookItem) => bookItem.id),
     ]);
-    const fillBooks = allBooks.filter((b) => !excludedIds.has(b.id));
+    const fillBooks = allBooks.filter((bookItem) => !excludedIds.has(bookItem.id));
     similarBooks = [...similarBooks, ...fillBooks];
   }
   similarBooks = similarBooks.slice(0, 4);
@@ -494,8 +499,8 @@ export default async function BookDetailPage({ params }: Props) {
           <section className={styles.relatedSection} style={{ marginTop: '3rem' }}>
             <h2 className={styles.sectionTitle}>{dict.book.sameAuthor}</h2>
             <div className={styles.booksGrid}>
-              {authorBooks.map((b) => (
-                <BookCard key={b.id} book={b} size="md" />
+              {authorBooks.map((bookItem) => (
+                <BookCard key={bookItem.id} book={bookItem} size="md" />
               ))}
             </div>
           </section>
@@ -506,8 +511,8 @@ export default async function BookDetailPage({ params }: Props) {
           <section className={styles.relatedSection} style={{ marginTop: '3rem' }}>
             <h2 className={styles.sectionTitle}>{dict.book.youMightLike}</h2>
             <div className={styles.booksGrid}>
-              {similarBooks.map((b) => (
-                <BookCard key={b.id} book={b} size="md" />
+              {similarBooks.map((bookItem) => (
+                <BookCard key={bookItem.id} book={bookItem} size="md" />
               ))}
             </div>
           </section>

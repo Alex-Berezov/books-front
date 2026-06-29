@@ -49,14 +49,16 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   const rawBooks = (
     (categorySlug ? categoryBooksData?.data || [] : allBooksData?.data || []) as BookOverview[]
   )
-    .filter((book) => book.versions?.some((v) => v.language === lang && v.status === 'published'))
+    .filter((book) =>
+      book.versions?.some((version) => version.language === lang && version.status === 'published')
+    )
     .map((book) => {
       const currentLangVersion = book.versions?.find(
-        (v) => v.language === lang && v.status === 'published'
+        (version) => version.language === lang && version.status === 'published'
       );
       const displayVersion =
         currentLangVersion ||
-        book.versions?.find((v) => v.status === 'published') ||
+        book.versions?.find((version) => version.status === 'published') ||
         book.versions?.[0];
 
       const tagsMap = new Map();
@@ -67,9 +69,9 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
       interface VersionWithTags {
         tags?: Array<{ tag?: TagDetails }>;
       }
-      (book.versions as VersionWithTags[] | undefined)?.forEach((v) => {
-        v.tags?.forEach((t) => {
-          const tagObj = t.tag;
+      (book.versions as VersionWithTags[] | undefined)?.forEach((version) => {
+        version.tags?.forEach((tagItem) => {
+          const tagObj = tagItem.tag;
           if (tagObj && tagObj.id) {
             tagsMap.set(tagObj.id, tagObj);
           }
@@ -90,28 +92,32 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   if (search) {
     const searchLower = search.toLowerCase();
     filteredBooks = filteredBooks.filter(
-      (b: BookOverview) =>
-        (b.title || '').toLowerCase().includes(searchLower) ||
-        (b.author || '').toLowerCase().includes(searchLower) ||
-        b.tags?.some(
-          (t) =>
-            (t.id || '').toLowerCase().includes(searchLower) ||
-            t.translations?.some((tr) => (tr.name || '').toLowerCase().includes(searchLower))
+      (book: BookOverview) =>
+        (book.title || '').toLowerCase().includes(searchLower) ||
+        (book.author || '').toLowerCase().includes(searchLower) ||
+        book.tags?.some(
+          (tag) =>
+            (tag.id || '').toLowerCase().includes(searchLower) ||
+            tag.translations?.some((translation) =>
+              (translation.name || '').toLowerCase().includes(searchLower)
+            )
         )
     );
   }
 
   if (type === 'audio') {
-    filteredBooks = filteredBooks.filter((b: BookOverview) => b.hasAudio === true);
+    filteredBooks = filteredBooks.filter((book: BookOverview) => book.hasAudio === true);
   }
 
   if (sort === 'new') {
     filteredBooks.sort(
-      (a: BookOverview, b: BookOverview) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      (bookA: BookOverview, bookB: BookOverview) =>
+        new Date(bookB.createdAt).getTime() - new Date(bookA.createdAt).getTime()
     );
   } else if (sort === 'popular') {
-    filteredBooks.sort((a: BookOverview, b: BookOverview) => (b.rating || 0) - (a.rating || 0));
+    filteredBooks.sort(
+      (bookA: BookOverview, bookB: BookOverview) => (bookB.rating || 0) - (bookA.rating || 0)
+    );
   }
 
   // Clear filters helper

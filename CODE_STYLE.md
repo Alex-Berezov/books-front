@@ -736,9 +736,46 @@ interface UserData { }
 type ApiResponse = { }
 
 // CSS classes - kebab-case
-.user-profile { }
+.user-user-profile { }
 .book-card { }
 ```
+
+### 1.1. Callback Parameter Naming
+
+**🚫 FORBIDDEN:** Single-letter variable names in `.map()`, `.filter()`, `.some()`, `.find()`, `.forEach()` and similar array methods.
+
+**✅ CORRECT:**
+
+```typescript
+// Descriptive names that reflect the data
+const publishedBooks = books.filter((book) =>
+  book.versions?.some((version) => version.status === 'published')
+);
+
+const categoryIds = book.categories?.map((category) => category.id) || [];
+
+const hasTranslation = categories.some((cat) =>
+  cat.translations?.some((translation) => translation.language === lang)
+);
+```
+
+**❌ INCORRECT:**
+
+```typescript
+// Single-letter names are cryptic and hurt readability
+const publishedBooks = books.filter((b) => b.versions?.some((v) => v.status === 'published'));
+
+const categoryIds = book.categories?.map((c) => c.id) || [];
+
+const hasTranslation = categories.some((cat) => cat.translations?.some((t) => t.language === lang));
+```
+
+**Why this matters:**
+
+- ✅ Code is self-documenting — variable name tells you what it represents
+- ✅ Easier to read and review, especially in nested callbacks
+- ✅ Reduces cognitive load when scanning code
+- ✅ Prevents bugs from confusing similar single-letter names (`b` vs `v` vs `c`)
 
 ### 2. Import organization
 

@@ -49,7 +49,9 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
   );
 
   const allBooks = (booksData?.data || []).filter((book) =>
-    book.versions?.some((v) => v.language === supportedLang && v.status === 'published')
+    book.versions?.some(
+      (version) => version.language === supportedLang && version.status === 'published'
+    )
   );
   const categories = (categoriesData?.data || []).filter((cat) => (cat.booksCount || 0) > 0);
 
@@ -60,25 +62,29 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 10);
 
-  const audiobooks = allBooks.filter((b) => b.hasAudio === true).slice(0, 10);
+  const audiobooks = allBooks.filter((book) => book.hasAudio === true).slice(0, 10);
 
   // Filter classics and fantasy by category slug
   const classicBooks = allBooks
-    .filter((b) =>
-      b.categories?.some(
-        (c) =>
-          ['classics', 'classic-literature', 'classic'].includes(c.id) ||
-          c.translations?.some((t) => t.name.toLowerCase().includes('classic'))
+    .filter((book) =>
+      book.categories?.some(
+        (category) =>
+          ['classics', 'classic-literature', 'classic'].includes(category.id) ||
+          category.translations?.some((translation) =>
+            translation.name.toLowerCase().includes('classic')
+          )
       )
     )
     .slice(0, 8);
 
   const fantasyBooks = allBooks
-    .filter((b) =>
-      b.categories?.some(
-        (c) =>
-          ['fantasy', 'sci-fi-fantasy'].includes(c.id) ||
-          c.translations?.some((t) => t.name.toLowerCase().includes('fantasy'))
+    .filter((book) =>
+      book.categories?.some(
+        (category) =>
+          ['fantasy', 'sci-fi-fantasy'].includes(category.id) ||
+          category.translations?.some((translation) =>
+            translation.name.toLowerCase().includes('fantasy')
+          )
       )
     )
     .slice(0, 8);
@@ -86,7 +92,7 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
   // Helper to get cover URL from book
   const getCoverUrl = (book: BookOverview): string => {
     const currentLangVersion = book.versions?.find(
-      (v) => v.language === supportedLang && v.status === 'published'
+      (version) => version.language === supportedLang && version.status === 'published'
     );
     const displayVersion =
       currentLangVersion ||
