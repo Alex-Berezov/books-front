@@ -24,7 +24,7 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   const searchParams = useSearchParams();
   const { t } = useTranslation();
   const { data: categoriesData } = useCategories({ limit: 50 });
-  const categories = categoriesData?.data || [];
+  const categories = (categoriesData?.data || []).filter((cat) => (cat.booksCount || 0) > 0);
 
   const search = searchParams.get('q') || '';
   const type = searchParams.get('type') || '';
