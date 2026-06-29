@@ -51,7 +51,7 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
   const allBooks = (booksData?.data || []).filter((book) =>
     book.versions?.some((v) => v.language === supportedLang && v.status === 'published')
   );
-  const categories = categoriesData?.data || [];
+  const categories = (categoriesData?.data || []).filter((cat) => (cat.booksCount || 0) > 0);
 
   // Filter & Sort books
   const popularBooks = [...allBooks].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10);
@@ -60,13 +60,7 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 10);
 
-  const audiobooks = allBooks
-    .filter((b) =>
-      b.versions?.some(
-        (v) => v.language === supportedLang && v.status === 'published' && v.type === 'audio'
-      )
-    )
-    .slice(0, 10);
+  const audiobooks = allBooks.filter((b) => b.hasAudio === true).slice(0, 10);
 
   // Filter classics and fantasy by category slug
   const classicBooks = allBooks
