@@ -11,7 +11,7 @@ import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { BookOverview, VersionPreview } from '@/types/api-schema';
+import type { BookOverview } from '@/types/api-schema';
 import styles from './CatalogTemplate.module.scss';
 
 interface CatalogTemplateProps {
@@ -102,11 +102,7 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   }
 
   if (type === 'audio') {
-    filteredBooks = filteredBooks.filter((b: BookOverview) =>
-      b.versions?.some(
-        (v: VersionPreview) => v.language === lang && v.status === 'published' && v.type === 'audio'
-      )
-    );
+    filteredBooks = filteredBooks.filter((b: BookOverview) => b.hasAudio === true);
   }
 
   if (sort === 'new') {
