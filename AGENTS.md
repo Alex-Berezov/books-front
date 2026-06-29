@@ -139,22 +139,37 @@ This runs:
 1. `yarn lint --fix` — auto-fix ESLint issues
 2. `yarn typecheck` — TypeScript type checking
 
-**Before committing:**
-
-```bash
-yarn typecheck  # Must pass
-yarn lint       # Must pass
-```
-
 ---
 
 ## Git Workflow
 
-**After completing each subtask:**
+**CRITICAL RULE: NEVER commit or push without explicit user permission!**
 
-1. Run `yarn typecheck && yarn lint`
-2. Commit changes
-3. **Push to GitHub** — DO NOT skip this!
+The AI agent must **NEVER** execute `git commit` or `git push` on its own. All changes must be reviewed by the user first.
+
+**Correct workflow:**
+
+1. Complete the task
+2. Run `yarn typecheck && yarn lint`
+3. Show the user what was changed (diff summary)
+4. **WAIT for user to review the code**
+5. **Only commit/push if user explicitly asks to do so**
+
+**Example of correct behavior:**
+
+```
+✅ "Changes are ready. Here's what was modified:
+    - file1.tsx: added filter logic
+    - file2.ts: updated types
+
+    Run `git diff` to review. Should I commit and push?"
+```
+
+**Example of WRONG behavior:**
+
+```
+❌ Automatically running git commit and git push without asking
+```
 
 ---
 

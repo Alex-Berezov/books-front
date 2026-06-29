@@ -1,24 +1,35 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button, Input, Drawer, Dropdown } from 'antd';
 import { Search, BookOpen, User, BookMarked, Menu, Headphones } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import { getPublicBooks } from '@/api/endpoints/public';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { getLangFromPath, type SupportedLang } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { MenuProps } from 'antd';
 import styles from './Header.module.scss';
 
-const getNavLinks = (lang: SupportedLang, t: (key: string) => string) => [
-  { label: t('header.popular'), href: `/${lang}/catalog?sort=popular` },
-  { label: t('header.newReleases'), href: `/${lang}/catalog?sort=new` },
-  { label: t('header.audiobooks'), href: `/${lang}/catalog?type=audio` },
-  { label: t('header.genres'), href: `/${lang}/genres` },
-  { label: t('header.regional'), href: `/${lang}/catalog?regional=true` },
-];
+const getNavLinks = (lang: SupportedLang, t: (key: string) => string, hasAudiobooks: boolean) => {
+  const links = [
+    { label: t('header.popular'), href: `/${lang}/catalog?sort=popular` },
+    { label: t('header.newReleases'), href: `/${lang}/catalog?sort=new` },
+    { label: t('header.genres'), href: `/${lang}/genres` },
+  ];
+
+  if (hasAudiobooks) {
+    links.splice(2, 0, {
+      label: t('header.audiobooks'),
+      href: `/${lang}/catalog?type=audio`,
+    });
+  }
+
+  return links;
+};
 
 export function Header() {
   const { data: session } = useSession();
@@ -35,6 +46,16 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Check if there are any audiobooks
+  const { data: booksData } = useQuery({
+    queryKey: ['audiobooks-check', lang],
+    queryFn: () => getPublicBooks(lang, { limit: 50 }),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    enabled: isMounted,
+  });
+
+  const hasAudiobooks = (booksData?.data || []).some((book) => book.hasAudio === true);
+
   const handleSearchSubmit = (value: string) => {
     if (value.trim()) {
       router.push(`/${lang}/catalog?q=${encodeURIComponent(value.trim())}`);
@@ -42,7 +63,7 @@ export function Header() {
     }
   };
 
-  const navLinks = getNavLinks(lang, t);
+  const navLinks = getNavLinks(lang, t, hasAudiobooks);
 
   const userMenuItems: MenuProps['items'] = [
     {
@@ -224,16 +245,18 @@ export function Header() {
                   aria-label={t('a11y.openSearch')}
                 />
 
-                {!pathname?.includes('/auth/sign-in') && !pathname?.includes('/auth/register') && (
-                  <Button
-                    type="text"
-                    icon={<Headphones size={20} aria-hidden="true" />}
-                    className={styles.desktopAudioBtn}
-                    onClick={() => router.push(`/${lang}/catalog?type=audio`)}
-                    title={t('header.audiobooks')}
-                    aria-label={t('a11y.audiobooks')}
-                  />
-                )}
+                {!pathname?.includes('/auth/sign-in') &&
+                  !pathname?.includes('/auth/register') &&
+                  hasAudiobooks && (
+                    <Button
+                      type="text"
+                      icon={<Headphones size={20} aria-hidden="true" />}
+                      className={styles.desktopAudioBtn}
+                      onClick={() => router.push(`/${lang}/catalog?type=audio`)}
+                      title={t('header.audiobooks')}
+                      aria-label={t('a11y.audiobooks')}
+                    />
+                  )}
 
                 <LanguageSwitcher />
 
