@@ -126,6 +126,34 @@ export const SUPPORTED_LANGS = ['en', 'es', 'fr', 'pt', 'ru'] as const;
 
 ---
 
+## Backend Repository
+
+**Location:** `D:\newDev\books` (NestJS + Prisma + PostgreSQL)
+
+**CRITICAL: Backend is NOT running locally!**
+
+- Backend is deployed on a VPS (production server)
+- Database (PostgreSQL) is NOT available on localhost
+- **NEVER** attempt to run database migrations, seeds, or queries locally
+- **NEVER** run `yarn prisma:migrate`, `yarn prisma:seed`, or `psql` commands
+- All backend changes (schema, migrations, DTOs) must be reviewed by the user before deployment
+- To test backend changes, the user will deploy them to VPS manually
+
+**What you CAN do with backend code:**
+
+- Read and modify schema, DTOs, services, controllers
+- Create migration SQL files (user will apply them on VPS)
+- Review and suggest backend improvements
+
+**What you CANNOT do:**
+
+- Run the backend server locally
+- Connect to the database
+- Execute migrations or seeds
+- Test API endpoints against local server
+
+---
+
 ## Validation Workflow
 
 **MANDATORY after every change:**

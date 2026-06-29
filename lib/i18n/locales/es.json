@@ -51,6 +51,22 @@
     "subtitle": "Descubre libros de todos los géneros y estilos",
     "booksCount": "libros"
   },
+  "tags": {
+    "title": "Etiquetas Literarias y Temas de Libros",
+    "subtitle": "Explora etiquetas literarias, temas, motivos y tópicos en Bibliaris. Descubre libros por ideas, géneros, épocas, personajes e intereses de lectura.",
+    "booksCount": "libros",
+    "noTags": "No hay etiquetas disponibles",
+    "allTags": "Todas las Etiquetas",
+    "viewAll": "Ver Todas"
+  },
+  "tag": {
+    "books": "libros",
+    "relatedTags": "Etiquetas Relacionadas",
+    "relatedGenres": "Géneros Relacionados",
+    "faq": "Preguntas Frecuentes",
+    "noBooks": "No se encontraron libros para esta etiqueta",
+    "description": "Descripción"
+  },
   "catalog": {
     "sidebarTitle": "Géneros",
     "allBooks": "Todos los libros",

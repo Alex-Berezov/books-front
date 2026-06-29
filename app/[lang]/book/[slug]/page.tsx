@@ -359,11 +359,12 @@ export default async function BookDetailPage({ params }: Props) {
                   const trans =
                     tag.translations?.find((t) => t.language === supportedLang) ||
                     tag.translations?.[0];
-                  const tagName = trans?.name || tag.id;
+                  const tagName = trans?.name || tag.name || tag.id;
+                  const tagSlug = trans?.slug || tag.slug || tag.id;
                   return (
                     <Link
                       key={tag.id}
-                      href={`/${supportedLang}/catalog?q=${encodeURIComponent(tagName)}`}
+                      href={`/${supportedLang}/tag/${tagSlug}`}
                       passHref
                       legacyBehavior
                     >

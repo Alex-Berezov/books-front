@@ -34,6 +34,34 @@ export interface TagTranslation {
   slug: string;
   /** Long description/content (HTML) displayed on the public tag page */
   description?: string | null;
+  /** H1 heading for the tag page */
+  h1?: string;
+  /** Short description for cards/lists */
+  shortDescription?: string | null;
+  /** Meta title for SEO */
+  metaTitle?: string;
+  /** Meta description for SEO */
+  metaDescription?: string | null;
+  /** Open Graph title */
+  ogTitle?: string;
+  /** Open Graph description */
+  ogDescription?: string | null;
+  /** Open Graph image URL */
+  ogImageUrl?: string | null;
+  /** Open Graph image alt text */
+  ogImageAlt?: string;
+  /** Canonical URL */
+  canonicalUrl?: string;
+  /** Robots directive (index, follow / noindex, follow) */
+  robots?: string;
+  /** Whether this tag should be indexed by search engines */
+  indexable?: boolean;
+  /** FAQ items as JSON array */
+  faq?: Array<{ question: string; answer: string }>;
+  /** Related tag slugs */
+  relatedTagSlugs?: string[];
+  /** Related genre/category slugs */
+  relatedGenreSlugs?: string[];
   /** SEO metadata for the localized tag page */
   seoId?: number | null;
   seo?: SeoData | null;
@@ -47,6 +75,20 @@ export interface CreateTagTranslationRequest {
   name: string;
   slug: string;
   description?: string | null;
+  h1?: string;
+  shortDescription?: string | null;
+  metaTitle?: string;
+  metaDescription?: string | null;
+  ogTitle?: string;
+  ogDescription?: string | null;
+  ogImageUrl?: string | null;
+  ogImageAlt?: string;
+  canonicalUrl?: string;
+  robots?: string;
+  indexable?: boolean;
+  faq?: Array<{ question: string; answer: string }>;
+  relatedTagSlugs?: string[];
+  relatedGenreSlugs?: string[];
   seo?: SeoInput;
 }
 
@@ -57,6 +99,20 @@ export interface UpdateTagTranslationRequest {
   name?: string;
   slug?: string;
   description?: string | null;
+  h1?: string;
+  shortDescription?: string | null;
+  metaTitle?: string;
+  metaDescription?: string | null;
+  ogTitle?: string;
+  ogDescription?: string | null;
+  ogImageUrl?: string | null;
+  ogImageAlt?: string;
+  canonicalUrl?: string;
+  robots?: string;
+  indexable?: boolean;
+  faq?: Array<{ question: string; answer: string }>;
+  relatedTagSlugs?: string[];
+  relatedGenreSlugs?: string[];
   seo?: SeoInput;
 }
 
