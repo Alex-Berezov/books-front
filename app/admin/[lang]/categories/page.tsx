@@ -10,5 +10,5 @@ export const metadata: Metadata = {
  * Categories management page (admin panel)
  */
 export default function CategoriesPage() {
-  return <CategoryTree />;
+  return <CategoryTree type="category" />;
 }

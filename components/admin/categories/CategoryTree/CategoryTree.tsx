@@ -14,9 +14,9 @@ import type { Category, CategoryTree as CategoryTreeType } from '@/types/api-sch
 import styles from './CategoryTree.module.scss';
 import { CategoryTreeNode } from './CategoryTreeNode';
 
-export const CategoryTree: FC = () => {
+export const CategoryTree: FC<{ type?: 'category' | 'genre' | 'collection' }> = ({ type }) => {
   const { enqueueSnackbar } = useSnackbar();
-  const { data: treeData, isLoading, isError } = useCategoriesTree();
+  const { data: treeData, isLoading, isError } = useCategoriesTree(type);
 
   // Search state
   const [search, setSearch] = useState('');
@@ -106,11 +106,16 @@ export const CategoryTree: FC = () => {
     }
   };
 
+  const pageTitle =
+    type === 'genre' ? 'Genres' : type === 'collection' ? 'Collections' : 'Categories';
+  const buttonLabel =
+    type === 'genre' ? 'Add Genre' : type === 'collection' ? 'Add Collection' : 'Add Category';
+
   if (isLoading) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Categories</h1>
+          <h1 className={styles.title}>{pageTitle}</h1>
           <Skeleton variant="button" width={140} />
         </div>
         <div className={styles.searchContainer}>
@@ -145,15 +150,15 @@ export const CategoryTree: FC = () => {
   return (
     <div>
       <div className={styles.header}>
-        <h1 className={styles.title}>Categories</h1>
+        <h1 className={styles.title}>{pageTitle}</h1>
         <Button onClick={handleCreateClick} leftIcon={<Plus size={18} />}>
-          Add Category
+          {buttonLabel}
         </Button>
       </div>
 
       <div className={styles.searchContainer}>
         <Input
-          placeholder="Search categories..."
+          placeholder={`Search ${pageTitle.toLowerCase()}...`}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           leftIcon={<Search size={18} />}
@@ -181,6 +186,7 @@ export const CategoryTree: FC = () => {
           onClose={() => setIsModalOpen(false)}
           category={selectedCategory}
           initialParentId={initialParentId}
+          type={type}
         />
       )}
 

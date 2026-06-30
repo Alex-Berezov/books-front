@@ -22,4 +22,5 @@ export interface CategoryModalProps {
   onClose: () => void;
   category?: Category; // If provided, it's edit mode
   initialParentId?: string | null;
+  type?: 'category' | 'genre' | 'collection'; // Filter parent options by type
 }

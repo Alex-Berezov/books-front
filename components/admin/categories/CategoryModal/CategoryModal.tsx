@@ -20,7 +20,7 @@ import {
 } from './CategoryModal.types';
 
 export const CategoryModal: FC<CategoryModalProps> = (props) => {
-  const { isOpen, onClose, category, initialParentId } = props;
+  const { isOpen, onClose, category, initialParentId, type } = props;
   const isEditMode = !!category;
   const {
     register,
@@ -36,13 +36,13 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
       name: '',
       slug: '',
       parentId: initialParentId || null,
-      type: CATEGORY_TYPES[0],
+      type: type || CATEGORY_TYPES[0],
     },
   });
 
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
-  const { data: categoriesTree } = useCategoriesTree();
+  const { data: categoriesTree } = useCategoriesTree(type);
 
   // Reset form when modal opens or category changes
   useEffect(() => {
