@@ -187,7 +187,7 @@ export default function TagDetailClient({ lang, tagSlug, initialPage = 1 }: TagD
               {relatedGenreSlugs.map((slug) => (
                 <Link
                   key={slug}
-                  href={`/${supportedLang}/catalog/${slug}`}
+                  href={`/${supportedLang}/genre/${slug}`}
                   className={styles.relatedTagLink}
                 >
                   {slug}

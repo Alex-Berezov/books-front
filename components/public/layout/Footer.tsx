@@ -77,27 +77,27 @@ export function Footer() {
               <h3 className={styles.sectionTitle}>{t('footer.genresTitle')}</h3>
               <ul className={styles.linksList}>
                 <li>
-                  <Link href={`/${lang}/catalog/classic-literature`} className={styles.link}>
+                  <Link href={`/${lang}/category/classic-literature`} className={styles.link}>
                     {t('footer.classicLiterature')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${lang}/catalog/fantasy`} className={styles.link}>
+                  <Link href={`/${lang}/genre/fantasy`} className={styles.link}>
                     {t('footer.fantasy')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${lang}/catalog/science-fiction`} className={styles.link}>
+                  <Link href={`/${lang}/genre/science-fiction`} className={styles.link}>
                     {t('footer.scienceFiction')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${lang}/catalog/mystery`} className={styles.link}>
+                  <Link href={`/${lang}/genre/mystery`} className={styles.link}>
                     {t('footer.mystery')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${lang}/catalog/romance`} className={styles.link}>
+                  <Link href={`/${lang}/genre/romance`} className={styles.link}>
                     {t('footer.romance')}
                   </Link>
                 </li>

@@ -205,10 +205,11 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
                   const name = translation?.name || cat.id;
                   const catSlug = translation?.slug || cat.slug || cat.id;
 
+                  const categoryPath = cat.type === 'genre' ? 'genre' : 'category';
                   return (
                     <Link
                       key={cat.id}
-                      href={`/${supportedLang}/catalog/${catSlug}`}
+                      href={`/${supportedLang}/${categoryPath}/${catSlug}`}
                       className={styles.genreCard}
                       style={{ backgroundColor: 'var(--bibliaris-green)' }}
                     >

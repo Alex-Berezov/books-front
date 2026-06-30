@@ -326,10 +326,11 @@ export default async function BookDetailPage({ params }: Props) {
                   cat.translations?.find((t) => t.language === supportedLang) ||
                   cat.translations?.[0];
                 const catSlug = trans?.slug || cat.slug || cat.id;
+                const categoryPath = cat.type === 'genre' ? 'genre' : 'category';
                 return (
                   <Link
                     key={cat.id}
-                    href={`/${supportedLang}/catalog/${catSlug}`}
+                    href={`/${supportedLang}/${categoryPath}/${catSlug}`}
                     passHref
                     legacyBehavior
                   >
