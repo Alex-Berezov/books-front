@@ -8,17 +8,28 @@ import type { ISODate, PaginatedResponse, SupportedLang, UUID } from './common';
 import type { SeoData, SeoInput } from './pages';
 
 /**
+ * Book category type enum
+ */
+export type CategoryType = 'category' | 'genre' | 'collection';
+
+/**
  * Book category
  */
 export interface Category {
   id: UUID;
   slug: string;
   name: string;
-  type?: string; // genre|author|popular|etc
+  type: CategoryType;
   description?: string;
   language: SupportedLang;
   parentId?: UUID | null;
   booksCount?: number;
+  /** Whether the page is indexable by search engines */
+  indexable?: boolean;
+  /** Whether the category is visible in public lists */
+  isVisible?: boolean;
+  /** Sort order in lists */
+  sortOrder?: number;
   translations?: CategoryTranslation[];
   translation?: CategoryTranslation | null;
   createdAt: ISODate;
@@ -68,6 +79,24 @@ export interface CategoryTranslation {
   slug: string;
   /** Long description/content (HTML) displayed on the public category page */
   description?: string | null;
+  /** H1 heading for the page */
+  h1?: string;
+  /** Short description for cards/lists */
+  shortDescription?: string | null;
+  /** Meta title for SEO */
+  metaTitle?: string;
+  /** Meta description for SEO */
+  metaDescription?: string | null;
+  /** Open Graph title */
+  ogTitle?: string;
+  /** Open Graph description */
+  ogDescription?: string | null;
+  /** Open Graph image URL */
+  ogImageUrl?: string | null;
+  /** Open Graph image alt text */
+  ogImageAlt?: string;
+  /** FAQ items */
+  faq?: Array<{ question: string; answer: string }>;
   /** SEO metadata for the localized category page */
   seoId?: number | null;
   seo?: SeoData | null;
@@ -81,6 +110,15 @@ export interface CreateCategoryTranslationRequest {
   name: string;
   slug: string;
   description?: string | null;
+  h1?: string;
+  shortDescription?: string | null;
+  metaTitle?: string;
+  metaDescription?: string | null;
+  ogTitle?: string;
+  ogDescription?: string | null;
+  ogImageUrl?: string | null;
+  ogImageAlt?: string;
+  faq?: Array<{ question: string; answer: string }>;
   seo?: SeoInput;
 }
 
@@ -91,6 +129,15 @@ export interface UpdateCategoryTranslationRequest {
   name?: string;
   slug?: string;
   description?: string | null;
+  h1?: string;
+  shortDescription?: string | null;
+  metaTitle?: string;
+  metaDescription?: string | null;
+  ogTitle?: string;
+  ogDescription?: string | null;
+  ogImageUrl?: string | null;
+  ogImageAlt?: string;
+  faq?: Array<{ question: string; answer: string }>;
   seo?: SeoInput;
 }
 
@@ -100,9 +147,12 @@ export interface UpdateCategoryTranslationRequest {
 export interface CreateCategoryRequest {
   name: string;
   slug: string;
-  type?: string;
+  type: CategoryType;
   description?: string;
   parentId?: UUID | null;
+  indexable?: boolean;
+  isVisible?: boolean;
+  sortOrder?: number;
   // language is optional/unused for base category
   language?: SupportedLang;
 }
@@ -113,7 +163,10 @@ export interface CreateCategoryRequest {
 export interface UpdateCategoryRequest {
   name?: string;
   slug?: string;
-  type?: string;
+  type?: CategoryType;
   description?: string;
   parentId?: UUID | null;
+  indexable?: boolean;
+  isVisible?: boolean;
+  sortOrder?: number;
 }

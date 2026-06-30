@@ -13,17 +13,16 @@ import styles from './page.module.scss';
 const SKELETON_GROUPS = 5;
 const SKELETON_LINKS_PER_GROUP = 8;
 
-type GenresClientProps = {
+type CategoriesIndexClientProps = {
   lang: string;
 };
 
-export default function GenresClient({ lang }: GenresClientProps) {
+export default function CategoriesIndexClient({ lang }: CategoriesIndexClientProps) {
   const supportedLang = lang as SupportedLang;
   const { t } = useTranslation();
 
-  const { data: categoriesTree, isLoading } = useCategoriesTree('genre');
+  const { data: categoriesTree, isLoading } = useCategoriesTree('category');
 
-  // Helper to get translated name and slug
   const getTranslated = (category: CategoryTree) => {
     const trans =
       category.translations?.find((t) => t.language === supportedLang) ||
@@ -34,17 +33,13 @@ export default function GenresClient({ lang }: GenresClientProps) {
     };
   };
 
-  // Calculate total books count for a category (sum of children only for parents)
   const getTotalBooksCount = (category: CategoryTree): number => {
-    // For parent categories, sum only children counts
     if (category.children && category.children.length > 0) {
       return category.children.reduce((sum, child) => sum + (child.booksCount || 0), 0);
     }
-    // For leaf categories, return own count
     return category.booksCount || 0;
   };
 
-  // Check if category has any books (directly or in children)
   const hasBooks = (category: CategoryTree): boolean => {
     if (category.booksCount && category.booksCount > 0) return true;
     if (category.children && category.children.length > 0) {
@@ -53,11 +48,44 @@ export default function GenresClient({ lang }: GenresClientProps) {
     return false;
   };
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: t('book.home'),
+            item: `/${supportedLang}`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: t('categories.title'),
+            item: `/${supportedLang}/categories`,
+          },
+        ],
+      },
+      {
+        '@type': 'CollectionPage',
+        name: t('categories.title'),
+        description: t('categories.subtitle'),
+        url: `/${supportedLang}/categories`,
+      },
+    ],
+  };
+
   return (
-    <div className={styles.genresPage}>
+    <div className={styles.categoriesPage}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className={styles.container}>
-        <h1 className={styles.title}>{t('genres.title')}</h1>
-        <p className={styles.subtitle}>{t('genres.subtitle')}</p>
+        <h1 className={styles.title}>{t('categories.title')}</h1>
+        <p className={styles.subtitle}>{t('categories.subtitle')}</p>
 
         {isLoading ? (
           <div className={styles.loading}>
@@ -80,7 +108,6 @@ export default function GenresClient({ lang }: GenresClientProps) {
                 const parentTranslated = getTranslated(parentCategory);
                 const totalBooksCount = getTotalBooksCount(parentCategory);
 
-                // Filter children that have books
                 const childrenWithBooks = parentCategory.children?.filter(
                   (child) => child.booksCount && child.booksCount > 0
                 );
@@ -89,14 +116,14 @@ export default function GenresClient({ lang }: GenresClientProps) {
                   <div key={parentCategory.id} className={styles.categoryGroup}>
                     <div className={styles.categoryHeader}>
                       <Link
-                        href={`/${supportedLang}/genre/${parentTranslated.slug}`}
+                        href={`/${supportedLang}/category/${parentTranslated.slug}`}
                         className={styles.categoryTitle}
                       >
                         {parentTranslated.name}
                       </Link>
                       <ChevronRight size={16} className={styles.chevron} />
                       <span className={styles.totalCount}>
-                        {totalBooksCount} {t('genres.booksCount')}
+                        {totalBooksCount} {t('categories.booksCount')}
                       </span>
                     </div>
 
@@ -109,7 +136,7 @@ export default function GenresClient({ lang }: GenresClientProps) {
                           return (
                             <Link
                               key={child.id}
-                              href={`/${supportedLang}/genre/${childTranslated.slug}`}
+                              href={`/${supportedLang}/category/${childTranslated.slug}`}
                               className={styles.subcategoryLink}
                             >
                               <span className={styles.subcategoryName}>{childTranslated.name}</span>

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Category } from '@/types/api-schema';
 
-export const CATEGORY_TYPES = ['genre', 'author', 'popular'] as const;
+export const CATEGORY_TYPES = ['category', 'genre', 'collection'] as const;
 
 export const categorySchema = z.object({
   name: z.string().min(1, 'Name is required'),

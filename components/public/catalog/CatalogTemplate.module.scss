@@ -58,6 +58,16 @@
   }
 }
 
+.sidebarSubtitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: var(--public-foreground);
+  opacity: 0.6;
+  margin: $spacing-sm 0 $spacing-xs $spacing-sm;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .genreLink {
   padding: $spacing-xs $spacing-sm;
   border-radius: $border-radius-base;

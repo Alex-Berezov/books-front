@@ -1,0 +1,141 @@
+@import '@/styles/tokens.scss';
+
+.categoriesPage {
+  min-height: 100vh;
+  background-color: var(--public-background);
+  color: var(--public-foreground);
+  padding: $spacing-xl 0;
+}
+
+.container {
+  max-width: $layout-max-width-xl;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xs;
+
+  @media (min-width: $breakpoint-sm) {
+    font-size: $font-size-xxl;
+  }
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.6;
+  margin-bottom: $spacing-xl;
+
+  @media (min-width: $breakpoint-sm) {
+    font-size: $font-size-base;
+  }
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+}
+
+.skeletonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.skeletonTitle {
+  width: 200px !important;
+  height: 24px !important;
+  border-radius: $border-radius-base !important;
+}
+
+.skeletonLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md $spacing-lg;
+}
+
+.skeletonLink {
+  width: 120px !important;
+  height: 16px !important;
+  border-radius: $border-radius-base !important;
+}
+
+.categoriesList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+}
+
+.categoryGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+}
+
+.categoryTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: var(--public-primary);
+  }
+}
+
+.chevron {
+  color: var(--public-foreground);
+  opacity: 0.5;
+}
+
+.totalCount {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.6;
+  font-weight: $font-weight-regular;
+}
+
+.subcategories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm $spacing-lg;
+  padding-left: $spacing-md;
+}
+
+.subcategoryLink {
+  display: inline-flex;
+  align-items: baseline;
+  gap: $spacing-xs;
+  text-decoration: none;
+  transition: color $transition-fast;
+  color: var(--public-primary);
+
+  &:hover {
+    color: var(--public-primary-hover);
+    text-decoration: underline;
+  }
+}
+
+.subcategoryName {
+  font-size: $font-size-base;
+  font-weight: $font-weight-regular;
+}
+
+.subcategoryCount {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.6;
+  font-weight: $font-weight-regular;
+}

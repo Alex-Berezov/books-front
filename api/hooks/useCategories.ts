@@ -48,8 +48,8 @@ export const categoryKeys = {
   lists: () => [...categoryKeys.all, 'list'] as const,
   /** Category list with parameters */
   list: (params: GetCategoriesParams) => [...categoryKeys.lists(), params] as const,
-  /** Category tree */
-  tree: () => [...categoryKeys.all, 'tree'] as const,
+  /** Category tree (optionally by type) */
+  tree: (type?: string) => [...categoryKeys.all, 'tree', type ?? 'all'] as const,
   /** Category translations */
   translations: (id: string) => [...categoryKeys.all, id, 'translations'] as const,
 };
@@ -79,22 +79,26 @@ export const useCategories = (
 };
 
 /**
- * Hook for getting categories tree
+ * Hook for getting categories tree (optionally filtered by type)
  *
+ * @param type - Filter by category type (category|genre|collection). Omit for all.
  * @param options - React Query options
  * @returns React Query result with categories tree
  *
  * @example
  * ```tsx
- * const { data: tree, isLoading } = useCategoriesTree();
+ * const { data: categories } = useCategoriesTree('category');
+ * const { data: genres } = useCategoriesTree('genre');
+ * const { data: all } = useCategoriesTree();
  * ```
  */
 export const useCategoriesTree = (
+  type?: string,
   options?: Omit<UseQueryOptions<CategoryTree[]>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
-    queryKey: categoryKeys.tree(),
-    queryFn: () => getCategoriesTree(),
+    queryKey: categoryKeys.tree(type),
+    queryFn: () => getCategoriesTree(type),
     staleTime: 10 * 60 * 1000, // 10 minutes
     ...options,
   });

@@ -29,6 +29,8 @@ export interface GetCategoriesParams {
   limit?: number;
   /** Search by name */
   search?: string;
+  /** Filter by category type (category|genre|collection) */
+  type?: string;
 }
 
 /**
@@ -45,7 +47,7 @@ export interface GetCategoriesParams {
 export const getCategories = async (
   params: GetCategoriesParams = {}
 ): Promise<PaginatedResponse<Category>> => {
-  const { page = 1, limit = 50, search } = params;
+  const { page = 1, limit = 50, search, type } = params;
 
   const queryParams = new URLSearchParams({
     page: String(page),
@@ -56,22 +58,29 @@ export const getCategories = async (
     queryParams.append('search', search);
   }
 
+  if (type) {
+    queryParams.append('type', type);
+  }
+
   const endpoint = `/categories?${queryParams.toString()}`;
   return httpGetAuth<PaginatedResponse<Category>>(endpoint, { requireAuth: false });
 };
 
 /**
- * Get categories tree
+ * Get categories tree (optionally filtered by type)
  *
+ * @param type - Filter by category type (category|genre|collection)
  * @returns Hierarchical tree of categories
  *
  * @example
  * ```ts
- * const tree = await getCategoriesTree();
+ * const tree = await getCategoriesTree('category');
+ * const genres = await getCategoriesTree('genre');
  * ```
  */
-export const getCategoriesTree = async (): Promise<CategoryTree[]> => {
-  const endpoint = `/categories/tree`;
+export const getCategoriesTree = async (type?: string): Promise<CategoryTree[]> => {
+  const queryParams = type ? `?type=${type}` : '';
+  const endpoint = `/categories/tree${queryParams}`;
   return httpGetAuth<CategoryTree[]>(endpoint, { requireAuth: false });
 };
 

@@ -130,27 +130,52 @@ export const SUPPORTED_LANGS = ['en', 'es', 'fr', 'pt', 'ru'] as const;
 
 **Location:** `D:\newDev\books` (NestJS + Prisma + PostgreSQL)
 
-**CRITICAL: Backend is NOT running locally!**
+**CRITICAL: Backend runs ONLY in Docker on a VPS!**
 
-- Backend is deployed on a VPS (production server)
+- Backend is deployed on a VPS inside a Docker container
 - Database (PostgreSQL) is NOT available on localhost
 - **NEVER** attempt to run database migrations, seeds, or queries locally
-- **NEVER** run `yarn prisma:migrate`, `yarn prisma:seed`, or `psql` commands
+- **NEVER** run `yarn prisma:migrate`, `yarn prisma:seed`, `npx prisma generate`, or `psql` commands
 - All backend changes (schema, migrations, DTOs) must be reviewed by the user before deployment
 - To test backend changes, the user will deploy them to VPS manually
 
 **What you CAN do with backend code:**
 
 - Read and modify schema, DTOs, services, controllers
-- Create migration SQL files (user will apply them on VPS)
+- Create migration SQL files in `prisma/migrations/` (user will apply them on VPS)
 - Review and suggest backend improvements
 
 **What you CANNOT do:**
 
 - Run the backend server locally
 - Connect to the database
-- Execute migrations or seeds
+- Execute migrations, seeds, or `prisma generate`
 - Test API endpoints against local server
+
+**Deploying backend changes (user's workflow on VPS):**
+
+```bash
+# 1. SSH into the VPS
+ssh user@vps-host
+
+# 2. Navigate to the project directory
+cd /path/to/books
+
+# 3. Pull latest code (if using git)
+git pull
+
+# 4. Rebuild and restart the Docker container
+docker compose up -d --build
+
+# 5. Run migrations inside the container
+docker compose exec app npx prisma migrate deploy
+
+# 6. Regenerate Prisma Client (if schema changed)
+docker compose exec app npx prisma generate
+
+# 7. Restart to apply changes
+docker compose restart
+```
 
 ---
 

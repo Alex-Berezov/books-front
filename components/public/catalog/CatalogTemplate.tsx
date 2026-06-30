@@ -14,6 +14,15 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './CatalogTemplate.module.scss';
 
+// Types for book processing
+interface TagDetails {
+  id: string;
+  translations?: Array<{ language: string; name: string }>;
+}
+interface VersionWithTags {
+  tags?: Array<{ tag?: TagDetails }>;
+}
+
 interface CatalogTemplateProps {
   lang: SupportedLang;
   categorySlug?: string;
@@ -23,8 +32,10 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation();
-  const { data: categoriesData } = useCategories({ limit: 50 });
+  const { data: categoriesData } = useCategories({ type: 'category', limit: 50 });
+  const { data: genresData } = useCategories({ type: 'genre', limit: 50 });
   const categories = (categoriesData?.data || []).filter((cat) => (cat.booksCount || 0) > 0);
+  const genres = (genresData?.data || []).filter((gen) => (gen.booksCount || 0) > 0);
 
   const search = searchParams.get('q') || '';
   const type = searchParams.get('type') || '';
@@ -62,13 +73,6 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
         book.versions?.[0];
 
       const tagsMap = new Map();
-      interface TagDetails {
-        id: string;
-        translations?: Array<{ language: string; name: string }>;
-      }
-      interface VersionWithTags {
-        tags?: Array<{ tag?: TagDetails }>;
-      }
       (book.versions as VersionWithTags[] | undefined)?.forEach((version) => {
         version.tags?.forEach((tagItem) => {
           const tagObj = tagItem.tag;
@@ -162,26 +166,58 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
                 >
                   {t('catalog.allBooks')}
                 </Link>
-                {categories.map((cat) => {
-                  const trans =
-                    cat.translations?.find((t) => t.language === lang) || cat.translations?.[0];
-                  const name = trans?.name || cat.id;
-                  const catSlug = trans?.slug || cat.slug || cat.id;
-                  const isActive =
-                    categorySlug === trans?.slug ||
-                    categorySlug === cat.slug ||
-                    categorySlug === cat.id;
 
-                  return (
-                    <Link
-                      key={cat.id}
-                      href={`/${lang}/catalog/${catSlug}`}
-                      className={`${styles.genreLink} ${isActive ? styles.activeGenre : ''}`}
-                    >
-                      {name}
-                    </Link>
-                  );
-                })}
+                {categories.length > 0 && (
+                  <>
+                    <h4 className={styles.sidebarSubtitle}>{t('categories.title')}</h4>
+                    {categories.map((cat) => {
+                      const trans =
+                        cat.translations?.find((t) => t.language === lang) || cat.translations?.[0];
+                      const name = trans?.name || cat.id;
+                      const catSlug = trans?.slug || cat.slug || cat.id;
+                      const isActive =
+                        categorySlug === trans?.slug ||
+                        categorySlug === cat.slug ||
+                        categorySlug === cat.id;
+
+                      return (
+                        <Link
+                          key={cat.id}
+                          href={`/${lang}/category/${catSlug}`}
+                          className={`${styles.genreLink} ${isActive ? styles.activeGenre : ''}`}
+                        >
+                          {name}
+                        </Link>
+                      );
+                    })}
+                  </>
+                )}
+
+                {genres.length > 0 && (
+                  <>
+                    <h4 className={styles.sidebarSubtitle}>{t('genres.title')}</h4>
+                    {genres.map((gen) => {
+                      const trans =
+                        gen.translations?.find((t) => t.language === lang) || gen.translations?.[0];
+                      const name = trans?.name || gen.id;
+                      const genSlug = trans?.slug || gen.slug || gen.id;
+                      const isActive =
+                        categorySlug === trans?.slug ||
+                        categorySlug === gen.slug ||
+                        categorySlug === gen.id;
+
+                      return (
+                        <Link
+                          key={gen.id}
+                          href={`/${lang}/genre/${genSlug}`}
+                          className={`${styles.genreLink} ${isActive ? styles.activeGenre : ''}`}
+                        >
+                          {name}
+                        </Link>
+                      );
+                    })}
+                  </>
+                )}
               </div>
             </div>
           </aside>
