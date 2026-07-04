@@ -9,14 +9,12 @@ import { useCreateCategory, useUpdateCategory, useCategoriesTree } from '@/api/h
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
-import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
 import styles from './CategoryModal.module.scss';
 import {
   categorySchema,
   type CategoryFormData,
   type CategoryModalProps,
-  CATEGORY_TYPES,
 } from './CategoryModal.types';
 
 export const CategoryModal: FC<CategoryModalProps> = (props) => {
@@ -36,7 +34,7 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
       name: '',
       slug: '',
       parentId: initialParentId || null,
-      type: type || CATEGORY_TYPES[0],
+      type,
     },
   });
 
@@ -52,18 +50,18 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
           name: category.name,
           slug: category.slug,
           parentId: category.parentId || null,
-          type: (category.type as (typeof CATEGORY_TYPES)[number]) || CATEGORY_TYPES[0],
+          type,
         });
       } else {
         reset({
           name: '',
           slug: '',
           parentId: initialParentId || null,
-          type: CATEGORY_TYPES[0],
+          type,
         });
       }
     }
-  }, [isOpen, category, initialParentId, reset]);
+  }, [isOpen, category, initialParentId, reset, type]);
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
@@ -189,28 +187,6 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
           />
           {errors.parentId?.message && (
             <span className={styles.errorMessage}>{errors.parentId.message}</span>
-          )}
-        </div>
-
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="category-type-select">
-            Type
-          </label>
-          <Controller
-            name="type"
-            control={control}
-            render={({ field }) => (
-              <Select
-                name="category-type-select"
-                options={CATEGORY_TYPES.map((t) => ({ label: t, value: t }))}
-                value={field.value}
-                onChange={field.onChange}
-                error={!!errors.type}
-              />
-            )}
-          />
-          {errors.type?.message && (
-            <span className={styles.errorMessage}>{errors.type.message}</span>
           )}
         </div>
 
