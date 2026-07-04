@@ -7,6 +7,7 @@ import {
   BookOpen,
   FileText,
   FolderTree,
+  Library,
   Tags,
   Image,
   MessageSquare,
@@ -52,6 +53,12 @@ export const getAdminMenuItems = (lang: SupportedLang): AdminMenuItem[] => [
     label: 'Categories',
     icon: FolderTree,
     path: `/admin/${lang}/categories`,
+  },
+  {
+    id: 'genres',
+    label: 'Genres',
+    icon: Library,
+    path: `/admin/${lang}/genres`,
   },
   {
     id: 'tags',
