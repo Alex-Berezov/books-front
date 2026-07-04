@@ -135,7 +135,7 @@ export const useCreateCategory = (
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
+      queryClient.invalidateQueries({ queryKey: [...categoryKeys.all, 'tree'] });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
@@ -164,7 +164,7 @@ export const useCreateCategoryTranslation = (
       queryClient.invalidateQueries({ queryKey: categoryKeys.translations(variables.id) });
       // Also invalidate lists/tree as they might show translation info
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
+      queryClient.invalidateQueries({ queryKey: [...categoryKeys.all, 'tree'] });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
@@ -187,7 +187,7 @@ export const useUpdateCategory = (
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
+      queryClient.invalidateQueries({ queryKey: [...categoryKeys.all, 'tree'] });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
@@ -215,7 +215,7 @@ export const useUpdateCategoryTranslation = (
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.translations(variables.id) });
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
+      queryClient.invalidateQueries({ queryKey: [...categoryKeys.all, 'tree'] });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
@@ -316,7 +316,7 @@ export const useDeleteCategory = (options?: UseMutationOptions<void, Error, stri
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
+      queryClient.invalidateQueries({ queryKey: [...categoryKeys.all, 'tree'] });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
@@ -340,7 +340,7 @@ export const useDeleteCategoryTranslation = (
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.translations(variables.id) });
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.tree() });
+      queryClient.invalidateQueries({ queryKey: [...categoryKeys.all, 'tree'] });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
