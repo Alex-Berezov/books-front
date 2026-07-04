@@ -4,6 +4,7 @@
 
 import type { ComponentType } from 'react';
 import {
+  Archive,
   BookOpen,
   FileText,
   FolderTree,
@@ -59,6 +60,12 @@ export const getAdminMenuItems = (lang: SupportedLang): AdminMenuItem[] => [
     label: 'Genres',
     icon: Library,
     path: `/admin/${lang}/genres`,
+  },
+  {
+    id: 'collections',
+    label: 'Collections',
+    icon: Archive,
+    path: `/admin/${lang}/collections`,
   },
   {
     id: 'tags',
