@@ -14,7 +14,9 @@ import type { Category, CategoryTree as CategoryTreeType } from '@/types/api-sch
 import styles from './CategoryTree.module.scss';
 import { CategoryTreeNode } from './CategoryTreeNode';
 
-export const CategoryTree: FC<{ type?: 'category' | 'genre' | 'collection' }> = ({ type }) => {
+export const CategoryTree: FC<{ type?: 'category' | 'genre' | 'collection' }> = ({
+  type = 'category',
+}) => {
   const { enqueueSnackbar } = useSnackbar();
   const { data: treeData, isLoading, isError } = useCategoriesTree(type);
 

@@ -17,10 +17,11 @@ import styles from './CategoryList.module.scss';
 
 interface CategoryListProps {
   lang: SupportedLang;
+  type?: 'category' | 'genre' | 'collection';
 }
 
 export const CategoryList: FC<CategoryListProps> = (props) => {
-  const { lang: _lang } = props;
+  const { lang: _lang, type = 'category' } = props;
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -222,7 +223,12 @@ export const CategoryList: FC<CategoryListProps> = (props) => {
         </div>
       )}
 
-      <CategoryModal isOpen={isModalOpen} onClose={handleCloseModal} category={selectedCategory} />
+      <CategoryModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        category={selectedCategory}
+        type={type}
+      />
 
       {categoryForTranslations && (
         <CategoryTranslationsModal
