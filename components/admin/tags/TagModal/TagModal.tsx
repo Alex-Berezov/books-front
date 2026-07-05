@@ -189,7 +189,12 @@ export const TagModal: FC<TagModalProps> = (props) => {
 
         <div className={styles.field}>
           <label className={styles.label}>Sort Order</label>
-          <Input type="number" min={0} {...register('sortOrder')} error={!!errors.sortOrder} />
+          <Input
+            type="number"
+            min={0}
+            {...register('sortOrder', { valueAsNumber: true })}
+            error={!!errors.sortOrder}
+          />
           {errors.sortOrder?.message && (
             <span className={styles.error}>{errors.sortOrder.message}</span>
           )}

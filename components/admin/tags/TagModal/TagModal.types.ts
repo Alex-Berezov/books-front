@@ -14,7 +14,7 @@ export const tagSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Key must contain only lowercase letters, numbers, and hyphens'),
   indexable: z.boolean().optional(),
   isVisible: z.boolean().optional(),
-  sortOrder: z.coerce.number().int().min(0).optional(),
+  sortOrder: z.number().int().min(0).optional(),
 });
 
 export type TagFormData = z.infer<typeof tagSchema>;

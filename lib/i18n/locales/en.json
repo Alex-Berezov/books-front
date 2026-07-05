@@ -67,6 +67,10 @@
     "noBooks": "No books found for this tag",
     "description": "Description"
   },
+  "collections": {
+    "title": "Collections",
+    "subtitle": "Explore curated collections of classic literature"
+  },
   "catalog": {
     "sidebarTitle": "Genres",
     "allBooks": "All Books",

@@ -67,6 +67,10 @@
     "noBooks": "Aucun livre trouvé pour ce tag",
     "description": "Description"
   },
+  "collections": {
+    "title": "Collections",
+    "subtitle": "Explorez des collections choisies de littérature classique"
+  },
   "catalog": {
     "sidebarTitle": "Genres",
     "allBooks": "Tous les livres",

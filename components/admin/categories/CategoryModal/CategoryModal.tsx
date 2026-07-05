@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, type FC } from 'react';
-import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Select as AntdSelect } from 'antd';
 import { useForm, Controller } from 'react-hook-form';
