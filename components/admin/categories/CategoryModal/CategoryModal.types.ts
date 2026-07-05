@@ -9,6 +9,10 @@ export const categorySchema = z.object({
     .string()
     .min(1, 'Slug is required')
     .regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
+  key: z
+    .string()
+    .min(1, 'Key is required')
+    .regex(/^[a-z0-9-]+$/, 'Key must contain only lowercase letters, numbers, and hyphens'),
   parentId: z.string().nullable().optional(),
   type: z.enum(['category', 'genre', 'collection']),
 });

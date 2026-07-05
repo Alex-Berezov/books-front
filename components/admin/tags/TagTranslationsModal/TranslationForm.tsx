@@ -42,6 +42,8 @@ export const TranslationForm = (props: TranslationFormProps) => {
       name: '',
       slug: '',
       description: '',
+      relatedCategorySlugs: '',
+      relatedCollectionSlugs: '',
       seoMetaTitle: '',
       seoMetaDescription: '',
       seoCanonicalUrl: '',
@@ -139,6 +141,38 @@ export const TranslationForm = (props: TranslationFormProps) => {
         />
         {errors.description?.message && (
           <span className={styles.errorText}>{errors.description.message}</span>
+        )}
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>Related Category Slugs</label>
+        <span className={styles.hint}>
+          One slug per line. These link to /:lang/category/:slug pages.
+        </span>
+        <textarea
+          className={styles.textarea}
+          {...register('relatedCategorySlugs')}
+          rows={3}
+          placeholder={'classic-literature\nvictorian-literature'}
+        />
+        {errors.relatedCategorySlugs?.message && (
+          <span className={styles.errorText}>{errors.relatedCategorySlugs.message}</span>
+        )}
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>Related Collection Slugs</label>
+        <span className={styles.hint}>
+          One slug per line. These link to /:lang/collection/:slug pages.
+        </span>
+        <textarea
+          className={styles.textarea}
+          {...register('relatedCollectionSlugs')}
+          rows={3}
+          placeholder={'short-reads\nfeel-good-books'}
+        />
+        {errors.relatedCollectionSlugs?.message && (
+          <span className={styles.errorText}>{errors.relatedCollectionSlugs.message}</span>
         )}
       </div>
 

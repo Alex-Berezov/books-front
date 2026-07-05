@@ -17,6 +17,7 @@ export type CategoryType = 'category' | 'genre' | 'collection';
  */
 export interface Category {
   id: UUID;
+  key: string;
   slug: string;
   name: string;
   type: CategoryType;
@@ -145,6 +146,7 @@ export interface UpdateCategoryTranslationRequest {
  * Request to create a new category
  */
 export interface CreateCategoryRequest {
+  key: string;
   name: string;
   slug: string;
   type: CategoryType;
@@ -161,6 +163,7 @@ export interface CreateCategoryRequest {
  * Request to update an existing category
  */
 export interface UpdateCategoryRequest {
+  key?: string;
   name?: string;
   slug?: string;
   type?: CategoryType;

@@ -19,8 +19,10 @@ export default function TagsClient({ lang }: TagsClientProps) {
   const { data: tagsData, isLoading } = useTags({ limit: 100 });
   const tags = tagsData?.data || [];
 
-  // Filter tags that have books
-  const tagsWithBooks = tags.filter((tag) => (tag.booksCount || 0) > 0);
+  // Filter visible tags that have books, sorted by sortOrder then name
+  const tagsWithBooks = tags
+    .filter((tag) => tag.isVisible !== false && (tag.booksCount || 0) > 0)
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name));
 
   // Get translated name and slug for a tag
   const getTranslated = (tag: Tag) => {

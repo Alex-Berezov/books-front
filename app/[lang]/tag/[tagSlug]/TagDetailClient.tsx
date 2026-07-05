@@ -36,6 +36,8 @@ export default function TagDetailClient({ lang, tagSlug, initialPage = 1 }: TagD
   const tagFaq = tagTranslation?.faq || [];
   const relatedTagSlugs = tagTranslation?.relatedTagSlugs || [];
   const relatedGenreSlugs = tagTranslation?.relatedGenreSlugs || [];
+  const relatedCategorySlugs = tagTranslation?.relatedCategorySlugs || [];
+  const relatedCollectionSlugs = tagTranslation?.relatedCollectionSlugs || [];
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -188,6 +190,42 @@ export default function TagDetailClient({ lang, tagSlug, initialPage = 1 }: TagD
                 <Link
                   key={slug}
                   href={`/${supportedLang}/genre/${slug}`}
+                  className={styles.relatedTagLink}
+                >
+                  {slug}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Related Categories */}
+        {relatedCategorySlugs.length > 0 && (
+          <section className={styles.relatedSection}>
+            <h2 className={styles.sectionTitle}>{t('tag.relatedGenres')}</h2>
+            <div className={styles.relatedTags}>
+              {relatedCategorySlugs.map((slug: string) => (
+                <Link
+                  key={slug}
+                  href={`/${supportedLang}/category/${slug}`}
+                  className={styles.relatedTagLink}
+                >
+                  {slug}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Related Collections */}
+        {relatedCollectionSlugs.length > 0 && (
+          <section className={styles.relatedSection}>
+            <h2 className={styles.sectionTitle}>Related Collections</h2>
+            <div className={styles.relatedTags}>
+              {relatedCollectionSlugs.map((slug: string) => (
+                <Link
+                  key={slug}
+                  href={`/${supportedLang}/collection/${slug}`}
                   className={styles.relatedTagLink}
                 >
                   {slug}

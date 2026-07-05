@@ -1,0 +1,260 @@
+﻿{
+  "description": "Data structure documentation for Categories, Genres, Collections, and Tags - based on backend DTOs and Prisma schema",
+  "lastUpdated": "2026-07-05",
+  "sections": {
+    "categories": {
+      "note": "Categories, Genres, and Collections are all stored in the same `Category` table differentiated by the `type` field. They share identical structure.",
+      "types": ["category", "genre", "collection"],
+      "baseEntity": {
+        "description": "Fields used when creating (POST /categories) or updating (PATCH /categories/:id) a category base entity",
+        "createFields": {
+          "type": {
+            "type": "string",
+            "enum": ["category", "genre", "collection"],
+            "required": true,
+            "description": "Category type discriminator"
+          },
+          "name": {
+            "type": "string",
+            "required": true,
+            "minLength": 2,
+            "description": "Display name"
+          },
+          "slug": {
+            "type": "string",
+            "required": true,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "description": "URL-friendly identifier, unique"
+          },
+          "indexable": {
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Whether search engines should index"
+          },
+          "isVisible": {
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Whether visible in public lists"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "required": false,
+            "default": 0,
+            "min": 0,
+            "description": "Sort priority"
+          },
+          "parentId": {
+            "type": "string (UUID)",
+            "required": false,
+            "nullable": true,
+            "description": "Parent category ID for hierarchy"
+          }
+        },
+        "updateFields": {
+          "type": {
+            "type": "string",
+            "enum": ["category", "genre", "collection"],
+            "required": false
+          },
+          "name": { "type": "string", "required": false, "minLength": 2 },
+          "slug": { "type": "string", "required": false },
+          "indexable": { "type": "boolean", "required": false },
+          "isVisible": { "type": "boolean", "required": false },
+          "sortOrder": { "type": "integer", "required": false },
+          "parentId": {
+            "type": "string (UUID)",
+            "required": false,
+            "nullable": true,
+            "description": "Set to null to disconnect from parent"
+          }
+        }
+      },
+      "translations": {
+        "description": "Translations are managed via POST /categories/:id/translations and PATCH /categories/:id/translations/:language",
+        "languages": ["en", "es", "fr", "pt", "ru"],
+        "createFields": {
+          "language": {
+            "type": "string",
+            "enum": ["en", "es", "fr", "pt", "ru"],
+            "required": true
+          },
+          "name": { "type": "string", "required": true, "minLength": 2 },
+          "slug": { "type": "string", "required": true, "uniqueWithinLanguage": true },
+          "description": {
+            "type": "string (HTML)",
+            "required": false,
+            "nullable": true,
+            "description": "Long description/content displayed on public category page"
+          },
+          "h1": { "type": "string", "required": false, "description": "H1 heading for the page" },
+          "shortDescription": {
+            "type": "string",
+            "required": false,
+            "description": "Short description for cards/lists"
+          },
+          "metaTitle": { "type": "string", "required": false },
+          "metaDescription": { "type": "string", "required": false, "nullable": true },
+          "ogTitle": { "type": "string", "required": false },
+          "ogDescription": { "type": "string", "required": false, "nullable": true },
+          "ogImageUrl": { "type": "string (URL)", "required": false, "nullable": true },
+          "ogImageAlt": { "type": "string", "required": false },
+          "faq": { "type": "Array<{question: string, answer: string}>", "required": false },
+          "seo": { "$ref": "#/definitions/SeoInput", "required": false }
+        },
+        "updateFields": {
+          "name": { "type": "string", "required": false },
+          "slug": { "type": "string", "required": false },
+          "description": { "type": "string (HTML)", "required": false, "nullable": true },
+          "h1": { "type": "string", "required": false },
+          "shortDescription": { "type": "string", "required": false },
+          "metaTitle": { "type": "string", "required": false },
+          "metaDescription": { "type": "string", "required": false, "nullable": true },
+          "ogTitle": { "type": "string", "required": false },
+          "ogDescription": { "type": "string", "required": false, "nullable": true },
+          "ogImageUrl": { "type": "string (URL)", "required": false, "nullable": true },
+          "ogImageAlt": { "type": "string", "required": false },
+          "faq": { "type": "Array<{question: string, answer: string}>", "required": false },
+          "seo": { "$ref": "#/definitions/SeoInput", "required": false }
+        }
+      },
+      "responseShape": {
+        "id": { "type": "string (UUID)" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "type": { "type": "string", "enum": ["category", "genre", "collection"] },
+        "parentId": { "type": "string (UUID)", "nullable": true },
+        "booksCount": { "type": "integer" },
+        "indexable": { "type": "boolean", "default": true },
+        "isVisible": { "type": "boolean", "default": true },
+        "sortOrder": { "type": "integer", "default": 0 },
+        "translations": {
+          "type": "Array<CategoryTranslationResponse>",
+          "description": "See translation createFields"
+        }
+      }
+    },
+    "tags": {
+      "note": "Tags are flat (no hierarchy). No type discriminator.",
+      "baseEntity": {
+        "description": "Fields used when creating (POST /tags) or updating (PATCH /tags/:id) a tag base entity",
+        "createFields": {
+          "name": { "type": "string", "required": true, "minLength": 2 },
+          "slug": { "type": "string", "required": true }
+        },
+        "updateFields": {
+          "name": { "type": "string", "required": false },
+          "slug": { "type": "string", "required": false }
+        }
+      },
+      "translations": {
+        "description": "Translations managed via POST /tags/:id/translations and PATCH /tags/:id/translations/:language",
+        "languages": ["en", "es", "fr", "pt", "ru"],
+        "createFields": {
+          "language": {
+            "type": "string",
+            "enum": ["en", "es", "fr", "pt", "ru"],
+            "required": true
+          },
+          "name": { "type": "string", "required": true, "minLength": 2 },
+          "slug": { "type": "string", "required": true, "uniqueWithinLanguage": true },
+          "description": { "type": "string (HTML)", "required": false, "nullable": true },
+          "h1": { "type": "string", "required": false },
+          "shortDescription": { "type": "string", "required": false, "nullable": true },
+          "metaTitle": { "type": "string", "required": false },
+          "metaDescription": { "type": "string", "required": false, "nullable": true },
+          "ogTitle": { "type": "string", "required": false },
+          "ogDescription": { "type": "string", "required": false, "nullable": true },
+          "ogImageUrl": { "type": "string (URL)", "required": false, "nullable": true },
+          "ogImageAlt": { "type": "string", "required": false },
+          "canonicalUrl": {
+            "type": "string (URL)",
+            "required": false,
+            "description": "Only on tags (not on categories)"
+          },
+          "robots": {
+            "type": "string",
+            "required": false,
+            "default": "index, follow",
+            "description": "Only on tags"
+          },
+          "indexable": {
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Only on tags"
+          },
+          "faq": { "type": "Array<{question: string, answer: string}>", "required": false },
+          "relatedTagSlugs": {
+            "type": "string[]",
+            "required": false,
+            "description": "Only on tags"
+          },
+          "relatedGenreSlugs": {
+            "type": "string[]",
+            "required": false,
+            "description": "Only on tags"
+          },
+          "seo": { "$ref": "#/definitions/SeoInput", "required": false }
+        },
+        "updateFields": {
+          "name": { "type": "string", "required": false },
+          "slug": { "type": "string", "required": false },
+          "description": { "type": "string (HTML)", "required": false, "nullable": true },
+          "h1": { "type": "string", "required": false },
+          "shortDescription": { "type": "string", "required": false, "nullable": true },
+          "metaTitle": { "type": "string", "required": false },
+          "metaDescription": { "type": "string", "required": false, "nullable": true },
+          "ogTitle": { "type": "string", "required": false },
+          "ogDescription": { "type": "string", "required": false, "nullable": true },
+          "ogImageUrl": { "type": "string (URL)", "required": false, "nullable": true },
+          "ogImageAlt": { "type": "string", "required": false },
+          "canonicalUrl": { "type": "string (URL)", "required": false },
+          "robots": { "type": "string", "required": false },
+          "indexable": { "type": "boolean", "required": false },
+          "faq": { "type": "Array<{question: string, answer: string}>", "required": false },
+          "relatedTagSlugs": { "type": "string[]", "required": false },
+          "relatedGenreSlugs": { "type": "string[]", "required": false },
+          "seo": { "$ref": "#/definitions/SeoInput", "required": false }
+        }
+      },
+      "responseShape": {
+        "id": { "type": "string (UUID)" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "booksCount": { "type": "integer" },
+        "translations": { "type": "Array<TagTranslationResponse>" }
+      }
+    }
+  },
+  "definitions": {
+    "SeoInput": {
+      "description": "Nested SEO object used inside translation create/update DTOs",
+      "fields": {
+        "metaTitle": { "type": "string", "nullable": true },
+        "metaDescription": { "type": "string", "nullable": true },
+        "canonicalUrl": { "type": "string (URL)", "nullable": true },
+        "robots": { "type": "string", "nullable": true },
+        "ogTitle": { "type": "string", "nullable": true },
+        "ogDescription": { "type": "string", "nullable": true },
+        "ogType": { "type": "string", "nullable": true },
+        "ogUrl": { "type": "string (URL)", "nullable": true },
+        "ogImageUrl": { "type": "string (URL)", "nullable": true },
+        "ogImageAlt": { "type": "string", "nullable": true },
+        "twitterCard": { "type": "string", "nullable": true },
+        "twitterSite": { "type": "string", "nullable": true },
+        "twitterCreator": { "type": "string", "nullable": true }
+      }
+    }
+  },
+  "frontendVsBackendComparison": {
+    "categories": {
+      "note": "Frontend types match backend DTOs. The only extra frontend field is `description` on CreateCategoryRequest/UpdateCategoryRequest - backend ignores it for base category creation (description is only on translations). No action needed.",
+      "descriptionFieldOnBase": "Present in frontend CreateCategoryRequest/UpdateCategoryRequest but NOT in backend CreateCategoryDto/UpdateCategoryDto. Backend ignores this field for base category — description is only on translations. No mismatch issue."
+    },
+    "tags": {
+      "note": "Frontend types fully match backend DTOs. No missing fields."
+    }
+  }
+}

@@ -18,6 +18,11 @@ export const translationSchema = z.object({
   /** Long description/content shown on the public tag page */
   description: z.string(),
 
+  /** Related category slugs (line-by-line textarea → array) */
+  relatedCategorySlugs: z.string(),
+  /** Related collection slugs (line-by-line textarea → array) */
+  relatedCollectionSlugs: z.string(),
+
   // ========================================
   // SEO Fields (optional — tag pages don't always need full SEO)
   // ========================================
@@ -32,3 +37,18 @@ export const translationSchema = z.object({
 });
 
 export type TranslationFormData = z.infer<typeof translationSchema>;
+
+/**
+ * Convert a string[] to a newline-separated string for textarea display.
+ */
+export const arrayToTextarea = (arr?: string[] | null): string =>
+  Array.isArray(arr) ? arr.join('\n') : '';
+
+/**
+ * Convert a newline-separated textarea string to string[] (trimmed, non-empty).
+ */
+export const textareaToArray = (text: string): string[] =>
+  text
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);

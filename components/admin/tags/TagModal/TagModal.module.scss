@@ -23,6 +23,11 @@
   color: $color-error;
 }
 
+.hint {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

@@ -12,10 +12,14 @@ import type { SeoData, SeoInput } from './pages';
  */
 export interface Tag {
   id: UUID;
+  key: string;
   slug: string;
   name: string;
   language?: SupportedLang;
   booksCount?: number;
+  indexable?: boolean;
+  isVisible?: boolean;
+  sortOrder?: number;
   translations?: TagTranslation[];
   createdAt: ISODate;
   updatedAt: ISODate;
@@ -62,6 +66,10 @@ export interface TagTranslation {
   relatedTagSlugs?: string[];
   /** Related genre/category slugs */
   relatedGenreSlugs?: string[];
+  /** Related category slugs */
+  relatedCategorySlugs?: string[];
+  /** Related collection slugs */
+  relatedCollectionSlugs?: string[];
   /** SEO metadata for the localized tag page */
   seoId?: number | null;
   seo?: SeoData | null;
@@ -89,6 +97,8 @@ export interface CreateTagTranslationRequest {
   faq?: Array<{ question: string; answer: string }>;
   relatedTagSlugs?: string[];
   relatedGenreSlugs?: string[];
+  relatedCategorySlugs?: string[];
+  relatedCollectionSlugs?: string[];
   seo?: SeoInput;
 }
 
@@ -113,6 +123,8 @@ export interface UpdateTagTranslationRequest {
   faq?: Array<{ question: string; answer: string }>;
   relatedTagSlugs?: string[];
   relatedGenreSlugs?: string[];
+  relatedCategorySlugs?: string[];
+  relatedCollectionSlugs?: string[];
   seo?: SeoInput;
 }
 
@@ -129,16 +141,24 @@ export interface TagBooksResponse<T = unknown> extends PaginatedResponse<T> {
  * Request to create a new tag
  */
 export interface CreateTagRequest {
+  key: string;
   name: string;
   slug: string;
+  indexable?: boolean;
+  isVisible?: boolean;
+  sortOrder?: number;
 }
 
 /**
  * Request to update an existing tag
  */
 export interface UpdateTagRequest {
+  key?: string;
   name?: string;
   slug?: string;
+  indexable?: boolean;
+  isVisible?: boolean;
+  sortOrder?: number;
 }
 
 /**

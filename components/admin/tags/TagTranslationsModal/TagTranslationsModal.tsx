@@ -10,7 +10,6 @@ import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { LANGUAGE_LABELS, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
-import type { TranslationFormData } from './TagTranslationsModal.types';
 import type {
   CreateTagTranslationRequest,
   SeoInput,
@@ -19,6 +18,11 @@ import type {
   UpdateTagTranslationRequest,
 } from '@/types/api-schema';
 import styles from './TagTranslationsModal.module.scss';
+import {
+  arrayToTextarea,
+  textareaToArray,
+  type TranslationFormData,
+} from './TagTranslationsModal.types';
 import { TranslationForm } from './TranslationForm';
 import { TranslationsList } from './TranslationsList';
 
@@ -51,6 +55,10 @@ const translationToFormData = (translation: TagTranslation): TranslationFormData
   name: translation.name,
   slug: translation.slug,
   description: translation.description ?? '',
+  relatedCategorySlugs: arrayToTextarea(translation.relatedCategorySlugs as string[] | undefined),
+  relatedCollectionSlugs: arrayToTextarea(
+    translation.relatedCollectionSlugs as string[] | undefined
+  ),
   seoMetaTitle: translation.seo?.metaTitle ?? '',
   seoMetaDescription: translation.seo?.metaDescription ?? '',
   seoCanonicalUrl: translation.seo?.canonicalUrl ?? '',
@@ -106,6 +114,8 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
       name: '',
       slug: '',
       description: '',
+      relatedCategorySlugs: '',
+      relatedCollectionSlugs: '',
       seoMetaTitle: '',
       seoMetaDescription: '',
       seoCanonicalUrl: '',
@@ -128,11 +138,16 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
     try {
       const seo = buildSeoInput(data);
 
+      const relatedCategorySlugs = textareaToArray(data.relatedCategorySlugs);
+      const relatedCollectionSlugs = textareaToArray(data.relatedCollectionSlugs);
+
       if (editingLang) {
         const payload: UpdateTagTranslationRequest = {
           name: data.name,
           slug: data.slug,
           description: data.description || null,
+          relatedCategorySlugs,
+          relatedCollectionSlugs,
           seo,
         };
         await updateMutation.mutateAsync({
@@ -146,6 +161,8 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
           name: data.name,
           slug: data.slug,
           description: data.description || null,
+          relatedCategorySlugs,
+          relatedCollectionSlugs,
           seo,
         };
         await createMutation.mutateAsync({

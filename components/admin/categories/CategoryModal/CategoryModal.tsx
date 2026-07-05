@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, type FC } from 'react';
+import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Select as AntdSelect } from 'antd';
 import { useForm, Controller } from 'react-hook-form';
@@ -10,6 +11,7 @@ import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
 import { SlugInput } from '@/components/common/SlugInput';
+import { generateSlug } from '@/lib/utils/slug';
 import styles from './CategoryModal.module.scss';
 import {
   categorySchema,
@@ -27,12 +29,14 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
     reset,
     watch,
     setError,
+    setValue,
     formState: { errors },
   } = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: '',
       slug: '',
+      key: '',
       parentId: initialParentId || null,
       type,
     },
@@ -49,6 +53,7 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
         reset({
           name: category.name,
           slug: category.slug,
+          key: category.key,
           parentId: category.parentId || null,
           type,
         });
@@ -56,12 +61,24 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
         reset({
           name: '',
           slug: '',
+          key: '',
           parentId: initialParentId || null,
           type,
         });
       }
     }
   }, [isOpen, category, initialParentId, reset, type]);
+
+  // Auto-generate key from slug when creating
+  const watchedSlug = watch('slug');
+  useEffect(() => {
+    if (!isEditMode && watchedSlug) {
+      const currentKey = watch('key');
+      if (!currentKey) {
+        setValue('key', generateSlug(watchedSlug));
+      }
+    }
+  }, [watchedSlug, isEditMode, setValue, watch]);
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
@@ -157,6 +174,19 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
               />
             )}
           />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="category-key-input">
+            Key
+          </label>
+          <Input
+            id="category-key-input"
+            {...register('key')}
+            error={!!errors.key}
+            placeholder="e.g. classic-literature"
+          />
+          {errors.key?.message && <span className={styles.errorMessage}>{errors.key.message}</span>}
         </div>
 
         <div className={styles.field}>

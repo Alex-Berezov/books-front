@@ -6,9 +6,11 @@ import { useSnackbar } from 'notistack';
 import { Controller, useForm, type FieldErrors } from 'react-hook-form';
 import { useCreateTag, useUpdateTag } from '@/api/hooks/useTags';
 import { Button } from '@/components/common/Button';
+import { Checkbox } from '@/components/common/Checkbox';
 import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
 import { SlugInput } from '@/components/common/SlugInput';
+import { generateSlug } from '@/lib/utils/slug';
 import styles from './TagModal.module.scss';
 import { tagSchema, type TagFormData, type TagModalProps } from './TagModal.types';
 
@@ -38,12 +40,17 @@ export const TagModal: FC<TagModalProps> = (props) => {
     control,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<TagFormData>({
     resolver: zodResolver(tagSchema),
     defaultValues: {
       name: '',
       slug: '',
+      key: '',
+      indexable: true,
+      isVisible: true,
+      sortOrder: 0,
     },
   });
 
@@ -57,15 +64,34 @@ export const TagModal: FC<TagModalProps> = (props) => {
         reset({
           name: tag.name,
           slug: tag.slug,
+          key: tag.key,
+          indexable: tag.indexable ?? true,
+          isVisible: tag.isVisible ?? true,
+          sortOrder: tag.sortOrder ?? 0,
         });
       } else {
         reset({
           name: '',
           slug: '',
+          key: '',
+          indexable: true,
+          isVisible: true,
+          sortOrder: 0,
         });
       }
     }
   }, [isOpen, tag, lang, reset]);
+
+  // Auto-generate key from slug when creating
+  const watchedSlug = watch('slug');
+  useEffect(() => {
+    if (!isEditMode && watchedSlug) {
+      const currentKey = watch('key');
+      if (!currentKey) {
+        setValue('key', generateSlug(watchedSlug));
+      }
+    }
+  }, [watchedSlug, isEditMode, setValue, watch]);
 
   const onSubmit = async (data: TagFormData) => {
     try {
@@ -123,6 +149,50 @@ export const TagModal: FC<TagModalProps> = (props) => {
               />
             )}
           />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label}>Key</label>
+          <Input {...register('key')} error={!!errors.key} placeholder="e.g. aestheticism" />
+          {errors.key?.message && <span className={styles.error}>{errors.key.message}</span>}
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label}>Indexable</label>
+          <Controller
+            name="indexable"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                checked={field.value ?? true}
+                onChange={(e) => field.onChange(e.target.checked)}
+              />
+            )}
+          />
+          <span className={styles.hint}>Allow search engines to index this tag page</span>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label}>Visible</label>
+          <Controller
+            name="isVisible"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                checked={field.value ?? true}
+                onChange={(e) => field.onChange(e.target.checked)}
+              />
+            )}
+          />
+          <span className={styles.hint}>Show in public tag lists</span>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label}>Sort Order</label>
+          <Input type="number" min={0} {...register('sortOrder')} error={!!errors.sortOrder} />
+          {errors.sortOrder?.message && (
+            <span className={styles.error}>{errors.sortOrder.message}</span>
+          )}
         </div>
 
         <div className={styles.actions}>
