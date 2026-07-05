@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, type FC } from 'react';
-import { Network } from 'lucide-react';
+import { useState, useMemo, type FC } from 'react';
+import { Network, BookOpen, FolderArchive } from 'lucide-react';
 import { Input } from '@/components/common/Input';
 import type { CategoriesPanelProps } from './CategoriesPanel.types';
-import type { CategoryTree as CategoryTreeType } from '@/types/api-schema';
+import type { CategoryTree as CategoryTreeType, CategoryType } from '@/types/api-schema';
 import styles from './CategoriesPanel.module.scss';
 import { CategoryTree } from './CategoryTree';
 import { SelectedCategoriesList } from './SelectedCategoriesList';
@@ -30,13 +30,23 @@ function filterCategoriesTree(tree: CategoryTreeType[], query: string): Category
     .filter((node): node is CategoryTreeType => node !== null);
 }
 
+const PANEL_CONFIG: Record<
+  CategoryType,
+  { icon: FC<{ size?: number; className?: string }>; title: string; placeholder: string }
+> = {
+  category: { icon: Network, title: 'Categories', placeholder: 'Search categories...' },
+  genre: { icon: BookOpen, title: 'Genres', placeholder: 'Search genres...' },
+  collection: { icon: FolderArchive, title: 'Collections', placeholder: 'Search collections...' },
+};
+
 /**
- * Book version categories management panel
+ * Book version taxonomy management panel
  *
- * Allows viewing category tree, selecting and deselecting categories
+ * Supports categories, genres, and collections based on `type` prop.
+ * Allows viewing tree, selecting and deselecting items.
  */
 export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
-  const { selectedCategories } = props;
+  const { type = 'category' } = props;
   const [searchQuery, setSearchQuery] = useState('');
   const {
     categoriesTree,
@@ -46,19 +56,26 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
     isCategorySelected,
     toggleExpand,
     handleCategoryToggle,
+    filteredSelectedCategories,
   } = useCategoriesPanel(props);
 
-  const filteredTree = categoriesTree ? filterCategoriesTree(categoriesTree, searchQuery) : [];
+  const config = PANEL_CONFIG[type];
+  const Icon = config.icon;
+
+  const filteredTree = useMemo(
+    () => (categoriesTree ? filterCategoriesTree(categoriesTree, searchQuery) : []),
+    [categoriesTree, searchQuery]
+  );
 
   return (
     <div className={styles.panel}>
       <div className={styles.header}>
         <div className={styles.titleGroup}>
-          <Network className={styles.icon} size={20} />
-          <h3 className={styles.title}>Categories</h3>
+          <Icon className={styles.icon} size={20} />
+          <h3 className={styles.title}>{config.title}</h3>
         </div>
-        {selectedCategories.length > 0 && (
-          <span className={styles.counter}>{selectedCategories.length} selected</span>
+        {filteredSelectedCategories.length > 0 && (
+          <span className={styles.counter}>{filteredSelectedCategories.length} selected</span>
         )}
       </div>
 
@@ -66,7 +83,7 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
       {!isLoading && categoriesTree && (
         <div className={styles.searchWrapper}>
           <Input
-            placeholder="Search categories..."
+            placeholder={config.placeholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             fullWidth
@@ -76,7 +93,7 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
 
       {isLoading && (
         <div className={styles.loading}>
-          <p>Loading categories...</p>
+          <p>Loading {config.title.toLowerCase()}...</p>
         </div>
       )}
 
@@ -95,14 +112,14 @@ export const CategoriesPanel: FC<CategoriesPanelProps> = (props) => {
 
       {!isLoading && !categoriesTree && (
         <div className={styles.empty}>
-          <p>No categories available</p>
+          <p>No {config.title.toLowerCase()} available</p>
         </div>
       )}
 
       <SelectedCategoriesList
         isPending={isPending}
         onRemove={handleCategoryToggle}
-        selectedCategories={selectedCategories}
+        selectedCategories={filteredSelectedCategories}
       />
     </div>
   );

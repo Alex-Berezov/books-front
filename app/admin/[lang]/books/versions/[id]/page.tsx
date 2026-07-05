@@ -183,6 +183,25 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
             onCategoriesChange={handleCategoriesChange}
             selectedCategories={version.categories || []}
             versionId={versionId}
+            type="category"
+          />
+
+          <div className={styles.sidebarSpacer} />
+
+          <CategoriesPanel
+            onCategoriesChange={handleCategoriesChange}
+            selectedCategories={version.categories || []}
+            versionId={versionId}
+            type="genre"
+          />
+
+          <div className={styles.sidebarSpacer} />
+
+          <CategoriesPanel
+            onCategoriesChange={handleCategoriesChange}
+            selectedCategories={version.categories || []}
+            versionId={versionId}
+            type="collection"
           />
 
           <div className={styles.sidebarSpacer} />

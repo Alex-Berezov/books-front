@@ -4,14 +4,14 @@ import { useAttachCategory, useCategoriesTree, useDetachCategory } from '@/api/h
 import type { CategoriesPanelProps } from './CategoriesPanel.types';
 
 export const useCategoriesPanel = (props: CategoriesPanelProps) => {
-  const { versionId, selectedCategories, onCategoriesChange } = props;
+  const { versionId, selectedCategories, onCategoriesChange, type } = props;
   const { enqueueSnackbar } = useSnackbar();
 
   // State of expanded categories in tree
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
-  // Load categories tree
-  const { data: categoriesTree, isLoading } = useCategoriesTree();
+  // Load categories tree (optionally filtered by type)
+  const { data: categoriesTree, isLoading } = useCategoriesTree(type);
 
   // Mutations for attach/detach
   const attachMutation = useAttachCategory({
@@ -37,10 +37,17 @@ export const useCategoriesPanel = (props: CategoriesPanelProps) => {
   const isPending = attachMutation.isPending || detachMutation.isPending;
 
   /**
+   * Filter selected categories by type (if type filter is set)
+   */
+  const filteredSelectedCategories = type
+    ? selectedCategories.filter((cat) => cat.type === type)
+    : selectedCategories;
+
+  /**
    * Check if category is selected
    */
   const isCategorySelected = (categoryId: string): boolean => {
-    return selectedCategories.some((cat) => cat.id === categoryId);
+    return filteredSelectedCategories.some((cat) => cat.id === categoryId);
   };
 
   /**
@@ -81,5 +88,6 @@ export const useCategoriesPanel = (props: CategoriesPanelProps) => {
     isCategorySelected,
     toggleExpand,
     handleCategoryToggle,
+    filteredSelectedCategories,
   };
 };

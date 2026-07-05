@@ -1,4 +1,4 @@
-import type { Category } from '@/types/api-schema';
+import type { Category, CategoryType } from '@/types/api-schema';
 
 export interface CategoriesPanelProps {
   /** Book version ID */
@@ -7,4 +7,6 @@ export interface CategoriesPanelProps {
   selectedCategories: Category[];
   /** Callback on categories change */
   onCategoriesChange?: () => void;
+  /** Filter by category type */
+  type?: CategoryType;
 }

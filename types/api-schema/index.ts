@@ -79,6 +79,7 @@ export type {
   CategoryBooksResponse,
   CategoryTranslation,
   CategoryTree,
+  CategoryType,
   CreateCategoryRequest,
   CreateCategoryTranslationRequest,
   DetachCategoryRequest,
