@@ -304,7 +304,7 @@ export const useImportTags = (
     mutationFn: importTags,
     ...options,
     onSuccess: (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: tagKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: tagKeys.all });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,

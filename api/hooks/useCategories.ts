@@ -340,8 +340,7 @@ export const useImportCategories = (
     mutationFn: importCategories,
     ...options,
     onSuccess: (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: [...categoryKeys.all, 'tree'] });
+      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
