@@ -1,0 +1,42 @@
+@import '@/styles/tokens.scss';
+
+.seoDescription {
+  margin: $spacing-xl 0;
+  padding: $spacing-lg;
+  background: $color-bg-primary;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.content {
+  font-size: $font-size-base;
+  line-height: $line-height-relaxed;
+  color: $color-text-secondary;
+
+  p {
+    margin: 0 0 $spacing-md 0;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  h2, h3 {
+    color: $color-text-primary;
+    margin: $spacing-lg 0 $spacing-sm 0;
+  }
+
+  ul, ol {
+    padding-left: $spacing-lg;
+    margin: $spacing-sm 0;
+  }
+
+  li {
+    margin-bottom: $spacing-xs;
+  }
+
+  a {
+    color: $color-primary;
+    text-decoration: underline;
+  }
+}

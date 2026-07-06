@@ -1,20 +1,25 @@
-import { getDictionary } from '@/lib/i18n/dictionaries';
+import { TaxonomyOverviewClient } from '@/components/public/taxonomy-overview/TaxonomyOverviewClient';
+import { fetchPageBySlug } from '@/lib/utils/fetch-page';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
-import TagsClient from './TagsClient';
 
 type Props = {
   params: Promise<{ lang: string }> | { lang: string };
 };
 
+const FALLBACK_TITLE = 'Literary Tags & Book Themes | Bibliaris';
+const FALLBACK_DESCRIPTION =
+  'Browse literary tags and book themes on Bibliaris. Discover books by ideas, characters, settings, moods, genres, periods, and reading interests.';
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const lang = resolvedParams.lang as SupportedLang;
 
-  const dict = getDictionary(lang);
-  const title = `${dict.tags?.title || 'Literary Tags'} - Bibliaris`;
-  const description = dict.tags?.subtitle || '';
+  const page = await fetchPageBySlug(lang, 'taxonomy-tags-index');
+
+  const title = page?.seo?.metaTitle || page?.h1 || page?.title || FALLBACK_TITLE;
+  const description = page?.seo?.metaDescription || page?.shortDescription || FALLBACK_DESCRIPTION;
 
   return getPageMetadata(lang, '/tags', title, description);
 }
@@ -23,5 +28,5 @@ export default async function TagsPage({ params }: Props) {
   const resolvedParams = await params;
   const { lang } = resolvedParams;
 
-  return <TagsClient lang={lang} />;
+  return <TaxonomyOverviewClient lang={lang as SupportedLang} configKey="tag" />;
 }

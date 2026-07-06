@@ -171,6 +171,62 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
           />
         </FormField>
       </div>
+
+      {/* SEO Content Fields */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>SEO Content</h2>
+        <p className={styles.hint}>
+          These fields power taxonomy overview pages (categories, genres, collections, tags).
+        </p>
+
+        <FormField
+          error={errors.h1?.message}
+          hint="Overrides the title as the main H1 heading on the page."
+          id="h1"
+          label="H1 Heading"
+        >
+          <Input
+            disabled={isSubmitting}
+            id="h1"
+            placeholder="Browse Book Categories"
+            type="text"
+            fullWidth
+            {...register('h1')}
+          />
+        </FormField>
+
+        <FormField
+          error={errors.shortDescription?.message}
+          hint="Short text shown below the H1 in the hero section."
+          id="shortDescription"
+          label="Short Description"
+        >
+          <textarea
+            className={styles.textarea}
+            disabled={isSubmitting}
+            id="shortDescription"
+            placeholder="Explore book categories on Bibliaris..."
+            rows={3}
+            {...register('shortDescription')}
+          />
+        </FormField>
+
+        <FormField
+          error={errors.faq?.message}
+          hint={'JSON array of FAQ items. Format: [{ "question": "...", "answer": "..." }]'}
+          id="faq"
+          label="FAQ (JSON)"
+        >
+          <textarea
+            className={styles.textarea}
+            disabled={isSubmitting}
+            id="faq"
+            placeholder='[{question: "What are book genres?", answer: "Book genres help..."}]'
+            rows={8}
+            {...register('faq')}
+          />
+        </FormField>
+      </div>
     </>
   );
 };

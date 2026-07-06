@@ -1,0 +1,47 @@
+@import '@/styles/tokens.scss';
+
+.bottomLinks {
+  margin: $spacing-xxl 0;
+  padding: $spacing-lg;
+  background: $color-bg-primary;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  text-align: center;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-md 0;
+}
+
+.links {
+  font-size: $font-size-base;
+  line-height: $line-height-relaxed;
+}
+
+.link {
+  color: $color-primary;
+  text-decoration: none;
+  font-weight: $font-weight-medium;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.active {
+  color: $color-text-secondary;
+  cursor: default;
+  font-weight: $font-weight-regular;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.separator {
+  color: $color-text-secondary;
+  margin: 0 $spacing-xs;
+}

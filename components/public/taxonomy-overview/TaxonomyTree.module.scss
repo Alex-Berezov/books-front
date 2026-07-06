@@ -1,0 +1,83 @@
+@import '@/styles/tokens.scss';
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.empty {
+  text-align: center;
+  color: $color-text-secondary;
+  padding: $spacing-xxl;
+  font-size: $font-size-lg;
+}
+
+.group {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: $spacing-lg;
+  background: $color-bg-primary;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.groupTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.totalCount {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.groupDescription {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-sm 0;
+  line-height: $line-height-relaxed;
+}
+
+.subcategories {
+  margin-top: $spacing-sm;
+  line-height: $line-height-relaxed;
+}
+
+.subcategoryLink {
+  color: $color-text-primary;
+  text-decoration: none;
+  font-size: $font-size-base;
+  white-space: nowrap;
+
+  &:hover {
+    color: $color-primary;
+    text-decoration: underline;
+  }
+}
+
+.subcategoryName {
+  margin-right: 4px;
+}
+
+.subcategoryCount {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.subcategorySeparator {
+  color: $color-border-base;
+  margin: 0 $spacing-xs;
+}

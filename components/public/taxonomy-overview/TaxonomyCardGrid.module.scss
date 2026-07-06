@@ -1,0 +1,62 @@
+@import '@/styles/tokens.scss';
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $spacing-md;
+}
+
+.empty {
+  text-align: center;
+  color: $color-text-secondary;
+  padding: $spacing-xxl;
+  font-size: $font-size-lg;
+  grid-column: 1 / -1;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: $spacing-lg;
+  background: $color-bg-primary;
+  text-decoration: none;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: $color-primary;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+}
+
+.cardBody {
+  flex: 1;
+}
+
+.cardTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+  margin: 0 0 $spacing-sm 0;
+}
+
+.cardDescription {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0;
+  line-height: $line-height-relaxed;
+}
+
+.cardFooter {
+  margin-top: $spacing-md;
+  padding-top: $spacing-sm;
+  border-top: 1px solid #f0f0f0;
+}
+
+.bookCount {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}

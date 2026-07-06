@@ -67,28 +67,28 @@ const EditPage: FC<EditPageProps> = (props) => {
    * Form submission handler
    */
   const handleSubmit = async (formData: PageFormData) => {
-    // ✅ Backend now supports nested seo object!
-    // See docs/PAGES_SEO_UPDATE_GUIDE.md for details
+    // Parse FAQ JSON if provided
+    let faq: { question: string; answer: string }[] | null = null;
+    if (formData.faq && formData.faq.trim()) {
+      try {
+        faq = JSON.parse(formData.faq);
+      } catch {
+        enqueueSnackbar('Invalid FAQ JSON format. Please check your syntax.', { variant: 'error' });
+        return;
+      }
+    }
 
-    // Form complete SEO object with all fields (only filled ones)
     const seo = {
-      // Basic Meta Tags
       metaTitle: formData.seoMetaTitle || undefined,
       metaDescription: formData.seoMetaDescription || undefined,
-      // Technical SEO
       canonicalUrl: formData.seoCanonicalUrl || undefined,
       robots: formData.seoRobots || undefined,
-      // Open Graph
       ogTitle: formData.seoOgTitle || undefined,
       ogDescription: formData.seoOgDescription || undefined,
       ogImageUrl: formData.seoOgImageUrl || undefined,
-      // Twitter Card
       twitterCard: formData.seoTwitterCard || undefined,
-      // ⚠️ Backend doesn't support twitterTitle and twitterDescription
-      // Instead, metaTitle and metaDescription are used for Twitter Card
     };
 
-    // Check if there's at least one filled SEO field
     const hasSeoData = Object.values(seo).some((val) => val !== undefined);
 
     updateMutation.mutate({
@@ -99,7 +99,10 @@ const EditPage: FC<EditPageProps> = (props) => {
         slug: formData.slug,
         type: formData.type,
         content: formData.content,
-        seo: hasSeoData ? seo : undefined, // ✅ Backend will automatically create/update SEO entity
+        h1: formData.h1 || null,
+        shortDescription: formData.shortDescription || null,
+        faq,
+        seo: hasSeoData ? seo : undefined,
       },
     });
   };

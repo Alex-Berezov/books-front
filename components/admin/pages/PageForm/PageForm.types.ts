@@ -22,6 +22,21 @@ export const pageSchema = z.object({
   content: z.string().min(1, 'Content is required'),
 
   // ========================================
+  // SEO Content Fields
+  // ========================================
+
+  /** H1 heading for SEO pages (overrides title) */
+  h1: z.string().max(200, 'H1 is too long').optional().or(z.literal('')),
+  /** Short description for overview/preview */
+  shortDescription: z
+    .string()
+    .max(500, 'Short description is too long')
+    .optional()
+    .or(z.literal('')),
+  /** FAQ items as JSON string (parsed on submit) */
+  faq: z.string().optional().or(z.literal('')),
+
+  // ========================================
   // SEO Fields
   // ========================================
 

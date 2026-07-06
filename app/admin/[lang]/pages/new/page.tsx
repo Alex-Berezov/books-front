@@ -43,39 +43,41 @@ export default function NewPage(props: NewPageProps) {
   });
 
   const handleSubmit = async (data: PageFormData) => {
-    // ✅ Backend now supports nested seo object!
-    // See docs/PAGES_SEO_UPDATE_GUIDE.md for details
+    // Parse FAQ JSON if provided
+    let faq: { question: string; answer: string }[] | null = null;
+    if (data.faq && data.faq.trim()) {
+      try {
+        faq = JSON.parse(data.faq);
+      } catch {
+        enqueueSnackbar('Invalid FAQ JSON format. Please check your syntax.', { variant: 'error' });
+        return;
+      }
+    }
 
-    // Form complete SEO object with all fields (only filled ones)
     const seo = {
-      // Basic Meta Tags
       metaTitle: data.seoMetaTitle || undefined,
       metaDescription: data.seoMetaDescription || undefined,
-      // Technical SEO
       canonicalUrl: data.seoCanonicalUrl || undefined,
       robots: data.seoRobots || undefined,
-      // Open Graph
       ogTitle: data.seoOgTitle || undefined,
       ogDescription: data.seoOgDescription || undefined,
       ogImageUrl: data.seoOgImageUrl || undefined,
-      // Twitter Card
       twitterCard: data.seoTwitterCard || undefined,
-      // ⚠️ Backend doesn't support twitterTitle and twitterDescription
-      // Instead, metaTitle and metaDescription are used for Twitter Card
     };
 
-    // Check if there's at least one filled SEO field
     const hasSeoData = Object.values(seo).some((val) => val !== undefined);
 
-    // Create page with nested seo object (if there's data)
     createMutation.mutate({
-      lang: data.language, // Use selected language from form, not current admin lang
+      lang: data.language,
       data: {
         slug: data.slug,
         title: data.title,
         type: data.type,
         content: data.content,
-        seo: hasSeoData ? seo : undefined, // ✅ Backend will automatically create SEO entity
+        h1: data.h1 || null,
+        shortDescription: data.shortDescription || null,
+        faq,
+        seo: hasSeoData ? seo : undefined,
         translationGroupId: translationGroupId || null,
       },
     });

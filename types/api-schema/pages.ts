@@ -54,6 +54,14 @@ export interface PageTranslation {
 }
 
 /**
+ * FAQ item
+ */
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+/**
  * Response with page information
  */
 export interface PageResponse {
@@ -64,8 +72,14 @@ export interface PageResponse {
   content: string;
   language: SupportedLang;
   status: PublicationStatus;
-  seoId?: number | null; // Backend returns seoId, not seo object
-  seo?: SeoData; // May be populated from relation, but not always
+  /** Display H1 heading (overrides title) */
+  h1?: string | null;
+  /** Short description for overview/preview */
+  shortDescription?: string | null;
+  /** FAQ structured data array */
+  faq?: FaqItem[] | null;
+  seoId?: number | null;
+  seo?: SeoData;
   translationGroupId?: string | null;
   translations?: PageTranslation[];
   createdAt: ISODate;
@@ -89,10 +103,13 @@ export interface PageGroup {
 export interface CreatePageRequest {
   slug: string;
   title: string;
-  type: PageType; // Required field!
+  type: PageType;
   content: string;
-  language?: SupportedLang; // Ignored by backend, taken from :lang in URL
-  seo?: SeoInput; // Nested SEO object (optional)
+  h1?: string | null;
+  shortDescription?: string | null;
+  faq?: FaqItem[] | null;
+  language?: SupportedLang;
+  seo?: SeoInput;
   translationGroupId?: string | null;
 }
 
@@ -104,8 +121,11 @@ export interface UpdatePageRequest {
   title?: string;
   type?: PageType;
   content?: string;
+  h1?: string | null;
+  shortDescription?: string | null;
+  faq?: FaqItem[] | null;
   language?: SupportedLang;
-  seo?: SeoInput; // Nested SEO object (optional)
+  seo?: SeoInput;
   status?: PublicationStatus;
 }
 
