@@ -2,26 +2,29 @@
 
 .tagsPage {
   min-height: 100vh;
-  background: $color-background-primary;
+  background: var(--public-background);
+  color: var(--public-foreground);
+  padding: $spacing-xl 0;
 }
 
 .container {
-  max-width: $layout-max-width-lg;
+  max-width: $layout-max-width-xl;
   margin: 0 auto;
-  padding: $spacing-xl $spacing-lg;
+  padding: 0 $spacing-md;
 }
 
 .title {
   font-size: $font-size-xxxl;
   font-weight: $font-weight-bold;
-  color: $color-text-primary;
+  color: var(--public-foreground);
   margin-bottom: $spacing-sm;
   line-height: $line-height-tight;
 }
 
 .subtitle {
   font-size: $font-size-lg;
-  color: $color-text-secondary;
+  color: var(--public-foreground);
+  opacity: 0.6;
   margin-bottom: $spacing-xl;
   line-height: $line-height-relaxed;
   max-width: 800px;
