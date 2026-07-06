@@ -37,6 +37,33 @@
   }
 }
 
+.fieldHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xs;
+}
+
+.faqBlock {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: flex-start;
+  border: 1px solid $color-border-light;
+  padding: $spacing-md;
+  border-radius: $border-radius-lg;
+  background: $color-background-secondary;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-sm;
+}
+
+.faqInputs {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  flex: 1;
+  min-width: 200px;
+}
+
 .label {
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;

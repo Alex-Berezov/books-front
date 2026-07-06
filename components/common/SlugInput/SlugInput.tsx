@@ -11,7 +11,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, FC, FocusEvent } from 'react';
 import { useSlugValidation } from '@/lib/hooks/useSlugValidation';
 import { generateSlug, isValidSlug } from '@/lib/utils/slug';
@@ -56,6 +56,20 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
 
   // State: was slug manually edited by user
   const [wasManuallyEdited, setWasManuallyEdited] = useState(false);
+
+  // Detect form reset in edit mode (both value and sourceValue go from empty to populated simultaneously)
+  const prevValueRef = useRef(value);
+  const prevSourceRef = useRef(sourceValue);
+
+  useEffect(() => {
+    const valueJustPopulated = !prevValueRef.current && value;
+    const sourceJustPopulated = !prevSourceRef.current && sourceValue;
+    if (valueJustPopulated && sourceJustPopulated) {
+      setWasManuallyEdited(true);
+    }
+    prevValueRef.current = value;
+    prevSourceRef.current = sourceValue;
+  }, [value, sourceValue]);
 
   // Hook for slug uniqueness check
   const { existingItem, isUnique, status, suggestedSlug, validate } = useSlugValidation({

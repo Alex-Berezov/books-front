@@ -76,7 +76,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
           // SEO content fields
           h1: initialData.h1 || '',
           shortDescription: initialData.shortDescription || '',
-          faq: initialData.faq ? JSON.stringify(initialData.faq, null, 2) : '',
+          faq: initialData.faq || [],
           // SEO fields from backend
           seoMetaTitle: initialData.seo?.metaTitle || '',
           seoMetaDescription: initialData.seo?.metaDescription || '',
@@ -97,7 +97,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
           // SEO content default values
           h1: '',
           shortDescription: '',
-          faq: '',
+          faq: [],
           // SEO default values
           seoMetaTitle: '',
           seoMetaDescription: '',
@@ -121,7 +121,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
         content: initialData.content,
         h1: initialData.h1 || '',
         shortDescription: initialData.shortDescription || '',
-        faq: initialData.faq ? JSON.stringify(initialData.faq, null, 2) : '',
+        faq: initialData.faq || [],
         seoMetaTitle: initialData.seo?.metaTitle || '',
         seoMetaDescription: initialData.seo?.metaDescription || '',
         seoCanonicalUrl: initialData.seo?.canonicalUrl || '',

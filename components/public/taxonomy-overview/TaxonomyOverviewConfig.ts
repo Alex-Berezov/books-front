@@ -1,7 +1,5 @@
 export type TaxonomyType = 'category' | 'genre' | 'collection' | 'tag';
 
-export type TaxonomyLayout = 'tree' | 'grouped' | 'cards';
-
 export type BreadcrumbItem = {
   label: string;
   href?: string;
@@ -18,7 +16,6 @@ export interface TaxonomyOverviewConfig {
   type: TaxonomyType;
   pageKey: string;
   routeBase: string;
-  layout: TaxonomyLayout;
   breadcrumbs: BreadcrumbItem[];
   fallback: FallbackContent;
 }
@@ -28,7 +25,6 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     type: 'category',
     pageKey: 'taxonomy-categories-index',
     routeBase: 'categories',
-    layout: 'tree',
     breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'Browse Categories' }],
     fallback: {
       h1: 'Browse Book Categories',
@@ -42,7 +38,6 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     type: 'genre',
     pageKey: 'taxonomy-genres-index',
     routeBase: 'genres',
-    layout: 'grouped',
     breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'Browse Genres' }],
     fallback: {
       h1: 'Browse Book Genres',
@@ -56,7 +51,6 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     type: 'collection',
     pageKey: 'taxonomy-collections-index',
     routeBase: 'collections',
-    layout: 'cards',
     breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'Collections' }],
     fallback: {
       h1: 'Book Collections',
@@ -70,7 +64,6 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     type: 'tag',
     pageKey: 'taxonomy-tags-index',
     routeBase: 'tags',
-    layout: 'cards',
     breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'All Tags' }],
     fallback: {
       h1: 'Literary Tags & Book Themes',

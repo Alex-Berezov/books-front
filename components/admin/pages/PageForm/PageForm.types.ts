@@ -33,8 +33,11 @@ export const pageSchema = z.object({
     .max(500, 'Short description is too long')
     .optional()
     .or(z.literal('')),
-  /** FAQ items as JSON string (parsed on submit) */
-  faq: z.string().optional().or(z.literal('')),
+  /** FAQ items as array of question/answer pairs */
+  faq: z
+    .array(z.object({ question: z.string(), answer: z.string() }))
+    .optional()
+    .default([]),
 
   // ========================================
   // SEO Fields

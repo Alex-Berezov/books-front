@@ -43,16 +43,7 @@ export default function NewPage(props: NewPageProps) {
   });
 
   const handleSubmit = async (data: PageFormData) => {
-    // Parse FAQ JSON if provided
-    let faq: { question: string; answer: string }[] | null = null;
-    if (data.faq && data.faq.trim()) {
-      try {
-        faq = JSON.parse(data.faq);
-      } catch {
-        enqueueSnackbar('Invalid FAQ JSON format. Please check your syntax.', { variant: 'error' });
-        return;
-      }
-    }
+    const faq = data.faq && data.faq.length > 0 ? data.faq : null;
 
     const seo = {
       metaTitle: data.seoMetaTitle || undefined,

@@ -7,15 +7,12 @@ import { usePage } from '@/api/hooks/usePublic';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTree, Tag } from '@/types/api-schema';
-import { BottomInternalLinks } from './BottomInternalLinks';
 import { FaqBlock } from './FaqBlock';
 import { OverviewHero } from './OverviewHero';
 import { SeoDescription } from './SeoDescription';
 import { TaxonomyCardGrid } from './TaxonomyCardGrid';
-import { TaxonomyGroupedList } from './TaxonomyGroupedList';
 import styles from './TaxonomyOverviewClient.module.scss';
 import { TAXONOMY_OVERVIEW_CONFIGS, type TaxonomyOverviewConfig } from './TaxonomyOverviewConfig';
-import { TaxonomyTree } from './TaxonomyTree';
 
 export interface TaxonomyOverviewClientProps {
   lang: SupportedLang;
@@ -57,43 +54,8 @@ export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({ lang, 
     },
   ];
 
-  const renderTaxonomyList = () => {
-    if (isLoading) {
-      return <div className={styles.loading}>Loading...</div>;
-    }
-
-    if (configKey === 'tag') {
-      const tags = (tagsData?.data || []) as Tag[];
-      return (
-        <TaxonomyCardGrid
-          lang={lang}
-          items={tags}
-          routeBase={config.routeBase}
-          emptyText={`No ${config.routeBase} available yet.`}
-        />
-      );
-    }
-
-    const items = (treeData || []) as CategoryTree[];
-
-    switch (config.layout) {
-      case 'tree':
-        return <TaxonomyTree lang={lang} items={items} />;
-      case 'grouped':
-        return <TaxonomyGroupedList lang={lang} items={items} />;
-      case 'cards':
-        return (
-          <TaxonomyCardGrid
-            lang={lang}
-            items={items}
-            routeBase={config.routeBase}
-            emptyText={`No ${config.routeBase} available yet.`}
-          />
-        );
-      default:
-        return null;
-    }
-  };
+  const allItems =
+    configKey === 'tag' ? ((tagsData?.data || []) as Tag[]) : ((treeData || []) as CategoryTree[]);
 
   return (
     <div className={styles.page}>
@@ -109,14 +71,18 @@ export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({ lang, 
             {configKey === 'collection' && 'Featured Collections'}
             {configKey === 'tag' && 'All Tags'}
           </h2>
-          {renderTaxonomyList()}
+          <TaxonomyCardGrid
+            lang={lang}
+            items={allItems}
+            routeBase={config.routeBase}
+            emptyText={`No ${config.routeBase} available yet.`}
+            isLoading={isLoading}
+          />
         </div>
 
         {description && <SeoDescription description={description} />}
 
         {faq && faq.length > 0 && <FaqBlock items={faq} />}
-
-        <BottomInternalLinks lang={lang} currentType={configKey} />
       </div>
     </div>
   );

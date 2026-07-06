@@ -67,16 +67,7 @@ const EditPage: FC<EditPageProps> = (props) => {
    * Form submission handler
    */
   const handleSubmit = async (formData: PageFormData) => {
-    // Parse FAQ JSON if provided
-    let faq: { question: string; answer: string }[] | null = null;
-    if (formData.faq && formData.faq.trim()) {
-      try {
-        faq = JSON.parse(formData.faq);
-      } catch {
-        enqueueSnackbar('Invalid FAQ JSON format. Please check your syntax.', { variant: 'error' });
-        return;
-      }
-    }
+    const faq = formData.faq && formData.faq.length > 0 ? formData.faq : null;
 
     const seo = {
       metaTitle: formData.seoMetaTitle || undefined,

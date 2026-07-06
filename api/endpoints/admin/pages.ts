@@ -116,7 +116,7 @@ export const updatePage = async (
  */
 export const publishPage = async (pageId: string, lang = 'en'): Promise<PageResponse> => {
   const endpoint = `/admin/${lang}/pages/${pageId}/publish`;
-  return httpPostAuth<PageResponse>(endpoint);
+  return httpPatchAuth<PageResponse>(endpoint);
 };
 
 /**
@@ -128,7 +128,7 @@ export const publishPage = async (pageId: string, lang = 'en'): Promise<PageResp
  */
 export const unpublishPage = async (pageId: string, lang = 'en'): Promise<PageResponse> => {
   const endpoint = `/admin/${lang}/pages/${pageId}/unpublish`;
-  return httpPostAuth<PageResponse>(endpoint);
+  return httpPatchAuth<PageResponse>(endpoint);
 };
 
 /**

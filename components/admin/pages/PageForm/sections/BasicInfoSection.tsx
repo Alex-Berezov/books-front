@@ -3,6 +3,7 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { FormField } from '@/components/admin/common/SeoSections';
+import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { Select } from '@/components/common/Select';
@@ -211,21 +212,62 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
           />
         </FormField>
 
-        <FormField
-          error={errors.faq?.message}
-          hint={'JSON array of FAQ items. Format: [{ "question": "...", "answer": "..." }]'}
-          id="faq"
-          label="FAQ (JSON)"
-        >
-          <textarea
-            className={styles.textarea}
-            disabled={isSubmitting}
-            id="faq"
-            placeholder='[{question: "What are book genres?", answer: "Book genres help..."}]'
-            rows={8}
-            {...register('faq')}
-          />
-        </FormField>
+        {/* FAQ section */}
+        <div className={styles.field}>
+          <div className={styles.fieldHeader}>
+            <label className={styles.label}>FAQ</label>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const current = watch('faq') || [];
+                setValue('faq', [...current, { question: '', answer: '' }], {
+                  shouldValidate: false,
+                });
+              }}
+            >
+              + Add FAQ
+            </Button>
+          </div>
+          <span className={styles.hint}>Frequently asked questions about this page.</span>
+          {(watch('faq') || []).map((item, idx) => (
+            <div key={idx} className={styles.faqBlock}>
+              <div className={styles.faqInputs}>
+                <Input
+                  value={item.question}
+                  onChange={(e) => {
+                    const list = [...(watch('faq') || [])];
+                    list[idx] = { ...list[idx], question: e.target.value };
+                    setValue('faq', list, { shouldValidate: false });
+                  }}
+                  placeholder="Question"
+                  fullWidth
+                />
+                <Input
+                  value={item.answer}
+                  onChange={(e) => {
+                    const list = [...(watch('faq') || [])];
+                    list[idx] = { ...list[idx], answer: e.target.value };
+                    setValue('faq', list, { shouldValidate: false });
+                  }}
+                  placeholder="Answer"
+                  fullWidth
+                />
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  const list = (watch('faq') || []).filter((_, i) => i !== idx);
+                  setValue('faq', list, { shouldValidate: false });
+                }}
+              >
+                Remove
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

@@ -9,6 +9,7 @@ export interface TaxonomyCardGridProps {
   items: CategoryTree[] | Tag[];
   routeBase: string;
   emptyText: string;
+  isLoading?: boolean;
 }
 
 const isTag = (item: CategoryTree | Tag): item is Tag => {
@@ -24,13 +25,30 @@ const getName = (item: CategoryTree | Tag, lang: SupportedLang): string => {
   return trans?.name || item.name || '';
 };
 
-const getShortDescription = (item: CategoryTree | Tag, lang: SupportedLang): string | undefined => {
-  if (isTag(item)) {
-    const trans = item.translations?.find((t) => t.language === lang);
-    return trans?.shortDescription || trans?.description || undefined;
+const getChildName = (child: CategoryTree): string => {
+  return child.translation?.name || child.name || '';
+};
+
+const isPublicItem = (item: CategoryTree): boolean => {
+  return item.isVisible !== false && item.indexable !== false;
+};
+
+const getTotalBooks = (item: CategoryTree): number => {
+  let count = item.booksCount || 0;
+  if (item.children) {
+    for (const child of item.children) {
+      count += getTotalBooks(child);
+    }
   }
-  const trans = item.translation;
-  return trans?.shortDescription || item.description || undefined;
+  return count;
+};
+
+const hasAnyBooks = (item: CategoryTree): boolean => {
+  if ((item.booksCount || 0) > 0) return true;
+  if (item.children) {
+    return item.children.some((child) => hasAnyBooks(child));
+  }
+  return false;
 };
 
 export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
@@ -38,9 +56,17 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
   items,
   routeBase,
   emptyText,
+  isLoading,
 }) => {
+  if (isLoading) {
+    return <div className={styles.loading}>Loading...</div>;
+  }
+
   const filtered = items.filter((item) => {
-    return item.isVisible !== false && (item.booksCount || 0) > 0;
+    if (isTag(item)) {
+      return item.isVisible !== false && (item.booksCount || 0) > 0;
+    }
+    return isPublicItem(item) && hasAnyBooks(item);
   });
 
   if (filtered.length === 0) {
@@ -51,21 +77,39 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
     <div className={styles.grid}>
       {filtered.map((item) => {
         const name = getName(item, lang);
-        const description = getShortDescription(item, lang);
-        const booksCount = item.booksCount || 0;
+        const booksCount = isTag(item) ? item.booksCount || 0 : getTotalBooks(item);
+
+        let children: CategoryTree[] = [];
+        if (!isTag(item)) {
+          children = (item.children || []).filter(
+            (child) => isPublicItem(child) && (child.booksCount || 0) > 0
+          );
+        }
 
         return (
-          <Link key={item.id} href={`/${lang}/${routeBase}/${item.slug}`} className={styles.card}>
-            <div className={styles.cardBody}>
-              <h3 className={styles.cardTitle}>{name}</h3>
-              {description && <p className={styles.cardDescription}>{description}</p>}
-            </div>
-            <div className={styles.cardFooter}>
+          <div key={item.id} className={styles.card}>
+            <div className={styles.cardHeader}>
+              <Link href={`/${lang}/${routeBase}/${item.slug}`} className={styles.cardTitle}>
+                {name}
+              </Link>
               <span className={styles.bookCount}>
                 {booksCount} {booksCount === 1 ? 'book' : 'books'}
               </span>
             </div>
-          </Link>
+            {children.length > 0 && (
+              <div className={styles.children}>
+                {children.map((child) => (
+                  <Link
+                    key={child.id}
+                    href={`/${lang}/${routeBase}/${child.slug}`}
+                    className={styles.childLink}
+                  >
+                    {getChildName(child)}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         );
       })}
     </div>

@@ -3,19 +3,13 @@
 .page {
   min-height: 60vh;
   padding: $spacing-lg 0;
+  background: $color-public-background;
 }
 
 .container {
-  max-width: 960px;
+  max-width: $layout-max-width-xl;
   margin: 0 auto;
   padding: 0 $spacing-md;
-}
-
-.loading {
-  text-align: center;
-  padding: $spacing-xxl;
-  color: $color-text-secondary;
-  font-size: $font-size-lg;
 }
 
 .taxonomySection {
