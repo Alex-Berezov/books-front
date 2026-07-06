@@ -61,7 +61,7 @@ export const CategoryTree: FC<{ type?: 'category' | 'genre' | 'collection' }> = 
 
   const handleImportJson = async (jsonData: string) => {
     const parsed = JSON.parse(jsonData);
-    const items = Array.isArray(parsed) ? parsed : [parsed];
+    const items = Array.isArray(parsed) ? parsed : parsed.categories || parsed.tags || [parsed];
     await importMutation.mutateAsync(items);
   };
 

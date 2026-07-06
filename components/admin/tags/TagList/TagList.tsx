@@ -60,7 +60,7 @@ export const TagList: FC<TagListProps> = (props) => {
 
   const handleImportJson = async (jsonData: string) => {
     const parsed = JSON.parse(jsonData);
-    const items = Array.isArray(parsed) ? parsed : [parsed];
+    const items = Array.isArray(parsed) ? parsed : parsed.tags || parsed.categories || [parsed];
     await importMutation.mutateAsync(items);
   };
 
