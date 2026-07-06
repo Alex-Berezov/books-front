@@ -10,6 +10,7 @@
 // Common types
 export type {
   ISODate,
+  ImportResult,
   PageType,
   PaginatedResponse,
   PaginationMeta,

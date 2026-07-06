@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import type { ChangeEvent, FC } from 'react';
-import { Globe, Tags } from 'lucide-react';
+import { FileJson, Globe, Tags } from 'lucide-react';
 import { useSnackbar } from 'notistack';
-import { useDeleteTag, useTags } from '@/api/hooks/useTags';
+import { useDeleteTag, useImportTags, useTags } from '@/api/hooks/useTags';
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
-import { EmptyState, Skeleton } from '@/components/admin/shared';
+import { EmptyState, ImportJsonModal, Skeleton } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
@@ -38,6 +38,31 @@ export const TagList: FC<TagListProps> = (props) => {
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
   const [deletingTag, setDeletingTag] = useState<Tag | null>(null);
   const [translatingTag, setTranslatingTag] = useState<Tag | null>(null);
+
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  const importMutation = useImportTags({
+    onSuccess: (result) => {
+      enqueueSnackbar(
+        `Import complete: ${result.imported} created, ${result.updated} updated${result.errors.length > 0 ? `, ${result.errors.length} errors` : ''}`,
+        { variant: result.errors.length > 0 ? 'warning' : 'success' }
+      );
+      if (result.errors.length > 0) {
+        result.errors.forEach((err) => {
+          enqueueSnackbar(`${err.key}: ${err.message}`, { variant: 'error' });
+        });
+      }
+    },
+    onError: (error) => {
+      enqueueSnackbar(`Import failed: ${error.message}`, { variant: 'error' });
+    },
+  });
+
+  const handleImportJson = async (jsonData: string) => {
+    const parsed = JSON.parse(jsonData);
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    await importMutation.mutateAsync(items);
+  };
 
   // Fetch tags
   const { data, isLoading, error } = useTags({
@@ -124,9 +149,18 @@ export const TagList: FC<TagListProps> = (props) => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>Tags</h1>
-        <Button variant="primary" onClick={handleCreate}>
-          Create Tag
-        </Button>
+        <div className={styles.headerActions}>
+          <Button
+            variant="secondary"
+            onClick={() => setIsImportModalOpen(true)}
+            leftIcon={<FileJson size={18} />}
+          >
+            Import JSON
+          </Button>
+          <Button variant="primary" onClick={handleCreate}>
+            Create Tag
+          </Button>
+        </div>
       </div>
 
       <div className={styles.controls}>
@@ -259,6 +293,16 @@ export const TagList: FC<TagListProps> = (props) => {
           </Button>
         </div>
       )}
+
+      <ImportJsonModal
+        isOpen={isImportModalOpen}
+        onCancel={() => setIsImportModalOpen(false)}
+        onImport={handleImportJson}
+        isLoading={importMutation.isPending}
+        title="Import Tags Data (5 Languages)"
+        description="Paste the JSON containing tags and translations for 5 languages."
+        placeholder={`[\n  {\n    "key": "example-tag",\n    "name": "Example Tag",\n    "slug": "example-tag",\n    "indexable": true,\n    "isVisible": true,\n    "sortOrder": 100,\n    "translations": {\n      "en": { "name": "Example Tag", "slug": "example-tag" }\n    }\n  }\n]`}
+      />
 
       <TagModal
         isOpen={isCreateModalOpen}

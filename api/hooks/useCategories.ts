@@ -22,6 +22,7 @@ import {
   getCategories,
   getCategoriesTree,
   getCategoryTranslations,
+  importCategories,
   updateCategory,
   updateCategoryTranslation,
   type GetCategoriesParams,
@@ -32,6 +33,7 @@ import type {
   CategoryTree,
   CreateCategoryRequest,
   CreateCategoryTranslationRequest,
+  ImportResult,
   PaginatedResponse,
   UpdateCategoryRequest,
   UpdateCategoryTranslationRequest,
@@ -313,6 +315,29 @@ export const useDeleteCategory = (options?: UseMutationOptions<void, Error, stri
 
   return useMutation({
     mutationFn: deleteCategory,
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: [...categoryKeys.all, 'tree'] });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+  });
+};
+
+/**
+ * Hook for importing categories/genres/collections from JSON
+ */
+export const useImportCategories = (
+  options?: UseMutationOptions<ImportResult, Error, Record<string, unknown>[]>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: importCategories,
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });

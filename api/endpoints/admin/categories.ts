@@ -14,6 +14,7 @@ import type {
   CategoryTree,
   CreateCategoryRequest,
   CreateCategoryTranslationRequest,
+  ImportResult,
   PaginatedResponse,
   UpdateCategoryRequest,
   UpdateCategoryTranslationRequest,
@@ -206,4 +207,19 @@ export const detachCategory = async (versionId: string, categoryId: string): Pro
 export const deleteCategory = async (id: string): Promise<void> => {
   const endpoint = `/categories/${id}`;
   return httpDeleteAuth<void>(endpoint);
+};
+
+/**
+ * Import categories/genres/collections from JSON array
+ *
+ * @param data - Array of import category DTOs
+ * @returns Import result with counts and errors
+ *
+ * @example
+ * ```ts
+ * const result = await importCategories([{ key: 'fiction', type: 'category', translations: { ... } }]);
+ * ```
+ */
+export const importCategories = async (data: Record<string, unknown>[]): Promise<ImportResult> => {
+  return httpPostAuth<ImportResult>('/import/categories', data);
 };

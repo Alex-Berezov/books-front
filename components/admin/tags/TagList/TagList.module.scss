@@ -21,6 +21,12 @@
   }
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
 .controls {
   display: flex;
   justify-content: space-between;

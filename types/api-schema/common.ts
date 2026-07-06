@@ -59,6 +59,15 @@ export interface PaginatedResponse<T> {
 }
 
 /**
+ * Import result from JSON import endpoints
+ */
+export interface ImportResult {
+  imported: number;
+  updated: number;
+  errors: Array<{ key: string; message: string }>;
+}
+
+/**
  * Re-export SupportedLang for convenience
  */
 export type { SupportedLang };

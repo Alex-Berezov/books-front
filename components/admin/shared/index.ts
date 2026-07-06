@@ -8,3 +8,4 @@ export * from './Pagination';
 export * from './Skeleton/Skeleton';
 export * from './Spinner/Spinner';
 export * from './ErrorBoundary/ErrorBoundary';
+export * from './ImportJsonModal/ImportJsonModal';

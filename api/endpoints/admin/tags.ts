@@ -11,6 +11,7 @@ import type {
   AttachTagRequest,
   CreateTagRequest,
   CreateTagTranslationRequest,
+  ImportResult,
   PaginatedResponse,
   Tag,
   TagTranslation,
@@ -163,4 +164,19 @@ export const updateTagTranslation = async (
  */
 export const deleteTagTranslation = async (id: string, language: string): Promise<void> => {
   return httpDeleteAuth<void>(`/tags/${id}/translations/${language}`);
+};
+
+/**
+ * Import tags from JSON array
+ *
+ * @param data - Array of import tag DTOs
+ * @returns Import result with counts and errors
+ *
+ * @example
+ * ```ts
+ * const result = await importTags([{ key: 'aestheticism', name: 'Aestheticism', slug: 'aestheticism', translations: { ... } }]);
+ * ```
+ */
+export const importTags = async (data: Record<string, unknown>[]): Promise<ImportResult> => {
+  return httpPostAuth<ImportResult>('/import/tags', data);
 };

@@ -1,13 +1,17 @@
 'use client';
 
 import { useState, type FC, useMemo } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { FileJson, Plus, Search } from 'lucide-react';
 import { useSnackbar } from 'notistack';
-import { useCategoriesTree, useDeleteCategory } from '@/api/hooks/useCategories';
+import {
+  useCategoriesTree,
+  useDeleteCategory,
+  useImportCategories,
+} from '@/api/hooks/useCategories';
 import { CategoryModal } from '@/components/admin/categories/CategoryModal';
 import { CategoryTranslationsModal } from '@/components/admin/categories/CategoryTranslationsModal';
 import { DeleteCategoryModal } from '@/components/admin/categories/DeleteCategoryModal';
-import { Skeleton } from '@/components/admin/shared';
+import { ImportJsonModal, Skeleton } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { Category, CategoryTree as CategoryTreeType } from '@/types/api-schema';
@@ -35,6 +39,31 @@ export const CategoryTree: FC<{ type?: 'category' | 'genre' | 'collection' }> = 
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | undefined>(undefined);
+
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  const importMutation = useImportCategories({
+    onSuccess: (result) => {
+      enqueueSnackbar(
+        `Import complete: ${result.imported} created, ${result.updated} updated${result.errors.length > 0 ? `, ${result.errors.length} errors` : ''}`,
+        { variant: result.errors.length > 0 ? 'warning' : 'success' }
+      );
+      if (result.errors.length > 0) {
+        result.errors.forEach((err) => {
+          enqueueSnackbar(`${err.key}: ${err.message}`, { variant: 'error' });
+        });
+      }
+    },
+    onError: (error) => {
+      enqueueSnackbar(`Import failed: ${error.message}`, { variant: 'error' });
+    },
+  });
+
+  const handleImportJson = async (jsonData: string) => {
+    const parsed = JSON.parse(jsonData);
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    await importMutation.mutateAsync(items);
+  };
 
   const deleteMutation = useDeleteCategory({
     onSuccess: () => {
@@ -153,9 +182,18 @@ export const CategoryTree: FC<{ type?: 'category' | 'genre' | 'collection' }> = 
     <div>
       <div className={styles.header}>
         <h1 className={styles.title}>{pageTitle}</h1>
-        <Button onClick={handleCreateClick} leftIcon={<Plus size={18} />}>
-          {buttonLabel}
-        </Button>
+        <div className={styles.headerActions}>
+          <Button
+            variant="secondary"
+            onClick={() => setIsImportModalOpen(true)}
+            leftIcon={<FileJson size={18} />}
+          >
+            Import JSON
+          </Button>
+          <Button onClick={handleCreateClick} leftIcon={<Plus size={18} />}>
+            {buttonLabel}
+          </Button>
+        </div>
       </div>
 
       <div className={styles.searchContainer}>
@@ -206,6 +244,16 @@ export const CategoryTree: FC<{ type?: 'category' | 'genre' | 'collection' }> = 
         onConfirm={handleConfirmDelete}
         categoryName={categoryToDelete?.name || ''}
         isDeleting={deleteMutation.isPending}
+      />
+
+      <ImportJsonModal
+        isOpen={isImportModalOpen}
+        onCancel={() => setIsImportModalOpen(false)}
+        onImport={handleImportJson}
+        isLoading={importMutation.isPending}
+        title={`Import ${pageTitle} Data (5 Languages)`}
+        description={`Paste the JSON containing ${pageTitle.toLowerCase()} and translations for 5 languages.`}
+        placeholder={`[\n  {\n    "key": "example-key",\n    "type": "${type}",\n    "parentKey": null,\n    "indexable": true,\n    "isVisible": true,\n    "sortOrder": 10,\n    "translations": {\n      "en": { "name": "Example", "slug": "example" }\n    }\n  }\n]`}
       />
     </div>
   );

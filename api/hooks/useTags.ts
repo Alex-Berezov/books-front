@@ -21,6 +21,7 @@ import {
   detachTag,
   getTagTranslations,
   getTags,
+  importTags,
   updateTag,
   updateTagTranslation,
   type GetTagsParams,
@@ -28,6 +29,7 @@ import {
 import type {
   CreateTagRequest,
   CreateTagTranslationRequest,
+  ImportResult,
   PaginatedResponse,
   Tag,
   TagTranslation,
@@ -280,6 +282,28 @@ export const useUpdateTagTranslation = (
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: tagKeys.translations(variables.id) });
+      queryClient.invalidateQueries({ queryKey: tagKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+  });
+};
+
+/**
+ * Hook for importing tags from JSON
+ */
+export const useImportTags = (
+  options?: UseMutationOptions<ImportResult, Error, Record<string, unknown>[]>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: importTags,
+    ...options,
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: tagKeys.lists() });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
