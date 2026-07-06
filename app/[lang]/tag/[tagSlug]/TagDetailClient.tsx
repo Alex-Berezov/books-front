@@ -100,19 +100,6 @@ export default function TagDetailClient({ lang, tagSlug }: TagDetailClientProps)
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className={styles.container}>
-        <Breadcrumbs items={breadcrumbItems} />
-
-        {/* Hero */}
-        <header className={styles.hero}>
-          <h1 className={styles.title}>{tagName}</h1>
-          {tagShortDescription && <p className={styles.shortDescription}>{tagShortDescription}</p>}
-          {!isLoading && total > 0 && (
-            <p className={styles.count}>
-              {total} {t('tag.books')}
-            </p>
-          )}
-        </header>
-
         {/* Layout */}
         <div className={styles.layout}>
           {/* Sidebar */}
@@ -132,6 +119,20 @@ export default function TagDetailClient({ lang, tagSlug }: TagDetailClientProps)
 
           {/* Main */}
           <div className={styles.main}>
+            <Breadcrumbs items={breadcrumbItems} />
+
+            <header className={styles.hero}>
+              <h1 className={styles.title}>{tagName}</h1>
+              {tagShortDescription && (
+                <p className={styles.shortDescription}>{tagShortDescription}</p>
+              )}
+              {!isLoading && total > 0 && (
+                <p className={styles.count}>
+                  {total} {t('tag.books')}
+                </p>
+              )}
+            </header>
+
             {/* Books List */}
             {isLoading ? (
               <div className={styles.grid}>

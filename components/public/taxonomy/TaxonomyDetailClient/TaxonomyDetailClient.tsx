@@ -274,58 +274,6 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
         />
       )}
       <div className={styles.container}>
-        <Breadcrumbs items={breadcrumbItems} />
-
-        {/* Hero */}
-        <header className={styles.hero}>
-          <h1 className={styles.title}>{categoryName}</h1>
-          {shortDescription && <p className={styles.shortDescription}>{shortDescription}</p>}
-          <p className={styles.count}>{t('taxonomy.booksCount', { count: String(booksCount) })}</p>
-          {parentCategory && parentName && (
-            <Link href={`/${lang}/${path}/${parentCategory.slug}`} className={styles.parentLink}>
-              <ChevronRight size={14} className={styles.parentIcon} />
-              {parentName}
-            </Link>
-          )}
-        </header>
-
-        {/* Children chips */}
-        {children.length > 0 && (
-          <section className={styles.childrenSection}>
-            <div className={styles.chips}>
-              {children.slice(0, 12).map((child) => {
-                const childTranslation =
-                  child.translation ||
-                  child.translations?.find((tr) => tr.language === lang) ||
-                  null;
-                const childName = childTranslation?.name || child.name || '';
-                const childSlug = childTranslation?.slug || child.slug || '';
-                return (
-                  <Link
-                    key={child.id}
-                    href={`/${lang}/${path}/${childSlug}`}
-                    className={styles.chip}
-                  >
-                    {childName}
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* Mobile Browse button */}
-        <div className={styles.mobileBrowseBtnWrapper}>
-          <button
-            type="button"
-            className={styles.mobileBrowseBtn}
-            onClick={() => setMobileSidebarOpen(true)}
-            aria-label={t('taxonomy.browse')}
-          >
-            {t('taxonomy.browse')}
-          </button>
-        </div>
-
         {/* Sidebar + Main layout */}
         <div className={styles.layout}>
           <aside className={styles.sidebar}>
@@ -491,6 +439,60 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
           </Drawer>
 
           <div className={styles.main}>
+            <Breadcrumbs items={breadcrumbItems} />
+
+            <header className={styles.hero}>
+              <h1 className={styles.title}>{categoryName}</h1>
+              {shortDescription && <p className={styles.shortDescription}>{shortDescription}</p>}
+              <p className={styles.count}>
+                {t('taxonomy.booksCount', { count: String(booksCount) })}
+              </p>
+              {parentCategory && parentName && (
+                <Link
+                  href={`/${lang}/${path}/${parentCategory.slug}`}
+                  className={styles.parentLink}
+                >
+                  <ChevronRight size={14} className={styles.parentIcon} />
+                  {parentName}
+                </Link>
+              )}
+            </header>
+
+            {children.length > 0 && (
+              <section className={styles.childrenSection}>
+                <div className={styles.chips}>
+                  {children.slice(0, 12).map((child) => {
+                    const childTranslation =
+                      child.translation ||
+                      child.translations?.find((tr) => tr.language === lang) ||
+                      null;
+                    const childName = childTranslation?.name || child.name || '';
+                    const childSlug = childTranslation?.slug || child.slug || '';
+                    return (
+                      <Link
+                        key={child.id}
+                        href={`/${lang}/${path}/${childSlug}`}
+                        className={styles.chip}
+                      >
+                        {childName}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            <div className={styles.mobileBrowseBtnWrapper}>
+              <button
+                type="button"
+                className={styles.mobileBrowseBtn}
+                onClick={() => setMobileSidebarOpen(true)}
+                aria-label={t('taxonomy.browse')}
+              >
+                {t('taxonomy.browse')}
+              </button>
+            </div>
+
             {loadingCatBooks ? (
               <div className={styles.grid}>
                 {Array.from({ length: 8 }).map((_, i) => (

@@ -2,13 +2,15 @@
 
 .page {
   min-height: 100vh;
-  background: $color-background-primary;
+  background: var(--public-background);
+  color: var(--public-foreground);
+  padding: $spacing-xl 0;
 }
 
 .container {
-  max-width: $layout-max-width-lg;
+  max-width: $layout-max-width-xl;
   margin: 0 auto;
-  padding: $spacing-xl $spacing-lg;
+  padding: 0 $spacing-md;
 }
 
 .hero {
