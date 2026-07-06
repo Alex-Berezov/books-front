@@ -49,6 +49,26 @@ export function Footer() {
                     {t('footer.browseGenres')}
                   </Link>
                 </li>
+                <li>
+                  <Link href={`/${lang}/catalog`} className={styles.link}>
+                    {t('footer.browseCatalog')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/categories`} className={styles.link}>
+                    {t('footer.browseCategories')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/collections`} className={styles.link}>
+                    {t('footer.browseCollections')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${lang}/tags`} className={styles.link}>
+                    {t('footer.browseTags')}
+                  </Link>
+                </li>
               </ul>
             </div>
 

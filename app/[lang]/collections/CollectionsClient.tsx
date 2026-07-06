@@ -4,6 +4,8 @@ import { Skeleton } from 'antd';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useCategoriesTree } from '@/api/hooks/useCategories';
+import { Breadcrumbs } from '@/components/public/Breadcrumbs';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTree } from '@/types/api-schema';
 import styles from './page.module.scss';
@@ -15,6 +17,7 @@ type Props = { lang: string };
 
 export default function CollectionsClient({ lang }: Props) {
   const supportedLang = lang as SupportedLang;
+  const { t } = useTranslation();
   const { data: tree, isLoading } = useCategoriesTree('collection');
 
   const getTranslated = (category: CategoryTree) => {
@@ -36,10 +39,16 @@ export default function CollectionsClient({ lang }: Props) {
   };
 
   return (
-    <div className={styles.genresPage}>
+    <div className={styles.page}>
       <div className={styles.container}>
-        <h1 className={styles.title}>Collections</h1>
-        <p className={styles.subtitle}>Curated book collections and editorial selections</p>
+        <Breadcrumbs
+          items={[
+            { label: t('breadcrumb.home'), href: `/${supportedLang}` },
+            { label: t('collections.title') },
+          ]}
+        />
+        <h1 className={styles.title}>{t('collections.title')}</h1>
+        <p className={styles.subtitle}>{t('collections.subtitle')}</p>
 
         {isLoading ? (
           <div className={styles.loading}>
@@ -82,7 +91,9 @@ export default function CollectionsClient({ lang }: Props) {
                         {translated.name}
                       </Link>
                       <ChevronRight size={16} className={styles.chevron} />
-                      <span className={styles.totalCount}>{totalBooksCount} books</span>
+                      <span className={styles.totalCount}>
+                        {totalBooksCount} {t('collections.booksCount')}
+                      </span>
                     </div>
 
                     {childrenWithBooks && childrenWithBooks.length > 0 && (

@@ -1,5 +1,5 @@
 import { resolveSeo } from '@/api/endpoints/public';
-import { CatalogTemplate } from '@/components/public/catalog/CatalogTemplate';
+import { TaxonomyDetailClient } from '@/components/public/taxonomy/TaxonomyDetailClient';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 
@@ -84,7 +84,7 @@ export default async function CollectionDetailPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(seoData.schema) }}
         />
       )}
-      <CatalogTemplate lang={supportedLang} categorySlug={slug} />
+      <TaxonomyDetailClient lang={supportedLang} slug={slug} taxonomyType="collection" />
     </>
   );
 }

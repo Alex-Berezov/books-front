@@ -1,6 +1,6 @@
 @import '@/styles/tokens.scss';
 
-.tagPage {
+.page {
   min-height: 100vh;
   background: $color-background-primary;
 }
@@ -34,7 +34,50 @@
 .count {
   font-size: $font-size-sm;
   color: $color-text-tertiary;
-  margin: 0;
+  margin-bottom: $spacing-sm;
+}
+
+.parentLink {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.parentIcon {
+  transform: rotate(180deg);
+}
+
+.childrenSection {
+  margin-bottom: $spacing-xl;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.chip {
+  padding: $spacing-xs $spacing-md;
+  background: $color-background-secondary;
+  border-radius: $border-radius-full;
+  text-decoration: none;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+  transition: all $transition-base;
+  white-space: nowrap;
+
+  &:hover {
+    background: $color-primary;
+    color: $color-text-inverse;
+  }
 }
 
 .layout {
@@ -56,6 +99,14 @@
   font-size: $font-size-base;
   font-weight: $font-weight-semibold;
   color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.sidebarSubtitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  margin-top: $spacing-lg;
   margin-bottom: $spacing-sm;
 }
 
@@ -114,9 +165,7 @@
 }
 
 .descriptionSection,
-.relatedSection,
-.faqSection,
-.bottomLinks {
+.faqSection {
   margin-top: $spacing-xl;
   padding-top: $spacing-xl;
   border-top: 1px solid $color-border-light;
@@ -161,31 +210,16 @@
   }
 }
 
-.relatedChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-sm;
-}
-
-.relatedChip {
-  padding: $spacing-sm $spacing-md;
-  background: $color-background-secondary;
-  border-radius: $border-radius-full;
-  text-decoration: none;
-  color: $color-text-primary;
-  font-size: $font-size-sm;
-  transition: all $transition-base;
-
-  &:hover {
-    background: $color-primary;
-    color: $color-text-inverse;
-  }
-}
-
 .faqAnswer {
   margin: 0;
   color: $color-text-secondary;
   line-height: $line-height-relaxed;
+}
+
+.bottomLinks {
+  margin-top: $spacing-xl;
+  padding-top: $spacing-xl;
+  border-top: 1px solid $color-border-light;
 }
 
 .bottomLinksList {

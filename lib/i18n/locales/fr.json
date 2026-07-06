@@ -9,7 +9,11 @@
     "searchPlaceholder": "Rechercher des livres, auteurs...",
     "myBookshelf": "Ma Bibliothèque",
     "signOut": "Se Déconnecter",
-    "signIn": "Se Connecter"
+    "signIn": "Se Connecter",
+    "catalog": "Catalogue",
+    "categories": "Catégories",
+    "collections": "Collections",
+    "tags": "Étiquettes"
   },
   "footer": {
     "description": "Votre bibliothèque numérique. Découvrez, lisez et écoutez des milliers de livres à tout moment et en tout lieu.",
@@ -30,7 +34,11 @@
     "romance": "Romance",
     "copyright": "Bibliaris. Tous droits réservés.",
     "privacyPolicy": "Politique de Confidentialité",
-    "termsOfService": "Conditions d'utilisation"
+    "termsOfService": "Conditions d'utilisation",
+    "browseCategories": "Parcourir les Catégories",
+    "browseCollections": "Parcourir les Collections",
+    "browseTags": "Parcourir les Étiquettes",
+    "browseCatalog": "Catalogue"
   },
   "home": {
     "title": "Votre bibliothèque numérique, sélectionnée pour vous",
@@ -65,7 +73,10 @@
     "relatedGenres": "Genres Associés",
     "faq": "Questions Fréquemment Posées",
     "noBooks": "Aucun livre trouvé pour ce tag",
-    "description": "Description"
+    "description": "Description",
+    "relatedCategories": "Catégories",
+    "relatedCollections": "Collections",
+    "booksCount": "livres"
   },
   "collections": {
     "title": "Collections",
@@ -302,5 +313,45 @@
     "mute": "Muet",
     "unmute": "Activer le son",
     "audioProgress": "Progression audio"
+  },
+  "breadcrumb": {
+    "home": "Accueil",
+    "categories": "Catégories",
+    "genres": "Genres",
+    "collections": "Collections",
+    "tags": "Étiquettes"
+  },
+  "taxonomy": {
+    "browse": "Parcourir",
+    "allBooks": "Tous les Livres",
+    "allCategories": "Toutes les Catégories",
+    "allGenres": "Tous les Genres",
+    "allCollections": "Toutes les Collections",
+    "allTags": "Toutes les Étiquettes",
+    "currentCategory": "Catégorie Actuelle",
+    "currentGenre": "Genre Actuel",
+    "currentCollection": "Collection Actuelle",
+    "currentTag": "Étiquette Actuelle",
+    "relatedCategories": "Catégories Connexes",
+    "relatedGenres": "Genres Connexes",
+    "relatedCollections": "Collections Connexes",
+    "relatedTags": "Étiquettes Connexes",
+    "relatedThemes": "Thèmes Connexes",
+    "about": "À propos de {name}",
+    "exploreMore": "Explorez plus sur Bibliaris",
+    "booksCount": "{count} livres trouvés",
+    "noBooks": "Aucun livre trouvé pour le moment.",
+    "subgenres": "Explorer {name} {type}",
+    "viewAll": "Voir Tout",
+    "allBooksLink": "Tous les Livres",
+    "genresLink": "Genres",
+    "categoriesLink": "Catégories",
+    "collectionsLink": "Collections",
+    "tagsLink": "Étiquettes"
+  },
+  "categories": {
+    "title": "Parcourir les Catégories",
+    "subtitle": "Explorez les catégories de livres sur Bibliaris",
+    "booksCount": "livres"
   }
 }

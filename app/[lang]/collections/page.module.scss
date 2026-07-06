@@ -1,6 +1,7 @@
 @import '@/styles/tokens.scss';
 
-.genresPage {
+.genresPage,
+.page {
   min-height: 100vh;
   background-color: var(--public-background);
   color: var(--public-foreground);

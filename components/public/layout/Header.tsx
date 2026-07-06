@@ -14,21 +14,55 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { MenuProps } from 'antd';
 import styles from './Header.module.scss';
 
-const getNavLinks = (lang: SupportedLang, t: (key: string) => string, hasAudiobooks: boolean) => {
-  const links = [
-    { label: t('header.popular'), href: `/${lang}/catalog?sort=popular` },
-    { label: t('header.newReleases'), href: `/${lang}/catalog?sort=new` },
-    { label: t('header.genres'), href: `/${lang}/genres` },
-  ];
+const ALL_NAV_ITEMS = [
+  'catalog',
+  'categories',
+  'genres',
+  'collections',
+  'tags',
+  'audiobooks',
+  'popular',
+  'newReleases',
+] as const;
 
-  if (hasAudiobooks) {
-    links.splice(2, 0, {
-      label: t('header.audiobooks'),
-      href: `/${lang}/catalog?type=audio`,
-    });
+const getNavLinks = (lang: SupportedLang, t: (key: string) => string) => {
+  const hrefMap: Record<string, string> = {
+    catalog: `/${lang}/catalog`,
+    categories: `/${lang}/categories`,
+    genres: `/${lang}/genres`,
+    collections: `/${lang}/collections`,
+    tags: `/${lang}/tags`,
+    audiobooks: `/${lang}/catalog?type=audio`,
+    popular: `/${lang}/catalog?sort=popular`,
+    newReleases: `/${lang}/catalog?sort=new`,
+  };
+
+  return ALL_NAV_ITEMS.map((key) => ({
+    key,
+    label: t(`header.${key}`),
+    href: hrefMap[key],
+  }));
+};
+
+/**
+ * Check if a nav item should be active based on current pathname.
+ */
+const isActiveNav = (pathname: string, itemKey: string, lang: string): boolean => {
+  const path = pathname.replace(`/${lang}`, '') || '/';
+  switch (itemKey) {
+    case 'catalog':
+      return path === '/catalog';
+    case 'categories':
+      return path === '/categories' || path.startsWith('/category/');
+    case 'genres':
+      return path === '/genres' || path.startsWith('/genre/');
+    case 'collections':
+      return path === '/collections' || path.startsWith('/collection/');
+    case 'tags':
+      return path === '/tags' || path.startsWith('/tag/');
+    default:
+      return path.startsWith(`/catalog?${itemKey}`);
   }
-
-  return links;
 };
 
 export function Header() {
@@ -63,7 +97,9 @@ export function Header() {
     }
   };
 
-  const navLinks = getNavLinks(lang, t, hasAudiobooks);
+  const navLinks = getNavLinks(lang, t);
+  const primaryNavLinks = navLinks.slice(0, 6);
+  const moreNavLinks = navLinks.slice(6);
 
   const userMenuItems: MenuProps['items'] = [
     {
@@ -146,7 +182,8 @@ export function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={styles.mobileNavLink}
+                  className={`${styles.mobileNavLink} ${isActiveNav(pathname, link.key, lang) ? styles.mobileNavLinkActive : ''}`}
+                  aria-current={isActiveNav(pathname, link.key, lang) ? 'page' : undefined}
                   onClick={() => setMobileOpen(false)}
                 >
                   {link.label}
@@ -366,11 +403,38 @@ export function Header() {
 
         {/* Bottom Nav (Desktop) */}
         <nav className={styles.desktopNav} aria-label={t('header.menu')}>
-          {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className={styles.navLink}>
+          {primaryNavLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`${styles.navLink} ${isActiveNav(pathname, link.key, lang) ? styles.navLinkActive : ''}`}
+              aria-current={isActiveNav(pathname, link.key, lang) ? 'page' : undefined}
+            >
               {link.label}
             </Link>
           ))}
+          {moreNavLinks.length > 0 && (
+            <Dropdown
+              menu={{
+                items: moreNavLinks.map((link) => ({
+                  key: link.href,
+                  label: (
+                    <Link
+                      href={link.href}
+                      className={`${styles.moreDropdownLink} ${isActiveNav(pathname, link.key, lang) ? styles.navLinkActive : ''}`}
+                      aria-current={isActiveNav(pathname, link.key, lang) ? 'page' : undefined}
+                    >
+                      {link.label}
+                    </Link>
+                  ),
+                })),
+              }}
+              placement="bottomRight"
+              trigger={['hover', 'click']}
+            >
+              <span className={styles.navMore}>{t('header.menu')}</span>
+            </Dropdown>
+          )}
         </nav>
       </div>
     </header>

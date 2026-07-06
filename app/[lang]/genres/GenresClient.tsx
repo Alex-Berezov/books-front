@@ -4,6 +4,7 @@ import { Skeleton } from 'antd';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useCategoriesTree } from '@/api/hooks/useCategories';
+import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTree } from '@/types/api-schema';
@@ -56,6 +57,12 @@ export default function GenresClient({ lang }: GenresClientProps) {
   return (
     <div className={styles.genresPage}>
       <div className={styles.container}>
+        <Breadcrumbs
+          items={[
+            { label: t('breadcrumb.home'), href: `/${supportedLang}` },
+            { label: t('genres.title') },
+          ]}
+        />
         <h1 className={styles.title}>{t('genres.title')}</h1>
         <p className={styles.subtitle}>{t('genres.subtitle')}</p>
 

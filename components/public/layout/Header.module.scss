@@ -170,11 +170,39 @@
   padding: $spacing-xs $spacing-sm;
   border-radius: $border-radius-base;
   transition: all $transition-fast;
+  text-decoration: none;
 
   &:hover {
     color: #ffffff;
     background-color: rgba(255, 255, 255, 0.1);
   }
+}
+
+.navLinkActive {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: $font-weight-semibold;
+}
+
+.navMore {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-base;
+  cursor: pointer;
+  transition: all $transition-fast;
+  white-space: nowrap;
+
+  &:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.moreDropdownLink {
+  color: inherit;
+  text-decoration: none;
 }
 
 .drawer {
@@ -208,11 +236,18 @@
   font-size: $font-size-base;
   font-weight: $font-weight-medium;
   transition: background-color $transition-fast;
+  text-decoration: none;
 
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: #ffffff;
   }
+}
+
+.mobileNavLinkActive {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-weight: $font-weight-semibold;
 }
 
 .pulsingSkeleton {

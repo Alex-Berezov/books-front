@@ -49,11 +49,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function TagDetailPage({ params, searchParams }: Props) {
+export default async function TagDetailPage({ params }: Props) {
   const resolvedParams = await params;
-  const resolvedSearchParams = await searchParams;
   const { lang, tagSlug } = resolvedParams;
-  const page = resolvedSearchParams.page ? parseInt(resolvedSearchParams.page, 10) : 1;
 
-  return <TagDetailClient lang={lang} tagSlug={tagSlug} initialPage={page} />;
+  return <TagDetailClient lang={lang} tagSlug={tagSlug} />;
 }

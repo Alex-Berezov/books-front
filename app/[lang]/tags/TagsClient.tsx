@@ -3,6 +3,7 @@
 import { Skeleton } from 'antd';
 import Link from 'next/link';
 import { useTags } from '@/api/hooks/useTags';
+import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Tag } from '@/types/api-schema';
@@ -72,6 +73,12 @@ export default function TagsClient({ lang }: TagsClientProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className={styles.container}>
+        <Breadcrumbs
+          items={[
+            { label: t('breadcrumb.home'), href: `/${supportedLang}` },
+            { label: t('tags.allTags') },
+          ]}
+        />
         <h1 className={styles.title}>{t('tags.title')}</h1>
         <p className={styles.subtitle}>{t('tags.subtitle')}</p>
 

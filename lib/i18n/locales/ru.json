@@ -9,7 +9,11 @@
     "searchPlaceholder": "Искать книги, авторов...",
     "myBookshelf": "Моя книжная полка",
     "signOut": "Выйти",
-    "signIn": "Войти"
+    "signIn": "Войти",
+    "catalog": "Каталог",
+    "categories": "Категории",
+    "collections": "Коллекции",
+    "tags": "Теги"
   },
   "footer": {
     "description": "Ваша цифровая библиотека. Открывайте, читайте и слушайте тысячи книг в любое время и в любом месте.",
@@ -30,7 +34,11 @@
     "romance": "Романы",
     "copyright": "Bibliaris. Все права защищены.",
     "privacyPolicy": "Политика конфиденциальности",
-    "termsOfService": "Условия использования"
+    "termsOfService": "Условия использования",
+    "browseCategories": "Категории",
+    "browseCollections": "Коллекции",
+    "browseTags": "Теги",
+    "browseCatalog": "Каталог"
   },
   "home": {
     "title": "Ваша цифровая библиотека, подобранная для вас",
@@ -65,7 +73,10 @@
     "relatedGenres": "Похожие жанры",
     "faq": "Часто задаваемые вопросы",
     "noBooks": "Книги по этому тегу не найдены",
-    "description": "Описание"
+    "description": "Описание",
+    "relatedCategories": "Категории",
+    "relatedCollections": "Коллекции",
+    "booksCount": "книг"
   },
   "collections": {
     "title": "Коллекции",
@@ -302,5 +313,45 @@
     "mute": "Без звука",
     "unmute": "Включить звук",
     "audioProgress": "Прогресс аудио"
+  },
+  "breadcrumb": {
+    "home": "Главная",
+    "categories": "Категории",
+    "genres": "Жанры",
+    "collections": "Коллекции",
+    "tags": "Теги"
+  },
+  "taxonomy": {
+    "browse": "Обзор",
+    "allBooks": "Все книги",
+    "allCategories": "Все категории",
+    "allGenres": "Все жанры",
+    "allCollections": "Все коллекции",
+    "allTags": "Все теги",
+    "currentCategory": "Текущая категория",
+    "currentGenre": "Текущий жанр",
+    "currentCollection": "Текущая коллекция",
+    "currentTag": "Текущий тег",
+    "relatedCategories": "Связанные категории",
+    "relatedGenres": "Связанные жанры",
+    "relatedCollections": "Связанные коллекции",
+    "relatedTags": "Связанные теги",
+    "relatedThemes": "Связанные темы",
+    "about": "О {name}",
+    "exploreMore": "Исследуйте больше на Bibliaris",
+    "booksCount": "Найдено {count} книг",
+    "noBooks": "Книги пока не найдены.",
+    "subgenres": "Исследовать {name} {type}",
+    "viewAll": "Все",
+    "allBooksLink": "Все книги",
+    "genresLink": "Жанры",
+    "categoriesLink": "Категории",
+    "collectionsLink": "Коллекции",
+    "tagsLink": "Теги"
+  },
+  "categories": {
+    "title": "Категории",
+    "subtitle": "Категории книг на Bibliaris",
+    "booksCount": "книг"
   }
 }

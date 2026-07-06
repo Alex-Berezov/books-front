@@ -4,6 +4,7 @@ import { Skeleton } from 'antd';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useCategoriesTree } from '@/api/hooks/useCategories';
+import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTree } from '@/types/api-schema';
@@ -84,6 +85,12 @@ export default function CategoriesIndexClient({ lang }: CategoriesIndexClientPro
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className={styles.container}>
+        <Breadcrumbs
+          items={[
+            { label: t('breadcrumb.home'), href: `/${supportedLang}` },
+            { label: t('categories.title') },
+          ]}
+        />
         <h1 className={styles.title}>{t('categories.title')}</h1>
         <p className={styles.subtitle}>{t('categories.subtitle')}</p>
 
