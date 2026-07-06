@@ -30,10 +30,21 @@ export default function CollectionsClient({ lang }: Props) {
     };
   };
 
+  const isPublic = (cat: {
+    indexable?: boolean;
+    isVisible?: boolean;
+    booksCount?: number;
+  }): boolean => {
+    return cat.isVisible !== false && cat.indexable !== false;
+  };
+
   const hasBooks = (category: CategoryTree): boolean => {
+    if (!isPublic(category)) return false;
     if (category.booksCount && category.booksCount > 0) return true;
     if (category.children) {
-      return category.children.some((child) => child.booksCount && child.booksCount > 0);
+      return category.children.some(
+        (child) => isPublic(child) && child.booksCount && child.booksCount > 0
+      );
     }
     return false;
   };
@@ -71,14 +82,14 @@ export default function CollectionsClient({ lang }: Props) {
                 const translated = getTranslated(parentCategory);
                 const totalBooksCount =
                   (parentCategory.children?.reduce(
-                    (sum, child) => sum + (child.booksCount || 0),
+                    (sum, child) => sum + (isPublic(child) ? child.booksCount || 0 : 0),
                     parentCategory.booksCount || 0
                   ) ??
                     parentCategory.booksCount) ||
                   0;
 
                 const childrenWithBooks = parentCategory.children?.filter(
-                  (child) => child.booksCount && child.booksCount > 0
+                  (child) => isPublic(child) && child.booksCount && child.booksCount > 0
                 );
 
                 return (

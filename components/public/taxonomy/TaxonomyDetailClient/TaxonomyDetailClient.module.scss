@@ -164,6 +164,25 @@
   font-size: $font-size-lg;
 }
 
+.relatedMainSection {
+  margin-top: $spacing-xl;
+  padding-top: $spacing-xl;
+  border-top: 1px solid $color-border-light;
+}
+
+.relatedGroup {
+  margin-bottom: $spacing-md;
+}
+
+.relatedGroupTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .descriptionSection,
 .faqSection {
   margin-top: $spacing-xl;

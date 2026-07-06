@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useId } from 'react';
 import { Collapse, Pagination, Skeleton } from 'antd';
 import { BookOpen, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
@@ -13,6 +13,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview, CategoryType } from '@/types/api-schema';
 import styles from './TaxonomyDetailClient.module.scss';
+import { useRelatedTaxonomies, type TaxonomyLink } from './useRelatedTaxonomies';
 
 interface TaxonomyDetailClientProps {
   lang: SupportedLang;
@@ -38,10 +39,79 @@ const CURRENT_SECTION_KEYS: Record<CategoryType, string> = {
   collection: 'taxonomy.currentCollection',
 };
 
+const ALL_LABEL_KEYS: Record<CategoryType, string> = {
+  category: 'taxonomy.allCategories',
+  genre: 'taxonomy.allGenres',
+  collection: 'taxonomy.allCollections',
+};
+
+const LINK_KEYS: Record<CategoryType, string> = {
+  category: 'taxonomy.categoriesLink',
+  genre: 'taxonomy.genresLink',
+  collection: 'taxonomy.collectionsLink',
+};
+
+function getTypePath(type: CategoryType): string {
+  return BREADCRUMB_PATH_NAMES[type];
+}
+
+function RelatedSidebarBlock({
+  title,
+  items,
+  path,
+  lang,
+}: {
+  title: string;
+  items: TaxonomyLink[];
+  path: string;
+  lang: string;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <>
+      <h4 className={styles.sidebarSubtitle}>{title}</h4>
+      <nav className={styles.sidebarNav}>
+        {items.slice(0, 8).map((item) => (
+          <Link key={item.id} href={`/${lang}/${path}/${item.slug}`} className={styles.sidebarLink}>
+            {item.name}
+          </Link>
+        ))}
+      </nav>
+    </>
+  );
+}
+
+function RelatedChipsGroup({
+  title,
+  items,
+  path,
+  lang,
+}: {
+  title: string;
+  items: TaxonomyLink[];
+  path: string;
+  lang: string;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className={styles.relatedGroup}>
+      <h3 className={styles.relatedGroupTitle}>{title}</h3>
+      <div className={styles.chips}>
+        {items.slice(0, 8).map((item) => (
+          <Link key={item.id} href={`/${lang}/${path}/${item.slug}`} className={styles.chip}>
+            {item.name}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetailClientProps) {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
+  const descId = useId();
 
   const { data: categoryBooksData, isLoading: loadingCatBooks } = useCategoryBooks(
     lang,
@@ -89,12 +159,13 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
   );
 
   const currentSectionKey = CURRENT_SECTION_KEYS[taxonomyType];
+  const path = getTypePath(taxonomyType);
 
   const breadcrumbItems = [
     { label: t('breadcrumb.home'), href: `/${lang}` },
     {
       label: t(BREADCRUMB_LABEL_KEYS[taxonomyType]),
-      href: `/${lang}/${BREADCRUMB_PATH_NAMES[taxonomyType]}`,
+      href: `/${lang}/${path}`,
     },
     { label: categoryName },
   ];
@@ -153,6 +224,28 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
     [books, lang]
   );
 
+  const related = useRelatedTaxonomies({
+    books: filteredBooks,
+    currentId: category?.id,
+    lang,
+  });
+
+  const faqJsonLd =
+    faq.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faq.map((item) => ({
+            '@type': 'Question',
+            name: item.question,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: item.answer,
+            },
+          })),
+        }
+      : null;
+
   if (!category && !loadingCatBooks) {
     return (
       <div className={styles.page}>
@@ -168,6 +261,12 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
 
   return (
     <div className={styles.page}>
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       <div className={styles.container}>
         <Breadcrumbs items={breadcrumbItems} />
 
@@ -177,12 +276,9 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
           {shortDescription && <p className={styles.shortDescription}>{shortDescription}</p>}
           <p className={styles.count}>{t('taxonomy.booksCount', { count: String(booksCount) })}</p>
           {parentCategory && parentName && (
-            <Link
-              href={`/${lang}/${BREADCRUMB_PATH_NAMES[taxonomyType]}/${parentCategory.slug}`}
-              className={styles.parentLink}
-            >
+            <Link href={`/${lang}/${path}/${parentCategory.slug}`} className={styles.parentLink}>
               <ChevronRight size={14} className={styles.parentIcon} />
-              {parentTranslation?.name || parentCategory?.name || ''}
+              {parentName}
             </Link>
           )}
         </header>
@@ -201,7 +297,7 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
                 return (
                   <Link
                     key={child.id}
-                    href={`/${lang}/${BREADCRUMB_PATH_NAMES[taxonomyType]}/${childSlug}`}
+                    href={`/${lang}/${path}/${childSlug}`}
                     className={styles.chip}
                   >
                     {childName}
@@ -221,13 +317,8 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
                 <Link href={`/${lang}/catalog`} className={styles.sidebarLink}>
                   {t('taxonomy.allBooks')}
                 </Link>
-                <Link
-                  href={`/${lang}/${BREADCRUMB_PATH_NAMES[taxonomyType]}`}
-                  className={styles.sidebarLink}
-                >
-                  {t(
-                    `taxonomy.all${taxonomyType === 'category' ? 'Categories' : taxonomyType === 'genre' ? 'Genres' : 'Collections'}`
-                  )}
+                <Link href={`/${lang}/${path}`} className={styles.sidebarLink}>
+                  {t(ALL_LABEL_KEYS[taxonomyType])}
                 </Link>
               </nav>
 
@@ -238,7 +329,8 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
                     (cat) =>
                       cat.parentId === (category?.parentId || null) && cat.id !== category?.id
                   )
-                  .slice(0, 15)
+                  .filter((cat) => cat.isVisible !== false && (cat.booksCount || 0) > 0)
+                  .slice(0, 10)
                   .map((sibling) => {
                     const sibTranslation =
                       sibling.translation ||
@@ -249,7 +341,7 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
                     return (
                       <Link
                         key={sibling.id}
-                        href={`/${lang}/${BREADCRUMB_PATH_NAMES[taxonomyType]}/${sibSlug}`}
+                        href={`/${lang}/${path}/${sibSlug}`}
                         className={styles.sidebarLink}
                       >
                         {sibName}
@@ -257,6 +349,37 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
                     );
                   })}
               </nav>
+
+              {taxonomyType !== 'category' && (
+                <RelatedSidebarBlock
+                  title={t('taxonomy.relatedCategories')}
+                  items={related.relatedCategories}
+                  path="category"
+                  lang={lang}
+                />
+              )}
+              {taxonomyType !== 'genre' && (
+                <RelatedSidebarBlock
+                  title={t('taxonomy.relatedGenres')}
+                  items={related.relatedGenres}
+                  path="genre"
+                  lang={lang}
+                />
+              )}
+              {taxonomyType !== 'collection' && (
+                <RelatedSidebarBlock
+                  title={t('taxonomy.relatedCollections')}
+                  items={related.relatedCollections}
+                  path="collection"
+                  lang={lang}
+                />
+              )}
+              <RelatedSidebarBlock
+                title={t('taxonomy.relatedTags')}
+                items={related.relatedTags}
+                path="tag"
+                lang={lang}
+              />
             </div>
           </aside>
 
@@ -297,6 +420,40 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
               </>
             )}
 
+            {/* Main related block */}
+            {(related.relatedGenres.length > 0 ||
+              related.relatedCategories.length > 0 ||
+              related.relatedCollections.length > 0 ||
+              related.relatedTags.length > 0) && (
+              <section className={styles.relatedMainSection}>
+                <h2 className={styles.sectionTitle}>{t('taxonomy.relatedThemes')}</h2>
+                <RelatedChipsGroup
+                  title={t('taxonomy.relatedGenres')}
+                  items={related.relatedGenres}
+                  path="genre"
+                  lang={lang}
+                />
+                <RelatedChipsGroup
+                  title={t('taxonomy.relatedCategories')}
+                  items={related.relatedCategories}
+                  path="category"
+                  lang={lang}
+                />
+                <RelatedChipsGroup
+                  title={t('taxonomy.relatedCollections')}
+                  items={related.relatedCollections}
+                  path="collection"
+                  lang={lang}
+                />
+                <RelatedChipsGroup
+                  title={t('taxonomy.relatedTags')}
+                  items={related.relatedTags}
+                  path="tag"
+                  lang={lang}
+                />
+              </section>
+            )}
+
             {/* Description */}
             {description && (
               <section className={styles.descriptionSection}>
@@ -304,6 +461,7 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
                   {t('taxonomy.about', { name: categoryName })}
                 </h2>
                 <div
+                  id={descId}
                   className={`${styles.description} ${
                     !showFullDescription && descriptionIsLong ? styles.descriptionCollapsed : ''
                   }`}
@@ -314,6 +472,8 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
                     type="button"
                     className={styles.toggleButton}
                     onClick={() => setShowFullDescription((prev) => !prev)}
+                    aria-expanded={showFullDescription}
+                    aria-controls={descId}
                   >
                     {showFullDescription ? t('book.showLess') : t('book.showMore')}
                   </button>
@@ -340,13 +500,8 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
             <section className={styles.bottomLinks}>
               <h2 className={styles.sectionTitle}>{t('taxonomy.exploreMore')}</h2>
               <div className={styles.bottomLinksList}>
-                <Link
-                  href={`/${lang}/${BREADCRUMB_PATH_NAMES[taxonomyType]}`}
-                  className={styles.bottomLink}
-                >
-                  {t(
-                    `taxonomy.${taxonomyType === 'category' ? 'categoriesLink' : taxonomyType === 'genre' ? 'genresLink' : 'collectionsLink'}`
-                  )}
+                <Link href={`/${lang}/${path}`} className={styles.bottomLink}>
+                  {t(LINK_KEYS[taxonomyType])}
                 </Link>
                 <Link href={`/${lang}/catalog`} className={styles.bottomLink}>
                   {t('taxonomy.allBooksLink')}

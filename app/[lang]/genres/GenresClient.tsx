@@ -35,21 +35,30 @@ export default function GenresClient({ lang }: GenresClientProps) {
     };
   };
 
-  // Calculate total books count for a category (sum of children only for parents)
+  const isPublic = (cat: {
+    indexable?: boolean;
+    isVisible?: boolean;
+    booksCount?: number;
+  }): boolean => {
+    return cat.isVisible !== false && cat.indexable !== false;
+  };
+
   const getTotalBooksCount = (category: CategoryTree): number => {
-    // For parent categories, sum only children counts
     if (category.children && category.children.length > 0) {
-      return category.children.reduce((sum, child) => sum + (child.booksCount || 0), 0);
+      return category.children
+        .filter((child) => isPublic(child))
+        .reduce((sum, child) => sum + (child.booksCount || 0), 0);
     }
-    // For leaf categories, return own count
     return category.booksCount || 0;
   };
 
-  // Check if category has any books (directly or in children)
   const hasBooks = (category: CategoryTree): boolean => {
+    if (!isPublic(category)) return false;
     if (category.booksCount && category.booksCount > 0) return true;
     if (category.children && category.children.length > 0) {
-      return category.children.some((child) => child.booksCount && child.booksCount > 0);
+      return category.children.some(
+        (child) => isPublic(child) && child.booksCount && child.booksCount > 0
+      );
     }
     return false;
   };
@@ -89,7 +98,7 @@ export default function GenresClient({ lang }: GenresClientProps) {
 
                 // Filter children that have books
                 const childrenWithBooks = parentCategory.children?.filter(
-                  (child) => child.booksCount && child.booksCount > 0
+                  (child) => isPublic(child) && child.booksCount && child.booksCount > 0
                 );
 
                 return (

@@ -34,17 +34,30 @@ export default function CategoriesIndexClient({ lang }: CategoriesIndexClientPro
     };
   };
 
+  const isPublic = (cat: {
+    indexable?: boolean;
+    isVisible?: boolean;
+    booksCount?: number;
+  }): boolean => {
+    return cat.isVisible !== false && cat.indexable !== false;
+  };
+
   const getTotalBooksCount = (category: CategoryTree): number => {
     if (category.children && category.children.length > 0) {
-      return category.children.reduce((sum, child) => sum + (child.booksCount || 0), 0);
+      return category.children
+        .filter((child) => isPublic(child))
+        .reduce((sum, child) => sum + (child.booksCount || 0), 0);
     }
     return category.booksCount || 0;
   };
 
   const hasBooks = (category: CategoryTree): boolean => {
+    if (!isPublic(category)) return false;
     if (category.booksCount && category.booksCount > 0) return true;
     if (category.children && category.children.length > 0) {
-      return category.children.some((child) => child.booksCount && child.booksCount > 0);
+      return category.children.some(
+        (child) => isPublic(child) && child.booksCount && child.booksCount > 0
+      );
     }
     return false;
   };
@@ -116,7 +129,7 @@ export default function CategoriesIndexClient({ lang }: CategoriesIndexClientPro
                 const totalBooksCount = getTotalBooksCount(parentCategory);
 
                 const childrenWithBooks = parentCategory.children?.filter(
-                  (child) => child.booksCount && child.booksCount > 0
+                  (child) => isPublic(child) && child.booksCount && child.booksCount > 0
                 );
 
                 return (
