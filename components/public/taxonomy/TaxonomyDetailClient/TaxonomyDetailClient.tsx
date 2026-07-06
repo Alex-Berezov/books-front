@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useId } from 'react';
-import { Collapse, Pagination, Skeleton } from 'antd';
+import { Collapse, Drawer, Pagination, Skeleton } from 'antd';
 import { BookOpen, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -112,6 +112,7 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
   const descId = useId();
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const { data: categoryBooksData, isLoading: loadingCatBooks } = useCategoryBooks(
     lang,
@@ -149,7 +150,12 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
   const booksCount = category?.booksCount || total;
 
   const children = useMemo(
-    () => (category ? allCategories.filter((cat) => cat.parentId === category.id) : []),
+    () =>
+      category
+        ? allCategories
+            .filter((cat) => cat.parentId === category.id)
+            .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name))
+        : [],
     [category, allCategories]
   );
 
@@ -308,7 +314,19 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
           </section>
         )}
 
-        {/* Sidebar + Main content */}
+        {/* Mobile Browse button */}
+        <div className={styles.mobileBrowseBtnWrapper}>
+          <button
+            type="button"
+            className={styles.mobileBrowseBtn}
+            onClick={() => setMobileSidebarOpen(true)}
+            aria-label={t('taxonomy.browse')}
+          >
+            {t('taxonomy.browse')}
+          </button>
+        </div>
+
+        {/* Sidebar + Main layout */}
         <div className={styles.layout}>
           <aside className={styles.sidebar}>
             <div className={styles.stickySidebar}>
@@ -330,6 +348,10 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
                       cat.parentId === (category?.parentId || null) && cat.id !== category?.id
                   )
                   .filter((cat) => cat.isVisible !== false && (cat.booksCount || 0) > 0)
+                  .sort(
+                    (a, b) =>
+                      (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name)
+                  )
                   .slice(0, 10)
                   .map((sibling) => {
                     const sibTranslation =
@@ -383,8 +405,92 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
             </div>
           </aside>
 
+          <Drawer
+            title={t('taxonomy.browse')}
+            placement="left"
+            onClose={() => setMobileSidebarOpen(false)}
+            open={mobileSidebarOpen}
+            className={styles.mobileSidebarDrawer}
+            width={280}
+            aria-label={t('taxonomy.browse')}
+          >
+            <div className={styles.stickySidebar}>
+              <h3 className={styles.sidebarTitle}>{t('taxonomy.browse')}</h3>
+              <nav className={styles.sidebarNav}>
+                <Link href={`/${lang}/catalog`} className={styles.sidebarLink}>
+                  {t('taxonomy.allBooks')}
+                </Link>
+                <Link href={`/${lang}/${path}`} className={styles.sidebarLink}>
+                  {t(ALL_LABEL_KEYS[taxonomyType])}
+                </Link>
+              </nav>
+
+              <h4 className={styles.sidebarSubtitle}>{t(currentSectionKey)}</h4>
+              <nav className={styles.sidebarNav}>
+                {allCategories
+                  .filter(
+                    (cat) =>
+                      cat.parentId === (category?.parentId || null) && cat.id !== category?.id
+                  )
+                  .filter((cat) => cat.isVisible !== false && (cat.booksCount || 0) > 0)
+                  .sort(
+                    (a, b) =>
+                      (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name)
+                  )
+                  .slice(0, 10)
+                  .map((sibling) => {
+                    const sibTranslation =
+                      sibling.translation ||
+                      sibling.translations?.find((tr) => tr.language === lang) ||
+                      null;
+                    const sibName = sibTranslation?.name || sibling.name || '';
+                    const sibSlug = sibTranslation?.slug || sibling.slug || '';
+                    return (
+                      <Link
+                        key={sibling.id}
+                        href={`/${lang}/${path}/${sibSlug}`}
+                        className={styles.sidebarLink}
+                      >
+                        {sibName}
+                      </Link>
+                    );
+                  })}
+              </nav>
+
+              {taxonomyType !== 'category' && (
+                <RelatedSidebarBlock
+                  title={t('taxonomy.relatedCategories')}
+                  items={related.relatedCategories}
+                  path="category"
+                  lang={lang}
+                />
+              )}
+              {taxonomyType !== 'genre' && (
+                <RelatedSidebarBlock
+                  title={t('taxonomy.relatedGenres')}
+                  items={related.relatedGenres}
+                  path="genre"
+                  lang={lang}
+                />
+              )}
+              {taxonomyType !== 'collection' && (
+                <RelatedSidebarBlock
+                  title={t('taxonomy.relatedCollections')}
+                  items={related.relatedCollections}
+                  path="collection"
+                  lang={lang}
+                />
+              )}
+              <RelatedSidebarBlock
+                title={t('taxonomy.relatedTags')}
+                items={related.relatedTags}
+                path="tag"
+                lang={lang}
+              />
+            </div>
+          </Drawer>
+
           <div className={styles.main}>
-            {/* Book Grid */}
             {loadingCatBooks ? (
               <div className={styles.grid}>
                 {Array.from({ length: 8 }).map((_, i) => (

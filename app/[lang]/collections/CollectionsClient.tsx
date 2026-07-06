@@ -78,6 +78,9 @@ export default function CollectionsClient({ lang }: Props) {
           <div className={styles.categoriesList}>
             {tree
               ?.filter((parentCategory) => hasBooks(parentCategory))
+              .sort(
+                (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name)
+              )
               .map((parentCategory) => {
                 const translated = getTranslated(parentCategory);
                 const totalBooksCount =
@@ -88,9 +91,12 @@ export default function CollectionsClient({ lang }: Props) {
                     parentCategory.booksCount) ||
                   0;
 
-                const childrenWithBooks = parentCategory.children?.filter(
-                  (child) => isPublic(child) && child.booksCount && child.booksCount > 0
-                );
+                const childrenWithBooks = parentCategory.children
+                  ?.filter((child) => isPublic(child) && child.booksCount && child.booksCount > 0)
+                  .sort(
+                    (a, b) =>
+                      (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name)
+                  );
 
                 return (
                   <div key={parentCategory.id} className={styles.categoryGroup}>

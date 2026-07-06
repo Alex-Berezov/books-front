@@ -92,14 +92,20 @@ export default function GenresClient({ lang }: GenresClientProps) {
           <div className={styles.categoriesList}>
             {categoriesTree
               ?.filter((parentCategory) => hasBooks(parentCategory))
+              .sort(
+                (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name)
+              )
               .map((parentCategory) => {
                 const parentTranslated = getTranslated(parentCategory);
                 const totalBooksCount = getTotalBooksCount(parentCategory);
 
                 // Filter children that have books
-                const childrenWithBooks = parentCategory.children?.filter(
-                  (child) => isPublic(child) && child.booksCount && child.booksCount > 0
-                );
+                const childrenWithBooks = parentCategory.children
+                  ?.filter((child) => isPublic(child) && child.booksCount && child.booksCount > 0)
+                  .sort(
+                    (a, b) =>
+                      (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name)
+                  );
 
                 return (
                   <div key={parentCategory.id} className={styles.categoryGroup}>

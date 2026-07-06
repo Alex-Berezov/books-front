@@ -98,8 +98,6 @@ export function Header() {
   };
 
   const navLinks = getNavLinks(lang, t);
-  const primaryNavLinks = navLinks.slice(0, 6);
-  const moreNavLinks = navLinks.slice(6);
 
   const userMenuItems: MenuProps['items'] = [
     {
@@ -403,7 +401,7 @@ export function Header() {
 
         {/* Bottom Nav (Desktop) */}
         <nav className={styles.desktopNav} aria-label={t('header.menu')}>
-          {primaryNavLinks.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -413,28 +411,6 @@ export function Header() {
               {link.label}
             </Link>
           ))}
-          {moreNavLinks.length > 0 && (
-            <Dropdown
-              menu={{
-                items: moreNavLinks.map((link) => ({
-                  key: link.href,
-                  label: (
-                    <Link
-                      href={link.href}
-                      className={`${styles.moreDropdownLink} ${isActiveNav(pathname, link.key, lang) ? styles.navLinkActive : ''}`}
-                      aria-current={isActiveNav(pathname, link.key, lang) ? 'page' : undefined}
-                    >
-                      {link.label}
-                    </Link>
-                  ),
-                })),
-              }}
-              placement="bottomRight"
-              trigger={['hover', 'click']}
-            >
-              <span className={styles.navMore}>{t('header.menu')}</span>
-            </Dropdown>
-          )}
         </nav>
       </div>
     </header>
