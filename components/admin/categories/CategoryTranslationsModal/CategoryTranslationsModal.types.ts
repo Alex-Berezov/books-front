@@ -18,6 +18,15 @@ export const translationSchema = z.object({
   /** Long description/content shown on the public category page */
   description: z.string(),
 
+  /** H1 heading for the page */
+  h1: z.string(),
+
+  /** Short description for cards/lists */
+  shortDescription: z.string(),
+
+  /** FAQ items */
+  faq: z.array(z.object({ question: z.string(), answer: z.string() })),
+
   // ========================================
   // SEO Fields (optional — category pages don't always need full SEO)
   // ========================================
@@ -28,6 +37,7 @@ export const translationSchema = z.object({
   seoOgTitle: z.string().max(60, 'OG Title is too long'),
   seoOgDescription: z.string().max(160, 'OG Description is too long'),
   seoOgImageUrl: z.string(),
+  seoOgImageAlt: z.string(),
   seoTwitterCard: z.enum(['summary', 'summary_large_image', '']),
 });
 

@@ -29,35 +29,36 @@ interface CategoryTranslationsModalProps {
 }
 
 /**
- * Build `SeoInput` from form data. Empty strings are converted to `null`
- * so the backend can distinguish "unset" from "explicitly empty".
+ * Build `SeoInput` from form data — only fields that live in the `Seo` table
+ * (canonical url, robots, twitter card). Meta/OG fields are sent as flat
+ * translation fields instead.
  */
 const buildSeoInput = (data: TranslationFormData): SeoInput => ({
-  metaTitle: data.seoMetaTitle || null,
-  metaDescription: data.seoMetaDescription || null,
   canonicalUrl: data.seoCanonicalUrl || null,
   robots: data.seoRobots || null,
-  ogTitle: data.seoOgTitle || null,
-  ogDescription: data.seoOgDescription || null,
-  ogImageUrl: data.seoOgImageUrl || null,
   twitterCard: data.seoTwitterCard || null,
 });
 
 /**
  * Map an existing `CategoryTranslation` to form data shape.
+ * Reads from flat translation fields first, falls back to the `seo` relation.
  */
 const translationToFormData = (translation: CategoryTranslation): TranslationFormData => ({
   language: translation.language as SupportedLang,
   name: translation.name,
   slug: translation.slug,
   description: translation.description ?? '',
-  seoMetaTitle: translation.seo?.metaTitle ?? '',
-  seoMetaDescription: translation.seo?.metaDescription ?? '',
+  h1: translation.h1 ?? '',
+  shortDescription: translation.shortDescription ?? '',
+  faq: (translation.faq as Array<{ question: string; answer: string }>) ?? [],
+  seoMetaTitle: translation.metaTitle ?? translation.seo?.metaTitle ?? '',
+  seoMetaDescription: translation.metaDescription ?? translation.seo?.metaDescription ?? '',
   seoCanonicalUrl: translation.seo?.canonicalUrl ?? '',
   seoRobots: translation.seo?.robots ?? 'index, follow',
-  seoOgTitle: translation.seo?.ogTitle ?? '',
-  seoOgDescription: translation.seo?.ogDescription ?? '',
-  seoOgImageUrl: translation.seo?.ogImageUrl ?? '',
+  seoOgTitle: translation.ogTitle ?? translation.seo?.ogTitle ?? '',
+  seoOgDescription: translation.ogDescription ?? translation.seo?.ogDescription ?? '',
+  seoOgImageUrl: translation.ogImageUrl ?? translation.seo?.ogImageUrl ?? '',
+  seoOgImageAlt: translation.ogImageAlt ?? '',
   seoTwitterCard:
     (translation.seo?.twitterCard as 'summary' | 'summary_large_image' | '') || 'summary',
 });
@@ -97,12 +98,22 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
   const onSubmit = async (data: TranslationFormData) => {
     try {
       const seo = buildSeoInput(data);
+      const faq = data.faq.filter((f) => f.question.trim() && f.answer.trim());
 
       if (editingLang) {
         const payload: UpdateCategoryTranslationRequest = {
           name: data.name,
           slug: data.slug,
           description: data.description || null,
+          h1: data.h1 || undefined,
+          shortDescription: data.shortDescription || null,
+          metaTitle: data.seoMetaTitle || undefined,
+          metaDescription: data.seoMetaDescription || null,
+          ogTitle: data.seoOgTitle || undefined,
+          ogDescription: data.seoOgDescription || null,
+          ogImageUrl: data.seoOgImageUrl || null,
+          ogImageAlt: data.seoOgImageAlt || undefined,
+          faq: faq.length > 0 ? faq : undefined,
           seo,
         };
         await updateMutation.mutateAsync({
@@ -116,6 +127,15 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
           name: data.name,
           slug: data.slug,
           description: data.description || null,
+          h1: data.h1 || undefined,
+          shortDescription: data.shortDescription || null,
+          metaTitle: data.seoMetaTitle || undefined,
+          metaDescription: data.seoMetaDescription || null,
+          ogTitle: data.seoOgTitle || undefined,
+          ogDescription: data.seoOgDescription || null,
+          ogImageUrl: data.seoOgImageUrl || null,
+          ogImageAlt: data.seoOgImageAlt || undefined,
+          faq: faq.length > 0 ? faq : undefined,
           seo,
         };
         await createMutation.mutateAsync({
@@ -147,6 +167,9 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
       name: '',
       slug: '',
       description: '',
+      h1: '',
+      shortDescription: '',
+      faq: [],
       seoMetaTitle: '',
       seoMetaDescription: '',
       seoCanonicalUrl: '',
@@ -154,6 +177,7 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
       seoOgTitle: '',
       seoOgDescription: '',
       seoOgImageUrl: '',
+      seoOgImageAlt: '',
       seoTwitterCard: 'summary',
     });
     setIsFormVisible(true);
