@@ -34,10 +34,7 @@ export const pageSchema = z.object({
     .optional()
     .or(z.literal('')),
   /** FAQ items as array of question/answer pairs */
-  faq: z
-    .array(z.object({ question: z.string(), answer: z.string() }))
-    .optional()
-    .default([]),
+  faq: z.array(z.object({ question: z.string(), answer: z.string() })),
 
   // ========================================
   // SEO Fields
