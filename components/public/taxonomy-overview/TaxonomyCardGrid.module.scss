@@ -63,12 +63,12 @@
 .childLink {
   display: inline-block;
   font-size: $font-size-sm;
-  color: $color-text-primary;
+  color: $color-background-dark;
   text-decoration: none;
   padding: 0.25rem;
   background: $color-background-secondary;
   border-radius: 4px;
-  border: 1px solid $color-border-dark;
+  border: 1px solid $color-primary-disabled;
   transition: background $transition-fast;
 
   &:hover {
