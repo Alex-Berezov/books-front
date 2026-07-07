@@ -24,7 +24,7 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
   category: {
     type: 'category',
     pageKey: 'taxonomy-categories-index',
-    routeBase: 'categories',
+    routeBase: 'category',
     breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'Browse Categories' }],
     fallback: {
       h1: 'Browse Book Categories',
@@ -37,7 +37,7 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
   genre: {
     type: 'genre',
     pageKey: 'taxonomy-genres-index',
-    routeBase: 'genres',
+    routeBase: 'genre',
     breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'Browse Genres' }],
     fallback: {
       h1: 'Browse Book Genres',
@@ -50,7 +50,7 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
   collection: {
     type: 'collection',
     pageKey: 'taxonomy-collections-index',
-    routeBase: 'collections',
+    routeBase: 'collection',
     breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'Collections' }],
     fallback: {
       h1: 'Book Collections',
@@ -63,7 +63,7 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
   tag: {
     type: 'tag',
     pageKey: 'taxonomy-tags-index',
-    routeBase: 'tags',
+    routeBase: 'tag',
     breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'All Tags' }],
     fallback: {
       h1: 'Literary Tags & Book Themes',
