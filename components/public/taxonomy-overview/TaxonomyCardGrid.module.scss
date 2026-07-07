@@ -65,10 +65,10 @@
   font-size: $font-size-sm;
   color: $color-text-primary;
   text-decoration: none;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.02);
+  padding: 0.25rem;
+  background: $color-background-dark-tertiary;
   border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid $color-border-dark;
   transition: background $transition-fast;
 
   &:hover {
