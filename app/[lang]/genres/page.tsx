@@ -26,7 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function GenresPage({ params }: Props) {
   const resolvedParams = await params;
-  const { lang } = resolvedParams;
+  const lang = resolvedParams.lang as SupportedLang;
 
-  return <TaxonomyOverviewClient lang={lang as SupportedLang} configKey="genre" />;
+  const page = await fetchPageBySlug(lang, 'taxonomy-genres-index');
+
+  return <TaxonomyOverviewClient lang={lang} configKey="genre" initialPage={page ?? undefined} />;
 }

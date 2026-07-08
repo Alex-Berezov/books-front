@@ -6,7 +6,7 @@ import { useCategoriesTree } from '@/api/hooks/useCategories';
 import { usePage } from '@/api/hooks/usePublic';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { CategoryTree, Tag } from '@/types/api-schema';
+import type { CategoryTree, PageResponse, Tag } from '@/types/api-schema';
 import { FaqBlock } from './FaqBlock';
 import { OverviewHero } from './OverviewHero';
 import { SeoDescription } from './SeoDescription';
@@ -17,12 +17,18 @@ import { TAXONOMY_OVERVIEW_CONFIGS, type TaxonomyOverviewConfig } from './Taxono
 export interface TaxonomyOverviewClientProps {
   lang: SupportedLang;
   configKey: 'category' | 'genre' | 'collection' | 'tag';
+  initialPage?: PageResponse;
 }
 
-export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({ lang, configKey }) => {
+export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({
+  lang,
+  configKey,
+  initialPage,
+}) => {
   const config: TaxonomyOverviewConfig = TAXONOMY_OVERVIEW_CONFIGS[configKey];
 
   const { data: page } = usePage(lang, config.pageKey, {
+    initialData: initialPage,
     enabled: true,
   });
 

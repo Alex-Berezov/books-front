@@ -26,7 +26,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoriesIndexPage({ params }: Props) {
   const resolvedParams = await params;
-  const { lang } = resolvedParams;
+  const lang = resolvedParams.lang as SupportedLang;
 
-  return <TaxonomyOverviewClient lang={lang as SupportedLang} configKey="category" />;
+  const page = await fetchPageBySlug(lang, 'taxonomy-categories-index');
+
+  return (
+    <TaxonomyOverviewClient lang={lang} configKey="category" initialPage={page ?? undefined} />
+  );
 }

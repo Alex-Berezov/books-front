@@ -26,7 +26,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CollectionsPage({ params }: Props) {
   const resolvedParams = await params;
-  const { lang } = resolvedParams;
+  const lang = resolvedParams.lang as SupportedLang;
 
-  return <TaxonomyOverviewClient lang={lang as SupportedLang} configKey="collection" />;
+  const page = await fetchPageBySlug(lang, 'taxonomy-collections-index');
+
+  return (
+    <TaxonomyOverviewClient lang={lang} configKey="collection" initialPage={page ?? undefined} />
+  );
 }

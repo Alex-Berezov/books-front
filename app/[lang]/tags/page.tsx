@@ -26,7 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function TagsPage({ params }: Props) {
   const resolvedParams = await params;
-  const { lang } = resolvedParams;
+  const lang = resolvedParams.lang as SupportedLang;
 
-  return <TaxonomyOverviewClient lang={lang as SupportedLang} configKey="tag" />;
+  const page = await fetchPageBySlug(lang, 'taxonomy-tags-index');
+
+  return <TaxonomyOverviewClient lang={lang} configKey="tag" initialPage={page ?? undefined} />;
 }
