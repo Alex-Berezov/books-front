@@ -4,6 +4,9 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTree, Tag } from '@/types/api-schema';
 import styles from './TaxonomyCardGrid.module.scss';
 
+const DESKTOP_SKELETONS = 8;
+const MOBILE_SKELETONS = 3;
+
 export interface TaxonomyCardGridProps {
   lang: SupportedLang;
   items: CategoryTree[] | Tag[];
@@ -59,7 +62,24 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
   isLoading,
 }) => {
   if (isLoading) {
-    return <div className={styles.loading}>Loading...</div>;
+    return (
+      <div className={styles.loading}>
+        {Array.from({ length: DESKTOP_SKELETONS }, (_, i) => (
+          <div
+            key={i}
+            className={`${styles.skeletonCard} ${i >= MOBILE_SKELETONS ? styles.skeletonHideMobile : ''}`}
+          >
+            <div className={styles.skeletonTitle} />
+            <div className={styles.skeletonCount} />
+            <div className={styles.skeletonChildren}>
+              <div className={styles.skeletonChild} />
+              <div className={styles.skeletonChild} />
+              <div className={styles.skeletonChild} />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   }
 
   const filtered = items.filter((item) => {

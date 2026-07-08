@@ -1,10 +1,62 @@
 @import '@/styles/tokens.scss';
 
+@keyframes shimmer {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
 .loading {
-  text-align: center;
-  padding: $spacing-xxl;
-  color: $color-text-secondary;
-  font-size: $font-size-lg;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-lg;
+}
+
+.skeletonCard {
+  flex: 0 0 320px;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+  animation: shimmer 1.5s ease-in-out infinite;
+
+  @media (max-width: 768px) {
+    flex: 0 0 100%;
+  }
+}
+
+.skeletonTitle {
+  height: 1.25rem;
+  width: 70%;
+  background: $color-border-base;
+  border-radius: 4px;
+  margin-bottom: $spacing-xs;
+}
+
+.skeletonCount {
+  height: 0.875rem;
+  width: 40%;
+  background: $color-border-base;
+  border-radius: 4px;
+  margin-bottom: $spacing-md;
+}
+
+.skeletonChildren {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.skeletonChild {
+  height: 1.5rem;
+  width: 5rem;
+  background: $color-border-base;
+  border-radius: 4px;
+}
+
+.skeletonHideMobile {
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
 .empty {
@@ -27,8 +79,8 @@
   border-radius: $border-radius-lg;
   padding: $spacing-lg;
 
-  @media (max-width: 359px) {
-    flex: 1 1 100%;
+  @media (max-width: 768px) {
+    flex: 0 0 100%;
   }
 }
 
