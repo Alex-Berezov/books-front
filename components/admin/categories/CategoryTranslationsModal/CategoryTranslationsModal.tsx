@@ -221,6 +221,7 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
             availableLanguages={availableLanguages}
             initialData={formData}
             isSubmitting={createMutation.isPending || updateMutation.isPending}
+            routeBase={category.type}
             onSubmit={onSubmit}
             onCancel={handleCancelForm}
           />

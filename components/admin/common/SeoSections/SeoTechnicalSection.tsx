@@ -40,6 +40,8 @@ export interface SeoTechnicalSectionProps<TFormData extends FieldValues> {
   languageField: Path<TFormData>;
   /** Base URL for canonical URL generation */
   baseUrl?: string;
+  /** Route prefix for canonical URL (e.g., 'category', 'tag', 'book') */
+  routeBase?: string;
   /** Styles object with CSS module classes */
   styles: Record<string, string>;
 }
@@ -68,6 +70,7 @@ export const SeoTechnicalSection = <TFormData extends FieldValues>(
     slugField,
     languageField,
     baseUrl = 'https://bibliaris.com',
+    routeBase,
     styles,
   } = props;
 
@@ -83,8 +86,11 @@ export const SeoTechnicalSection = <TFormData extends FieldValues>(
     const currentSlug = watch(slugField) as string;
     const currentLang = watch(languageField) as string;
     if (currentSlug && currentLang) {
+      const path = routeBase
+        ? `/${currentLang}/${routeBase}/${currentSlug}`
+        : `/${currentLang}/${currentSlug}`;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setValue(canonicalUrlField, `${baseUrl}/${currentLang}/${currentSlug}` as any);
+      setValue(canonicalUrlField, `${baseUrl}${path}` as any);
     }
   };
 

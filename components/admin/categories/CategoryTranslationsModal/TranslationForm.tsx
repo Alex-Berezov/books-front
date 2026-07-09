@@ -21,6 +21,7 @@ interface TranslationFormProps {
   availableLanguages: { value: string; label: ReactNode }[];
   initialData?: TranslationFormData;
   isSubmitting: boolean;
+  routeBase: string;
   onSubmit: (data: TranslationFormData) => Promise<void>;
   onCancel: () => void;
 }
@@ -30,6 +31,7 @@ export const TranslationForm = ({
   availableLanguages,
   initialData,
   isSubmitting,
+  routeBase,
   onSubmit,
   onCancel,
 }: TranslationFormProps) => {
@@ -79,6 +81,19 @@ export const TranslationForm = ({
       setValue('slug', generateSlug(watchedName));
     }
   }, [watchedName, setValue, editingLang]);
+
+  const watchedSlug = watch('slug');
+  const watchedLang = watch('language');
+
+  // Auto-populate canonical URL when slug and language are set (new translation)
+  useEffect(() => {
+    if (watchedSlug && watchedLang && !editingLang) {
+      const path = routeBase
+        ? `/${watchedLang}/${routeBase}/${watchedSlug}`
+        : `/${watchedLang}/${watchedSlug}`;
+      setValue('seoCanonicalUrl', `https://bibliaris.com${path}`, { shouldValidate: false });
+    }
+  }, [watchedSlug, watchedLang, editingLang, routeBase, setValue]);
 
   // Mirror Meta Title/Description to the matching OG fields as user types,
   // consistent with the Pages form behaviour.
@@ -271,6 +286,7 @@ export const TranslationForm = ({
           languageField="language"
           register={register}
           robotsField="seoRobots"
+          routeBase={routeBase}
           setValue={setValue}
           slugField="slug"
           styles={styles}

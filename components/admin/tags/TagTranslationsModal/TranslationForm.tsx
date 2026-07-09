@@ -77,6 +77,18 @@ export const TranslationForm = (props: TranslationFormProps) => {
     }
   }, [watchedName, setValue, isEditing]);
 
+  const watchedSlug = watch('slug');
+  const watchedLang = watch('language');
+
+  // Auto-populate canonical URL when slug and language are set (new translation)
+  useEffect(() => {
+    if (watchedSlug && watchedLang && !isEditing) {
+      setValue('seoCanonicalUrl', `https://bibliaris.com/${watchedLang}/tag/${watchedSlug}`, {
+        shouldValidate: false,
+      });
+    }
+  }, [watchedSlug, watchedLang, isEditing, setValue]);
+
   // Mirror Meta Title/Description to the matching OG fields as user types,
   // consistent with the Pages/Categories form behaviour.
   useEffect(() => {
@@ -300,6 +312,7 @@ export const TranslationForm = (props: TranslationFormProps) => {
           languageField="language"
           register={register}
           robotsField="seoRobots"
+          routeBase="tag"
           setValue={setValue}
           slugField="slug"
           styles={styles}
