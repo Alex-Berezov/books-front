@@ -107,7 +107,7 @@ export const AppProviders = (props: AppProvidersProps) => {
       session={activeSession} // Pass active session to prevent initial client requests
       // Optimize session polling to reduce API calls
       basePath="/api/auth" // Explicit base path for better caching
-      refetchInterval={SESSION_SETTINGS.REFETCH_INTERVAL_MINUTES * 60 * 1000} // Convert minutes to milliseconds
+      refetchInterval={SESSION_SETTINGS.REFETCH_INTERVAL_MINUTES * 60} // Convert minutes to seconds (next-auth expects seconds)
       refetchOnWindowFocus={false} // Don't refetch on window focus
       refetchWhenOffline={false} // Don't refetch when offline
     >

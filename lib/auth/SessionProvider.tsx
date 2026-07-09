@@ -14,20 +14,25 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { SessionProvider as NextAuthSessionProvider } from 'next-auth/react';
+import {
+  SessionProvider as NextAuthSessionProvider,
+  type SessionProviderProps as NextAuthSessionProviderProps,
+} from 'next-auth/react';
 
-interface SessionProviderProps {
-  children: ReactNode;
-}
+export type { SessionProviderProps as NextAuthSessionProviderProps } from 'next-auth/react';
 
 /**
  * NextAuth session provider
  *
  * Wraps child components and provides access to session
  * via useSession() hook from next-auth/react
+ *
+ * Forwards all NextAuth SessionProvider props,
+ * including refetchInterval, refetchOnWindowFocus, etc.
  */
-export const SessionProvider = (props: SessionProviderProps) => {
-  const { children } = props;
-
-  return <NextAuthSessionProvider>{children}</NextAuthSessionProvider>;
+export const SessionProvider = ({
+  children,
+  ...props
+}: { children: ReactNode } & Partial<NextAuthSessionProviderProps>) => {
+  return <NextAuthSessionProvider {...props}>{children}</NextAuthSessionProvider>;
 };
