@@ -36,55 +36,8 @@ Key documentation paths:
 
 ## Code Style Rules
 
-### CRITICAL: SCSS Modules
-
-Every `.module.scss` file MUST start with:
-
-```scss
-@import '@/styles/tokens.scss';
-```
-
-**Common mistakes:**
-
-- Using `@use` instead of `@import` — WRONG
-- Forgetting `.scss` extension — WRONG
-- Using `$font-size-md` — DOESN'T EXIST, use `$font-size-base`
-- Using `$line-height-normal` — DOESN'T EXIST, use `$line-height-base`
-
-### Available SCSS Variables
-
-From `styles/tokens.scss`:
-
-**Typography:**
-
-- `$font-size-xs`, `$font-size-sm`, `$font-size-base`, `$font-size-lg`, `$font-size-xl`
-- `$line-height-tight`, `$line-height-base`, `$line-height-relaxed`
-- `$font-weight-regular`, `$font-weight-medium`, `$font-weight-semibold`, `$font-weight-bold`
-
-**Spacing:**
-
-- `$spacing-xs`, `$spacing-sm`, `$spacing-md`, `$spacing-lg`, `$spacing-xl`, `$spacing-xxl`
-
-**Colors:**
-
-- `$color-primary`, `$color-error`, `$color-success`, `$color-warning`
-- `$color-text-primary`, `$color-text-secondary`, `$color-bg-primary`
-
-### TypeScript
-
-- **NO `any`** — use proper types
-- Use `import type` for type-only imports
-- Destructure props when 3+ parameters
-- Comments in English only
-
-### Component Conventions
-
-- Use functional components with TypeScript
-- Props interface named `{ComponentName}Props`
-- SCSS modules named `{component}.module.scss`
-- Use Ant Design components where appropriate
-
----
+- Frontend CODE_STYLE Read file D:\newDev\books-front\CODE_STYLE.md
+- Backend STYLE_GUIDE D:\newDev\books\STYLE_GUIDE.md
 
 ## Language Support
 
