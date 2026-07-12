@@ -146,12 +146,12 @@
 .sectionsContainer {
   max-width: $layout-max-width-xl;
   margin: 0 auto;
-  padding: 0 $spacing-md;
+  padding: 0 $spacing-md $spacing-xxl;
 }
 
 // Genres Section
 .genresSection {
-  padding: $spacing-md 0;
+  padding: $spacing-xl 0;
 }
 
 .sectionHeader {
@@ -246,7 +246,7 @@
 
 // SEO Text Section
 .seoSection {
-  padding: $spacing-lg 0;
+  padding: $spacing-xxl 0;
 }
 
 .seoContent {
