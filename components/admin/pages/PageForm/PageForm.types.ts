@@ -9,7 +9,7 @@ export const pageSchema = z.object({
   /** Page language */
   language: z.enum(['en', 'es', 'fr', 'pt', 'ru']),
   /** Page type (required field!) */
-  type: z.enum(['generic', 'category_index', 'author_index']),
+  type: z.enum(['generic', 'category_index', 'author_index', 'homepage']),
   /** Page title */
   title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
   /** Page URL slug */
@@ -35,6 +35,9 @@ export const pageSchema = z.object({
     .or(z.literal('')),
   /** FAQ items as array of question/answer pairs */
   faq: z.array(z.object({ question: z.string(), answer: z.string() })),
+
+  /** Homepage sections configuration (JSON object with block data) */
+  sections: z.any().optional(),
 
   // ========================================
   // SEO Fields

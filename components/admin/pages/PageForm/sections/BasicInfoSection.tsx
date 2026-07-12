@@ -61,6 +61,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
     { label: 'Generic Page', value: 'generic' },
     { label: 'Category Index', value: 'category_index' },
     { label: 'Author Index', value: 'author_index' },
+    { label: 'Homepage', value: 'homepage' },
   ];
 
   return (

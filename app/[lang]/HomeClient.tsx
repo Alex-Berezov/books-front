@@ -1,29 +1,45 @@
 'use client';
 
 import { Skeleton } from 'antd';
-import { BookOpen, ChevronRight } from 'lucide-react';
+import { BookOpen, BookText, ChevronRight, Globe, Headphones, Library, Search } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePublicBooks } from '@/api/hooks';
 import { useCategories } from '@/api/hooks/useCategories';
+import { usePage } from '@/api/hooks/usePublic';
+import { useTags } from '@/api/hooks/useTags';
 import { Button } from '@/components/common/Button';
 import { BookSection } from '@/components/public/books/BookSection';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { BookOverview, Category } from '@/types/api-schema';
+import type { BookOverview, Category, PageResponse, Tag } from '@/types/api-schema';
 import styles from '../page.module.scss';
 
 type HomeClientProps = {
   lang: string;
   initialBooks?: BookOverview[];
   initialCategories?: Category[];
+  initialPage?: PageResponse | null;
 };
 
-export default function HomeClient({ lang, initialBooks, initialCategories }: HomeClientProps) {
+const HERO_ICONS: Record<string, React.ReactNode> = {
+  book: <BookOpen size={24} />,
+  headphones: <Headphones size={24} />,
+  search: <Search size={24} />,
+  globe: <Globe size={24} />,
+  library: <Library size={24} />,
+  booktext: <BookText size={24} />,
+};
+
+export default function HomeClient({
+  lang,
+  initialBooks,
+  initialCategories,
+  initialPage,
+}: HomeClientProps) {
   const supportedLang = lang as SupportedLang;
   const { t } = useTranslation();
 
-  // Fetch books (limit 100 for client-side sorting and filtering)
   const { data: booksData, isLoading: loadingBooks } = usePublicBooks(
     supportedLang,
     { limit: 100 },
@@ -36,7 +52,8 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
         : undefined,
     }
   );
-  const { data: categoriesData, isLoading: loadingCats } = useCategories(
+
+  const { data: categoriesData } = useCategories(
     { limit: 50 },
     {
       initialData: initialCategories
@@ -48,15 +65,28 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
     }
   );
 
+  const { data: genresData } = useCategories({ type: 'genre', limit: 50 });
+  const { data: collectionsData } = useCategories({ type: 'collection', limit: 50 });
+  const { data: tagsData } = useTags({ limit: 50 });
+
+  const { data: pageData } = usePage(supportedLang, 'homepage-index', {
+    initialData: initialPage || undefined,
+  });
+
+  const sections = (pageData?.sections as Record<string, unknown>) || {};
   const allBooks = (booksData?.data || []).filter((book) =>
     book.versions?.some(
       (version) => version.language === supportedLang && version.status === 'published'
     )
   );
   const categories = (categoriesData?.data || []).filter((cat) => (cat.booksCount || 0) > 0);
+  const genres = (genresData?.data || []).filter((g) => (g.booksCount || 0) > 0);
+  const collections = (collectionsData?.data || []).filter((c) => (c.booksCount || 0) > 0);
+  const tags = tagsData?.data || [];
 
-  // Filter & Sort books
-  const popularBooks = [...allBooks].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10);
+  const featuredBooks = [...allBooks]
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    .slice(0, 10);
 
   const newReleases = [...allBooks]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -64,7 +94,6 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
 
   const audiobooks = allBooks.filter((book) => book.hasAudio === true).slice(0, 10);
 
-  // Filter classics and fantasy by category slug
   const classicBooks = allBooks
     .filter((book) =>
       book.categories?.some(
@@ -89,7 +118,36 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
     )
     .slice(0, 8);
 
-  // Helper to get cover URL from book
+  // Sections config from page
+  const whyBibliaris =
+    (sections.whyBibliaris as Array<{ icon: string; title: string; text: string }>) || [];
+  const aboutText = (sections.aboutText as string) || '';
+  const categorySlugs = (sections.categorySlugs as string[]) || [];
+  const genreSlugs = (sections.genreSlugs as string[]) || [];
+  const collectionSlugs = (sections.collectionSlugs as string[]) || [];
+  const tagSlugs = (sections.tagSlugs as string[]) || [];
+
+  // Filter taxonomy items by configured slugs (or show first 8)
+  const featuredCategories =
+    categorySlugs.length > 0
+      ? categories.filter((c) => categorySlugs.includes(c.slug || c.id)).slice(0, 8)
+      : categories.slice(0, 8);
+
+  const featuredGenres =
+    genreSlugs.length > 0
+      ? genres.filter((g) => genreSlugs.includes(g.slug || g.id)).slice(0, 8)
+      : genres.slice(0, 8);
+
+  const featuredCollections =
+    collectionSlugs.length > 0
+      ? collections.filter((c) => collectionSlugs.includes(c.slug || c.id)).slice(0, 8)
+      : collections.slice(0, 8);
+
+  const featuredTags =
+    tagSlugs.length > 0
+      ? tags.filter((tag) => tagSlugs.includes(tag.slug || tag.id)).slice(0, 12)
+      : tags.slice(0, 12);
+
   const getCoverUrl = (book: BookOverview): string => {
     const currentLangVersion = book.versions?.find(
       (version) => version.language === supportedLang && version.status === 'published'
@@ -108,14 +166,69 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
     );
   };
 
+  // Get translation helper for taxonomy items
+  const getTaxonomyName = (item: Category, lang: SupportedLang): string => {
+    const translation =
+      item.translations?.find((tr) => tr.language === lang) || item.translations?.[0];
+    return translation?.name || item.slug || item.id;
+  };
+
+  const getTaxonomySlug = (item: Category, lang: SupportedLang): string => {
+    const translation =
+      item.translations?.find((tr) => tr.language === lang) || item.translations?.[0];
+    return translation?.slug || item.slug || item.id;
+  };
+
+  const getTagName = (tag: Tag, lang: SupportedLang): string => {
+    const translation =
+      tag.translations?.find((tr) => tr.language === lang) || tag.translations?.[0];
+    return translation?.name || tag.slug || tag.id;
+  };
+
+  const getTagSlug = (tag: Tag, lang: SupportedLang): string => {
+    const translation =
+      tag.translations?.find((tr) => tr.language === lang) || tag.translations?.[0];
+    return translation?.slug || tag.slug || tag.id;
+  };
+
+  // FAQ JSON-LD
+  const faqItems = pageData?.faq as Array<{ question: string; answer: string }> | null | undefined;
+  const faqJsonLd =
+    faqItems && faqItems.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faqItems.map((item) => ({
+            '@type': 'Question',
+            name: item.question,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: item.answer,
+            },
+          })),
+        }
+      : null;
+
+  // Hero text from page or fallback to defaults
+  const heroTitle = pageData?.h1 || t('home.title');
+  const heroText = pageData?.shortDescription || t('home.subtitle');
+
   return (
     <div className={styles.main}>
-      {/* Banner */}
+      {/* FAQ JSON-LD */}
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
+
+      {/* Banner / Hero */}
       <div className={styles.bannerContainer}>
         <div className={styles.bannerContent}>
           <div className={styles.bannerText}>
-            <h1 className={styles.bannerTitle}>{t('home.title')}</h1>
-            <p className={styles.bannerSubtitle}>{t('home.subtitle')}</p>
+            <h1 className={styles.bannerTitle}>{heroTitle}</h1>
+            <p className={styles.bannerSubtitle}>{heroText}</p>
             <div className={styles.bannerActions}>
               <Link href={`/${supportedLang}/catalog`} passHref legacyBehavior>
                 <Button variant="primary" size="lg" className={styles.primaryBtn}>
@@ -174,57 +287,121 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
       </div>
 
       <div className={styles.sectionsContainer}>
-        {/* Top Popular */}
+        {/* Featured Books */}
         <BookSection
           title={t('home.topPopular')}
-          books={popularBooks}
+          books={featuredBooks}
           viewMoreHref={`/${supportedLang}/catalog?sort=popular`}
           loading={loadingBooks}
         />
 
-        {/* Genres Row */}
-        <section className={styles.genresSection}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>{t('home.genres')}</h2>
-            <Link href={`/${supportedLang}/genres`} passHref legacyBehavior>
-              <Button variant="ghost" className={styles.viewMoreBtn}>
-                {t('home.viewAll')} <ChevronRight size={16} />
-              </Button>
-            </Link>
-          </div>
-          <div className={styles.genresCarousel}>
-            {loadingCats
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton.Button key={i} active className={styles.genreSkeletonCard} />
-                ))
-              : categories.slice(0, 8).map((cat) => {
-                  // Find translation for current language or fallback to english
-                  const translation =
-                    cat.translations?.find((t) => t.language === supportedLang) ||
-                    cat.translations?.[0];
-                  const name = translation?.name || cat.id;
-                  const catSlug = translation?.slug || cat.slug || cat.id;
+        {/* Browse by Category */}
+        {featuredCategories.length > 0 && (
+          <section className={styles.genresSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Browse by Category</h2>
+              <Link href={`/${supportedLang}/categories`} passHref legacyBehavior>
+                <Button variant="ghost" className={styles.viewMoreBtn}>
+                  {t('home.viewAll')} <ChevronRight size={16} />
+                </Button>
+              </Link>
+            </div>
+            <div className={styles.genresCarousel}>
+              {featuredCategories.map((cat) => {
+                const name = getTaxonomyName(cat, supportedLang);
+                const catSlug = getTaxonomySlug(cat, supportedLang);
+                return (
+                  <Link
+                    key={cat.id}
+                    href={`/${supportedLang}/category/${catSlug}`}
+                    className={styles.genreCard}
+                    style={{ backgroundColor: 'var(--bibliaris-green)' }}
+                  >
+                    <div className={styles.genreOverlay} />
+                    <div className={styles.genreInfo}>
+                      <p className={styles.genreName}>{name}</p>
+                      <p className={styles.genreCount}>
+                        {cat.booksCount || 0} {t('home.booksCount')}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
-                  const categoryPath = cat.type === 'genre' ? 'genre' : 'category';
-                  return (
-                    <Link
-                      key={cat.id}
-                      href={`/${supportedLang}/${categoryPath}/${catSlug}`}
-                      className={styles.genreCard}
-                      style={{ backgroundColor: 'var(--bibliaris-green)' }}
-                    >
-                      <div className={styles.genreOverlay} />
-                      <div className={styles.genreInfo}>
-                        <p className={styles.genreName}>{name}</p>
-                        <p className={styles.genreCount}>
-                          {cat.booksCount || 0} {t('home.booksCount')}
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
-          </div>
-        </section>
+        {/* Explore by Genre */}
+        {featuredGenres.length > 0 && (
+          <section className={styles.genresSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>{t('home.genres')}</h2>
+              <Link href={`/${supportedLang}/genres`} passHref legacyBehavior>
+                <Button variant="ghost" className={styles.viewMoreBtn}>
+                  {t('home.viewAll')} <ChevronRight size={16} />
+                </Button>
+              </Link>
+            </div>
+            <div className={styles.genresCarousel}>
+              {featuredGenres.map((genre) => {
+                const name = getTaxonomyName(genre, supportedLang);
+                const slug = getTaxonomySlug(genre, supportedLang);
+                return (
+                  <Link
+                    key={genre.id}
+                    href={`/${supportedLang}/genre/${slug}`}
+                    className={styles.genreCard}
+                    style={{ backgroundColor: 'var(--bibliaris-green)' }}
+                  >
+                    <div className={styles.genreOverlay} />
+                    <div className={styles.genreInfo}>
+                      <p className={styles.genreName}>{name}</p>
+                      <p className={styles.genreCount}>
+                        {genre.booksCount || 0} {t('home.booksCount')}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Curated Collections */}
+        {featuredCollections.length > 0 && (
+          <section className={styles.genresSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Curated Collections</h2>
+              <Link href={`/${supportedLang}/collections`} passHref legacyBehavior>
+                <Button variant="ghost" className={styles.viewMoreBtn}>
+                  {t('home.viewAll')} <ChevronRight size={16} />
+                </Button>
+              </Link>
+            </div>
+            <div className={styles.genresCarousel}>
+              {featuredCollections.map((col) => {
+                const name = getTaxonomyName(col, supportedLang);
+                const slug = getTaxonomySlug(col, supportedLang);
+                return (
+                  <Link
+                    key={col.id}
+                    href={`/${supportedLang}/collection/${slug}`}
+                    className={styles.genreCard}
+                    style={{ backgroundColor: 'var(--bibliaris-green)' }}
+                  >
+                    <div className={styles.genreOverlay} />
+                    <div className={styles.genreInfo}>
+                      <p className={styles.genreName}>{name}</p>
+                      <p className={styles.genreCount}>
+                        {col.booksCount || 0} {t('home.booksCount')}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* New Releases */}
         <BookSection
@@ -233,6 +410,39 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
           viewMoreHref={`/${supportedLang}/catalog?sort=new`}
           loading={loadingBooks}
         />
+
+        {/* Explore Book Themes (Tags) */}
+        {featuredTags.length > 0 && (
+          <section className={styles.genresSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Explore Book Themes</h2>
+              <Link href={`/${supportedLang}/tags`} passHref legacyBehavior>
+                <Button variant="ghost" className={styles.viewMoreBtn}>
+                  {t('home.viewAll')} <ChevronRight size={16} />
+                </Button>
+              </Link>
+            </div>
+            <div className={styles.genresCarousel}>
+              {featuredTags.map((tag) => {
+                const name = getTagName(tag, supportedLang);
+                const slug = getTagSlug(tag, supportedLang);
+                return (
+                  <Link
+                    key={tag.id}
+                    href={`/${supportedLang}/tag/${slug}`}
+                    className={styles.genreCard}
+                    style={{ backgroundColor: 'var(--bibliaris-green)' }}
+                  >
+                    <div className={styles.genreOverlay} />
+                    <div className={styles.genreInfo}>
+                      <p className={styles.genreName}>{name}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Audiobooks */}
         {audiobooks.length > 0 && (
@@ -262,6 +472,64 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
             viewMoreHref={`/${supportedLang}/catalog/fantasy`}
             loading={loadingBooks}
           />
+        )}
+
+        {/* Why Bibliaris */}
+        {whyBibliaris.length > 0 && (
+          <section className={styles.genresSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Why Bibliaris?</h2>
+            </div>
+            <div className={styles.genresCarousel}>
+              {whyBibliaris.map((item, idx) => (
+                <div
+                  key={idx}
+                  className={styles.genreCard}
+                  style={{ backgroundColor: 'var(--bibliaris-green)', cursor: 'default' }}
+                >
+                  <div className={styles.genreOverlay} />
+                  <div className={styles.genreInfo}>
+                    <div style={{ marginBottom: 8 }}>
+                      {HERO_ICONS[item.icon] || <Library size={24} />}
+                    </div>
+                    <p className={styles.genreName}>{item.title}</p>
+                    <p className={styles.genreCount}>{item.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* About Bibliaris (SEO text) */}
+        {aboutText && (
+          <section className={styles.seoSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>About Bibliaris</h2>
+            </div>
+            <div className={styles.seoContent}>
+              {aboutText.split('\n\n').map((paragraph, idx) => (
+                <p key={idx}>{paragraph}</p>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* FAQ */}
+        {faqItems && faqItems.length > 0 && (
+          <section className={styles.seoSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>FAQ</h2>
+            </div>
+            <div className={styles.faqList}>
+              {faqItems.map((item, idx) => (
+                <details key={idx} className={styles.faqItem}>
+                  <summary className={styles.faqQuestion}>{item.question}</summary>
+                  <p className={styles.faqAnswer}>{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </section>
         )}
       </div>
     </div>

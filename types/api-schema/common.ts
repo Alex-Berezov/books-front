@@ -34,7 +34,7 @@ export type PublicationStatus = 'draft' | 'published' | 'archived';
 /**
  * Page type (according to backend DTO)
  */
-export type PageType = 'generic' | 'category_index' | 'author_index';
+export type PageType = 'generic' | 'category_index' | 'author_index' | 'homepage';
 
 /**
  * Pagination metadata

@@ -93,6 +93,7 @@ const EditPage: FC<EditPageProps> = (props) => {
         h1: formData.h1 || null,
         shortDescription: formData.shortDescription || null,
         faq,
+        sections: formData.type === 'homepage' ? formData.sections : undefined,
         seo: hasSeoData ? seo : undefined,
       },
     });

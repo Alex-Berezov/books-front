@@ -1,9 +1,10 @@
 import { getCategories } from '@/api/endpoints/admin/categories';
-import { getPublicBooks } from '@/api/endpoints/public';
+import { getPage, getPublicBooks } from '@/api/endpoints/public';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview, Category } from '@/types/api-schema';
+import type { PageResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import HomeClient from './HomeClient';
 
@@ -29,19 +30,27 @@ export default async function PublicLangPage({ params }: Props) {
 
   let initialBooks: BookOverview[] = [];
   let initialCategories: Category[] = [];
+  let initialPage: PageResponse | null = null;
 
   try {
-    const [booksRes, catsRes] = await Promise.all([
+    const [booksRes, catsRes, pageRes] = await Promise.all([
       getPublicBooks(supportedLang, { limit: 100 }),
       getCategories({ limit: 50 }),
+      getPage(supportedLang, 'homepage-index').catch(() => null as PageResponse | null),
     ]);
     initialBooks = booksRes.data || [];
     initialCategories = catsRes.data || [];
+    initialPage = pageRes;
   } catch (error) {
     console.error('Error fetching home page data on server:', error);
   }
 
   return (
-    <HomeClient lang={lang} initialBooks={initialBooks} initialCategories={initialCategories} />
+    <HomeClient
+      lang={lang}
+      initialBooks={initialBooks}
+      initialCategories={initialCategories}
+      initialPage={initialPage}
+    />
   );
 }

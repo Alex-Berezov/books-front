@@ -68,6 +68,7 @@ export default function NewPage(props: NewPageProps) {
         h1: data.h1 || null,
         shortDescription: data.shortDescription || null,
         faq,
+        sections: data.type === 'homepage' ? data.sections : undefined,
         seo: hasSeoData ? seo : undefined,
         translationGroupId: translationGroupId || null,
       },

@@ -16,6 +16,7 @@ import type { PageFormData, PageFormProps } from './PageForm.types';
 import styles from './PageForm.module.scss';
 import { pageSchema } from './PageForm.types';
 import { BasicInfoSection } from './sections/BasicInfoSection';
+import { HomepageSectionsSection } from './sections/HomepageSectionsSection';
 import { TranslationsSection } from './sections/TranslationsSection';
 
 // Re-export types for external usage
@@ -77,6 +78,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
           h1: initialData.h1 || '',
           shortDescription: initialData.shortDescription || '',
           faq: initialData.faq || [],
+          sections: initialData.sections || undefined,
           // SEO fields from backend
           seoMetaTitle: initialData.seo?.metaTitle || '',
           seoMetaDescription: initialData.seo?.metaDescription || '',
@@ -98,6 +100,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
           h1: '',
           shortDescription: '',
           faq: [],
+          sections: undefined,
           // SEO default values
           seoMetaTitle: '',
           seoMetaDescription: '',
@@ -122,6 +125,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
         h1: initialData.h1 || '',
         shortDescription: initialData.shortDescription || '',
         faq: initialData.faq || [],
+        sections: initialData.sections || undefined,
         seoMetaTitle: initialData.seo?.metaTitle || '',
         seoMetaDescription: initialData.seo?.metaDescription || '',
         seoCanonicalUrl: initialData.seo?.canonicalUrl || '',
@@ -170,6 +174,16 @@ export const PageForm: FC<PageFormProps> = (props) => {
         control={control}
         errors={errors}
         initialData={initialData}
+        isSubmitting={isSubmitting}
+        register={register}
+        setValue={setValue}
+        watch={watch}
+      />
+
+      {/* Homepage Sections (only for homepage type) */}
+      <HomepageSectionsSection
+        control={control}
+        errors={errors}
         isSubmitting={isSubmitting}
         register={register}
         setValue={setValue}

@@ -78,6 +78,8 @@ export interface PageResponse {
   shortDescription?: string | null;
   /** FAQ structured data array */
   faq?: FaqItem[] | null;
+  /** Homepage sections configuration (JSON object with block data) */
+  sections?: Record<string, unknown> | null;
   seoId?: number | null;
   seo?: SeoData;
   translationGroupId?: string | null;
@@ -108,6 +110,7 @@ export interface CreatePageRequest {
   h1?: string | null;
   shortDescription?: string | null;
   faq?: FaqItem[] | null;
+  sections?: Record<string, unknown> | null;
   language?: SupportedLang;
   seo?: SeoInput;
   translationGroupId?: string | null;
@@ -124,6 +127,7 @@ export interface UpdatePageRequest {
   h1?: string | null;
   shortDescription?: string | null;
   faq?: FaqItem[] | null;
+  sections?: Record<string, unknown> | null;
   language?: SupportedLang;
   seo?: SeoInput;
   status?: PublicationStatus;
