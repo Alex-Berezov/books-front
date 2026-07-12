@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Footer } from '@/components/public/layout/Footer';
 import { Header } from '@/components/public/layout/Header';
 import { getDictionary } from '@/lib/i18n/dictionaries';
-import { isSupportedLang, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
+import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import styles from '@/styles/layouts.module.scss';
 import { colors } from '@/styles/tokens';
@@ -13,9 +13,7 @@ type Props = {
   params: Promise<{ lang: string }>;
 };
 
-export async function generateStaticParams() {
-  return SUPPORTED_LANGS.map((lang) => ({ lang }));
-}
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params;
