@@ -235,12 +235,14 @@ export default function HomeClient({ lang, initialBooks, initialCategories }: Ho
         />
 
         {/* Audiobooks */}
-        <BookSection
-          title={t('home.audiobooks')}
-          books={audiobooks}
-          viewMoreHref={`/${supportedLang}/catalog?type=audio`}
-          loading={loadingBooks}
-        />
+        {audiobooks.length > 0 && (
+          <BookSection
+            title={t('home.audiobooks')}
+            books={audiobooks}
+            viewMoreHref={`/${supportedLang}/catalog?type=audio`}
+            loading={loadingBooks}
+          />
+        )}
 
         {/* Classic Literature */}
         {classicBooks.length > 0 && (
