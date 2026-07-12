@@ -17,6 +17,7 @@ import { usePublicAuthor } from '@/api/hooks/useAuthors';
 import { useBooks } from '@/api/hooks/useBooks';
 import { Button } from '@/components/common/Button';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
+import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -328,20 +329,7 @@ export default function AuthorDetailClient({
 
         {/* Quotes Section */}
         {quotes.length > 0 && (
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>
-              <Quote size={20} className={styles.iconTitle} />
-              {headings.quotes}
-            </h2>
-            <div className={styles.quotesGrid}>
-              {quotes.map((q, idx) => (
-                <blockquote key={idx} className={styles.quoteCard}>
-                  <p className={styles.quoteText}>&ldquo;{q.text}&rdquo;</p>
-                  {q.source && <cite className={styles.quoteSource}>— {q.source}</cite>}
-                </blockquote>
-              ))}
-            </div>
-          </section>
+          <QuotesBlock items={quotes} title={headings.quotes} icon={<Quote size={20} />} />
         )}
 
         {/* Similar Authors Section */}

@@ -188,41 +188,6 @@
   vertical-align: middle;
 }
 
-.quotesGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: $spacing-md;
-
-  @media (min-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.quoteCard {
-  background-color: rgba(0, 0, 0, 0.02);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-left: 4px solid var(--public-primary);
-  padding: $spacing-md $spacing-lg;
-  border-radius: $border-radius-base;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-}
-
-.quoteText {
-  font-style: italic;
-  font-size: $font-size-base;
-  color: var(--public-foreground);
-  margin: 0;
-}
-
-.quoteSource {
-  font-size: $font-size-sm;
-  color: var(--public-foreground);
-  opacity: 0.7;
-}
-
 .similarGrid {
   display: flex;
   gap: $spacing-sm;

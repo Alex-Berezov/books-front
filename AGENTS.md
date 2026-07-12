@@ -255,6 +255,31 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 
 **Used by:** homepage, author detail, category/genre/collection detail, tag detail, taxonomy overview pages.
 
+### QuotesBlock — Quote cards with grid layout
+
+**Location:** `components/common/QuotesBlock/QuotesBlock.tsx`
+
+Renders quotes as styled `<blockquote>` cards in a responsive 2-column grid with left terracotta border.
+
+**Props:**
+
+| Prop        | Type                     | Default    | Description                           |
+| ----------- | ------------------------ | ---------- | ------------------------------------- |
+| `items`     | `QuoteItem[]` (required) | —          | Array of `{ text, source?, author? }` |
+| `title`     | `string`                 | `"Quotes"` | Section heading text                  |
+| `className` | `string`                 | `''`       | Extra CSS class for outer `<section>` |
+| `icon`      | `ReactNode`              | —          | Optional icon before the title        |
+
+The component checks `source` first, then falls back to `author` for the attribution line.
+
+**Import:**
+
+```tsx
+import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
+```
+
+**Used by:** author detail page, book detail page.
+
 ---
 
 ## Troubleshooting
