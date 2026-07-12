@@ -144,7 +144,13 @@
     "booksBy": "Livros de",
     "noBooksFound": "Nenhum livro encontrado",
     "emptyText": "Ainda não temos livros deste autor em nossa biblioteca.",
-    "browseCatalog": "Explorar Catálogo"
+    "browseCatalog": "Explorar Catálogo",
+    "about": "Sobre {name}",
+    "books": "Livros de {name}",
+    "audio": "Audiolivros",
+    "quotes": "Citações",
+    "similar": "Autores semelhantes",
+    "faq": "Perguntas frequentes"
   },
   "bookshelf": {
     "title": "Minha Estante",

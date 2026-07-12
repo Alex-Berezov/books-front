@@ -107,11 +107,6 @@ export default function AuthorDetailClient({
       (v) => v.language === supportedLang && v.status === 'published' && v.type === 'audio'
     )
   );
-  const textBooks = authorBooks.filter((b) =>
-    b.versions?.some(
-      (v) => v.language === supportedLang && v.status === 'published' && v.type === 'text'
-    )
-  );
 
   const hasAudiobooks = audioBooks.length > 0;
   const ratings = authorBooks
@@ -121,63 +116,6 @@ export default function AuthorDetailClient({
     ratings.length > 0
       ? (ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1)
       : null;
-
-  // Localized Headings
-  const headings = {
-    ru: {
-      about: `Об авторе ${finalDisplayName}`,
-      books: `Книги автора ${finalDisplayName}`,
-      popular: 'Популярные книги',
-      audio: 'Аудиокниги',
-      quotes: 'Цитаты',
-      similar: 'Похожие авторы',
-      faq: 'Часто задаваемые вопросы (FAQ)',
-    },
-    es: {
-      about: `Acerca de ${finalDisplayName}`,
-      books: `Libros de ${finalDisplayName}`,
-      popular: 'Libros populares',
-      audio: 'Audiolibros',
-      quotes: 'Frases',
-      similar: 'Autores similares',
-      faq: 'Preguntas frecuentes (FAQ)',
-    },
-    pt: {
-      about: `Sobre ${finalDisplayName}`,
-      books: `Livros de ${finalDisplayName}`,
-      popular: 'Livros populares',
-      audio: 'Audiolivros',
-      quotes: 'Frases',
-      similar: 'Autores semelhantes',
-      faq: 'Perguntas frequentes (FAQ)',
-    },
-    fr: {
-      about: `À propos de ${finalDisplayName}`,
-      books: `Livres de ${finalDisplayName}`,
-      popular: 'Livres populaires',
-      audio: 'Livres audio',
-      quotes: 'Citations',
-      similar: 'Auteurs similaires',
-      faq: 'FAQ',
-    },
-    en: {
-      about: `About ${finalDisplayName}`,
-      books: `Books by ${finalDisplayName}`,
-      popular: 'Popular Books',
-      audio: 'Audiobooks',
-      quotes: 'Quotes',
-      similar: 'Similar Authors',
-      faq: 'FAQ',
-    },
-  }[supportedLang] || {
-    about: `About ${finalDisplayName}`,
-    books: `Books by ${finalDisplayName}`,
-    popular: 'Popular Books',
-    audio: 'Audiobooks',
-    quotes: 'Quotes',
-    similar: 'Similar Authors',
-    faq: 'FAQ',
-  };
 
   return (
     <div className={styles.authorPage}>
@@ -258,9 +196,20 @@ export default function AuthorDetailClient({
 
         <Divider className={styles.divider} />
 
+        {/* About / Biography */}
+        {biography && (
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>{t('author.about', { name: finalDisplayName })}</h2>
+            <div
+              className={styles.biographyContent}
+              dangerouslySetInnerHTML={{ __html: biography }}
+            />
+          </section>
+        )}
+
         {/* Books Section */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>{headings.books}</h2>
+          <h2 className={styles.sectionTitle}>{t('author.books', { name: finalDisplayName })}</h2>
 
           {isLoading ? (
             <div className={styles.booksGrid}>
@@ -289,35 +238,12 @@ export default function AuthorDetailClient({
           )}
         </section>
 
-        {/* About / Biography */}
-        {biography && (
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>{headings.about}</h2>
-            <div
-              className={styles.biographyContent}
-              dangerouslySetInnerHTML={{ __html: biography }}
-            />
-          </section>
-        )}
-
-        {/* Popular Books Section */}
-        {!isLoading && textBooks.length > 0 && (
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>{headings.popular}</h2>
-            <div className={styles.booksGrid}>
-              {textBooks.slice(0, 4).map((book) => (
-                <BookCard key={book.id} book={book} size="md" />
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* Audiobooks Section */}
         {!isLoading && hasAudiobooks && (
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>
               <AudioLines size={20} className={styles.iconTitle} />
-              {headings.audio}
+              {t('author.audio')}
             </h2>
             <div className={styles.booksGrid}>
               {audioBooks.map((book) => (
@@ -329,7 +255,7 @@ export default function AuthorDetailClient({
 
         {/* Quotes Section */}
         {quotes.length > 0 && (
-          <QuotesBlock items={quotes} title={headings.quotes} icon={<Quote size={20} />} />
+          <QuotesBlock items={quotes} title={t('author.quotes')} icon={<Quote size={20} />} />
         )}
 
         {/* Similar Authors Section */}
@@ -337,7 +263,7 @@ export default function AuthorDetailClient({
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>
               <Users size={20} className={styles.iconTitle} />
-              {headings.similar}
+              {t('author.similar')}
             </h2>
             <div className={styles.similarGrid}>
               {similarAuthors.map((sa, idx) => (
@@ -356,7 +282,7 @@ export default function AuthorDetailClient({
 
         {/* FAQ Section */}
         {faq.length > 0 && (
-          <FaqBlock items={faq} title={headings.faq} icon={<HelpCircle size={20} />} />
+          <FaqBlock items={faq} title={t('author.faq')} icon={<HelpCircle size={20} />} />
         )}
       </div>
     </div>

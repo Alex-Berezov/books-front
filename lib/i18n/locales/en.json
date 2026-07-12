@@ -184,7 +184,13 @@
     "booksBy": "Books by",
     "noBooksFound": "No books found",
     "emptyText": "We do not have any books by this author in our library yet.",
-    "browseCatalog": "Browse Catalog"
+    "browseCatalog": "Browse Catalog",
+    "about": "About {name}",
+    "books": "Books by {name}",
+    "audio": "Audiobooks",
+    "quotes": "Quotes",
+    "similar": "Similar Authors",
+    "faq": "FAQ"
   },
   "bookshelf": {
     "title": "My Bookshelf",
