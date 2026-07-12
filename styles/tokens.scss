@@ -3,10 +3,10 @@
  * Used in TypeScript components and SCSS files
  */
 
-// Primary Colors - Brand primary colors
-$color-primary: #1890ff;
-$color-primary-hover: #40a9ff;
-$color-primary-active: #096dd9;
+// Primary Colors - Brand primary colors (Terracotta)
+$color-primary: #b05b35;
+$color-primary-hover: #c07a55;
+$color-primary-active: #8d4529;
 $color-primary-disabled: #d9d9d9;
 
 // Semantic Colors - Semantic colors
@@ -44,7 +44,7 @@ $shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
 $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
 $shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
 $shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.2);
-$shadow-focus: 0 0 0 2px rgba(24, 144, 255, 0.2); // Focus ring for forms
+$shadow-focus: 0 0 0 2px rgba(176, 91, 53, 0.2); // Focus ring for forms
 
 // Spacing - Spacing
 $spacing-xs: 0.25rem; // 4px

@@ -3,10 +3,10 @@
  */
 
 export const colors = {
-  // Primary
-  primary: '#1890ff',
-  primaryHover: '#40a9ff',
-  primaryActive: '#096dd9',
+  // Primary (Terracotta)
+  primary: '#b05b35',
+  primaryHover: '#c07a55',
+  primaryActive: '#8d4529',
   primaryDisabled: '#d9d9d9',
 
   // Semantic

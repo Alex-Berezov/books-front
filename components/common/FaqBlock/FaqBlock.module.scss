@@ -51,7 +51,7 @@
   user-select: none;
 
   &:hover {
-    color: $color-primary;
+    color: var(--public-primary);
   }
 
   &::marker {
