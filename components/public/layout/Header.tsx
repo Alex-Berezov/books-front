@@ -97,7 +97,9 @@ export function Header() {
     }
   };
 
-  const navLinks = getNavLinks(lang, t);
+  const navLinks = getNavLinks(lang, t).filter(
+    (link) => link.key !== 'audiobooks' || hasAudiobooks
+  );
 
   const userMenuItems: MenuProps['items'] = [
     {
