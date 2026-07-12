@@ -10,7 +10,7 @@ import { BookCard } from '@/components/public/books/BookCard';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { BookOverview } from '@/types/api-schema';
+import type { BookOverview, TagTranslation } from '@/types/api-schema';
 import styles from './page.module.scss';
 
 type TagDetailClientProps = {
@@ -33,6 +33,7 @@ export default function TagDetailClient({ lang, tagSlug }: TagDetailClientProps)
 
   const tagTranslation = useMemo(
     () =>
+      (tag as { translation?: TagTranslation | null })?.translation ||
       tag?.translations?.find((tr) => tr.language === supportedLang) ||
       tag?.translations?.[0] ||
       null,
