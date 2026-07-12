@@ -294,6 +294,17 @@
     "replyAdded": "Resposta adicionada",
     "replyAddFail": "Falha ao adicionar resposta"
   },
+  "notFound": {
+    "title": "Página não encontrada",
+    "subtitle": "A página que você procura não existe ou foi movida.",
+    "backHome": "Ir para o início",
+    "browseCatalog": "Explorar Catálogo",
+    "popularPages": "Páginas populares",
+    "categories": "Categorias",
+    "genres": "Gêneros",
+    "collections": "Coleções",
+    "tags": "Tags"
+  },
   "a11y": {
     "openMenu": "Abrir menu principal",
     "closeMenu": "Fechar menu principal",

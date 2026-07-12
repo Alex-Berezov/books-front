@@ -4,9 +4,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  padding: $spacing-xxl;
+  padding: $spacing-xxl $spacing-lg;
   text-align: center;
 }
 
@@ -39,6 +37,7 @@
   gap: $spacing-md;
   flex-wrap: wrap;
   justify-content: center;
+  margin-bottom: $spacing-xxl;
 }
 
 .primaryBtn,
@@ -70,5 +69,43 @@
   &:hover {
     background: var(--public-primary);
     color: var(--public-primary-foreground);
+  }
+}
+
+.links {
+  border-top: 1px solid $color-border-base;
+  padding-top: $spacing-xl;
+  width: 100%;
+  max-width: 400px;
+}
+
+.linksTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-md;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.linksList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  justify-content: center;
+}
+
+.link {
+  padding: $spacing-xs $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-full;
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--public-primary);
+    color: var(--public-primary);
   }
 }

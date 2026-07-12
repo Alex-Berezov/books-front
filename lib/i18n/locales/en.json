@@ -334,6 +334,17 @@
     "replyAdded": "Reply added",
     "replyAddFail": "Failed to add reply"
   },
+  "notFound": {
+    "title": "Page Not Found",
+    "subtitle": "The page you are looking for doesn't exist or has been moved.",
+    "backHome": "Go to Homepage",
+    "browseCatalog": "Browse Catalog",
+    "popularPages": "Popular pages",
+    "categories": "Categories",
+    "genres": "Genres",
+    "collections": "Collections",
+    "tags": "Tags"
+  },
   "a11y": {
     "openMenu": "Open main menu",
     "closeMenu": "Close main menu",
