@@ -1,16 +1,7 @@
 'use client';
 
 import { Skeleton } from 'antd';
-import {
-  BookOpen,
-  BookText,
-  ChevronRight,
-  Globe,
-  Headphones,
-  HelpCircle,
-  Library,
-  Search,
-} from 'lucide-react';
+import { BookOpen, ChevronRight, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePublicBooks } from '@/api/hooks';
@@ -19,6 +10,7 @@ import { usePage } from '@/api/hooks/usePublic';
 import { useTags } from '@/api/hooks/useTags';
 import { Button } from '@/components/common/Button';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
+import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { BookSection } from '@/components/public/books/BookSection';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -30,15 +22,6 @@ type HomeClientProps = {
   initialBooks?: BookOverview[];
   initialCategories?: Category[];
   initialPage?: PageResponse | null;
-};
-
-const HERO_ICONS: Record<string, React.ReactNode> = {
-  book: <BookOpen size={24} />,
-  headphones: <Headphones size={24} />,
-  search: <Search size={24} />,
-  globe: <Globe size={24} />,
-  library: <Library size={24} />,
-  booktext: <BookText size={24} />,
 };
 
 export default function HomeClient({
@@ -285,7 +268,7 @@ export default function HomeClient({
         {featuredCategories.length > 0 && (
           <section className={styles.genresSection}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Browse by Category</h2>
+              <h2 className={styles.sectionTitle}>{t('home.browseByCategory')}</h2>
               <Link href={`/${supportedLang}/categories`} passHref legacyBehavior>
                 <Button variant="ghost" className={styles.viewMoreBtn}>
                   {t('home.viewAll')} <ChevronRight size={16} />
@@ -357,7 +340,7 @@ export default function HomeClient({
         {featuredCollections.length > 0 && (
           <section className={styles.genresSection}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Curated Collections</h2>
+              <h2 className={styles.sectionTitle}>{t('home.curatedCollections')}</h2>
               <Link href={`/${supportedLang}/collections`} passHref legacyBehavior>
                 <Button variant="ghost" className={styles.viewMoreBtn}>
                   {t('home.viewAll')} <ChevronRight size={16} />
@@ -401,7 +384,7 @@ export default function HomeClient({
         {featuredTags.length > 0 && (
           <section className={styles.genresSection}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Explore Book Themes</h2>
+              <h2 className={styles.sectionTitle}>{t('home.exploreBookThemes')}</h2>
               <Link href={`/${supportedLang}/tags`} passHref legacyBehavior>
                 <Button variant="ghost" className={styles.viewMoreBtn}>
                   {t('home.viewAll')} <ChevronRight size={16} />
@@ -462,36 +445,20 @@ export default function HomeClient({
 
         {/* Why Bibliaris */}
         {whyBibliaris.length > 0 && (
-          <section className={styles.genresSection}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Why Bibliaris?</h2>
-            </div>
-            <div className={styles.genresCarousel}>
-              {whyBibliaris.map((item, idx) => (
-                <div
-                  key={idx}
-                  className={styles.genreCard}
-                  style={{ backgroundColor: 'var(--bibliaris-green)', cursor: 'default' }}
-                >
-                  <div className={styles.genreOverlay} />
-                  <div className={styles.genreInfo}>
-                    <div style={{ marginBottom: 8 }}>
-                      {HERO_ICONS[item.icon] || <Library size={24} />}
-                    </div>
-                    <p className={styles.genreName}>{item.title}</p>
-                    <p className={styles.genreCount}>{item.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+          <QuotesBlock
+            items={whyBibliaris.map((item) => ({
+              text: item.text,
+              source: item.title,
+            }))}
+            title={t('home.whyBibliaris')}
+          />
         )}
 
         {/* About Bibliaris (SEO text) */}
         {aboutText && (
           <section className={styles.seoSection}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>About Bibliaris</h2>
+              <h2 className={styles.sectionTitle}>{t('home.aboutBibliaris')}</h2>
             </div>
             <div className={styles.seoContent}>
               {aboutText.split('\n\n').map((paragraph, idx) => (
@@ -503,7 +470,7 @@ export default function HomeClient({
 
         {/* FAQ */}
         {faqItems && faqItems.length > 0 && (
-          <FaqBlock items={faqItems} title="FAQ" icon={<HelpCircle size={20} />} />
+          <FaqBlock items={faqItems} title={t('home.faq')} icon={<HelpCircle size={20} />} />
         )}
       </div>
     </div>

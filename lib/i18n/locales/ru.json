@@ -52,7 +52,13 @@
     "fantasyAdventure": "Фэнтези и приключения",
     "viewAll": "Смотреть все",
     "viewMore": "Смотреть все",
-    "booksCount": "книг"
+    "booksCount": "книг",
+    "browseByCategory": "По категориям",
+    "curatedCollections": "Коллекции",
+    "exploreBookThemes": "Темы книг",
+    "whyBibliaris": "Почему Bibliaris?",
+    "aboutBibliaris": "О проекте",
+    "faq": "Часто задаваемые вопросы"
   },
   "genres": {
     "title": "Обзор жанров",

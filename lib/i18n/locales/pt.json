@@ -52,7 +52,13 @@
     "fantasyAdventure": "Fantasia e Aventura",
     "viewAll": "Ver tudo",
     "viewMore": "Ver mais",
-    "booksCount": "livros"
+    "booksCount": "livros",
+    "browseByCategory": "Explorar por Categoria",
+    "curatedCollections": "Coleções Selecionadas",
+    "exploreBookThemes": "Explorar Temas",
+    "whyBibliaris": "Por que Bibliaris?",
+    "aboutBibliaris": "Sobre a Bibliaris",
+    "faq": "Perguntas Frequentes"
   },
   "genres": {
     "title": "Navegar pelos Gêneros",
