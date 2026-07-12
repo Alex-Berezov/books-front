@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useMemo, useId } from 'react';
-import { Collapse, Drawer, Pagination, Skeleton } from 'antd';
+import { Drawer, Pagination, Skeleton } from 'antd';
 import { BookOpen, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useCategories } from '@/api/hooks/useCategories';
 import { useCategoryBooks } from '@/api/hooks/usePublic';
+import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -591,17 +592,7 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
 
             {/* FAQ */}
             {faq.length > 0 && (
-              <section className={styles.faqSection}>
-                <h2 className={styles.sectionTitle}>{t('tag.faq')}</h2>
-                <Collapse
-                  accordion
-                  items={faq.map((item, idx) => ({
-                    key: String(idx),
-                    label: item.question,
-                    children: <p className={styles.faqAnswer}>{item.answer}</p>,
-                  }))}
-                />
-              </section>
+              <FaqBlock items={faq} title={t('tag.faq')} className={styles.faqSection} />
             )}
 
             {/* Bottom links */}

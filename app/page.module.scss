@@ -260,40 +260,4 @@
   }
 }
 
-// FAQ Section
-.faqList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-}
 
-.faqItem {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: $border-radius-lg;
-  padding: $spacing-sm $spacing-md;
-  background-color: rgba(0, 0, 0, 0.02);
-  cursor: pointer;
-
-  &[open] {
-    background-color: rgba(0, 0, 0, 0.04);
-  }
-}
-
-.faqQuestion {
-  font-weight: $font-weight-semibold;
-  font-size: $font-size-base;
-  color: var(--public-foreground);
-  cursor: pointer;
-
-  &::-webkit-details-marker {
-    display: none;
-  }
-}
-
-.faqAnswer {
-  font-size: $font-size-base;
-  color: var(--public-foreground);
-  opacity: 0.8;
-  margin-top: $spacing-sm;
-  line-height: $line-height-base;
-}

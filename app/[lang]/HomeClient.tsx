@@ -1,7 +1,16 @@
 'use client';
 
 import { Skeleton } from 'antd';
-import { BookOpen, BookText, ChevronRight, Globe, Headphones, Library, Search } from 'lucide-react';
+import {
+  BookOpen,
+  BookText,
+  ChevronRight,
+  Globe,
+  Headphones,
+  HelpCircle,
+  Library,
+  Search,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePublicBooks } from '@/api/hooks';
@@ -9,6 +18,7 @@ import { useCategories } from '@/api/hooks/useCategories';
 import { usePage } from '@/api/hooks/usePublic';
 import { useTags } from '@/api/hooks/useTags';
 import { Button } from '@/components/common/Button';
+import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { BookSection } from '@/components/public/books/BookSection';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -191,23 +201,7 @@ export default function HomeClient({
     return translation?.slug || tag.slug || tag.id;
   };
 
-  // FAQ JSON-LD
   const faqItems = pageData?.faq as Array<{ question: string; answer: string }> | null | undefined;
-  const faqJsonLd =
-    faqItems && faqItems.length > 0
-      ? {
-          '@context': 'https://schema.org',
-          '@type': 'FAQPage',
-          mainEntity: faqItems.map((item) => ({
-            '@type': 'Question',
-            name: item.question,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: item.answer,
-            },
-          })),
-        }
-      : null;
 
   // Hero text from page or fallback to defaults
   const heroTitle = pageData?.h1 || t('home.title');
@@ -215,14 +209,6 @@ export default function HomeClient({
 
   return (
     <div className={styles.main}>
-      {/* FAQ JSON-LD */}
-      {faqJsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-        />
-      )}
-
       {/* Banner / Hero */}
       <div className={styles.bannerContainer}>
         <div className={styles.bannerContent}>
@@ -517,19 +503,7 @@ export default function HomeClient({
 
         {/* FAQ */}
         {faqItems && faqItems.length > 0 && (
-          <section className={styles.seoSection}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>FAQ</h2>
-            </div>
-            <div className={styles.faqList}>
-              {faqItems.map((item, idx) => (
-                <details key={idx} className={styles.faqItem}>
-                  <summary className={styles.faqQuestion}>{item.question}</summary>
-                  <p className={styles.faqAnswer}>{item.answer}</p>
-                </details>
-              ))}
-            </div>
-          </section>
+          <FaqBlock items={faqItems} title="FAQ" icon={<HelpCircle size={20} />} />
         )}
       </div>
     </div>

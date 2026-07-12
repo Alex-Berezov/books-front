@@ -227,6 +227,36 @@ books-front/
 
 ---
 
+## Reusable Components
+
+**BEFORE building something new, check if a reusable component already exists in `components/common/`.**
+
+### FaqBlock — FAQ accordion with JSON-LD
+
+**Location:** `components/common/FaqBlock/FaqBlock.tsx`
+
+Renders FAQ items as an accessible `<details>`/`<summary>` accordion with built-in JSON-LD structured data (FAQPage schema).
+
+**Props:**
+
+| Prop         | Type                   | Default | Description                           |
+| ------------ | ---------------------- | ------- | ------------------------------------- |
+| `items`      | `FaqItem[]` (required) | —       | Array of `{ question, answer }`       |
+| `title`      | `string`               | `"FAQ"` | Section heading text                  |
+| `showJsonLd` | `boolean`              | `true`  | Controls JSON-LD script injection     |
+| `className`  | `string`               | `''`    | Extra CSS class for outer `<section>` |
+| `icon`       | `ReactNode`            | —       | Optional icon before the title        |
+
+**Import:**
+
+```tsx
+import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
+```
+
+**Used by:** homepage, author detail, category/genre/collection detail, tag detail, taxonomy overview pages.
+
+---
+
 ## Troubleshooting
 
 ### Build fails with SCSS variable errors
@@ -256,6 +286,6 @@ books-front/
 
 ---
 
-**Last Updated:** June 28, 2026  
-**Current Milestone:** M0 — Project Bootstrap  
+**Last Updated:** July 12, 2026  
+**Current Milestone:** M3 — Admin Panel (Phase 9 complete)  
 **Supported Languages:** en, es, fr, pt, ru

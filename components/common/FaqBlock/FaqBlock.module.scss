@@ -9,6 +9,15 @@
   font-weight: $font-weight-bold;
   color: $color-text-primary;
   margin: 0 0 $spacing-lg 0;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  color: $color-text-secondary;
 }
 
 .items {
@@ -25,19 +34,24 @@
 
   &[open] {
     border-color: $color-background-dark;
+
+    .question {
+      border-bottom: 1px solid $color-border-base;
+      background: rgba(0, 0, 0, 0.04);
+    }
   }
 }
 
 .question {
   padding: $spacing-md $spacing-lg;
   font-size: $font-size-base;
-  font-weight: $font-weight-medium;
+  font-weight: $font-weight-semibold;
   color: $color-text-primary;
   cursor: pointer;
   user-select: none;
 
   &:hover {
-    background: $color-primary-disabled;
+    color: $color-primary-main;
   }
 
   &::marker {
@@ -46,7 +60,7 @@
 }
 
 .answer {
-  padding: 0 $spacing-lg $spacing-md $spacing-lg;
+  padding: $spacing-md $spacing-lg;
   margin: 0;
   font-size: $font-size-base;
   line-height: $line-height-relaxed;

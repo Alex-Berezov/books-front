@@ -234,44 +234,6 @@
   font-size: $font-size-sm !important;
 }
 
-.faqList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-}
-
-.faqDetails {
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: $border-radius-base;
-  background-color: rgba(0, 0, 0, 0.02);
-  overflow: hidden;
-
-  &[open] .faqSummary {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    background-color: rgba(0, 0, 0, 0.04);
-  }
-}
-
-.faqSummary {
-  padding: $spacing-md;
-  font-weight: $font-weight-semibold;
-  cursor: pointer;
-  color: var(--public-foreground);
-  user-select: none;
-
-  &:hover {
-    color: var(--public-primary);
-  }
-}
-
-.faqAnswer {
-  padding: $spacing-md;
-  font-size: $font-size-base;
-  color: var(--public-foreground);
-  opacity: 0.85;
-  line-height: $line-height-relaxed;
-}
-
 .externalLinks {
   display: flex;
   gap: $spacing-md;

@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { usePublicAuthor } from '@/api/hooks/useAuthors';
 import { useBooks } from '@/api/hooks/useBooks';
 import { Button } from '@/components/common/Button';
+import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -367,20 +368,7 @@ export default function AuthorDetailClient({
 
         {/* FAQ Section */}
         {faq.length > 0 && (
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>
-              <HelpCircle size={20} className={styles.iconTitle} />
-              {headings.faq}
-            </h2>
-            <div className={styles.faqList}>
-              {faq.map((item, idx) => (
-                <details key={idx} className={styles.faqDetails}>
-                  <summary className={styles.faqSummary}>{item.question}</summary>
-                  <div className={styles.faqAnswer}>{item.answer}</div>
-                </details>
-              ))}
-            </div>
-          </section>
+          <FaqBlock items={faq} title={headings.faq} icon={<HelpCircle size={20} />} />
         )}
       </div>
     </div>
