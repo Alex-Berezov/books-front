@@ -1,0 +1,59 @@
+@import '@/styles/tokens.scss';
+
+.button {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: $color-primary;
+  border: 1px solid $color-primary;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-hover;
+    border-color: $color-primary-hover;
+  }
+
+  &:active:not(:disabled) {
+    background: $color-primary-active;
+    border-color: $color-primary-active;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.message {
+  margin-left: 8px;
+  font-size: 13px;
+  white-space: nowrap;
+
+  &.success {
+    color: #16a34a;
+  }
+
+  &.error {
+    color: #dc2626;
+  }
+}

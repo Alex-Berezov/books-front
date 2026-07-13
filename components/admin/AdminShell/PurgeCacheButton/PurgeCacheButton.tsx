@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { RefreshCw } from 'lucide-react';
+import styles from './PurgeCacheButton.module.scss';
 
 export function PurgeCacheButton() {
   const [state, setState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -31,21 +33,17 @@ export function PurgeCacheButton() {
   };
 
   return (
-    <div>
-      <button onClick={handlePurge} disabled={state === 'loading'} type="button">
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <button
+        onClick={handlePurge}
+        disabled={state === 'loading'}
+        type="button"
+        className={styles.button}
+      >
+        <RefreshCw size={16} className={state === 'loading' ? styles.spinning : undefined} />
         {state === 'loading' ? 'Purging...' : 'Purge All Cache'}
       </button>
-      {message && (
-        <span
-          style={{
-            marginLeft: 8,
-            fontSize: 13,
-            color: state === 'success' ? '#16a34a' : '#dc2626',
-          }}
-        >
-          {message}
-        </span>
-      )}
+      {message && <span className={`${styles.message} ${styles[state]}`}>{message}</span>}
     </div>
   );
 }

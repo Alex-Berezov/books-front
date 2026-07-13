@@ -42,9 +42,9 @@ export const AdminTopBar = (props: AdminTopBarProps) => {
       </div>
 
       <div className={styles.actions}>
-        <LanguageSwitcher variant="admin" />
-
         <PurgeCacheButton />
+
+        <LanguageSwitcher variant="admin" />
 
         <div className={styles.userInfo}>
           <span className={styles.userName}>{userName || userEmail || 'User'}</span>
