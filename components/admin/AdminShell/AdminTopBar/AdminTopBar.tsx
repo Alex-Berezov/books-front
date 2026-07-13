@@ -11,6 +11,7 @@
 
 import { LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
+import { PurgeCacheButton } from '@/components/admin/AdminShell/PurgeCacheButton/PurgeCacheButton';
 import { Button } from '@/components/common/Button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import styles from './AdminTopBar.module.scss';
@@ -42,6 +43,8 @@ export const AdminTopBar = (props: AdminTopBarProps) => {
 
       <div className={styles.actions}>
         <LanguageSwitcher variant="admin" />
+
+        <PurgeCacheButton />
 
         <div className={styles.userInfo}>
           <span className={styles.userName}>{userName || userEmail || 'User'}</span>
