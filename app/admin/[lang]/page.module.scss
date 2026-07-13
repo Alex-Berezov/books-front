@@ -96,6 +96,25 @@
 }
 
 /**
+ * Cache section
+ */
+.cacheSection {
+  background: $color-background-secondary;
+  border-radius: 8px;
+  padding: $spacing-lg;
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.cacheTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0;
+}
+
+/**
  * Responsive
  */
 @media (max-width: 768px) {

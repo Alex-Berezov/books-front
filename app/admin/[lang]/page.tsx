@@ -1,6 +1,7 @@
 import { BookOpen, FileText, FolderTree, Tags } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { PurgeCacheButton } from '@/components/admin/AdminShell/PurgeCacheButton/PurgeCacheButton';
 import { isSupportedLang, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 
@@ -87,6 +88,11 @@ export default async function AdminDashboardPage({ params }: Props) {
         <p className={styles.infoText}>
           Content management for the multilingual audiobook platform
         </p>
+      </div>
+
+      <div className={styles.cacheSection}>
+        <h2 className={styles.cacheTitle}>Cache</h2>
+        <PurgeCacheButton />
       </div>
     </div>
   );
