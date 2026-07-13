@@ -91,7 +91,6 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
                 fill
                 sizes="(max-width: 768px) 150px, 200px"
                 priority={priority}
-                unoptimized
               />
             ) : (
               <div className={styles.coverPlaceholder}>
