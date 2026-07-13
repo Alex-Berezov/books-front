@@ -176,6 +176,9 @@ export function Header() {
             open={mobileOpen}
             className={styles.drawer}
             width={280}
+            styles={{
+              body: { padding: 0 },
+            }}
           >
             <nav id="mobile-navigation" className={styles.mobileNav} aria-label={t('header.menu')}>
               {navLinks.map((link) => (

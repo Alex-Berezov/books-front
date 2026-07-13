@@ -186,18 +186,13 @@
 
 .drawer {
   :global {
-    .ant-drawer-content {
-      background-color: var(--bibliaris-green) !important;
-      color: var(--bibliaris-green-foreground) !important;
-    }
     .ant-drawer-header {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-bottom: 1px solid $color-border-base !important;
     }
     .ant-drawer-title {
-      color: var(--gold) !important;
-    }
-    .ant-drawer-close {
-      color: var(--bibliaris-green-foreground) !important;
+      font-size: $font-size-base;
+      font-weight: $font-weight-semibold;
+      color: $color-text-primary;
     }
   }
 }
@@ -205,28 +200,35 @@
 .mobileNav {
   display: flex;
   flex-direction: column;
-  gap: $spacing-xs;
+  gap: 0;
+  padding: $spacing-sm 0;
 }
 
 .mobileNavLink {
-  color: var(--bibliaris-green-foreground);
-  padding: $spacing-sm $spacing-md;
-  border-radius: $border-radius-base;
+  color: $color-text-primary;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: 0;
   font-size: $font-size-base;
   font-weight: $font-weight-medium;
-  transition: background-color $transition-fast;
+  transition:
+    background-color $transition-fast,
+    color $transition-fast;
   text-decoration: none;
+  border-left: 3px solid transparent;
+  margin: 0 $spacing-sm;
+  border-radius: $border-radius-base;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
+    background-color: rgba($color-primary, 0.06);
+    color: var(--public-primary);
   }
 }
 
 .mobileNavLinkActive {
-  background-color: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+  background-color: rgba($color-primary, 0.10);
+  color: var(--public-primary);
   font-weight: $font-weight-semibold;
+  border-color: var(--public-primary);
 }
 
 .pulsingSkeleton {
