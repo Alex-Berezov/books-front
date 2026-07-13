@@ -244,6 +244,12 @@
   opacity: 0.7;
 }
 
+// Below-fold sections — content-visibility for mobile performance
+.belowFold {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
+}
+
 // SEO Text Section
 .seoSection {
   padding: $spacing-xxl 0;

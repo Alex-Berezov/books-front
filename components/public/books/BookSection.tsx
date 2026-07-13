@@ -14,6 +14,7 @@ interface BookSectionProps {
   viewMoreHref?: string;
   loading?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  priorityCount?: number;
 }
 
 export function BookSection({
@@ -22,6 +23,7 @@ export function BookSection({
   viewMoreHref,
   loading = false,
   size = 'md',
+  priorityCount = 0,
 }: BookSectionProps) {
   const { t } = useTranslation();
 
@@ -47,7 +49,9 @@ export function BookSection({
             </div>
           ))
         ) : books.length > 0 ? (
-          books.map((book) => <BookCard key={book.id} book={book} size={size} />)
+          books.map((book, idx) => (
+            <BookCard key={book.id} book={book} size={size} priority={idx < priorityCount} />
+          ))
         ) : (
           <div className={styles.empty}>No books found</div>
         )}

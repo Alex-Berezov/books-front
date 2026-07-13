@@ -1,6 +1,5 @@
 'use client';
 
-import { Skeleton } from 'antd';
 import { BookOpen, ChevronRight, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,19 +20,27 @@ type HomeClientProps = {
   lang: string;
   initialBooks?: BookOverview[];
   initialCategories?: Category[];
+  initialGenres?: Category[];
+  initialCollections?: Category[];
+  initialTags?: Tag[];
   initialPage?: PageResponse | null;
+  audiobooksCount?: number;
 };
 
 export default function HomeClient({
   lang,
   initialBooks,
   initialCategories,
+  initialGenres,
+  initialCollections,
+  initialTags,
   initialPage,
+  audiobooksCount = 0,
 }: HomeClientProps) {
   const supportedLang = lang as SupportedLang;
   const { t } = useTranslation();
 
-  const { data: booksData, isLoading: loadingBooks } = usePublicBooks(
+  const { data: booksData } = usePublicBooks(
     supportedLang,
     { limit: 100 },
     {
@@ -58,9 +65,41 @@ export default function HomeClient({
     }
   );
 
-  const { data: genresData } = useCategories({ type: 'genre', limit: 50 });
-  const { data: collectionsData } = useCategories({ type: 'collection', limit: 50 });
-  const { data: tagsData } = useTags({ limit: 50 });
+  const { data: genresData } = useCategories(
+    { type: 'genre', limit: 50 },
+    {
+      initialData: initialGenres
+        ? {
+            data: initialGenres,
+            meta: { total: initialGenres.length, page: 1, limit: 50, totalPages: 1 },
+          }
+        : undefined,
+    }
+  );
+
+  const { data: collectionsData } = useCategories(
+    { type: 'collection', limit: 50 },
+    {
+      initialData: initialCollections
+        ? {
+            data: initialCollections,
+            meta: { total: initialCollections.length, page: 1, limit: 50, totalPages: 1 },
+          }
+        : undefined,
+    }
+  );
+
+  const { data: tagsData } = useTags(
+    { limit: 50 },
+    {
+      initialData: initialTags
+        ? {
+            data: initialTags,
+            meta: { total: initialTags.length, page: 1, limit: 50, totalPages: 1 },
+          }
+        : undefined,
+    }
+  );
 
   const { data: pageData } = usePage(supportedLang, 'homepage-index', {
     initialData: initialPage || undefined,
@@ -143,7 +182,7 @@ export default function HomeClient({
 
   const getCoverUrl = (book: BookOverview): string => {
     const currentLangVersion = book.versions?.find(
-      (version) => version.language === supportedLang && version.status === 'published'
+      (v) => v.language === supportedLang && v.status === 'published'
     );
     const displayVersion =
       currentLangVersion ||
@@ -204,53 +243,47 @@ export default function HomeClient({
                   {t('home.browseLibrary')}
                 </Button>
               </Link>
-              <Link href={`/${supportedLang}/catalog?type=audio`} passHref legacyBehavior>
-                <Button variant="secondary" size="lg" className={styles.secondaryBtn}>
-                  {t('home.audiobooks')}
-                </Button>
-              </Link>
+              {audiobooksCount > 0 && (
+                <Link href={`/${supportedLang}/catalog?type=audio`} passHref legacyBehavior>
+                  <Button variant="secondary" size="lg" className={styles.secondaryBtn}>
+                    {t('home.audiobooks')}
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
-          {/* Book Stack - 4 latest published books */}
+          {/* Book Stack - 4 latest published books (desktop only) */}
           <div className={styles.bookStack}>
-            {loadingBooks
-              ? Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton.Button
-                    key={i}
-                    active
-                    className={styles.stackSkeleton}
-                    style={{ height: 130 + i * 15 }}
-                  />
-                ))
-              : newReleases.slice(0, 4).map((book, i) => {
-                  const coverUrl = getCoverUrl(book);
-                  return (
-                    <Link
-                      key={book.id}
-                      href={`/${supportedLang}/book/${book.slug || book.id}`}
-                      className={styles.stackBook}
-                      style={{
-                        height: 130 + i * 15,
-                        backgroundColor: 'var(--bibliaris-green)',
-                      }}
-                    >
-                      {coverUrl ? (
-                        <Image
-                          src={coverUrl}
-                          alt={book.title || 'Book cover'}
-                          fill
-                          sizes="90px"
-                          className={styles.stackCover}
-                        />
-                      ) : (
-                        <div className={styles.stackCoverPlaceholder}>
-                          <BookOpen size={24} />
-                        </div>
-                      )}
-                    </Link>
-                  );
-                })}
+            {newReleases.slice(0, 4).map((book, i) => {
+              const coverUrl = getCoverUrl(book);
+              return (
+                <Link
+                  key={book.id}
+                  href={`/${supportedLang}/book/${book.slug || book.id}`}
+                  className={styles.stackBook}
+                  style={{
+                    height: 130 + i * 15,
+                    backgroundColor: 'var(--bibliaris-green)',
+                  }}
+                >
+                  {coverUrl ? (
+                    <Image
+                      src={coverUrl}
+                      alt={book.title || 'Book cover'}
+                      fill
+                      sizes="90px"
+                      className={styles.stackCover}
+                      priority={i < 2}
+                    />
+                  ) : (
+                    <div className={styles.stackCoverPlaceholder}>
+                      <BookOpen size={24} />
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -261,12 +294,12 @@ export default function HomeClient({
           title={t('home.topPopular')}
           books={featuredBooks}
           viewMoreHref={`/${supportedLang}/catalog?sort=popular`}
-          loading={loadingBooks}
+          priorityCount={4}
         />
 
         {/* Browse by Category */}
         {featuredCategories.length > 0 && (
-          <section className={styles.genresSection}>
+          <section className={`${styles.genresSection} ${styles.belowFold}`}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>{t('home.browseByCategory')}</h2>
               <Link href={`/${supportedLang}/categories`} passHref legacyBehavior>
@@ -302,7 +335,7 @@ export default function HomeClient({
 
         {/* Explore by Genre */}
         {featuredGenres.length > 0 && (
-          <section className={styles.genresSection}>
+          <section className={`${styles.genresSection} ${styles.belowFold}`}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>{t('home.genres')}</h2>
               <Link href={`/${supportedLang}/genres`} passHref legacyBehavior>
@@ -338,7 +371,7 @@ export default function HomeClient({
 
         {/* Curated Collections */}
         {featuredCollections.length > 0 && (
-          <section className={styles.genresSection}>
+          <section className={`${styles.genresSection} ${styles.belowFold}`}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>{t('home.curatedCollections')}</h2>
               <Link href={`/${supportedLang}/collections`} passHref legacyBehavior>
@@ -377,12 +410,11 @@ export default function HomeClient({
           title={t('home.newReleases')}
           books={newReleases}
           viewMoreHref={`/${supportedLang}/catalog?sort=new`}
-          loading={loadingBooks}
         />
 
         {/* Explore Book Themes (Tags) */}
         {featuredTags.length > 0 && (
-          <section className={styles.genresSection}>
+          <section className={`${styles.genresSection} ${styles.belowFold}`}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>{t('home.exploreBookThemes')}</h2>
               <Link href={`/${supportedLang}/tags`} passHref legacyBehavior>
@@ -419,7 +451,6 @@ export default function HomeClient({
             title={t('home.audiobooks')}
             books={audiobooks}
             viewMoreHref={`/${supportedLang}/catalog?type=audio`}
-            loading={loadingBooks}
           />
         )}
 
@@ -429,7 +460,6 @@ export default function HomeClient({
             title={t('home.classicLiterature')}
             books={classicBooks}
             viewMoreHref={`/${supportedLang}/catalog/classics`}
-            loading={loadingBooks}
           />
         )}
 
@@ -439,24 +469,25 @@ export default function HomeClient({
             title={t('home.fantasyAdventure')}
             books={fantasyBooks}
             viewMoreHref={`/${supportedLang}/catalog/fantasy`}
-            loading={loadingBooks}
           />
         )}
 
         {/* Why Bibliaris */}
         {whyBibliaris.length > 0 && (
-          <QuotesBlock
-            items={whyBibliaris.map((item) => ({
-              text: item.text,
-              source: item.title,
-            }))}
-            title={t('home.whyBibliaris')}
-          />
+          <div className={styles.belowFold}>
+            <QuotesBlock
+              items={whyBibliaris.map((item) => ({
+                text: item.text,
+                source: item.title,
+              }))}
+              title={t('home.whyBibliaris')}
+            />
+          </div>
         )}
 
         {/* About Bibliaris (SEO text) */}
         {aboutText && (
-          <section className={styles.seoSection}>
+          <section className={`${styles.seoSection} ${styles.belowFold}`}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>{t('home.aboutBibliaris')}</h2>
             </div>
@@ -470,7 +501,9 @@ export default function HomeClient({
 
         {/* FAQ */}
         {faqItems && faqItems.length > 0 && (
-          <FaqBlock items={faqItems} title={t('home.faq')} icon={<HelpCircle size={20} />} />
+          <div className={styles.belowFold}>
+            <FaqBlock items={faqItems} title={t('home.faq')} icon={<HelpCircle size={20} />} />
+          </div>
         )}
       </div>
     </div>
