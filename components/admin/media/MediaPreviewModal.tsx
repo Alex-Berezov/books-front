@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { ImageOff } from 'lucide-react';
-import Image from 'next/image';
 import { Modal } from '@/components/common/Modal';
 import type { MediaFile } from '@/types/api-schema/media';
+import styles from './MediaPreviewModal.module.scss';
 
 interface MediaPreviewModalProps {
   isOpen: boolean;
@@ -33,29 +33,21 @@ export const MediaPreviewModal: FC<MediaPreviewModalProps> = ({ isOpen, onClose,
       size="xl"
       showFooter={false}
     >
-      <div
-        className="flex flex-col items-center gap-6"
-        style={{ maxHeight: '80vh', overflowY: 'auto' }}
-      >
+      <div className={styles.container}>
         {file.type === 'image' && !hasError ? (
-          <div
-            className="w-full bg-gray-50/50 rounded-lg"
-            style={{ position: 'relative', height: '60vh', minHeight: '300px' }}
-          >
-            <Image
+          <div className={styles.imageWrapper}>
+            <img
               src={file.url}
               alt={file.filename}
-              fill
-              className="object-contain p-2"
-              sizes="(max-width: 768px) 100vw, 80vw"
+              className={styles.image}
               onError={() => setHasError(true)}
             />
           </div>
         ) : (
-          <div className="p-8 text-center text-gray-500 flex flex-col items-center gap-2 bg-gray-50 rounded-lg w-full">
+          <div className={styles.errorContainer}>
             {file.type === 'image' ? (
               <>
-                <ImageOff size={48} />
+                <ImageOff size={48} className={styles.errorIcon} />
                 <p>Failed to load image</p>
               </>
             ) : (
@@ -64,23 +56,20 @@ export const MediaPreviewModal: FC<MediaPreviewModalProps> = ({ isOpen, onClose,
           </div>
         )}
 
-        <div className="flex flex-col gap-3 w-full max-w-lg text-sm">
-          <div className="flex items-baseline gap-4 border-b border-gray-100 pb-2">
-            <span className="text-gray-500 w-28 flex-shrink-0">Type:</span>
-            <span className="font-medium"> {file.type}</span>
+        <div className={styles.meta}>
+          <div className={styles.metaRow}>
+            <span className={styles.metaLabel}>Type:</span>
+            <span className={styles.metaValue}>{file.type}</span>
           </div>
 
-          <div className="flex items-baseline gap-4 border-b border-gray-100 pb-2">
-            <span className="text-gray-500 w-28 flex-shrink-0">Size:</span>
-            <span className="font-medium"> {(file.size / 1024 / 1024).toFixed(2)} MB</span>
+          <div className={styles.metaRow}>
+            <span className={styles.metaLabel}>Size:</span>
+            <span className={styles.metaValue}>{(file.size / 1024 / 1024).toFixed(2)} MB</span>
           </div>
 
-          <div className="flex items-center gap-4 pt-1">
-            <span className="text-gray-500 w-28 flex-shrink-0">URL:</span>
-            <div
-              className="truncate select-all bg-gray-50 p-2 rounded text-xs font-mono text-gray-600 border border-gray-200 flex-grow"
-              title={file.url}
-            >
+          <div className={styles.urlRow}>
+            <span className={styles.metaLabel}>URL:</span>
+            <div className={styles.urlBox} title={file.url}>
               {file.url}
             </div>
           </div>

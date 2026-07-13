@@ -1,0 +1,94 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-xl;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.imageWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background: $color-background-secondary;
+  border-radius: 8px;
+  padding: $spacing-md;
+}
+
+.image {
+  display: block;
+  max-width: 100%;
+  max-height: calc(80vh - 120px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.errorContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xxl;
+  text-align: center;
+  color: $color-text-secondary;
+  background: $color-background-secondary;
+  border-radius: 8px;
+}
+
+.errorIcon {
+  opacity: 0.5;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  width: 100%;
+  max-width: 500px;
+  font-size: $font-size-sm;
+}
+
+.metaRow {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-md;
+  border-bottom: 1px solid $color-border-light;
+  padding-bottom: $spacing-sm;
+}
+
+.metaLabel {
+  color: $color-text-secondary;
+  width: 112px;
+  flex-shrink: 0;
+}
+
+.metaValue {
+  font-weight: $font-weight-medium;
+}
+
+.urlRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding-top: 4px;
+}
+
+.urlBox {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: all;
+  background: $color-background-secondary;
+  padding: $spacing-sm;
+  border-radius: 4px;
+  font-size: $font-size-xs;
+  font-family: $font-family-mono;
+  color: $color-text-secondary;
+  border: 1px solid $color-border-light;
+}
