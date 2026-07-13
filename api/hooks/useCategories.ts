@@ -256,8 +256,7 @@ export const useAttachCategory = (
     mutationFn: ({ versionId, categoryId }) => attachCategory(versionId, categoryId),
     ...options,
     onSuccess: (data, variables, context) => {
-      // Invalidate version data for update
-      queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
+      queryClient.invalidateQueries({ queryKey: versionKeys.all });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
@@ -296,8 +295,7 @@ export const useDetachCategory = (
     mutationFn: ({ versionId, categoryId }) => detachCategory(versionId, categoryId),
     ...options,
     onSuccess: (data, variables, context) => {
-      // Invalidate version data for update
-      queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
+      queryClient.invalidateQueries({ queryKey: versionKeys.all });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
