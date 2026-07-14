@@ -154,31 +154,23 @@ export default function HomeClient({
   const whyBibliaris =
     (sections.whyBibliaris as Array<{ icon: string; title: string; text: string }>) || [];
   const aboutText = (sections.aboutText as string) || '';
-  const categorySlugs = (sections.categorySlugs as string[]) || [];
-  const genreSlugs = (sections.genreSlugs as string[]) || [];
-  const collectionSlugs = (sections.collectionSlugs as string[]) || [];
-  const tagSlugs = (sections.tagSlugs as string[]) || [];
 
-  // Filter taxonomy items by configured slugs (or show first 8)
-  const featuredCategories =
-    categorySlugs.length > 0
-      ? categories.filter((c) => categorySlugs.includes(c.slug || c.id)).slice(0, 8)
-      : categories.slice(0, 8);
+  // Top taxonomy items by book count (max 12)
+  const featuredCategories = [...categories]
+    .sort((a, b) => (b.booksCount || 0) - (a.booksCount || 0))
+    .slice(0, 12);
 
-  const featuredGenres =
-    genreSlugs.length > 0
-      ? genres.filter((g) => genreSlugs.includes(g.slug || g.id)).slice(0, 8)
-      : genres.slice(0, 8);
+  const featuredGenres = [...genres]
+    .sort((a, b) => (b.booksCount || 0) - (a.booksCount || 0))
+    .slice(0, 12);
 
-  const featuredCollections =
-    collectionSlugs.length > 0
-      ? collections.filter((c) => collectionSlugs.includes(c.slug || c.id)).slice(0, 8)
-      : collections.slice(0, 8);
+  const featuredCollections = [...collections]
+    .sort((a, b) => (b.booksCount || 0) - (a.booksCount || 0))
+    .slice(0, 12);
 
-  const featuredTags =
-    tagSlugs.length > 0
-      ? tags.filter((tag) => tagSlugs.includes(tag.slug || tag.id)).slice(0, 12)
-      : tags.slice(0, 12);
+  const featuredTags = [...tags]
+    .sort((a, b) => (b.booksCount || 0) - (a.booksCount || 0))
+    .slice(0, 12);
 
   const getCoverUrl = (book: BookOverview): string => {
     const currentLangVersion = book.versions?.find(
