@@ -111,9 +111,9 @@ export default function HomeClient({
       (version) => version.language === supportedLang && version.status === 'published'
     )
   );
-  const categories = (categoriesData?.data || []).filter((cat) => (cat.booksCount || 0) > 0);
-  const genres = (genresData?.data || []).filter((g) => (g.booksCount || 0) > 0);
-  const collections = (collectionsData?.data || []).filter((c) => (c.booksCount || 0) > 0);
+  const categories = categoriesData?.data || [];
+  const genres = genresData?.data || [];
+  const collections = collectionsData?.data || [];
   const tags = tagsData?.data || [];
 
   const featuredBooks = [...allBooks]
