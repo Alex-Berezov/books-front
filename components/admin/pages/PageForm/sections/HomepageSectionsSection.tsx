@@ -293,24 +293,41 @@ export const HomepageSectionsSection: FC<HomepageSectionsSectionProps> = ({
                 </select>
                 <textarea
                   className={styles.textarea}
-                  value={taxonomyLines}
+                  value={
+                    ((col as unknown as Record<string, unknown>).taxonomiesRaw as string) ??
+                    taxonomyLines
+                  }
                   onChange={(e) => {
                     const list = [...(sections.bookCollections as BookCollection[])];
-                    const lines = e.target.value
+                    (list[colIdx] as unknown as Record<string, unknown>).taxonomiesRaw =
+                      e.target.value;
+                    updateSections({ bookCollections: list });
+                  }}
+                  onBlur={(e) => {
+                    const list = [...(sections.bookCollections as BookCollection[])];
+                    const raw =
+                      ((list[colIdx] as unknown as Record<string, unknown>)
+                        .taxonomiesRaw as string) ?? e.target.value;
+                    const lines = raw
                       .split('\n')
                       .map((l) => l.trim())
                       .filter(Boolean);
+                    const validTypes = ['category', 'genre', 'collection', 'tag'];
                     const taxonomies: BookCollectionTaxonomy[] = lines.map((line) => {
-                      const [type, slug] = line.split(':');
+                      const [rawType, ...slugParts] = line.split(':');
+                      const slug = slugParts.join(':');
                       return {
-                        type: type === 'tag' ? 'tag' : ('category' as const),
-                        slug: slug || type,
+                        type: validTypes.includes(rawType)
+                          ? (rawType as BookCollectionTaxonomy['type'])
+                          : 'category',
+                        slug: slug || rawType,
                       };
                     });
+                    delete (list[colIdx] as unknown as Record<string, unknown>).taxonomiesRaw;
                     list[colIdx] = { ...list[colIdx], taxonomies };
                     updateSections({ bookCollections: list });
                   }}
-                  placeholder={`category:classic-fiction\ncategory:victorian-literature\ncategory:gothic-romance\ncategory:world-classics`}
+                  placeholder={`category:classic-fiction\ngenre:mystery\ncollection:bestsellers\ntag:love`}
                   rows={4}
                   disabled={isSubmitting}
                 />

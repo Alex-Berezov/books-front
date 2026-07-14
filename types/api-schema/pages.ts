@@ -101,8 +101,8 @@ export interface PageGroup {
  * Taxonomy reference within a book collection (for homepage sections)
  */
 export interface BookCollectionTaxonomy {
-  /** 'category' or 'tag' */
-  type: 'category' | 'tag';
+  /** Taxonomy type: category, genre, collection, or tag */
+  type: 'category' | 'genre' | 'collection' | 'tag';
   /** Taxonomy slug */
   slug: string;
 }
