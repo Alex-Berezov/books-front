@@ -4,6 +4,7 @@
  * Static pages, SEO metadata
  */
 
+import type { BookOverview } from './books';
 import type { ISODate, PageType, PublicationStatus, SupportedLang, UUID } from './common';
 
 /**
@@ -94,6 +95,36 @@ export interface PageResponse {
 export interface PageGroup {
   translationGroupId: string;
   pages: PageResponse[];
+}
+
+/**
+ * Taxonomy reference within a book collection (for homepage sections)
+ */
+export interface BookCollectionTaxonomy {
+  /** 'category' or 'tag' */
+  type: 'category' | 'tag';
+  /** Taxonomy slug */
+  slug: string;
+}
+
+/**
+ * A curated book collection for the homepage (stored in sections JSON).
+ * Each collection pulls N newest books from each referenced taxonomy.
+ */
+export interface BookCollection {
+  /** Display title (e.g. "Fiction & Stories") */
+  title: string;
+  /** 4 taxonomy references — 3 newest books are taken from each */
+  taxonomies: BookCollectionTaxonomy[];
+}
+
+/**
+ * Resolved collection with books fetched from API.
+ * Used internally for passing data between server component and client.
+ */
+export interface BookCollectionData {
+  title: string;
+  books: BookOverview[];
 }
 
 /**

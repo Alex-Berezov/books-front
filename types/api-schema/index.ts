@@ -124,6 +124,9 @@ export type {
 
 // Pages (CMS)
 export type {
+  BookCollection,
+  BookCollectionData,
+  BookCollectionTaxonomy,
   CreatePageRequest,
   PageGroup,
   PageResponse,

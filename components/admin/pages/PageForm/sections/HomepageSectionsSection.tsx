@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { PageFormData } from '../PageForm.types';
+import type { BookCollection, BookCollectionTaxonomy } from '@/types/api-schema';
 import type {
   Control,
   FieldErrors,
@@ -207,6 +208,83 @@ export const HomepageSectionsSection: FC<HomepageSectionsSectionProps> = ({
           fullWidth
           disabled={isSubmitting}
         />
+      </div>
+
+      {/* Book Collections (curated) */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Book Collections</h2>
+        <p className={styles.hint}>
+          Curated book blocks that mix books from multiple taxonomies. Each block shows 12 books (3
+          newest from each of 4 taxonomies).
+        </p>
+        {(sections.bookCollections as BookCollection[])?.map((col, colIdx) => {
+          const taxonomyLines = col.taxonomies.map((t) => `${t.type}:${t.slug}`).join('\n');
+          return (
+            <div key={colIdx} className={styles.faqBlock}>
+              <div className={styles.faqInputs}>
+                <Input
+                  value={col.title}
+                  onChange={(e) => {
+                    const list = [...(sections.bookCollections as BookCollection[])];
+                    list[colIdx] = { ...list[colIdx], title: e.target.value };
+                    updateSections({ bookCollections: list });
+                  }}
+                  placeholder="Collection title (e.g. Fiction & Stories)"
+                  fullWidth
+                />
+                <textarea
+                  className={styles.textarea}
+                  value={taxonomyLines}
+                  onChange={(e) => {
+                    const list = [...(sections.bookCollections as BookCollection[])];
+                    const lines = e.target.value
+                      .split('\n')
+                      .map((l) => l.trim())
+                      .filter(Boolean);
+                    const taxonomies: BookCollectionTaxonomy[] = lines.map((line) => {
+                      const [type, slug] = line.split(':');
+                      return {
+                        type: type === 'tag' ? 'tag' : ('category' as const),
+                        slug: slug || type,
+                      };
+                    });
+                    list[colIdx] = { ...list[colIdx], taxonomies };
+                    updateSections({ bookCollections: list });
+                  }}
+                  placeholder={`category:classic-fiction\ncategory:victorian-literature\ncategory:gothic-romance\ncategory:world-classics`}
+                  rows={4}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  const list = (sections.bookCollections as BookCollection[]).filter(
+                    (_, i) => i !== colIdx
+                  );
+                  updateSections({ bookCollections: list });
+                }}
+              >
+                Remove
+              </Button>
+            </div>
+          );
+        })}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            const list = [
+              ...((sections.bookCollections as BookCollection[]) || []),
+              { title: '', taxonomies: [] as BookCollectionTaxonomy[] },
+            ];
+            updateSections({ bookCollections: list });
+          }}
+        >
+          + Add Collection
+        </Button>
       </div>
     </>
   );

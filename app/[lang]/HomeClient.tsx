@@ -13,7 +13,14 @@ import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { BookSection } from '@/components/public/books/BookSection';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { AuthorListItem, BookOverview, Category, PageResponse, Tag } from '@/types/api-schema';
+import type {
+  AuthorListItem,
+  BookCollectionData,
+  BookOverview,
+  Category,
+  PageResponse,
+  Tag,
+} from '@/types/api-schema';
 import styles from '../page.module.scss';
 
 type HomeClientProps = {
@@ -25,6 +32,7 @@ type HomeClientProps = {
   initialTags?: Tag[];
   initialAuthors?: AuthorListItem[];
   initialPage?: PageResponse | null;
+  initialCollectionBooks?: BookCollectionData[];
   audiobooksCount?: number;
 };
 
@@ -37,6 +45,7 @@ export default function HomeClient({
   initialTags,
   initialAuthors,
   initialPage,
+  initialCollectionBooks,
   audiobooksCount = 0,
 }: HomeClientProps) {
   const supportedLang = lang as SupportedLang;
@@ -335,6 +344,11 @@ export default function HomeClient({
             </div>
           </section>
         )}
+
+        {/* Curated Book Collections */}
+        {initialCollectionBooks?.map((col, i) => (
+          <BookSection key={i} title={col.title} books={col.books} />
+        ))}
 
         {/* Explore by Genre */}
         {featuredGenres.length > 0 && (
