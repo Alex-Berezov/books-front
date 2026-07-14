@@ -35,6 +35,18 @@ export interface Author {
   booksCount?: number;
 }
 
+export interface AuthorListItem {
+  id: UUID;
+  slug: string;
+  birthDate?: string | null;
+  deathDate?: string | null;
+  wikidataUrl?: string | null;
+  wikipediaUrl?: string | null;
+  photoUrl?: string | null;
+  translations?: AuthorTranslation[];
+  booksCount: number;
+}
+
 export interface PublicAuthorDetail {
   id: UUID;
   slug: string;

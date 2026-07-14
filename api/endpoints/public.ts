@@ -8,6 +8,7 @@
 import { httpGet, buildLangPath } from '@/lib/http';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
+  AuthorListItem,
   BookOverview,
   PageResponse,
   CategoryBooksResponse,
@@ -206,4 +207,20 @@ export const getPublicAuthorBySlug = async (
 ): Promise<PublicAuthorDetail> => {
   const endpoint = buildLangPath(lang, `/authors/${slug}`);
   return httpGet<PublicAuthorDetail>(endpoint, { language: lang });
+};
+
+/**
+ * Get public list of authors
+ */
+export const getPublicAuthors = async (
+  _lang: SupportedLang,
+  params: { page?: number; limit?: number } = {}
+): Promise<PaginatedResponse<AuthorListItem>> => {
+  const { page = 1, limit = 50 } = params;
+  const queryParams = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  const endpoint = buildLangPath(_lang, `/authors?${queryParams.toString()}`);
+  return httpGet<PaginatedResponse<AuthorListItem>>(endpoint);
 };

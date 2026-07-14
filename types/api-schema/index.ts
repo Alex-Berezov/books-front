@@ -169,6 +169,7 @@ export type {
 export type {
   Author,
   AuthorFaq,
+  AuthorListItem,
   AuthorQuote,
   AuthorTranslation,
   PublicAuthorDetail,

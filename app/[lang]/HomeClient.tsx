@@ -13,7 +13,7 @@ import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { BookSection } from '@/components/public/books/BookSection';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { BookOverview, Category, PageResponse, Tag } from '@/types/api-schema';
+import type { AuthorListItem, BookOverview, Category, PageResponse, Tag } from '@/types/api-schema';
 import styles from '../page.module.scss';
 
 type HomeClientProps = {
@@ -23,6 +23,7 @@ type HomeClientProps = {
   initialGenres?: Category[];
   initialCollections?: Category[];
   initialTags?: Tag[];
+  initialAuthors?: AuthorListItem[];
   initialPage?: PageResponse | null;
   audiobooksCount?: number;
 };
@@ -34,6 +35,7 @@ export default function HomeClient({
   initialGenres,
   initialCollections,
   initialTags,
+  initialAuthors,
   initialPage,
   audiobooksCount = 0,
 }: HomeClientProps) {
@@ -171,6 +173,16 @@ export default function HomeClient({
   const featuredTags = [...tags]
     .sort((a, b) => (b.booksCount || 0) - (a.booksCount || 0))
     .slice(0, 12);
+
+  const featuredAuthors = [...(initialAuthors || [])]
+    .sort((a, b) => b.booksCount - a.booksCount)
+    .slice(0, 12);
+
+  const getAuthorDisplayName = (author: AuthorListItem): string => {
+    const translation =
+      author.translations?.find((tr) => tr.language === supportedLang) || author.translations?.[0];
+    return translation?.name || '';
+  };
 
   const getCoverUrl = (book: BookOverview): string => {
     const currentLangVersion = book.versions?.find(
@@ -458,6 +470,50 @@ export default function HomeClient({
             books={fantasyBooks}
             viewMoreHref={`/${supportedLang}/catalog/fantasy`}
           />
+        )}
+
+        {/* Featured Authors */}
+        {featuredAuthors.length > 0 && (
+          <section className={`${styles.genresSection} ${styles.belowFold}`}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>{t('home.authors')}</h2>
+              <Link href={`/${supportedLang}/authors`} passHref legacyBehavior>
+                <Button variant="ghost" className={styles.viewMoreBtn}>
+                  {t('home.viewAll')} <ChevronRight size={16} />
+                </Button>
+              </Link>
+            </div>
+            <div className={styles.authorCarousel}>
+              {featuredAuthors.map((author) => {
+                const name = getAuthorDisplayName(author);
+                return (
+                  <Link
+                    key={author.id}
+                    href={`/${supportedLang}/author/${author.slug}`}
+                    className={styles.authorCard}
+                  >
+                    <div className={styles.authorAvatar}>
+                      {author.photoUrl ? (
+                        <Image
+                          src={author.photoUrl}
+                          alt={name}
+                          fill
+                          className={styles.authorAvatarImg}
+                        />
+                      ) : (
+                        <span className={styles.authorAvatarPlaceholder}>
+                          {name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <div className={styles.authorInfo}>
+                      <span className={styles.authorName}>{name}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
         )}
 
         {/* Why Bibliaris */}
