@@ -317,7 +317,6 @@ export default function HomeClient({
                     key={cat.id}
                     href={`/${supportedLang}/category/${catSlug}`}
                     className={styles.genreCard}
-                    style={{ backgroundColor: 'var(--bibliaris-green)' }}
                   >
                     <div className={styles.genreOverlay} />
                     <div className={styles.genreInfo}>
@@ -353,7 +352,6 @@ export default function HomeClient({
                     key={genre.id}
                     href={`/${supportedLang}/genre/${slug}`}
                     className={styles.genreCard}
-                    style={{ backgroundColor: 'var(--bibliaris-green)' }}
                   >
                     <div className={styles.genreOverlay} />
                     <div className={styles.genreInfo}>
@@ -389,7 +387,6 @@ export default function HomeClient({
                     key={col.id}
                     href={`/${supportedLang}/collection/${slug}`}
                     className={styles.genreCard}
-                    style={{ backgroundColor: 'var(--bibliaris-green)' }}
                   >
                     <div className={styles.genreOverlay} />
                     <div className={styles.genreInfo}>
@@ -432,7 +429,6 @@ export default function HomeClient({
                     key={tag.id}
                     href={`/${supportedLang}/tag/${slug}`}
                     className={styles.genreCard}
-                    style={{ backgroundColor: 'var(--bibliaris-green)' }}
                   >
                     <div className={styles.genreOverlay} />
                     <div className={styles.genreInfo}>
