@@ -63,7 +63,7 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
     book.coverUrl ||
     book.coverImageUrl ||
     '';
-  const rating = book.rating !== undefined && book.rating !== null ? book.rating : 5.0;
+  const rating = book.rating ?? null;
 
   // Determine if it is a new release (created in last 30 days)
   const isNewRelease =
@@ -121,7 +121,7 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
           </Link>
         )}
 
-        <StarRating rating={rating} size="sm" showCount={false} />
+        {rating !== null && <StarRating rating={rating} size="sm" showCount={false} />}
 
         <div className={styles.actions}>
           {hasText && (
