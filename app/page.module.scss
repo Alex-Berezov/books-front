@@ -261,7 +261,7 @@
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-  padding: $spacing-sm $spacing-md;
+  padding: $spacing-lg $spacing-md;
   background: $color-background-secondary;
   border: 1px solid $color-primary-disabled;
   border-radius: $border-radius-xl;
@@ -272,15 +272,14 @@
     border-color $transition-fast;
 
   &:hover {
-    transform: scale(1.02);
     border-color: $color-primary;
   }
 }
 
 .authorAvatar {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
