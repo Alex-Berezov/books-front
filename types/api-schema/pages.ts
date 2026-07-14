@@ -108,12 +108,30 @@ export interface BookCollectionTaxonomy {
 }
 
 /**
+ * Positions where a book collection can appear on the homepage.
+ */
+export type BookCollectionPosition =
+  | 'after-categories'
+  | 'after-genres'
+  | 'after-collections'
+  | 'after-new-releases'
+  | 'after-tags'
+  | 'after-audiobooks'
+  | 'after-classic'
+  | 'after-fantasy'
+  | 'after-authors';
+
+/**
  * A curated book collection for the homepage (stored in sections JSON).
  * Each collection pulls N newest books from each referenced taxonomy.
  */
 export interface BookCollection {
   /** Display title (e.g. "Fiction & Stories") */
   title: string;
+  /** Optional subtitle / description shown below the title */
+  description?: string;
+  /** Where on the homepage to render this collection */
+  position?: BookCollectionPosition;
   /** 4 taxonomy references — 3 newest books are taken from each */
   taxonomies: BookCollectionTaxonomy[];
 }
@@ -124,6 +142,8 @@ export interface BookCollection {
  */
 export interface BookCollectionData {
   title: string;
+  description?: string;
+  position?: BookCollectionPosition;
   books: BookOverview[];
 }
 

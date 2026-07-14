@@ -6,9 +6,15 @@
 
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: $spacing-md;
+  gap: $spacing-md;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
 }
 
 .title {
@@ -16,6 +22,14 @@
   font-weight: $font-weight-bold;
   color: var(--public-foreground);
   margin: 0;
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.7;
+  margin: $spacing-xs 0 0 0;
+  max-width: 600px;
 }
 
 .viewMoreBtn {

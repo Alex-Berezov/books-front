@@ -126,6 +126,7 @@ export type {
 export type {
   BookCollection,
   BookCollectionData,
+  BookCollectionPosition,
   BookCollectionTaxonomy,
   CreatePageRequest,
   PageGroup,

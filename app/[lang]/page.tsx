@@ -102,7 +102,12 @@ export default async function PublicLangPage({ params }: Props) {
             seen.add(b.id);
             return true;
           });
-          return { title: col.title, books } as BookCollectionData;
+          return {
+            title: col.title,
+            description: col.description,
+            position: col.position,
+            books,
+          } as BookCollectionData;
         })
       );
       initialCollectionBooks = raw.filter((c) => c.books.length > 0);

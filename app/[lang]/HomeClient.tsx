@@ -187,6 +187,19 @@ export default function HomeClient({
     .sort((a, b) => b.booksCount - a.booksCount)
     .slice(0, 12);
 
+  const getCollectionAtPosition = (pos: string) =>
+    initialCollectionBooks?.filter((c) => c.position === pos);
+
+  const renderCollections = (pos: string) =>
+    getCollectionAtPosition(pos)?.map((col, i) => (
+      <BookSection
+        key={`collection-${pos}-${i}`}
+        title={col.title}
+        subtitle={col.description}
+        books={col.books}
+      />
+    ));
+
   const getAuthorDisplayName = (author: AuthorListItem): string => {
     const translation =
       author.translations?.find((tr) => tr.language === supportedLang) || author.translations?.[0];
@@ -345,10 +358,7 @@ export default function HomeClient({
           </section>
         )}
 
-        {/* Curated Book Collections */}
-        {initialCollectionBooks?.map((col, i) => (
-          <BookSection key={i} title={col.title} books={col.books} />
-        ))}
+        {renderCollections('after-categories')}
 
         {/* Explore by Genre */}
         {featuredGenres.length > 0 && (
@@ -385,6 +395,8 @@ export default function HomeClient({
           </section>
         )}
 
+        {renderCollections('after-genres')}
+
         {/* Curated Collections */}
         {featuredCollections.length > 0 && (
           <section className={`${styles.genresSection} ${styles.belowFold}`}>
@@ -420,12 +432,16 @@ export default function HomeClient({
           </section>
         )}
 
+        {renderCollections('after-collections')}
+
         {/* New Releases */}
         <BookSection
           title={t('home.newReleases')}
           books={newReleases}
           viewMoreHref={`/${supportedLang}/catalog?sort=new`}
         />
+
+        {renderCollections('after-new-releases')}
 
         {/* Explore Book Themes (Tags) */}
         {featuredTags.length > 0 && (
@@ -459,6 +475,8 @@ export default function HomeClient({
           </section>
         )}
 
+        {renderCollections('after-tags')}
+
         {/* Audiobooks */}
         {audiobooks.length > 0 && (
           <BookSection
@@ -467,6 +485,8 @@ export default function HomeClient({
             viewMoreHref={`/${supportedLang}/catalog?type=audio`}
           />
         )}
+
+        {renderCollections('after-audiobooks')}
 
         {/* Classic Literature */}
         {classicBooks.length > 0 && (
@@ -477,6 +497,8 @@ export default function HomeClient({
           />
         )}
 
+        {renderCollections('after-classic')}
+
         {/* Fantasy & Adventure */}
         {fantasyBooks.length > 0 && (
           <BookSection
@@ -485,6 +507,8 @@ export default function HomeClient({
             viewMoreHref={`/${supportedLang}/catalog/fantasy`}
           />
         )}
+
+        {renderCollections('after-fantasy')}
 
         {/* Featured Authors */}
         {featuredAuthors.length > 0 && (
@@ -529,6 +553,8 @@ export default function HomeClient({
             </div>
           </section>
         )}
+
+        {renderCollections('after-authors')}
 
         {/* Why Bibliaris */}
         {whyBibliaris.length > 0 && (

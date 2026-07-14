@@ -10,6 +10,7 @@ import styles from './BookSection.module.scss';
 
 interface BookSectionProps {
   title: string;
+  subtitle?: string;
   books: BookOverview[];
   viewMoreHref?: string;
   loading?: boolean;
@@ -19,6 +20,7 @@ interface BookSectionProps {
 
 export function BookSection({
   title,
+  subtitle,
   books,
   viewMoreHref,
   loading = false,
@@ -30,7 +32,10 @@ export function BookSection({
   return (
     <section className={styles.section}>
       <div className={styles.header}>
-        <h2 className={styles.title}>{title}</h2>
+        <div className={styles.headerLeft}>
+          <h2 className={styles.title}>{title}</h2>
+          {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+        </div>
         {viewMoreHref && (
           <Link href={viewMoreHref} passHref legacyBehavior>
             <Button type="text" className={styles.viewMoreBtn}>

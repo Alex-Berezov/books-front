@@ -4,7 +4,11 @@ import type { FC } from 'react';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { PageFormData } from '../PageForm.types';
-import type { BookCollection, BookCollectionTaxonomy } from '@/types/api-schema';
+import type {
+  BookCollection,
+  BookCollectionPosition,
+  BookCollectionTaxonomy,
+} from '@/types/api-schema';
 import type {
   Control,
   FieldErrors,
@@ -215,10 +219,33 @@ export const HomepageSectionsSection: FC<HomepageSectionsSectionProps> = ({
         <h2 className={styles.sectionTitle}>Book Collections</h2>
         <p className={styles.hint}>
           Curated book blocks that mix books from multiple taxonomies. Each block shows 12 books (3
-          newest from each of 4 taxonomies).
+          newest from each of 4 taxonomies). Choose a position to place it between homepage
+          sections.
         </p>
         {(sections.bookCollections as BookCollection[])?.map((col, colIdx) => {
           const taxonomyLines = col.taxonomies.map((t) => `${t.type}:${t.slug}`).join('\n');
+          const positionOptions: BookCollectionPosition[] = [
+            'after-categories',
+            'after-genres',
+            'after-collections',
+            'after-new-releases',
+            'after-tags',
+            'after-audiobooks',
+            'after-classic',
+            'after-fantasy',
+            'after-authors',
+          ];
+          const positionLabels: Record<BookCollectionPosition, string> = {
+            'after-categories': 'After Browse by Category',
+            'after-genres': 'After Genres',
+            'after-collections': 'After Curated Collections',
+            'after-new-releases': 'After New Releases',
+            'after-tags': 'After Explore Book Themes',
+            'after-audiobooks': 'After Audiobooks',
+            'after-classic': 'After Classic Literature',
+            'after-fantasy': 'After Fantasy & Adventure',
+            'after-authors': 'After Authors',
+          };
           return (
             <div key={colIdx} className={styles.faqBlock}>
               <div className={styles.faqInputs}>
@@ -232,6 +259,38 @@ export const HomepageSectionsSection: FC<HomepageSectionsSectionProps> = ({
                   placeholder="Collection title (e.g. Fiction & Stories)"
                   fullWidth
                 />
+                <textarea
+                  className={styles.textarea}
+                  value={col.description || ''}
+                  onChange={(e) => {
+                    const list = [...(sections.bookCollections as BookCollection[])];
+                    list[colIdx] = { ...list[colIdx], description: e.target.value };
+                    updateSections({ bookCollections: list });
+                  }}
+                  placeholder="Optional subtitle (e.g. Novels, gothic tales, dramatic stories...)"
+                  rows={2}
+                  disabled={isSubmitting}
+                />
+                <select
+                  className={styles.select}
+                  value={col.position || ''}
+                  onChange={(e) => {
+                    const list = [...(sections.bookCollections as BookCollection[])];
+                    list[colIdx] = {
+                      ...list[colIdx],
+                      position: (e.target.value || undefined) as BookCollectionPosition | undefined,
+                    };
+                    updateSections({ bookCollections: list });
+                  }}
+                  disabled={isSubmitting}
+                >
+                  <option value="">— Select position —</option>
+                  {positionOptions.map((pos) => (
+                    <option key={pos} value={pos}>
+                      {positionLabels[pos]}
+                    </option>
+                  ))}
+                </select>
                 <textarea
                   className={styles.textarea}
                   value={taxonomyLines}
