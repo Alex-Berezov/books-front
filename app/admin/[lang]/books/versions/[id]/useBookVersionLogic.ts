@@ -146,7 +146,7 @@ export const useBookVersionLogic = (versionId: string) => {
           title: trans.localizedTitle || version.title,
           author: trans.localizedAuthorName || version.author,
           description: trans.description || trans.shortDescription || version.description || '',
-          coverImageUrl: version.coverImageUrl || '',
+          coverImageUrl: trans.coverImageUrl || version.coverImageUrl || '',
           type: version.type,
           isFree: version.isFree,
           primaryCategoryId: version.primaryCategoryId || null,
