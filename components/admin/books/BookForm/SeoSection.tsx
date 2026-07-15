@@ -49,6 +49,7 @@ export const SeoSection: FC<SeoSectionProps> = (props) => {
         languageField="language"
         register={register}
         robotsField="seoRobots"
+        routeBase="book"
         setValue={setValue}
         slugField="bookSlug"
         styles={styles}
