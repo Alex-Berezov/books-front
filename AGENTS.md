@@ -131,7 +131,7 @@ docker compose restart
 
 ## Validation Workflow
 
-**MANDATORY after every change:**
+**MANDATORY after every change (пропускать только для тривиальных правок в 1-2 строки):**
 
 ```bash
 yarn validate
@@ -141,6 +141,32 @@ This runs:
 
 1. `yarn lint --fix` — auto-fix ESLint issues
 2. `yarn typecheck` — TypeScript type checking
+
+## Post-Task Checklist
+
+После завершения задачи (кроме тривиальных правок в 1-2 строки) **обязательно** выполнить:
+
+### 1. Code Style Check
+
+- Если менялся frontend — сверить изменения с `CODE_STYLE.md` (inline-стили, `any`/`@ts-ignore`, named exports, импорты, и т.д.)
+- Если менялся backend — сверить изменения с `books/STYLE_GUIDE.md`
+- Если ни то, ни другое не нарушено — явно указать в ответе: "всё соответствует кодстайлу"
+
+### 2. Docs Update Check
+
+- Проверить, нужно ли обновлять документацию в `books-app-docs`:
+  - Менялись ли API-контракты/эндпоинты/DTO? → обновить `api-contracts.md` или `backend/api/endpoints.md`
+  - Менялась ли контентная модель/сущности? → обновить `content-model.md` или `database-schema.md`
+  - Менялись ли бизнес-правила (SEO, i18n, таксономии, public domain)? → обновить соответствующий документ в `ai-context/`
+  - Менялся ли `SUPPORTED_LANGS`? → синхронизировать frontend/backend + docs
+  - Другие изменения, затрагивающие задокументированное поведение
+- Если документация не требует правок — явно указать: "документация не требует обновления"
+
+### 3. Quality Gates
+
+- `yarn validate` (lint + typecheck) — обязательно
+- `yarn test` — при нетривиальных изменениях логики
+- Если менялся backend (не только frontend) — дополнительно `cd books && yarn lint && yarn typecheck && yarn test`
 
 ---
 
@@ -273,9 +299,37 @@ The component checks `source` first, then falls back to `author` for the attribu
 
 ```tsx
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
-```
+\`\`\`
 
 **Used by:** author detail page, book detail page.
+
+---
+
+## Post-Task Checklist Details
+
+### Code Style Check (применять после каждой нетривиальной задачи)
+
+| Что трогали | Где проверять | Что проверять |
+| --- | --- | --- |
+| Frontend | `CODE_STYLE.md` | inline-стили, `any`/`@ts-ignore`, named exports, `import type`, импорты, naming, комментарии |
+| Backend | `STYLE_GUIDE.md` | DTO-структура, early throw, controller/service split, guards, swagger-декораторы |
+| Оба | оба файла | всё выше |
+
+### Docs Update Check (что может потребовать обновления)
+
+| Изменение | Документ для обновления |
+| --- | --- |
+| API-контракты / эндпоинты / DTO | `api-contracts.md` или `backend/api/endpoints.md` |
+| Сущности / модель данных | `content-model.md` или `database-schema.md` |
+| SEO-правила | `seo-rules.md` |
+| i18n / языки | `translation-rules.md`; если `SUPPORTED_LANGS` — синхронизация frontend+backend |
+| Таксономии | `taxonomy-rules.md` |
+| Public domain / копирайт | `public-domain-rules.md` |
+| Auth / permissions | `auth-and-permissions.md` |
+| Архитектурные изменения | `architecture.md`, возможно ADR в `adr/` |
+| Зависимости | `tech-stack.md` и `dependency-policy.md` |
+
+Если документация не требует правок — явно указать: "документация не требует обновления".
 
 ---
 
@@ -308,6 +362,7 @@ import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 
 ---
 
-**Last Updated:** July 12, 2026  
-**Status:** Project implemented and published; development proceeds iteratively. The formal milestone scheme (M0–M10) is no longer tracked — do not use milestones for planning/status assessment.  
+**Last Updated:** July 12, 2026
+**Status:** Project implemented and published; development proceeds iteratively. The formal milestone scheme (M0–M10) is no longer tracked — do not use milestones for planning/status assessment.
 **Supported Languages:** en, es, fr, pt, ru
+```
