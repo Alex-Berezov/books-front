@@ -98,8 +98,9 @@ export default async function PublicLangPage({ params }: Props) {
               .filter((r): r is NonNullable<typeof r> => r !== null)
               .flatMap((r) => (r as { data: BookOverview[] }).data || []) as BookOverview[]
           ).filter((b) => {
-            if (seen.has(b.id)) return false;
-            seen.add(b.id);
+            const key = (b as Record<string, unknown>).bookId || b.id;
+            if (seen.has(key as string)) return false;
+            seen.add(key as string);
             return true;
           });
           return {
