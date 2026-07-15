@@ -31,11 +31,12 @@ export const BookVersionSwitcher: FC<BookVersionSwitcherProps> = (props) => {
 
   const versions = book.versions || [];
 
-  // Sort versions: current language first, then others
+  // Sort versions: current language first, then fixed order: en, es, fr, pt, ru
+  const LANG_ORDER: Record<string, number> = { en: 0, es: 1, fr: 2, pt: 3, ru: 4 };
   const sortedVersions = [...versions].sort((a, b) => {
     if (a.language === lang) return -1;
     if (b.language === lang) return 1;
-    return 0;
+    return (LANG_ORDER[a.language ?? ''] ?? 99) - (LANG_ORDER[b.language ?? ''] ?? 99);
   });
 
   const handleAddVersion = () => {
