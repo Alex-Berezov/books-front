@@ -215,7 +215,7 @@ export const authOptions = {
           // OAuth Login (Google, Facebook)
           try {
             const API_BASE_URL =
-              process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.bibliaris.com/api';
+              process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
             const response = await fetch(`${API_BASE_URL}/auth/social`, {
               method: 'POST',

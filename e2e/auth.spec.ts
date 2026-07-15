@@ -11,4 +11,18 @@ test.describe('Auth & Admin', () => {
     const url = new URL(page.url());
     expect(url.searchParams.get('callbackUrl')).toBe('/admin/en/dashboard');
   });
+
+  test('should redirect to login when accessing private summary route without token', async ({
+    page,
+  }) => {
+    await page.goto('/en/summary/some-book/00000000-0000-0000-0000-000000000000');
+
+    // Should redirect to sign-in (edge middleware protects /:lang/summary/*)
+    await expect(page).toHaveURL(/\/en\/auth\/sign-in/);
+
+    const url = new URL(page.url());
+    expect(url.searchParams.get('callbackUrl')).toBe(
+      '/en/summary/some-book/00000000-0000-0000-0000-000000000000'
+    );
+  });
 });

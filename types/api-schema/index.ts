@@ -4,7 +4,7 @@
  * Temporary types for working with API until generation from OpenAPI.
  * TODO (M2): Replace with auto-generated types from production API
  *
- * @see https://api.bibliaris.com/api/docs-json (when available)
+ * @see https://api.bibliaris.com/docs-json (when available)
  */
 
 // Common types

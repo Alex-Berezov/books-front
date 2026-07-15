@@ -1,7 +1,7 @@
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PageResponse } from '@/types/api-schema';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.bibliaris.com/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
 export async function fetchPageBySlug(
   lang: SupportedLang,

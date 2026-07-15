@@ -18,11 +18,11 @@ const isAdminRoute = (pathname: string): boolean => {
 };
 
 /**
- * Check if path is private reader or player route
+ * Check if path is private reader, player, or summary route
  */
 const isPrivateRoute = (pathname: string): boolean => {
-  // Matches /[lang]/read/... or /[lang]/listen/...
-  return /\/(?:read|listen)\//.test(pathname);
+  // Matches /[lang]/read/... or /[lang]/listen/... or /[lang]/summary/...
+  return /\/(?:read|listen|summary)\//.test(pathname);
 };
 
 /**
@@ -148,5 +148,6 @@ export const config = {
     '/:lang(ru|en|es|fr|pt)/bookshelf/:path*',
     '/:lang(ru|en|es|fr|pt)/read/:path*',
     '/:lang(ru|en|es|fr|pt)/listen/:path*',
+    '/:lang(ru|en|es|fr|pt)/summary/:path*',
   ],
 };

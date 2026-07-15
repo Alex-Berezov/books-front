@@ -21,6 +21,12 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
+      - name: Canonical env guard
+        run: node scripts/check-env.mjs
+
+      - name: Language sync guard (frontend vs backend)
+        run: node scripts/check-langs-sync.mjs
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 

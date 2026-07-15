@@ -26,9 +26,6 @@ Project documentation is available via MCP server `books-docs`. Use MCP tools:
 Key documentation paths:
 
 - `frontend/INDEX.md` — frontend documentation index
-- `frontend/plan/DEVELOPMENT-PLAN.md` — development plan (10 milestones)
-- `frontend/plan/TASKS-TRACKING.md` — current task tracking
-- `frontend/milestones/M*.md` — detailed milestone specs
 - `frontend/frontend-agents/` — API integration guides
 - `frontend/ENDPOINTS.md` — full API endpoints catalog
 
@@ -312,5 +309,5 @@ import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 ---
 
 **Last Updated:** July 12, 2026  
-**Current Milestone:** M3 — Admin Panel (Phase 9 complete)  
+**Status:** Project implemented and published; development proceeds iteratively. The formal milestone scheme (M0–M10) is no longer tracked — do not use milestones for planning/status assessment.  
 **Supported Languages:** en, es, fr, pt, ru

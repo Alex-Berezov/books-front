@@ -1,5 +1,7 @@
 # NextAuth Authorization Module
 
+> ✅ **Implemented and published.** Full NextAuth v5 auth (Credentials + Google + Facebook, JWT/session callbacks, auto-refresh, sign-in/register pages, middleware route protection). The M0.5/M1 framing below is historical; do not use milestones for planning. Systemic AI context: `books-app-docs/ai-context/auth-and-permissions.md`.
+
 > Template for integrating NextAuth into Bibliaris project
 
 ## 📁 Structure
@@ -20,27 +22,22 @@ types/
 └── next-auth.d.ts       # NextAuth type extensions (User, Session, JWT)
 ```
 
-## 🎯 Current Status (M0.5)
+## 🎯 Current Status
 
-**✅ Implemented:**
+**✅ Fully implemented** (project published):
 
-- NextAuth file structure
-- Types for User, Session, JWT
-- Configuration with Credentials Provider (template)
+- NextAuth v5 instance (`auth`, `signIn`, `signOut`, `handlers`)
+- Types for User, Session, JWT (with roles, tokens)
+- Credentials Provider with full `authorize()` against `POST /auth/login`
+- Google + Facebook OAuth providers (sync via `POST /auth/social`)
+- JWT + Session callbacks with automatic token refresh (`refreshAccessToken`)
 - API Route Handler (`/api/auth/*`)
-- SessionProvider for client components
-- Helpers for server components
+- SessionProvider integrated into `AppProviders`
+- Server helpers (`getCurrentUser`, `isStaff`, `hasRole`)
+- Sign-in / register / error pages
+- Middleware protecting admin + private routes (`/read`, `/listen`, `/summary`)
 
-**🔴 TODO (M1):**
-
-- Implement `authorize()` logic in CredentialsProvider
-- Implement callbacks for JWT and Session
-- Implement automatic token refresh
-- Create pages `/[lang]/auth/sign-in` and `/[lang]/auth/error`
-- Integrate SessionProvider into `AppProviders`
-- Add middleware to protect admin routes
-
-## 🔧 Usage (after M1)
+## 🔧 Usage
 
 ### Server Components
 
@@ -153,7 +150,9 @@ interface JWT {
 }
 ```
 
-## 🚀 Plans for M1
+## 📋 Implementation reference (historical)
+
+> The steps below are all **implemented**. Kept as a reference of what was built.
 
 ### 1. Implement Authorization
 
@@ -291,4 +290,4 @@ Make sure you're using `next-auth@^5.0.0-beta`.
 
 ### Warning: "TODO - implement in M1"
 
-This is expected behavior for M0.5. Functionality will be implemented in M1.
+Historical note: this warning is obsolete — auth is fully implemented (see Current Status above).

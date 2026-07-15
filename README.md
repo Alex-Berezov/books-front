@@ -2,9 +2,7 @@
 
 > Multilingual audiobook platform for reading and listening to classic literature
 
-[![Status](https://img.shields.io/badge/status-in_development-yellow)](https://github.com/Alex-Berezov/books-front)
-[![Milestone](https://img.shields.io/badge/milestone-M0-blue)](https://github.com/Alex-Berezov/books-app-docs)
-[![Progress](https://img.shields.io/badge/progress-6%25-orange)](https://github.com/Alex-Berezov/books-app-docs)
+[![Status](https://img.shields.io/badge/status-published-green)](https://github.com/Alex-Berezov/books-front)
 
 ## 🚀 Project Overview
 
@@ -14,16 +12,9 @@ Bibliaris is a modern web platform for discovering, reading, and listening to cl
 
 ## 📋 Current Status
 
-**Milestone M0 (Bootstrap):** 🟡 In Progress (60% complete)
+**Status:** ✅ Implemented and published; development proceeds iteratively.
 
-- ✅ M0.1: Next.js project initialization
-- ✅ M0.2: App Router structure with i18n routing
-- ✅ M0.3: Basic layouts and providers
-- 🔄 M0.4: Language switchers (in progress)
-- ⏳ M0.5: NextAuth stub setup
-- ⏳ M0.6: Base HTTP client
-
-See [books-app-docs](https://github.com/Alex-Berezov/books-app-docs) for detailed progress and task tracking.
+The formal milestone scheme (M0–M10) is **no longer tracked**. Public site and admin panel are live; features are refined iteratively. See [books-app-docs](https://github.com/Alex-Berezov/books-app-docs) → `ai-context/current-sprint.md` for current focus.
 
 ## ⭐ Code Style - REQUIRED READING
 
@@ -161,12 +152,10 @@ Complete project documentation is maintained in a separate private repository fo
 
 ### Documentation includes:
 
-- **Development Plan** - Overall roadmap (10 milestones M0-M10)
-- **Task Tracking** - Detailed progress tracking
+- **AI Context** - Systematic AI-agent context (`ai-context/`)
 - **Backend API Reference** - Complete API integration guide
 - **Git Workflow** - Git procedures and conventions
 - **Frontend Agents** - AI agent integration guides
-- **Milestone Specifications** - Detailed technical requirements
 
 ### For Local Development:
 
@@ -210,6 +199,5 @@ MIT
 
 ---
 
-**Last Updated:** October 19, 2025  
-**Current Milestone:** M0 - Project Bootstrap  
-**Next Milestone:** M1 - Authentication & Roles
+**Last Updated:** July 15, 2026  
+**Status:** Implemented and published; iterative development. Formal milestone scheme (M0–M10) is no longer tracked.
