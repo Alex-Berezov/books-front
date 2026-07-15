@@ -19,7 +19,7 @@ export const bookVersionSchema = z.object({
   /** Book author */
   author: z.string().min(1, 'Author is required').max(100, 'Author name is too long'),
   /** Book description (required) */
-  description: z.string().min(1, 'Description is required').max(4000, 'Description is too long'),
+  description: z.string().min(1, 'Description is required'),
   /** Cover image URL (required) */
   coverImageUrl: z.url('Invalid URL'),
   /** Version type */
