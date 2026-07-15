@@ -98,9 +98,10 @@ export default async function PublicLangPage({ params }: Props) {
               .filter((r): r is NonNullable<typeof r> => r !== null)
               .flatMap((r) => (r as { data: BookOverview[] }).data || []) as BookOverview[]
           ).filter((b) => {
-            const key = (b as Record<string, unknown>).bookId || b.id;
-            if (seen.has(key as string)) return false;
-            seen.add(key as string);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const key = (b as any).bookId || b.id;
+            if (seen.has(key)) return false;
+            seen.add(key);
             return true;
           });
           return {
