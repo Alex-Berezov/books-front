@@ -7,7 +7,7 @@ import { Search, BookOpen, User, BookMarked, Menu, Headphones } from 'lucide-rea
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { getPublicBooks } from '@/api/endpoints/public';
+import { getBookCards } from '@/api/endpoints/public';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { getLangFromPath, type SupportedLang } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -80,15 +80,15 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Check if there are any audiobooks
-  const { data: booksData } = useQuery({
+  // Check if there are any audiobooks (compact cards endpoint, not legacy 11.6 MB)
+  const { data: bookCardsData } = useQuery({
     queryKey: ['audiobooks-check', lang],
-    queryFn: () => getPublicBooks(lang, { limit: 50 }),
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    queryFn: () => getBookCards(lang, 1, 48),
+    staleTime: 10 * 60 * 1000,
     enabled: isMounted,
   });
 
-  const hasAudiobooks = (booksData?.data || []).some((book) => book.hasAudio === true);
+  const hasAudiobooks = (bookCardsData?.items || []).some((book) => book.hasAudio === true);
 
   const handleSearchSubmit = (value: string) => {
     if (value.trim()) {
