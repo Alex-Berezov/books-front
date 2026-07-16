@@ -10,6 +10,7 @@ import { useCategoryBooks } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { toBookCardModel } from '@/lib/mappers/book';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './CatalogTemplate.module.scss';
@@ -268,7 +269,8 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
             ) : (
               <div className={styles.grid}>
                 {filteredBooks.map((book) => (
-                  <BookCard key={book.id} book={book} size="md" />
+                  // TODO(R2): remove mapper after catalog switches to compact /cards endpoint
+                  <BookCard key={book.id} book={toBookCardModel(book, lang)} size="md" />
                 ))}
               </div>
             )}

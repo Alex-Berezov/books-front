@@ -17,6 +17,7 @@ import type {
   ChapterDetail,
   PaginatedResponse,
   PublicAuthorDetail,
+  RelatedBooksResponse,
 } from '@/types/api-schema';
 
 /**
@@ -45,6 +46,21 @@ export const getPublicChapters = async (versionId: string): Promise<ChapterDetai
 export const getBookOverview = async (lang: SupportedLang, slug: string): Promise<BookOverview> => {
   const endpoint = buildLangPath(lang, `/books/${slug}/overview`);
   return httpGet<BookOverview>(endpoint, { language: lang });
+};
+
+/**
+ * Get related books (compact BookCard) for a book page: same-author + similar-by-category.
+ *
+ * Returns only the fields required by the BookCard component (no versions/translations/JSON content).
+ * `limit` is the maximum total number of unique cards across both blocks (default 8, max 16).
+ */
+export const getRelatedBooks = async (
+  lang: SupportedLang,
+  slug: string,
+  limit = 8
+): Promise<RelatedBooksResponse> => {
+  const endpoint = buildLangPath(lang, `/books/${slug}/related?limit=${limit}`);
+  return httpGet<RelatedBooksResponse>(endpoint, { language: lang });
 };
 
 export interface ReaderBootstrapResponse {

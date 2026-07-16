@@ -41,6 +41,7 @@ export type {
 
 // Books
 export type {
+  BookCardModel,
   BookOverview,
   BookSummaryDetail,
   BookVersion,
@@ -48,6 +49,7 @@ export type {
   CreateBookRequest,
   CreateBookResponse,
   CreateBookVersionRequest,
+  RelatedBooksResponse,
   UpdateBookVersionRequest,
   UpsertBookSummaryRequest,
   VersionPreview,

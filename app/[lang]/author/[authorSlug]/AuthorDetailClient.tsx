@@ -20,6 +20,7 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { toBookCardModel } from '@/lib/mappers/book';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview, PublicAuthorDetail, AuthorQuote, AuthorFaq } from '@/types/api-schema';
 import styles from './author.module.scss';
@@ -232,7 +233,13 @@ export default function AuthorDetailClient({
           ) : (
             <div className={styles.booksGrid}>
               {authorBooks.map((book, idx) => (
-                <BookCard key={book.id} book={book} size="md" priority={idx === 0} />
+                // TODO(R2): remove mapper after author page switches to compact /cards endpoint
+                <BookCard
+                  key={book.id}
+                  book={toBookCardModel(book, supportedLang)}
+                  size="md"
+                  priority={idx === 0}
+                />
               ))}
             </div>
           )}
@@ -247,7 +254,8 @@ export default function AuthorDetailClient({
             </h2>
             <div className={styles.booksGrid}>
               {audioBooks.map((book) => (
-                <BookCard key={book.id} book={book} size="md" />
+                // TODO(R2): remove mapper after author page switches to compact /cards endpoint
+                <BookCard key={book.id} book={toBookCardModel(book, supportedLang)} size="md" />
               ))}
             </div>
           </section>

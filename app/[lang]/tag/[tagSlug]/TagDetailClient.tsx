@@ -10,6 +10,7 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { toBookCardModel } from '@/lib/mappers/book';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview, TagTranslation } from '@/types/api-schema';
 import styles from './page.module.scss';
@@ -154,7 +155,8 @@ export default function TagDetailClient({ lang, tagSlug }: TagDetailClientProps)
               <>
                 <div className={styles.grid}>
                   {books.map((book) => (
-                    <BookCard key={book.id} book={book} size="md" />
+                    // TODO(R2): remove mapper after tag page switches to compact /cards endpoint
+                    <BookCard key={book.id} book={toBookCardModel(book, supportedLang)} size="md" />
                   ))}
                 </div>
 

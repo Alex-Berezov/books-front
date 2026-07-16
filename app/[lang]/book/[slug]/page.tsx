@@ -3,13 +3,13 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import { permanentRedirect, notFound } from 'next/navigation';
-import { getBookOverview, resolveSeo, getPublicBooks } from '@/api/endpoints/public';
+import { getBookOverview, resolveSeo, getRelatedBooks } from '@/api/endpoints/public';
 import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { BookOverview } from '@/types/api-schema';
+import type { RelatedBooksResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import styles from './book.module.scss';
 import DescriptionWrapper from './DescriptionWrapper';
@@ -135,19 +135,13 @@ export default async function BookDetailPage({ params }: Props) {
 
   let book;
   let seoData;
-  let allBooks: BookOverview[] = [];
+  let relatedBooks: RelatedBooksResponse = { sameAuthor: [], similar: [] };
   try {
     book = await getBookOverview(supportedLang, slug);
     seoData = await resolveSeo(supportedLang, 'book', slug);
-    const booksRes = await getPublicBooks(supportedLang, { page: 1, limit: 100 });
-    // Filter out books without published versions in the current language
-    allBooks = (booksRes.data || []).filter((bookItem) =>
-      bookItem.versions?.some(
-        (version) => version.language === supportedLang && version.status === 'published'
-      )
-    );
+    relatedBooks = await getRelatedBooks(supportedLang, slug, 8);
   } catch (error) {
-    console.error('Error loading book overview, SEO, or public books on server:', error);
+    console.error('Error loading book overview, SEO, or related books on server:', error);
   }
 
   if (!book) {
@@ -168,41 +162,10 @@ export default async function BookDetailPage({ params }: Props) {
     : null;
   const activeVersion = textVersion || audioVersion || book.versions?.[0] || null;
 
-  // Filter books by the same author (excluding the current book)
-  const authorBooks = book
-    ? allBooks
-        .filter(
-          (bookItem) =>
-            bookItem.id !== book.id &&
-            bookItem.author?.trim().toLowerCase() ===
-              (activeVersion?.author || book.author || '').trim().toLowerCase()
-        )
-        .slice(0, 4)
-    : [];
-
-  // Filter similar books (same categories, excluding the same author books to keep variety)
-  const categoryIds = book?.categories?.map((category) => category.id) || [];
-  let similarBooks = book
-    ? allBooks.filter(
-        (bookItem) =>
-          bookItem.id !== book.id &&
-          bookItem.author?.trim().toLowerCase() !==
-            (activeVersion?.author || book.author || '').trim().toLowerCase() &&
-          bookItem.categories?.some((category) => categoryIds.includes(category.id))
-      )
-    : [];
-
-  // Fallback: if not enough similar books by category, fill with remaining books
-  if (book && similarBooks.length < 4) {
-    const excludedIds = new Set([
-      book.id,
-      ...authorBooks.map((bookItem) => bookItem.id),
-      ...similarBooks.map((bookItem) => bookItem.id),
-    ]);
-    const fillBooks = allBooks.filter((bookItem) => !excludedIds.has(bookItem.id));
-    similarBooks = [...similarBooks, ...fillBooks];
-  }
-  similarBooks = similarBooks.slice(0, 4);
+  // Related books (same-author + similar) now come from a compact backend endpoint
+  // (BookCardModel[] — no versions/translations/JSON content). See R1 of hamlet-ttfb-fix-tz.md.
+  const authorBooks = relatedBooks.sameAuthor;
+  const similarBooks = relatedBooks.similar;
 
   const textHasSummary = textVersion
     ? ((textVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0

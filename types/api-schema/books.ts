@@ -42,6 +42,39 @@ export interface VersionPreview {
 }
 
 /**
+ * Compact book card model for lists/recommendations.
+ *
+ * Contains only the fields required by the BookCard component.
+ * Intentionally does NOT include versions[], _count, tags, categories,
+ * translations, description, JSON content fields, SEO, etc.
+ *
+ * `id` is the canonical Book.id (bookId), used for deduplication, ratings and relations.
+ * `slug` is the BookVersion.slug for the requested :lang.
+ * `authorSlug` is null when authorId is null (legacy data) — do NOT generate from display name.
+ */
+export interface BookCardModel {
+  id: UUID;
+  slug: string;
+  title: string;
+  author: string;
+  authorSlug: string | null;
+  coverImageUrl: string | null;
+  rating: number | null;
+  ratingsCount: number;
+  hasText: boolean;
+  hasAudio: boolean;
+  publishedAt: ISODate | null;
+}
+
+/**
+ * Related books response: same-author cards + similar-by-category cards.
+ */
+export interface RelatedBooksResponse {
+  sameAuthor: BookCardModel[];
+  similar: BookCardModel[];
+}
+
+/**
  * Book overview information
  */
 export interface BookOverview {

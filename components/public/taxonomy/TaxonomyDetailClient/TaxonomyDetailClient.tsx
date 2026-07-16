@@ -11,6 +11,7 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { toBookCardModel } from '@/lib/mappers/book';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview, CategoryType } from '@/types/api-schema';
 import styles from './TaxonomyDetailClient.module.scss';
@@ -512,7 +513,8 @@ export function TaxonomyDetailClient({ lang, slug, taxonomyType }: TaxonomyDetai
               <>
                 <div className={styles.grid}>
                   {filteredBooks.map((book) => (
-                    <BookCard key={book.id} book={book} size="md" />
+                    // TODO(R2): remove mapper after taxonomy page switches to compact /cards endpoint
+                    <BookCard key={book.id} book={toBookCardModel(book, lang)} size="md" />
                   ))}
                 </div>
 

@@ -7,19 +7,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getLangFromPath } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import type { BookOverview } from '@/types/api-schema';
+import type { BookCardModel } from '@/types/api-schema';
 import styles from './BookCard.module.scss';
 import { StarRating } from './StarRating';
 
 interface BookCardProps {
-  book: BookOverview;
+  book: BookCardModel;
   size?: 'sm' | 'md' | 'lg';
   priority?: boolean;
-}
-
-function getAuthorSlug(author?: string) {
-  if (!author || typeof author !== 'string') return '';
-  return encodeURIComponent(author.trim().toLowerCase().replace(/\s+/g, '-'));
 }
 
 export function BookCard({ book, size = 'md', priority = false }: BookCardProps) {
@@ -28,46 +23,26 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
   const { t } = useTranslation();
   const slug = book.slug || book.id;
 
-  // Check version types available for current language
-  const hasText =
-    book.versions?.some(
-      (v) => v.language === lang && v.status === 'published' && v.type === 'text'
-    ) ??
-    book.hasText ??
-    false;
-
-  const hasAudio =
-    book.versions?.some(
-      (v) => v.language === lang && v.status === 'published' && v.type === 'audio'
-    ) ??
-    book.hasAudio ??
-    false;
+  const hasText = book.hasText;
+  const hasAudio = book.hasAudio;
 
   const cardClass = styles[`card-${size}`] || styles['card-md'];
   const coverClass = styles[`cover-${size}`] || styles['cover-md'];
   const textClass = styles[`text-${size}`] || styles['text-md'];
 
-  const currentLangVersion = book.versions?.find(
-    (v) => v.language === lang && v.status === 'published'
-  );
-  const displayVersion =
-    currentLangVersion ||
-    book.versions?.find((v) => v.status === 'published') ||
-    book.versions?.[0];
-
-  const title = displayVersion?.title || book.title || '';
-  const author = displayVersion?.author || book.author || '';
-  const coverUrl =
-    displayVersion?.coverImageUrl ||
-    displayVersion?.coverUrl ||
-    book.coverUrl ||
-    book.coverImageUrl ||
-    '';
+  const title = book.title || '';
+  const author = book.author || '';
+  const coverUrl = book.coverImageUrl || '';
   const rating = book.rating ?? null;
 
-  // Determine if it is a new release (created in last 30 days)
-  const isNewRelease =
-    new Date().getTime() - new Date(book.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000;
+  // Determine if it is a new release: publishedAt within last 30 days.
+  // Falls back to a sentinel that disables the ribbon when publishedAt is null.
+  const isNewRelease = (() => {
+    if (!book.publishedAt) return false;
+    const published = new Date(book.publishedAt);
+    if (Number.isNaN(published.getTime())) return false;
+    return new Date().getTime() - published.getTime() < 30 * 24 * 60 * 60 * 1000;
+  })();
 
   const coverAlt = t('a11y.bookCover')
     .replace('{title}', title)
@@ -112,14 +87,16 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
           {title}
         </Link>
 
-        {author && (
+        {author && book.authorSlug ? (
           <Link
-            href={`/${lang}/author/${getAuthorSlug(author)}`}
+            href={`/${lang}/author/${book.authorSlug}`}
             className={`${styles.author} ${textClass}`}
           >
             {author}
           </Link>
-        )}
+        ) : author ? (
+          <span className={`${styles.author} ${textClass}`}>{author}</span>
+        ) : null}
 
         {rating !== null && <StarRating rating={rating} size="sm" showCount={false} />}
 
