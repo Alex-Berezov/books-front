@@ -64,6 +64,8 @@ export interface BookCardModel {
   hasText: boolean;
   hasAudio: boolean;
   publishedAt: ISODate | null;
+  /** Stable category IDs attached to this book (for homepage category-based filtering). */
+  categoryIds: string[];
 }
 
 /**
@@ -72,6 +74,19 @@ export interface BookCardModel {
 export interface RelatedBooksResponse {
   sameAuthor: BookCardModel[];
   similar: BookCardModel[];
+}
+
+/**
+ * Paginated compact book cards response (homepage / catalog / author).
+ */
+export interface BookCardsResponse {
+  items: BookCardModel[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 /**

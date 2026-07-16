@@ -42,6 +42,7 @@ export type {
 // Books
 export type {
   BookCardModel,
+  BookCardsResponse,
   BookOverview,
   BookSummaryDetail,
   BookVersion,

@@ -1,7 +1,7 @@
-import { getPublicBooks, getPublicAuthorBySlug } from '@/api/endpoints/public';
+import { getAuthorBookCards, getPublicAuthorBySlug } from '@/api/endpoints/public';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { BookOverview, PublicAuthorDetail } from '@/types/api-schema';
+import type { BookCardModel, PublicAuthorDetail } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import AuthorDetailClient from './AuthorDetailClient';
 
@@ -121,7 +121,7 @@ export default async function AuthorDetailPage({ params }: Props) {
   const displayName = toTitleCase(searchName);
 
   let author: PublicAuthorDetail | null = null;
-  let initialBooks: BookOverview[] = [];
+  let initialBooks: BookCardModel[] = [];
   let isFallback = false;
 
   try {
@@ -130,8 +130,8 @@ export default async function AuthorDetailPage({ params }: Props) {
     console.error('Failed to fetch author via getPublicAuthorBySlug, using fallback:', error);
     isFallback = true;
     try {
-      const booksRes = await getPublicBooks(supportedLang, { limit: 100 });
-      initialBooks = booksRes.data || [];
+      const booksRes = await getAuthorBookCards(supportedLang, authorSlug, 1, 48);
+      initialBooks = booksRes.items || [];
     } catch (err) {
       console.error('Error fetching author books on server:', err);
     }

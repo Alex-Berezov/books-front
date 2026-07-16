@@ -2,16 +2,18 @@ import { getCategories } from '@/api/endpoints/admin/categories';
 import { getTags } from '@/api/endpoints/admin/tags';
 import {
   getCategoryBooks,
+  getBookCards,
   getPage,
   getPublicAuthors,
-  getPublicBooks,
   getTagBooks,
 } from '@/api/endpoints/public';
 import { getDictionary } from '@/lib/i18n/dictionaries';
+import { toBookCardModel } from '@/lib/mappers/book';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   AuthorListItem,
+  BookCardModel,
   BookCollection,
   BookCollectionData,
   BookOverview,
@@ -42,7 +44,7 @@ export default async function PublicLangPage({ params }: Props) {
   const { lang } = resolvedParams;
   const supportedLang = lang as SupportedLang;
 
-  let initialBooks: BookOverview[] = [];
+  let initialBooks: BookCardModel[] = [];
   let initialCategories: Category[] = [];
   let initialGenres: Category[] = [];
   let initialCollections: Category[] = [];
@@ -54,7 +56,7 @@ export default async function PublicLangPage({ params }: Props) {
   try {
     const [booksRes, catsRes, genresRes, colsRes, tagsRes, authorsRes, pageRes] = await Promise.all(
       [
-        getPublicBooks(supportedLang, { limit: 100 }),
+        getBookCards(supportedLang, 1, 48),
         getCategories({ limit: 50 }),
         getCategories({ type: 'genre', limit: 50 }),
         getCategories({ type: 'collection', limit: 50 }),
@@ -66,7 +68,7 @@ export default async function PublicLangPage({ params }: Props) {
         getPage(supportedLang, 'homepage-index').catch(() => null as PageResponse | null),
       ]
     );
-    initialBooks = booksRes.data || [];
+    initialBooks = booksRes.items || [];
     initialCategories = catsRes.data || [];
     initialGenres = genresRes.data || [];
     initialCollections = colsRes.data || [];
@@ -93,17 +95,19 @@ export default async function PublicLangPage({ params }: Props) {
             })
           );
           const seen = new Set<string>();
+          // TODO(R-future): tag/category endpoints still return BookOverview; map to BookCardModel.
+          // When a compact /tags/:slug/books/cards endpoint exists, switch to it.
           const books = (
             results
               .filter((r): r is NonNullable<typeof r> => r !== null)
               .flatMap((r) => (r as { data: BookOverview[] }).data || []) as BookOverview[]
-          ).filter((b) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const key = (b as any).bookId || b.id;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
+          )
+            .map((b) => toBookCardModel(b, supportedLang))
+            .filter((b) => {
+              if (seen.has(b.id)) return false;
+              seen.add(b.id);
+              return true;
+            });
           return {
             title: col.title,
             description: col.description,
@@ -116,10 +120,9 @@ export default async function PublicLangPage({ params }: Props) {
     }
   }
 
-  const publishedBooks = initialBooks.filter((book) =>
-    book.versions?.some((v) => v.language === supportedLang && v.status === 'published')
-  );
-  const audiobooksCount = publishedBooks.filter((book) => book.hasAudio === true).length;
+  // BookCardModel already filters to the requested language on the backend;
+  // all items are published in this language. hasAudio is provided on the DTO.
+  const audiobooksCount = initialBooks.filter((book) => book.hasAudio === true).length;
 
   return (
     <HomeClient

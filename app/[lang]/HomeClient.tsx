@@ -3,7 +3,6 @@
 import { BookOpen, ChevronRight, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePublicBooks } from '@/api/hooks';
 import { useCategories } from '@/api/hooks/useCategories';
 import { usePage } from '@/api/hooks/usePublic';
 import { useTags } from '@/api/hooks/useTags';
@@ -15,8 +14,8 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   AuthorListItem,
+  BookCardModel,
   BookCollectionData,
-  BookOverview,
   Category,
   PageResponse,
   Tag,
@@ -25,7 +24,7 @@ import styles from '../page.module.scss';
 
 type HomeClientProps = {
   lang: string;
-  initialBooks?: BookOverview[];
+  initialBooks?: BookCardModel[];
   initialCategories?: Category[];
   initialGenres?: Category[];
   initialCollections?: Category[];
@@ -50,19 +49,6 @@ export default function HomeClient({
 }: HomeClientProps) {
   const supportedLang = lang as SupportedLang;
   const { t } = useTranslation();
-
-  const { data: booksData } = usePublicBooks(
-    supportedLang,
-    { limit: 100 },
-    {
-      initialData: initialBooks
-        ? {
-            data: initialBooks,
-            meta: { total: initialBooks.length, page: 1, limit: 100, totalPages: 1 },
-          }
-        : undefined,
-    }
-  );
 
   const { data: categoriesData } = useCategories(
     { limit: 50 },
@@ -117,11 +103,8 @@ export default function HomeClient({
   });
 
   const sections = (pageData?.sections as Record<string, unknown>) || {};
-  const allBooks = (booksData?.data || []).filter((book) =>
-    book.versions?.some(
-      (version) => version.language === supportedLang && version.status === 'published'
-    )
-  );
+  // BookCardModel[] already filtered to the requested language & published on the backend.
+  const allBooks: BookCardModel[] = initialBooks || [];
   const categories = categoriesData?.data || [];
   const genres = genresData?.data || [];
   const collections = collectionsData?.data || [];
@@ -132,33 +115,33 @@ export default function HomeClient({
     .slice(0, 10);
 
   const newReleases = [...allBooks]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort((a, b) => {
+      const at = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const bt = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return bt - at;
+    })
     .slice(0, 10);
 
   const audiobooks = allBooks.filter((book) => book.hasAudio === true).slice(0, 10);
 
+  // Category-based sections: match by stable categoryIds against categories list
+  // (by id, slug, or localized name containing the keyword).
+  const matchesCategory = (book: BookCardModel, keyword: string, slugHints: string[]): boolean =>
+    book.categoryIds.some((cid) => {
+      const cat = categories.find((c) => c.id === cid);
+      if (!cat) return false;
+      if (slugHints.includes(cat.slug)) return true;
+      return cat.translations?.some((tr) => tr.name.toLowerCase().includes(keyword)) ?? false;
+    });
+
   const classicBooks = allBooks
     .filter((book) =>
-      book.categories?.some(
-        (category) =>
-          ['classics', 'classic-literature', 'classic'].includes(category.id) ||
-          category.translations?.some((translation) =>
-            translation.name.toLowerCase().includes('classic')
-          )
-      )
+      matchesCategory(book, 'classic', ['classics', 'classic-literature', 'classic'])
     )
     .slice(0, 8);
 
   const fantasyBooks = allBooks
-    .filter((book) =>
-      book.categories?.some(
-        (category) =>
-          ['fantasy', 'sci-fi-fantasy'].includes(category.id) ||
-          category.translations?.some((translation) =>
-            translation.name.toLowerCase().includes('fantasy')
-          )
-      )
-    )
+    .filter((book) => matchesCategory(book, 'fantasy', ['fantasy', 'sci-fi-fantasy']))
     .slice(0, 8);
 
   // Sections config from page
@@ -206,23 +189,7 @@ export default function HomeClient({
     return translation?.name || '';
   };
 
-  const getCoverUrl = (book: BookOverview): string => {
-    const currentLangVersion = book.versions?.find(
-      (v) => v.language === supportedLang && v.status === 'published'
-    );
-    const displayVersion =
-      currentLangVersion ||
-      book.versions?.find((v) => v.status === 'published') ||
-      book.versions?.[0];
-
-    return (
-      displayVersion?.coverImageUrl ||
-      displayVersion?.coverUrl ||
-      book.coverUrl ||
-      book.coverImageUrl ||
-      ''
-    );
-  };
+  const getCoverUrl = (book: BookCardModel): string => book.coverImageUrl || '';
 
   // Get translation helper for taxonomy items
   const getTaxonomyName = (item: Category, lang: SupportedLang): string => {

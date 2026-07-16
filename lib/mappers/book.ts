@@ -57,6 +57,7 @@ export const toBookCardModel = (book: BookOverview, lang: SupportedLang): BookCa
     hasText,
     hasAudio,
     publishedAt,
+    categoryIds: (book.categories ?? []).map((c) => c.id),
   };
 };
 

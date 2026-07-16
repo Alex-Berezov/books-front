@@ -14,7 +14,6 @@ import {
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { usePublicAuthor } from '@/api/hooks/useAuthors';
-import { useBooks } from '@/api/hooks/useBooks';
 import { Button } from '@/components/common/Button';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
@@ -22,7 +21,13 @@ import { BookCard } from '@/components/public/books/BookCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { toBookCardModel } from '@/lib/mappers/book';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { BookOverview, PublicAuthorDetail, AuthorQuote, AuthorFaq } from '@/types/api-schema';
+import type {
+  BookCardModel,
+  BookOverview,
+  PublicAuthorDetail,
+  AuthorQuote,
+  AuthorFaq,
+} from '@/types/api-schema';
 import styles from './author.module.scss';
 
 type Props = {
@@ -31,7 +36,7 @@ type Props = {
   displayName: string;
   authorData?: PublicAuthorDetail | null;
   isFallback?: boolean;
-  initialBooks?: BookOverview[];
+  initialBooks?: BookCardModel[];
 };
 
 export default function AuthorDetailClient({
@@ -57,24 +62,11 @@ export default function AuthorDetailClient({
     }
   );
 
-  const { data: booksData, isLoading: isBooksLoading } = useBooks(
-    { limit: 100 },
-    {
-      initialData: initialBooks
-        ? {
-            data: initialBooks,
-            meta: { total: initialBooks.length, page: 1, limit: 100, totalPages: 1 },
-          }
-        : undefined,
-      enabled: isFallback,
-    }
-  );
-
-  const isLoading = isFallback ? isBooksLoading : isAuthorLoading;
+  const isLoading = isFallback ? false : isAuthorLoading;
 
   // Resolve Author Name and Books
   let finalDisplayName = displayName;
-  let authorBooks: BookOverview[] = [];
+  let authorBooks: BookCardModel[] = [];
   let biography = '';
   let quotes: { text: string; source?: string }[] = [];
   let faq: { question: string; answer: string }[] = [];
@@ -85,7 +77,11 @@ export default function AuthorDetailClient({
 
   if (dbAuthor) {
     finalDisplayName = dbAuthor.name;
-    authorBooks = dbAuthor.books || [];
+    // TODO(R-future): author detail endpoint still returns BookOverview[]; map to BookCardModel.
+    // When a compact author-books-cards response is embedded, switch to it.
+    authorBooks = (dbAuthor.books || []).map((b: BookOverview) =>
+      toBookCardModel(b, supportedLang)
+    );
     biography = dbAuthor.biography || '';
     quotes = (dbAuthor.quotes as AuthorQuote[]) || [];
     faq = (dbAuthor.faq as AuthorFaq[]) || [];
@@ -94,20 +90,12 @@ export default function AuthorDetailClient({
     wikidataUrl = dbAuthor.wikidataUrl || null;
     wikipediaUrl = dbAuthor.wikipediaUrl || null;
   } else if (isFallback) {
-    const allBooks = booksData?.data || [];
-    const searchName = decodeURIComponent(authorSlug).replace(/-/g, ' ');
-    authorBooks = allBooks.filter(
-      (b: BookOverview) => b.author && b.author.toLowerCase() === searchName.toLowerCase()
-    );
+    authorBooks = initialBooks || [];
     finalDisplayName = authorBooks.length > 0 ? authorBooks[0].author : displayName;
   }
 
   const totalBooks = authorBooks.length;
-  const audioBooks = authorBooks.filter((b) =>
-    b.versions?.some(
-      (v) => v.language === supportedLang && v.status === 'published' && v.type === 'audio'
-    )
-  );
+  const audioBooks = authorBooks.filter((b) => b.hasAudio === true);
 
   const hasAudiobooks = audioBooks.length > 0;
   const ratings = authorBooks
@@ -233,13 +221,7 @@ export default function AuthorDetailClient({
           ) : (
             <div className={styles.booksGrid}>
               {authorBooks.map((book, idx) => (
-                // TODO(R2): remove mapper after author page switches to compact /cards endpoint
-                <BookCard
-                  key={book.id}
-                  book={toBookCardModel(book, supportedLang)}
-                  size="md"
-                  priority={idx === 0}
-                />
+                <BookCard key={book.id} book={book} size="md" priority={idx === 0} />
               ))}
             </div>
           )}
@@ -254,8 +236,7 @@ export default function AuthorDetailClient({
             </h2>
             <div className={styles.booksGrid}>
               {audioBooks.map((book) => (
-                // TODO(R2): remove mapper after author page switches to compact /cards endpoint
-                <BookCard key={book.id} book={toBookCardModel(book, supportedLang)} size="md" />
+                <BookCard key={book.id} book={book} size="md" />
               ))}
             </div>
           </section>

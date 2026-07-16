@@ -4,7 +4,7 @@
  * Static pages, SEO metadata
  */
 
-import type { BookOverview } from './books';
+import type { BookCardModel } from './books';
 import type { ISODate, PageType, PublicationStatus, SupportedLang, UUID } from './common';
 
 /**
@@ -144,7 +144,7 @@ export interface BookCollectionData {
   title: string;
   description?: string;
   position?: BookCollectionPosition;
-  books: BookOverview[];
+  books: BookCardModel[];
 }
 
 /**

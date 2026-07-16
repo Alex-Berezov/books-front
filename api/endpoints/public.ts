@@ -9,6 +9,7 @@ import { httpGet, buildLangPath } from '@/lib/http';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   AuthorListItem,
+  BookCardsResponse,
   BookOverview,
   PageResponse,
   CategoryBooksResponse,
@@ -61,6 +62,39 @@ export const getRelatedBooks = async (
 ): Promise<RelatedBooksResponse> => {
   const endpoint = buildLangPath(lang, `/books/${slug}/related?limit=${limit}`);
   return httpGet<RelatedBooksResponse>(endpoint, { language: lang });
+};
+
+/**
+ * Get compact paginated book cards for a language (homepage / catalog).
+ *
+ * Replaces the legacy `getPublicBooks({ limit: 100 })` over-fetch (11.9 MB).
+ * Server-side max limit = 48. Returns BookCardModel[] (no versions/translations/JSON content).
+ */
+export const getBookCards = async (
+  lang: SupportedLang,
+  page = 1,
+  limit = 24
+): Promise<BookCardsResponse> => {
+  const endpoint = buildLangPath(lang, `/books/cards?page=${page}&limit=${limit}`);
+  return httpGet<BookCardsResponse>(endpoint, { language: lang });
+};
+
+/**
+ * Get compact paginated book cards for an author (author page fallback).
+ *
+ * Filters by stable `authorId` (resolved from author slug on the backend), NOT by display name.
+ */
+export const getAuthorBookCards = async (
+  lang: SupportedLang,
+  authorSlug: string,
+  page = 1,
+  limit = 24
+): Promise<BookCardsResponse> => {
+  const endpoint = buildLangPath(
+    lang,
+    `/authors/${authorSlug}/books/cards?page=${page}&limit=${limit}`
+  );
+  return httpGet<BookCardsResponse>(endpoint, { language: lang });
 };
 
 export interface ReaderBootstrapResponse {
