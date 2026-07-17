@@ -1,0 +1,95 @@
+@import '@/styles/tokens.scss';
+
+.languageSwitcher {
+  min-width: unset !important;
+  width: auto;
+
+  &.admin {
+    :global {
+      .ant-select-selector {
+        background-color: transparent !important;
+        border-color: rgba(0, 0, 0, 0.15) !important;
+        color: rgba(0, 0, 0, 0.85) !important;
+
+        &:hover {
+          border-color: #c89f55 !important;
+          background-color: rgba(0, 0, 0, 0.04) !important;
+        }
+      }
+
+      .ant-select-selection-item {
+        color: rgba(0, 0, 0, 0.85) !important;
+      }
+
+      .ant-select-arrow {
+        color: rgba(0, 0, 0, 0.45) !important;
+      }
+    }
+  }
+
+  :global {
+    .ant-select-selector {
+      background-color: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: var(--bibliaris-green-foreground) !important;
+      border-radius: 8px !important;
+      transition: all $transition-fast;
+      height: 36px !important;
+      padding: 0 8px !important;
+      display: flex;
+      align-items: center;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+      }
+    }
+
+    .ant-select-selection-item {
+      color: var(--bibliaris-green-foreground) !important;
+      font-weight: 500;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ant-select-arrow {
+      display: none !important;
+    }
+  }
+}
+
+.languageSwitcherPopup {
+  background-color: #17261a !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  padding: 4px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  min-width: 80px !important;
+
+  :global {
+    .ant-select-item {
+      color: rgba(255, 255, 255, 0.85) !important;
+      border-radius: 4px !important;
+      transition: all 0.15s ease;
+      font-weight: 500;
+      padding: 8px 12px !important;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+      }
+    }
+
+    .ant-select-item-option-selected {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      color: var(--gold) !important;
+      font-weight: 600;
+    }
+
+    .ant-select-item-option-active {
+      background-color: rgba(255, 255, 255, 0.08) !important;
+    }
+  }
+}

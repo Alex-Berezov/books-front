@@ -1,13 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Drawer, Slider, Skeleton, Tooltip } from 'antd';
-import { ChevronLeft, ChevronRight, Settings, ArrowLeft, BookOpen, List } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, ArrowLeft, BookOpen, List, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useUpdateTextProgress } from '@/api/hooks/useProgress';
 import { useReaderBootstrap } from '@/api/hooks/usePublic';
-import { Button } from '@/components/common/Button';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ChapterDetail } from '@/types/api-schema';
@@ -40,7 +38,6 @@ export default function ReaderClient({ params }: Props) {
   const { t } = useTranslation();
   const { data: session } = useSession();
 
-  // Fetch Reader bootstrap data (chapters & progress) in a single request!
   const { data: bootstrapData, isLoading } = useReaderBootstrap(
     supportedLang,
     slug,
@@ -58,7 +55,6 @@ export default function ReaderClient({ params }: Props) {
   const [showToc, setShowToc] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Restore progress once bootstrapData is available
   useEffect(() => {
     if (chapters.length > 0 && bootstrapData?.lastProgress && !hasRestoredProgress) {
       if (bootstrapData.lastProgress.chapterNumber) {
@@ -73,7 +69,6 @@ export default function ReaderClient({ params }: Props) {
     }
   }, [chapters, bootstrapData, hasRestoredProgress]);
 
-  // Redirect if URL slug is incorrect for this language
   useEffect(() => {
     if (bootstrapData && bootstrapData.slug && bootstrapData.slug !== slug) {
       router.replace(`/${lang}/book/${bootstrapData.slug}/read`);
@@ -85,7 +80,6 @@ export default function ReaderClient({ params }: Props) {
 
   const currentChapter = chapters[currentChapterIndex];
 
-  // Progress update mutation
   const updateProgressMutation = useUpdateTextProgress(versionId);
 
   const saveProgress = useCallback(
@@ -99,7 +93,6 @@ export default function ReaderClient({ params }: Props) {
     [updateProgressMutation, versionId]
   );
 
-  // Keep save progress ref to avoid dependency changes re-triggering effects
   const saveProgressRef = useRef(saveProgress);
   useEffect(() => {
     saveProgressRef.current = saveProgress;
@@ -112,7 +105,6 @@ export default function ReaderClient({ params }: Props) {
     }, 3000);
   }, []);
 
-  // Reset scroll position only when chapter index changes
   useEffect(() => {
     if (contentRef.current) {
       contentRef.current.scrollTop = 0;
@@ -120,7 +112,6 @@ export default function ReaderClient({ params }: Props) {
     window.scrollTo(0, 0);
   }, [currentChapterIndex]);
 
-  // Trigger progress save timer when chapter index/content changes
   useEffect(() => {
     if (currentChapter) {
       debouncedSave(currentChapter);
@@ -141,11 +132,21 @@ export default function ReaderClient({ params }: Props) {
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
-        <Skeleton.Button active style={{ width: 200, height: 28, marginBottom: 16 }} />
-        <Skeleton.Button active style={{ width: 120, height: 20, marginBottom: 32 }} />
+        <div
+          className={styles.skeletonBlock}
+          style={{ width: 200, height: 28, marginBottom: 16 }}
+        />
+        <div
+          className={styles.skeletonBlock}
+          style={{ width: 120, height: 20, marginBottom: 32 }}
+        />
         <div className={styles.skeletonTextLines}>
           {Array.from({ length: 10 }).map((_, i) => (
-            <Skeleton key={i} active paragraph={{ rows: 1 }} title={false} />
+            <div
+              key={i}
+              className={styles.skeletonBlock}
+              style={{ width: '100%', height: 16, marginBottom: 12 }}
+            />
           ))}
         </div>
       </div>
@@ -156,17 +157,16 @@ export default function ReaderClient({ params }: Props) {
 
   return (
     <div className={`${styles.readerPage} ${themeStyles.class}`}>
-      {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <Button
-            variant="ghost"
-            shape="circle"
-            leftIcon={<ArrowLeft size={18} aria-hidden="true" />}
+          <button
+            type="button"
             onClick={() => router.back()}
             className={styles.iconBtn}
             aria-label={t('book.back')}
-          />
+          >
+            <ArrowLeft size={18} aria-hidden="true" />
+          </button>
           <div className={styles.bookInfo}>
             <span className={styles.bookTitle}>{bootstrapData?.title}</span>
             {currentChapter && <span className={styles.chapterTitle}>{currentChapter.title}</span>}
@@ -174,48 +174,64 @@ export default function ReaderClient({ params }: Props) {
         </div>
 
         <div className={styles.headerRight}>
-          <Tooltip title={t('reader.toc')}>
-            <Button
-              variant="ghost"
-              shape="circle"
-              leftIcon={<List size={18} aria-hidden="true" />}
-              onClick={() => setShowToc(true)}
-              className={styles.iconBtn}
-              aria-label={t('reader.toc')}
-              aria-controls="toc-drawer"
-              aria-expanded={showToc}
-            />
-          </Tooltip>
-          <Tooltip title={t('reader.settings')}>
-            <Button
-              variant="ghost"
-              shape="circle"
-              leftIcon={<Settings size={18} aria-hidden="true" />}
-              onClick={() => setShowSettings(true)}
-              className={styles.iconBtn}
-              aria-label={t('reader.settings')}
-              aria-controls="settings-drawer"
-              aria-expanded={showSettings}
-            />
-          </Tooltip>
+          <button
+            type="button"
+            title={t('reader.toc')}
+            onClick={() => setShowToc(true)}
+            className={styles.iconBtn}
+            aria-label={t('reader.toc')}
+            aria-controls="toc-drawer"
+            aria-expanded={showToc}
+          >
+            <List size={18} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            title={t('reader.settings')}
+            onClick={() => setShowSettings(true)}
+            className={styles.iconBtn}
+            aria-label={t('reader.settings')}
+            aria-controls="settings-drawer"
+            aria-expanded={showSettings}
+          >
+            <Settings size={18} aria-hidden="true" />
+          </button>
         </div>
       </header>
 
-      {/* Table of Contents Drawer */}
-      <Drawer
-        title={t('reader.toc')}
-        placement="left"
-        onClose={() => setShowToc(false)}
-        open={showToc}
-        className={styles.drawer}
-        width={280}
-        id="toc-drawer"
-      >
-        <nav className={styles.tocList} aria-label={t('reader.toc')}>
-          <ol style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            {chapters.map((ch, idx) => (
-              <li key={ch.id}>
+      {/* TOC Drawer */}
+      {showToc && (
+        <div
+          className={styles.drawerOverlay}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowToc(false);
+          }}
+          role="presentation"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setShowToc(false);
+          }}
+        >
+          <div
+            className={`${styles.drawerPanel} ${styles.drawerLeft}`}
+            role="dialog"
+            aria-label={t('reader.toc')}
+            id="toc-drawer"
+          >
+            <div className={styles.drawerHeader}>
+              <span className={styles.drawerTitle}>{t('reader.toc')}</span>
+              <button
+                type="button"
+                onClick={() => setShowToc(false)}
+                className={styles.drawerClose}
+                aria-label={t('a11y.close') || 'Close'}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <nav className={styles.drawerBody} aria-label={t('reader.toc')}>
+              {chapters.map((ch, idx) => (
                 <button
+                  key={ch.id}
                   onClick={() => {
                     setCurrentChapterIndex(idx);
                     setShowToc(false);
@@ -228,75 +244,102 @@ export default function ReaderClient({ params }: Props) {
                   <span className={styles.tocNumber}>{idx + 1}.</span>
                   <span className={styles.tocTitle}>{ch.title}</span>
                 </button>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      </Drawer>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
 
       {/* Settings Drawer */}
-      <Drawer
-        title={t('reader.settings')}
-        placement="right"
-        onClose={() => setShowSettings(false)}
-        open={showSettings}
-        className={styles.drawer}
-        width={280}
-        id="settings-drawer"
-      >
-        <div className={styles.settingsSection} role="group" aria-label={t('reader.theme')}>
-          <h4 className={styles.settingsTitle}>{t('reader.theme')}</h4>
-          <div className={styles.themeSelector}>
-            {(Object.keys(themeMap) as Theme[]).map((tKey) => (
+      {showSettings && (
+        <div
+          className={styles.drawerOverlay}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowSettings(false);
+          }}
+          role="presentation"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setShowSettings(false);
+          }}
+        >
+          <div
+            className={`${styles.drawerPanel} ${styles.drawerRight}`}
+            role="dialog"
+            aria-label={t('reader.settings')}
+            id="settings-drawer"
+          >
+            <div className={styles.drawerHeader}>
+              <span className={styles.drawerTitle}>{t('reader.settings')}</span>
               <button
-                key={tKey}
-                onClick={() => setTheme(tKey)}
-                className={`${styles.themeBtn} ${styles[`themeBtn-${tKey}`]} ${
-                  theme === tKey ? styles.activeThemeBtn : ''
-                }`}
-                aria-pressed={theme === tKey}
+                type="button"
+                onClick={() => setShowSettings(false)}
+                className={styles.drawerClose}
+                aria-label={t('a11y.close') || 'Close'}
               >
-                {t(`reader.themes.${tKey}`)}
+                <X size={18} />
               </button>
-            ))}
+            </div>
+            <div className={styles.drawerBody}>
+              <div className={styles.settingsSection} role="group" aria-label={t('reader.theme')}>
+                <h4 className={styles.settingsTitle}>{t('reader.theme')}</h4>
+                <div className={styles.themeSelector}>
+                  {(Object.keys(themeMap) as Theme[]).map((tKey) => (
+                    <button
+                      key={tKey}
+                      onClick={() => setTheme(tKey)}
+                      className={`${styles.themeBtn} ${styles[`themeBtn-${tKey}`]} ${
+                        theme === tKey ? styles.activeThemeBtn : ''
+                      }`}
+                      aria-pressed={theme === tKey}
+                    >
+                      {t(`reader.themes.${tKey}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                className={styles.settingsSection}
+                role="group"
+                aria-label={t('reader.fontSize')}
+              >
+                <h4 className={styles.settingsTitle}>{t('reader.fontSize')}</h4>
+                <div className={styles.fontSizeSelector}>
+                  {(Object.keys(fontSizeMap) as FontSize[]).map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setFontSize(size)}
+                      className={`${styles.fontSizeBtn} ${
+                        fontSize === size ? styles.activeFontSizeBtn : ''
+                      }`}
+                      aria-pressed={fontSize === size}
+                    >
+                      {size.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.settingsSection}>
+                <h4 className={styles.settingsTitle}>
+                  {t('reader.lineHeight')} ({lineHeight})
+                </h4>
+                <input
+                  type="range"
+                  min={1.2}
+                  max={2.4}
+                  step={0.2}
+                  value={lineHeight}
+                  onChange={(e) => setLineHeight(Number(e.target.value))}
+                  className={styles.nativeSlider}
+                  aria-label={t('reader.lineHeight')}
+                />
+              </div>
+            </div>
           </div>
         </div>
+      )}
 
-        <div className={styles.settingsSection} role="group" aria-label={t('reader.fontSize')}>
-          <h4 className={styles.settingsTitle}>{t('reader.fontSize')}</h4>
-          <div className={styles.fontSizeSelector}>
-            {(Object.keys(fontSizeMap) as FontSize[]).map((size) => (
-              <button
-                key={size}
-                onClick={() => setFontSize(size)}
-                className={`${styles.fontSizeBtn} ${
-                  fontSize === size ? styles.activeFontSizeBtn : ''
-                }`}
-                aria-pressed={fontSize === size}
-              >
-                {size.toUpperCase()}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.settingsSection}>
-          <h4 className={styles.settingsTitle}>
-            {t('reader.lineHeight')} ({lineHeight})
-          </h4>
-          <Slider
-            min={1.2}
-            max={2.4}
-            step={0.2}
-            value={lineHeight}
-            onChange={(v) => setLineHeight(v)}
-            tooltip={{ formatter: (v) => `${v}` }}
-            aria-label={t('reader.lineHeight')}
-          />
-        </div>
-      </Drawer>
-
-      {/* Main Content Area */}
       <div ref={contentRef} className={styles.contentArea}>
         <div className={styles.contentContainer}>
           {currentChapter ? (
@@ -317,22 +360,20 @@ export default function ReaderClient({ params }: Props) {
         </div>
       </div>
 
-      {/* Footer Controls */}
       <footer className={styles.footer}>
         <nav
           aria-label={t('a11y.footerNavigation') || 'Reader chapter navigation'}
           style={{ display: 'contents' }}
         >
-          <Button
-            variant="ghost"
+          <button
+            type="button"
             onClick={goToPrevChapter}
             disabled={currentChapterIndex === 0}
-            leftIcon={<ChevronLeft size={16} aria-hidden="true" />}
             className={styles.footerBtn}
             aria-label={t('a11y.prevChapter')}
           >
-            {t('reader.prev')}
-          </Button>
+            <ChevronLeft size={16} aria-hidden="true" /> {t('reader.prev')}
+          </button>
 
           <div className={styles.progressContainer}>
             <span className={styles.progressText}>
@@ -353,16 +394,15 @@ export default function ReaderClient({ params }: Props) {
             </div>
           </div>
 
-          <Button
-            variant="ghost"
+          <button
+            type="button"
             onClick={goToNextChapter}
             disabled={currentChapterIndex >= chapters.length - 1}
-            rightIcon={<ChevronRight size={16} aria-hidden="true" />}
             className={styles.footerBtn}
             aria-label={t('a11y.nextChapter')}
           >
-            {t('reader.next')}
-          </Button>
+            {t('reader.next')} <ChevronRight size={16} aria-hidden="true" />
+          </button>
         </nav>
       </footer>
     </div>

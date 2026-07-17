@@ -6,14 +6,14 @@
  * Wraps the application with necessary providers:
  * - SessionProvider (NextAuth for authentication)
  * - QueryClientProvider (React Query for API work)
- * - ConfigProvider (Ant Design for theme and UI settings) — lazy-loaded (ssr:false)
- *   to keep antd's rc-components off the initial main-thread critical path (TBT).
  * - SnackbarProvider (Notistack for notifications)
+ *
+ * NOTE: antd ConfigProvider is NOT here — it's only in the admin layout
+ *       to keep antd off the public page initial bundle.
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import { SessionProvider } from 'next-auth/react';
 import { SnackbarProvider } from 'notistack';
@@ -24,15 +24,6 @@ import { QUERY_CACHE_TIME } from '@/lib/queryClient.constants';
 import { toast } from '@/lib/utils/toast';
 import { ApiError } from '@/types/api';
 import type { Session } from 'next-auth';
-
-// Lazy-load antd ConfigProvider (ssr:false) so antd's theme + rc-components
-// are parsed/evaluated AFTER initial hydration, reducing Total Blocking Time.
-// antd components render in SSR HTML with default theme; custom theme applies
-// once this wrapper hydrates on the client.
-const LazyConfigProvider = dynamic(
-  () => import('./LazyConfigProvider').then((m) => m.LazyConfigProvider),
-  { ssr: false }
-);
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -121,19 +112,17 @@ export const AppProviders = (props: AppProvidersProps) => {
       refetchWhenOffline={false} // Don't refetch when offline
     >
       <QueryClientProvider client={queryClient}>
-        <LazyConfigProvider>
-          <SnackbarProvider
-            maxSnack={3}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'left',
-            }}
-            autoHideDuration={4000}
-          >
-            <ToastConfigurator />
-            {children}
-          </SnackbarProvider>
-        </LazyConfigProvider>
+        <SnackbarProvider
+          maxSnack={3}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          autoHideDuration={4000}
+        >
+          <ToastConfigurator />
+          {children}
+        </SnackbarProvider>
       </QueryClientProvider>
     </SessionProvider>
   );

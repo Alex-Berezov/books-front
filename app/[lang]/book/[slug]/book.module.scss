@@ -51,12 +51,17 @@
 }
 
 .backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
   margin-bottom: $spacing-lg;
   color: var(--public-foreground);
   opacity: 0.7;
+  text-decoration: none;
+  font-size: $font-size-sm;
 
   &:hover {
-    color: var(--public-primary) !important;
+    color: var(--public-primary);
     opacity: 1;
   }
 }
@@ -217,15 +222,60 @@
   }
 }
 
-.secondaryBtn {
-  color: var(--public-foreground) !important;
-  border-color: rgba(0, 0, 0, 0.15) !important;
-  background-color: transparent !important;
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid var(--public-border);
+  color: var(--public-foreground);
+  background: transparent;
+  font-family: inherit;
 
   &:hover {
-    color: var(--public-primary) !important;
-    border-color: var(--public-primary) !important;
+    background: rgba(200, 159, 85, 0.08);
+    border-color: var(--gold, #c89f55);
+    color: var(--gold-foreground, #3c2a18);
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.actionLinkActive {
+  background: var(--public-primary) !important;
+  color: var(--public-primary-foreground) !important;
+  border-color: var(--public-primary) !important;
+
+  &:hover {
+    background: var(--public-primary-hover) !important;
+    border-color: var(--public-primary-hover) !important;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
 }
 
 .bookshelfActiveBtn {

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Button } from '@/components/common/Button';
 import styles from './error.module.scss';
 
 export default function Error({
@@ -19,7 +18,9 @@ export default function Error({
     <div className={styles.errorContainer}>
       <h1>Something went wrong!</h1>
       <p>We apologize for the inconvenience.</p>
-      <Button onClick={() => reset()}>Try again</Button>
+      <button type="button" onClick={() => reset()} className={styles.retryButton}>
+        Try again
+      </button>
     </div>
   );
 }

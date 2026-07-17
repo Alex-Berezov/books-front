@@ -1,4 +1,3 @@
-import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { AppProviders } from '@/providers/AppProviders';
 import '@/styles/globals.css';
 import '@/styles/snackbar.scss';
@@ -16,9 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://api.bibliaris.com" crossOrigin="anonymous" />
       </head>
       <body>
-        <AntdRegistry>
-          <AppProviders>{children}</AppProviders>
-        </AntdRegistry>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

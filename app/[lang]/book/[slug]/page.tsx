@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { permanentRedirect, notFound } from 'next/navigation';
 import { getBookOverview, resolveSeo, getRelatedBooks } from '@/api/endpoints/public';
-import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
 import { getDictionary } from '@/lib/i18n/dictionaries';
@@ -225,10 +224,8 @@ export default async function BookDetailPage({ params }: Props) {
         </nav>
 
         {/* Back Button */}
-        <Link href={`/${supportedLang}`} passHref legacyBehavior>
-          <Button variant="ghost" leftIcon={<ChevronLeft size={16} />} className={styles.backBtn}>
-            {dict.book.back}
-          </Button>
+        <Link href={`/${supportedLang}`} className={styles.backBtn}>
+          <ChevronLeft size={16} /> {dict.book.back}
         </Link>
 
         {/* Hero Section */}
@@ -294,12 +291,9 @@ export default async function BookDetailPage({ params }: Props) {
                   <Link
                     key={cat.id}
                     href={`/${supportedLang}/${categoryPath}/${catSlug}`}
-                    passHref
-                    legacyBehavior
+                    className={styles.tagButton}
                   >
-                    <Button variant="secondary" size="sm">
-                      {trans?.name || cat.id}
-                    </Button>
+                    {trans?.name || cat.id}
                   </Link>
                 );
               })}
@@ -329,12 +323,9 @@ export default async function BookDetailPage({ params }: Props) {
                     <Link
                       key={tag.id}
                       href={`/${supportedLang}/tag/${tagSlug}`}
-                      passHref
-                      legacyBehavior
+                      className={styles.tagButton}
                     >
-                      <Button variant="secondary" size="sm">
-                        {tagName}
-                      </Button>
+                      {tagName}
                     </Link>
                   );
                 })}

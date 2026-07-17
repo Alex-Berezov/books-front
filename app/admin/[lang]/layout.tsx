@@ -1,3 +1,4 @@
+import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { notFound, redirect } from 'next/navigation';
 import { AdminSidebar } from '@/components/admin/AdminShell/AdminSidebar/AdminSidebar';
 import { AdminTopBar } from '@/components/admin/AdminShell/AdminTopBar/AdminTopBar';
@@ -5,6 +6,7 @@ import { STAFF_ROLES } from '@/lib/auth/constants';
 import { getCurrentUser } from '@/lib/auth/helpers';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
+import { AdminThemeProvider } from './AdminThemeProvider';
 import styles from '@/styles/admin-layouts.module.scss';
 
 type Props = {
@@ -52,21 +54,25 @@ export default async function AdminLayout({ children, params }: Props) {
   }
 
   return (
-    <div className={styles.adminLayout}>
-      {/* Sidebar menu */}
-      <AdminSidebar lang={lang as SupportedLang} />
+    <AntdRegistry>
+      <AdminThemeProvider>
+        <div className={styles.adminLayout}>
+          {/* Sidebar menu */}
+          <AdminSidebar lang={lang as SupportedLang} />
 
-      {/* Content on the right */}
-      <div className={styles.adminContent}>
-        {/* Top bar */}
-        <AdminTopBar
-          userEmail={session.user.email || undefined}
-          userName={session.user.displayName || undefined}
-        />
+          {/* Content on the right */}
+          <div className={styles.adminContent}>
+            {/* Top bar */}
+            <AdminTopBar
+              userEmail={session.user.email || undefined}
+              userName={session.user.displayName || undefined}
+            />
 
-        {/* Main page content */}
-        <main className={styles.adminMain}>{children}</main>
-      </div>
-    </div>
+            {/* Main page content */}
+            <main className={styles.adminMain}>{children}</main>
+          </div>
+        </div>
+      </AdminThemeProvider>
+    </AntdRegistry>
   );
 }

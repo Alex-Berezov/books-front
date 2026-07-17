@@ -1,6 +1,5 @@
 'use client';
 
-import { Badge } from 'antd';
 import { BookOpen, Headphones } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -51,12 +50,8 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
   return (
     <article className={`${styles.card} ${cardClass}`}>
       {/* Cover Image */}
-      <Link href={`/${lang}/book/${slug}`} className={styles.coverLink}>
-        <Badge.Ribbon
-          text="New"
-          color="var(--public-primary)"
-          className={isNewRelease ? styles.showRibbon : styles.hideRibbon}
-        >
+      <div className={styles.cardCoverWrap}>
+        <Link href={`/${lang}/book/${slug}`} className={styles.coverLink}>
           <div className={`${styles.coverContainer} ${coverClass}`}>
             {coverUrl ? (
               <Image
@@ -78,8 +73,9 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
               </div>
             )}
           </div>
-        </Badge.Ribbon>
-      </Link>
+        </Link>
+        {isNewRelease && <span className={styles.ribbon}>New</span>}
+      </div>
 
       {/* Book Metadata */}
       <div className={styles.metadata}>

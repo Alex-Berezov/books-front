@@ -24,6 +24,11 @@
   width: 176px;
 }
 
+.cardCoverWrap {
+  position: relative;
+  width: 100%;
+}
+
 .coverLink {
   display: block;
   text-decoration: none;
@@ -151,10 +156,28 @@
   }
 }
 
-.showRibbon {
-  display: block !important;
-}
+.ribbon {
+  position: absolute;
+  top: 12px;
+  left: -6px;
+  z-index: 1;
+  padding: 2px 10px;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  line-height: 1.4;
+  color: #ffffff;
+  background-color: var(--public-primary);
+  border-radius: 0 $border-radius-sm $border-radius-sm 0;
+  box-shadow: $shadow-sm;
+  pointer-events: none;
 
-.hideRibbon {
-  display: none !important;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    border: 3px solid transparent;
+    border-top-color: color-mix(in srgb, var(--public-primary) 70%, black);
+    border-right-color: color-mix(in srgb, var(--public-primary) 70%, black);
+  }
 }

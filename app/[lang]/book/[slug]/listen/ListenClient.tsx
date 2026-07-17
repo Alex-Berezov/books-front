@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Drawer, Slider, Skeleton } from 'antd';
 import {
   Play,
   Pause,
@@ -13,6 +12,7 @@ import {
   List,
   RotateCcw,
   RotateCw,
+  X,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -22,7 +22,6 @@ import {
   useRecordView,
   useUpdateAudioProgress,
 } from '@/api/hooks/usePublicAudio';
-import { Button } from '@/components/common/Button';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './player.module.scss';
@@ -47,11 +46,9 @@ export default function ListenClient({ params }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
 
-  // Fetch book details to resolve the audioVersion.id (similar to the legacy flow but resolving first via overview)
   const { data: book, isLoading: loadingBook } = useBookOverview(supportedLang, slug);
   const versionId = book?.versionIds?.audio || '';
 
-  // Redirect if URL slug is incorrect for this language
   useEffect(() => {
     if (book && book.slug && book.slug !== slug) {
       router.replace(`/${lang}/book/${book.slug}/listen`);
@@ -80,25 +77,21 @@ export default function ListenClient({ params }: Props) {
 
   const currentChapter = chapters[currentChapterIndex];
 
-  // API hooks for view recording and progress
   const recordViewMutation = useRecordView();
   const updateProgressMutation = useUpdateAudioProgress(versionId);
 
-  // Select first chapter on load
   useEffect(() => {
     if (chapters.length > 0 && currentChapterIndex >= chapters.length) {
       setCurrentChapterIndex(0);
     }
   }, [chapters, currentChapterIndex]);
 
-  // Audio elements listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const onTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
-      // Progress saving throttle logic
       const now = Date.now();
       if (now - lastSaveRef.current >= PROGRESS_SAVE_THROTTLE_MS && currentChapter) {
         lastSaveRef.current = now;
@@ -129,7 +122,6 @@ export default function ListenClient({ params }: Props) {
     };
   }, [currentChapterIndex, chapters.length, currentChapter, updateProgressMutation]);
 
-  // Handle Play/Pause
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -144,21 +136,18 @@ export default function ListenClient({ params }: Props) {
     }
   }, [isPlaying, recordViewMutation, versionId]);
 
-  // Handle Volume & Mute
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
     audio.volume = isMuted ? 0 : volume;
   }, [volume, isMuted]);
 
-  // Handle Playback Rate (Speed)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
     audio.playbackRate = speed;
   }, [speed]);
 
-  // Handle chapter switch
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentChapter?.audioUrl) return;
@@ -190,8 +179,14 @@ export default function ListenClient({ params }: Props) {
   if (loadingBook || (loadingChapters && versionId)) {
     return (
       <div className={styles.loadingContainer}>
-        <Skeleton.Avatar active size={180} shape="square" className={styles.skeletonCover} />
-        <Skeleton active paragraph={{ rows: 2 }} className={styles.skeletonText} />
+        <div className={styles.skeletonCover} />
+        <div className={styles.skeletonText}>
+          <div
+            className={styles.skeletonBlock}
+            style={{ width: '100%', height: 16, marginBottom: 8 }}
+          />
+          <div className={styles.skeletonBlock} style={{ width: '60%', height: 12 }} />
+        </div>
       </div>
     );
   }
@@ -202,9 +197,9 @@ export default function ListenClient({ params }: Props) {
         <p className={styles.errorText}>
           {chapters.length === 0 ? t('player.noChapters') : t('player.chaptersFail')}
         </p>
-        <Button variant="secondary" onClick={() => router.back()}>
+        <button type="button" onClick={() => router.back()} className={styles.secondaryBtn}>
           {t('player.goBack')}
-        </Button>
+        </button>
       </div>
     );
   }
@@ -215,62 +210,79 @@ export default function ListenClient({ params }: Props) {
     <div className={styles.playerPage}>
       <audio ref={audioRef} preload="metadata" />
 
-      {/* Header */}
       <header className={styles.header}>
-        <Button
-          variant="ghost"
-          shape="circle"
-          leftIcon={<ArrowLeft size={18} aria-hidden="true" />}
+        <button
+          type="button"
           onClick={() => router.back()}
           className={styles.backBtn}
           aria-label={t('book.back')}
-        />
+        >
+          <ArrowLeft size={18} aria-hidden="true" />
+        </button>
         <span className={styles.headerTitle}>{t('player.nowPlaying')}</span>
-        <Button
-          variant="ghost"
-          shape="circle"
-          leftIcon={<List size={18} aria-hidden="true" />}
+        <button
+          type="button"
           onClick={() => setShowChapters(true)}
           className={styles.listBtn}
           aria-label={t('player.chapters')}
           aria-controls="chapters-drawer"
           aria-expanded={showChapters}
-        />
+        >
+          <List size={18} aria-hidden="true" />
+        </button>
       </header>
 
-      {/* Chapters Drawer */}
-      <Drawer
-        title={t('player.chapters')}
-        placement="right"
-        onClose={() => setShowChapters(false)}
-        open={showChapters}
-        className={styles.drawer}
-        width={280}
-        id="chapters-drawer"
-      >
-        <nav className={styles.chapterList} aria-label={t('player.chapters')}>
-          {chapters.map((ch, idx) => (
-            <button
-              key={ch.id}
-              onClick={() => {
-                setCurrentChapterIndex(idx);
-                setShowChapters(false);
-                setIsPlaying(true);
-              }}
-              className={`${styles.chapterItem} ${
-                idx === currentChapterIndex ? styles.activeChapterItem : ''
-              }`}
-            >
-              <span className={styles.chapterNumber}>{ch.number}.</span>
-              <span className={styles.chapterTitleText}>{ch.title}</span>
-            </button>
-          ))}
-        </nav>
-      </Drawer>
+      {showChapters && (
+        <div
+          className={styles.drawerOverlay}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowChapters(false);
+          }}
+          role="presentation"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setShowChapters(false);
+          }}
+        >
+          <div
+            className={`${styles.drawerPanel} ${styles.drawerRight}`}
+            role="dialog"
+            aria-label={t('player.chapters')}
+            id="chapters-drawer"
+          >
+            <div className={styles.drawerHeader}>
+              <span className={styles.drawerTitle}>{t('player.chapters')}</span>
+              <button
+                type="button"
+                onClick={() => setShowChapters(false)}
+                className={styles.drawerClose}
+                aria-label={t('a11y.close') || 'Close'}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <nav className={styles.chapterList} aria-label={t('player.chapters')}>
+              {chapters.map((ch, idx) => (
+                <button
+                  key={ch.id}
+                  onClick={() => {
+                    setCurrentChapterIndex(idx);
+                    setShowChapters(false);
+                    setIsPlaying(true);
+                  }}
+                  className={`${styles.chapterItem} ${
+                    idx === currentChapterIndex ? styles.activeChapterItem : ''
+                  }`}
+                >
+                  <span className={styles.chapterNumber}>{ch.number}.</span>
+                  <span className={styles.chapterTitleText}>{ch.title}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
 
-      {/* Player Main Panel */}
       <div className={styles.main}>
-        {/* Album Art Cover */}
         <div className={styles.coverContainer} style={{ backgroundColor: coverColor }}>
           {book?.coverUrl ? (
             <Image
@@ -288,23 +300,21 @@ export default function ListenClient({ params }: Props) {
           )}
         </div>
 
-        {/* Book & Chapter details */}
         <div className={styles.details}>
           <h1 className={styles.title}>{book?.title}</h1>
           <p className={styles.author}>{book?.author}</p>
           {currentChapter && <p className={styles.chapterTitle}>{currentChapter.title}</p>}
         </div>
 
-        {/* Timeline Slider */}
         <div className={styles.timeline}>
-          <Slider
+          <input
+            type="range"
             min={0}
             max={duration || 100}
             step={1}
             value={currentTime}
-            onChange={handleSeek}
-            tooltip={{ formatter: (v) => formatTime(v || 0) }}
-            className={styles.slider}
+            onChange={(e) => handleSeek(Number(e.target.value))}
+            className={styles.nativeSlider}
             aria-label={t('a11y.audioProgress')}
           />
           <div className={styles.timeLabels}>
@@ -313,28 +323,28 @@ export default function ListenClient({ params }: Props) {
           </div>
         </div>
 
-        {/* Player Core Controls */}
         <div className={styles.controls}>
-          <Button
-            variant="ghost"
-            shape="circle"
-            leftIcon={<SkipBack size={22} aria-hidden="true" />}
+          <button
+            type="button"
             onClick={() => setCurrentChapterIndex((i) => Math.max(0, i - 1))}
             disabled={currentChapterIndex === 0}
             className={styles.controlBtn}
             aria-label={t('a11y.prevChapter')}
-          />
+          >
+            <SkipBack size={22} aria-hidden="true" />
+          </button>
 
-          <Button
-            variant="ghost"
-            shape="circle"
-            leftIcon={<RotateCcw size={22} aria-hidden="true" />}
+          <button
+            type="button"
             onClick={() => handleSkip(-15)}
             className={styles.controlBtn}
             aria-label={t('a11y.skipBack')}
-          />
+          >
+            <RotateCcw size={22} aria-hidden="true" />
+          </button>
 
           <button
+            type="button"
             onClick={() => setIsPlaying(!isPlaying)}
             className={styles.playBtn}
             aria-label={isPlaying ? t('a11y.pause') : t('a11y.play')}
@@ -346,32 +356,30 @@ export default function ListenClient({ params }: Props) {
             )}
           </button>
 
-          <Button
-            variant="ghost"
-            shape="circle"
-            leftIcon={<RotateCw size={22} aria-hidden="true" />}
+          <button
+            type="button"
             onClick={() => handleSkip(15)}
             className={styles.controlBtn}
             aria-label={t('a11y.skipForward')}
-          />
+          >
+            <RotateCw size={22} aria-hidden="true" />
+          </button>
 
-          <Button
-            variant="ghost"
-            shape="circle"
-            leftIcon={<SkipForward size={22} aria-hidden="true" />}
+          <button
+            type="button"
             onClick={() => setCurrentChapterIndex((i) => Math.min(chapters.length - 1, i + 1))}
             disabled={currentChapterIndex === chapters.length - 1}
             className={styles.controlBtn}
             aria-label={t('a11y.nextChapter')}
-          />
+          >
+            <SkipForward size={22} aria-hidden="true" />
+          </button>
         </div>
 
-        {/* Bottom controls panel (Volume & Speed selector) */}
-        <div className={styles.bottomControls}>
-          {/* Speed settings dropdown */}
+        <div className={styles.footerControls}>
           <div className={styles.speedControl}>
             <label htmlFor="playback-speed-select" className={styles.label}>
-              {t('player.speed') || t('a11y.playbackSpeed')}:
+              {t('player.speed')}:
             </label>
             <select
               id="playback-speed-select"
@@ -387,32 +395,31 @@ export default function ListenClient({ params }: Props) {
             </select>
           </div>
 
-          {/* Volume slider */}
           <div className={styles.volumeControl}>
-            <Button
-              variant="ghost"
-              shape="circle"
-              leftIcon={
-                isMuted || volume === 0 ? (
-                  <VolumeX size={18} aria-hidden="true" />
-                ) : (
-                  <Volume2 size={18} aria-hidden="true" />
-                )
-              }
+            <button
+              type="button"
               onClick={() => setIsMuted(!isMuted)}
               className={styles.volumeBtn}
               aria-label={isMuted || volume === 0 ? t('a11y.unmute') : t('a11y.mute')}
-            />
-            <Slider
+            >
+              {isMuted || volume === 0 ? (
+                <VolumeX size={18} aria-hidden="true" />
+              ) : (
+                <Volume2 size={18} aria-hidden="true" />
+              )}
+            </button>
+            <input
+              type="range"
               min={0}
               max={1}
               step={0.1}
               value={isMuted ? 0 : volume}
-              onChange={(v) => {
+              onChange={(e) => {
+                const v = Number(e.target.value);
                 setVolume(v);
                 if (v > 0) setIsMuted(false);
               }}
-              className={styles.volumeSlider}
+              className={styles.nativeSlider}
               aria-label={t('a11y.volume')}
             />
           </div>

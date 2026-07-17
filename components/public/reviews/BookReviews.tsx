@@ -14,7 +14,6 @@ import {
   useCommentLikes,
 } from '@/api/hooks/useBookComments';
 import { bookKeys } from '@/api/hooks/useBooks';
-import { Button } from '@/components/common/Button';
 import { StarRating } from '@/components/public/books/StarRating';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { queryKeys } from '@/lib/queryClient';
@@ -177,9 +176,9 @@ export default function BookReviews({
       ) : (
         <div className={styles.authBanner}>
           <p>{t('reviews.signInToRate')}</p>
-          <Button variant="secondary" onClick={handleSignInRedirect}>
+          <button className={styles.authBtn} onClick={handleSignInRedirect}>
             {t('reviews.signIn')}
-          </Button>
+          </button>
         </div>
       )}
 
@@ -457,18 +456,20 @@ function ReviewItem({
             maxLength={1000}
           />
           <div className={styles.replyFormActions}>
-            <Button variant="ghost" size="sm" onClick={() => setShowReplyForm(false)}>
+            <button className={styles.ghostBtn} onClick={() => setShowReplyForm(false)}>
               {t('reviews.cancel')}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
+            </button>
+            <button
+              className={styles.secondaryBtn}
               type="submit"
-              loading={createCommentMutation.isPending}
-              disabled={!replyText.trim()}
+              disabled={createCommentMutation.isPending || !replyText.trim()}
             >
-              {t('reviews.submit')}
-            </Button>
+              {createCommentMutation.isPending ? (
+                <Loader2 className={styles.spinner} size={14} />
+              ) : (
+                t('reviews.submit')
+              )}
+            </button>
           </div>
         </form>
       )}

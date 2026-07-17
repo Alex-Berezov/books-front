@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Input, Drawer, Dropdown } from 'antd';
-import { Search, BookOpen, User, BookMarked, Menu, Headphones } from 'lucide-react';
+import { Search, BookOpen, User, BookMarked, Menu, Headphones, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
@@ -11,7 +10,6 @@ import { getBookCards } from '@/api/endpoints/public';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { getLangFromPath, type SupportedLang } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import type { MenuProps } from 'antd';
 import styles from './Header.module.scss';
 
 const ALL_NAV_ITEMS = [
@@ -79,6 +77,17 @@ export function Header() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  // Close drawer on Escape key
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen]);
 
   // Check if there are any audiobooks (compact cards endpoint, not legacy 11.6 MB)
   const { data: bookCardsData } = useQuery({
@@ -101,28 +110,10 @@ export function Header() {
     (link) => link.key !== 'audiobooks' || hasAudiobooks
   );
 
-  const userMenuItems: MenuProps['items'] = [
-    {
-      key: 'profile',
-      label: <Link href={`/${lang}/profile`}>{t('profile.cabinet')}</Link>,
-    },
-    {
-      key: 'bookshelf',
-      label: <Link href={`/${lang}/bookshelf`}>{t('header.myBookshelf')}</Link>,
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'signout',
-      danger: true,
-      label: t('header.signOut'),
-      onClick: () => {
-        document.cookie = 'logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        signOut({ callbackUrl: `/${lang}` });
-      },
-    },
-  ];
+  const handleSignOut = () => {
+    document.cookie = 'logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    signOut({ callbackUrl: `/${lang}` });
+  };
 
   const currentFlag =
     lang === 'ru'
@@ -141,15 +132,16 @@ export function Header() {
         <div className={styles.topRow}>
           {/* Mobile Menu Button */}
           {isMounted ? (
-            <Button
-              type="text"
-              icon={<Menu size={20} aria-hidden="true" />}
+            <button
+              type="button"
               className={styles.mobileMenuBtn}
               onClick={() => setMobileOpen(true)}
               aria-label={t('a11y.openMenu')}
               aria-controls="mobile-navigation"
               aria-expanded={mobileOpen}
-            />
+            >
+              <Menu size={20} aria-hidden="true" />
+            </button>
           ) : (
             <div
               style={{
@@ -169,31 +161,53 @@ export function Header() {
             </div>
           )}
 
-          <Drawer
-            title={t('header.menu')}
-            placement="left"
-            onClose={() => setMobileOpen(false)}
-            open={mobileOpen}
-            className={styles.drawer}
-            width={280}
-            styles={{
-              body: { padding: 0 },
-            }}
-          >
-            <nav id="mobile-navigation" className={styles.mobileNav} aria-label={t('header.menu')}>
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`${styles.mobileNavLink} ${isActiveNav(pathname, link.key, lang) ? styles.mobileNavLinkActive : ''}`}
-                  aria-current={isActiveNav(pathname, link.key, lang) ? 'page' : undefined}
-                  onClick={() => setMobileOpen(false)}
+          {/* Mobile Drawer */}
+          {mobileOpen && (
+            <button
+              type="button"
+              className={styles.drawerOverlay}
+              onClick={() => setMobileOpen(false)}
+              aria-label={t('a11y.closeMenu')}
+            >
+              {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
+              <section
+                className={styles.drawerPanel}
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-label={t('header.menu')}
+              >
+                <div className={styles.drawerHeader}>
+                  <span className={styles.drawerTitle}>{t('header.menu')}</span>
+                  <button
+                    type="button"
+                    className={styles.drawerCloseBtn}
+                    onClick={() => setMobileOpen(false)}
+                    aria-label={t('a11y.closeMenu')}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <nav
+                  id="mobile-navigation"
+                  className={styles.mobileNav}
+                  aria-label={t('header.menu')}
                 >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </Drawer>
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`${styles.mobileNavLink} ${isActiveNav(pathname, link.key, lang) ? styles.mobileNavLinkActive : ''}`}
+                      aria-current={isActiveNav(pathname, link.key, lang) ? 'page' : undefined}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </nav>
+              </section>
+            </button>
+          )}
 
           {/* Logo */}
           <Link href={`/${lang}`} className={styles.logo} aria-label="BIBLIARIS">
@@ -213,21 +227,27 @@ export function Header() {
                   e.preventDefault();
                   handleSearchSubmit(searchQuery);
                 }}
-                style={{ width: '100%' }}
+                className={styles.searchForm}
               >
                 <label htmlFor="site-search" className="sr-only">
                   {t('a11y.searchBooks')}
                 </label>
-                <Input.Search
+                <input
                   id="site-search"
+                  type="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onSearch={handleSearchSubmit}
                   placeholder={t('header.searchPlaceholder')}
-                  enterButton={<Search size={16} aria-hidden="true" />}
                   className={styles.searchInput}
                   aria-label={t('a11y.searchBooks')}
                 />
+                <button
+                  type="submit"
+                  className={styles.searchBtn}
+                  aria-label={t('a11y.searchBooks')}
+                >
+                  <Search size={16} aria-hidden="true" />
+                </button>
               </form>
             ) : (
               <div style={{ position: 'relative', width: '100%' }}>
@@ -277,60 +297,101 @@ export function Header() {
           <div className={styles.actions}>
             {isMounted ? (
               <>
-                <Button
-                  type="text"
-                  icon={<Search size={20} aria-hidden="true" />}
+                <button
+                  type="button"
                   className={styles.mobileSearchBtn}
                   onClick={() => router.push(`/${lang}/catalog`)}
                   aria-label={t('a11y.openSearch')}
-                />
+                >
+                  <Search size={20} aria-hidden="true" />
+                </button>
 
                 {!pathname?.includes('/auth/sign-in') &&
                   !pathname?.includes('/auth/register') &&
                   hasAudiobooks && (
-                    <Button
-                      type="text"
-                      icon={<Headphones size={20} aria-hidden="true" />}
+                    <button
+                      type="button"
                       className={styles.desktopAudioBtn}
                       onClick={() => router.push(`/${lang}/catalog?type=audio`)}
                       title={t('header.audiobooks')}
                       aria-label={t('a11y.audiobooks')}
-                    />
+                    >
+                      <Headphones size={20} aria-hidden="true" />
+                    </button>
                   )}
 
                 <LanguageSwitcher />
 
                 {session?.user ? (
                   <>
-                    <Button
-                      type="text"
-                      icon={<BookMarked size={20} aria-hidden="true" />}
+                    <button
+                      type="button"
                       className={styles.actionBtn}
                       onClick={() => router.push(`/${lang}/bookshelf`)}
                       title={t('header.myBookshelf')}
                       aria-label={t('a11y.myBookshelf')}
-                    />
-                    <Dropdown
-                      menu={{ items: userMenuItems }}
-                      placement="bottomRight"
-                      trigger={['click']}
                     >
-                      <Button
-                        type="text"
-                        icon={<User size={20} aria-hidden="true" />}
+                      <BookMarked size={20} aria-hidden="true" />
+                    </button>
+
+                    <div className={styles.dropdownWrapper}>
+                      <button
+                        type="button"
                         className={styles.actionBtn}
+                        onClick={() => setUserMenuOpen(!userMenuOpen)}
                         aria-label={t('a11y.userMenu')}
-                      />
-                    </Dropdown>
+                        aria-expanded={userMenuOpen}
+                      >
+                        <User size={20} aria-hidden="true" />
+                      </button>
+                      {userMenuOpen && (
+                        <>
+                          <button
+                            type="button"
+                            className={styles.dropdownOverlay}
+                            onClick={() => setUserMenuOpen(false)}
+                            aria-hidden="true"
+                            tabIndex={-1}
+                          />
+                          <div className={styles.dropdownMenu}>
+                            <Link
+                              href={`/${lang}/profile`}
+                              className={styles.dropdownItem}
+                              onClick={() => setUserMenuOpen(false)}
+                            >
+                              {t('profile.cabinet')}
+                            </Link>
+                            <Link
+                              href={`/${lang}/bookshelf`}
+                              className={styles.dropdownItem}
+                              onClick={() => setUserMenuOpen(false)}
+                            >
+                              {t('header.myBookshelf')}
+                            </Link>
+                            <div className={styles.dropdownDivider} />
+                            <button
+                              type="button"
+                              className={styles.dropdownItem}
+                              onClick={() => {
+                                setUserMenuOpen(false);
+                                handleSignOut();
+                              }}
+                            >
+                              {t('header.signOut')}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </>
                 ) : (
-                  <Button
-                    type="primary"
+                  <button
+                    type="button"
                     className={styles.signInBtn}
                     onClick={() => router.push(`/${lang}/auth/sign-in`)}
                   >
                     {t('header.signIn')}
-                  </Button>
+                  </button>
                 )}
               </>
             ) : (

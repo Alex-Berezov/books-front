@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
-import { Button } from '@/components/common/Button';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { VersionPreview } from '@/types/api-schema/books';
 import styles from './book.module.scss';
@@ -44,6 +43,8 @@ export default function BookActions({
     (item) => item.bookVersion.bookId === bookId || item.bookVersion.id === versionId
   );
 
+  const isPending = addToBookshelfMutation.isPending || removeFromBookshelfMutation.isPending;
+
   const handleBookshelfToggle = () => {
     if (status !== 'authenticated') {
       router.push(`/${lang}/auth/sign-in?callbackUrl=/${lang}/book/${slug}`);
@@ -66,39 +67,38 @@ export default function BookActions({
   return (
     <div className={styles.actions}>
       {textVersion && (
-        <Link href={`/${lang}/book/${slug}/read`} passHref legacyBehavior>
-          <Button variant="secondary" size="lg" leftIcon={<BookOpen size={18} />}>
-            {textVersion.isFree ? t('book.readFree') : t('book.read')}
-          </Button>
+        <Link href={`/${lang}/book/${slug}/read`} className={styles.actionLink}>
+          <BookOpen size={18} /> {textVersion.isFree ? t('book.readFree') : t('book.read')}
         </Link>
       )}
 
       {audioVersion && (
-        <Link href={`/${lang}/book/${slug}/listen`} passHref legacyBehavior>
-          <Button variant="secondary" size="lg" leftIcon={<Headphones size={18} />}>
-            {t('book.listen')}
-          </Button>
+        <Link href={`/${lang}/book/${slug}/listen`} className={styles.actionLink}>
+          <Headphones size={18} /> {t('book.listen')}
         </Link>
       )}
 
       {hasSummary && versionId && (
-        <Link href={`/${lang}/book/${slug}#summary`} passHref legacyBehavior>
-          <Button variant="secondary" size="lg" leftIcon={<FileText size={18} />}>
-            {t('book.summary')}
-          </Button>
+        <Link href={`/${lang}/book/${slug}#summary`} className={styles.actionLink}>
+          <FileText size={18} /> {t('book.summary')}
         </Link>
       )}
 
-      <Button
-        variant="secondary"
-        size="lg"
-        active={inBookshelf}
-        loading={addToBookshelfMutation.isPending || removeFromBookshelfMutation.isPending}
-        leftIcon={inBookshelf ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+      <button
+        type="button"
+        className={`${styles.actionLink} ${inBookshelf ? styles.actionLinkActive : ''}`}
         onClick={handleBookshelfToggle}
+        disabled={isPending}
       >
+        {isPending ? (
+          <span className={styles.spinner} />
+        ) : inBookshelf ? (
+          <BookmarkCheck size={18} />
+        ) : (
+          <Bookmark size={18} />
+        )}
         {inBookshelf ? t('book.inBookshelf') : t('book.addToBookshelf')}
-      </Button>
+      </button>
     </div>
   );
 }

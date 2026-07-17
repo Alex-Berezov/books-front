@@ -1,4 +1,3 @@
-import { ConfigProvider } from 'antd';
 import { notFound } from 'next/navigation';
 import { Footer } from '@/components/public/layout/Footer';
 import { Header } from '@/components/public/layout/Header';
@@ -6,7 +5,6 @@ import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import styles from '@/styles/layouts.module.scss';
-import { colors } from '@/styles/tokens';
 
 type Props = {
   children: React.ReactNode;
@@ -42,24 +40,15 @@ export default async function PublicLayout({ children, params }: Props) {
   const skipText = dict.a11y?.skipToContent || 'Skip to main content';
 
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: colors.publicPrimary,
-          borderRadius: 8,
-        },
-      }}
-    >
-      <div className={styles.publicLayout}>
-        <a href="#main-content" className="skip-link">
-          {skipText}
-        </a>
-        <Header />
-        <main id="main-content" className={styles.publicMain}>
-          {children}
-        </main>
-        <Footer />
-      </div>
-    </ConfigProvider>
+    <div className={styles.publicLayout}>
+      <a href="#main-content" className="skip-link">
+        {skipText}
+      </a>
+      <Header />
+      <main id="main-content" className={styles.publicMain}>
+        {children}
+      </main>
+      <Footer />
+    </div>
   );
 }

@@ -52,32 +52,52 @@
   }
 }
 
+.searchForm {
+  display: flex;
+  width: 100%;
+  position: relative;
+}
+
 .searchInput {
-  :global {
-    .ant-input {
-      background-color: rgba(255, 255, 255, 0.1) !important;
-      border-color: rgba(255, 255, 255, 0.2) !important;
-      color: var(--bibliaris-green-foreground) !important;
+  width: 100%;
+  height: 36px;
+  padding: 0 40px 0 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: var(--bibliaris-green-foreground);
+  font-size: $font-size-sm;
+  outline: none;
 
-      &::placeholder {
-        color: rgba(255, 255, 255, 0.5) !important;
-      }
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
 
-      &:focus {
-        background-color: rgba(255, 255, 255, 0.15) !important;
-        border-color: rgba(255, 255, 255, 0.4) !important;
-      }
-    }
+  &:focus {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+}
 
-    .ant-input-search-button {
-      background-color: rgba(255, 255, 255, 0.15) !important;
-      border-color: rgba(255, 255, 255, 0.2) !important;
-      color: var(--gold) !important;
+.searchBtn {
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  background-color: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0 5px 5px 0;
+  color: var(--gold);
+  cursor: pointer;
 
-      &:hover {
-        background-color: rgba(255, 255, 255, 0.25) !important;
-      }
-    }
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.25);
   }
 }
 
@@ -88,68 +108,122 @@
   gap: $spacing-xs;
 }
 
-.mobileMenuBtn {
-  color: var(--bibliaris-green-foreground) !important;
-  display: flex !important;
+.btnBase {
+  display: flex;
   align-items: center;
   justify-content: center;
-
-  @media (min-width: $breakpoint-sm) {
-    display: none !important;
-  }
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: $border-radius-base;
+  color: var(--bibliaris-green-foreground);
+  cursor: pointer;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.mobileMenuBtn {
+  @extend .btnBase;
+
+  @media (min-width: $breakpoint-sm) {
+    display: none;
   }
 }
 
 .mobileSearchBtn {
-  color: var(--bibliaris-green-foreground) !important;
+  @extend .btnBase;
 
   @media (min-width: $breakpoint-sm) {
-    display: none !important;
-  }
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    display: none;
   }
 }
 
 .desktopAudioBtn {
-  color: var(--bibliaris-green-foreground) !important;
-  display: none !important;
+  @extend .btnBase;
+  display: none;
 
   @media (min-width: $breakpoint-sm) {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-  }
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    display: flex;
   }
 }
 
 .actionBtn {
-  color: var(--bibliaris-green-foreground) !important;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-  }
+  @extend .btnBase;
 }
 
 .signInBtn {
-  background-color: var(--gold) !important;
-  border-color: var(--gold) !important;
-  color: var(--gold-foreground) !important;
+  height: 32px;
+  padding: 0 $spacing-md;
+  background-color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: $border-radius-base;
+  color: var(--gold-foreground);
+  font-size: $font-size-sm;
   font-weight: $font-weight-medium;
+  cursor: pointer;
+  white-space: nowrap;
 
   &:hover {
-    opacity: 0.9 !important;
+    opacity: 0.9;
   }
+}
+
+.dropdownWrapper {
+  position: relative;
+}
+
+.dropdownOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: block;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: default;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  min-width: 180px;
+  margin-top: 4px;
+  padding: $spacing-xs 0;
+  background-color: #ffffff;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  box-shadow: $shadow-lg;
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  background: none;
+  border: none;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    color: var(--public-primary);
+  }
+}
+
+.dropdownDivider {
+  height: 1px;
+  margin: $spacing-xs 0;
+  background-color: $color-border-base;
 }
 
 .desktopNav {
@@ -184,16 +258,71 @@
   font-weight: $font-weight-semibold;
 }
 
-.drawer {
-  :global {
-    .ant-drawer-header {
-      border-bottom: 1px solid $color-border-base !important;
-    }
-    .ant-drawer-title {
-      font-size: $font-size-base;
-      font-weight: $font-weight-semibold;
-      color: $color-text-primary;
-    }
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  width: 100%;
+  padding: 0;
+  background: none;
+  background-color: rgba(0, 0, 0, 0.45);
+  border: none;
+  cursor: default;
+}
+
+.drawerPanel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  box-shadow: $shadow-lg;
+  animation: drawerSlideIn 0.2s ease-out;
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1px solid $color-border-base;
+}
+
+.drawerTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.drawerCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: $border-radius-base;
+  color: $color-text-secondary;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+  }
+}
+
+@keyframes drawerSlideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
 
