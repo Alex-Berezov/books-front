@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
-import { getCategories } from '@/api/endpoints/admin/categories';
 import { getCategoryBookCards, resolveSeo } from '@/api/endpoints/public';
 import { TaxonomyDetailPage } from '@/components/public/taxonomy/TaxonomyDetailPage/TaxonomyDetailPage';
+import { httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
-import type { CategoryType } from '@/types/api-schema';
+import type { Category, CategoryType, PaginatedResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 
 const logError = (message: string, error: unknown) => {
@@ -124,10 +124,11 @@ export default async function CollectionDetailPage({ params, searchParams }: Pro
   let allCategoriesData;
 
   try {
+    const sidebarParams = new URLSearchParams({ type: 'collection', limit: '100' });
     [seoData, data, allCategoriesData] = await Promise.all([
       resolveSeo(supportedLang, 'collection', slug).catch(() => null),
       getCategoryBookCards(supportedLang, slug, currentPage, 20),
-      getCategories({ type: 'collection', limit: 100 }).catch(() => ({
+      httpGet<PaginatedResponse<Category>>(`/categories?${sidebarParams.toString()}`).catch(() => ({
         data: [],
         meta: { total: 0, page: 1, limit: 100, totalPages: 0 },
       })),
