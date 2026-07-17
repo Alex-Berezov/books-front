@@ -11,8 +11,9 @@ import type {
   AuthorListItem,
   BookCardsResponse,
   BookOverview,
-  PageResponse,
+  CategoryBookCardsResponse,
   CategoryBooksResponse,
+  PageResponse,
   TagBooksResponse,
   SeoResolveResponse,
   ChapterDetail,
@@ -235,12 +236,12 @@ export const getCategoryBookCards = async (
   slug: string,
   page = 1,
   limit = 24
-): Promise<BookCardsResponse> => {
+): Promise<CategoryBookCardsResponse> => {
   const endpoint = buildLangPath(
     lang,
     `/categories/${slug}/books/cards?page=${page}&limit=${limit}`
   );
-  return httpGet<BookCardsResponse>(endpoint, { language: lang });
+  return httpGet<CategoryBookCardsResponse>(endpoint, { language: lang });
 };
 
 /**

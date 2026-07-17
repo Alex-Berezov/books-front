@@ -1,0 +1,14 @@
+﻿yarn run v1.22.19
+$ next build
+node.exe : Browserslist: caniuse-lite is outdated. Please run:
+At C:\Users\User\AppData\Roaming\npm\yarn.ps1:24 char:5
++     & "node$exe"  "$basedir/node_modules/yarn/bin/yarn.js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Browserslist: c...ed. Please run::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+  Γû▓ Next.js 14.2.35
+  - Environments: .env.local
+

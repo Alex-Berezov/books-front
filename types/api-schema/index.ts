@@ -80,6 +80,7 @@ export type {
 export type {
   AttachCategoryRequest,
   Category,
+  CategoryBookCardsResponse,
   CategoryBooksResponse,
   CategoryTranslation,
   CategoryTree,

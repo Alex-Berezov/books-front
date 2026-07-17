@@ -4,6 +4,7 @@
  * Book categories, category tree, linking with books
  */
 
+import type { BookCardModel } from './books';
 import type { ISODate, PaginatedResponse, SupportedLang, UUID } from './common';
 import type { SeoData, SeoInput } from './pages';
 
@@ -51,6 +52,21 @@ export interface CategoryTree extends Category {
  */
 export interface CategoryBooksResponse<T = unknown> extends PaginatedResponse<T> {
   category: Category;
+}
+
+/**
+ * Compact category book cards response (from GET :lang/categories/:slug/books/cards).
+ * Includes category metadata in addition to items/pagination.
+ */
+export interface CategoryBookCardsResponse {
+  category: Category | null;
+  items: BookCardModel[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 /**
