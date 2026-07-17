@@ -127,11 +127,6 @@
   }
 }
 
-.stackSkeleton {
-  width: 90px !important;
-  border-radius: $border-radius-lg !important;
-}
-
 .stackBook {
   position: relative;
   width: 90px;
@@ -214,13 +209,6 @@
   &::-webkit-scrollbar {
     display: none; // Chrome, Safari
   }
-}
-
-.genreSkeletonCard {
-  width: 160px !important;
-  height: 96px !important;
-  border-radius: $border-radius-xl !important;
-  flex-shrink: 0;
 }
 
 .genreCard {

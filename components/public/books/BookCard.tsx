@@ -59,7 +59,7 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
                 alt={coverAlt}
                 className={styles.coverImage}
                 fill
-                sizes="(max-width: 768px) 150px, 200px"
+                sizes={size === 'sm' ? '112px' : size === 'lg' ? '176px' : '144px'}
                 priority={priority}
               />
             ) : (

@@ -262,7 +262,7 @@ export default function HomeClient({
                       fill
                       sizes="90px"
                       className={styles.stackCover}
-                      priority={i < 2}
+                      priority={i === 0}
                     />
                   ) : (
                     <div className={styles.stackCoverPlaceholder}>
