@@ -225,6 +225,41 @@ export const getTagBooks = async (
 };
 
 /**
+ * Get compact paginated book cards for a category (or genre/collection).
+ *
+ * Uses new compact endpoint that returns BookCardDto[] instead of full BookOverview[].
+ * Server-side max limit = 48.
+ */
+export const getCategoryBookCards = async (
+  lang: SupportedLang,
+  slug: string,
+  page = 1,
+  limit = 24
+): Promise<BookCardsResponse> => {
+  const endpoint = buildLangPath(
+    lang,
+    `/categories/${slug}/books/cards?page=${page}&limit=${limit}`
+  );
+  return httpGet<BookCardsResponse>(endpoint, { language: lang });
+};
+
+/**
+ * Get compact paginated book cards for a tag.
+ *
+ * Uses new compact endpoint that returns BookCardDto[] instead of full BookOverview[].
+ * Server-side max limit = 48.
+ */
+export const getTagBookCards = async (
+  lang: SupportedLang,
+  slug: string,
+  page = 1,
+  limit = 24
+): Promise<BookCardsResponse> => {
+  const endpoint = buildLangPath(lang, `/tags/${slug}/books/cards?page=${page}&limit=${limit}`);
+  return httpGet<BookCardsResponse>(endpoint, { language: lang });
+};
+
+/**
  * Get SEO data for entity
  *
  * @param lang - Language

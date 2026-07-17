@@ -1,14 +1,14 @@
 import { getCategories } from '@/api/endpoints/admin/categories';
 import { getTags } from '@/api/endpoints/admin/tags';
 import {
-  getCategoryBooks,
+  getCategoryBookCards,
   getBookCards,
   getPage,
   getPublicAuthors,
-  getTagBooks,
+  getTagBookCards,
 } from '@/api/endpoints/public';
 import { getDictionary } from '@/lib/i18n/dictionaries';
-import { toBookCardModel } from '@/lib/mappers/book';
+import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
@@ -16,7 +16,6 @@ import type {
   BookCardModel,
   BookCollection,
   BookCollectionData,
-  BookOverview,
   Category,
   Tag,
 } from '@/types/api-schema';
@@ -27,6 +26,12 @@ import HomeClient from './HomeClient';
 type Props = {
   params: Promise<{ lang: string }> | { lang: string };
 };
+
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  return SUPPORTED_LANGS.map((lang) => ({ lang }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
@@ -90,19 +95,14 @@ export default async function PublicLangPage({ params }: Props) {
           const results = await Promise.all(
             col.taxonomies.map((tax) => {
               if (tax.type === 'tag')
-                return getTagBooks(supportedLang, tax.slug, 1, 3).catch(() => null);
-              return getCategoryBooks(supportedLang, tax.slug, 1, 3).catch(() => null);
+                return getTagBookCards(supportedLang, tax.slug, 1, 3).catch(() => null);
+              return getCategoryBookCards(supportedLang, tax.slug, 1, 3).catch(() => null);
             })
           );
           const seen = new Set<string>();
-          // TODO(R-future): tag/category endpoints still return BookOverview; map to BookCardModel.
-          // When a compact /tags/:slug/books/cards endpoint exists, switch to it.
-          const books = (
-            results
-              .filter((r): r is NonNullable<typeof r> => r !== null)
-              .flatMap((r) => (r as { data: BookOverview[] }).data || []) as BookOverview[]
-          )
-            .map((b) => toBookCardModel(b, supportedLang))
+          const books = results
+            .filter((r): r is NonNullable<typeof r> => r !== null)
+            .flatMap((r) => r.items || [])
             .filter((b) => {
               if (seen.has(b.id)) return false;
               seen.add(b.id);
