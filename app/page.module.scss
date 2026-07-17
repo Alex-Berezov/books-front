@@ -78,22 +78,42 @@
 }
 
 .primaryBtn {
-  background-color: var(--public-primary) !important;
-  border-color: var(--public-primary) !important;
-  color: var(--public-primary-foreground) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--public-primary);
+  color: var(--public-primary-foreground);
+  border: 1px solid var(--public-primary);
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
 
   &:hover {
-    opacity: 0.9 !important;
+    opacity: 0.9;
   }
 }
 
 .secondaryBtn {
-  background-color: transparent !important;
-  border-color: var(--public-primary) !important;
-  color: var(--public-primary) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--public-primary);
+  border: 1px solid var(--public-primary);
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.02) !important;
+    background-color: rgba(0, 0, 0, 0.02);
   }
 }
 
@@ -169,15 +189,18 @@
 }
 
 .viewMoreBtn {
-  color: var(--public-primary) !important;
-  display: flex !important;
+  color: var(--public-primary);
+  display: inline-flex;
   align-items: center;
   gap: 4px;
   font-weight: $font-weight-medium;
-  padding: 0 $spacing-xs !important;
+  padding: 4px 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.02) !important;
+    background-color: rgba(0, 0, 0, 0.02);
   }
 }
 

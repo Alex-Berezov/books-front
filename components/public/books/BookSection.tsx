@@ -1,6 +1,5 @@
 'use client';
 
-import { Button, Skeleton } from 'antd';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -37,10 +36,8 @@ export function BookSection({
           {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
         </div>
         {viewMoreHref && (
-          <Link href={viewMoreHref} passHref legacyBehavior>
-            <Button type="text" className={styles.viewMoreBtn}>
-              {t('home.viewMore')} <ChevronRight size={16} />
-            </Button>
+          <Link href={viewMoreHref} className={styles.viewMoreBtn}>
+            {t('home.viewMore')} <ChevronRight size={16} />
           </Link>
         )}
       </div>
@@ -49,8 +46,11 @@ export function BookSection({
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className={styles.skeletonCard}>
-              <Skeleton.Button active className={styles.skeletonCover} />
-              <Skeleton active paragraph={{ rows: 2 }} title={false} />
+              <div className={styles.skeletonCover} />
+              <div className={styles.skeletonText}>
+                <div className={styles.skeletonLine} />
+                <div className={styles.skeletonLineShort} />
+              </div>
             </div>
           ))
         ) : books.length > 0 ? (

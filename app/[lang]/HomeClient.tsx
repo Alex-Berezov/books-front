@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useCategories } from '@/api/hooks/useCategories';
 import { usePage } from '@/api/hooks/usePublic';
 import { useTags } from '@/api/hooks/useTags';
-import { Button } from '@/components/common/Button';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { BookSection } from '@/components/public/books/BookSection';
@@ -231,16 +230,12 @@ export default function HomeClient({
             <h1 className={styles.bannerTitle}>{heroTitle}</h1>
             <p className={styles.bannerSubtitle}>{heroText}</p>
             <div className={styles.bannerActions}>
-              <Link href={`/${supportedLang}/catalog`} passHref legacyBehavior>
-                <Button variant="primary" size="lg" className={styles.primaryBtn}>
-                  {t('home.browseLibrary')}
-                </Button>
+              <Link href={`/${supportedLang}/catalog`} className={styles.primaryBtn}>
+                {t('home.browseLibrary')}
               </Link>
               {audiobooksCount > 0 && (
-                <Link href={`/${supportedLang}/catalog?type=audio`} passHref legacyBehavior>
-                  <Button variant="secondary" size="lg" className={styles.secondaryBtn}>
-                    {t('home.audiobooks')}
-                  </Button>
+                <Link href={`/${supportedLang}/catalog?type=audio`} className={styles.secondaryBtn}>
+                  {t('home.audiobooks')}
                 </Link>
               )}
             </div>
@@ -287,7 +282,6 @@ export default function HomeClient({
           title={t('home.topPopular')}
           books={featuredBooks}
           viewMoreHref={`/${supportedLang}/catalog?sort=popular`}
-          priorityCount={4}
         />
 
         {/* Browse by Category */}
@@ -295,10 +289,8 @@ export default function HomeClient({
           <section className={`${styles.genresSection} ${styles.belowFold}`}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>{t('home.browseByCategory')}</h2>
-              <Link href={`/${supportedLang}/categories`} passHref legacyBehavior>
-                <Button variant="ghost" className={styles.viewMoreBtn}>
-                  {t('home.viewAll')} <ChevronRight size={16} />
-                </Button>
+              <Link href={`/${supportedLang}/categories`} className={styles.viewMoreBtn}>
+                {t('home.viewAll')} <ChevronRight size={16} />
               </Link>
             </div>
             <div className={styles.genresCarousel}>
@@ -332,10 +324,8 @@ export default function HomeClient({
           <section className={`${styles.genresSection} ${styles.belowFold}`}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>{t('home.genres')}</h2>
-              <Link href={`/${supportedLang}/genres`} passHref legacyBehavior>
-                <Button variant="ghost" className={styles.viewMoreBtn}>
-                  {t('home.viewAll')} <ChevronRight size={16} />
-                </Button>
+              <Link href={`/${supportedLang}/genres`} className={styles.viewMoreBtn}>
+                {t('home.viewAll')} <ChevronRight size={16} />
               </Link>
             </div>
             <div className={styles.genresCarousel}>
@@ -369,10 +359,8 @@ export default function HomeClient({
           <section className={`${styles.genresSection} ${styles.belowFold}`}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>{t('home.curatedCollections')}</h2>
-              <Link href={`/${supportedLang}/collections`} passHref legacyBehavior>
-                <Button variant="ghost" className={styles.viewMoreBtn}>
-                  {t('home.viewAll')} <ChevronRight size={16} />
-                </Button>
+              <Link href={`/${supportedLang}/collections`} className={styles.viewMoreBtn}>
+                {t('home.viewAll')} <ChevronRight size={16} />
               </Link>
             </div>
             <div className={styles.genresCarousel}>
@@ -415,10 +403,8 @@ export default function HomeClient({
           <section className={`${styles.genresSection} ${styles.belowFold}`}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>{t('home.exploreBookThemes')}</h2>
-              <Link href={`/${supportedLang}/tags`} passHref legacyBehavior>
-                <Button variant="ghost" className={styles.viewMoreBtn}>
-                  {t('home.viewAll')} <ChevronRight size={16} />
-                </Button>
+              <Link href={`/${supportedLang}/tags`} className={styles.viewMoreBtn}>
+                {t('home.viewAll')} <ChevronRight size={16} />
               </Link>
             </div>
             <div className={styles.genresCarousel}>
@@ -482,10 +468,8 @@ export default function HomeClient({
           <section className={`${styles.genresSection} ${styles.belowFold}`}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>{t('home.authors')}</h2>
-              <Link href={`/${supportedLang}/authors`} passHref legacyBehavior>
-                <Button variant="ghost" className={styles.viewMoreBtn}>
-                  {t('home.viewAll')} <ChevronRight size={16} />
-                </Button>
+              <Link href={`/${supportedLang}/authors`} className={styles.viewMoreBtn}>
+                {t('home.viewAll')} <ChevronRight size={16} />
               </Link>
             </div>
             <div className={styles.authorCarousel}>
