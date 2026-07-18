@@ -188,7 +188,7 @@ export interface UpdatePageRequest {
  * Request to resolve SEO data
  */
 export interface SeoResolveRequest {
-  type: 'book' | 'page' | 'category' | 'tag';
+  type: 'book' | 'version' | 'page' | 'category' | 'genre' | 'collection' | 'tag' | 'catalog';
   id: UUID;
 }
 
