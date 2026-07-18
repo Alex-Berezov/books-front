@@ -109,6 +109,22 @@ export async function middleware(request: NextRequest) {
     secureCookie: !isLocalhost,
   });
 
+  // DIAGNOSTIC: temporary logging for admin auth debug
+  if (isAdminRoute(pathname)) {
+    const authCookies = request.cookies.getAll().map(c => c.name).filter(n => n.includes('auth') || n.includes('next') || n.includes('session'));
+    const t = token as Record<string, unknown> | null;
+    console.log('[AUTH] path:', pathname);
+    console.log('[AUTH] token:', !!t);
+    console.log('[AUTH] cookies:', JSON.stringify(authCookies));
+    if (t) {
+      console.log('[AUTH] keys:', Object.keys(t));
+      console.log('[AUTH] email:', t.email);
+      console.log('[AUTH] roles:', JSON.stringify(t.roles));
+      console.log('[AUTH] role:', t.role);
+      console.log('[AUTH] user:', JSON.stringify(t.user));
+    }
+  }
+
   // Protect private routes (read/listen/summary)
   if (isPrivateRoute(pathname)) {
     if (!token) {
