@@ -103,7 +103,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // Get session token for protected routes
-  const token = await getToken({ req: request });
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+    secureCookie: !isLocalhost,
+  });
 
   // Protect private routes (read/listen/summary)
   if (isPrivateRoute(pathname)) {
