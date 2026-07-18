@@ -96,7 +96,11 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
     const seoParams = new URLSearchParams({ type: 'tag', id: tagSlug });
 
     const booksEndpoint = buildLangPath(supportedLang, `/tags/${tagSlug}/books/cards`);
-    const booksParams = new URLSearchParams({ page: String(currentPage), limit: '20' });
+    const booksParams = new URLSearchParams({
+      page: String(currentPage),
+      limit: '20',
+      includeTag: 'true',
+    });
 
     [seoData, data] = await Promise.all([
       httpGet<SeoResolveResponse>(`${seoEndpoint}?${seoParams.toString()}`, {
