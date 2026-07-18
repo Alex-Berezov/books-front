@@ -6,6 +6,8 @@ const nextConfig = {
     dirs: ['app', 'src', 'lib', 'components'],
   },
   images: {
+    formats: ['image/avif', 'image/webp'],
+    imageSizes: [96, 112, 144, 176, 205, 256, 320],
     remotePatterns: [
       {
         protocol: 'https',
@@ -13,7 +15,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '**.com', // Allow all .com domains for testing
+        hostname: '**.com',
       },
       {
         protocol: 'http',

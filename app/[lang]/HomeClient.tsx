@@ -3,9 +3,6 @@
 import { BookOpen, ChevronRight, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCategories } from '@/api/hooks/useCategories';
-import { usePage } from '@/api/hooks/usePublic';
-import { useTags } from '@/api/hooks/useTags';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { BookSection } from '@/components/public/books/BookSection';
@@ -49,65 +46,12 @@ export default function HomeClient({
   const supportedLang = lang as SupportedLang;
   const { t } = useTranslation();
 
-  const { data: categoriesData } = useCategories(
-    { limit: 50 },
-    {
-      initialData: initialCategories
-        ? {
-            data: initialCategories,
-            meta: { total: initialCategories.length, page: 1, limit: 50, totalPages: 1 },
-          }
-        : undefined,
-    }
-  );
-
-  const { data: genresData } = useCategories(
-    { type: 'genre', limit: 50 },
-    {
-      initialData: initialGenres
-        ? {
-            data: initialGenres,
-            meta: { total: initialGenres.length, page: 1, limit: 50, totalPages: 1 },
-          }
-        : undefined,
-    }
-  );
-
-  const { data: collectionsData } = useCategories(
-    { type: 'collection', limit: 50 },
-    {
-      initialData: initialCollections
-        ? {
-            data: initialCollections,
-            meta: { total: initialCollections.length, page: 1, limit: 50, totalPages: 1 },
-          }
-        : undefined,
-    }
-  );
-
-  const { data: tagsData } = useTags(
-    { limit: 50 },
-    {
-      initialData: initialTags
-        ? {
-            data: initialTags,
-            meta: { total: initialTags.length, page: 1, limit: 50, totalPages: 1 },
-          }
-        : undefined,
-    }
-  );
-
-  const { data: pageData } = usePage(supportedLang, 'homepage-index', {
-    initialData: initialPage || undefined,
-  });
-
-  const sections = (pageData?.sections as Record<string, unknown>) || {};
-  // BookCardModel[] already filtered to the requested language & published on the backend.
+  const categories = initialCategories || [];
+  const genres = initialGenres || [];
+  const collections = initialCollections || [];
+  const tags = initialTags || [];
+  const sections = (initialPage?.sections as Record<string, unknown>) || {};
   const allBooks: BookCardModel[] = initialBooks || [];
-  const categories = categoriesData?.data || [];
-  const genres = genresData?.data || [];
-  const collections = collectionsData?.data || [];
-  const tags = tagsData?.data || [];
 
   const featuredBooks = [...allBooks]
     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
@@ -215,11 +159,14 @@ export default function HomeClient({
     return translation?.slug || tag.slug || tag.id;
   };
 
-  const faqItems = pageData?.faq as Array<{ question: string; answer: string }> | null | undefined;
+  const faqItems = initialPage?.faq as
+    | Array<{ question: string; answer: string }>
+    | null
+    | undefined;
 
   // Hero text from page or fallback to defaults
-  const heroTitle = pageData?.h1 || t('home.title');
-  const heroText = pageData?.shortDescription || t('home.subtitle');
+  const heroTitle = initialPage?.h1 || t('home.title');
+  const heroText = initialPage?.shortDescription || t('home.subtitle');
 
   return (
     <div className={styles.main}>
@@ -262,6 +209,7 @@ export default function HomeClient({
                       fill
                       sizes="90px"
                       className={styles.stackCover}
+                      quality={70}
                       priority={i === 0}
                     />
                   ) : (
@@ -282,6 +230,7 @@ export default function HomeClient({
           title={t('home.topPopular')}
           books={featuredBooks}
           viewMoreHref={`/${supportedLang}/catalog?sort=popular`}
+          priorityCount={2}
         />
 
         {/* Browse by Category */}

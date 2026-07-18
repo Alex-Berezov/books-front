@@ -61,7 +61,7 @@ export default async function PublicLangPage({ params }: Props) {
   try {
     const [booksRes, catsRes, genresRes, colsRes, tagsRes, authorsRes, pageRes] = await Promise.all(
       [
-        getBookCards(supportedLang, 1, 48),
+        getBookCards(supportedLang, 1, 30),
         getCategories({ limit: 50 }),
         getCategories({ type: 'genre', limit: 50 }),
         getCategories({ type: 'collection', limit: 50 }),
