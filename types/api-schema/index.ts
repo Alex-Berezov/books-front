@@ -99,6 +99,7 @@ export type {
   CreateTagTranslationRequest,
   DetachTagRequest,
   Tag,
+  TagBookCardsResponse,
   TagBooksResponse,
   TagTranslation,
   UpdateTagRequest,

@@ -14,6 +14,7 @@ import type {
   CategoryBookCardsResponse,
   CategoryBooksResponse,
   PageResponse,
+  TagBookCardsResponse,
   TagBooksResponse,
   SeoResolveResponse,
   ChapterDetail,
@@ -255,9 +256,9 @@ export const getTagBookCards = async (
   slug: string,
   page = 1,
   limit = 24
-): Promise<BookCardsResponse> => {
+): Promise<TagBookCardsResponse> => {
   const endpoint = buildLangPath(lang, `/tags/${slug}/books/cards?page=${page}&limit=${limit}`);
-  return httpGet<BookCardsResponse>(endpoint, { language: lang });
+  return httpGet<TagBookCardsResponse>(endpoint, { language: lang });
 };
 
 /**

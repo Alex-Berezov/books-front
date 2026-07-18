@@ -4,6 +4,7 @@
  * Book tags, linking with books
  */
 
+import type { BookCardModel } from './books';
 import type { ISODate, PaginatedResponse, SupportedLang, UUID } from './common';
 import type { SeoData, SeoInput } from './pages';
 
@@ -20,6 +21,7 @@ export interface Tag {
   indexable?: boolean;
   isVisible?: boolean;
   sortOrder?: number;
+  translation?: TagTranslation | null;
   translations?: TagTranslation[];
   createdAt: ISODate;
   updatedAt: ISODate;
@@ -173,4 +175,19 @@ export interface AttachTagRequest {
  */
 export interface DetachTagRequest {
   tagId: UUID;
+}
+
+/**
+ * Compact tag book cards response (from GET :lang/tags/:slug/books/cards).
+ * Includes tag metadata in addition to items/pagination.
+ */
+export interface TagBookCardsResponse {
+  tag: Tag | null;
+  items: BookCardModel[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }

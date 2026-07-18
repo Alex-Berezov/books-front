@@ -1,1 +1,0 @@
-export { TaxonomyDetailClient } from './TaxonomyDetailClient';
