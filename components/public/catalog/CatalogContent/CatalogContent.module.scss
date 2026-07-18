@@ -1,0 +1,328 @@
+@import '@/styles/tokens.scss';
+
+.catalogPage {
+  min-height: 100vh;
+  background-color: var(--public-background);
+  color: var(--public-foreground);
+  padding: $spacing-xl 0;
+}
+
+.container {
+  max-width: $layout-max-width-xl;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+
+  @media (min-width: $breakpoint-sm) {
+    flex-direction: row;
+  }
+}
+
+.sidebar {
+  width: 100%;
+  flex-shrink: 0;
+
+  @media (min-width: $breakpoint-sm) {
+    width: 224px;
+  }
+}
+
+.stickySidebar {
+  position: sticky;
+  top: 80px;
+}
+
+.sidebarTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--public-foreground);
+}
+
+.genresList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+
+  @media (min-width: $breakpoint-sm) {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+}
+
+.sidebarSubtitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: var(--public-foreground);
+  opacity: 0.6;
+  margin: $spacing-sm 0 $spacing-xs $spacing-sm;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.genreLink {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--public-foreground);
+  text-decoration: none;
+  transition: all $transition-fast;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.activeGenre {
+  background-color: var(--public-primary) !important;
+  color: var(--public-primary-foreground) !important;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.contentHeader {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+
+  @media (min-width: $breakpoint-sm) {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  margin: 0;
+}
+
+.count {
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.6;
+  margin: 2px 0 0 0;
+}
+
+.toolbar {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: center;
+}
+
+.searchForm {
+  position: relative;
+  width: 100%;
+
+  @media (min-width: $breakpoint-sm) {
+    width: 240px;
+  }
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--public-foreground);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  background: var(--public-card-background);
+  color: var(--public-foreground);
+  outline: none;
+  transition: border-color $transition-fast;
+
+  &:focus {
+    border-color: var(--public-primary);
+  }
+
+  &::placeholder {
+    opacity: 0.5;
+  }
+}
+
+.sortRow {
+  display: flex;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-lg;
+  flex-wrap: wrap;
+}
+
+.sortLink {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--public-foreground);
+  text-decoration: none;
+  background: var(--public-card-background);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: all $transition-fast;
+
+  &:hover {
+    border-color: var(--public-primary);
+    color: var(--public-primary);
+  }
+}
+
+.activeSort {
+  background: var(--public-primary) !important;
+  color: var(--public-primary-foreground) !important;
+  border-color: var(--public-primary) !important;
+}
+
+.activeFilters {
+  display: flex;
+  gap: $spacing-xs;
+  align-items: center;
+  margin-bottom: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.filterBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: $font-size-xs;
+  background: var(--public-primary);
+  color: var(--public-primary-foreground);
+  opacity: 0.9;
+}
+
+.clearLink {
+  font-size: $font-size-xs;
+  color: var(--public-primary);
+  text-decoration: none;
+  margin-left: $spacing-xs;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-md;
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.empty {
+  text-align: center;
+  padding: $spacing-xxl 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.emptyIcon {
+  color: var(--public-foreground);
+  opacity: 0.3;
+  margin-bottom: $spacing-md;
+}
+
+.emptyText {
+  color: var(--public-foreground);
+  opacity: 0.6;
+  font-size: $font-size-base;
+  margin-bottom: $spacing-md;
+}
+
+.clearBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 20px;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  background: var(--public-primary);
+  color: var(--public-primary-foreground);
+  text-decoration: none;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-top: $spacing-xl;
+  padding: $spacing-md 0;
+  flex-wrap: wrap;
+}
+
+.pageGroup {
+  display: contents;
+}
+
+.pageLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 $spacing-xs;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--public-foreground);
+  text-decoration: none;
+  transition: all $transition-fast;
+  border: 1px solid transparent;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+.pageActive {
+  background: var(--public-primary) !important;
+  color: var(--public-primary-foreground) !important;
+  border-color: var(--public-primary) !important;
+}
+
+.pageEllipsis {
+  padding: 0 $spacing-xs;
+  color: var(--public-foreground);
+  opacity: 0.4;
+}

@@ -66,18 +66,32 @@ export const getRelatedBooks = async (
   return httpGet<RelatedBooksResponse>(endpoint, { language: lang });
 };
 
+export interface BookCardsQueryOptions {
+  sort?: 'popular' | 'new';
+  type?: 'audio' | 'text';
+  q?: string;
+}
+
 /**
  * Get compact paginated book cards for a language (homepage / catalog).
  *
  * Replaces the legacy `getPublicBooks({ limit: 100 })` over-fetch (11.9 MB).
  * Server-side max limit = 48. Returns BookCardModel[] (no versions/translations/JSON content).
+ * Supports optional sort, type, and q (search) filters.
  */
 export const getBookCards = async (
   lang: SupportedLang,
   page = 1,
-  limit = 24
+  limit = 24,
+  options?: BookCardsQueryOptions
 ): Promise<BookCardsResponse> => {
-  const endpoint = buildLangPath(lang, `/books/cards?page=${page}&limit=${limit}`);
+  const params = new URLSearchParams();
+  params.append('page', String(page));
+  params.append('limit', String(limit));
+  if (options?.sort) params.append('sort', options.sort);
+  if (options?.type) params.append('type', options.type);
+  if (options?.q) params.append('q', options.q);
+  const endpoint = buildLangPath(lang, `/books/cards?${params.toString()}`);
   return httpGet<BookCardsResponse>(endpoint, { language: lang });
 };
 
@@ -243,6 +257,38 @@ export const getCategoryBookCards = async (
     `/categories/${slug}/books/cards?page=${page}&limit=${limit}`
   );
   return httpGet<CategoryBookCardsResponse>(endpoint, { language: lang });
+};
+
+export interface CategoryListItem {
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+  booksCount: number;
+  translations: Array<{ language: string; name: string; slug: string }>;
+}
+
+export interface PaginatedCategoriesResponse {
+  data: CategoryListItem[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+/**
+ * Get public category/genre listing for catalog sidebar.
+ */
+export const getPublicCategories = async (
+  lang: SupportedLang,
+  type?: 'category' | 'genre'
+): Promise<PaginatedCategoriesResponse> => {
+  const params = new URLSearchParams();
+  if (type) params.append('type', type);
+  const endpoint = buildLangPath(lang, `/categories?${params.toString()}`);
+  return httpGet<PaginatedCategoriesResponse>(endpoint, { language: lang });
 };
 
 /**
