@@ -1,10 +1,9 @@
 import { notFound } from 'next/navigation';
-import { getCategoryBookCards, resolveSeo } from '@/api/endpoints/public';
 import { TaxonomyDetailPage } from '@/components/public/taxonomy/TaxonomyDetailPage/TaxonomyDetailPage';
-import { httpGet } from '@/lib/http';
+import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
-import type { Category, CategoryType, PaginatedResponse } from '@/types/api-schema';
+import type { Category, CategoryBookCardsResponse, CategoryType, PaginatedResponse, SeoResolveResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 
 const logError = (message: string, error: unknown) => {
@@ -18,18 +17,19 @@ type Props = {
   searchParams: Promise<{ page?: string }>;
 };
 
-export async function generateStaticParams() {
-  return [];
-}
-
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, slug } = await params;
   const supportedLang = lang as SupportedLang;
 
   try {
-    const seo = await resolveSeo(supportedLang, 'category', slug);
+    const endpoint = buildLangPath(supportedLang, `/seo/resolve`);
+    const seoParams = new URLSearchParams({ type: 'category', id: slug });
+    const seo = await httpGet<SeoResolveResponse>(`${endpoint}?${seoParams.toString()}`, {
+      language: supportedLang,
+      next: { revalidate: 300 },
+    });
 
     const alternatesLanguages: Record<string, string> = {};
     (seo.hreflangs || seo.hreflang)?.forEach((item) => {
@@ -118,17 +118,33 @@ export default async function CategoryDetailPage({ params, searchParams }: Props
   }
 
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10) || 1);
+  const cache = { next: { revalidate: 300 } };
 
   let seoData;
   let data;
   let allCategoriesData;
 
   try {
+    const seoEndpoint = buildLangPath(supportedLang, `/seo/resolve`);
+    const seoParams = new URLSearchParams({ type: 'category', id: slug });
+
+    const booksEndpoint = buildLangPath(supportedLang, `/categories/${slug}/books/cards`);
+    const booksParams = new URLSearchParams({ page: String(currentPage), limit: '20' });
+
     const sidebarParams = new URLSearchParams({ type: 'category', limit: '100' });
+
     [seoData, data, allCategoriesData] = await Promise.all([
-      resolveSeo(supportedLang, 'category', slug).catch(() => null),
-      getCategoryBookCards(supportedLang, slug, currentPage, 20),
-      httpGet<PaginatedResponse<Category>>(`/categories?${sidebarParams.toString()}`).catch(() => ({
+      httpGet<SeoResolveResponse>(`${seoEndpoint}?${seoParams.toString()}`, {
+        language: supportedLang,
+        ...cache,
+      }).catch(() => null),
+      httpGet<CategoryBookCardsResponse>(`${booksEndpoint}?${booksParams.toString()}`, {
+        language: supportedLang,
+        ...cache,
+      }),
+      httpGet<PaginatedResponse<Category>>(`/categories?${sidebarParams.toString()}`, {
+        ...cache,
+      }).catch(() => ({
         data: [],
         meta: { total: 0, page: 1, limit: 100, totalPages: 0 },
       })),
