@@ -6,9 +6,10 @@
  */
 
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth/auth';
+import { getToken } from 'next-auth/jwt';
 import { STAFF_ROLES } from '@/lib/auth/constants';
 import { DEFAULT_REDIRECT_LANG } from '@/lib/middleware.constants';
+import type { NextRequest } from 'next/server';
 
 /**
  * Check if path is admin route
@@ -49,14 +50,14 @@ const isPagePath = (pathname: string): boolean => {
 /**
  * Middleware function
  */
-export default auth((req) => {
-  const { pathname, search } = req.nextUrl;
-  const host = req.headers.get('host') || req.nextUrl.host;
-  const proto = req.headers.get('x-forwarded-proto') || 'https';
+export async function middleware(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
+  const host = request.headers.get('host') || request.nextUrl.host;
+  const proto = request.headers.get('x-forwarded-proto') || 'https';
 
   // Instant redirect for root path '/' to default language
   if (pathname === '/') {
-    return NextResponse.redirect(new URL(`/${DEFAULT_REDIRECT_LANG}`, req.url));
+    return NextResponse.redirect(new URL(`/${DEFAULT_REDIRECT_LANG}`, request.url));
   }
 
   let shouldRedirect = false;
@@ -86,56 +87,58 @@ export default auth((req) => {
   if (shouldRedirect) {
     let finalProto = targetProto;
     if (isLocalhost) {
-      finalProto = req.nextUrl.protocol.replace(':', '');
+      finalProto = request.nextUrl.protocol.replace(':', '');
     }
     const redirectUrl = `${finalProto}://${targetHost}${targetPathname}${search}`;
-    const currentUrl = `${req.nextUrl.protocol.replace(':', '')}://${host}${pathname}${search}`;
+    const currentUrl = `${request.nextUrl.protocol.replace(':', '')}://${host}${pathname}${search}`;
 
     if (redirectUrl !== currentUrl) {
       return NextResponse.redirect(new URL(redirectUrl), 301);
     }
   }
 
-  // Protect private routes (read/listen)
+  // For non-admin and non-private routes, skip auth checks
+  if (!isAdminRoute(pathname) && !isPrivateRoute(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Get session token for protected routes
+  const token = await getToken({ req: request });
+
+  // Protect private routes (read/listen/summary)
   if (isPrivateRoute(pathname)) {
-    const session = req.auth;
-    if (!session || !session.user) {
+    if (!token) {
       const lang = extractLangFromPath(pathname);
-      const signInUrl = new URL(`/${lang}/auth/sign-in`, req.url);
+      const signInUrl = new URL(`/${lang}/auth/sign-in`, request.url);
       signInUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(signInUrl);
     }
   }
 
-  // Check only admin routes
-  if (!isAdminRoute(pathname)) {
-    return NextResponse.next();
-  }
+  // Check admin routes
+  if (isAdminRoute(pathname)) {
+    // If no session - redirect to login
+    if (!token) {
+      const lang = extractLangFromPath(pathname);
+      const signInUrl = new URL(`/${lang}/auth/sign-in`, request.url);
+      signInUrl.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(signInUrl);
+    }
 
-  // Get session from request (NextAuth adds it automatically)
-  const session = req.auth;
+    // Check for staff role (admin or content_manager)
+    const userRoles = (token.roles as string[]) || [];
+    const hasStaffRole = STAFF_ROLES.some((role) => userRoles.includes(role));
 
-  // If no session - redirect to login
-  if (!session || !session.user) {
-    const lang = extractLangFromPath(pathname);
-    const signInUrl = new URL(`/${lang}/auth/sign-in`, req.url);
-    signInUrl.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(signInUrl);
-  }
-
-  // Check for staff role (admin or content_manager)
-  const userRoles = session.user.roles || [];
-  const hasStaffRole = STAFF_ROLES.some((role) => userRoles.includes(role));
-
-  // If no required role - show 403
-  if (!hasStaffRole) {
-    const lang = extractLangFromPath(pathname);
-    return NextResponse.redirect(new URL(`/${lang}/403`, req.url));
+    // If no required role - show 403
+    if (!hasStaffRole) {
+      const lang = extractLangFromPath(pathname);
+      return NextResponse.redirect(new URL(`/${lang}/403`, request.url));
+    }
   }
 
   // All OK - pass the request
   return NextResponse.next();
-});
+}
 
 /**
  * Matcher configuration - which paths the middleware applies to
