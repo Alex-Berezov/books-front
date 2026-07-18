@@ -43,7 +43,17 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
   // 1. Static Sitemap
   if (filename === 'sitemap-static.xml') {
-    const staticRoutes = ['', '/genres', '/tags', '/catalog', '/privacy', '/terms', '/deletion'];
+    const staticRoutes = [
+      '',
+      '/categories',
+      '/genres',
+      '/collections',
+      '/tags',
+      '/catalog',
+      '/privacy',
+      '/terms',
+      '/deletion',
+    ];
     staticRoutes.forEach((route) => {
       SUPPORTED_LANGS.forEach((lang) => {
         const url = `${cleanBaseUrl}/${lang}${route}`;
@@ -74,24 +84,33 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       books.forEach((book) => {
-        if (!book.slug) return;
-
-        // Check if there is a published version in this specific language
-        const hasLangVersion = book.versions?.some(
-          (v: VersionPreview) => v.language === lang && v.status === 'published'
+        // Find published version for this specific language
+        const currentVersion = book.versions?.find(
+          (v: VersionPreview) => v.language === lang && v.status === 'published' && v.slug
         );
-        if (!hasLangVersion) return;
+        if (!currentVersion?.slug) return;
 
-        // Find all languages where the book has a published version for alternates
-        const publishedLangs = SUPPORTED_LANGS.filter((l) =>
-          book.versions?.some((v: VersionPreview) => v.language === l && v.status === 'published')
-        );
+        // Build alternates from all published versions with slug
+        const alternates: Record<string, string> = {};
+        const publishedVersions =
+          book.versions?.filter((v: VersionPreview) => v.status === 'published' && v.slug) || [];
 
-        const url = `${cleanBaseUrl}/${lang}/book/${book.slug}`;
-        const alternates = getAlternates(
-          publishedLangs,
-          (l) => `${cleanBaseUrl}/${l}/book/${book.slug}`
-        );
+        publishedVersions.forEach((v: VersionPreview) => {
+          if (v.language && v.slug) {
+            alternates[v.language] = `${cleanBaseUrl}/${v.language}/book/${v.slug}`;
+          }
+        });
+
+        // x-default: prefer English, fallback to first available
+        const enVersion = publishedVersions.find((v: VersionPreview) => v.language === 'en');
+        const fallbackVersion = publishedVersions[0];
+        const defaultVersion = enVersion || fallbackVersion;
+        if (defaultVersion) {
+          alternates['x-default'] =
+            `${cleanBaseUrl}/${defaultVersion.language}/book/${defaultVersion.slug}`;
+        }
+
+        const url = `${cleanBaseUrl}/${lang}/book/${currentVersion.slug}`;
 
         sitemapItems.push({
           url,
@@ -111,42 +130,134 @@ export async function GET(request: Request, { params }: { params: { filename: st
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
       let categories: Category[] = [];
       try {
-        const catRes = await getCategories({ limit: 100 });
+        const catRes = await getCategories({ type: 'genre', limit: 1000 });
+        categories = catRes?.data || [];
+      } catch (error) {
+        console.error(`Error fetching genres for sitemap (${lang}):`, error);
+      }
+
+      categories.forEach((cat) => {
+        const currentTranslation = cat.translations?.find(
+          (t: CategoryTranslation) => t.language === lang && t.slug
+        );
+        if (!currentTranslation?.slug) return;
+
+        const url = `${cleanBaseUrl}/${lang}/genre/${currentTranslation.slug}`;
+
+        const alternates: Record<string, string> = {};
+        cat.translations?.forEach((t: CategoryTranslation) => {
+          if (t.slug) {
+            alternates[t.language] = `${cleanBaseUrl}/${t.language}/genre/${t.slug}`;
+          }
+        });
+
+        // x-default: prefer English, fallback to first available with real language
+        const enTranslation = cat.translations?.find(
+          (t: CategoryTranslation) => t.language === 'en' && t.slug
+        );
+        const fallbackTranslation = cat.translations?.find((t: CategoryTranslation) => t.slug);
+        const defaultTranslation = enTranslation || fallbackTranslation;
+        if (defaultTranslation?.slug) {
+          alternates['x-default'] =
+            `${cleanBaseUrl}/${defaultTranslation.language}/genre/${defaultTranslation.slug}`;
+        }
+
+        sitemapItems.push({
+          url,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.7,
+          alternates: {
+            languages: alternates,
+          },
+        });
+      });
+    }
+  }
+  // 3a. Categories Sitemap: sitemap-categories-[lang].xml
+  else if (filename.startsWith('sitemap-categories-') && filename.endsWith('.xml')) {
+    const lang = filename.substring('sitemap-categories-'.length, filename.length - '.xml'.length);
+    if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
+      let categories: Category[] = [];
+      try {
+        const catRes = await getCategories({ type: 'category', limit: 1000 });
         categories = catRes?.data || [];
       } catch (error) {
         console.error(`Error fetching categories for sitemap (${lang}):`, error);
       }
 
       categories.forEach((cat) => {
-        const hasTranslation = cat.translations?.some(
-          (t: CategoryTranslation) => t.language === lang && t.slug
-        );
-        if (!hasTranslation) return;
-
         const currentTranslation = cat.translations?.find(
-          (t: CategoryTranslation) => t.language === lang
+          (t: CategoryTranslation) => t.language === lang && t.slug
         );
         if (!currentTranslation?.slug) return;
 
-        const url = `${cleanBaseUrl}/${lang}/catalog/${currentTranslation.slug}`;
+        const url = `${cleanBaseUrl}/${lang}/category/${currentTranslation.slug}`;
 
         const alternates: Record<string, string> = {};
-        const translatedLangs = SUPPORTED_LANGS.filter((l) =>
-          cat.translations?.some((t: CategoryTranslation) => t.language === l && t.slug)
-        );
-
-        translatedLangs.forEach((l) => {
-          const trans = cat.translations?.find((t: CategoryTranslation) => t.language === l);
-          if (trans?.slug) {
-            alternates[l] = `${cleanBaseUrl}/${l}/catalog/${trans.slug}`;
+        cat.translations?.forEach((t: CategoryTranslation) => {
+          if (t.slug) {
+            alternates[t.language] = `${cleanBaseUrl}/${t.language}/category/${t.slug}`;
           }
         });
 
-        const defaultTrans =
-          cat.translations?.find((t: CategoryTranslation) => t.language === defaultLang) ||
-          cat.translations?.[0];
-        if (defaultTrans?.slug) {
-          alternates['x-default'] = `${cleanBaseUrl}/${defaultLang}/catalog/${defaultTrans.slug}`;
+        const enTranslation = cat.translations?.find(
+          (t: CategoryTranslation) => t.language === 'en' && t.slug
+        );
+        const fallbackTranslation = cat.translations?.find((t: CategoryTranslation) => t.slug);
+        const defaultTranslation = enTranslation || fallbackTranslation;
+        if (defaultTranslation?.slug) {
+          alternates['x-default'] =
+            `${cleanBaseUrl}/${defaultTranslation.language}/category/${defaultTranslation.slug}`;
+        }
+
+        sitemapItems.push({
+          url,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.7,
+          alternates: {
+            languages: alternates,
+          },
+        });
+      });
+    }
+  }
+  // 3b. Collections Sitemap: sitemap-collections-[lang].xml
+  else if (filename.startsWith('sitemap-collections-') && filename.endsWith('.xml')) {
+    const lang = filename.substring('sitemap-collections-'.length, filename.length - '.xml'.length);
+    if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
+      let categories: Category[] = [];
+      try {
+        const catRes = await getCategories({ type: 'collection', limit: 1000 });
+        categories = catRes?.data || [];
+      } catch (error) {
+        console.error(`Error fetching collections for sitemap (${lang}):`, error);
+      }
+
+      categories.forEach((cat) => {
+        const currentTranslation = cat.translations?.find(
+          (t: CategoryTranslation) => t.language === lang && t.slug
+        );
+        if (!currentTranslation?.slug) return;
+
+        const url = `${cleanBaseUrl}/${lang}/collection/${currentTranslation.slug}`;
+
+        const alternates: Record<string, string> = {};
+        cat.translations?.forEach((t: CategoryTranslation) => {
+          if (t.slug) {
+            alternates[t.language] = `${cleanBaseUrl}/${t.language}/collection/${t.slug}`;
+          }
+        });
+
+        const enTranslation = cat.translations?.find(
+          (t: CategoryTranslation) => t.language === 'en' && t.slug
+        );
+        const fallbackTranslation = cat.translations?.find((t: CategoryTranslation) => t.slug);
+        const defaultTranslation = enTranslation || fallbackTranslation;
+        if (defaultTranslation?.slug) {
+          alternates['x-default'] =
+            `${cleanBaseUrl}/${defaultTranslation.language}/collection/${defaultTranslation.slug}`;
         }
 
         sitemapItems.push({
@@ -240,35 +351,29 @@ export async function GET(request: Request, { params }: { params: { filename: st
         // Skip tags without books
         if (!tag.booksCount || tag.booksCount === 0) return;
 
-        const hasTranslation = tag.translations?.some(
-          (t: TagTranslation) => t.language === lang && t.slug
-        );
-        if (!hasTranslation) return;
-
         const currentTranslation = tag.translations?.find(
-          (t: TagTranslation) => t.language === lang
+          (t: TagTranslation) => t.language === lang && t.slug
         );
         if (!currentTranslation?.slug) return;
 
         const url = `${cleanBaseUrl}/${lang}/tag/${currentTranslation.slug}`;
 
         const alternates: Record<string, string> = {};
-        const translatedLangs = SUPPORTED_LANGS.filter((l) =>
-          tag.translations?.some((t: TagTranslation) => t.language === l && t.slug)
-        );
-
-        translatedLangs.forEach((l) => {
-          const trans = tag.translations?.find((t: TagTranslation) => t.language === l);
-          if (trans?.slug) {
-            alternates[l] = `${cleanBaseUrl}/${l}/tag/${trans.slug}`;
+        tag.translations?.forEach((t: TagTranslation) => {
+          if (t.slug) {
+            alternates[t.language] = `${cleanBaseUrl}/${t.language}/tag/${t.slug}`;
           }
         });
 
-        const defaultTrans =
-          tag.translations?.find((t: TagTranslation) => t.language === defaultLang) ||
-          tag.translations?.[0];
-        if (defaultTrans?.slug) {
-          alternates['x-default'] = `${cleanBaseUrl}/${defaultLang}/tag/${defaultTrans.slug}`;
+        // x-default: prefer English, fallback to first available with real language
+        const enTranslation = tag.translations?.find(
+          (t: TagTranslation) => t.language === 'en' && t.slug
+        );
+        const fallbackTranslation = tag.translations?.find((t: TagTranslation) => t.slug);
+        const defaultTranslation = enTranslation || fallbackTranslation;
+        if (defaultTranslation?.slug) {
+          alternates['x-default'] =
+            `${cleanBaseUrl}/${defaultTranslation.language}/tag/${defaultTranslation.slug}`;
         }
 
         sitemapItems.push({

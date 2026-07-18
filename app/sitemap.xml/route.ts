@@ -11,7 +11,9 @@ export async function GET() {
     `${cleanBaseUrl}/sitemaps/sitemap-static.xml`,
     ...SUPPORTED_LANGS.flatMap((lang) => [
       `${cleanBaseUrl}/sitemaps/sitemap-books-${lang}-1.xml`,
+      `${cleanBaseUrl}/sitemaps/sitemap-categories-${lang}.xml`,
       `${cleanBaseUrl}/sitemaps/sitemap-genres-${lang}.xml`,
+      `${cleanBaseUrl}/sitemaps/sitemap-collections-${lang}.xml`,
       `${cleanBaseUrl}/sitemaps/sitemap-authors-${lang}.xml`,
       `${cleanBaseUrl}/sitemaps/sitemap-tags-${lang}.xml`,
     ]),
