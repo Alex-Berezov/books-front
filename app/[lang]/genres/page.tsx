@@ -1,5 +1,6 @@
 import { TaxonomyOverviewClient } from '@/components/public/taxonomy-overview/TaxonomyOverviewClient';
 import { fetchPageBySlug } from '@/lib/utils/fetch-page';
+import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -30,5 +31,23 @@ export default async function GenresPage({ params }: Props) {
 
   const page = await fetchPageBySlug(lang, 'taxonomy-genres-index');
 
-  return <TaxonomyOverviewClient lang={lang} configKey="genre" initialPage={page ?? undefined} />;
+  const siteUrl = getSiteUrl();
+  const title = page?.h1 || page?.title || 'Genres';
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(
+    [
+      { name: 'Home', url: `${siteUrl}/${lang}` },
+      { name: title, url: `${siteUrl}/${lang}/genres` },
+    ],
+    `${siteUrl}/${lang}/genres`
+  );
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <TaxonomyOverviewClient lang={lang} configKey="genre" initialPage={page ?? undefined} />
+    </>
+  );
 }

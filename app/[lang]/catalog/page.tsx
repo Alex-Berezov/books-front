@@ -1,5 +1,6 @@
 import { getBookCards, getPublicCategories } from '@/api/endpoints/public';
 import { CatalogContent } from '@/components/public/catalog/CatalogContent/CatalogContent';
+import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -141,17 +142,39 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   const categories = (categoriesRes?.data ?? []).filter((cat) => cat.booksCount > 0);
   const genres = (genresRes?.data ?? []).filter((gen) => gen.booksCount > 0);
 
+  const hasFilters = !!(q || type || sort);
+  const siteUrl = getSiteUrl();
+  const itemListJsonLd = !hasFilters
+    ? buildItemListJsonLd(
+        books
+          .filter((book) => book.slug && book.title)
+          .map((book) => ({
+            name: book.title,
+            url: `${siteUrl}/${supportedLang}/book/${book.slug}`,
+          })),
+        `${siteUrl}/${supportedLang}/catalog`
+      )
+    : null;
+
   return (
-    <CatalogContent
-      lang={supportedLang}
-      books={books}
-      pagination={pagination}
-      categories={categories}
-      genres={genres}
-      currentSort={sort}
-      currentType={type}
-      currentQ={q}
-      currentPage={currentPage}
-    />
+    <>
+      {itemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+        />
+      )}
+      <CatalogContent
+        lang={supportedLang}
+        books={books}
+        pagination={pagination}
+        categories={categories}
+        genres={genres}
+        currentSort={sort}
+        currentType={type}
+        currentQ={q}
+        currentPage={currentPage}
+      />
+    </>
   );
 }

@@ -3,6 +3,7 @@ import { TagDetailPage } from '@/components/public/taxonomy/TagDetailPage/TagDet
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
+import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import type { SeoResolveResponse, TagBookCardsResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 
@@ -189,6 +190,17 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
     ],
   };
 
+  const siteUrl = getSiteUrl();
+  const itemListJsonLd = buildItemListJsonLd(
+    (data?.items ?? [])
+      .filter((book) => book.slug && book.title)
+      .map((book) => ({
+        name: book.title,
+        url: `${siteUrl}/${supportedLang}/book/${book.slug}`,
+      })),
+    `${siteUrl}/${supportedLang}/tag/${tagSlug}`
+  );
+
   return (
     <>
       {seoData?.schema && (
@@ -201,6 +213,12 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {itemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+        />
+      )}
       <TagDetailPage
         lang={supportedLang}
         tagSlug={tagSlug}

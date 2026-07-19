@@ -1,5 +1,6 @@
 import { TaxonomyOverviewClient } from '@/components/public/taxonomy-overview/TaxonomyOverviewClient';
 import { fetchPageBySlug } from '@/lib/utils/fetch-page';
+import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -30,7 +31,23 @@ export default async function CollectionsPage({ params }: Props) {
 
   const page = await fetchPageBySlug(lang, 'taxonomy-collections-index');
 
+  const siteUrl = getSiteUrl();
+  const title = page?.h1 || page?.title || 'Collections';
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(
+    [
+      { name: 'Home', url: `${siteUrl}/${lang}` },
+      { name: title, url: `${siteUrl}/${lang}/collections` },
+    ],
+    `${siteUrl}/${lang}/collections`
+  );
+
   return (
-    <TaxonomyOverviewClient lang={lang} configKey="collection" initialPage={page ?? undefined} />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <TaxonomyOverviewClient lang={lang} configKey="collection" initialPage={page ?? undefined} />
+    </>
   );
 }

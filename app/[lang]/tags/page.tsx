@@ -1,5 +1,6 @@
 import { TaxonomyOverviewClient } from '@/components/public/taxonomy-overview/TaxonomyOverviewClient';
 import { fetchPageBySlug } from '@/lib/utils/fetch-page';
+import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -30,5 +31,23 @@ export default async function TagsPage({ params }: Props) {
 
   const page = await fetchPageBySlug(lang, 'taxonomy-tags-index');
 
-  return <TaxonomyOverviewClient lang={lang} configKey="tag" initialPage={page ?? undefined} />;
+  const siteUrl = getSiteUrl();
+  const title = page?.h1 || page?.title || 'Tags';
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(
+    [
+      { name: 'Home', url: `${siteUrl}/${lang}` },
+      { name: title, url: `${siteUrl}/${lang}/tags` },
+    ],
+    `${siteUrl}/${lang}/tags`
+  );
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <TaxonomyOverviewClient lang={lang} configKey="tag" initialPage={page ?? undefined} />
+    </>
+  );
 }

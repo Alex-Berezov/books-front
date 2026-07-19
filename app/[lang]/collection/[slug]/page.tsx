@@ -3,7 +3,14 @@ import { TaxonomyDetailPage } from '@/components/public/taxonomy/TaxonomyDetailP
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
-import type { Category, CategoryBookCardsResponse, CategoryType, PaginatedResponse, SeoResolveResponse } from '@/types/api-schema';
+import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import type {
+  Category,
+  CategoryBookCardsResponse,
+  CategoryType,
+  PaginatedResponse,
+  SeoResolveResponse,
+} from '@/types/api-schema';
 import type { Metadata } from 'next';
 
 const logError = (message: string, error: unknown) => {
@@ -197,12 +204,29 @@ export default async function CollectionDetailPage({ params, searchParams }: Pro
   const totalPages = data?.pagination?.totalPages ?? 1;
   const total = data?.pagination?.total ?? 0;
 
+  const siteUrl = getSiteUrl();
+  const itemListJsonLd = buildItemListJsonLd(
+    (data?.items ?? [])
+      .filter((book) => book.slug && book.title)
+      .map((book) => ({
+        name: book.title,
+        url: `${siteUrl}/${supportedLang}/book/${book.slug}`,
+      })),
+    `${siteUrl}/${supportedLang}/collection/${slug}`
+  );
+
   return (
     <>
       {seoData?.schema && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(seoData.schema) }}
+        />
+      )}
+      {itemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
         />
       )}
       <TaxonomyDetailPage

@@ -1,4 +1,5 @@
 import { getAuthorBookCards, getPublicAuthorBySlug } from '@/api/endpoints/public';
+import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookCardModel, PublicAuthorDetail } from '@/types/api-schema';
@@ -150,6 +151,18 @@ export default async function AuthorDetailPage({ params }: Props) {
         }
       : null;
 
+  const siteUrl = getSiteUrl();
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(
+    [
+      { name: 'Home', url: `${siteUrl}/${supportedLang}` },
+      {
+        name: author?.name || displayName,
+        url: `${siteUrl}/${supportedLang}/author/${authorSlug}`,
+      },
+    ],
+    `${siteUrl}/${supportedLang}/author/${authorSlug}`
+  );
+
   return (
     <>
       {jsonLd && (
@@ -158,6 +171,10 @@ export default async function AuthorDetailPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <AuthorDetailClient
         lang={lang}
         authorSlug={authorSlug}
