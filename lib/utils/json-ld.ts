@@ -1,9 +1,14 @@
 function schemaContainsType(schema: unknown, type: string): boolean {
   if (!schema || typeof schema !== 'object') return false;
+  const matchesType = (value: unknown): boolean => {
+    if (value === type) return true;
+    if (Array.isArray(value)) return value.includes(type);
+    return false;
+  };
   const s = schema as Record<string, unknown>;
-  if (s['@type'] === type) return true;
+  if (matchesType(s['@type'])) return true;
   if (Array.isArray(s['@graph'])) {
-    return (s['@graph'] as Record<string, unknown>[]).some((item) => item['@type'] === type);
+    return (s['@graph'] as Record<string, unknown>[]).some((item) => matchesType(item['@type']));
   }
   return false;
 }

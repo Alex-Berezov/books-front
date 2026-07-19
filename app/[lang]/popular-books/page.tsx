@@ -3,7 +3,7 @@ import { CatalogContent } from '@/components/public/catalog/CatalogContent/Catal
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { buildBreadcrumbJsonLd, buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
-import { buildRobotsByContent } from '@/lib/utils/seo-indexing';
+import { buildRobotsByContent, shouldNoindexPaginatedPage } from '@/lib/utils/seo-indexing';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import { catalogDescriptions, catalogTitles } from '../catalog/catalog-landing-config';
@@ -28,11 +28,13 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const countRes = await getBookCards(supportedLang, 1, 1, { sort: LANDING_SORT }).catch(
     () => null
   );
-  const hasBooks = (countRes?.pagination?.total ?? 0) > 0;
+  const totalItems = countRes?.pagination?.total ?? 0;
+  const hasBooks = totalItems > 0;
   const currentPage = Math.max(1, Number(sParams.page) || 1);
+  const outOfRange = shouldNoindexPaginatedPage(currentPage, totalItems, PAGE_SIZE);
 
   const meta = getPageMetadata(supportedLang, '/popular-books', title, description, currentPage);
-  meta.robots = buildRobotsByContent(hasBooks);
+  meta.robots = buildRobotsByContent(hasBooks && !outOfRange);
   return meta;
 }
 

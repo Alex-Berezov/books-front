@@ -2,6 +2,7 @@ import { getBookCards, getPublicCategories } from '@/api/endpoints/public';
 import { CatalogContent } from '@/components/public/catalog/CatalogContent/CatalogContent';
 import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
+import { shouldNoindexPaginatedPage } from '@/lib/utils/seo-indexing';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import { catalogTitles, catalogDescriptions } from './catalog-landing-config';
@@ -32,12 +33,21 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     catalogDescriptions[supportedLang]?.[titleKey] || catalogDescriptions.en[titleKey];
 
   const hasFilters = !!(sParams.q || sParams.type || sParams.sort);
-  const page = hasFilters ? undefined : Math.max(1, Number(sParams.page) || 1);
-
-  const baseMetadata = getPageMetadata(supportedLang, '/catalog', title, description, page);
+  const currentPage = Math.max(1, Number(sParams.page) || 1);
 
   if (hasFilters) {
+    const baseMetadata = getPageMetadata(supportedLang, '/catalog', title, description);
     baseMetadata.robots = 'noindex, follow';
+    return baseMetadata;
+  }
+
+  const countRes = await getBookCards(supportedLang, 1, 1).catch(() => null);
+  const totalItems = countRes?.pagination?.total ?? 0;
+  const outOfRange = shouldNoindexPaginatedPage(currentPage, totalItems, PAGE_SIZE);
+
+  const baseMetadata = getPageMetadata(supportedLang, '/catalog', title, description, currentPage);
+  if (outOfRange) {
+    baseMetadata.robots = { index: false, follow: true };
   }
 
   return baseMetadata;

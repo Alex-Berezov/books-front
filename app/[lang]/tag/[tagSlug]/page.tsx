@@ -4,8 +4,11 @@ import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import { buildItemListJsonLd, getSiteUrl, schemaContainsType } from '@/lib/utils/json-ld';
+import { shouldNoindexPaginatedPage } from '@/lib/utils/seo-indexing';
 import type { SeoResolveResponse, TagBookCardsResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
+
+const TAXONOMY_PAGE_SIZE = 20;
 
 const logError = (message: string, error: unknown) => {
   if (process.env.NODE_ENV !== 'production') {
@@ -42,7 +45,10 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         next: { revalidate: 300 },
       }
     ).catch(() => null);
-    const hasBooks = (countRes?.pagination?.total ?? 0) > 0;
+    const totalItems = countRes?.pagination?.total ?? 0;
+    const hasBooks = totalItems > 0;
+    const currentPage = Math.max(1, Number(sParams.page) || 1);
+    const outOfRange = shouldNoindexPaginatedPage(currentPage, totalItems, TAXONOMY_PAGE_SIZE);
 
     const alternatesLanguages: Record<string, string> = {};
     (seo.hreflangs || seo.hreflang)?.forEach((item) => {
@@ -51,7 +57,6 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       }
     });
 
-    const currentPage = Math.max(1, Number(sParams.page) || 1);
     const canonicalUrl = seo.meta.canonicalUrl
       ? currentPage > 1
         ? `${seo.meta.canonicalUrl}?page=${currentPage}`
@@ -61,7 +66,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {
       title: seo.meta.title,
       description: seo.meta.description || undefined,
-      robots: hasBooks ? seo.meta.robots || undefined : { index: false, follow: true },
+      robots:
+        hasBooks && !outOfRange ? seo.meta.robots || undefined : { index: false, follow: true },
       alternates: {
         canonical: canonicalUrl,
         languages: alternatesLanguages,
@@ -185,57 +191,49 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
     `${siteUrl}/${supportedLang}/tag/${tagSlug}`
   );
 
-  const backendHasBreadcrumb = seoData?.schema
-    ? schemaContainsType(seoData.schema, 'BreadcrumbList')
-    : false;
-  const backendHasCollection = seoData?.schema
-    ? schemaContainsType(seoData.schema, 'CollectionPage')
-    : false;
+  const backendHasBreadcrumb = schemaContainsType(seoData?.schema, 'BreadcrumbList');
+  const backendHasCollection = schemaContainsType(seoData?.schema, 'CollectionPage');
+
+  const breadcrumbSchema = {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: translations.breadcrumbHome,
+        item: `https://bibliaris.com/${supportedLang}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: translations.allTags,
+        item: `https://bibliaris.com/${supportedLang}/tags`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: tagSlug,
+        item: `https://bibliaris.com/${supportedLang}/tag/${tagSlug}`,
+      },
+    ],
+  };
+
+  const collectionPageSchema = {
+    '@type': 'CollectionPage',
+    name: tagSlug,
+    url: `https://bibliaris.com/${supportedLang}/tag/${tagSlug}`,
+    numberOfItems: total,
+  };
+
+  const localGraphItems = [
+    !backendHasBreadcrumb ? breadcrumbSchema : null,
+    !backendHasCollection ? collectionPageSchema : null,
+  ].filter(Boolean);
+
   const localJsonLd =
-    backendHasBreadcrumb && backendHasCollection
-      ? null
-      : {
-          '@context': 'https://schema.org',
-          '@graph': [
-            ...(backendHasBreadcrumb
-              ? []
-              : [
-                  {
-                    '@type': 'BreadcrumbList',
-                    itemListElement: [
-                      {
-                        '@type': 'ListItem',
-                        position: 1,
-                        name: translations.breadcrumbHome,
-                        item: `https://bibliaris.com/${supportedLang}`,
-                      },
-                      {
-                        '@type': 'ListItem',
-                        position: 2,
-                        name: translations.allTags,
-                        item: `https://bibliaris.com/${supportedLang}/tags`,
-                      },
-                      {
-                        '@type': 'ListItem',
-                        position: 3,
-                        name: tagSlug,
-                        item: `https://bibliaris.com/${supportedLang}/tag/${tagSlug}`,
-                      },
-                    ],
-                  },
-                ]),
-            ...(backendHasCollection
-              ? []
-              : [
-                  {
-                    '@type': 'CollectionPage',
-                    name: tagSlug,
-                    url: `https://bibliaris.com/${supportedLang}/tag/${tagSlug}`,
-                    numberOfItems: total,
-                  },
-                ]),
-          ],
-        };
+    localGraphItems.length > 0
+      ? { '@context': 'https://schema.org', '@graph': localGraphItems }
+      : null;
 
   return (
     <>
