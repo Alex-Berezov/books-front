@@ -225,34 +225,37 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
     numberOfItems: total,
   };
 
-  const localGraphItems = [
-    !backendSchemaPresent ? breadcrumbSchema : null,
-    !backendHasCollection ? collectionPageSchema : null,
-  ].filter(Boolean);
+  const backendGraph = seoData?.schema as Record<string, unknown> | undefined;
+  const backendGraphItems =
+    backendGraph && Array.isArray(backendGraph['@graph'])
+      ? (backendGraph['@graph'] as Record<string, unknown>[])
+      : [];
 
-  const localJsonLd =
-    localGraphItems.length > 0
-      ? { '@context': 'https://schema.org', '@graph': localGraphItems }
-      : null;
+  const combinedItems: Record<string, unknown>[] = [...backendGraphItems];
+
+  if (!backendSchemaPresent) {
+    combinedItems.push(breadcrumbSchema);
+  }
+
+  if (!backendHasCollection) {
+    combinedItems.push(collectionPageSchema);
+  }
+
+  if (itemListJsonLd) {
+    combinedItems.push(itemListJsonLd as Record<string, unknown>);
+  }
 
   return (
     <>
-      {seoData?.schema && (
+      {combinedItems.length > 0 && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(seoData.schema) }}
-        />
-      )}
-      {localJsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(localJsonLd) }}
-        />
-      )}
-      {itemListJsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': combinedItems,
+            }),
+          }}
         />
       )}
       <TagDetailPage

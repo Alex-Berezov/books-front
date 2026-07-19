@@ -86,7 +86,7 @@ export function TagDetailPage({
           </aside>
 
           <div className={styles.main}>
-            <Breadcrumbs items={breadcrumbItems} />
+            <Breadcrumbs items={breadcrumbItems} emitJsonLd={false} />
 
             <header className={styles.hero}>
               <h1 className={styles.title}>{tagName}</h1>
