@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { getBooks } from '@/api/endpoints/admin/books';
 import { getCategories } from '@/api/endpoints/admin/categories';
 import { getTags } from '@/api/endpoints/admin/tags';
-import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { getBookCards } from '@/api/endpoints/public';
+import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type {
   BookOverview,
   Category,
@@ -43,22 +44,40 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
   // 1. Static Sitemap
   if (filename === 'sitemap-static.xml') {
-    const staticRoutes = [
-      '',
-      '/categories',
-      '/genres',
-      '/collections',
-      '/tags',
-      '/catalog',
-      '/audiobooks',
-      '/popular-books',
-      '/new-releases',
-      '/privacy',
-      '/terms',
-      '/deletion',
+    const landingCounts = new Map<string, { audiobooks: number; popular: number; new: number }>();
+    await Promise.all(
+      SUPPORTED_LANGS.map(async (lang) => {
+        const [audioRes, popRes, newRes] = await Promise.all([
+          getBookCards(lang as SupportedLang, 1, 1, { type: 'audio' }).catch(() => null),
+          getBookCards(lang as SupportedLang, 1, 1, { sort: 'popular' }).catch(() => null),
+          getBookCards(lang as SupportedLang, 1, 1, { sort: 'new' }).catch(() => null),
+        ]);
+        landingCounts.set(lang, {
+          audiobooks: audioRes?.pagination?.total ?? 0,
+          popular: popRes?.pagination?.total ?? 0,
+          new: newRes?.pagination?.total ?? 0,
+        });
+      })
+    );
+
+    const staticRoutes: { path: string; include: (lang: string) => boolean }[] = [
+      { path: '', include: () => true },
+      { path: '/categories', include: () => true },
+      { path: '/genres', include: () => true },
+      { path: '/collections', include: () => true },
+      { path: '/tags', include: () => true },
+      { path: '/catalog', include: () => true },
+      { path: '/audiobooks', include: (lang) => (landingCounts.get(lang)?.audiobooks ?? 0) > 0 },
+      { path: '/popular-books', include: (lang) => (landingCounts.get(lang)?.popular ?? 0) > 0 },
+      { path: '/new-releases', include: (lang) => (landingCounts.get(lang)?.new ?? 0) > 0 },
+      { path: '/privacy', include: () => true },
+      { path: '/terms', include: () => true },
+      { path: '/deletion', include: () => true },
     ];
-    staticRoutes.forEach((route) => {
+    staticRoutes.forEach(({ path: route, include }) => {
       SUPPORTED_LANGS.forEach((lang) => {
+        if (!include(lang)) return;
+
         const url = `${cleanBaseUrl}/${lang}${route}`;
         const alternates = getAlternates(SUPPORTED_LANGS, (l) => `${cleanBaseUrl}/${l}${route}`);
 
@@ -140,6 +159,9 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       categories.forEach((cat) => {
+        // Skip genres without books
+        if (!cat.booksCount || cat.booksCount === 0) return;
+
         const currentTranslation = cat.translations?.find(
           (t: CategoryTranslation) => t.language === lang && t.slug
         );
@@ -190,6 +212,9 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       categories.forEach((cat) => {
+        // Skip categories without books
+        if (!cat.booksCount || cat.booksCount === 0) return;
+
         const currentTranslation = cat.translations?.find(
           (t: CategoryTranslation) => t.language === lang && t.slug
         );
@@ -239,6 +264,9 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       categories.forEach((cat) => {
+        // Skip collections without books
+        if (!cat.booksCount || cat.booksCount === 0) return;
+
         const currentTranslation = cat.translations?.find(
           (t: CategoryTranslation) => t.language === lang && t.slug
         );

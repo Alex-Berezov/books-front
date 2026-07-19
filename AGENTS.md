@@ -362,7 +362,8 @@ import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 
 ---
 
-**Last Updated:** July 12, 2026
+**Last Updated:** July 19, 2026
 **Status:** Project implemented and published; development proceeds iteratively. The formal milestone scheme (M0–M10) is no longer tracked — do not use milestones for planning/status assessment.
 **Supported Languages:** en, es, fr, pt, ru
+**P4 Content Quality:** implemented — empty book listing pages (landing + taxonomy detail) set `noindex, follow` in `generateMetadata`, excluded from sitemap when `total === 0`. Footer audiobooks link conditional server-side. Docs: `ai-context/seo-rules.md` and `frontend/frontend-agents/api-cheatsheet.md` updated.
 ```

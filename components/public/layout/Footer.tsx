@@ -7,7 +7,11 @@ import { getLangFromPath } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './Footer.module.scss';
 
-export function Footer() {
+type FooterProps = {
+  hasAudiobooks?: boolean;
+};
+
+export function Footer({ hasAudiobooks = true }: FooterProps) {
   const pathname = usePathname();
   const lang = getLangFromPath(pathname);
   const { t } = useTranslation();
@@ -39,11 +43,13 @@ export function Footer() {
                     {t('footer.newReleases')}
                   </Link>
                 </li>
-                <li>
-                  <Link href={`/${lang}/audiobooks`} className={styles.link}>
-                    {t('footer.audiobooks')}
-                  </Link>
-                </li>
+                {hasAudiobooks && (
+                  <li>
+                    <Link href={`/${lang}/audiobooks`} className={styles.link}>
+                      {t('footer.audiobooks')}
+                    </Link>
+                  </li>
+                )}
                 <li>
                   <Link href={`/${lang}/genres`} className={styles.link}>
                     {t('footer.browseGenres')}

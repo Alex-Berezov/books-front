@@ -3,6 +3,7 @@ import { CatalogContent } from '@/components/public/catalog/CatalogContent/Catal
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { buildBreadcrumbJsonLd, buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
+import { buildRobotsByContent } from '@/lib/utils/seo-indexing';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import { catalogDescriptions, catalogTitles } from '../catalog/catalog-landing-config';
@@ -22,7 +23,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = catalogTitles[supportedLang]?.[TITLE_KEY] || catalogTitles.en[TITLE_KEY];
   const description =
     catalogDescriptions[supportedLang]?.[TITLE_KEY] || catalogDescriptions.en[TITLE_KEY];
-  return getPageMetadata(supportedLang, '/new-releases', title, description);
+
+  const countRes = await getBookCards(supportedLang, 1, 1, { sort: LANDING_SORT }).catch(
+    () => null
+  );
+  const hasBooks = (countRes?.pagination?.total ?? 0) > 0;
+
+  const meta = getPageMetadata(supportedLang, '/new-releases', title, description);
+  meta.robots = buildRobotsByContent(hasBooks);
+  return meta;
 }
 
 export const dynamic = 'force-dynamic';

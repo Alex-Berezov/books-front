@@ -38,6 +38,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       next: { revalidate: 300 },
     });
 
+    const booksEndpoint = buildLangPath(supportedLang, `/categories/${slug}/books/cards`);
+    const booksParams = new URLSearchParams({ page: '1', limit: '1' });
+    const countRes = await httpGet<CategoryBookCardsResponse>(
+      `${booksEndpoint}?${booksParams.toString()}`,
+      {
+        language: supportedLang,
+        next: { revalidate: 300 },
+      }
+    ).catch(() => null);
+    const hasBooks = (countRes?.pagination?.total ?? 0) > 0;
+
     const alternatesLanguages: Record<string, string> = {};
     (seo.hreflangs || seo.hreflang)?.forEach((item) => {
       if (item.hreflang) {
@@ -48,7 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: seo.meta.title,
       description: seo.meta.description || undefined,
-      robots: seo.meta.robots || undefined,
+      robots: hasBooks ? seo.meta.robots || undefined : { index: false, follow: true },
       alternates: {
         canonical: seo.meta.canonicalUrl || undefined,
         languages: alternatesLanguages,

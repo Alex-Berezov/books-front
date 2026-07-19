@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation';
 import { Footer } from '@/components/public/layout/Footer';
 import { Header } from '@/components/public/layout/Header';
+import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
+import type { BookCardsResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import styles from '@/styles/layouts.module.scss';
 
@@ -39,6 +41,13 @@ export default async function PublicLayout({ children, params }: Props) {
   const dict = getDictionary(lang as SupportedLang);
   const skipText = dict.a11y?.skipToContent || 'Skip to main content';
 
+  const audioEndpoint = buildLangPath(lang, '/books/cards?page=1&limit=1&type=audio');
+  const audioRes = await httpGet<BookCardsResponse>(audioEndpoint, {
+    language: lang as SupportedLang,
+    next: { revalidate: 300 },
+  }).catch(() => null);
+  const hasAudiobooks = (audioRes?.pagination?.total ?? 0) > 0;
+
   return (
     <div className={styles.publicLayout}>
       <a href="#main-content" className="skip-link">
@@ -48,7 +57,7 @@ export default async function PublicLayout({ children, params }: Props) {
       <main id="main-content" className={styles.publicMain}>
         {children}
       </main>
-      <Footer />
+      <Footer hasAudiobooks={hasAudiobooks} />
     </div>
   );
 }
