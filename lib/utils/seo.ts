@@ -11,26 +11,32 @@ import type { Metadata } from 'next';
  * @param description Page description
  * @returns Metadata object for Next.js Page components
  */
+export function appendPageParam(path: string, page?: number): string {
+  if (!page || page <= 1) return path;
+  return `${path}?page=${page}`;
+}
+
 export function getPageMetadata(
   lang: SupportedLang,
   routePath: string,
   title: string,
-  description: string
+  description: string,
+  page?: number
 ): Metadata {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bibliaris.com';
   const cleanBase = baseUrl.replace(/\/$/, '');
 
-  // Clean routePath to ensure we don't have double slashes
   const formattedRoutePath = routePath.startsWith('/') ? routePath : `/${routePath}`;
   const path = formattedRoutePath === '/' ? '' : formattedRoutePath;
 
-  const canonicalUrl = `${cleanBase}/${lang}${path}`;
+  const pathWithPage = page && page > 1 ? `${path}?page=${page}` : path;
+  const canonicalUrl = `${cleanBase}/${lang}${pathWithPage}`;
 
   const alternatesLanguages: Record<string, string> = {};
   SUPPORTED_LANGS.forEach((l) => {
-    alternatesLanguages[l] = `${cleanBase}/${l}${path}`;
+    alternatesLanguages[l] = `${cleanBase}/${l}${pathWithPage}`;
   });
-  alternatesLanguages['x-default'] = `${cleanBase}/en${path}`;
+  alternatesLanguages['x-default'] = `${cleanBase}/en${pathWithPage}`;
 
   return {
     title,

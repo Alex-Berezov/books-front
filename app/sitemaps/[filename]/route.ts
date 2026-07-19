@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getBooks } from '@/api/endpoints/admin/books';
 import { getCategories } from '@/api/endpoints/admin/categories';
 import { getTags } from '@/api/endpoints/admin/tags';
-import { getBookCards } from '@/api/endpoints/public';
+import { getBookCards, getPublicAuthors } from '@/api/endpoints/public';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type {
   BookOverview,
@@ -11,6 +11,7 @@ import type {
   Tag,
   TagTranslation,
   VersionPreview,
+  AuthorListItem,
 } from '@/types/api-schema';
 
 export const dynamic = 'force-dynamic';
@@ -93,58 +94,68 @@ export async function GET(request: Request, { params }: { params: { filename: st
       });
     });
   }
-  // 2. Books Sitemap: sitemap-books-[lang]-1.xml
-  else if (filename.startsWith('sitemap-books-') && filename.endsWith('-1.xml')) {
-    const lang = filename.substring('sitemap-books-'.length, filename.length - '-1.xml'.length);
-    if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
-      let books: BookOverview[] = [];
-      try {
-        const booksRes = await getBooks({ limit: 1000 });
-        books = booksRes?.data || [];
-      } catch (error) {
-        console.error(`Error fetching books for sitemap (${lang}):`, error);
+  // 2. Books Sitemap: sitemap-books-[lang]-[n].xml (paginated)
+  else if (/^sitemap-books-[a-z]{2}-[0-9]+\.xml$/.test(filename)) {
+    const match = filename.match(/^sitemap-books-([a-z]{2})-([0-9]+)\.xml$/);
+    if (!match) {
+      return new NextResponse('Sitemap not found', { status: 404 });
+    }
+    const lang = match[1];
+    const pageNumber = parseInt(match[2], 10);
+    if (!(SUPPORTED_LANGS as readonly string[]).includes(lang) || pageNumber < 1) {
+      return new NextResponse('Sitemap not found', { status: 404 });
+    }
+    let books: BookOverview[] = [];
+    try {
+      const booksRes = await getBooks({ page: pageNumber, limit: 1000 });
+      books = booksRes?.data || [];
+    } catch (error) {
+      console.error(`Error fetching books for sitemap (${lang}, page ${pageNumber}):`, error);
+    }
+    // Return 404 if page is out of range (no items)
+    if (books.length === 0) {
+      return new NextResponse('Sitemap not found', { status: 404 });
+    }
+
+    books.forEach((book) => {
+      // Find published version for this specific language
+      const currentVersion = book.versions?.find(
+        (v: VersionPreview) => v.language === lang && v.status === 'published' && v.slug
+      );
+      if (!currentVersion?.slug) return;
+
+      // Build alternates from all published versions with slug
+      const alternates: Record<string, string> = {};
+      const publishedVersions =
+        book.versions?.filter((v: VersionPreview) => v.status === 'published' && v.slug) || [];
+
+      publishedVersions.forEach((v: VersionPreview) => {
+        if (v.language && v.slug) {
+          alternates[v.language] = `${cleanBaseUrl}/${v.language}/book/${v.slug}`;
+        }
+      });
+
+      // x-default: prefer English, fallback to first available
+      const enVersion = publishedVersions.find((v: VersionPreview) => v.language === 'en');
+      const fallbackVersion = publishedVersions[0];
+      const defaultVersion = enVersion || fallbackVersion;
+      if (defaultVersion) {
+        alternates['x-default'] =
+          `${cleanBaseUrl}/${defaultVersion.language}/book/${defaultVersion.slug}`;
       }
 
-      books.forEach((book) => {
-        // Find published version for this specific language
-        const currentVersion = book.versions?.find(
-          (v: VersionPreview) => v.language === lang && v.status === 'published' && v.slug
-        );
-        if (!currentVersion?.slug) return;
+      const url = `${cleanBaseUrl}/${lang}/book/${currentVersion.slug}`;
 
-        // Build alternates from all published versions with slug
-        const alternates: Record<string, string> = {};
-        const publishedVersions =
-          book.versions?.filter((v: VersionPreview) => v.status === 'published' && v.slug) || [];
-
-        publishedVersions.forEach((v: VersionPreview) => {
-          if (v.language && v.slug) {
-            alternates[v.language] = `${cleanBaseUrl}/${v.language}/book/${v.slug}`;
-          }
-        });
-
-        // x-default: prefer English, fallback to first available
-        const enVersion = publishedVersions.find((v: VersionPreview) => v.language === 'en');
-        const fallbackVersion = publishedVersions[0];
-        const defaultVersion = enVersion || fallbackVersion;
-        if (defaultVersion) {
-          alternates['x-default'] =
-            `${cleanBaseUrl}/${defaultVersion.language}/book/${defaultVersion.slug}`;
-        }
-
-        const url = `${cleanBaseUrl}/${lang}/book/${currentVersion.slug}`;
-
-        sitemapItems.push({
-          url,
-          lastModified: new Date(book.updatedAt || new Date()),
-          changeFrequency: 'daily',
-          priority: 0.9,
-          alternates: {
-            languages: alternates,
-          },
-        });
+      sitemapItems.push({
+        url,
+        lastModified: new Date(book.updatedAt || new Date()),
+        changeFrequency: 'daily',
+        priority: 0.9,
+        alternates: {
+          languages: alternates,
+        },
       });
-    }
+    });
   }
   // 3. Genres Sitemap: sitemap-genres-[lang].xml
   else if (filename.startsWith('sitemap-genres-') && filename.endsWith('.xml')) {
@@ -303,67 +314,59 @@ export async function GET(request: Request, { params }: { params: { filename: st
       });
     }
   }
-  // 4. Authors Sitemap: sitemap-authors-[lang].xml / sitemap-authors-[lang]-1.xml
-  else if (filename.startsWith('sitemap-authors-') && filename.endsWith('.xml')) {
-    let lang = '';
-    if (filename.endsWith('-1.xml')) {
-      lang = filename.substring('sitemap-authors-'.length, filename.length - '-1.xml'.length);
-    } else {
-      lang = filename.substring('sitemap-authors-'.length, filename.length - '.xml'.length);
-    }
-
+  // 4. Authors Sitemap: sitemap-authors-[lang].xml
+  else if (/^sitemap-authors-[a-z]{2}\.xml$/.test(filename)) {
+    const lang = filename.replace(/^sitemap-authors-/, '').replace(/\.xml$/, '');
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
-      let books: BookOverview[] = [];
+      const allAuthors: AuthorListItem[] = [];
       try {
-        const booksRes = await getBooks({ limit: 1000 });
-        books = booksRes?.data || [];
-      } catch (error) {
-        console.error(`Error fetching books for sitemap (${lang}):`, error);
-      }
-
-      const authorsByLang = new Map<string, Set<string>>();
-      SUPPORTED_LANGS.forEach((l) => {
-        authorsByLang.set(l, new Set<string>());
-      });
-
-      books.forEach((book) => {
-        book.versions?.forEach((v: VersionPreview) => {
-          if (
-            v.status === 'published' &&
-            v.author &&
-            v.language &&
-            SUPPORTED_LANGS.includes(v.language)
-          ) {
-            authorsByLang.get(v.language)?.add(v.author);
-          }
-        });
-      });
-
-      const langAuthors = authorsByLang.get(lang);
-      if (langAuthors) {
-        langAuthors.forEach((authorName) => {
-          const authorSlug = encodeURIComponent(
-            authorName.trim().replace(/\s+/g, '-')
-          ).toLowerCase();
-          const activeLangs = SUPPORTED_LANGS.filter((l) => authorsByLang.get(l)?.has(authorName));
-
-          const url = `${cleanBaseUrl}/${lang}/author/${authorSlug}`;
-          const alternates = getAlternates(
-            activeLangs,
-            (l) => `${cleanBaseUrl}/${l}/author/${authorSlug}`
+        // Paginate through all authors using the public endpoint
+        const firstPage = await getPublicAuthors(lang as SupportedLang, { page: 1, limit: 100 });
+        const total = firstPage.meta.total;
+        allAuthors.push(...firstPage.data);
+        const totalPages = Math.ceil(total / 100);
+        if (totalPages > 1) {
+          const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+          const results = await Promise.all(
+            remainingPages.map((p) =>
+              getPublicAuthors(lang as SupportedLang, { page: p, limit: 100 }).catch(() => null)
+            )
           );
-
-          sitemapItems.push({
-            url,
-            lastModified: new Date(),
-            changeFrequency: 'weekly',
-            priority: 0.6,
-            alternates: {
-              languages: alternates,
-            },
+          results.forEach((res) => {
+            if (res) allAuthors.push(...res.data);
           });
-        });
+        }
+      } catch (error) {
+        console.error(`Error fetching authors for sitemap (${lang}):`, error);
       }
+
+      allAuthors.forEach((author) => {
+        const slug = author.slug;
+        if (!slug) return;
+
+        const activeLangs: string[] = [];
+        if (author.translations) {
+          author.translations.forEach((t) => {
+            if (t.slug && (SUPPORTED_LANGS as readonly string[]).includes(t.language)) {
+              activeLangs.push(t.language);
+            }
+          });
+        }
+
+        const url = `${cleanBaseUrl}/${lang}/author/${slug}`;
+        const alternates =
+          activeLangs.length > 0
+            ? getAlternates(activeLangs, (l) => `${cleanBaseUrl}/${l}/author/${slug}`)
+            : undefined;
+
+        sitemapItems.push({
+          url,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.6,
+          ...(alternates ? { alternates: { languages: alternates } } : {}),
+        });
+      });
     }
   }
   // 5. Tags Sitemap: sitemap-tags-[lang].xml

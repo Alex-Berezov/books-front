@@ -26,8 +26,9 @@ type Props = {
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { lang, slug } = await params;
+  const sParams = await searchParams;
   const supportedLang = lang as SupportedLang;
 
   try {
@@ -56,12 +57,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       }
     });
 
+    const currentPage = Math.max(1, Number(sParams.page) || 1);
+    const canonicalUrl = seo.meta.canonicalUrl
+      ? currentPage > 1
+        ? `${seo.meta.canonicalUrl}?page=${currentPage}`
+        : seo.meta.canonicalUrl
+      : undefined;
+
     return {
       title: seo.meta.title,
       description: seo.meta.description || undefined,
       robots: hasBooks ? seo.meta.robots || undefined : { index: false, follow: true },
       alternates: {
-        canonical: seo.meta.canonicalUrl || undefined,
+        canonical: canonicalUrl,
         languages: alternatesLanguages,
       },
       openGraph: {

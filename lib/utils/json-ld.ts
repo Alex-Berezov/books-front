@@ -1,3 +1,13 @@
+function schemaContainsType(schema: unknown, type: string): boolean {
+  if (!schema || typeof schema !== 'object') return false;
+  const s = schema as Record<string, unknown>;
+  if (s['@type'] === type) return true;
+  if (Array.isArray(s['@graph'])) {
+    return (s['@graph'] as Record<string, unknown>[]).some((item) => item['@type'] === type);
+  }
+  return false;
+}
+
 function getSiteUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL || 'https://bibliaris.com').replace(/\/$/, '');
 }
@@ -42,4 +52,4 @@ function buildItemListJsonLd(
   };
 }
 
-export { getSiteUrl, buildBreadcrumbJsonLd, buildItemListJsonLd };
+export { getSiteUrl, buildBreadcrumbJsonLd, buildItemListJsonLd, schemaContainsType };

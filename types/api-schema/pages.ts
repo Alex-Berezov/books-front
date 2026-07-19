@@ -236,5 +236,9 @@ export interface SeoResolveResponse {
   hreflang?: SeoHreflang[];
   hreflangs?: SeoHreflang[];
   schema?: Record<string, unknown>;
-  breadcrumbPath?: Array<{ name: string; slug: string }> | null;
+  breadcrumbPath?: Array<{
+    name: string;
+    slug: string;
+    type?: 'category' | 'genre' | 'collection';
+  }> | null;
 }

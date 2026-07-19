@@ -31,9 +31,12 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const description =
     catalogDescriptions[supportedLang]?.[titleKey] || catalogDescriptions.en[titleKey];
 
-  const baseMetadata = getPageMetadata(supportedLang, '/catalog', title, description);
+  const hasFilters = !!(sParams.q || sParams.type || sParams.sort);
+  const page = hasFilters ? undefined : Math.max(1, Number(sParams.page) || 1);
 
-  if (sParams.q || sParams.type || sParams.sort) {
+  const baseMetadata = getPageMetadata(supportedLang, '/catalog', title, description, page);
+
+  if (hasFilters) {
     baseMetadata.robots = 'noindex, follow';
   }
 

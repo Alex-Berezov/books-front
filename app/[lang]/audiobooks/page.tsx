@@ -17,8 +17,9 @@ const PAGE_SIZE = 24;
 const LANDING_TYPE = 'audio';
 const TITLE_KEY = 'audio';
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { lang } = await params;
+  const sParams = await searchParams;
   const supportedLang = lang as SupportedLang;
   const title = catalogTitles[supportedLang]?.[TITLE_KEY] || catalogTitles.en[TITLE_KEY];
   const description =
@@ -28,8 +29,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     () => null
   );
   const hasBooks = (countRes?.pagination?.total ?? 0) > 0;
+  const currentPage = Math.max(1, Number(sParams.page) || 1);
 
-  const meta = getPageMetadata(supportedLang, '/audiobooks', title, description);
+  const meta = getPageMetadata(supportedLang, '/audiobooks', title, description, currentPage);
   meta.robots = buildRobotsByContent(hasBooks);
   return meta;
 }

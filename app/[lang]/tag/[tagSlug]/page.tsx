@@ -3,7 +3,7 @@ import { TagDetailPage } from '@/components/public/taxonomy/TagDetailPage/TagDet
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
-import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import { buildItemListJsonLd, getSiteUrl, schemaContainsType } from '@/lib/utils/json-ld';
 import type { SeoResolveResponse, TagBookCardsResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 
@@ -20,8 +20,9 @@ type Props = {
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { lang, tagSlug } = await params;
+  const sParams = await searchParams;
   const supportedLang = lang as SupportedLang;
 
   try {
@@ -50,12 +51,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       }
     });
 
+    const currentPage = Math.max(1, Number(sParams.page) || 1);
+    const canonicalUrl = seo.meta.canonicalUrl
+      ? currentPage > 1
+        ? `${seo.meta.canonicalUrl}?page=${currentPage}`
+        : seo.meta.canonicalUrl
+      : undefined;
+
     return {
       title: seo.meta.title,
       description: seo.meta.description || undefined,
       robots: hasBooks ? seo.meta.robots || undefined : { index: false, follow: true },
       alternates: {
-        canonical: seo.meta.canonicalUrl || undefined,
+        canonical: canonicalUrl,
         languages: alternatesLanguages,
       },
       openGraph: {
@@ -166,41 +174,6 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
     relatedCollections: t('tag.relatedCollections'),
   };
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: translations.breadcrumbHome,
-            item: `https://bibliaris.com/${supportedLang}`,
-          },
-          {
-            '@type': 'ListItem',
-            position: 2,
-            name: translations.allTags,
-            item: `https://bibliaris.com/${supportedLang}/tags`,
-          },
-          {
-            '@type': 'ListItem',
-            position: 3,
-            name: tagSlug,
-            item: `https://bibliaris.com/${supportedLang}/tag/${tagSlug}`,
-          },
-        ],
-      },
-      {
-        '@type': 'CollectionPage',
-        name: tagSlug,
-        url: `https://bibliaris.com/${supportedLang}/tag/${tagSlug}`,
-        numberOfItems: total,
-      },
-    ],
-  };
-
   const siteUrl = getSiteUrl();
   const itemListJsonLd = buildItemListJsonLd(
     (data?.items ?? [])
@@ -212,6 +185,58 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
     `${siteUrl}/${supportedLang}/tag/${tagSlug}`
   );
 
+  const backendHasBreadcrumb = seoData?.schema
+    ? schemaContainsType(seoData.schema, 'BreadcrumbList')
+    : false;
+  const backendHasCollection = seoData?.schema
+    ? schemaContainsType(seoData.schema, 'CollectionPage')
+    : false;
+  const localJsonLd =
+    backendHasBreadcrumb && backendHasCollection
+      ? null
+      : {
+          '@context': 'https://schema.org',
+          '@graph': [
+            ...(backendHasBreadcrumb
+              ? []
+              : [
+                  {
+                    '@type': 'BreadcrumbList',
+                    itemListElement: [
+                      {
+                        '@type': 'ListItem',
+                        position: 1,
+                        name: translations.breadcrumbHome,
+                        item: `https://bibliaris.com/${supportedLang}`,
+                      },
+                      {
+                        '@type': 'ListItem',
+                        position: 2,
+                        name: translations.allTags,
+                        item: `https://bibliaris.com/${supportedLang}/tags`,
+                      },
+                      {
+                        '@type': 'ListItem',
+                        position: 3,
+                        name: tagSlug,
+                        item: `https://bibliaris.com/${supportedLang}/tag/${tagSlug}`,
+                      },
+                    ],
+                  },
+                ]),
+            ...(backendHasCollection
+              ? []
+              : [
+                  {
+                    '@type': 'CollectionPage',
+                    name: tagSlug,
+                    url: `https://bibliaris.com/${supportedLang}/tag/${tagSlug}`,
+                    numberOfItems: total,
+                  },
+                ]),
+          ],
+        };
+
   return (
     <>
       {seoData?.schema && (
@@ -220,10 +245,12 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
           dangerouslySetInnerHTML={{ __html: JSON.stringify(seoData.schema) }}
         />
       )}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      {localJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localJsonLd) }}
+        />
+      )}
       {itemListJsonLd && (
         <script
           type="application/ld+json"

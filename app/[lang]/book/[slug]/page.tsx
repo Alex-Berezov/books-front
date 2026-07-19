@@ -206,14 +206,19 @@ export default async function BookDetailPage({ params }: Props) {
             <li>
               <Link href={`/${supportedLang}`}>{dict.book.home}</Link>
             </li>
-            {seoData?.breadcrumbPath?.map((item: { slug: string; name: string }) => (
-              <li key={item.slug} className={styles.breadcrumbItem}>
-                <span className={styles.separator} aria-hidden="true">
-                  /
-                </span>
-                <Link href={`/${supportedLang}/catalog/${item.slug}`}>{item.name}</Link>
-              </li>
-            ))}
+            {seoData?.breadcrumbPath?.map((item: { slug: string; name: string; type?: string }) => {
+              const taxonomyType =
+                item.type === 'genre' || item.type === 'collection' ? item.type : 'category';
+              const href = item.type ? `/${supportedLang}/${taxonomyType}/${item.slug}` : null;
+              return (
+                <li key={item.slug} className={styles.breadcrumbItem}>
+                  <span className={styles.separator} aria-hidden="true">
+                    /
+                  </span>
+                  {href ? <Link href={href}>{item.name}</Link> : <span>{item.name}</span>}
+                </li>
+              );
+            })}
             <li className={styles.breadcrumbItem} aria-current="page">
               <span className={styles.separator} aria-hidden="true">
                 /
