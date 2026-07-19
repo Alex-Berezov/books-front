@@ -30,17 +30,17 @@ export function Footer() {
               <h3 className={styles.sectionTitle}>{t('footer.explore')}</h3>
               <ul className={styles.linksList}>
                 <li>
-                  <Link href={`/${lang}/catalog?sort=popular`} className={styles.link}>
+                  <Link href={`/${lang}/popular-books`} className={styles.link}>
                     {t('footer.popularBooks')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${lang}/catalog?sort=new`} className={styles.link}>
+                  <Link href={`/${lang}/new-releases`} className={styles.link}>
                     {t('footer.newReleases')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${lang}/catalog?type=audio`} className={styles.link}>
+                  <Link href={`/${lang}/audiobooks`} className={styles.link}>
                     {t('footer.audiobooks')}
                   </Link>
                 </li>

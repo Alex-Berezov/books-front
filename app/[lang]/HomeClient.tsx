@@ -181,7 +181,7 @@ export default function HomeClient({
                 {t('home.browseLibrary')}
               </Link>
               {audiobooksCount > 0 && (
-                <Link href={`/${supportedLang}/catalog?type=audio`} className={styles.secondaryBtn}>
+                <Link href={`/${supportedLang}/audiobooks`} className={styles.secondaryBtn}>
                   {t('home.audiobooks')}
                 </Link>
               )}
@@ -229,7 +229,7 @@ export default function HomeClient({
         <BookSection
           title={t('home.topPopular')}
           books={featuredBooks}
-          viewMoreHref={`/${supportedLang}/catalog?sort=popular`}
+          viewMoreHref={`/${supportedLang}/popular-books`}
           priorityCount={2}
         />
 
@@ -342,7 +342,7 @@ export default function HomeClient({
         <BookSection
           title={t('home.newReleases')}
           books={newReleases}
-          viewMoreHref={`/${supportedLang}/catalog?sort=new`}
+          viewMoreHref={`/${supportedLang}/new-releases`}
         />
 
         {renderCollections('after-new-releases')}
@@ -384,7 +384,7 @@ export default function HomeClient({
           <BookSection
             title={t('home.audiobooks')}
             books={audiobooks}
-            viewMoreHref={`/${supportedLang}/catalog?type=audio`}
+            viewMoreHref={`/${supportedLang}/audiobooks`}
           />
         )}
 

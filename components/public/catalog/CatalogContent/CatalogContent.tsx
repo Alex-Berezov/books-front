@@ -169,19 +169,19 @@ export function CatalogContent({
                 {t('catalog.allBooks')}
               </Link>
               <Link
-                href={`/${lang}/catalog?sort=popular`}
+                href={`/${lang}/popular-books`}
                 className={`${styles.sortLink} ${currentSort === 'popular' ? styles.activeSort : ''}`}
               >
                 {t('catalog.popular')}
               </Link>
               <Link
-                href={`/${lang}/catalog?sort=new`}
+                href={`/${lang}/new-releases`}
                 className={`${styles.sortLink} ${currentSort === 'new' ? styles.activeSort : ''}`}
               >
                 {t('catalog.newReleases')}
               </Link>
               <Link
-                href={`/${lang}/catalog?type=audio`}
+                href={`/${lang}/audiobooks`}
                 className={`${styles.sortLink} ${currentType === 'audio' ? styles.activeSort : ''}`}
               >
                 {t('header.audiobooks')}

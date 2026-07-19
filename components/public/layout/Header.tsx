@@ -30,9 +30,9 @@ const getNavLinks = (lang: SupportedLang, t: (key: string) => string) => {
     genres: `/${lang}/genres`,
     collections: `/${lang}/collections`,
     tags: `/${lang}/tags`,
-    audiobooks: `/${lang}/catalog?type=audio`,
-    popular: `/${lang}/catalog?sort=popular`,
-    newReleases: `/${lang}/catalog?sort=new`,
+    audiobooks: `/${lang}/audiobooks`,
+    popular: `/${lang}/popular-books`,
+    newReleases: `/${lang}/new-releases`,
   };
 
   return ALL_NAV_ITEMS.map((key) => ({
@@ -58,8 +58,14 @@ const isActiveNav = (pathname: string, itemKey: string, lang: string): boolean =
       return path === '/collections' || path.startsWith('/collection/');
     case 'tags':
       return path === '/tags' || path.startsWith('/tag/');
+    case 'audiobooks':
+      return path === '/audiobooks';
+    case 'popular':
+      return path === '/popular-books';
+    case 'newReleases':
+      return path === '/new-releases';
     default:
-      return path.startsWith(`/catalog?${itemKey}`);
+      return false;
   }
 };
 
@@ -312,7 +318,7 @@ export function Header() {
                     <button
                       type="button"
                       className={styles.desktopAudioBtn}
-                      onClick={() => router.push(`/${lang}/catalog?type=audio`)}
+                      onClick={() => router.push(`/${lang}/audiobooks`)}
                       title={t('header.audiobooks')}
                       aria-label={t('a11y.audiobooks')}
                     >
