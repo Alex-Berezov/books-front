@@ -191,7 +191,7 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
     `${siteUrl}/${supportedLang}/tag/${tagSlug}`
   );
 
-  const backendHasBreadcrumb = schemaContainsType(seoData?.schema, 'BreadcrumbList');
+  const backendSchemaPresent = !!seoData?.schema;
   const backendHasCollection = schemaContainsType(seoData?.schema, 'CollectionPage');
 
   const breadcrumbSchema = {
@@ -226,7 +226,7 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
   };
 
   const localGraphItems = [
-    !backendHasBreadcrumb ? breadcrumbSchema : null,
+    !backendSchemaPresent ? breadcrumbSchema : null,
     !backendHasCollection ? collectionPageSchema : null,
   ].filter(Boolean);
 
