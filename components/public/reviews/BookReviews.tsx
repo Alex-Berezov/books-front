@@ -152,7 +152,11 @@ export default function BookReviews({
             </div>
           )}
           <div className={styles.textareaWrapper}>
+            <label htmlFor="review-textarea" className="sr-only">
+              {t('reviews.placeholder')}
+            </label>
             <textarea
+              id="review-textarea"
               className={styles.textarea}
               placeholder={t('reviews.placeholder')}
               value={reviewText}
@@ -164,13 +168,19 @@ export default function BookReviews({
               type="submit"
               disabled={createCommentMutation.isPending || !reviewText.trim()}
               className={styles.submitBtn}
+              aria-label={t('reviews.submit')}
             >
               {createCommentMutation.isPending ? (
-                <Loader2 className={styles.spinner} size={18} />
+                <Loader2 className={styles.spinner} size={18} aria-hidden="true" />
               ) : (
-                <Send size={18} />
+                <Send size={18} aria-hidden="true" />
               )}
             </button>
+            {createCommentMutation.isPending && (
+              <div role="status" aria-live="polite" className="sr-only">
+                {t('reviews.submitting')}
+              </div>
+            )}
           </div>
         </form>
       ) : (
@@ -387,7 +397,7 @@ function ReviewItem({
           {comment.user?.avatarUrl ? (
             <Image
               src={comment.user.avatarUrl}
-              alt={displayName}
+              alt={`${t('reviews.avatarOf')} ${displayName}`}
               width={40}
               height={40}
               className={styles.avatar}
@@ -413,24 +423,36 @@ function ReviewItem({
 
       <div className={styles.itemActions}>
         <button
+          type="button"
           onClick={() => handleReact(true)}
           className={`${styles.actionBtn} ${isLiked ? styles.activeLike : ''}`}
+          aria-label={`${t('reviews.like')} ${displayName}`}
+          aria-pressed={isLiked}
         >
-          <ThumbsUp size={14} />
+          <ThumbsUp size={14} aria-hidden="true" />
           <span>{currentLikes}</span>
         </button>
 
         <button
+          type="button"
           onClick={() => handleReact(false)}
           className={`${styles.actionBtn} ${isDisliked ? styles.activeDislike : ''}`}
+          aria-label={`${t('reviews.dislike')} ${displayName}`}
+          aria-pressed={isDisliked}
         >
-          <ThumbsDown size={14} />
+          <ThumbsDown size={14} aria-hidden="true" />
           <span>{currentDislikes}</span>
         </button>
 
         {!isReply && (
-          <button onClick={() => setShowReplyForm(!showReplyForm)} className={styles.actionBtn}>
-            <MessageSquare size={14} />
+          <button
+            type="button"
+            onClick={() => setShowReplyForm(!showReplyForm)}
+            className={styles.actionBtn}
+            aria-expanded={showReplyForm}
+            aria-controls={`reply-form-${comment.id}`}
+          >
+            <MessageSquare size={14} aria-hidden="true" />
             <span>{t('reviews.reply')}</span>
           </button>
         )}
@@ -438,16 +460,29 @@ function ReviewItem({
         {((currentUserId && currentUserId === comment.user?.id) ||
           currentUserRoles?.includes('admin') ||
           currentUserRoles?.includes('content_manager')) && (
-          <button onClick={() => onDelete(comment.id)} className={styles.deleteBtn}>
-            <Trash2 size={14} />
+          <button
+            type="button"
+            onClick={() => onDelete(comment.id)}
+            className={styles.deleteBtn}
+            aria-label={`${t('reviews.delete')} ${displayName}`}
+          >
+            <Trash2 size={14} aria-hidden="true" />
           </button>
         )}
       </div>
 
       {/* Inline reply form */}
       {showReplyForm && (
-        <form onSubmit={handleReplySubmit} className={styles.replyForm}>
+        <form
+          onSubmit={handleReplySubmit}
+          className={styles.replyForm}
+          id={`reply-form-${comment.id}`}
+        >
+          <label htmlFor={`reply-textarea-${comment.id}`} className="sr-only">
+            {t('reviews.replyPlaceholder')}
+          </label>
           <textarea
+            id={`reply-textarea-${comment.id}`}
             className={styles.replyTextarea}
             placeholder={t('reviews.replyPlaceholder')}
             value={replyText}
@@ -456,20 +491,30 @@ function ReviewItem({
             maxLength={1000}
           />
           <div className={styles.replyFormActions}>
-            <button className={styles.ghostBtn} onClick={() => setShowReplyForm(false)}>
+            <button
+              className={styles.ghostBtn}
+              type="button"
+              onClick={() => setShowReplyForm(false)}
+            >
               {t('reviews.cancel')}
             </button>
             <button
               className={styles.secondaryBtn}
               type="submit"
               disabled={createCommentMutation.isPending || !replyText.trim()}
+              aria-label={t('reviews.submit')}
             >
               {createCommentMutation.isPending ? (
-                <Loader2 className={styles.spinner} size={14} />
+                <Loader2 className={styles.spinner} size={14} aria-hidden="true" />
               ) : (
                 t('reviews.submit')
               )}
             </button>
+            {createCommentMutation.isPending && (
+              <div role="status" aria-live="polite" className="sr-only">
+                {t('reviews.submitting')}
+              </div>
+            )}
           </div>
         </form>
       )}

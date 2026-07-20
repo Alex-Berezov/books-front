@@ -38,12 +38,19 @@ export default function DescriptionWrapper({
 
   return (
     <div className={styles.descriptionContainer} ref={containerRef}>
-      <div className={isCollapsed && hasMultipleParagraphs ? styles.collapsed : ''}>{children}</div>
+      <div
+        id="book-description-content"
+        className={isCollapsed && hasMultipleParagraphs ? styles.collapsed : ''}
+      >
+        {children}
+      </div>
       {hasMultipleParagraphs && (
         <button
           type="button"
           className={styles.toggleBtn}
           onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-expanded={!isCollapsed}
+          aria-controls="book-description-content"
         >
           {isCollapsed ? showMoreText : showLessText}
         </button>

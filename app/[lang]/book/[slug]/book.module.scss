@@ -19,7 +19,6 @@
   gap: $spacing-xs;
   font-size: $font-size-sm;
   color: var(--public-foreground);
-  opacity: 0.7;
   margin-bottom: $spacing-md;
 
   a {
@@ -29,6 +28,12 @@
 
     &:hover {
       color: var(--public-primary);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--public-primary);
+      outline-offset: 2px;
+      border-radius: 2px;
     }
   }
 
@@ -56,13 +61,18 @@
   gap: $spacing-xs;
   margin-bottom: $spacing-lg;
   color: var(--public-foreground);
-  opacity: 0.7;
   text-decoration: none;
   font-size: $font-size-sm;
 
   &:hover {
     color: var(--public-primary);
     opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 }
 
@@ -145,7 +155,6 @@
 .author {
   font-size: $font-size-lg;
   color: var(--public-foreground);
-  opacity: 0.7;
   margin: 0;
 }
 
@@ -175,14 +184,12 @@
 .myRatingLabel {
   font-size: $font-size-sm;
   color: var(--public-foreground);
-  opacity: 0.7;
 }
 
 .ratingVal {
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
   color: var(--public-foreground);
-  opacity: 0.8;
 }
 
 .tagsContainer {
@@ -245,6 +252,11 @@
     color: var(--gold-foreground, #3c2a18);
   }
 
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+  }
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -298,7 +310,6 @@
   gap: $spacing-xs;
   font-size: $font-size-sm;
   color: var(--public-foreground);
-  opacity: 0.7;
 }
 
 .descriptionWrapper {
@@ -321,7 +332,6 @@
   font-size: $font-size-base;
   line-height: $line-height-relaxed;
   color: var(--public-foreground);
-  opacity: 0.9;
 }
 
 .descriptionContainer {
@@ -357,6 +367,11 @@
   &:hover {
     opacity: 0.8;
     text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
   }
 }
 
@@ -441,6 +456,11 @@
     border-color: #f0e6da;
     color: #3c2a18 !important;
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+  }
 }
 
 .themesWrapper {
@@ -465,7 +485,6 @@
   font-size: $font-size-sm;
   font-weight: $font-weight-semibold;
   color: var(--public-foreground);
-  opacity: 0.85;
   margin-right: $spacing-xs;
 }
 

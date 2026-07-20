@@ -299,7 +299,11 @@
     "commentDeleteFail": "Falha ao excluir comentário",
     "reactionFail": "Falha ao registrar reação",
     "replyAdded": "Resposta adicionada",
-    "replyAddFail": "Falha ao adicionar resposta"
+    "replyAddFail": "Falha ao adicionar resposta",
+    "like": "Gostei da avaliação de",
+    "dislike": "Não gostei da avaliação de",
+    "delete": "Excluir avaliação de",
+    "avatarOf": "Avatar de"
   },
   "notFound": {
     "title": "Página não encontrada",

@@ -230,7 +230,7 @@ export default async function BookDetailPage({ params }: Props) {
 
         {/* Back Button */}
         <Link href={`/${supportedLang}`} className={styles.backBtn}>
-          <ChevronLeft size={16} /> {dict.book.back}
+          <ChevronLeft size={16} aria-hidden="true" /> {dict.book.back}
         </Link>
 
         {/* Hero Section */}
@@ -341,7 +341,7 @@ export default async function BookDetailPage({ params }: Props) {
             <div className={styles.metadataList}>
               {(activeVersion?.author || book.author) && (
                 <div className={styles.metaItem}>
-                  <User size={16} />
+                  <User size={16} aria-hidden="true" />
                   <span>
                     {dict.book.author}: {activeVersion?.author || book.author}
                   </span>
@@ -349,7 +349,7 @@ export default async function BookDetailPage({ params }: Props) {
               )}
               {book.firstPublishedYear ? (
                 <div className={styles.metaItem}>
-                  <Calendar size={16} />
+                  <Calendar size={16} aria-hidden="true" />
                   <span>
                     {dict.book.firstPublished} {book.firstPublishedYear}
                   </span>
@@ -357,7 +357,7 @@ export default async function BookDetailPage({ params }: Props) {
               ) : null}
               {book.editionPublishedYear ? (
                 <div className={styles.metaItem}>
-                  <Calendar size={16} />
+                  <Calendar size={16} aria-hidden="true" />
                   <span>
                     {dict.book.editionPublished} {book.editionPublishedYear}
                   </span>
@@ -365,7 +365,7 @@ export default async function BookDetailPage({ params }: Props) {
               ) : null}
               {book.language && (
                 <div className={styles.metaItem}>
-                  <Globe size={16} />
+                  <Globe size={16} aria-hidden="true" />
                   <span>
                     {dict.book.language} {(book.language || '').toUpperCase()}
                   </span>
@@ -373,7 +373,7 @@ export default async function BookDetailPage({ params }: Props) {
               )}
               {activeVersion?.originalTitle && (
                 <div className={styles.metaItem}>
-                  <FileText size={16} />
+                  <FileText size={16} aria-hidden="true" />
                   <span>
                     {dict.book.originalTitle}: {activeVersion.originalTitle}
                   </span>
@@ -381,7 +381,7 @@ export default async function BookDetailPage({ params }: Props) {
               )}
               {activeVersion?.originalLanguage && (
                 <div className={styles.metaItem}>
-                  <Globe size={16} />
+                  <Globe size={16} aria-hidden="true" />
                   <span>
                     {dict.book.originalLanguage}: {activeVersion.originalLanguage}
                   </span>
@@ -389,7 +389,7 @@ export default async function BookDetailPage({ params }: Props) {
               )}
               {activeVersion?.copyrightStatus && (
                 <div className={styles.metaItem}>
-                  <FileText size={16} />
+                  <FileText size={16} aria-hidden="true" />
                   <span>
                     {dict.book.copyrightStatus}: {activeVersion.copyrightStatus}
                   </span>
@@ -397,7 +397,7 @@ export default async function BookDetailPage({ params }: Props) {
               )}
               {activeVersion?.alternativeTitles && activeVersion.alternativeTitles.length > 0 && (
                 <div className={styles.metaItem}>
-                  <FileText size={16} />
+                  <FileText size={16} aria-hidden="true" />
                   <span>
                     {dict.book.alternativeTitles}: {activeVersion.alternativeTitles.join(', ')}
                   </span>

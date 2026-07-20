@@ -339,7 +339,11 @@
     "commentDeleteFail": "Failed to delete comment",
     "reactionFail": "Failed to register reaction",
     "replyAdded": "Reply added",
-    "replyAddFail": "Failed to add reply"
+    "replyAddFail": "Failed to add reply",
+    "like": "Like review by",
+    "dislike": "Dislike review by",
+    "delete": "Delete review by",
+    "avatarOf": "Avatar of"
   },
   "notFound": {
     "title": "Page Not Found",

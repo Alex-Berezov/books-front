@@ -52,6 +52,11 @@
   &:focus {
     border-color: var(--public-primary);
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+  }
 }
 
 .reviewForm {
@@ -123,6 +128,11 @@
     transform: scale(1.05);
   }
 
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -145,7 +155,6 @@
     margin: 0;
     font-size: $font-size-base;
     color: var(--public-foreground);
-    opacity: 0.8;
   }
 }
 
@@ -224,7 +233,6 @@
 .date {
   font-size: $font-size-xs;
   color: var(--public-foreground);
-  opacity: 0.5;
 }
 
 .commentText {
@@ -250,17 +258,21 @@
   border: none;
   font-size: $font-size-xs;
   color: var(--public-foreground);
-  opacity: 0.6;
   cursor: pointer;
   transition: opacity $transition-fast, color $transition-fast;
 
   &:hover {
-    opacity: 1;
     color: var(--public-primary);
   }
 
   svg {
     transition: transform $transition-fast;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 
   &:active svg {
@@ -269,12 +281,10 @@
 }
 
 .activeLike {
-  opacity: 1;
   color: var(--color-success);
 }
 
 .activeDislike {
-  opacity: 1;
   color: var(--color-error);
 }
 
@@ -282,13 +292,18 @@
   background: none;
   border: none;
   color: var(--color-error);
-  opacity: 0.4;
   cursor: pointer;
   margin-left: auto;
   transition: opacity $transition-fast;
 
   &:hover {
-    opacity: 1;
+    color: var(--color-error-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-error);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 }
 
@@ -343,6 +358,11 @@
     background-color: rgba(0, 0, 0, 0.02);
   }
 
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -353,7 +373,6 @@
   text-align: center;
   padding: $spacing-xl;
   color: var(--public-foreground);
-  opacity: 0.5;
   font-size: $font-size-base;
 }
 
@@ -393,6 +412,11 @@
     background-color: var(--public-primary-hover);
     border-color: var(--public-primary-hover);
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+  }
 }
 
 .secondaryBtn {
@@ -415,9 +439,14 @@
     color: var(--public-primary);
   }
 
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+  }
+
   &:disabled {
-    opacity: 0.5;
     cursor: not-allowed;
+    opacity: 0.5;
   }
 }
 
@@ -433,13 +462,16 @@
   border-radius: $border-radius-base;
   background-color: transparent;
   color: var(--public-foreground);
-  opacity: 0.7;
   cursor: pointer;
   transition: opacity $transition-fast, background-color $transition-fast;
 
   &:hover {
-    opacity: 1;
     background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
   }
 }
 

@@ -15,6 +15,8 @@ function StarIcon({ filled, size }: { filled: boolean; size: number }) {
       stroke={filled ? 'var(--gold)' : 'var(--public-border)'}
       strokeWidth="2"
       className={styles.starIcon}
+      aria-hidden="true"
+      focusable="false"
     >
       <polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9" />
     </svg>
@@ -26,8 +28,8 @@ export function StarRatingServer({ rating, size = 'sm' }: StarRatingServerProps)
   const roundedRating = Math.round(rating);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.stars}>
+    <div className={styles.container} role="img" aria-label={`Rating ${rating} out of 5`}>
+      <div className={styles.stars} aria-hidden="true">
         {[1, 2, 3, 4, 5].map((star) => (
           <StarIcon key={star} filled={star <= roundedRating} size={starSize} />
         ))}

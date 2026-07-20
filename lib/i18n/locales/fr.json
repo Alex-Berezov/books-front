@@ -299,7 +299,11 @@
     "commentDeleteFail": "Échec de la suppression du commentaire",
     "reactionFail": "Échec de l'enregistrement de la réaction",
     "replyAdded": "Réponse ajoutée",
-    "replyAddFail": "Échec de l'ajout de la réponse"
+    "replyAddFail": "Échec de l'ajout de la réponse",
+    "like": "Aimer l'avis de",
+    "dislike": "Ne pas aimer l'avis de",
+    "delete": "Supprimer l'avis de",
+    "avatarOf": "Avatar de"
   },
   "notFound": {
     "title": "Page non trouvée",

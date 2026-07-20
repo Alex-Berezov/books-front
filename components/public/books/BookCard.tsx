@@ -99,15 +99,15 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
 
         <div className={styles.actions}>
           {hasText && (
-            <Link href={`/${lang}/book/${slug}`} className={styles.actionLink} title="Read">
+            <Link href={`/${lang}/book/${slug}`} className={styles.actionLink}>
               <BookOpen size={14} aria-hidden="true" />
-              <span className={textClass}>Read</span>
+              <span className={textClass}>{t('book.read')}</span>
             </Link>
           )}
           {hasAudio && (
-            <Link href={`/${lang}/book/${slug}#audio`} className={styles.actionLink} title="Listen">
+            <Link href={`/${lang}/book/${slug}#audio`} className={styles.actionLink}>
               <Headphones size={14} aria-hidden="true" />
-              <span className={textClass}>Listen</span>
+              <span className={textClass}>{t('book.listen')}</span>
             </Link>
           )}
         </div>

@@ -17,7 +17,7 @@
 .icon {
   display: inline-flex;
   align-items: center;
-  color: $color-text-secondary;
+  color: $color-text-primary;
 }
 
 .items {
@@ -54,6 +54,11 @@
     color: var(--public-primary);
   }
 
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+  }
+
   &::marker {
     color: $color-background-dark;
   }
@@ -64,5 +69,5 @@
   margin: 0;
   font-size: $font-size-base;
   line-height: $line-height-relaxed;
-  color: $color-text-secondary;
+  color: $color-text-primary;
 }

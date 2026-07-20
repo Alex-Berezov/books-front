@@ -68,19 +68,20 @@ export default function BookActions({
     <div className={styles.actions}>
       {textVersion && (
         <Link href={`/${lang}/book/${slug}/read`} className={styles.actionLink}>
-          <BookOpen size={18} /> {textVersion.isFree ? t('book.readFree') : t('book.read')}
+          <BookOpen size={18} aria-hidden="true" />{' '}
+          {textVersion.isFree ? t('book.readFree') : t('book.read')}
         </Link>
       )}
 
       {audioVersion && (
         <Link href={`/${lang}/book/${slug}/listen`} className={styles.actionLink}>
-          <Headphones size={18} /> {t('book.listen')}
+          <Headphones size={18} aria-hidden="true" /> {t('book.listen')}
         </Link>
       )}
 
       {hasSummary && versionId && (
         <Link href={`/${lang}/book/${slug}#summary`} className={styles.actionLink}>
-          <FileText size={18} /> {t('book.summary')}
+          <FileText size={18} aria-hidden="true" /> {t('book.summary')}
         </Link>
       )}
 
@@ -89,13 +90,15 @@ export default function BookActions({
         className={`${styles.actionLink} ${inBookshelf ? styles.actionLinkActive : ''}`}
         onClick={handleBookshelfToggle}
         disabled={isPending}
+        aria-pressed={inBookshelf}
+        aria-busy={isPending}
       >
         {isPending ? (
-          <span className={styles.spinner} />
+          <span className={styles.spinner} aria-hidden="true" />
         ) : inBookshelf ? (
-          <BookmarkCheck size={18} />
+          <BookmarkCheck size={18} aria-hidden="true" />
         ) : (
-          <Bookmark size={18} />
+          <Bookmark size={18} aria-hidden="true" />
         )}
         {inBookshelf ? t('book.inBookshelf') : t('book.addToBookshelf')}
       </button>

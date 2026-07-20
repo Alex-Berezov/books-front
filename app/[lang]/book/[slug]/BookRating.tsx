@@ -73,7 +73,8 @@ export default function BookRating({ bookId, slug, lang }: BookRatingProps) {
         rating={userRating}
         size="md"
         showCount={false}
-        interactive={!isRatingPending}
+        interactive
+        disabled={isRatingPending}
         onRate={handleRateBook}
       />
     </div>

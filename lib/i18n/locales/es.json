@@ -299,7 +299,11 @@
     "commentDeleteFail": "Error al eliminar el comentario",
     "reactionFail": "Error al registrar la reacción",
     "replyAdded": "Respuesta agregada",
-    "replyAddFail": "Error al agregar la respuesta"
+    "replyAddFail": "Error al agregar la respuesta",
+    "like": "Me gusta la reseña de",
+    "dislike": "No me gusta la reseña de",
+    "delete": "Eliminar reseña de",
+    "avatarOf": "Avatar de"
   },
   "notFound": {
     "title": "Página no encontrada",
