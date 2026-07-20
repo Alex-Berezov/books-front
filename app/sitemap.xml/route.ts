@@ -1,21 +1,20 @@
 import { NextResponse } from 'next/server';
-import { getBooks } from '@/api/endpoints/admin/books';
+import { getPublicBooks } from '@/api/endpoints/public';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { escapeXml, getBaseUrl } from '@/lib/sitemap/utils';
 
 const BOOKS_SITEMAP_PAGE_SIZE = 1000;
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bibliaris.com';
-  const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+  const cleanBaseUrl = getBaseUrl();
 
   let totalBooks = 0;
   try {
-    const firstPage = await getBooks({ page: 1, limit: 1 });
+    const firstPage = await getPublicBooks('en', { page: 1, limit: 1 });
     totalBooks = firstPage.meta.total;
   } catch {
-    // fallback to 1 page if we cannot get total
     totalBooks = 0;
   }
   const bookSitemapPages = Math.ceil(totalBooks / BOOKS_SITEMAP_PAGE_SIZE) || 1;
@@ -38,7 +37,8 @@ export async function GET() {
   ];
 
   const xmlItems = sitemaps.map((url) => {
-    return ['  <sitemap>', `    <loc>${url}</loc>`, '  </sitemap>'].join('\n');
+    const safeUrl = escapeXml(url);
+    return ['  <sitemap>', `    <loc>${safeUrl}</loc>`, '  </sitemap>'].join('\n');
   });
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
