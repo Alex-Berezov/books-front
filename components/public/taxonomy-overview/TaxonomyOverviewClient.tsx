@@ -1,12 +1,12 @@
 'use client';
 
 import type { FC } from 'react';
-import { useTags } from '@/api/hooks';
 import { useCategoriesTree } from '@/api/hooks/useCategories';
-import { usePage } from '@/api/hooks/usePublic';
+import { usePage, usePublicTags } from '@/api/hooks/usePublic';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
+import type { TagListItem } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { CategoryTree, PageResponse, Tag } from '@/types/api-schema';
+import type { CategoryTree, PageResponse } from '@/types/api-schema';
 import { FaqBlock } from './FaqBlock';
 import { OverviewHero } from './OverviewHero';
 import { SeoDescription } from './SeoDescription';
@@ -40,8 +40,9 @@ export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({
     lang
   );
 
-  const { data: tagsData, isLoading: tagsLoading } = useTags(
-    { limit: 200, lang },
+  const { data: tagsData, isLoading: tagsLoading } = usePublicTags(
+    lang,
+    { limit: 200 },
     {
       enabled: configKey === 'tag',
     }
@@ -64,8 +65,8 @@ export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({
     },
   ];
 
-  const allItems =
-    configKey === 'tag' ? ((tagsData?.data || []) as Tag[]) : ((treeData || []) as CategoryTree[]);
+  const allItems: CategoryTree[] | TagListItem[] =
+    configKey === 'tag' ? tagsData?.data || [] : treeData || [];
 
   return (
     <div className={styles.page}>
@@ -87,6 +88,7 @@ export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({
             routeBase={config.routeBase}
             emptyText={`No ${config.routeBase} available yet.`}
             isLoading={isLoading}
+            itemKind={configKey === 'tag' ? 'tag' : 'category'}
           />
         </div>
 

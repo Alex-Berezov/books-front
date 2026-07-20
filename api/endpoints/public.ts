@@ -329,13 +329,13 @@ export const getTagBookCards = async (
  * Get public tags listing for homepage.
  */
 export const getPublicTags = async (
-  _lang: SupportedLang,
+  lang: SupportedLang,
   params: { page?: number; limit?: number } = {}
 ): Promise<PaginatedTagsResponse> => {
   const { page = 1, limit = 50 } = params;
   const queryParams = new URLSearchParams({ page: String(page), limit: String(limit) });
-  const endpoint = buildLangPath(_lang, `/tags?${queryParams.toString()}`);
-  return httpGet<PaginatedTagsResponse>(endpoint);
+  const endpoint = buildLangPath(lang, `/tags?${queryParams.toString()}`);
+  return httpGet<PaginatedTagsResponse>(endpoint, { language: lang });
 };
 
 /**

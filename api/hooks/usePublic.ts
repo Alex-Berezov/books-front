@@ -8,6 +8,7 @@
 import { useQuery, type UseQueryOptions, type UseQueryResult } from '@tanstack/react-query';
 import * as publicApi from '@/api/endpoints/public';
 import { queryKeys, staleTimeConfig } from '@/lib/queryClient';
+import type { PaginatedTagsResponse } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ApiError } from '@/types/api';
 import type {
@@ -262,6 +263,25 @@ export const usePublicBooks = (
     queryKey: queryKeys.publicBooks(lang, params),
     queryFn: () => publicApi.getPublicBooks(lang, params),
     staleTime: staleTimeConfig.public,
+    ...options,
+  });
+};
+
+/**
+ * Hook for getting public tags listing.
+ *
+ * Uses localized /:lang/tags endpoint with language header,
+ * returns TagListItem[] (id, name, slug, booksCount, translations).
+ */
+export const usePublicTags = (
+  lang: SupportedLang,
+  params: { page?: number; limit?: number } = {},
+  options?: Omit<UseQueryOptions<PaginatedTagsResponse, ApiError>, 'queryKey' | 'queryFn'>
+): UseQueryResult<PaginatedTagsResponse, ApiError> => {
+  return useQuery<PaginatedTagsResponse, ApiError>({
+    queryKey: queryKeys.publicTags(lang, params),
+    queryFn: () => publicApi.getPublicTags(lang, params),
+    staleTime: staleTimeConfig.catalog,
     ...options,
   });
 };

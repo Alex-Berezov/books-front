@@ -152,6 +152,10 @@ export const queryKeys = {
   /** User reading progress: ['readingProgress', versionId] */
   readingProgress: (versionId: string) => ['readingProgress', versionId] as const,
 
+  /** Public tags list: ['publicTags', lang, params] */
+  publicTags: (lang: string, params?: { page?: number; limit?: number }) =>
+    ['publicTags', lang, params || {}] as const,
+
   /** User bookshelf: ['bookshelf', page, limit] */
   bookshelf: (page?: number, limit?: number) => ['bookshelf', { page, limit }] as const,
 } as const;
