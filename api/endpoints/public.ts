@@ -278,12 +278,30 @@ export interface PaginatedCategoriesResponse {
   };
 }
 
+export interface TagListItem {
+  id: string;
+  name: string;
+  slug: string;
+  booksCount: number;
+  translations: Array<{ language: string; name: string; slug: string }>;
+}
+
+export interface PaginatedTagsResponse {
+  data: TagListItem[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 /**
- * Get public category/genre listing for catalog sidebar.
+ * Get public category/genre/collection listing for catalog sidebar / homepage.
  */
 export const getPublicCategories = async (
   lang: SupportedLang,
-  type?: 'category' | 'genre'
+  type?: 'category' | 'genre' | 'collection'
 ): Promise<PaginatedCategoriesResponse> => {
   const params = new URLSearchParams();
   if (type) params.append('type', type);
@@ -305,6 +323,19 @@ export const getTagBookCards = async (
 ): Promise<TagBookCardsResponse> => {
   const endpoint = buildLangPath(lang, `/tags/${slug}/books/cards?page=${page}&limit=${limit}`);
   return httpGet<TagBookCardsResponse>(endpoint, { language: lang });
+};
+
+/**
+ * Get public tags listing for homepage.
+ */
+export const getPublicTags = async (
+  _lang: SupportedLang,
+  params: { page?: number; limit?: number } = {}
+): Promise<PaginatedTagsResponse> => {
+  const { page = 1, limit = 50 } = params;
+  const queryParams = new URLSearchParams({ page: String(page), limit: String(limit) });
+  const endpoint = buildLangPath(_lang, `/tags?${queryParams.toString()}`);
+  return httpGet<PaginatedTagsResponse>(endpoint);
 };
 
 /**
