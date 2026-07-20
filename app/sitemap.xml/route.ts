@@ -1,32 +1,23 @@
 import { NextResponse } from 'next/server';
 import { getPublicBooks } from '@/api/endpoints/public';
-import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
-import { escapeXml, getBaseUrl } from '@/lib/sitemap/utils';
-
-const BOOKS_SITEMAP_PAGE_SIZE = 1000;
+import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
+import { getBaseUrl, getBookSitemapUrls, buildSitemapIndexXml } from '@/lib/sitemap/utils';
 
 export const dynamic = 'force-dynamic';
+
+async function fetchBooksTotal(lang: string): Promise<number> {
+  const res = await getPublicBooks(lang as SupportedLang, { page: 1, limit: 1 });
+  return res.meta.total;
+}
 
 export async function GET() {
   const cleanBaseUrl = getBaseUrl();
 
-  let totalBooks = 0;
-  try {
-    const firstPage = await getPublicBooks('en', { page: 1, limit: 1 });
-    totalBooks = firstPage.meta.total;
-  } catch {
-    totalBooks = 0;
-  }
-  const bookSitemapPages = Math.ceil(totalBooks / BOOKS_SITEMAP_PAGE_SIZE) || 1;
+  const bookSitemapUrls = await getBookSitemapUrls(cleanBaseUrl, SUPPORTED_LANGS, fetchBooksTotal);
 
   const sitemaps = [
     `${cleanBaseUrl}/sitemaps/sitemap-static.xml`,
-    ...SUPPORTED_LANGS.flatMap((lang) =>
-      Array.from(
-        { length: bookSitemapPages },
-        (_, index) => `${cleanBaseUrl}/sitemaps/sitemap-books-${lang}-${index + 1}.xml`
-      )
-    ),
+    ...bookSitemapUrls,
     ...SUPPORTED_LANGS.flatMap((lang) => [
       `${cleanBaseUrl}/sitemaps/sitemap-categories-${lang}.xml`,
       `${cleanBaseUrl}/sitemaps/sitemap-genres-${lang}.xml`,
@@ -36,15 +27,7 @@ export async function GET() {
     ]),
   ];
 
-  const xmlItems = sitemaps.map((url) => {
-    const safeUrl = escapeXml(url);
-    return ['  <sitemap>', `    <loc>${safeUrl}</loc>`, '  </sitemap>'].join('\n');
-  });
-
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${xmlItems.join('\n')}
-</sitemapindex>`;
+  const xml = buildSitemapIndexXml(sitemaps);
 
   return new NextResponse(xml, {
     headers: {

@@ -3,7 +3,7 @@ import { getCategories } from '@/api/endpoints/admin/categories';
 import { getTags } from '@/api/endpoints/admin/tags';
 import { getPublicBooks, getBookCards, getPublicAuthors } from '@/api/endpoints/public';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
-import { escapeXml, getBaseUrl } from '@/lib/sitemap/utils';
+import { getBaseUrl, buildUrlSetXml, type SitemapItem } from '@/lib/sitemap/utils';
 import type {
   BookOverview,
   Category,
@@ -15,16 +15,6 @@ import type {
 } from '@/types/api-schema';
 
 export const dynamic = 'force-dynamic';
-
-interface SitemapItem {
-  url: string;
-  lastModified?: Date | string;
-  changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
-  priority?: number;
-  alternates?: {
-    languages?: Record<string, string>;
-  };
-}
 
 export async function GET(request: Request, { params }: { params: { filename: string } }) {
   const { filename } = params;
@@ -82,7 +72,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
         const alternates = getAlternates(SUPPORTED_LANGS, (l) => `${cleanBaseUrl}/${l}${route}`);
 
         sitemapItems.push({
-          url: escapeXml(url),
+          url,
           lastModified: new Date(),
           changeFrequency: route === '' ? 'daily' : 'weekly',
           priority: route === '' ? 1.0 : 0.8,
@@ -130,7 +120,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
       publishedVersions.forEach((v: VersionPreview) => {
         if (v.language && v.slug) {
-          alternates[v.language] = `${cleanBaseUrl}/${v.language}/book/${escapeXml(v.slug)}`;
+          alternates[v.language] = `${cleanBaseUrl}/${v.language}/book/${v.slug}`;
         }
       });
 
@@ -139,10 +129,10 @@ export async function GET(request: Request, { params }: { params: { filename: st
       const defaultVersion = enVersion || fallbackVersion;
       if (defaultVersion) {
         alternates['x-default'] =
-          `${cleanBaseUrl}/${defaultVersion.language}/book/${escapeXml(defaultVersion.slug ?? '')}`;
+          `${cleanBaseUrl}/${defaultVersion.language}/book/${defaultVersion.slug ?? ''}`;
       }
 
-      const url = `${cleanBaseUrl}/${lang}/book/${escapeXml(currentVersion.slug)}`;
+      const url = `${cleanBaseUrl}/${lang}/book/${currentVersion.slug}`;
 
       sitemapItems.push({
         url,
@@ -176,12 +166,12 @@ export async function GET(request: Request, { params }: { params: { filename: st
         );
         if (!currentTranslation?.slug) return;
 
-        const url = `${cleanBaseUrl}/${lang}/genre/${escapeXml(currentTranslation.slug)}`;
+        const url = `${cleanBaseUrl}/${lang}/genre/${currentTranslation.slug}`;
 
         const alternates: Record<string, string> = {};
         cat.translations?.forEach((t: CategoryTranslation) => {
           if (t.slug) {
-            alternates[t.language] = `${cleanBaseUrl}/${t.language}/genre/${escapeXml(t.slug)}`;
+            alternates[t.language] = `${cleanBaseUrl}/${t.language}/genre/${t.slug}`;
           }
         });
 
@@ -192,11 +182,11 @@ export async function GET(request: Request, { params }: { params: { filename: st
         const defaultTranslation = enTranslation || fallbackTranslation;
         if (defaultTranslation?.slug) {
           alternates['x-default'] =
-            `${cleanBaseUrl}/${defaultTranslation.language}/genre/${escapeXml(defaultTranslation.slug)}`;
+            `${cleanBaseUrl}/${defaultTranslation.language}/genre/${defaultTranslation.slug}`;
         }
 
         sitemapItems.push({
-          url: escapeXml(url),
+          url,
           lastModified: new Date(),
           changeFrequency: 'weekly',
           priority: 0.7,
@@ -227,12 +217,12 @@ export async function GET(request: Request, { params }: { params: { filename: st
         );
         if (!currentTranslation?.slug) return;
 
-        const url = `${cleanBaseUrl}/${lang}/category/${escapeXml(currentTranslation.slug)}`;
+        const url = `${cleanBaseUrl}/${lang}/category/${currentTranslation.slug}`;
 
         const alternates: Record<string, string> = {};
         cat.translations?.forEach((t: CategoryTranslation) => {
           if (t.slug) {
-            alternates[t.language] = `${cleanBaseUrl}/${t.language}/category/${escapeXml(t.slug)}`;
+            alternates[t.language] = `${cleanBaseUrl}/${t.language}/category/${t.slug}`;
           }
         });
 
@@ -243,11 +233,11 @@ export async function GET(request: Request, { params }: { params: { filename: st
         const defaultTranslation = enTranslation || fallbackTranslation;
         if (defaultTranslation?.slug) {
           alternates['x-default'] =
-            `${cleanBaseUrl}/${defaultTranslation.language}/category/${escapeXml(defaultTranslation.slug)}`;
+            `${cleanBaseUrl}/${defaultTranslation.language}/category/${defaultTranslation.slug}`;
         }
 
         sitemapItems.push({
-          url: escapeXml(url),
+          url,
           alternates: {
             languages: alternates,
           },
@@ -276,13 +266,12 @@ export async function GET(request: Request, { params }: { params: { filename: st
         );
         if (!currentTranslation?.slug) return;
 
-        const url = `${cleanBaseUrl}/${lang}/collection/${escapeXml(currentTranslation.slug)}`;
+        const url = `${cleanBaseUrl}/${lang}/collection/${currentTranslation.slug}`;
 
         const alternates: Record<string, string> = {};
         cat.translations?.forEach((t: CategoryTranslation) => {
           if (t.slug) {
-            alternates[t.language] =
-              `${cleanBaseUrl}/${t.language}/collection/${escapeXml(t.slug)}`;
+            alternates[t.language] = `${cleanBaseUrl}/${t.language}/collection/${t.slug}`;
           }
         });
 
@@ -293,11 +282,11 @@ export async function GET(request: Request, { params }: { params: { filename: st
         const defaultTranslation = enTranslation || fallbackTranslation;
         if (defaultTranslation?.slug) {
           alternates['x-default'] =
-            `${cleanBaseUrl}/${defaultTranslation.language}/collection/${escapeXml(defaultTranslation.slug)}`;
+            `${cleanBaseUrl}/${defaultTranslation.language}/collection/${defaultTranslation.slug}`;
         }
 
         sitemapItems.push({
-          url: escapeXml(url),
+          url,
           lastModified: new Date(),
           changeFrequency: 'weekly',
           priority: 0.7,
@@ -347,14 +336,14 @@ export async function GET(request: Request, { params }: { params: { filename: st
           });
         }
 
-        const url = `${cleanBaseUrl}/${lang}/author/${escapeXml(slug)}`;
+        const url = `${cleanBaseUrl}/${lang}/author/${slug}`;
         const alternates =
           activeLangs.length > 0
-            ? getAlternates(activeLangs, (l) => `${cleanBaseUrl}/${l}/author/${escapeXml(slug)}`)
+            ? getAlternates(activeLangs, (l) => `${cleanBaseUrl}/${l}/author/${slug}`)
             : undefined;
 
         sitemapItems.push({
-          url: escapeXml(url),
+          url,
           lastModified: new Date(),
           changeFrequency: 'weekly',
           priority: 0.6,
@@ -384,12 +373,12 @@ export async function GET(request: Request, { params }: { params: { filename: st
         );
         if (!currentTranslation?.slug) return;
 
-        const url = `${cleanBaseUrl}/${lang}/tag/${escapeXml(currentTranslation.slug)}`;
+        const url = `${cleanBaseUrl}/${lang}/tag/${currentTranslation.slug}`;
 
         const alternates: Record<string, string> = {};
         tag.translations?.forEach((t: TagTranslation) => {
           if (t.slug) {
-            alternates[t.language] = `${cleanBaseUrl}/${t.language}/tag/${escapeXml(t.slug)}`;
+            alternates[t.language] = `${cleanBaseUrl}/${t.language}/tag/${t.slug}`;
           }
         });
 
@@ -400,11 +389,11 @@ export async function GET(request: Request, { params }: { params: { filename: st
         const defaultTranslation = enTranslation || fallbackTranslation;
         if (defaultTranslation?.slug) {
           alternates['x-default'] =
-            `${cleanBaseUrl}/${defaultTranslation.language}/tag/${escapeXml(defaultTranslation.slug)}`;
+            `${cleanBaseUrl}/${defaultTranslation.language}/tag/${defaultTranslation.slug}`;
         }
 
         sitemapItems.push({
-          url: escapeXml(url),
+          url,
           lastModified: new Date(),
           changeFrequency: 'weekly',
           priority: 0.6,
@@ -421,36 +410,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
     return new NextResponse('Sitemap not found', { status: 404 });
   }
 
-  const xmlItems = sitemapItems.map((item) => {
-    let itemXml = '  <url>\n';
-    itemXml += `    <loc>${item.url}</loc>\n`;
-    if (item.lastModified) {
-      const dateStr =
-        typeof item.lastModified === 'string'
-          ? item.lastModified
-          : (item.lastModified as Date).toISOString();
-      itemXml += `    <lastmod>${dateStr}</lastmod>\n`;
-    }
-    if (item.changeFrequency) {
-      itemXml += `    <changefreq>${item.changeFrequency}</changefreq>\n`;
-    }
-    if (item.priority !== undefined) {
-      itemXml += `    <priority>${item.priority.toFixed(1)}</priority>\n`;
-    }
-    if (item.alternates?.languages) {
-      Object.entries(item.alternates.languages).forEach(([langKey, href]) => {
-        itemXml += `    <xhtml:link rel="alternate" hreflang="${langKey}" href="${href}" />\n`;
-      });
-    }
-    itemXml += '  </url>';
-    return itemXml;
-  });
-
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-${xmlItems.join('\n')}
-</urlset>`;
+  const xml = buildUrlSetXml(sitemapItems);
 
   return new NextResponse(xml, {
     headers: {
