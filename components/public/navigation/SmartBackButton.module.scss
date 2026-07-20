@@ -1,0 +1,11 @@
+@import '@/styles/tokens.scss';
+
+.resetBtn {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}

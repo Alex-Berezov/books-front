@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
+import styles from './SmartBackButton.module.scss';
 
 const STORAGE_KEY_PREVIOUS = 'bibliaris.previousPath';
 
@@ -45,7 +46,7 @@ export function SmartBackButton({ label, fallbackHref, className }: SmartBackBut
   }, [previousPath, fallbackHref, router]);
 
   return (
-    <button type="button" onClick={handleClick} className={className}>
+    <button type="button" onClick={handleClick} className={`${styles.resetBtn} ${className ?? ''}`}>
       <ChevronLeft size={16} aria-hidden="true" /> {label}
     </button>
   );
