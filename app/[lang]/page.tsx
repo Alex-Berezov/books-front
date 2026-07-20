@@ -12,7 +12,12 @@ import { getDictionary } from '@/lib/i18n/dictionaries';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { AuthorListItem, BookCollection, BookCollectionData } from '@/types/api-schema';
+import type {
+  AuthorListItem,
+  BookCardModel,
+  BookCollection,
+  BookCollectionData,
+} from '@/types/api-schema';
 import type { PageResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 
@@ -52,7 +57,6 @@ export default async function PublicLangPage({ params }: Props) {
 
   const dict = getDictionary(supportedLang);
 
-  // Helper: extract nested key from dictionary
   const t = (key: string): string => {
     const keys = key.split('.');
     let value: unknown = dict;
@@ -66,9 +70,18 @@ export default async function PublicLangPage({ params }: Props) {
     return typeof value === 'string' ? value : key;
   };
 
-  // Fetch all data in parallel
-  const [popularRes, newRes, audioRes, catsRes, genresRes, colsRes, tagsRes, authorsRes, pageRes] =
-    await Promise.all([
+  async function fetchHomepageData() {
+    const [
+      popularRes,
+      newRes,
+      audioRes,
+      catsRes,
+      genresRes,
+      colsRes,
+      tagsRes,
+      authorsRes,
+      pageRes,
+    ] = await Promise.all([
       getBookCards(supportedLang, 1, 10, { sort: 'popular' }).catch(() => null),
       getBookCards(supportedLang, 1, 10, { sort: 'new' }).catch(() => null),
       getBookCards(supportedLang, 1, 10, { type: 'audio' }).catch(() => null),
@@ -83,109 +96,134 @@ export default async function PublicLangPage({ params }: Props) {
       getPage(supportedLang, 'homepage-index').catch(() => null as PageResponse | null),
     ]);
 
-  const featuredBooks = popularRes?.items || [];
-  const newReleases = newRes?.items || [];
-  const audiobooks = audioRes?.items || [];
+    const featuredBooks = popularRes?.items || [];
+    const newReleases = newRes?.items || [];
+    const audiobooks = audioRes?.items || [];
+    const allCategories = sortByBooksCount(catsRes?.data || []).slice(0, 12);
+    const allGenres = sortByBooksCount(genresRes?.data || []).slice(0, 12);
+    const allCollections = sortByBooksCount(colsRes?.data || []).slice(0, 12);
+    const allTags = sortByBooksCount(tagsRes?.data || []).slice(0, 12);
+    const allAuthors = sortByBooksCount(authorsRes?.data || []).slice(0, 12);
 
-  // Taxonomy sections: sort by booksCount, top 12
-  const allCategories = sortByBooksCount(catsRes?.data || []).slice(0, 12);
-  const allGenres = sortByBooksCount(genresRes?.data || []).slice(0, 12);
-  const allCollections = sortByBooksCount(colsRes?.data || []).slice(0, 12);
-  const allTags = sortByBooksCount(tagsRes?.data || []).slice(0, 12);
-  const allAuthors = sortByBooksCount(authorsRes?.data || []).slice(0, 12);
+    const [classicBooks, fantasyBooks] = await Promise.all([
+      getCategoryBookCards(supportedLang, 'classics', 1, 8)
+        .then((r) => r.items || [])
+        .catch(() => []),
+      getCategoryBookCards(supportedLang, 'fantasy', 1, 8)
+        .then((r) => r.items || [])
+        .catch(() => []),
+    ]);
 
-  // Category-based sections (classic, fantasy) via compact endpoints
-  const [classicBooks, fantasyBooks] = await Promise.all([
-    getCategoryBookCards(supportedLang, 'classics', 1, 8)
-      .then((r) => r.items || [])
-      .catch(() => {
-        return getCategoryBookCards(supportedLang, 'classic-literature', 1, 8)
-          .then((r) => r.items || [])
-          .catch(() => []);
-      }),
-    getCategoryBookCards(supportedLang, 'fantasy', 1, 8)
-      .then((r) => r.items || [])
-      .catch(() => {
-        return getCategoryBookCards(supportedLang, 'sci-fi-fantasy', 1, 8)
-          .then((r) => r.items || [])
-          .catch(() => []);
-      }),
-  ]);
-
-  // Collection sections from CMS page
-  const initialPage = pageRes;
-  let collectionSections: BookCollectionData[] = [];
-  if (initialPage?.sections) {
-    const rawCollections = (
-      initialPage.sections.bookCollections as BookCollection[] | undefined
-    )?.filter((c) => c.title && c.taxonomies?.length > 0);
-    if (rawCollections?.length) {
-      const dedupedTags = new Set<string>();
-      const sectionPromises = rawCollections.slice(0, MAX_COLLECTION_SECTIONS).map(async (col) => {
-        const taxonomies = col.taxonomies.slice(0, MAX_TAXONOMIES_PER_SECTION);
-        const results = await Promise.all(
-          taxonomies.map((tax) => {
-            const slug = tax.slug || '';
-            if (tax.type === 'tag') {
-              const key = `tag:${slug}`;
-              if (dedupedTags.has(key)) return Promise.resolve(null);
-              dedupedTags.add(key);
-              return getTagBookCardsSafe(supportedLang, slug, 1, MAX_BOOKS_PER_TAXONOMY);
-            }
-            const key = `cat:${slug}`;
-            if (dedupedTags.has(key)) return Promise.resolve(null);
-            dedupedTags.add(key);
-            return getCategoryBookCardsSafe(supportedLang, slug, 1, MAX_BOOKS_PER_TAXONOMY);
-          })
-        );
-        const seen = new Set<string>();
-        const books = results
-          .filter((r): r is NonNullable<typeof r> => r !== null)
-          .flatMap((r) => r.items || [])
-          .filter((b) => {
-            if (seen.has(b.id)) return false;
-            seen.add(b.id);
-            return true;
+    const initialPage = pageRes;
+    let collectionSections: BookCollectionData[] = [];
+    if (initialPage?.sections) {
+      const rawCollections = (
+        initialPage.sections.bookCollections as BookCollection[] | undefined
+      )?.filter((c) => c.title && c.taxonomies?.length > 0);
+      if (rawCollections?.length) {
+        const dedupedTags = new Set<string>();
+        const sectionPromises = rawCollections
+          .slice(0, MAX_COLLECTION_SECTIONS)
+          .map(async (col) => {
+            const taxonomies = col.taxonomies.slice(0, MAX_TAXONOMIES_PER_SECTION);
+            const results = await Promise.all(
+              taxonomies.map((tax) => {
+                const slug = tax.slug || '';
+                if (tax.type === 'tag') {
+                  const key = `tag:${slug}`;
+                  if (dedupedTags.has(key)) return Promise.resolve(null);
+                  dedupedTags.add(key);
+                  return getTagBookCardsSafe(supportedLang, slug, 1, MAX_BOOKS_PER_TAXONOMY);
+                }
+                const key = `cat:${slug}`;
+                if (dedupedTags.has(key)) return Promise.resolve(null);
+                dedupedTags.add(key);
+                return getCategoryBookCardsSafe(supportedLang, slug, 1, MAX_BOOKS_PER_TAXONOMY);
+              })
+            );
+            const seen = new Set<string>();
+            const books = results
+              .filter((r): r is NonNullable<typeof r> => r !== null)
+              .flatMap((r) => r.items || [])
+              .filter((b) => {
+                if (seen.has(b.id)) return false;
+                seen.add(b.id);
+                return true;
+              });
+            return {
+              title: col.title,
+              description: col.description,
+              position: col.position,
+              books,
+            } as BookCollectionData;
           });
-        return {
-          title: col.title,
-          description: col.description,
-          position: col.position,
-          books,
-        } as BookCollectionData;
-      });
-      const sections = await Promise.all(sectionPromises);
-      collectionSections = sections.filter((s) => s.books.length > 0);
+        const sections = await Promise.all(sectionPromises);
+        collectionSections = sections.filter((s) => s.books.length > 0);
+      }
     }
+
+    const sections = (initialPage?.sections as Record<string, unknown>) || {};
+    const whyBibliaris =
+      (sections.whyBibliaris as Array<{ icon: string; title: string; text: string }>) || [];
+    const aboutText = (sections.aboutText as string) || '';
+    const faqItems = initialPage?.faq as
+      | Array<{ question: string; answer: string }>
+      | null
+      | undefined;
+    const heroTitle = initialPage?.h1 || t('home.title');
+    const heroText = initialPage?.shortDescription || t('home.subtitle');
+
+    return {
+      featuredBooks,
+      newReleases,
+      audiobooks,
+      allCategories,
+      allGenres,
+      allCollections,
+      allTags,
+      allAuthors,
+      classicBooks,
+      fantasyBooks,
+      collectionSections,
+      heroStackBooks: newReleases.slice(0, 4),
+      audiobooksCount: audiobooks.length,
+      sections,
+      whyBibliaris,
+      aboutText,
+      faqItems: faqItems || null,
+      heroTitle,
+      heroText,
+    };
   }
 
-  // Hero stack: first 4 new releases
-  const heroStackBooks = newReleases.slice(0, 4);
-
-  // Audio label
-  const audiobooksCount = audiobooks.length;
-
-  // Page sections
-  const sections = (initialPage?.sections as Record<string, unknown>) || {};
-  const whyBibliaris =
-    (sections.whyBibliaris as Array<{ icon: string; title: string; text: string }>) || [];
-  const aboutText = (sections.aboutText as string) || '';
-
-  const faqItems = initialPage?.faq as
-    | Array<{ question: string; answer: string }>
-    | null
-    | undefined;
-
-  // Hero text
-  const heroTitle = initialPage?.h1 || t('home.title');
-  const heroText = initialPage?.shortDescription || t('home.subtitle');
+  const data = await fetchHomepageData().catch(() => ({
+    featuredBooks: [] as BookCardModel[],
+    newReleases: [] as BookCardModel[],
+    audiobooks: [] as BookCardModel[],
+    allCategories: [],
+    allGenres: [],
+    allCollections: [],
+    allTags: [],
+    allAuthors: [],
+    classicBooks: [] as BookCardModel[],
+    fantasyBooks: [] as BookCardModel[],
+    collectionSections: [] as BookCollectionData[],
+    heroStackBooks: [] as BookCardModel[],
+    audiobooksCount: 0,
+    sections: {} as Record<string, unknown>,
+    whyBibliaris: [],
+    aboutText: '',
+    faqItems: null,
+    heroTitle: t('home.title'),
+    heroText: t('home.subtitle'),
+  }));
 
   return (
     <HomePageContent
       lang={supportedLang}
       labels={{
-        heroTitle,
-        heroText,
+        heroTitle: data.heroTitle,
+        heroText: data.heroText,
         browseLibrary: t('home.browseLibrary'),
         audiobooks: t('home.audiobooks'),
         topPopular: t('home.topPopular'),
@@ -209,22 +247,22 @@ export default async function PublicLangPage({ params }: Props) {
         coverAltTemplate: t('a11y.bookCover'),
         unknownAuthor: t('book.unknownAuthor'),
       }}
-      featuredBooks={featuredBooks}
-      newReleases={newReleases}
-      audiobooks={audiobooks}
-      classicBooks={classicBooks}
-      fantasyBooks={fantasyBooks}
-      featuredCategories={allCategories}
-      featuredGenres={allGenres}
-      featuredCollections={allCollections}
-      featuredTags={allTags}
-      featuredAuthors={allAuthors}
-      collectionSections={collectionSections}
-      heroStackBooks={heroStackBooks}
-      audiobooksCount={audiobooksCount}
-      faqItems={faqItems || null}
-      whyBibliaris={whyBibliaris}
-      aboutText={aboutText}
+      featuredBooks={data.featuredBooks}
+      newReleases={data.newReleases}
+      audiobooks={data.audiobooks}
+      classicBooks={data.classicBooks}
+      fantasyBooks={data.fantasyBooks}
+      featuredCategories={data.allCategories}
+      featuredGenres={data.allGenres}
+      featuredCollections={data.allCollections}
+      featuredTags={data.allTags}
+      featuredAuthors={data.allAuthors}
+      collectionSections={data.collectionSections}
+      heroStackBooks={data.heroStackBooks}
+      audiobooksCount={data.audiobooksCount}
+      faqItems={data.faqItems}
+      whyBibliaris={data.whyBibliaris}
+      aboutText={data.aboutText}
     />
   );
 }
