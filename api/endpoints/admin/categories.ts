@@ -32,6 +32,8 @@ export interface GetCategoriesParams {
   search?: string;
   /** Filter by category type (category|genre|collection) */
   type?: string;
+  /** Filter by language */
+  lang?: string;
 }
 
 /**
@@ -48,7 +50,7 @@ export interface GetCategoriesParams {
 export const getCategories = async (
   params: GetCategoriesParams = {}
 ): Promise<PaginatedResponse<Category>> => {
-  const { page = 1, limit = 50, search, type } = params;
+  const { page = 1, limit = 50, search, type, lang } = params;
 
   const queryParams = new URLSearchParams({
     page: String(page),
@@ -61,6 +63,10 @@ export const getCategories = async (
 
   if (type) {
     queryParams.append('type', type);
+  }
+
+  if (lang) {
+    queryParams.append('lang', lang);
   }
 
   const endpoint = `/categories?${queryParams.toString()}`;
@@ -79,9 +85,12 @@ export const getCategories = async (
  * const genres = await getCategoriesTree('genre');
  * ```
  */
-export const getCategoriesTree = async (type?: string): Promise<CategoryTree[]> => {
-  const queryParams = type ? `?type=${type}` : '';
-  const endpoint = `/categories/tree${queryParams}`;
+export const getCategoriesTree = async (type?: string, lang?: string): Promise<CategoryTree[]> => {
+  const params = new URLSearchParams();
+  if (type) params.append('type', type);
+  if (lang) params.append('lang', lang);
+  const qs = params.toString();
+  const endpoint = `/categories/tree${qs ? `?${qs}` : ''}`;
   return httpGetAuth<CategoryTree[]>(endpoint, { requireAuth: false });
 };
 

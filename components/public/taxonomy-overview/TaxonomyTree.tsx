@@ -18,13 +18,7 @@ const getTranslatedShortDescription = (item: CategoryTree): string => {
 };
 
 const getTotalBooksCount = (item: CategoryTree): number => {
-  let count = item.booksCount || 0;
-  if (item.children) {
-    for (const child of item.children) {
-      count += getTotalBooksCount(child);
-    }
-  }
-  return count;
+  return item.booksCount || 0;
 };
 
 const isPublic = (item: CategoryTree): boolean => {
@@ -32,11 +26,7 @@ const isPublic = (item: CategoryTree): boolean => {
 };
 
 const hasBooks = (item: CategoryTree): boolean => {
-  if ((item.booksCount || 0) > 0) return true;
-  if (item.children) {
-    return item.children.some((child) => hasBooks(child));
-  }
-  return false;
+  return (item.booksCount || 0) > 0;
 };
 
 export const TaxonomyTree: FC<TaxonomyTreeProps> = ({ lang, items }) => {

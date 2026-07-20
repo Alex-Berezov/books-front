@@ -96,11 +96,12 @@ export const useCategories = (
  */
 export const useCategoriesTree = (
   type?: string,
-  options?: Omit<UseQueryOptions<CategoryTree[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<CategoryTree[]>, 'queryKey' | 'queryFn'>,
+  lang?: string
 ) => {
   return useQuery({
-    queryKey: categoryKeys.tree(type),
-    queryFn: () => getCategoriesTree(type),
+    queryKey: [...categoryKeys.tree(type), lang],
+    queryFn: () => getCategoriesTree(type, lang),
     staleTime: 10 * 60 * 1000, // 10 minutes
     ...options,
   });

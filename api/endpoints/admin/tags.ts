@@ -29,6 +29,8 @@ export interface GetTagsParams {
   limit?: number;
   /** Search by name */
   search?: string;
+  /** Filter by language */
+  lang?: string;
 }
 
 /**
@@ -43,7 +45,7 @@ export interface GetTagsParams {
  * ```
  */
 export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResponse<Tag>> => {
-  const { page = 1, limit = 50, search } = params;
+  const { page = 1, limit = 50, search, lang } = params;
 
   const queryParams = new URLSearchParams({
     page: String(page),
@@ -52,6 +54,10 @@ export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResp
 
   if (search) {
     queryParams.append('q', search);
+  }
+
+  if (lang) {
+    queryParams.append('lang', lang);
   }
 
   const endpoint = `/tags?${queryParams.toString()}`;

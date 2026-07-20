@@ -32,12 +32,16 @@ export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({
     enabled: true,
   });
 
-  const { data: treeData, isLoading: treeLoading } = useCategoriesTree(configKey, {
-    enabled: configKey !== 'tag',
-  });
+  const { data: treeData, isLoading: treeLoading } = useCategoriesTree(
+    configKey,
+    {
+      enabled: configKey !== 'tag',
+    },
+    lang
+  );
 
   const { data: tagsData, isLoading: tagsLoading } = useTags(
-    { limit: 200 },
+    { limit: 200, lang },
     {
       enabled: configKey === 'tag',
     }

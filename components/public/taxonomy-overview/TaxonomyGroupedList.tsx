@@ -18,11 +18,7 @@ const isPublic = (item: CategoryTree): boolean => {
 };
 
 const hasBooks = (item: CategoryTree): boolean => {
-  if ((item.booksCount || 0) > 0) return true;
-  if (item.children) {
-    return item.children.some((child) => hasBooks(child));
-  }
-  return false;
+  return (item.booksCount || 0) > 0;
 };
 
 export const TaxonomyGroupedList: FC<TaxonomyGroupedListProps> = ({ lang, items }) => {
@@ -39,8 +35,7 @@ export const TaxonomyGroupedList: FC<TaxonomyGroupedListProps> = ({ lang, items 
           (child) => isPublic(child) && (child.booksCount || 0) > 0
         );
 
-        const totalBooks =
-          (item.booksCount || 0) + children.reduce((sum, c) => sum + (c.booksCount || 0), 0);
+        const totalBooks = item.booksCount || 0;
 
         return (
           <div key={item.id} className={styles.group}>

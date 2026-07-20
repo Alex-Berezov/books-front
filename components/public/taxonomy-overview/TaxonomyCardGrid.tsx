@@ -37,21 +37,11 @@ const isPublicItem = (item: CategoryTree): boolean => {
 };
 
 const getTotalBooks = (item: CategoryTree): number => {
-  let count = item.booksCount || 0;
-  if (item.children) {
-    for (const child of item.children) {
-      count += getTotalBooks(child);
-    }
-  }
-  return count;
+  return item.booksCount || 0;
 };
 
 const hasAnyBooks = (item: CategoryTree): boolean => {
-  if ((item.booksCount || 0) > 0) return true;
-  if (item.children) {
-    return item.children.some((child) => hasAnyBooks(child));
-  }
-  return false;
+  return (item.booksCount || 0) > 0;
 };
 
 export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
