@@ -1,4 +1,4 @@
-import { BookOpen, Calendar, Globe, User, ChevronLeft, FileText } from 'lucide-react';
+import { BookOpen, Calendar, Globe, User, FileText } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -6,6 +6,7 @@ import { permanentRedirect, notFound } from 'next/navigation';
 import { getBookOverview, resolveSeo, getRelatedBooks } from '@/api/endpoints/public';
 import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
+import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { RelatedBooksResponse } from '@/types/api-schema';
@@ -175,6 +176,20 @@ export default async function BookDetailPage({ params }: Props) {
   const hasSummary = textHasSummary || audioHasSummary;
   const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
 
+  // Compute fallback for smart back button
+  const fallbackHref = (() => {
+    const bp = seoData?.breadcrumbPath;
+    if (bp && bp.length > 0) {
+      const last = bp[bp.length - 1];
+      if (last.type && last.slug) {
+        const taxType =
+          last.type === 'genre' || last.type === 'collection' ? last.type : 'category';
+        return `/${supportedLang}/${taxType}/${last.slug}`;
+      }
+    }
+    return `/${supportedLang}/catalog`;
+  })();
+
   const dict = getDictionary(supportedLang);
   const descriptionTitle = dict.book.aboutBook.replace(
     '{title}',
@@ -229,9 +244,11 @@ export default async function BookDetailPage({ params }: Props) {
         </nav>
 
         {/* Back Button */}
-        <Link href={`/${supportedLang}`} className={styles.backBtn}>
-          <ChevronLeft size={16} aria-hidden="true" /> {dict.book.back}
-        </Link>
+        <SmartBackButton
+          label={dict.book.back}
+          fallbackHref={fallbackHref}
+          className={styles.backBtn}
+        />
 
         {/* Hero Section */}
         <div className={styles.heroGrid}>

@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Footer } from '@/components/public/layout/Footer';
 import { Header } from '@/components/public/layout/Header';
+import { InternalNavigationTracker } from '@/components/public/navigation/InternalNavigationTracker';
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
@@ -54,6 +56,9 @@ export default async function PublicLayout({ children, params }: Props) {
         {skipText}
       </a>
       <Header />
+      <Suspense fallback={null}>
+        <InternalNavigationTracker />
+      </Suspense>
       <main id="main-content" className={styles.publicMain}>
         {children}
       </main>
