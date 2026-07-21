@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
+const mediaCdnUrl =
+  process.env.NEXT_PUBLIC_MEDIA_CDN_URL || process.env.NEXT_PUBLIC_UPLOADS_BASE_URL;
+const mediaCdnHostname = mediaCdnUrl ? new URL(mediaCdnUrl).hostname : undefined;
+
 const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
@@ -13,6 +17,7 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'api.bibliaris.com',
       },
+      ...(mediaCdnHostname ? [{ protocol: 'https', hostname: mediaCdnHostname }] : []),
       {
         protocol: 'https',
         hostname: '**.com',
