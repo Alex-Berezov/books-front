@@ -13,6 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://api.bibliaris.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://media.bibliaris.com" crossOrigin="anonymous" />
       </head>
       <body>
         <AppProviders>{children}</AppProviders>

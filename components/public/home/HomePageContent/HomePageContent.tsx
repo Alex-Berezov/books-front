@@ -222,7 +222,7 @@ export function HomePageContent({
           lang={lang}
           labels={{ viewMoreLabel: labels.viewMore, bookCardLabels }}
           viewMoreHref={`/${lang}/popular-books`}
-          priorityCount={2}
+          priorityCount={1}
         />
 
         {/* Browse by Category */}
@@ -432,6 +432,7 @@ export function HomePageContent({
                           src={author.photoUrl}
                           alt={name}
                           fill
+                          sizes="70px"
                           className={pageStyles.authorAvatarImg}
                         />
                       ) : (
