@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.2",
+    "sharp": "^0.33.5",
     "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-query": "^5.90.5",
     "@tiptap/extension-link": "^3.22.4",
