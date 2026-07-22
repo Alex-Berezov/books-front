@@ -1,20 +1,19 @@
+import { Suspense } from 'react';
 import { BookOpen, Calendar, Globe, User, FileText } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import { permanentRedirect, notFound } from 'next/navigation';
-import { getBookOverview, resolveSeo, getRelatedBooks } from '@/api/endpoints/public';
-import { BookCard } from '@/components/public/books/BookCard';
 import { StarRating } from '@/components/public/books/StarRating';
 import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { RelatedBooksResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import styles from './book.module.scss';
+import { getCachedBookOverview, getCachedBookSeo } from './bookData';
 import DescriptionWrapper from './DescriptionWrapper';
+import { RelatedBooksSection } from './RelatedBooksSection';
 
-// Dynamically load non-critical sections (reviews and extra details) to exclude their CSS/JS from the main render-blocking bundle
 const ReviewsLoading = () => {
   let text = 'Loading reviews...';
   if (typeof window !== 'undefined') {
@@ -50,7 +49,6 @@ const BookExtraDetails = dynamic(() => import('./BookExtraDetails'), {
   ssr: false,
 });
 
-// Client Islands for interactivity
 const BookActions = dynamic(() => import('./BookActions'), {
   ssr: false,
   loading: () => (
@@ -79,7 +77,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supportedLang = lang as SupportedLang;
 
   try {
-    const seo = await resolveSeo(supportedLang, 'book', slug);
+    const seo = await getCachedBookSeo(supportedLang, slug);
     const alternatesLanguages: Record<string, string> = {};
     (seo.hreflangs || seo.hreflang)?.forEach((item) => {
       if (item.hreflang) {
@@ -133,22 +131,22 @@ export default async function BookDetailPage({ params }: Props) {
   const { lang, slug } = await params;
   const supportedLang = lang as SupportedLang;
 
-  let book;
   let seoData;
-  let relatedBooks: RelatedBooksResponse = { sameAuthor: [], similar: [] };
+  let book;
+
   try {
-    book = await getBookOverview(supportedLang, slug);
-    seoData = await resolveSeo(supportedLang, 'book', slug);
-    relatedBooks = await getRelatedBooks(supportedLang, slug, 8);
+    [book, seoData] = await Promise.all([
+      getCachedBookOverview(supportedLang, slug),
+      getCachedBookSeo(supportedLang, slug),
+    ]);
   } catch (error) {
-    console.error('Error loading book overview, SEO, or related books on server:', error);
+    console.error('Error loading book overview or SEO data:', error);
   }
 
   if (!book) {
     notFound();
   }
 
-  // Redirect to correct localized slug if requested slug is outdated/incorrect
   if (book.slug && book.slug !== slug) {
     permanentRedirect(`/${lang}/book/${book.slug}`);
   }
@@ -162,11 +160,6 @@ export default async function BookDetailPage({ params }: Props) {
     : null;
   const activeVersion = textVersion || audioVersion || book.versions?.[0] || null;
 
-  // Related books (same-author + similar) now come from a compact backend endpoint
-  // (BookCardModel[] — no versions/translations/JSON content). See R1 of hamlet-ttfb-fix-tz.md.
-  const authorBooks = relatedBooks.sameAuthor;
-  const similarBooks = relatedBooks.similar;
-
   const textHasSummary = textVersion
     ? ((textVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0
     : false;
@@ -176,7 +169,6 @@ export default async function BookDetailPage({ params }: Props) {
   const hasSummary = textHasSummary || audioHasSummary;
   const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
 
-  // Compute fallback for smart back button
   const fallbackHref = (() => {
     const bp = seoData?.breadcrumbPath;
     if (bp && bp.length > 0) {
@@ -207,7 +199,6 @@ export default async function BookDetailPage({ params }: Props) {
           />
         )}
 
-        {/* Breadcrumbs */}
         <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
           <ol
             style={{
@@ -243,16 +234,13 @@ export default async function BookDetailPage({ params }: Props) {
           </ol>
         </nav>
 
-        {/* Back Button */}
         <SmartBackButton
           label={dict.book.back}
           fallbackHref={fallbackHref}
           className={styles.backBtn}
         />
 
-        {/* Hero Section */}
         <div className={styles.heroGrid}>
-          {/* Cover */}
           <div className={styles.coverWrapper}>
             <div className={styles.coverImageContainer} style={{ backgroundColor: coverBgColor }}>
               {book.coverUrl ? (
@@ -263,6 +251,8 @@ export default async function BookDetailPage({ params }: Props) {
                   width={200}
                   height={290}
                   priority
+                  sizes="200px"
+                  quality={80}
                 />
               ) : (
                 <div className={styles.coverPlaceholder}>
@@ -275,7 +265,6 @@ export default async function BookDetailPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Book Info */}
           <div className={styles.infoWrapper}>
             <h1 className={styles.title}>{activeVersion?.title || book.title}</h1>
             <p className={styles.author}>
@@ -298,10 +287,8 @@ export default async function BookDetailPage({ params }: Props) {
               </div>
             )}
 
-            {/* Interactive Rating Island */}
             <BookRating bookId={book.id} slug={slug} lang={supportedLang} />
 
-            {/* Categories */}
             <div className={styles.tagsContainer}>
               {book.categories?.map((cat) => {
                 const trans =
@@ -321,7 +308,6 @@ export default async function BookDetailPage({ params }: Props) {
               })}
             </div>
 
-            {/* Interactive Actions Island */}
             <BookActions
               slug={slug}
               lang={supportedLang}
@@ -332,7 +318,6 @@ export default async function BookDetailPage({ params }: Props) {
               hasSummary={hasSummary}
             />
 
-            {/* Tags */}
             {book.tags && book.tags.length > 0 && (
               <div className={styles.bookTagsContainer}>
                 {book.tags.map((tag) => {
@@ -354,7 +339,6 @@ export default async function BookDetailPage({ params }: Props) {
               </div>
             )}
 
-            {/* Meta details */}
             <div className={styles.metadataList}>
               {(activeVersion?.author || book.author) && (
                 <div className={styles.metaItem}>
@@ -424,7 +408,6 @@ export default async function BookDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Themes Section */}
         {activeVersion?.themes && activeVersion.themes.length > 0 && (
           <div className={styles.themesWrapper}>
             <hr className={styles.divider} />
@@ -441,7 +424,6 @@ export default async function BookDetailPage({ params }: Props) {
           </div>
         )}
 
-        {/* Description section */}
         <div id="summary" className={styles.descriptionWrapper}>
           <h2 className={styles.descriptionTitle}>{descriptionTitle}</h2>
           <DescriptionWrapper showMoreText={dict.book.showMore} showLessText={dict.book.showLess}>
@@ -456,12 +438,10 @@ export default async function BookDetailPage({ params }: Props) {
           </DescriptionWrapper>
         </div>
 
-        {/* Dynamically loaded extra details (FAQ, symbols, quotes, characters) to isolate non-critical CSS/JS */}
         {activeVersion && (
           <BookExtraDetails activeVersion={activeVersion} supportedLang={supportedLang} />
         )}
 
-        {/* Book Reviews and Comments */}
         {versionId && (
           <BookReviews
             bookVersionId={versionId}
@@ -472,29 +452,9 @@ export default async function BookDetailPage({ params }: Props) {
           />
         )}
 
-        {/* Books by the same author */}
-        {authorBooks.length > 0 && (
-          <section className={styles.relatedSection} style={{ marginTop: '3rem' }}>
-            <h2 className={styles.sectionTitle}>{dict.book.sameAuthor}</h2>
-            <div className={styles.booksGrid}>
-              {authorBooks.map((bookItem) => (
-                <BookCard key={bookItem.id} book={bookItem} size="md" />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* You Might Also Like */}
-        {similarBooks.length > 0 && (
-          <section className={styles.relatedSection} style={{ marginTop: '3rem' }}>
-            <h2 className={styles.sectionTitle}>{dict.book.youMightLike}</h2>
-            <div className={styles.booksGrid}>
-              {similarBooks.map((bookItem) => (
-                <BookCard key={bookItem.id} book={bookItem} size="md" />
-              ))}
-            </div>
-          </section>
-        )}
+        <Suspense fallback={null}>
+          <RelatedBooksSection lang={lang} slug={slug} />
+        </Suspense>
       </div>
     </div>
   );

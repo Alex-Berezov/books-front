@@ -1,0 +1,20 @@
+@import '@/styles/tokens.scss';
+
+.relatedSection {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding-top: $spacing-xxl;
+  margin-top: 3rem;
+}
+
+.sectionTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xl;
+  color: var(--public-foreground);
+}
+
+.booksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: $spacing-xl;
+}

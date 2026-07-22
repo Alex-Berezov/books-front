@@ -48,7 +48,7 @@ export const getPublicChapters = async (versionId: string): Promise<ChapterDetai
  */
 export const getBookOverview = async (lang: SupportedLang, slug: string): Promise<BookOverview> => {
   const endpoint = buildLangPath(lang, `/books/${slug}/overview`);
-  return httpGet<BookOverview>(endpoint, { language: lang });
+  return httpGet<BookOverview>(endpoint, { language: lang, next: { revalidate: 300 } });
 };
 
 /**
@@ -63,7 +63,7 @@ export const getRelatedBooks = async (
   limit = 8
 ): Promise<RelatedBooksResponse> => {
   const endpoint = buildLangPath(lang, `/books/${slug}/related?limit=${limit}`);
-  return httpGet<RelatedBooksResponse>(endpoint, { language: lang });
+  return httpGet<RelatedBooksResponse>(endpoint, { language: lang, next: { revalidate: 300 } });
 };
 
 export interface BookCardsQueryOptions {
@@ -92,7 +92,7 @@ export const getBookCards = async (
   if (options?.type) params.append('type', options.type);
   if (options?.q) params.append('q', options.q);
   const endpoint = buildLangPath(lang, `/books/cards?${params.toString()}`);
-  return httpGet<BookCardsResponse>(endpoint, { language: lang });
+  return httpGet<BookCardsResponse>(endpoint, { language: lang, next: { revalidate: 300 } });
 };
 
 /**
@@ -359,7 +359,10 @@ export const resolveSeo = async (
   const endpoint = buildLangPath(lang, `/seo/resolve`);
   const params = new URLSearchParams({ type, id });
 
-  return httpGet<SeoResolveResponse>(`${endpoint}?${params.toString()}`, { language: lang });
+  return httpGet<SeoResolveResponse>(`${endpoint}?${params.toString()}`, {
+    language: lang,
+    next: { revalidate: 300 },
+  });
 };
 
 /**
