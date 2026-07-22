@@ -54,12 +54,6 @@ a {
   color: inherit;
   text-decoration: none;
 }
-
-/* Ant Design Select - arrow padding */
-.ant-select .ant-select-arrow {
-  right: 16px;
-}
-
 /* Accessibility Styles */
 :focus-visible {
   outline: 3px solid #b36b00;
