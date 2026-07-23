@@ -51,3 +51,6 @@ export * from './users';
 // Authors Domain
 export * from './authors';
 export type { GetAuthorsParams } from './authors';
+
+// Rights Intakes Domain
+export * from './rights-intakes';

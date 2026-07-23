@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Users,
   User,
+  ClipboardList,
 } from 'lucide-react';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
@@ -31,6 +32,12 @@ export interface AdminMenuItem {
  * Generate menu items for specific language
  */
 export const getAdminMenuItems = (lang: SupportedLang): AdminMenuItem[] => [
+  {
+    id: 'rights-intakes',
+    label: 'Rights Intakes',
+    icon: ClipboardList,
+    path: `/admin/${lang}/rights-intakes`,
+  },
   {
     id: 'books',
     label: 'Books',

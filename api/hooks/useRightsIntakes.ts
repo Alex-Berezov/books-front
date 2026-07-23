@@ -1,0 +1,126 @@
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseMutationOptions,
+  type UseQueryOptions,
+} from '@tanstack/react-query';
+import {
+  getRightsIntakes,
+  getRightsIntake,
+  createRightsIntake,
+  updateRightsIntake,
+  changeRightsIntakeStatus,
+  archiveRightsIntake,
+} from '@/api/endpoints/admin/rights-intakes';
+import type {
+  RightsIntake,
+  RightsIntakesListResponse,
+  CreateRightsIntakeRequest,
+  UpdateRightsIntakeRequest,
+  RightsIntakeStatus,
+  GetRightsIntakesParams,
+} from '@/types/api-schema/rights-intake';
+
+export const rightsIntakeKeys = {
+  all: ['rights-intakes'] as const,
+  lists: () => [...rightsIntakeKeys.all, 'list'] as const,
+  list: (params: GetRightsIntakesParams) => [...rightsIntakeKeys.lists(), params] as const,
+  details: () => [...rightsIntakeKeys.all, 'detail'] as const,
+  detail: (id: string) => [...rightsIntakeKeys.details(), id] as const,
+};
+
+export const useRightsIntakes = (
+  params: GetRightsIntakesParams = {},
+  options?: Omit<UseQueryOptions<RightsIntakesListResponse, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<RightsIntakesListResponse, Error>({
+    queryKey: rightsIntakeKeys.list(params),
+    queryFn: () => getRightsIntakes(params),
+    ...options,
+  });
+};
+
+export const useRightsIntake = (
+  id: string,
+  options?: Omit<UseQueryOptions<RightsIntake, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<RightsIntake, Error>({
+    queryKey: rightsIntakeKeys.detail(id),
+    queryFn: () => getRightsIntake(id),
+    enabled: !!id,
+    ...options,
+  });
+};
+
+export const useCreateRightsIntake = (
+  options?: UseMutationOptions<RightsIntake, Error, CreateRightsIntakeRequest>
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<RightsIntake, Error, CreateRightsIntakeRequest>({
+    mutationFn: createRightsIntake,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.lists() });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+    ...options,
+  });
+};
+
+export const useUpdateRightsIntake = (
+  options?: UseMutationOptions<RightsIntake, Error, { id: string; data: UpdateRightsIntakeRequest }>
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<RightsIntake, Error, { id: string; data: UpdateRightsIntakeRequest }>({
+    mutationFn: ({ id, data }) => updateRightsIntake(id, data),
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+    ...options,
+  });
+};
+
+export const useChangeRightsIntakeStatus = (
+  options?: UseMutationOptions<RightsIntake, Error, { id: string; status: RightsIntakeStatus }>
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<RightsIntake, Error, { id: string; status: RightsIntakeStatus }>({
+    mutationFn: ({ id, status }) => changeRightsIntakeStatus(id, status),
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+    ...options,
+  });
+};
+
+export const useArchiveRightsIntake = (
+  options?: UseMutationOptions<RightsIntake, Error, string>
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<RightsIntake, Error, string>({
+    mutationFn: archiveRightsIntake,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+    ...options,
+  });
+};

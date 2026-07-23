@@ -186,3 +186,16 @@ export type {
   UpdateAuthorRequest,
   CheckAuthorSlugResponse,
 } from './authors';
+
+// Rights Intakes
+export type {
+  RightsIntake,
+  RightsIntakeStatus,
+  RightsSourceProvider,
+  RightsSourceTextType,
+  RightsIntakesListResponse,
+  CreateRightsIntakeRequest,
+  UpdateRightsIntakeRequest,
+  ChangeRightsIntakeStatusRequest,
+  GetRightsIntakesParams,
+} from './rights-intake';

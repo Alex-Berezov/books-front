@@ -20,6 +20,11 @@
   margin-bottom: $spacing-lg;
 }
 
+.headerActions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
 .title {
   font-size: $font-size-xl;
   font-weight: $font-weight-bold;
@@ -31,6 +36,21 @@
   color: $color-text-secondary;
   font-size: $font-size-sm;
   margin-top: $spacing-xs;
+}
+
+.hint {
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+  margin-top: $spacing-xs;
+
+  a {
+    color: $color-primary;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .createButton {

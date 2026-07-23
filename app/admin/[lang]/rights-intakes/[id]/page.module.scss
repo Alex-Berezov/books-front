@@ -1,0 +1,266 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  padding: $spacing-lg;
+  background: $color-background-primary;
+  min-height: 100vh;
+  border-radius: $border-radius-xl;
+}
+
+.header {
+  margin-bottom: $spacing-xl;
+}
+
+.breadcrumb {
+  margin-bottom: $spacing-md;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  color: $color-text-secondary;
+  text-decoration: none;
+  font-size: $font-size-sm;
+
+  &:hover {
+    color: $color-primary;
+  }
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-xs;
+}
+
+.subtitle {
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  gap: $spacing-sm;
+  flex-shrink: 0;
+}
+
+.actionBtnPrimary,
+.actionBtnSecondary,
+.actionBtnDanger {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  border: none;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.actionBtnPrimary {
+  background: $color-primary;
+  color: $color-text-inverse;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-hover;
+  }
+}
+
+.actionBtnSecondary {
+  background: $color-background-tertiary;
+  color: $color-text-primary;
+
+  &:hover:not(:disabled) {
+    background: $color-border-light;
+  }
+}
+
+.actionBtnDanger {
+  background: #fee2e2;
+  color: #dc2626;
+
+  &:hover:not(:disabled) {
+    background: #fecaca;
+  }
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-top: $spacing-lg;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+
+  &[data-status='DRAFT'] {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  &[data-status='READY_FOR_AGENT'] {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  &[data-status='REVIEW_IMPORTED'] {
+    background: #e0e7ff;
+    color: #3730a3;
+  }
+
+  &[data-status='HUMAN_REVIEW_REQUIRED'] {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &[data-status='APPROVED'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &[data-status='REJECTED'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &[data-status='BOOK_CREATED'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &[data-status='ARCHIVED'] {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.section {
+  background: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+}
+
+.sectionTitle {
+  margin: 0 0 $spacing-md;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  padding-bottom: $spacing-sm;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: $spacing-xs 0;
+  gap: $spacing-md;
+}
+
+.detailLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  flex-shrink: 0;
+}
+
+.detailValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  text-align: right;
+  word-break: break-word;
+
+  a {
+    color: $color-primary;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.notes {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.nextPhases {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.phasePlaceholder {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  background: $color-background-tertiary;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.phaseIcon {
+  font-size: 16px;
+}
+
+.meta {
+  display: flex;
+  gap: $spacing-lg;
+  margin-top: $spacing-lg;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.loading {
+  padding: $spacing-xl;
+  text-align: center;
+  color: $color-text-secondary;
+  font-size: $font-size-base;
+}
+
+.error {
+  padding: $spacing-xl;
+  text-align: center;
+
+  p {
+    color: #dc2626;
+    margin-bottom: $spacing-md;
+  }
+}

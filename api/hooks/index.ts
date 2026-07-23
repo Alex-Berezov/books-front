@@ -126,3 +126,14 @@ export {
   useUpdateAuthor,
   useDeleteAuthor,
 } from './useAuthors';
+
+// Rights Intakes
+export {
+  rightsIntakeKeys,
+  useRightsIntakes,
+  useRightsIntake,
+  useCreateRightsIntake,
+  useUpdateRightsIntake,
+  useChangeRightsIntakeStatus,
+  useArchiveRightsIntake,
+} from './useRightsIntakes';

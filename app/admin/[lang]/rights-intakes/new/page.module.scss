@@ -1,0 +1,19 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  padding: $spacing-lg;
+  background: $color-background-primary;
+  min-height: 100vh;
+  border-radius: $border-radius-xl;
+}
+
+.header {
+  margin-bottom: $spacing-xl;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin: 0;
+}
