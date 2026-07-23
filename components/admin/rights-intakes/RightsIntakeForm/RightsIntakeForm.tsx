@@ -2,10 +2,12 @@
 
 import { useState, type FC, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCreateRightsIntake } from '@/api/hooks/useRightsIntakes';
+import { useCreateRightsIntake, useUpdateRightsIntake } from '@/api/hooks/useRightsIntakes';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   CreateRightsIntakeRequest,
+  UpdateRightsIntakeRequest,
+  RightsIntake,
   RightsSourceProvider,
   RightsSourceTextType,
 } from '@/types/api-schema/rights-intake';
@@ -32,30 +34,62 @@ const COMPONENTS = [
 
 interface RightsIntakeFormProps {
   lang: SupportedLang;
+  mode?: 'create' | 'edit';
+  initialData?: RightsIntake;
+  onCancel?: () => void;
 }
 
-export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({ lang }) => {
+export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
+  lang,
+  mode = 'create',
+  initialData,
+  onCancel,
+}) => {
   const router = useRouter();
   const createMutation = useCreateRightsIntake();
+  const updateMutation = useUpdateRightsIntake();
 
-  const [form, setForm] = useState({
-    candidateTitle: '',
-    candidateAuthor: '',
-    originalTitle: '',
-    originalLanguage: '',
-    authorBirthYear: '',
-    authorDeathYear: '',
-    sourceProvider: 'UNKNOWN' as RightsSourceProvider,
-    sourceExternalId: '',
-    sourceUrl: '',
-    sourceTitle: '',
-    sourceLanguage: '',
-    sourceTextType: 'UNKNOWN' as RightsSourceTextType,
-    targetLanguages: [] as string[],
-    targetCountryCodes: '',
-    plannedContentTypes: [] as string[],
-    plannedComponents: [] as string[],
-    notesRu: '',
+  const [form, setForm] = useState(() => {
+    if (mode === 'edit' && initialData) {
+      return {
+        candidateTitle: initialData.candidateTitle,
+        candidateAuthor: initialData.candidateAuthor,
+        originalTitle: initialData.originalTitle ?? '',
+        originalLanguage: initialData.originalLanguage ?? '',
+        authorBirthYear: initialData.authorBirthYear?.toString() ?? '',
+        authorDeathYear: initialData.authorDeathYear?.toString() ?? '',
+        sourceProvider: initialData.sourceProvider as RightsSourceProvider,
+        sourceExternalId: initialData.sourceExternalId ?? '',
+        sourceUrl: initialData.sourceUrl ?? '',
+        sourceTitle: initialData.sourceTitle ?? '',
+        sourceLanguage: initialData.sourceLanguage ?? '',
+        sourceTextType: initialData.sourceTextType as RightsSourceTextType,
+        targetLanguages: initialData.targetLanguages as string[],
+        targetCountryCodes: (initialData.targetCountryCodes as string[]).join(', '),
+        plannedContentTypes: initialData.plannedContentTypes as string[],
+        plannedComponents: initialData.plannedComponents as string[],
+        notesRu: initialData.notesRu ?? '',
+      };
+    }
+    return {
+      candidateTitle: '',
+      candidateAuthor: '',
+      originalTitle: '',
+      originalLanguage: '',
+      authorBirthYear: '',
+      authorDeathYear: '',
+      sourceProvider: 'UNKNOWN' as RightsSourceProvider,
+      sourceExternalId: '',
+      sourceUrl: '',
+      sourceTitle: '',
+      sourceLanguage: '',
+      sourceTextType: 'UNKNOWN' as RightsSourceTextType,
+      targetLanguages: [] as string[],
+      targetCountryCodes: '',
+      plannedContentTypes: [] as string[],
+      plannedComponents: [] as string[],
+      notesRu: '',
+    };
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -85,6 +119,10 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({ lang }) => {
     if (!form.candidateAuthor.trim()) validationErrors.candidateAuthor = 'Author is required';
     if (form.targetLanguages.length === 0)
       validationErrors.targetLanguages = 'Select at least one language';
+    if (form.plannedContentTypes.length === 0)
+      validationErrors.plannedContentTypes = 'Select at least one content type';
+    if (form.sourceUrl && !/^https?:\/\/.+/.test(form.sourceUrl))
+      validationErrors.sourceUrl = 'Must be a valid URL (http:// or https://)';
     if (!form.targetCountryCodes.trim())
       validationErrors.targetCountryCodes = 'Enter at least one country code';
 
@@ -123,10 +161,18 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({ lang }) => {
     };
 
     try {
-      const result = await createMutation.mutateAsync(payload);
-      router.push(`/admin/${lang}/rights-intakes/${result.id}`);
+      if (mode === 'edit' && initialData) {
+        await updateMutation.mutateAsync({
+          id: initialData.id,
+          data: payload as UpdateRightsIntakeRequest,
+        });
+        if (onCancel) onCancel();
+      } else {
+        const result = await createMutation.mutateAsync(payload);
+        router.push(`/admin/${lang}/rights-intakes/${result.id}`);
+      }
     } catch {
-      setErrors({ submit: 'Failed to create rights intake. Please try again.' });
+      setErrors({ submit: 'Failed to save rights intake. Please try again.' });
     }
   };
 
@@ -225,6 +271,7 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({ lang }) => {
             value={form.sourceUrl}
             onChange={(e) => updateField('sourceUrl', e.target.value)}
           />
+          {errors.sourceUrl && <span className={styles.error}>{errors.sourceUrl}</span>}
         </div>
         <div className={styles.field}>
           <label className={styles.label}>Source Title</label>
@@ -305,6 +352,9 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({ lang }) => {
               </label>
             ))}
           </div>
+          {errors.plannedContentTypes && (
+            <span className={styles.error}>{errors.plannedContentTypes}</span>
+          )}
         </div>
         <div className={styles.field}>
           <label className={styles.label}>Planned Components</label>
@@ -341,11 +391,23 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({ lang }) => {
       {errors.submit && <div className={styles.submitError}>{errors.submit}</div>}
 
       <div className={styles.actions}>
-        <button type="button" className={styles.cancelBtn} onClick={() => router.back()}>
+        <button
+          type="button"
+          className={styles.cancelBtn}
+          onClick={() => (onCancel ? onCancel() : router.back())}
+        >
           Cancel
         </button>
-        <button type="submit" className={styles.submitBtn} disabled={createMutation.isPending}>
-          {createMutation.isPending ? 'Creating...' : 'Create Rights Intake'}
+        <button
+          type="submit"
+          className={styles.submitBtn}
+          disabled={createMutation.isPending || updateMutation.isPending}
+        >
+          {createMutation.isPending || updateMutation.isPending
+            ? 'Saving...'
+            : mode === 'edit'
+              ? 'Save Changes'
+              : 'Create Rights Intake'}
         </button>
       </div>
     </form>

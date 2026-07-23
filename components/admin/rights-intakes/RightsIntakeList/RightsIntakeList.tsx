@@ -120,7 +120,7 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
               {Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i}>
                   {Array.from({ length: 8 }).map((_, j) => (
-                    <td key={j} style={{ opacity: 0.3 }}>
+                    <td key={j} className={styles.skeletonCell}>
                       Loading...
                     </td>
                   ))}
