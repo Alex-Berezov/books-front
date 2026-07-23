@@ -67,7 +67,7 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
         targetLanguages: initialData.targetLanguages as string[],
         targetCountryCodes: (initialData.targetCountryCodes as string[]).join(', '),
         plannedContentTypes: initialData.plannedContentTypes as string[],
-        plannedComponents: initialData.plannedComponents as string[],
+        plannedComponents: initialData.plannedComponents ?? [],
         notesRu: initialData.notesRu ?? '',
       };
     }
