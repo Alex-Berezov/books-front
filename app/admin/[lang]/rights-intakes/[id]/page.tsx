@@ -269,9 +269,26 @@ export default function RightsIntakeDetailPage() {
           <div className={styles.section}>
             <h2 className={styles.sectionTitle}>Agent Manifest</h2>
             {intake.workflowStatus === 'DRAFT' ? (
-              <p className={styles.manifestHint}>
-                Mark this intake as <strong>Ready For Agent</strong> before exporting the manifest.
-              </p>
+              <>
+                <p className={styles.manifestHint}>
+                  Mark this intake as <strong>Ready For Agent</strong> before exporting the
+                  manifest.
+                </p>
+                <div className={styles.manifestActions}>
+                  <button className={styles.actionBtnSecondary} disabled>
+                    <Eye size={16} />
+                    Preview Manifest
+                  </button>
+                  <button className={styles.actionBtnSecondary} disabled>
+                    <Copy size={16} />
+                    Copy JSON
+                  </button>
+                  <button className={styles.actionBtnSecondary} disabled>
+                    <FileDown size={16} />
+                    Download JSON
+                  </button>
+                </div>
+              </>
             ) : intake.workflowStatus === 'READY_FOR_AGENT' ? (
               <>
                 <p className={styles.manifestHint}>
