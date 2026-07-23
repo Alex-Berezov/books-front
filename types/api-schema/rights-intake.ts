@@ -85,3 +85,50 @@ export interface GetRightsIntakesParams {
   status?: RightsIntakeStatus;
   q?: string;
 }
+
+export interface RightsAgentManifest {
+  manifestVersion: string;
+  manifestType: 'BIBLIARIS_RIGHTS_CLEARANCE_INPUT';
+  generatedAt: string;
+  generatedBy: {
+    product: string;
+    module: string;
+  };
+  intake: {
+    id: string;
+    workflowStatus: string;
+    candidateTitle: string;
+    candidateAuthor: string;
+    originalTitle: string | null;
+    originalLanguage: string | null;
+    authorBirthYear: number | null;
+    authorDeathYear: number | null;
+    notesRu: string | null;
+  };
+  source: {
+    provider: RightsSourceProvider;
+    externalId: string | null;
+    url: string | null;
+    title: string | null;
+    language: string | null;
+    textType: RightsSourceTextType;
+  };
+  publicationPlan: {
+    targetLanguages: string[];
+    targetCountryCodes: string[];
+    plannedContentTypes: string[];
+    plannedComponents: string[];
+  };
+  agentTask: {
+    objective: string;
+    requiredChecks: string[];
+    requiredOutputs: string[];
+    importantRules: string[];
+  };
+  expectedResultSchema: {
+    schemaVersion: string;
+    format: 'json';
+    requiredTopLevelFields: string[];
+    notes: string[];
+  };
+}

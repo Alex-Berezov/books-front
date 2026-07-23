@@ -1,16 +1,18 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
-import { ArrowLeft, Archive, Send, Undo, Pencil } from 'lucide-react';
+import { useState, useCallback, type ReactNode } from 'react';
+import { ArrowLeft, Archive, Send, Undo, Pencil, Eye, Copy, FileDown, X } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   useRightsIntake,
   useChangeRightsIntakeStatus,
   useArchiveRightsIntake,
+  useRightsAgentManifest,
 } from '@/api/hooks/useRightsIntakes';
 import { RightsIntakeForm } from '@/components/admin/rights-intakes/RightsIntakeForm/RightsIntakeForm';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { RightsAgentManifest } from '@/types/api-schema/rights-intake';
 import styles from './page.module.scss';
 
 const LANG_LABELS: Record<string, string> = {
@@ -27,10 +29,15 @@ export default function RightsIntakeDetailPage() {
   const id = params.id as string;
 
   const [isEditing, setIsEditing] = useState(false);
+  const [manifestModalOpen, setManifestModalOpen] = useState(false);
+  const [manifestData, setManifestData] = useState<RightsAgentManifest | null>(null);
+  const [manifestError, setManifestError] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<string | null>(null);
 
   const { data: intake, isLoading, error } = useRightsIntake(id);
   const changeStatusMutation = useChangeRightsIntakeStatus();
   const archiveMutation = useArchiveRightsIntake();
+  const manifestQuery = useRightsAgentManifest(id);
 
   const editableStatuses = ['DRAFT', 'READY_FOR_AGENT'];
   const canEdit = intake && editableStatuses.includes(intake.workflowStatus);
@@ -52,6 +59,60 @@ export default function RightsIntakeDetailPage() {
   const handleArchive = async () => {
     if (!intake) return;
     await archiveMutation.mutateAsync(intake.id);
+  };
+
+  const fetchManifest = useCallback(async (): Promise<RightsAgentManifest | null> => {
+    setManifestError(null);
+    try {
+      const result = await manifestQuery.refetch();
+      if (result.error) {
+        const msg =
+          result.error instanceof Error ? result.error.message : 'Failed to load agent manifest';
+        setManifestError(msg);
+        return null;
+      }
+      return result.data ?? null;
+    } catch {
+      setManifestError('Failed to load agent manifest');
+      return null;
+    }
+  }, [manifestQuery]);
+
+  const handlePreviewManifest = async () => {
+    const data = await fetchManifest();
+    if (data) {
+      setManifestData(data);
+      setManifestModalOpen(true);
+    }
+  };
+
+  const handleCopyJson = async () => {
+    const data = await fetchManifest();
+    if (!data) return;
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      setCopyStatus('Copied');
+      setTimeout(() => setCopyStatus(null), 2000);
+    } catch {
+      setCopyStatus('Clipboard is not available. Use Preview Manifest and copy manually.');
+      setTimeout(() => setCopyStatus(null), 4000);
+    }
+  };
+
+  const handleDownloadJson = async () => {
+    const data = await fetchManifest();
+    if (!data) return;
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bibliaris-rights-manifest-${id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   if (isLoading) {
@@ -206,12 +267,44 @@ export default function RightsIntakeDetailPage() {
           </div>
 
           <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Agent Manifest</h2>
+            {intake.workflowStatus === 'DRAFT' ? (
+              <p className={styles.manifestHint}>
+                Mark this intake as <strong>Ready For Agent</strong> before exporting the manifest.
+              </p>
+            ) : intake.workflowStatus === 'READY_FOR_AGENT' ? (
+              <>
+                <p className={styles.manifestHint}>
+                  Export a structured JSON manifest for the external ChatGPT-based rights check
+                  agent.
+                </p>
+                <div className={styles.manifestActions}>
+                  <button className={styles.actionBtnSecondary} onClick={handlePreviewManifest}>
+                    <Eye size={16} />
+                    Preview Manifest
+                  </button>
+                  <button className={styles.actionBtnSecondary} onClick={handleCopyJson}>
+                    <Copy size={16} />
+                    {copyStatus || 'Copy JSON'}
+                  </button>
+                  <button className={styles.actionBtnSecondary} onClick={handleDownloadJson}>
+                    <FileDown size={16} />
+                    Download JSON
+                  </button>
+                </div>
+                {manifestError && <p className={styles.manifestErrorText}>{manifestError}</p>}
+              </>
+            ) : (
+              <p className={styles.manifestHint}>
+                Manifest export is available only for intakes in <strong>Ready For Agent</strong>{' '}
+                status.
+              </p>
+            )}
+          </div>
+
+          <div className={styles.section}>
             <h2 className={styles.sectionTitle}>Next Phases</h2>
             <div className={styles.nextPhases}>
-              <div className={styles.phasePlaceholder}>
-                <span className={styles.phaseIcon}>📄</span>
-                <span>Agent manifest export — not implemented yet</span>
-              </div>
               <div className={styles.phasePlaceholder}>
                 <span className={styles.phaseIcon}>📥</span>
                 <span>Review import — not implemented yet</span>
@@ -231,6 +324,20 @@ export default function RightsIntakeDetailPage() {
             )}
           </div>
         </>
+      )}
+
+      {manifestModalOpen && manifestData && (
+        <div className={styles.overlay} onClick={() => setManifestModalOpen(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Agent Manifest</h3>
+              <button className={styles.modalClose} onClick={() => setManifestModalOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <pre className={styles.modalBody}>{JSON.stringify(manifestData, null, 2)}</pre>
+          </div>
+        </div>
       )}
     </div>
   );

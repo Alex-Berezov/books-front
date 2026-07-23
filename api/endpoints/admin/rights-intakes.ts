@@ -6,6 +6,7 @@ import type {
   UpdateRightsIntakeRequest,
   GetRightsIntakesParams,
   RightsIntakeStatus,
+  RightsAgentManifest,
 } from '@/types/api-schema/rights-intake';
 
 export const getRightsIntakes = async (
@@ -52,4 +53,10 @@ export const changeRightsIntakeStatus = async (
 
 export const archiveRightsIntake = async (id: string): Promise<RightsIntake> => {
   return httpDeleteAuth<RightsIntake>(`/admin/rights/intakes/${id}`, { requireAuth: true });
+};
+
+export const getRightsAgentManifest = async (id: string): Promise<RightsAgentManifest> => {
+  return httpGetAuth<RightsAgentManifest>(`/admin/rights/intakes/${id}/agent-manifest`, {
+    requireAuth: true,
+  });
 };

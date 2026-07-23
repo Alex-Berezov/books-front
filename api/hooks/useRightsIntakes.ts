@@ -12,6 +12,7 @@ import {
   updateRightsIntake,
   changeRightsIntakeStatus,
   archiveRightsIntake,
+  getRightsAgentManifest,
 } from '@/api/endpoints/admin/rights-intakes';
 import type {
   RightsIntake,
@@ -20,6 +21,7 @@ import type {
   UpdateRightsIntakeRequest,
   RightsIntakeStatus,
   GetRightsIntakesParams,
+  RightsAgentManifest,
 } from '@/types/api-schema/rights-intake';
 
 export const rightsIntakeKeys = {
@@ -28,6 +30,7 @@ export const rightsIntakeKeys = {
   list: (params: GetRightsIntakesParams) => [...rightsIntakeKeys.lists(), params] as const,
   details: () => [...rightsIntakeKeys.all, 'detail'] as const,
   detail: (id: string) => [...rightsIntakeKeys.details(), id] as const,
+  manifest: (id: string) => [...rightsIntakeKeys.all, 'manifest', id] as const,
 };
 
 export const useRightsIntakes = (
@@ -103,6 +106,18 @@ export const useChangeRightsIntakeStatus = (
         context
       );
     },
+    ...options,
+  });
+};
+
+export const useRightsAgentManifest = (
+  id: string,
+  options?: Omit<UseQueryOptions<RightsAgentManifest, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<RightsAgentManifest, Error>({
+    queryKey: rightsIntakeKeys.manifest(id),
+    queryFn: () => getRightsAgentManifest(id),
+    enabled: false,
     ...options,
   });
 };

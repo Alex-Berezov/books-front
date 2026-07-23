@@ -219,6 +219,92 @@
   margin: 0;
 }
 
+.manifestHint {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-md;
+}
+
+.manifestActions {
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.manifestErrorText {
+  font-size: $font-size-sm;
+  color: #dc2626;
+  margin: $spacing-sm 0 0;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $spacing-lg;
+}
+
+.modal {
+  background: $color-background-primary;
+  border-radius: $border-radius-lg;
+  max-width: 900px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-lg;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.modalClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: $color-text-secondary;
+  border-radius: $border-radius-sm;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: $color-background-tertiary;
+    color: $color-text-primary;
+  }
+}
+
+.modalBody {
+  padding: $spacing-lg;
+  overflow: auto;
+  margin: 0;
+  font-size: $font-size-xs;
+  line-height: 1.5;
+  color: $color-text-primary;
+  background: $color-background-tertiary;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 .nextPhases {
   display: flex;
   flex-direction: column;
