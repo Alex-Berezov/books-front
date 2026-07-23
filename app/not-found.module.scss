@@ -46,29 +46,24 @@
   display: inline-flex;
   align-items: center;
   gap: $spacing-xs;
-  padding: $spacing-sm $spacing-lg;
-  border-radius: $border-radius-lg;
   font-size: $font-size-base;
   font-weight: $font-weight-medium;
-  text-decoration: none;
+  text-decoration: underline;
   transition: all 0.2s ease;
 }
 
 .primaryBtn {
-  background: var(--public-primary);
-  color: var(--public-primary-foreground);
+  color: var(--public-primary);
 
   &:hover {
-    opacity: 0.9;
+    opacity: 0.8;
   }
 }
 
 .secondaryBtn {
-  border: 1px solid var(--public-primary);
   color: var(--public-primary);
 
   &:hover {
-    background: var(--public-primary);
-    color: var(--public-primary-foreground);
+    opacity: 0.8;
   }
 }
