@@ -1,0 +1,55 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  margin-bottom: 24px;
+}
+
+.card {
+  border-radius: 8px;
+}
+
+.approvedCard {
+  border-left: 4px solid $color-success;
+}
+
+.rejectedCard {
+  border-left: 4px solid $color-error;
+}
+
+.space {
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  margin: 0 !important;
+}
+
+.approvedIcon {
+  color: $color-success;
+}
+
+.rejectedIcon {
+  color: $color-error;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  color: $color-text-secondary;
+  flex-shrink: 0;
+}
+
+.message {
+  font-size: 14px;
+  margin-top: 8px;
+}

@@ -2,13 +2,17 @@
 
 import { useState, type FC } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Card, Button, Input, Typography, Space, message } from 'antd';
+import { Card, Button, Input, Typography, Space, message, Alert } from 'antd';
 import {
   useApproveRightsReview,
   useRejectRightsReview,
   rightsIntakeKeys,
 } from '@/api/hooks/useRightsIntakes';
-import type { RightsReviewStatus } from '@/types/api-schema/rights-intake';
+import type {
+  RightsReviewStatus,
+  RightsProfileDetail,
+  RightsAction,
+} from '@/types/api-schema/rights-intake';
 import styles from './ApprovalPanel.module.scss';
 
 const { TextArea } = Input;
@@ -18,14 +22,21 @@ interface ApprovalPanelProps {
   intakeId: string;
   reviewId: string;
   reviewStatus: RightsReviewStatus;
+  currentProfile?: RightsProfileDetail;
   onApproved: () => void;
   onRejected: () => void;
 }
+
+const hasUnresolvedBlockingActions = (actions?: RightsAction[]): boolean => {
+  if (!actions) return false;
+  return actions.some((a) => a.isBlocking && a.status !== 'COMPLETED' && a.status !== 'WAIVED');
+};
 
 export const ApprovalPanel: FC<ApprovalPanelProps> = ({
   intakeId,
   reviewId,
   reviewStatus,
+  currentProfile,
   onApproved,
   onRejected,
 }) => {
@@ -64,6 +75,18 @@ export const ApprovalPanel: FC<ApprovalPanelProps> = ({
     return null;
   }
 
+  const publicationGate = currentProfile?.publicationGate;
+  const hasBlockingActions = hasUnresolvedBlockingActions(currentProfile?.actions);
+  const isApproveDisabled =
+    approveMutation.isPending || publicationGate === 'BLOCK' || hasBlockingActions;
+
+  const approveDisabledReason =
+    publicationGate === 'BLOCK'
+      ? 'Cannot approve: publication gate is BLOCK'
+      : hasBlockingActions
+        ? 'Cannot approve: there are unresolved blocking rights actions'
+        : undefined;
+
   return (
     <div className={styles.container}>
       <Card className={styles.card}>
@@ -71,6 +94,15 @@ export const ApprovalPanel: FC<ApprovalPanelProps> = ({
           Approval Actions
         </Title>
         <Space direction="vertical" size="large" className={styles.space}>
+          {approveDisabledReason && (
+            <Alert
+              type="warning"
+              message="Approval blocked"
+              description={approveDisabledReason}
+              showIcon
+            />
+          )}
+
           <div className={styles.section}>
             <Text strong className={styles.sectionLabel}>
               Approve Review
@@ -86,6 +118,7 @@ export const ApprovalPanel: FC<ApprovalPanelProps> = ({
               type="primary"
               className={styles.approveButton}
               loading={approveMutation.isPending}
+              disabled={isApproveDisabled}
               onClick={() =>
                 approveMutation.mutate({
                   intakeId,
@@ -125,7 +158,7 @@ export const ApprovalPanel: FC<ApprovalPanelProps> = ({
               danger
               className={styles.rejectButton}
               loading={rejectMutation.isPending}
-              disabled={rejectReason.trim().length < 10}
+              disabled={rejectMutation.isPending || rejectReason.trim().length < 10}
               onClick={() =>
                 rejectMutation.mutate({
                   intakeId,

@@ -256,6 +256,14 @@ export interface RightsReview {
   conclusionRu: string;
   reasoningRu: string | null;
   nextReviewAt: string | null;
+  approvedByUserId: string | null;
+  approvedByUser: { id: string; name?: string; email: string } | null;
+  approvedAt: string | null;
+  approvalNotesRu: string | null;
+  rejectedByUserId: string | null;
+  rejectedByUser: { id: string; name?: string; email: string } | null;
+  rejectedAt: string | null;
+  rejectionReasonRu: string | null;
   createdAt: string;
   updatedAt: string;
 }

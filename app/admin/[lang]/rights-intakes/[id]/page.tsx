@@ -30,6 +30,7 @@ import {
 import { RightsIntakeForm } from '@/components/admin/rights-intakes/RightsIntakeForm/RightsIntakeForm';
 import { ApprovalHistory } from '@/components/admin/RightsIntakeDetail/ApprovalHistory/ApprovalHistory';
 import { ApprovalPanel } from '@/components/admin/RightsIntakeDetail/ApprovalPanel/ApprovalPanel';
+import { ApprovalState } from '@/components/admin/RightsIntakeDetail/ApprovalState/ApprovalState';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   RightsAgentManifest,
@@ -918,9 +919,14 @@ export default function RightsIntakeDetailPage() {
               intakeId={id}
               reviewId={currentProfile.reviews[0].id}
               reviewStatus={currentProfile.reviews[0].status as RightsReviewStatus}
+              currentProfile={currentProfile}
               onApproved={() => refetchProfile()}
               onRejected={() => refetchProfile()}
             />
+          )}
+
+          {currentProfile && currentProfile.reviews.length > 0 && (
+            <ApprovalState review={currentProfile.reviews[0]} />
           )}
 
           <ApprovalHistory intakeId={id} />
