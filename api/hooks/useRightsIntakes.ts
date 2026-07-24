@@ -15,6 +15,9 @@ import {
   getRightsAgentManifest,
   createRightsReviewImport,
   getRightsReviewImports,
+  materializeRightsReviewImport,
+  getRightsProfileByIntake,
+  getRightsProfile,
 } from '@/api/endpoints/admin/rights-intakes';
 import type {
   RightsIntake,
@@ -28,6 +31,7 @@ import type {
   RightsReviewImportsListResponse,
   CreateRightsReviewImportRequest,
   ListRightsReviewImportsParams,
+  RightsProfileDetail,
 } from '@/types/api-schema/rights-intake';
 
 export const rightsIntakeKeys = {
@@ -41,6 +45,12 @@ export const rightsIntakeKeys = {
     [...rightsIntakeKeys.all, 'review-imports', intakeId] as const,
   reviewImportsList: (intakeId: string, params: ListRightsReviewImportsParams) =>
     [...rightsIntakeKeys.reviewImports(intakeId), 'list', params] as const,
+  rightsProfile: (profileId: string) =>
+    [...rightsIntakeKeys.all, 'rights-profile', profileId] as const,
+  currentRightsProfile: (intakeId: string) =>
+    [...rightsIntakeKeys.all, 'current-rights-profile', intakeId] as const,
+  rightsProfiles: (intakeId: string) =>
+    [...rightsIntakeKeys.all, 'rights-profiles', intakeId] as const,
 };
 
 export const useRightsIntakes = (
@@ -73,13 +83,55 @@ export const useCreateRightsIntake = (
   return useMutation<RightsIntake, Error, CreateRightsIntakeRequest>({
     mutationFn: createRightsIntake,
     onSuccess: (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
         context
       );
     },
+    ...options,
+  });
+};
+
+export const useMaterializeRightsReviewImport = (
+  options?: UseMutationOptions<RightsProfileDetail, Error, string>
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<RightsProfileDetail, Error, string>({
+    mutationFn: materializeRightsReviewImport,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+    ...options,
+  });
+};
+
+export const useCurrentRightsProfile = (
+  intakeId: string,
+  options?: Omit<UseQueryOptions<RightsProfileDetail, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<RightsProfileDetail, Error>({
+    queryKey: rightsIntakeKeys.currentRightsProfile(intakeId),
+    queryFn: () => getRightsProfileByIntake(intakeId, true) as Promise<RightsProfileDetail>,
+    enabled: !!intakeId,
+    ...options,
+  });
+};
+
+export const useRightsProfile = (
+  profileId: string,
+  options?: Omit<UseQueryOptions<RightsProfileDetail, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<RightsProfileDetail, Error>({
+    queryKey: rightsIntakeKeys.rightsProfile(profileId),
+    queryFn: () => getRightsProfile(profileId),
+    enabled: !!profileId,
     ...options,
   });
 };

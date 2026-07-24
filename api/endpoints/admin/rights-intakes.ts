@@ -11,6 +11,8 @@ import type {
   RightsReviewImportsListResponse,
   CreateRightsReviewImportRequest,
   ListRightsReviewImportsParams,
+  RightsProfileDetail,
+  RightsProfileList,
 } from '@/types/api-schema/rights-intake';
 
 export const getRightsIntakes = async (
@@ -96,3 +98,28 @@ export const getRightsReviewImport = async (
     requireAuth: true,
   });
 };
+
+export const materializeRightsReviewImport = (importId: string): Promise<RightsProfileDetail> =>
+  httpPostAuth<RightsProfileDetail>(
+    `/admin/rights/review-imports/${importId}/materialize`,
+    undefined,
+    {
+      requireAuth: true,
+    }
+  );
+
+export const getRightsProfileByIntake = (
+  intakeId: string,
+  currentOnly = true
+): Promise<RightsProfileDetail | RightsProfileList> =>
+  httpGetAuth<RightsProfileDetail | RightsProfileList>(
+    `/admin/rights/intakes/${intakeId}/rights-profile?currentOnly=${currentOnly}`,
+    {
+      requireAuth: true,
+    }
+  );
+
+export const getRightsProfile = (profileId: string): Promise<RightsProfileDetail> =>
+  httpGetAuth<RightsProfileDetail>(`/admin/rights/profiles/${profileId}`, {
+    requireAuth: true,
+  });

@@ -186,3 +186,165 @@ export interface ListRightsReviewImportsParams {
   limit?: number;
   status?: RightsReviewImportStatus;
 }
+
+export type RightsProfileStatus = 'IMPORTED' | 'SUPERSEDED' | 'ARCHIVED';
+export type RightsOverallStatus =
+  | 'PUBLISHABLE'
+  | 'PUBLISHABLE_AFTER_CHANGES'
+  | 'PUBLISHABLE_WITH_GEO_RESTRICTIONS'
+  | 'LICENSE_REQUIRED'
+  | 'INSUFFICIENT_DATA'
+  | 'REJECTED';
+export type RightsPublicationGate = 'ALLOW' | 'ALLOW_AFTER_GEO_CONFIGURATION' | 'BLOCK';
+export type RightsConfidence = 'HIGH' | 'MEDIUM' | 'LOW';
+export type RightsAccessPolicy = 'ALLOW' | 'BLOCK' | 'REVIEW_REQUIRED';
+
+export interface SourceEdition {
+  id: string;
+  rightsProfileId: string;
+  provider: string;
+  externalId: string | null;
+  sourceUrl: string | null;
+  sourceTitle: string | null;
+  sourceLanguage: string | null;
+  sourceTextType: string;
+  gutenbergStatus: string | null;
+  status: string;
+  notesRu: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EditionRights {
+  id: string;
+  sourceEditionId: string;
+  status: string;
+  notesRu: string | null;
+  legalBasisRu: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RightsReview {
+  id: string;
+  rightsProfileId: string;
+  rightsReviewImportId: string;
+  status: string;
+  schemaVersion: string | null;
+  reviewerType: string;
+  overallStatus: string;
+  publicationGate: string;
+  confidence: string;
+  summaryRu: string;
+  conclusionRu: string;
+  reasoningRu: string | null;
+  nextReviewAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RightsComponent {
+  id: string;
+  rightsProfileId: string;
+  componentType: string;
+  titleRu: string;
+  status: string;
+  requiredAction: string;
+  confidence: string;
+  notesRu: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TerritoryDecision {
+  id: string;
+  rightsProfileId: string;
+  countryCode: string;
+  finalStatus: string;
+  accessPolicy: string;
+  geoBlockRequired: boolean;
+  geoBlockScope: string | null;
+  reasonRu: string;
+  legalBasisRu: string | null;
+  confidence: string;
+  nextReviewAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RightsEvidence {
+  id: string;
+  rightsProfileId: string;
+  evidenceType: string;
+  sourceLevel: string;
+  title: string;
+  authority: string;
+  url: string | null;
+  jurisdictionCode: string | null;
+  accessedAt: string | null;
+  relevantExcerpt: string | null;
+  summaryRu: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RightsAction {
+  id: string;
+  rightsProfileId: string;
+  actionType: string;
+  status: string;
+  descriptionRu: string;
+  affectedCountryCodes: unknown;
+  isBlocking: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RightsProfileSummary {
+  id: string;
+  rightsIntakeId: string;
+  currentReviewImportId: string | null;
+  status: string;
+  isCurrent: boolean;
+  overallStatus: string;
+  publicationGate: string;
+  confidence: string;
+  summaryRu: string;
+  conclusionRu: string;
+  reasoningRu: string | null;
+  nextReviewAt: string | null;
+  supersededAt: string | null;
+  archivedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RightsProfileDetail {
+  id: string;
+  rightsIntakeId: string;
+  currentReviewImportId: string | null;
+  status: string;
+  isCurrent: boolean;
+  overallStatus: string;
+  publicationGate: string;
+  confidence: string;
+  summaryRu: string;
+  conclusionRu: string;
+  reasoningRu: string | null;
+  nextReviewAt: string | null;
+  sourceEdition: SourceEdition | null;
+  reviews: RightsReview[];
+  territoryDecisions: TerritoryDecision[];
+  components: RightsComponent[];
+  evidence: RightsEvidence[];
+  actions: RightsAction[];
+  supersededAt: string | null;
+  archivedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RightsProfileList {
+  items: RightsProfileSummary[];
+  total: number;
+}

@@ -703,3 +703,142 @@
   align-items: flex-start;
   margin-bottom: 8px;
 }
+
+.profileSummary {
+  margin-top: $spacing-md;
+}
+
+.profileStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: $spacing-sm;
+  margin-bottom: $spacing-lg;
+}
+
+.profileStat {
+  background: $color-background-tertiary;
+  border-radius: $border-radius-base;
+  padding: $spacing-sm $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profileStatLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.profileStatValue {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.profileDetailSection {
+  margin-top: $spacing-md;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-sm $spacing-md;
+
+  &[open] {
+    padding-bottom: $spacing-md;
+  }
+
+  summary {
+    cursor: pointer;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    color: $color-text-primary;
+    padding: $spacing-xs 0;
+  }
+}
+
+.profileTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: $spacing-sm;
+  font-size: $font-size-xs;
+
+  th, td {
+    text-align: left;
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: 1px solid $color-border-light;
+  }
+
+  th {
+    font-weight: $font-weight-semibold;
+    color: $color-text-secondary;
+    font-size: $font-size-xs;
+  }
+
+  td {
+    color: $color-text-primary;
+  }
+}
+
+.profileEmpty {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin: $spacing-sm 0 0;
+  font-style: italic;
+}
+
+.evidenceList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.evidenceItem {
+  padding: $spacing-sm;
+  background: $color-background-tertiary;
+  border-radius: $border-radius-base;
+  border: 1px solid $color-border-light;
+}
+
+.evidenceHeader {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xs;
+}
+
+.evidenceType {
+  font-size: 10px;
+  font-weight: $font-weight-semibold;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.evidenceSource {
+  font-size: 10px;
+  font-weight: $font-weight-semibold;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.evidenceTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  margin: 0 0 2px;
+  color: $color-text-primary;
+}
+
+.evidenceAuthority {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.evidenceUrl {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-primary;
+  margin-top: $spacing-xs;
+  word-break: break-all;
+}

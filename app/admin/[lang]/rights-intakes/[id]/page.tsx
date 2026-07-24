@@ -24,6 +24,8 @@ import {
   useRightsAgentManifest,
   useRightsReviewImports,
   useCreateRightsReviewImport,
+  useMaterializeRightsReviewImport,
+  useCurrentRightsProfile,
 } from '@/api/hooks/useRightsIntakes';
 import { RightsIntakeForm } from '@/components/admin/rights-intakes/RightsIntakeForm/RightsIntakeForm';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -68,6 +70,13 @@ export default function RightsIntakeDetailPage() {
   const manifestQuery = useRightsAgentManifest(id);
   const { data: reviewImportsData } = useRightsReviewImports(id, { limit: 20 });
   const createReviewImportMutation = useCreateRightsReviewImport(id);
+  const materializeMutation = useMaterializeRightsReviewImport();
+  const {
+    data: currentProfile,
+    isLoading: profileLoading,
+    error: profileError,
+    refetch: refetchProfile,
+  } = useCurrentRightsProfile(id);
 
   const editableStatuses = ['DRAFT', 'READY_FOR_AGENT'];
   const canEdit = intake && editableStatuses.includes(intake.workflowStatus);
@@ -652,6 +661,252 @@ export default function RightsIntakeDetailPage() {
                   ))}
                 </div>
               </div>
+            )}
+          </div>
+
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Rights Profile</h2>
+            {intake?.workflowStatus === 'REVIEW_IMPORTED' ? (
+              <>
+                {profileLoading && <p className={styles.sectionHint}>Loading profile...</p>}
+                {profileError && !currentProfile && (
+                  <>
+                    <p className={styles.sectionHint}>
+                      Build a normalized rights profile from the current validated review import.
+                    </p>
+                    {(() => {
+                      const currentValidImport = reviewImports.find(
+                        (i) => i.isCurrent && i.importStatus === 'VALIDATED'
+                      );
+                      return currentValidImport ? (
+                        <div className={styles.manifestActions}>
+                          <button
+                            className={styles.actionBtnPrimary}
+                            onClick={async () => {
+                              try {
+                                await materializeMutation.mutateAsync(currentValidImport.id);
+                                await refetchProfile();
+                              } catch {
+                                // error handled by mutation
+                              }
+                            }}
+                            disabled={materializeMutation.isPending}
+                          >
+                            {materializeMutation.isPending ? 'Building...' : 'Build Rights Profile'}
+                          </button>
+                          {materializeMutation.error && (
+                            <p className={styles.manifestErrorText}>
+                              {materializeMutation.error instanceof Error
+                                ? materializeMutation.error.message
+                                : 'Failed to build profile'}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className={styles.sectionHint}>
+                          No current validated review import found. Complete a review import first.
+                        </p>
+                      );
+                    })()}
+                  </>
+                )}
+                {currentProfile && (
+                  <div className={styles.profileSummary}>
+                    <div className={styles.profileStats}>
+                      <div className={styles.profileStat}>
+                        <span className={styles.profileStatLabel}>Status</span>
+                        <span className={styles.profileStatValue}>{currentProfile.status}</span>
+                      </div>
+                      <div className={styles.profileStat}>
+                        <span className={styles.profileStatLabel}>Overall</span>
+                        <span className={styles.profileStatValue}>
+                          {currentProfile.overallStatus}
+                        </span>
+                      </div>
+                      <div className={styles.profileStat}>
+                        <span className={styles.profileStatLabel}>Gate</span>
+                        <span className={styles.profileStatValue}>
+                          {currentProfile.publicationGate}
+                        </span>
+                      </div>
+                      <div className={styles.profileStat}>
+                        <span className={styles.profileStatLabel}>Confidence</span>
+                        <span className={styles.profileStatValue}>{currentProfile.confidence}</span>
+                      </div>
+                      <div className={styles.profileStat}>
+                        <span className={styles.profileStatLabel}>Territories</span>
+                        <span className={styles.profileStatValue}>
+                          {currentProfile.territoryDecisions.length}
+                        </span>
+                      </div>
+                      <div className={styles.profileStat}>
+                        <span className={styles.profileStatLabel}>Blocked</span>
+                        <span className={styles.profileStatValue}>
+                          {
+                            currentProfile.territoryDecisions.filter(
+                              (t) => t.finalStatus === 'BLOCKED' || t.accessPolicy === 'BLOCK'
+                            ).length
+                          }
+                        </span>
+                      </div>
+                      <div className={styles.profileStat}>
+                        <span className={styles.profileStatLabel}>Components</span>
+                        <span className={styles.profileStatValue}>
+                          {currentProfile.components.length}
+                        </span>
+                      </div>
+                      <div className={styles.profileStat}>
+                        <span className={styles.profileStatLabel}>Actions</span>
+                        <span className={styles.profileStatValue}>
+                          {currentProfile.actions.length}
+                        </span>
+                      </div>
+                      <div className={styles.profileStat}>
+                        <span className={styles.profileStatLabel}>Blocking</span>
+                        <span className={styles.profileStatValue}>
+                          {currentProfile.actions.filter((a) => a.isBlocking).length}
+                        </span>
+                      </div>
+                      <div className={styles.profileStat}>
+                        <span className={styles.profileStatLabel}>Evidence</span>
+                        <span className={styles.profileStatValue}>
+                          {currentProfile.evidence.length}
+                        </span>
+                      </div>
+                    </div>
+
+                    <details className={styles.profileDetailSection}>
+                      <summary>
+                        Territory Decisions ({currentProfile.territoryDecisions.length})
+                      </summary>
+                      {currentProfile.territoryDecisions.length > 0 ? (
+                        <table className={styles.profileTable}>
+                          <thead>
+                            <tr>
+                              <th>Country</th>
+                              <th>Status</th>
+                              <th>Access</th>
+                              <th>Geo Block</th>
+                              <th>Confidence</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {currentProfile.territoryDecisions.map((td) => (
+                              <tr key={td.id}>
+                                <td>{td.countryCode}</td>
+                                <td>{td.finalStatus}</td>
+                                <td>{td.accessPolicy}</td>
+                                <td>{td.geoBlockRequired ? 'Yes' : 'No'}</td>
+                                <td>{td.confidence}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <p className={styles.profileEmpty}>No territory decisions.</p>
+                      )}
+                    </details>
+
+                    <details className={styles.profileDetailSection}>
+                      <summary>Components ({currentProfile.components.length})</summary>
+                      {currentProfile.components.length > 0 ? (
+                        <table className={styles.profileTable}>
+                          <thead>
+                            <tr>
+                              <th>Type</th>
+                              <th>Title</th>
+                              <th>Status</th>
+                              <th>Action</th>
+                              <th>Confidence</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {currentProfile.components.map((c) => (
+                              <tr key={c.id}>
+                                <td>{c.componentType}</td>
+                                <td>{c.titleRu}</td>
+                                <td>{c.status}</td>
+                                <td>{c.requiredAction}</td>
+                                <td>{c.confidence}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <p className={styles.profileEmpty}>No components.</p>
+                      )}
+                    </details>
+
+                    <details className={styles.profileDetailSection}>
+                      <summary>Required Actions ({currentProfile.actions.length})</summary>
+                      {currentProfile.actions.length > 0 ? (
+                        <table className={styles.profileTable}>
+                          <thead>
+                            <tr>
+                              <th>Type</th>
+                              <th>Status</th>
+                              <th>Blocking</th>
+                              <th>Description</th>
+                              <th>Countries</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {currentProfile.actions.map((a) => (
+                              <tr key={a.id}>
+                                <td>{a.actionType}</td>
+                                <td>{a.status}</td>
+                                <td>{a.isBlocking ? 'Yes' : 'No'}</td>
+                                <td>{a.descriptionRu}</td>
+                                <td>
+                                  {Array.isArray(a.affectedCountryCodes)
+                                    ? (a.affectedCountryCodes as string[]).join(', ')
+                                    : '-'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <p className={styles.profileEmpty}>No required actions.</p>
+                      )}
+                    </details>
+
+                    <details className={styles.profileDetailSection}>
+                      <summary>Evidence ({currentProfile.evidence.length})</summary>
+                      {currentProfile.evidence.length > 0 ? (
+                        <div className={styles.evidenceList}>
+                          {currentProfile.evidence.map((e) => (
+                            <div key={e.id} className={styles.evidenceItem}>
+                              <div className={styles.evidenceHeader}>
+                                <span className={styles.evidenceType}>{e.evidenceType}</span>
+                                <span className={styles.evidenceSource}>{e.sourceLevel}</span>
+                              </div>
+                              <p className={styles.evidenceTitle}>{e.title}</p>
+                              <p className={styles.evidenceAuthority}>{e.authority}</p>
+                              {e.url && (
+                                <a
+                                  href={e.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={styles.evidenceUrl}
+                                >
+                                  {e.url}
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className={styles.profileEmpty}>No evidence.</p>
+                      )}
+                    </details>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className={styles.sectionHint}>
+                Rights profile will be available after a validated review import is materialized.
+              </p>
             )}
           </div>
 
