@@ -28,10 +28,13 @@ import {
   useCurrentRightsProfile,
 } from '@/api/hooks/useRightsIntakes';
 import { RightsIntakeForm } from '@/components/admin/rights-intakes/RightsIntakeForm/RightsIntakeForm';
+import { ApprovalHistory } from '@/components/admin/RightsIntakeDetail/ApprovalHistory/ApprovalHistory';
+import { ApprovalPanel } from '@/components/admin/RightsIntakeDetail/ApprovalPanel/ApprovalPanel';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   RightsAgentManifest,
   RightsReviewImportDetail,
+  RightsReviewStatus,
 } from '@/types/api-schema/rights-intake';
 import styles from './page.module.scss';
 
@@ -909,6 +912,18 @@ export default function RightsIntakeDetailPage() {
               </p>
             )}
           </div>
+
+          {currentProfile && currentProfile.reviews.length > 0 && (
+            <ApprovalPanel
+              intakeId={id}
+              reviewId={currentProfile.reviews[0].id}
+              reviewStatus={currentProfile.reviews[0].status as RightsReviewStatus}
+              onApproved={() => refetchProfile()}
+              onRejected={() => refetchProfile()}
+            />
+          )}
+
+          <ApprovalHistory intakeId={id} />
 
           <div className={styles.meta}>
             <span>Created: {new Date(intake.createdAt).toLocaleString()}</span>

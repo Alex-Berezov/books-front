@@ -133,6 +133,15 @@ export interface RightsAgentManifest {
   };
 }
 
+export type RightsReviewStatus =
+  | 'DRAFT'
+  | 'AGENT_COMPLETED'
+  | 'HUMAN_REVIEW_REQUIRED'
+  | 'HUMAN_APPROVED'
+  | 'HUMAN_REJECTED'
+  | 'SUPERSEDED'
+  | 'STALE';
+
 export type RightsReviewImportStatus = 'VALIDATED' | 'VALIDATION_FAILED' | 'SUPERSEDED';
 
 export interface ValidationIssue {
@@ -187,7 +196,14 @@ export interface ListRightsReviewImportsParams {
   status?: RightsReviewImportStatus;
 }
 
-export type RightsProfileStatus = 'IMPORTED' | 'SUPERSEDED' | 'ARCHIVED';
+export type RightsProfileStatus =
+  | 'IMPORTED'
+  | 'HUMAN_REVIEW_REQUIRED'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'SUPERSEDED'
+  | 'STALE'
+  | 'ARCHIVED';
 export type RightsOverallStatus =
   | 'PUBLISHABLE'
   | 'PUBLISHABLE_AFTER_CHANGES'
@@ -348,4 +364,31 @@ export interface RightsProfileDetail {
 export interface RightsProfileList {
   items: RightsProfileSummary[];
   total: number;
+}
+
+export interface RightsApprovalDecision {
+  id: string;
+  rightsReviewId: string;
+  rightsProfileId: string;
+  rightsIntakeId: string;
+  decision: 'APPROVED' | 'REJECTED';
+  decidedByUser: {
+    id: string;
+    name?: string;
+    email: string;
+  } | null;
+  notesRu?: string;
+  createdAt: string;
+}
+
+export interface RightsReviewApprovalFields {
+  approvedByUserId?: string;
+  approvedByUser?: { id: string; name?: string; email: string } | null;
+  approvedAt?: string;
+  approvalNotesRu?: string;
+  rejectedByUserId?: string;
+  rejectedByUser?: { id: string; name?: string; email: string } | null;
+  rejectedAt?: string;
+  rejectionReasonRu?: string;
+  approvals?: RightsApprovalDecision[];
 }

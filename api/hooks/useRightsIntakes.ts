@@ -18,6 +18,9 @@ import {
   materializeRightsReviewImport,
   getRightsProfileByIntake,
   getRightsProfile,
+  approveRightsReview,
+  rejectRightsReview,
+  getRightsIntakeApprovals,
 } from '@/api/endpoints/admin/rights-intakes';
 import type {
   RightsIntake,
@@ -32,6 +35,7 @@ import type {
   CreateRightsReviewImportRequest,
   ListRightsReviewImportsParams,
   RightsProfileDetail,
+  RightsApprovalDecision,
 } from '@/types/api-schema/rights-intake';
 
 export const rightsIntakeKeys = {
@@ -230,6 +234,70 @@ export const useCreateRightsReviewImport = (
         context
       );
     },
+    ...options,
+  });
+};
+
+export const useApproveRightsReview = (
+  options?: UseMutationOptions<
+    RightsProfileDetail,
+    Error,
+    { intakeId: string; reviewId: string; data: { notesRu?: string } }
+  >
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    RightsProfileDetail,
+    Error,
+    { intakeId: string; reviewId: string; data: { notesRu?: string } }
+  >({
+    mutationFn: ({ intakeId, reviewId, data }) => approveRightsReview(intakeId, reviewId, data),
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+    ...options,
+  });
+};
+
+export const useRejectRightsReview = (
+  options?: UseMutationOptions<
+    RightsProfileDetail,
+    Error,
+    { intakeId: string; reviewId: string; data: { reasonRu: string } }
+  >
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    RightsProfileDetail,
+    Error,
+    { intakeId: string; reviewId: string; data: { reasonRu: string } }
+  >({
+    mutationFn: ({ intakeId, reviewId, data }) => rejectRightsReview(intakeId, reviewId, data),
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+    ...options,
+  });
+};
+
+export const useRightsIntakeApprovals = (
+  intakeId: string,
+  options?: Omit<UseQueryOptions<RightsApprovalDecision[], Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<RightsApprovalDecision[], Error>({
+    queryKey: [...rightsIntakeKeys.all, 'approvals', intakeId],
+    queryFn: () => getRightsIntakeApprovals(intakeId),
+    enabled: !!intakeId,
     ...options,
   });
 };

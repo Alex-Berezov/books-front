@@ -1,0 +1,58 @@
+@import '@/styles/tokens.scss';
+
+.card {
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.cardTitle {
+  margin: 0 0 $spacing-md !important;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  padding-bottom: $spacing-sm;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.timeline {
+  padding: 0;
+}
+
+.timelineItem {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.timelineHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.timelineDate {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.timelineUser {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.timelineNotes {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  white-space: pre-wrap;
+}
+
+.approvedIcon {
+  color: $color-success;
+  font-size: $icon-size-md;
+}
+
+.rejectedIcon {
+  color: $color-error;
+  font-size: $icon-size-md;
+}

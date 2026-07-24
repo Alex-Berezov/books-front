@@ -13,6 +13,7 @@ import type {
   ListRightsReviewImportsParams,
   RightsProfileDetail,
   RightsProfileList,
+  RightsApprovalDecision,
 } from '@/types/api-schema/rights-intake';
 
 export const getRightsIntakes = async (
@@ -121,5 +122,32 @@ export const getRightsProfileByIntake = (
 
 export const getRightsProfile = (profileId: string): Promise<RightsProfileDetail> =>
   httpGetAuth<RightsProfileDetail>(`/admin/rights/profiles/${profileId}`, {
+    requireAuth: true,
+  });
+
+export const approveRightsReview = (
+  intakeId: string,
+  reviewId: string,
+  data: { notesRu?: string }
+): Promise<RightsProfileDetail> =>
+  httpPostAuth<RightsProfileDetail>(
+    `/admin/rights/intakes/${intakeId}/reviews/${reviewId}/approve`,
+    data,
+    { requireAuth: true }
+  );
+
+export const rejectRightsReview = (
+  intakeId: string,
+  reviewId: string,
+  data: { reasonRu: string }
+): Promise<RightsProfileDetail> =>
+  httpPostAuth<RightsProfileDetail>(
+    `/admin/rights/intakes/${intakeId}/reviews/${reviewId}/reject`,
+    data,
+    { requireAuth: true }
+  );
+
+export const getRightsIntakeApprovals = (intakeId: string): Promise<RightsApprovalDecision[]> =>
+  httpGetAuth<RightsApprovalDecision[]>(`/admin/rights/intakes/${intakeId}/approvals`, {
     requireAuth: true,
   });
