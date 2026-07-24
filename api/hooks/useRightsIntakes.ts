@@ -21,6 +21,7 @@ import {
   approveRightsReview,
   rejectRightsReview,
   getRightsIntakeApprovals,
+  createBookFromClearance,
 } from '@/api/endpoints/admin/rights-intakes';
 import type {
   RightsIntake,
@@ -36,6 +37,8 @@ import type {
   ListRightsReviewImportsParams,
   RightsProfileDetail,
   RightsApprovalDecision,
+  CreateBookFromClearanceRequest,
+  CreateBookFromClearanceResponse,
 } from '@/types/api-schema/rights-intake';
 
 export const rightsIntakeKeys = {
@@ -298,6 +301,32 @@ export const useRightsIntakeApprovals = (
     queryKey: [...rightsIntakeKeys.all, 'approvals', intakeId],
     queryFn: () => getRightsIntakeApprovals(intakeId),
     enabled: !!intakeId,
+    ...options,
+  });
+};
+
+export const useCreateBookFromClearance = (
+  options?: UseMutationOptions<
+    CreateBookFromClearanceResponse,
+    Error,
+    { intakeId: string; data: CreateBookFromClearanceRequest }
+  >
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    CreateBookFromClearanceResponse,
+    Error,
+    { intakeId: string; data: CreateBookFromClearanceRequest }
+  >({
+    mutationFn: ({ intakeId, data }) => createBookFromClearance(intakeId, data),
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
     ...options,
   });
 };

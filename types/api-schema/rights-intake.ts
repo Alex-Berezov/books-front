@@ -400,3 +400,54 @@ export interface RightsReviewApprovalFields {
   rejectionReasonRu?: string;
   approvals?: RightsApprovalDecision[];
 }
+
+// Phase 6: Create Book from Approved Clearance
+export interface CreateBookFromClearanceVersion {
+  language: string;
+  title: string;
+  author: string;
+  description: string;
+  coverImageUrl: string;
+  type: string;
+  isFree: boolean;
+  referralUrl?: string | null;
+  primaryCategoryId?: string | null;
+  firstPublishedYear?: number | null;
+  editionPublishedYear?: number | null;
+  originalLanguage?: string | null;
+  originalTitle?: string | null;
+  copyrightStatus?: string | null;
+  authorPageUrl?: string | null;
+  authorId?: string | null;
+  shortDescription?: string | null;
+  summaryShort?: string | null;
+  coverAlt?: string | null;
+}
+
+export interface CreateBookFromClearanceRequest {
+  slug: string;
+  versions: CreateBookFromClearanceVersion[];
+}
+
+export interface CreateBookFromClearanceResponse {
+  book: {
+    id: string;
+    slug: string;
+    rightsIntakeId: string | null;
+    currentRightsProfileId: string | null;
+    approvedRightsReviewId: string | null;
+    rightsCreatedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+  };
+  versions: Array<{
+    id: string;
+    bookId: string;
+    language: string;
+    title: string;
+    status: string;
+    rightsStatus: string | null;
+  }>;
+  rightsProfileId: string;
+  approvedRightsReviewId: string;
+}

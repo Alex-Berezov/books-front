@@ -14,6 +14,8 @@ import type {
   RightsProfileDetail,
   RightsProfileList,
   RightsApprovalDecision,
+  CreateBookFromClearanceRequest,
+  CreateBookFromClearanceResponse,
 } from '@/types/api-schema/rights-intake';
 
 export const getRightsIntakes = async (
@@ -151,3 +153,13 @@ export const getRightsIntakeApprovals = (intakeId: string): Promise<RightsApprov
   httpGetAuth<RightsApprovalDecision[]>(`/admin/rights/intakes/${intakeId}/approvals`, {
     requireAuth: true,
   });
+
+export const createBookFromClearance = (
+  intakeId: string,
+  data: CreateBookFromClearanceRequest
+): Promise<CreateBookFromClearanceResponse> =>
+  httpPostAuth<CreateBookFromClearanceResponse>(
+    `/admin/rights/intakes/${intakeId}/create-book`,
+    data,
+    { requireAuth: true }
+  );

@@ -1,0 +1,137 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  margin-bottom: $spacing-lg;
+}
+
+.card {
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+}
+
+.cardTitle {
+  margin: 0 0 $spacing-md !important;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  padding-bottom: $spacing-sm;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.fieldLabel {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.required {
+  color: $color-error;
+  margin-left: $spacing-xs;
+}
+
+.slugHint {
+  font-size: $font-size-xs;
+}
+
+.optionalFieldsSpace {
+  width: 100%;
+  margin-top: $spacing-sm;
+}
+
+.sectionDivider {
+  margin: $spacing-sm 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  padding-bottom: $spacing-xs;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.rightsSummary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: $spacing-sm;
+}
+
+.summaryItem {
+  background: $color-background-tertiary;
+  border-radius: $border-radius-base;
+  padding: $spacing-sm $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summaryLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.summaryValue {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: $spacing-sm;
+}
+
+.bookCreatedContainer {
+  margin-bottom: $spacing-lg;
+}
+
+.bookCreatedCard {
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+}
+
+.bookCreatedContent {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.bookCreatedLink {
+  font-size: $font-size-sm;
+}
+
+.redirectContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-xl;
+  text-align: center;
+}
+
+.redirectText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}

@@ -1,66 +1,46 @@
 /**
  * Modal for creating a new book
  *
- * Allows admin to enter book title and author,
- * automatically generates slug and validates its uniqueness.
+ * Books are now created from approved rights intakes.
+ * This modal redirects to the rights intakes creation page.
  */
 
 'use client';
 
 import type { FC } from 'react';
+import { useRouter } from 'next/navigation';
 import { Modal } from '@/components/common/Modal';
 import type { CreateBookModalProps } from './CreateBookModal.types';
-import { CreateBookForm } from './CreateBookForm';
-import { useCreateBookModal } from './useCreateBookModal';
+import styles from './CreateBookModal.module.scss';
 
-/**
- * Modal component for creating new book
- *
- * Features:
- * - Title and author input fields
- * - Automatic slug generation from title
- * - Slug uniqueness validation
- * - Loading states and error handling
- */
 export const CreateBookModal: FC<CreateBookModalProps> = (props) => {
-  const { isOpen } = props;
-  const {
-    formData,
-    errors,
-    generatedSlug,
-    finalSlug,
-    slugError,
-    isValidatingSlug,
-    isPending,
-    canSubmit,
-    handleInputChange,
-    handleSubmit,
-    handleConfirm,
-    handleClose,
-  } = useCreateBookModal(props);
+  const { isOpen, onClose, lang } = props;
+  const router = useRouter();
+
+  const handleStartRightsIntake = () => {
+    onClose();
+    router.push(`/admin/${lang}/rights-intakes/new`);
+  };
+
+  const handleConfirm = () => {
+    handleStartRightsIntake();
+  };
 
   return (
     <Modal
-      confirmText={isPending ? 'Creating...' : 'Create Book'}
+      confirmText="Start Rights Intake"
       confirmVariant="primary"
-      isLoading={isPending}
-      isConfirmDisabled={!canSubmit}
       isOpen={isOpen}
       title="Create New Book"
-      onCancel={handleClose}
+      onCancel={onClose}
       onConfirm={handleConfirm}
     >
-      <CreateBookForm
-        errors={errors}
-        finalSlug={finalSlug}
-        formData={formData}
-        generatedSlug={generatedSlug}
-        isPending={isPending}
-        isValidatingSlug={isValidatingSlug}
-        slugError={slugError}
-        onInputChange={handleInputChange}
-        onSubmit={handleSubmit}
-      />
+      <div className={styles.redirectContainer}>
+        <p className={styles.redirectText}>
+          Books are created from approved rights intakes. Start a new rights intake to begin the
+          process of clearing rights and creating a book.
+        </p>
+      </div>
     </Modal>
   );
 };

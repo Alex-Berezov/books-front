@@ -13,6 +13,7 @@ import {
   FileUp,
   X,
   Download,
+  CheckCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -31,11 +32,13 @@ import { RightsIntakeForm } from '@/components/admin/rights-intakes/RightsIntake
 import { ApprovalHistory } from '@/components/admin/RightsIntakeDetail/ApprovalHistory/ApprovalHistory';
 import { ApprovalPanel } from '@/components/admin/RightsIntakeDetail/ApprovalPanel/ApprovalPanel';
 import { ApprovalState } from '@/components/admin/RightsIntakeDetail/ApprovalState/ApprovalState';
+import { CreateBookFromClearanceForm } from '@/components/admin/RightsIntakeDetail/CreateBookFromClearanceForm/CreateBookFromClearanceForm';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   RightsAgentManifest,
   RightsReviewImportDetail,
   RightsReviewStatus,
+  CreateBookFromClearanceResponse,
 } from '@/types/api-schema/rights-intake';
 import styles from './page.module.scss';
 
@@ -57,6 +60,8 @@ export default function RightsIntakeDetailPage() {
   const [manifestData, setManifestData] = useState<RightsAgentManifest | null>(null);
   const [manifestError, setManifestError] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const [bookCreatedResponse, setBookCreatedResponse] =
+    useState<CreateBookFromClearanceResponse | null>(null);
 
   const [reviewJsonText, setReviewJsonText] = useState('');
   const [reviewSourceFileName, setReviewSourceFileName] = useState('');
@@ -930,6 +935,63 @@ export default function RightsIntakeDetailPage() {
           )}
 
           <ApprovalHistory intakeId={id} />
+
+          {intake.workflowStatus === 'BOOK_CREATED' && intake.createdBookId && (
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Book Created</h2>
+              <div className={styles.bookCreatedSection}>
+                <CheckCircle size={24} className={styles.bookCreatedIcon} />
+                <div>
+                  <p className={styles.bookCreatedText}>
+                    Book has been created from this approved clearance.
+                  </p>
+                  <Link
+                    href={`/admin/${lang}/books/${intake.createdBookId}`}
+                    className={styles.bookCreatedLink}
+                  >
+                    View Book →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {intake.workflowStatus === 'APPROVED' &&
+            !intake.createdBookId &&
+            currentProfile?.status === 'APPROVED' &&
+            currentProfile.reviews.some(
+              (review) =>
+                review.id === intake.approvedReviewId && review.status === 'HUMAN_APPROVED'
+            ) && (
+              <CreateBookFromClearanceForm
+                intakeId={id}
+                intake={intake}
+                currentProfile={currentProfile}
+                onSuccess={(response) => {
+                  setBookCreatedResponse(response);
+                }}
+              />
+            )}
+
+          {bookCreatedResponse && (
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Book Created Successfully</h2>
+              <div className={styles.bookCreatedSection}>
+                <CheckCircle size={24} className={styles.bookCreatedIcon} />
+                <div>
+                  <p className={styles.bookCreatedText}>
+                    Book &quot;{bookCreatedResponse.book.slug}&quot; has been created.
+                  </p>
+                  <Link
+                    href={`/admin/${lang}/books/${bookCreatedResponse.book.id}`}
+                    className={styles.bookCreatedLink}
+                  >
+                    View Book →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className={styles.meta}>
             <span>Created: {new Date(intake.createdAt).toLocaleString()}</span>

@@ -842,3 +842,31 @@
   margin-top: $spacing-xs;
   word-break: break-all;
 }
+
+.bookCreatedSection {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-md;
+}
+
+.bookCreatedIcon {
+  color: $color-success;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.bookCreatedText {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-xs;
+}
+
+.bookCreatedLink {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
