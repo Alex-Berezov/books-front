@@ -211,6 +211,7 @@ export interface SourceEdition {
   gutenbergStatus: string | null;
   status: string;
   notesRu: string | null;
+  editionRights: EditionRights | null;
   createdAt: string;
   updatedAt: string;
 }
