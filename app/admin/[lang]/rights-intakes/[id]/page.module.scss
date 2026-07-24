@@ -598,3 +598,96 @@
     margin-bottom: $spacing-md;
   }
 }
+
+.fileUploadLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  background: $color-background-tertiary;
+  border: 1px dashed $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  cursor: pointer;
+  transition: all $transition-fast;
+  color: $color-text-secondary;
+
+  &:hover {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+}
+
+.fileInput {
+  display: none;
+}
+
+.optionalSection {
+  margin-bottom: $spacing-md;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-sm $spacing-md;
+
+  &[open] {
+    padding-bottom: $spacing-md;
+  }
+}
+
+.optionalSummary {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  cursor: pointer;
+  padding: $spacing-xs 0;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  margin-top: $spacing-sm;
+  margin-bottom: $spacing-xs;
+}
+
+.reimportWarning {
+  background: #fef3c7;
+  color: #92400e;
+  font-size: $font-size-sm;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-base;
+  margin-bottom: $spacing-md;
+  border: 1px solid #fde68a;
+}
+
+.modalDetailCollapsible {
+  margin-top: $spacing-sm;
+  font-size: $font-size-sm;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-xs $spacing-sm;
+
+  &[open] {
+    padding-bottom: $spacing-sm;
+  }
+
+  summary {
+    cursor: pointer;
+    font-weight: $font-weight-medium;
+    color: $color-text-secondary;
+    padding: $spacing-xs 0;
+  }
+}
+
+.modalDetailPre {
+  margin: $spacing-xs 0 0;
+  padding: $spacing-sm;
+  background: $color-background-secondary;
+  border-radius: $border-radius-base;
+  font-size: $font-size-xs;
+  line-height: 1.5;
+  max-height: 200px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

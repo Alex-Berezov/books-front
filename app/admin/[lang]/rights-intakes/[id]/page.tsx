@@ -1,16 +1,28 @@
 'use client';
 
 import { useState, useCallback, type ReactNode } from 'react';
-import { ArrowLeft, Archive, Send, Undo, Pencil, Eye, Copy, FileDown, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Archive,
+  Send,
+  Undo,
+  Pencil,
+  Eye,
+  Copy,
+  FileDown,
+  FileUp,
+  X,
+  Download,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { getRightsReviewImport } from '@/api/endpoints/admin/rights-intakes';
 import {
   useRightsIntake,
   useChangeRightsIntakeStatus,
   useArchiveRightsIntake,
   useRightsAgentManifest,
   useRightsReviewImports,
-  useRightsReviewImport,
   useCreateRightsReviewImport,
 } from '@/api/hooks/useRightsIntakes';
 import { RightsIntakeForm } from '@/components/admin/rights-intakes/RightsIntakeForm/RightsIntakeForm';
@@ -42,11 +54,13 @@ export default function RightsIntakeDetailPage() {
 
   const [reviewJsonText, setReviewJsonText] = useState('');
   const [reviewSourceFileName, setReviewSourceFileName] = useState('');
+  const [reviewMarkdown, setReviewMarkdown] = useState('');
+  const [rawAgentOutput, setRawAgentOutput] = useState('');
   const [importResult, setImportResult] = useState<RightsReviewImportDetail | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
-  const [detailImportId, setDetailImportId] = useState<string | null>(null);
   const [detailImportData, setDetailImportData] = useState<RightsReviewImportDetail | null>(null);
+  const [importDetailCopyStatus, setImportDetailCopyStatus] = useState<string | null>(null);
 
   const { data: intake, isLoading, error } = useRightsIntake(id);
   const changeStatusMutation = useChangeRightsIntakeStatus();
@@ -54,9 +68,6 @@ export default function RightsIntakeDetailPage() {
   const manifestQuery = useRightsAgentManifest(id);
   const { data: reviewImportsData } = useRightsReviewImports(id, { limit: 20 });
   const createReviewImportMutation = useCreateRightsReviewImport(id);
-  const reviewImportDetailQuery = useRightsReviewImport(detailImportId ?? '', {
-    enabled: false,
-  });
 
   const editableStatuses = ['DRAFT', 'READY_FOR_AGENT'];
   const canEdit = intake && editableStatuses.includes(intake.workflowStatus);
@@ -149,31 +160,78 @@ export default function RightsIntakeDetailPage() {
       return;
     }
 
+    const sourceFileName = reviewSourceFileName.trim() || 'manual-paste.json';
+
     try {
       const result = await createReviewImportMutation.mutateAsync({
         reportJson: parsedJson,
-        sourceFileName: reviewSourceFileName || null,
+        reportMarkdown: reviewMarkdown.trim() || null,
+        rawAgentOutput: rawAgentOutput.trim() || null,
+        sourceFileName,
       });
       setImportResult(result);
       setReviewJsonText('');
       setReviewSourceFileName('');
+      setReviewMarkdown('');
+      setRawAgentOutput('');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to import review. Please try again.';
       setImportError(msg);
     }
   };
 
-  const handleViewImportDetail = async (importId: string) => {
-    setDetailImportId(importId);
+  const handleFormatJson = () => {
     try {
-      const result = await reviewImportDetailQuery.refetch();
-      if (result.data) {
-        setDetailImportData(result.data);
-        setDetailModalOpen(true);
-      }
+      const parsed = JSON.parse(reviewJsonText);
+      setReviewJsonText(JSON.stringify(parsed, null, 2));
+    } catch {
+      // ignore — invalid JSON
+    }
+  };
+
+  const handleJsonFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setReviewJsonText(event.target?.result as string);
+      if (!reviewSourceFileName) setReviewSourceFileName(file.name);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleViewImportDetail = async (importId: string) => {
+    try {
+      const data = await getRightsReviewImport(importId);
+      setDetailImportData(data);
+      setDetailModalOpen(true);
     } catch {
       setDetailImportData(null);
     }
+  };
+
+  const handleCopyImportJson = (json: unknown) => {
+    try {
+      navigator.clipboard.writeText(JSON.stringify(json, null, 2));
+      setImportDetailCopyStatus('Copied');
+      setTimeout(() => setImportDetailCopyStatus(null), 2000);
+    } catch {
+      setImportDetailCopyStatus('Clipboard not available');
+      setTimeout(() => setImportDetailCopyStatus(null), 4000);
+    }
+  };
+
+  const handleDownloadImportJson = (json: unknown, importId: string) => {
+    const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bibliaris-review-import-${importId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   if (isLoading) {
@@ -384,16 +442,45 @@ export default function RightsIntakeDetailPage() {
             <h2 className={styles.sectionTitle}>Review Import</h2>
             {canImportReview ? (
               <>
+                {intake?.workflowStatus === 'REVIEW_IMPORTED' && (
+                  <div className={styles.reimportWarning}>
+                    This intake already has a review import. Importing again will supersede the
+                    current one.
+                  </div>
+                )}
                 <p className={styles.sectionHint}>
-                  Paste the JSON review report from the external ChatGPT agent below.
+                  Paste the JSON review report from the external ChatGPT agent below, or upload a{' '}
+                  .json file.
                 </p>
+
+                <div className={styles.reviewImportRow}>
+                  <label className={styles.fileUploadLabel}>
+                    <FileUp size={16} />
+                    Upload .json
+                    <input
+                      type="file"
+                      accept=".json"
+                      className={styles.fileInput}
+                      onChange={handleJsonFileUpload}
+                    />
+                  </label>
+                  <button
+                    className={styles.actionBtnSecondary}
+                    onClick={handleFormatJson}
+                    disabled={reviewJsonText.trim() === ''}
+                  >
+                    Format JSON
+                  </button>
+                </div>
+
                 <textarea
                   className={styles.jsonTextarea}
-                  rows={12}
+                  rows={10}
                   placeholder='{"schemaVersion": "1.0", "intakeId": "...", ...}'
                   value={reviewJsonText}
                   onChange={(e) => setReviewJsonText(e.target.value)}
                 />
+
                 <div className={styles.reviewImportRow}>
                   <input
                     className={styles.textInput}
@@ -410,6 +497,29 @@ export default function RightsIntakeDetailPage() {
                     {createReviewImportMutation.isPending ? 'Importing...' : 'Import Review'}
                   </button>
                 </div>
+
+                <details className={styles.optionalSection}>
+                  <summary className={styles.optionalSummary}>
+                    Optional: Markdown report & raw agent output
+                  </summary>
+                  <label className={styles.fieldLabel}>Markdown Report</label>
+                  <textarea
+                    className={styles.jsonTextarea}
+                    rows={6}
+                    placeholder="Paste the markdown version of the report (optional)"
+                    value={reviewMarkdown}
+                    onChange={(e) => setReviewMarkdown(e.target.value)}
+                  />
+                  <label className={styles.fieldLabel}>Raw Agent Output</label>
+                  <textarea
+                    className={styles.jsonTextarea}
+                    rows={6}
+                    placeholder="Paste the raw agent output (optional)"
+                    value={rawAgentOutput}
+                    onChange={(e) => setRawAgentOutput(e.target.value)}
+                  />
+                </details>
+
                 {importError && <p className={styles.importErrorText}>{importError}</p>}
                 {importResult && (
                   <div className={styles.importResult}>
@@ -417,6 +527,24 @@ export default function RightsIntakeDetailPage() {
                       Import completed with status:{' '}
                       <ReviewImportStatusBadge status={importResult.importStatus} />
                     </p>
+                    <div className={styles.manifestActions}>
+                      <button
+                        className={styles.actionBtnSecondary}
+                        onClick={() => handleCopyImportJson(importResult.reportJson)}
+                      >
+                        <Copy size={14} />
+                        {importDetailCopyStatus || 'Copy JSON'}
+                      </button>
+                      <button
+                        className={styles.actionBtnSecondary}
+                        onClick={() =>
+                          handleDownloadImportJson(importResult.reportJson, importResult.id)
+                        }
+                      >
+                        <Download size={14} />
+                        Download JSON
+                      </button>
+                    </div>
                     {importResult.validationErrors && importResult.validationErrors.length > 0 && (
                       <div className={styles.validationList}>
                         <p className={styles.validationErrorsTitle}>Validation Errors:</p>
@@ -560,6 +688,51 @@ export default function RightsIntakeDetailPage() {
                 </span>
               </div>
 
+              <details className={styles.modalDetailCollapsible}>
+                <summary>Content Hashes</summary>
+                <div className={styles.modalDetailSection}>
+                  <span className={styles.detailLabel}>JSON Hash:</span>
+                  <span
+                    className={styles.detailValue}
+                    style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
+                  >
+                    {detailImportData.reportJsonSha256 || '-'}
+                  </span>
+                </div>
+                <div className={styles.modalDetailSection}>
+                  <span className={styles.detailLabel}>Markdown Hash:</span>
+                  <span
+                    className={styles.detailValue}
+                    style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
+                  >
+                    {detailImportData.reportMarkdownSha256 || '-'}
+                  </span>
+                </div>
+                <div className={styles.modalDetailSection}>
+                  <span className={styles.detailLabel}>Raw Output Hash:</span>
+                  <span
+                    className={styles.detailValue}
+                    style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
+                  >
+                    {detailImportData.rawAgentOutputSha256 || '-'}
+                  </span>
+                </div>
+              </details>
+
+              {detailImportData.reportMarkdown && (
+                <details className={styles.modalDetailCollapsible}>
+                  <summary>Markdown Report</summary>
+                  <pre className={styles.modalDetailPre}>{detailImportData.reportMarkdown}</pre>
+                </details>
+              )}
+
+              {detailImportData.rawAgentOutput && (
+                <details className={styles.modalDetailCollapsible}>
+                  <summary>Raw Agent Output</summary>
+                  <pre className={styles.modalDetailPre}>{detailImportData.rawAgentOutput}</pre>
+                </details>
+              )}
+
               {detailImportData.validationErrors &&
                 detailImportData.validationErrors.length > 0 && (
                   <div className={styles.validationList}>
@@ -585,6 +758,25 @@ export default function RightsIntakeDetailPage() {
                     ))}
                   </div>
                 )}
+
+              <div className={styles.manifestActions}>
+                <button
+                  className={styles.actionBtnSecondary}
+                  onClick={() => handleCopyImportJson(detailImportData.reportJson)}
+                >
+                  <Copy size={14} />
+                  {importDetailCopyStatus || 'Copy JSON'}
+                </button>
+                <button
+                  className={styles.actionBtnSecondary}
+                  onClick={() =>
+                    handleDownloadImportJson(detailImportData.reportJson, detailImportData.id)
+                  }
+                >
+                  <Download size={14} />
+                  Download JSON
+                </button>
+              </div>
 
               <pre className={styles.modalDetailJson}>
                 {JSON.stringify(detailImportData.reportJson, null, 2)}
