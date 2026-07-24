@@ -514,7 +514,7 @@ export default function RightsIntakeDetailPage() {
                     Optional: Markdown report & raw agent output
                   </summary>
                   <label className={styles.fieldLabel}>Markdown Report</label>
-                  <div className={styles.reviewImportRow} style={{ marginBottom: '8px' }}>
+                  <div className={styles.markdownUploadRow}>
                     <label className={styles.fileUploadLabel}>
                       <FileUp size={16} />
                       Upload .md

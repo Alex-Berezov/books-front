@@ -696,3 +696,10 @@
   font-family: 'Courier New', monospace;
   font-size: 0.75rem;
 }
+
+.markdownUploadRow {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
