@@ -9,10 +9,16 @@ import {
   useChangeRightsIntakeStatus,
   useArchiveRightsIntake,
   useRightsAgentManifest,
+  useRightsReviewImports,
+  useRightsReviewImport,
+  useCreateRightsReviewImport,
 } from '@/api/hooks/useRightsIntakes';
 import { RightsIntakeForm } from '@/components/admin/rights-intakes/RightsIntakeForm/RightsIntakeForm';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { RightsAgentManifest } from '@/types/api-schema/rights-intake';
+import type {
+  RightsAgentManifest,
+  RightsReviewImportDetail,
+} from '@/types/api-schema/rights-intake';
 import styles from './page.module.scss';
 
 const LANG_LABELS: Record<string, string> = {
@@ -34,10 +40,23 @@ export default function RightsIntakeDetailPage() {
   const [manifestError, setManifestError] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
 
+  const [reviewJsonText, setReviewJsonText] = useState('');
+  const [reviewSourceFileName, setReviewSourceFileName] = useState('');
+  const [importResult, setImportResult] = useState<RightsReviewImportDetail | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [detailImportId, setDetailImportId] = useState<string | null>(null);
+  const [detailImportData, setDetailImportData] = useState<RightsReviewImportDetail | null>(null);
+
   const { data: intake, isLoading, error } = useRightsIntake(id);
   const changeStatusMutation = useChangeRightsIntakeStatus();
   const archiveMutation = useArchiveRightsIntake();
   const manifestQuery = useRightsAgentManifest(id);
+  const { data: reviewImportsData } = useRightsReviewImports(id, { limit: 20 });
+  const createReviewImportMutation = useCreateRightsReviewImport(id);
+  const reviewImportDetailQuery = useRightsReviewImport(detailImportId ?? '', {
+    enabled: false,
+  });
 
   const editableStatuses = ['DRAFT', 'READY_FOR_AGENT'];
   const canEdit = intake && editableStatuses.includes(intake.workflowStatus);
@@ -45,6 +64,9 @@ export default function RightsIntakeDetailPage() {
   const canReturnToDraft = intake?.workflowStatus === 'READY_FOR_AGENT';
   const canArchive =
     intake?.workflowStatus === 'DRAFT' || intake?.workflowStatus === 'READY_FOR_AGENT';
+  const canImportReview =
+    intake?.workflowStatus === 'READY_FOR_AGENT' || intake?.workflowStatus === 'REVIEW_IMPORTED';
+  const reviewImports = reviewImportsData?.items ?? [];
 
   const handleMarkReady = async () => {
     if (!intake) return;
@@ -113,6 +135,45 @@ export default function RightsIntakeDetailPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleImportReview = async () => {
+    setImportResult(null);
+    setImportError(null);
+
+    let parsedJson: Record<string, unknown>;
+    try {
+      parsedJson = JSON.parse(reviewJsonText) as Record<string, unknown>;
+    } catch {
+      setImportError('Invalid JSON. Please check your input.');
+      return;
+    }
+
+    try {
+      const result = await createReviewImportMutation.mutateAsync({
+        reportJson: parsedJson,
+        sourceFileName: reviewSourceFileName || null,
+      });
+      setImportResult(result);
+      setReviewJsonText('');
+      setReviewSourceFileName('');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to import review. Please try again.';
+      setImportError(msg);
+    }
+  };
+
+  const handleViewImportDetail = async (importId: string) => {
+    setDetailImportId(importId);
+    try {
+      const result = await reviewImportDetailQuery.refetch();
+      if (result.data) {
+        setDetailImportData(result.data);
+        setDetailModalOpen(true);
+      }
+    } catch {
+      setDetailImportData(null);
+    }
   };
 
   if (isLoading) {
@@ -320,17 +381,127 @@ export default function RightsIntakeDetailPage() {
           </div>
 
           <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Next Phases</h2>
-            <div className={styles.nextPhases}>
-              <div className={styles.phasePlaceholder}>
-                <span className={styles.phaseIcon}>📥</span>
-                <span>Review import — not implemented yet</span>
+            <h2 className={styles.sectionTitle}>Review Import</h2>
+            {canImportReview ? (
+              <>
+                <p className={styles.sectionHint}>
+                  Paste the JSON review report from the external ChatGPT agent below.
+                </p>
+                <textarea
+                  className={styles.jsonTextarea}
+                  rows={12}
+                  placeholder='{"schemaVersion": "1.0", "intakeId": "...", ...}'
+                  value={reviewJsonText}
+                  onChange={(e) => setReviewJsonText(e.target.value)}
+                />
+                <div className={styles.reviewImportRow}>
+                  <input
+                    className={styles.textInput}
+                    type="text"
+                    placeholder="Source file name (optional)"
+                    value={reviewSourceFileName}
+                    onChange={(e) => setReviewSourceFileName(e.target.value)}
+                  />
+                  <button
+                    className={styles.actionBtnPrimary}
+                    onClick={handleImportReview}
+                    disabled={createReviewImportMutation.isPending || reviewJsonText.trim() === ''}
+                  >
+                    {createReviewImportMutation.isPending ? 'Importing...' : 'Import Review'}
+                  </button>
+                </div>
+                {importError && <p className={styles.importErrorText}>{importError}</p>}
+                {importResult && (
+                  <div className={styles.importResult}>
+                    <p className={styles.importResultTitle}>
+                      Import completed with status:{' '}
+                      <ReviewImportStatusBadge status={importResult.importStatus} />
+                    </p>
+                    {importResult.validationErrors && importResult.validationErrors.length > 0 && (
+                      <div className={styles.validationList}>
+                        <p className={styles.validationErrorsTitle}>Validation Errors:</p>
+                        {importResult.validationErrors.map((v, i) => (
+                          <div key={i} className={styles.validationItemError}>
+                            <span className={styles.validationPath}>{v.path}</span>
+                            <span className={styles.validationMessage}>{v.message}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {importResult.validationWarnings &&
+                      importResult.validationWarnings.length > 0 && (
+                        <div className={styles.validationList}>
+                          <p className={styles.validationWarningsTitle}>Validation Warnings:</p>
+                          {importResult.validationWarnings.map((v, i) => (
+                            <div key={i} className={styles.validationItemWarning}>
+                              <span className={styles.validationPath}>{v.path}</span>
+                              <span className={styles.validationMessage}>{v.message}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    {(!importResult.validationErrors ||
+                      importResult.validationErrors.length === 0) &&
+                      (!importResult.validationWarnings ||
+                        importResult.validationWarnings.length === 0) && (
+                        <p className={styles.importNoIssues}>No validation issues.</p>
+                      )}
+                  </div>
+                )}
+              </>
+            ) : intake?.workflowStatus === 'DRAFT' ? (
+              <p className={styles.sectionHint}>
+                Mark this intake as <strong>Ready For Agent</strong> before importing review
+                results.
+              </p>
+            ) : (
+              <p className={styles.sectionHint}>
+                Review import is not available for intakes in{' '}
+                <strong>{intake?.workflowStatus}</strong> status.
+              </p>
+            )}
+
+            {reviewImports.length > 0 && (
+              <div className={styles.importHistory}>
+                <h3 className={styles.importHistoryTitle}>Import History</h3>
+                <div className={styles.importHistoryList}>
+                  {reviewImports.map((item) => (
+                    <div
+                      key={item.id}
+                      className={styles.importHistoryItem}
+                      onClick={() => handleViewImportDetail(item.id)}
+                    >
+                      <div className={styles.importHistoryItemLeft}>
+                        <ReviewImportStatusBadge status={item.importStatus} />
+                        {item.isCurrent && <span className={styles.currentBadge}>Current</span>}
+                        <span className={styles.importHistoryDate}>
+                          {new Date(item.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className={styles.importHistoryItemRight}>
+                        <span className={styles.importIssueCount}>
+                          {item.validationErrorsCount > 0 && (
+                            <span className={styles.errorCount}>
+                              {item.validationErrorsCount} errors
+                            </span>
+                          )}
+                          {item.validationWarningsCount > 0 && (
+                            <span className={styles.warningCount}>
+                              {item.validationWarningsCount} warnings
+                            </span>
+                          )}
+                          {item.validationErrorsCount === 0 &&
+                            item.validationWarningsCount === 0 && (
+                              <span className={styles.cleanLabel}>Clean</span>
+                            )}
+                        </span>
+                        <span className={styles.viewDetailArrow}>→</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className={styles.phasePlaceholder}>
-                <span className={styles.phaseIcon}>📚</span>
-                <span>Create book from approved clearance — not implemented yet</span>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className={styles.meta}>
@@ -353,6 +524,72 @@ export default function RightsIntakeDetailPage() {
               </button>
             </div>
             <pre className={styles.modalBody}>{JSON.stringify(manifestData, null, 2)}</pre>
+          </div>
+        </div>
+      )}
+
+      {detailModalOpen && detailImportData && (
+        <div className={styles.overlay} onClick={() => setDetailModalOpen(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>
+                Review Import Detail
+                <ReviewImportStatusBadge status={detailImportData.importStatus} />
+              </h3>
+              <button className={styles.modalClose} onClick={() => setDetailModalOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.modalDetailSection}>
+                <span className={styles.detailLabel}>ID:</span>
+                <span className={styles.detailValue}>{detailImportData.id}</span>
+              </div>
+              <div className={styles.modalDetailSection}>
+                <span className={styles.detailLabel}>Schema Version:</span>
+                <span className={styles.detailValue}>{detailImportData.schemaVersion || '-'}</span>
+              </div>
+              <div className={styles.modalDetailSection}>
+                <span className={styles.detailLabel}>Source File:</span>
+                <span className={styles.detailValue}>{detailImportData.sourceFileName || '-'}</span>
+              </div>
+              <div className={styles.modalDetailSection}>
+                <span className={styles.detailLabel}>Created:</span>
+                <span className={styles.detailValue}>
+                  {new Date(detailImportData.createdAt).toLocaleString()}
+                </span>
+              </div>
+
+              {detailImportData.validationErrors &&
+                detailImportData.validationErrors.length > 0 && (
+                  <div className={styles.validationList}>
+                    <p className={styles.validationErrorsTitle}>Validation Errors:</p>
+                    {detailImportData.validationErrors.map((v, i) => (
+                      <div key={i} className={styles.validationItemError}>
+                        <span className={styles.validationPath}>{v.path}</span>
+                        <span className={styles.validationMessage}>{v.message}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              {detailImportData.validationWarnings &&
+                detailImportData.validationWarnings.length > 0 && (
+                  <div className={styles.validationList}>
+                    <p className={styles.validationWarningsTitle}>Validation Warnings:</p>
+                    {detailImportData.validationWarnings.map((v, i) => (
+                      <div key={i} className={styles.validationItemWarning}>
+                        <span className={styles.validationPath}>{v.path}</span>
+                        <span className={styles.validationMessage}>{v.message}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              <pre className={styles.modalDetailJson}>
+                {JSON.stringify(detailImportData.reportJson, null, 2)}
+              </pre>
+            </div>
           </div>
         </div>
       )}
@@ -384,6 +621,14 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span className={styles.statusBadge} data-status={status}>
       {STATUS_LABELS[status] || status}
+    </span>
+  );
+}
+
+function ReviewImportStatusBadge({ status }: { status: string }) {
+  return (
+    <span className={styles.reviewImportBadge} data-status={status}>
+      {status}
     </span>
   );
 }

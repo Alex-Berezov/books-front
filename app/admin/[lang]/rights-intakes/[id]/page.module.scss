@@ -326,6 +326,254 @@
   font-size: 16px;
 }
 
+.sectionHint {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-md;
+}
+
+.jsonTextarea {
+  width: 100%;
+  padding: $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-family: 'Courier New', monospace;
+  font-size: $font-size-xs;
+  line-height: 1.5;
+  resize: vertical;
+  background: $color-background-tertiary;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+  }
+}
+
+.textInput {
+  flex: 1;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  background: $color-background-primary;
+  color: $color-text-primary;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+  }
+}
+
+.reviewImportRow {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: flex-start;
+  margin-bottom: $spacing-md;
+}
+
+.importErrorText {
+  font-size: $font-size-sm;
+  color: #dc2626;
+  margin: $spacing-sm 0 0;
+}
+
+.importResult {
+  margin-top: $spacing-md;
+  padding: $spacing-md;
+  background: $color-background-tertiary;
+  border-radius: $border-radius-base;
+  border: 1px solid $color-border-light;
+}
+
+.importResultTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  margin: 0 0 $spacing-sm;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.validationList {
+  margin-top: $spacing-sm;
+}
+
+.validationErrorsTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: #dc2626;
+  margin: 0 0 $spacing-xs;
+}
+
+.validationWarningsTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: #d97706;
+  margin: 0 0 $spacing-xs;
+}
+
+.validationItemError,
+.validationItemWarning {
+  display: flex;
+  gap: $spacing-sm;
+  padding: 2px 0;
+  font-size: $font-size-xs;
+}
+
+.validationItemError {
+  color: #dc2626;
+}
+
+.validationItemWarning {
+  color: #d97706;
+}
+
+.validationPath {
+  font-family: 'Courier New', monospace;
+  flex-shrink: 0;
+  min-width: 200px;
+}
+
+.validationMessage {
+  word-break: break-word;
+}
+
+.importNoIssues {
+  font-size: $font-size-sm;
+  color: #065f46;
+  margin: 0;
+}
+
+.importHistory {
+  margin-top: $spacing-lg;
+}
+
+.importHistoryTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  margin: 0 0 $spacing-sm;
+  color: $color-text-primary;
+}
+
+.importHistoryList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.importHistoryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-sm $spacing-md;
+  background: $color-background-tertiary;
+  border-radius: $border-radius-base;
+  cursor: pointer;
+  transition: all $transition-fast;
+  border: 1px solid transparent;
+
+  &:hover {
+    border-color: $color-primary;
+    background: $color-background-secondary;
+  }
+}
+
+.importHistoryItemLeft {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.importHistoryItemRight {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.importHistoryDate {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.currentBadge {
+  font-size: 10px;
+  font-weight: $font-weight-semibold;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.importIssueCount {
+  display: flex;
+  gap: $spacing-xs;
+  font-size: $font-size-xs;
+}
+
+.errorCount {
+  color: #dc2626;
+}
+
+.warningCount {
+  color: #d97706;
+}
+
+.cleanLabel {
+  color: #065f46;
+}
+
+.viewDetailArrow {
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.reviewImportBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+
+  &[data-status='VALIDATED'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &[data-status='VALIDATION_FAILED'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &[data-status='SUPERSEDED'] {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+}
+
+.modalDetailSection {
+  display: flex;
+  gap: $spacing-sm;
+  padding: $spacing-xs 0;
+  font-size: $font-size-sm;
+}
+
+.modalDetailJson {
+  margin-top: $spacing-md;
+  padding: $spacing-sm;
+  background: $color-background-secondary;
+  border-radius: $border-radius-base;
+  font-size: $font-size-xs;
+  line-height: 1.5;
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 .meta {
   display: flex;
   gap: $spacing-lg;

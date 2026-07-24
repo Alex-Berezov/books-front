@@ -7,6 +7,10 @@ import type {
   GetRightsIntakesParams,
   RightsIntakeStatus,
   RightsAgentManifest,
+  RightsReviewImportDetail,
+  RightsReviewImportsListResponse,
+  CreateRightsReviewImportRequest,
+  ListRightsReviewImportsParams,
 } from '@/types/api-schema/rights-intake';
 
 export const getRightsIntakes = async (
@@ -57,6 +61,38 @@ export const archiveRightsIntake = async (id: string): Promise<RightsIntake> => 
 
 export const getRightsAgentManifest = async (id: string): Promise<RightsAgentManifest> => {
   return httpGetAuth<RightsAgentManifest>(`/admin/rights/intakes/${id}/agent-manifest`, {
+    requireAuth: true,
+  });
+};
+
+export const createRightsReviewImport = async (
+  id: string,
+  data: CreateRightsReviewImportRequest
+): Promise<RightsReviewImportDetail> => {
+  return httpPostAuth<RightsReviewImportDetail>(
+    `/admin/rights/intakes/${id}/review-imports`,
+    data,
+    { requireAuth: true }
+  );
+};
+
+export const getRightsReviewImports = async (
+  intakeId: string,
+  params: ListRightsReviewImportsParams = {}
+): Promise<RightsReviewImportsListResponse> => {
+  const queryParams = new URLSearchParams();
+  if (params.page) queryParams.set('page', String(params.page));
+  if (params.limit) queryParams.set('limit', String(params.limit));
+  if (params.status) queryParams.set('status', params.status);
+
+  const endpoint = `/admin/rights/intakes/${intakeId}/review-imports?${queryParams.toString()}`;
+  return httpGetAuth<RightsReviewImportsListResponse>(endpoint, { requireAuth: true });
+};
+
+export const getRightsReviewImport = async (
+  importId: string
+): Promise<RightsReviewImportDetail> => {
+  return httpGetAuth<RightsReviewImportDetail>(`/admin/rights/review-imports/${importId}`, {
     requireAuth: true,
   });
 };

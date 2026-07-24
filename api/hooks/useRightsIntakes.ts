@@ -13,6 +13,9 @@ import {
   changeRightsIntakeStatus,
   archiveRightsIntake,
   getRightsAgentManifest,
+  createRightsReviewImport,
+  getRightsReviewImports,
+  getRightsReviewImport,
 } from '@/api/endpoints/admin/rights-intakes';
 import type {
   RightsIntake,
@@ -22,6 +25,10 @@ import type {
   RightsIntakeStatus,
   GetRightsIntakesParams,
   RightsAgentManifest,
+  RightsReviewImportDetail,
+  RightsReviewImportsListResponse,
+  CreateRightsReviewImportRequest,
+  ListRightsReviewImportsParams,
 } from '@/types/api-schema/rights-intake';
 
 export const rightsIntakeKeys = {
@@ -31,6 +38,12 @@ export const rightsIntakeKeys = {
   details: () => [...rightsIntakeKeys.all, 'detail'] as const,
   detail: (id: string) => [...rightsIntakeKeys.details(), id] as const,
   manifest: (id: string) => [...rightsIntakeKeys.all, 'manifest', id] as const,
+  reviewImports: (intakeId: string) =>
+    [...rightsIntakeKeys.all, 'review-imports', intakeId] as const,
+  reviewImportsList: (intakeId: string, params: ListRightsReviewImportsParams) =>
+    [...rightsIntakeKeys.reviewImports(intakeId), 'list', params] as const,
+  reviewImportDetail: (importId: string) =>
+    [...rightsIntakeKeys.all, 'review-import-detail', importId] as const,
 };
 
 export const useRightsIntakes = (
@@ -128,6 +141,50 @@ export const useArchiveRightsIntake = (
   const queryClient = useQueryClient();
   return useMutation<RightsIntake, Error, string>({
     mutationFn: archiveRightsIntake,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+    ...options,
+  });
+};
+
+export const useRightsReviewImports = (
+  intakeId: string,
+  params: ListRightsReviewImportsParams = {},
+  options?: Omit<UseQueryOptions<RightsReviewImportsListResponse, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<RightsReviewImportsListResponse, Error>({
+    queryKey: rightsIntakeKeys.reviewImportsList(intakeId, params),
+    queryFn: () => getRightsReviewImports(intakeId, params),
+    enabled: !!intakeId,
+    ...options,
+  });
+};
+
+export const useRightsReviewImport = (
+  importId: string,
+  options?: Omit<UseQueryOptions<RightsReviewImportDetail, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<RightsReviewImportDetail, Error>({
+    queryKey: rightsIntakeKeys.reviewImportDetail(importId),
+    queryFn: () => getRightsReviewImport(importId),
+    enabled: !!importId,
+    ...options,
+  });
+};
+
+export const useCreateRightsReviewImport = (
+  intakeId: string,
+  options?: UseMutationOptions<RightsReviewImportDetail, Error, CreateRightsReviewImportRequest>
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<RightsReviewImportDetail, Error, CreateRightsReviewImportRequest>({
+    mutationFn: (data) => createRightsReviewImport(intakeId, data),
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(

@@ -132,3 +132,57 @@ export interface RightsAgentManifest {
     notes: string[];
   };
 }
+
+export type RightsReviewImportStatus = 'VALIDATED' | 'VALIDATION_FAILED' | 'SUPERSEDED';
+
+export interface ValidationIssue {
+  path: string;
+  message: string;
+  code: string;
+}
+
+export interface RightsReviewImportListItem {
+  id: string;
+  rightsIntakeId: string;
+  schemaVersion: string | null;
+  importStatus: RightsReviewImportStatus;
+  isCurrent: boolean;
+  sourceFileName: string | null;
+  validationErrorsCount: number;
+  validationWarningsCount: number;
+  importedByUserId: string | null;
+  supersededAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RightsReviewImportDetail extends RightsReviewImportListItem {
+  reportJson: unknown;
+  reportMarkdown: string | null;
+  rawAgentOutput: string | null;
+  reportJsonSha256: string | null;
+  reportMarkdownSha256: string | null;
+  rawAgentOutputSha256: string | null;
+  validationErrors: ValidationIssue[] | null;
+  validationWarnings: ValidationIssue[] | null;
+}
+
+export interface RightsReviewImportsListResponse {
+  items: RightsReviewImportListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface CreateRightsReviewImportRequest {
+  reportJson: Record<string, unknown>;
+  reportMarkdown?: string | null;
+  rawAgentOutput?: string | null;
+  sourceFileName?: string | null;
+}
+
+export interface ListRightsReviewImportsParams {
+  page?: number;
+  limit?: number;
+  status?: RightsReviewImportStatus;
+}
