@@ -15,7 +15,6 @@ import {
   getRightsAgentManifest,
   createRightsReviewImport,
   getRightsReviewImports,
-  getRightsReviewImport,
 } from '@/api/endpoints/admin/rights-intakes';
 import type {
   RightsIntake,
@@ -42,8 +41,6 @@ export const rightsIntakeKeys = {
     [...rightsIntakeKeys.all, 'review-imports', intakeId] as const,
   reviewImportsList: (intakeId: string, params: ListRightsReviewImportsParams) =>
     [...rightsIntakeKeys.reviewImports(intakeId), 'list', params] as const,
-  reviewImportDetail: (importId: string) =>
-    [...rightsIntakeKeys.all, 'review-import-detail', importId] as const,
 };
 
 export const useRightsIntakes = (
@@ -162,18 +159,6 @@ export const useRightsReviewImports = (
     queryKey: rightsIntakeKeys.reviewImportsList(intakeId, params),
     queryFn: () => getRightsReviewImports(intakeId, params),
     enabled: !!intakeId,
-    ...options,
-  });
-};
-
-export const useRightsReviewImport = (
-  importId: string,
-  options?: Omit<UseQueryOptions<RightsReviewImportDetail, Error>, 'queryKey' | 'queryFn'>
-) => {
-  return useQuery<RightsReviewImportDetail, Error>({
-    queryKey: rightsIntakeKeys.reviewImportDetail(importId),
-    queryFn: () => getRightsReviewImport(importId),
-    enabled: !!importId,
     ...options,
   });
 };

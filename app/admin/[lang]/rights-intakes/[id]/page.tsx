@@ -201,6 +201,17 @@ export default function RightsIntakeDetailPage() {
     e.target.value = '';
   };
 
+  const handleMdFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setReviewMarkdown(event.target?.result as string);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   const handleViewImportDetail = async (importId: string) => {
     try {
       const data = await getRightsReviewImport(importId);
@@ -227,7 +238,7 @@ export default function RightsIntakeDetailPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bibliaris-review-import-${importId}.json`;
+    a.download = `bibliaris-rights-review-import-${importId}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -503,6 +514,18 @@ export default function RightsIntakeDetailPage() {
                     Optional: Markdown report & raw agent output
                   </summary>
                   <label className={styles.fieldLabel}>Markdown Report</label>
+                  <div className={styles.reviewImportRow} style={{ marginBottom: '8px' }}>
+                    <label className={styles.fileUploadLabel}>
+                      <FileUp size={16} />
+                      Upload .md
+                      <input
+                        type="file"
+                        accept=".md"
+                        className={styles.fileInput}
+                        onChange={handleMdFileUpload}
+                      />
+                    </label>
+                  </div>
                   <textarea
                     className={styles.jsonTextarea}
                     rows={6}
@@ -692,28 +715,19 @@ export default function RightsIntakeDetailPage() {
                 <summary>Content Hashes</summary>
                 <div className={styles.modalDetailSection}>
                   <span className={styles.detailLabel}>JSON Hash:</span>
-                  <span
-                    className={styles.detailValue}
-                    style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
-                  >
+                  <span className={`${styles.detailValue} ${styles.hashValue}`}>
                     {detailImportData.reportJsonSha256 || '-'}
                   </span>
                 </div>
                 <div className={styles.modalDetailSection}>
                   <span className={styles.detailLabel}>Markdown Hash:</span>
-                  <span
-                    className={styles.detailValue}
-                    style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
-                  >
+                  <span className={`${styles.detailValue} ${styles.hashValue}`}>
                     {detailImportData.reportMarkdownSha256 || '-'}
                   </span>
                 </div>
                 <div className={styles.modalDetailSection}>
                   <span className={styles.detailLabel}>Raw Output Hash:</span>
-                  <span
-                    className={styles.detailValue}
-                    style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
-                  >
+                  <span className={`${styles.detailValue} ${styles.hashValue}`}>
                     {detailImportData.rawAgentOutputSha256 || '-'}
                   </span>
                 </div>
