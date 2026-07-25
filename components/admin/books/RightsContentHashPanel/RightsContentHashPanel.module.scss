@@ -1,10 +1,11 @@
 @import '@/styles/tokens.scss';
 
 .panel {
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  border-radius: $border-radius-md;
+  background: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
   padding: $spacing-md;
+  box-shadow: $shadow-sm;
 }
 
 .header {
@@ -29,7 +30,7 @@
 }
 
 .iconError {
-  color: $color-danger;
+  color: $color-error;
 }
 
 .iconMissing {
@@ -44,7 +45,7 @@
   font-size: $font-size-xs;
   font-weight: 500;
   padding: $spacing-xs $spacing-sm;
-  border-radius: $border-radius-sm;
+  border-radius: $border-radius-base;
   margin-bottom: $spacing-sm;
 }
 
@@ -70,7 +71,7 @@
 
 .errorText {
   font-size: $font-size-xs;
-  color: $color-danger;
+  color: $color-error;
   margin-bottom: $spacing-sm;
 }
 
