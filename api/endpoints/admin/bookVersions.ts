@@ -15,6 +15,7 @@ import type {
 import type { SeoData, SeoInput } from '@/types/api-schema/pages';
 import type {
   PublicationGateResult,
+  RightsContentHashCheck,
   UpdateRightsGeoBlockRequest,
 } from '@/types/api-schema/rights-intake';
 
@@ -157,4 +158,33 @@ export const updateVersionRightsGeoBlock = async (
 export const upsertVersionSeo = async (versionId: string, data: SeoInput): Promise<SeoData> => {
   const endpoint = `/versions/${versionId}/seo`;
   return httpPutAuth<SeoData>(endpoint, data);
+};
+
+/**
+ * Get computed rights content hash for a version (read-only, no state change)
+ *
+ * @param versionId - Book version ID
+ * @returns Content hash check result
+ */
+export const getVersionRightsContentHash = async (
+  versionId: string
+): Promise<RightsContentHashCheck> => {
+  const endpoint = `/admin/versions/${versionId}/rights-content-hash`;
+  return httpGetAuth<RightsContentHashCheck>(endpoint);
+};
+
+/**
+ * Check rights content hash and mark stale if mismatch
+ *
+ * Computes the current content hash, compares with baseline.
+ * If there's a mismatch, marks the clearance as stale.
+ *
+ * @param versionId - Book version ID
+ * @returns Content hash check result
+ */
+export const checkVersionRightsContentHash = async (
+  versionId: string
+): Promise<RightsContentHashCheck> => {
+  const endpoint = `/admin/versions/${versionId}/rights-content-hash/check`;
+  return httpPostAuth<RightsContentHashCheck>(endpoint);
 };

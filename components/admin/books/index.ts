@@ -22,3 +22,5 @@ export { DeleteBookModal } from './DeleteBookModal';
 export type { DeleteBookModalProps } from './DeleteBookModal';
 export { BookVersionSwitcher } from './BookVersionSwitcher/BookVersionSwitcher';
 export { ImportModal } from './ImportModal';
+export { RightsContentHashPanel } from './RightsContentHashPanel';
+export type { RightsContentHashPanelProps } from './RightsContentHashPanel';

@@ -205,6 +205,14 @@ export interface BookVersionDetail {
   categories?: Category[];
   /** Attached tags */
   tags?: Tag[];
+  /** Phase 8: Rights content hash */
+  rightsContentHash?: string | null;
+  rightsContentHashAlgorithmVersion?: string | null;
+  rightsContentHashCalculatedAt?: string | null;
+  rightsRecheckRequired?: boolean;
+  rightsStaleDetectedAt?: string | null;
+  rightsStaleReasonCode?: string | null;
+  rightsStaleReasonRu?: string | null;
   createdAt: ISODate;
   updatedAt: ISODate;
 }

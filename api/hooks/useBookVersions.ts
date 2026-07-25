@@ -13,8 +13,10 @@ import {
   type UseQueryOptions,
 } from '@tanstack/react-query';
 import {
+  checkVersionRightsContentHash,
   createBookVersion,
   getBookVersion,
+  getVersionRightsContentHash,
   publishVersion,
   unpublishVersion,
   updateBookVersion,
@@ -31,6 +33,7 @@ import type {
 import type { SeoData, SeoInput } from '@/types/api-schema/pages';
 import type {
   PublicationGateResult,
+  RightsContentHashCheck,
   UpdateRightsGeoBlockRequest,
 } from '@/types/api-schema/rights-intake';
 import { bookKeys } from './useBooks';
@@ -329,6 +332,43 @@ export const useUpdateVersionRightsGeoBlock = (
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
+        context
+      );
+    },
+  });
+};
+
+// Phase 8: Content Hash
+export const useVersionRightsContentHash = (
+  versionId: string | undefined,
+  options?: Omit<UseQueryOptions<RightsContentHashCheck>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery({
+    queryKey: [...versionKeys.all, 'content-hash', versionId],
+    queryFn: () => getVersionRightsContentHash(versionId!),
+    enabled: Boolean(versionId),
+    retry: false,
+    ...options,
+  });
+};
+
+export const useCheckVersionRightsContentHash = (
+  options?: UseMutationOptions<RightsContentHashCheck, Error, string>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (versionId: string) => checkVersionRightsContentHash(versionId),
+    ...options,
+    onSuccess: (_data, versionId, context) => {
+      queryClient.invalidateQueries({ queryKey: versionKeys.detail(versionId) });
+      queryClient.invalidateQueries({
+        queryKey: [...versionKeys.all, 'publication-gate', versionId],
+      });
+      queryClient.invalidateQueries({ queryKey: [...versionKeys.all, 'content-hash', versionId] });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        _data,
+        versionId,
         context
       );
     },

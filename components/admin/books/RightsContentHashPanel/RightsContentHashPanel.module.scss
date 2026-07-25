@@ -1,0 +1,87 @@
+@import '@/styles/tokens.scss';
+
+.panel {
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-md;
+  padding: $spacing-md;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+}
+
+.title {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.icon {
+  color: $color-text-tertiary;
+}
+
+.iconOk {
+  color: $color-success;
+}
+
+.iconError {
+  color: $color-danger;
+}
+
+.iconMissing {
+  color: $color-text-tertiary;
+}
+
+.iconStale {
+  color: $color-warning;
+}
+
+.statusBadge {
+  font-size: $font-size-xs;
+  font-weight: 500;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.statusOk {
+  background: rgba($color-success, 0.1);
+  color: $color-success;
+}
+
+.statusMissing {
+  background: rgba($color-text-tertiary, 0.1);
+  color: $color-text-tertiary;
+}
+
+.statusStale {
+  background: rgba($color-warning, 0.1);
+  color: $color-warning;
+}
+
+.loadingText {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.errorText {
+  font-size: $font-size-xs;
+  color: $color-danger;
+  margin-bottom: $spacing-sm;
+}
+
+.reason {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+  line-height: 1.4;
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-xs;
+}

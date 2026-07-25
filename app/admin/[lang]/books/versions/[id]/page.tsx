@@ -11,6 +11,7 @@ import {
   ListenContentTab,
   PublishPanel,
   ReadContentTab,
+  RightsContentHashPanel,
   SummaryTab,
   TagsPanel,
   ImportModal,
@@ -176,6 +177,10 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
             status={version.status}
             versionId={versionId}
           />
+
+          <div className={styles.sidebarSpacer} />
+
+          <RightsContentHashPanel versionId={versionId} />
 
           <div className={styles.sidebarSpacer} />
 

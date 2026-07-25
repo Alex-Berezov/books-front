@@ -401,6 +401,20 @@ export interface RightsReviewApprovalFields {
   approvals?: RightsApprovalDecision[];
 }
 
+// Phase 8: Content Hash
+export interface RightsContentHashCheck {
+  versionId: string;
+  baselineHash: string | null;
+  currentHash: string;
+  algorithmVersion: string;
+  matchesBaseline: boolean;
+  isStale: boolean;
+  recheckRequired: boolean;
+  reasonCode: string | null;
+  reasonRu: string | null;
+  checkedAt: string;
+}
+
 // Phase 7: Publication Gate
 export type PublicationGateSeverity = 'BLOCKER' | 'WARNING';
 
@@ -422,6 +436,10 @@ export interface PublicationGateResult {
   rightsStatus: string | null;
   blockingReasons: PublicationGateReason[];
   warnings: PublicationGateReason[];
+  contentHashBaseline: string | null;
+  contentHashCurrent: string | null;
+  contentHashMatches: boolean | null;
+  rightsRecheckRequired: boolean;
 }
 
 export interface UpdateRightsGeoBlockRequest {
