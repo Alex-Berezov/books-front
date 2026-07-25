@@ -19,6 +19,8 @@ import {
   unpublishVersion,
   updateBookVersion,
   upsertVersionSeo,
+  getPublicationGate,
+  updateVersionRightsGeoBlock,
 } from '@/api/endpoints/admin/bookVersions';
 import type { ApiError } from '@/types/api';
 import type {
@@ -27,6 +29,10 @@ import type {
   UpdateBookVersionRequest,
 } from '@/types/api-schema';
 import type { SeoData, SeoInput } from '@/types/api-schema/pages';
+import type {
+  PublicationGateResult,
+  UpdateRightsGeoBlockRequest,
+} from '@/types/api-schema/rights-intake';
 import { bookKeys } from './useBooks';
 
 /**
@@ -283,6 +289,42 @@ export const useUpsertVersionSeo = (
     ...options,
     onSuccess: (data, variables, context) => {
       // Invalidate version details to refetch with updated SEO
+      queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+  });
+};
+
+export const usePublicationGate = (
+  versionId: string | undefined,
+  options?: Omit<UseQueryOptions<PublicationGateResult>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery({
+    queryKey: [...versionKeys.all, 'publication-gate', versionId],
+    queryFn: () => getPublicationGate(versionId!),
+    enabled: Boolean(versionId),
+    retry: false,
+    ...options,
+  });
+};
+
+export const useUpdateVersionRightsGeoBlock = (
+  options?: UseMutationOptions<
+    BookVersionDetail,
+    Error,
+    { versionId: string; data: UpdateRightsGeoBlockRequest }
+  >
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ versionId, data }) => updateVersionRightsGeoBlock(versionId, data),
+    ...options,
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,

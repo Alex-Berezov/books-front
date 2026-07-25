@@ -13,6 +13,10 @@ import type {
   UpdateBookVersionRequest,
 } from '@/types/api-schema';
 import type { SeoData, SeoInput } from '@/types/api-schema/pages';
+import type {
+  PublicationGateResult,
+  UpdateRightsGeoBlockRequest,
+} from '@/types/api-schema/rights-intake';
 
 /**
  * Get book version details by ID (admin endpoint)
@@ -137,6 +141,19 @@ export const unpublishVersion = async (versionId: string): Promise<BookVersionDe
  * });
  * ```
  */
+export const getPublicationGate = async (versionId: string): Promise<PublicationGateResult> => {
+  const endpoint = `/admin/versions/${versionId}/publication-gate`;
+  return httpGetAuth<PublicationGateResult>(endpoint);
+};
+
+export const updateVersionRightsGeoBlock = async (
+  versionId: string,
+  data: UpdateRightsGeoBlockRequest
+): Promise<BookVersionDetail> => {
+  const endpoint = `/admin/versions/${versionId}/rights-geo-block`;
+  return httpPatchAuth<BookVersionDetail>(endpoint, data);
+};
+
 export const upsertVersionSeo = async (versionId: string, data: SeoInput): Promise<SeoData> => {
   const endpoint = `/versions/${versionId}/seo`;
   return httpPutAuth<SeoData>(endpoint, data);

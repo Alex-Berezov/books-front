@@ -23,6 +23,8 @@ export {
   usePublishVersion,
   useUnpublishVersion,
   useUpsertVersionSeo,
+  usePublicationGate,
+  useUpdateVersionRightsGeoBlock,
 } from './useBookVersions';
 
 // Book Summaries

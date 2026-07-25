@@ -401,6 +401,34 @@ export interface RightsReviewApprovalFields {
   approvals?: RightsApprovalDecision[];
 }
 
+// Phase 7: Publication Gate
+export type PublicationGateSeverity = 'BLOCKER' | 'WARNING';
+
+export interface PublicationGateReason {
+  code: string;
+  severity: PublicationGateSeverity;
+  messageRu: string;
+  messageEn?: string;
+  details?: Record<string, unknown>;
+}
+
+export interface PublicationGateResult {
+  versionId: string;
+  bookId: string;
+  canPublish: boolean;
+  checkedAt: string;
+  rightsProfileId: string | null;
+  approvedRightsReviewId: string | null;
+  rightsStatus: string | null;
+  blockingReasons: PublicationGateReason[];
+  warnings: PublicationGateReason[];
+}
+
+export interface UpdateRightsGeoBlockRequest {
+  configured: boolean;
+  notesRu?: string | null;
+}
+
 // Phase 6: Create Book from Approved Clearance
 export interface CreateBookFromClearanceVersion {
   language: string;

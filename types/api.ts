@@ -19,6 +19,8 @@ export interface ApiErrorResponse {
     field: string;
     message: string;
   }>;
+  /** Raw response data for structured errors */
+  data?: Record<string, unknown>;
 }
 
 /**
@@ -28,6 +30,7 @@ export class ApiError extends Error {
   public readonly statusCode: number;
   public readonly error?: string;
   public readonly details?: ApiErrorResponse['details'];
+  public readonly data?: Record<string, unknown>;
 
   constructor(response: ApiErrorResponse) {
     super(response.message);
@@ -35,6 +38,7 @@ export class ApiError extends Error {
     this.statusCode = response.statusCode;
     this.error = response.error;
     this.details = response.details;
+    this.data = response.data;
 
     // Preserve correct stack trace
     if (Error.captureStackTrace) {

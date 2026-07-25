@@ -83,6 +83,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
       statusCode: response.status,
       error: errorData.error,
       details: errorData.details,
+      data: errorData,
     });
   }
 
