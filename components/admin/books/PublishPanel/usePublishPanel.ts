@@ -29,6 +29,7 @@ export const usePublishPanel = (props: PublishPanelProps) => {
   const {
     data: gateData,
     isLoading: isGateLoading,
+    isError: isGateError,
     refetch: refetchGate,
   } = usePublicationGate(status === 'draft' ? versionId : undefined, {
     enabled: status === 'draft',
@@ -80,7 +81,7 @@ export const usePublishPanel = (props: PublishPanelProps) => {
 
   const blockingReasons = gateData?.blockingReasons ?? gateError?.blockingReasons ?? [];
   const warnings = gateData?.warnings ?? gateError?.warnings ?? [];
-  const canPublish = gateData?.canPublish ?? true;
+  const canPublish = isPublished ? true : isGateError ? false : gateData?.canPublish === true;
 
   const hasGeoBlockIssue = blockingReasons.some(
     (r) => r.code === 'GEO_BLOCK_NOT_CONFIGURED' || r.code === 'BLOCKED_COUNTRIES_REQUIRE_GEO_BLOCK'
@@ -115,6 +116,7 @@ export const usePublishPanel = (props: PublishPanelProps) => {
     isArchived,
     isLoading: isLoading || isGateLoading,
     canPublish,
+    isGateError,
     blockingReasons,
     warnings,
     hasGeoBlockIssue,

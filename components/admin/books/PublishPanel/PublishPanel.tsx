@@ -19,6 +19,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
     isArchived,
     isLoading,
     canPublish,
+    isGateError,
     blockingReasons,
     warnings,
     hasGeoBlockIssue,
@@ -66,6 +67,18 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {isGateError && blockingReasons.length === 0 && !isPublished && (
+          <div className={styles.gateBlockedSection} role="alert">
+            <div className={styles.gateHeader}>
+              <ShieldAlert size={18} />
+              <span className={styles.gateTitle}>Failed to check publication gate</span>
+            </div>
+            <p className={styles.gateText}>
+              Unable to verify publication permissions. Publishing is disabled.
+            </p>
           </div>
         )}
 
