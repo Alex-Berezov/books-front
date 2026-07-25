@@ -52,13 +52,12 @@ export const getBooks = async (
 /**
  * Create a new book (container)
  *
+ * @deprecated Books must be created from an approved rights intake via
+ * POST /admin/rights/intakes/:id/create-book. This endpoint now returns 400.
+ * Use useCreateBookFromClearance() instead.
+ *
  * @param data - Data for creating the book
  * @returns Created book
- *
- * @example
- * ```ts
- * const book = await createBook({ slug: 'my-awesome-book' });
- * ```
  */
 export const createBook = async (data: CreateBookRequest): Promise<CreateBookResponse> => {
   const endpoint = '/books';

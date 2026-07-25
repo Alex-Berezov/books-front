@@ -1,11 +1,8 @@
 'use client';
 
-import { useState, type FC } from 'react';
+import { useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useSnackbar } from 'notistack';
-import { useCreateBook } from '@/api/hooks';
-import { Button } from '@/components/common/Button';
-import { Input } from '@/components/common/Input';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 interface CreateBookPageProps {
@@ -14,95 +11,27 @@ interface CreateBookPageProps {
   };
 }
 
-/**
- * New book creation page
- *
- * Displays form for creating book container (slug only)
- */
-const CreateBookPage: FC<CreateBookPageProps> = (props) => {
+const CreateBookPage = (props: CreateBookPageProps) => {
   const { params } = props;
   const { lang } = params;
-
   const router = useRouter();
-  const { enqueueSnackbar } = useSnackbar();
-  const [slug, setSlug] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const createBookMutation = useCreateBook();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!slug.trim()) {
-      enqueueSnackbar('Please enter a book slug', { variant: 'warning' });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const newBook = await createBookMutation.mutateAsync({
-        slug: slug
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9-]/g, '-'),
-      });
-
-      enqueueSnackbar('Book created successfully', { variant: 'success' });
-
-      // Redirect to create first book version
-      router.push(`/admin/${lang}/books/new?bookId=${newBook.id}`);
-    } catch (error) {
-      enqueueSnackbar('Failed to create book. Please try again.', { variant: 'error' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  useEffect(() => {
+    router.replace(`/admin/${lang}/rights-intakes/new`);
+  }, [lang, router]);
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold mb-6">Create New Book</h1>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
-              Book Slug *
-            </label>
-            <Input
-              type="text"
-              id="slug"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="e.g. harry-potter-philosophers-stone"
-              fullWidth
-              disabled={isSubmitting}
-            />
-            <p className="mt-2 text-sm text-gray-600">
-              Unique identifier for the book. Use lowercase letters, numbers, and hyphens only. This
-              will be used in URLs.
-            </p>
-          </div>
-
-          <div className="flex gap-4 pt-4">
-            <Button type="submit" disabled={!slug.trim()} loading={isSubmitting}>
-              Create Book
-            </Button>
-
-            <Button variant="secondary" onClick={() => router.back()} disabled={isSubmitting}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-
-        <div className="mt-6 p-4 bg-blue-50 rounded-md">
-          <h3 className="text-sm font-medium text-blue-900 mb-2">Next Steps</h3>
-          <p className="text-sm text-blue-700">
-            After creating the book container, you&apos;ll be able to add book versions (different
-            languages, formats, etc.) and manage categories and tags.
-          </p>
-        </div>
-      </div>
+    <div className="max-w-2xl mx-auto py-16 text-center">
+      <h1 className="text-2xl font-bold mb-4">Redirecting to Rights Intake Creation...</h1>
+      <p className="text-gray-600 mb-8">
+        Books are now created from approved rights intakes. You are being redirected.
+      </p>
+      <Link
+        href={`/admin/${lang}/rights-intakes/new`}
+        className="text-blue-600 hover:text-blue-800 underline"
+      >
+        Go to Rights Intake Creation
+      </Link>
     </div>
   );
 };

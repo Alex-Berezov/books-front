@@ -78,20 +78,11 @@ export const useBooks = (
 /**
  * Hook for creating a new book (container)
  *
+ * @deprecated Books must be created from an approved rights intake via
+ * POST /admin/rights/intakes/:id/create-book. Use useCreateBookFromClearance() instead.
+ *
  * @param options - React Query mutation options
  * @returns React Query mutation for creating book
- *
- * @example
- * ```tsx
- * const createBookMutation = useCreateBook();
- *
- * const handleCreateBook = async () => {
- *   const book = await createBookMutation.mutateAsync({
- *     slug: 'my-awesome-book'
- *   });
- *   console.log('Created book:', book);
- * };
- * ```
  */
 export const useCreateBook = (
   options?: Omit<UseMutationOptions<CreateBookResponse, Error, CreateBookRequest>, 'mutationFn'>
