@@ -59,8 +59,35 @@ interface VersionFormState {
   coverAlt: string;
 }
 
-const createInitialVersion = (intake: RightsIntake): VersionFormState => ({
-  language: intake.targetLanguages[0] || '',
+const createInitialVersions = (intake: RightsIntake): VersionFormState[] => {
+  const langs =
+    intake.targetLanguages && intake.targetLanguages.length > 0 ? intake.targetLanguages : ['en'];
+
+  return langs.map((lang) => ({
+    language: lang,
+    title: intake.candidateTitle,
+    author: intake.candidateAuthor,
+    description: '',
+    coverImageUrl: '',
+    type: 'text',
+    isFree: false,
+    referralUrl: '',
+    primaryCategoryId: '',
+    firstPublishedYear: '',
+    editionPublishedYear: '',
+    originalLanguage: intake.originalLanguage || '',
+    originalTitle: intake.originalTitle || '',
+    copyrightStatus: '',
+    authorPageUrl: '',
+    authorId: '',
+    shortDescription: '',
+    summaryShort: '',
+    coverAlt: '',
+  }));
+};
+
+const createSingleVersion = (intake: RightsIntake, defaultLang: string): VersionFormState => ({
+  language: defaultLang,
   title: intake.candidateTitle,
   author: intake.candidateAuthor,
   description: '',
@@ -87,7 +114,7 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
   const initialSlug = useMemo(() => generateSlug(intake.candidateTitle), [intake.candidateTitle]);
 
   const [slug, setSlug] = useState(initialSlug);
-  const [versions, setVersions] = useState<VersionFormState[]>([createInitialVersion(intake)]);
+  const [versions, setVersions] = useState<VersionFormState[]>(() => createInitialVersions(intake));
 
   const createBookMutation = useCreateBookFromClearance({
     onSuccess: (response) => {
@@ -120,16 +147,18 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
     const availableLanguage = intake.targetLanguages.find(
       (language) => !usedLanguages.has(language)
     );
-    const newVersion = createInitialVersion(intake);
-    if (availableLanguage) {
-      newVersion.language = availableLanguage;
-    }
+    const newVersion = createSingleVersion(intake, availableLanguage || '');
     setVersions((prev) => [...prev, newVersion]);
   };
 
   const handleRemoveVersion = (index: number) => {
     setVersions((prev) => prev.filter((_, versionIndex) => versionIndex !== index));
   };
+
+  const hasDuplicateLanguages = useMemo(() => {
+    const langs = versions.map((v) => v.language).filter(Boolean);
+    return new Set(langs).size !== langs.length;
+  }, [versions]);
 
   const rightsSummary = useMemo(() => {
     if (!currentProfile) {
@@ -192,7 +221,8 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
 
   const allVersionsValid = versions.length > 0 && versions.every(isVersionValid);
   const isSlugValid = slug.trim().length > 0;
-  const canSubmit = isSlugValid && allVersionsValid && !createBookMutation.isPending;
+  const canSubmit =
+    isSlugValid && allVersionsValid && !hasDuplicateLanguages && !createBookMutation.isPending;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -200,10 +230,16 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
     createBookMutation.mutate({ intakeId, data: request });
   };
 
-  const languageOptions = intake.targetLanguages.map((language) => ({
-    label: LANG_LABELS[language] || language.toUpperCase(),
-    value: language,
-  }));
+  const getLanguageOptions = (currentIndex: number) => {
+    const usedOtherLangs = new Set(
+      versions.filter((_, idx) => idx !== currentIndex).map((v) => v.language)
+    );
+    return intake.targetLanguages.map((language) => ({
+      label: LANG_LABELS[language] || language.toUpperCase(),
+      value: language,
+      disabled: usedOtherLangs.has(language),
+    }));
+  };
 
   return (
     <div className={styles.container}>
@@ -228,11 +264,16 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
             </Text>
           </div>
 
-          <div className={styles.sectionDivider}>Versions</div>
+          <div className={styles.sectionDivider}>
+            Versions (Target Languages: {intake.targetLanguages.join(', ')})
+          </div>
 
           {versions.map((version, index) => (
             <div key={index} className={styles.fieldGroup}>
-              <Text strong>Version {index + 1}</Text>
+              <Text strong>
+                Version {index + 1}:{' '}
+                {LANG_LABELS[version.language] || version.language.toUpperCase()}
+              </Text>
 
               <div className={styles.fieldRow}>
                 <div className={styles.field}>
@@ -242,7 +283,7 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                   <Select
                     value={version.language}
                     onChange={(value) => handleVersionFieldChange(index, 'language', value)}
-                    options={languageOptions}
+                    options={getLanguageOptions(index)}
                     placeholder="Select language"
                   />
                 </div>
@@ -478,7 +519,7 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
 
           {versions.length < intake.targetLanguages.length && (
             <Button type="dashed" onClick={handleAddVersion}>
-              Add Version
+              Add Another Version Language
             </Button>
           )}
 
@@ -513,11 +554,22 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
           {!isSlugValid && slug.length > 0 && (
             <Alert type="error" message="Slug is required" showIcon />
           )}
+          {hasDuplicateLanguages && (
+            <Alert
+              type="error"
+              message="Duplicate language selection. Each version row must have a unique target language."
+              showIcon
+            />
+          )}
           {versions.length === 0 && (
             <Alert type="warning" message="At least one version is required" showIcon />
           )}
           {versions.length > 0 && !allVersionsValid && (
-            <Alert type="warning" message="Fill all required version fields" showIcon />
+            <Alert
+              type="warning"
+              message="Fill all required version fields for each language row"
+              showIcon
+            />
           )}
 
           <div className={styles.actions}>

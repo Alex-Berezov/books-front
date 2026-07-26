@@ -135,20 +135,30 @@ export default function RightsIntakeDetailPage() {
             reviewImports={reviewImports}
           />
 
-          {currentProfile && currentProfile.reviews.length > 0 && (
-            <ApprovalPanel
-              intakeId={id}
-              reviewId={currentProfile.reviews[0].id}
-              reviewStatus={currentProfile.reviews[0].status as RightsReviewStatus}
-              currentProfile={currentProfile}
-              onApproved={() => refetchProfile()}
-              onRejected={() => refetchProfile()}
-            />
-          )}
+          {(() => {
+            const activeReview = currentProfile?.reviews.length
+              ? currentProfile.reviews.find((r) => r.status === 'HUMAN_REVIEW_REQUIRED') ||
+                currentProfile.reviews.find((r) => r.id === intake.approvedReviewId) ||
+                currentProfile.reviews[currentProfile.reviews.length - 1] ||
+                currentProfile.reviews[0]
+              : null;
 
-          {currentProfile && currentProfile.reviews.length > 0 && (
-            <ApprovalState review={currentProfile.reviews[0]} />
-          )}
+            if (!activeReview) return null;
+
+            return (
+              <>
+                <ApprovalPanel
+                  intakeId={id}
+                  reviewId={activeReview.id}
+                  reviewStatus={activeReview.status as RightsReviewStatus}
+                  currentProfile={currentProfile}
+                  onApproved={() => refetchProfile()}
+                  onRejected={() => refetchProfile()}
+                />
+                <ApprovalState review={activeReview} />
+              </>
+            );
+          })()}
 
           <ApprovalHistory intakeId={id} />
 
