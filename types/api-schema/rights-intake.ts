@@ -298,6 +298,24 @@ export interface RightsReview {
   updatedAt: string;
 }
 
+export interface ComponentTerritoryAssessment {
+  id: string;
+  rightsComponentId: string;
+  countryCode: string;
+  status: string;
+  accessPolicy: string;
+  geoBlockRequired: boolean;
+  reasonRu: string | null;
+  legalBasisRu: string | null;
+  publicDomainFromYear: number | null;
+  rightsExpireAt: string | null;
+  sourceEvidenceIds: string[] | null;
+  confidence: string | null;
+  notesRu: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface RightsComponent {
   id: string;
   rightsProfileId: string;
@@ -307,6 +325,7 @@ export interface RightsComponent {
   requiredAction: string;
   confidence: string;
   notesRu: string | null;
+  territoryAssessments: ComponentTerritoryAssessment[];
   createdAt: string;
   updatedAt: string;
 }

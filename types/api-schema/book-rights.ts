@@ -54,6 +54,10 @@ export interface BookRightsDashboardMetrics {
   unresolvedBlockingActionsCount: number;
   evidenceCount: number;
   componentsCount: number;
+  componentTerritoryAssessmentsCount: number;
+  blockedComponentTerritoryAssessmentsCount: number;
+  reviewRequiredComponentTerritoryAssessmentsCount: number;
+  expiringComponentTerritoryAssessmentsCount: number;
   reviewsCount: number;
   isStale: boolean;
   recheckRequired: boolean;

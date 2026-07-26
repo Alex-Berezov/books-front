@@ -102,6 +102,15 @@
   text-transform: uppercase;
 }
 
+.sourceMetadata {
+  @extend .textBlock;
+  margin-top: $spacing-sm;
+}
+
+.regionsPanel {
+  margin: $spacing-md 0;
+}
+
 .collapsible {
   margin-bottom: $spacing-md;
 

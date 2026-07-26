@@ -5,12 +5,13 @@ import {
   useMaterializeRightsReviewImport,
   useCurrentRightsProfile,
 } from '@/api/hooks/useRightsIntakes';
+import { ComponentTerritoryAssessmentsPanel } from '@/components/admin/RightsIntakeDetail/ComponentTerritoryAssessmentsPanel/ComponentTerritoryAssessmentsPanel';
+import { TerritoryRegionsPanel } from '@/components/admin/RightsIntakeDetail/TerritoryRegionsPanel/TerritoryRegionsPanel';
 import type {
   RightsProfileDetail,
   RightsReviewImportListItem,
 } from '@/types/api-schema/rights-intake';
 import styles from './RightsProfilePanel.module.scss';
-import { TerritoryRegionsPanel } from '../TerritoryRegionsPanel/TerritoryRegionsPanel';
 
 interface RightsProfilePanelProps {
   intakeId?: string;
@@ -19,12 +20,8 @@ interface RightsProfilePanelProps {
   profile?: RightsProfileDetail | null;
 }
 
-export const RightsProfilePanel: FC<RightsProfilePanelProps> = ({
-  intakeId,
-  workflowStatus = 'APPROVED',
-  reviewImports = [],
-  profile,
-}) => {
+export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
+  const { intakeId, workflowStatus = 'APPROVED', reviewImports = [], profile } = props;
   const {
     data: fetchedProfile,
     isLoading: profileLoading,
@@ -201,7 +198,7 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = ({
               {currentProfile.sourceEdition && (
                 <details className={styles.collapsible}>
                   <summary>Source Edition Metadata</summary>
-                  <div className={styles.textBlock} style={{ marginTop: 8 }}>
+                  <div className={styles.sourceMetadata}>
                     <p>Provider: {currentProfile.sourceEdition.provider}</p>
                     {currentProfile.sourceEdition.externalId && (
                       <p>External ID: {currentProfile.sourceEdition.externalId}</p>
@@ -227,7 +224,7 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = ({
 
               {currentProfile.regionalTerritorySummary &&
                 currentProfile.regionalTerritorySummary.length > 0 && (
-                  <div style={{ marginTop: 16, marginBottom: 16 }}>
+                  <div className={styles.regionsPanel}>
                     <TerritoryRegionsPanel regions={currentProfile.regionalTerritorySummary} />
                   </div>
                 )}
@@ -279,35 +276,7 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = ({
                 )}
               </details>
 
-              <details className={styles.collapsible}>
-                <summary>Components ({currentProfile.components.length})</summary>
-                {currentProfile.components.length > 0 ? (
-                  <table className={styles.profileTable}>
-                    <thead>
-                      <tr>
-                        <th>Type</th>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Required Action</th>
-                        <th>Confidence</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentProfile.components.map((c) => (
-                        <tr key={c.id}>
-                          <td>{c.componentType}</td>
-                          <td>{c.titleRu}</td>
-                          <td>{c.status}</td>
-                          <td>{c.requiredAction}</td>
-                          <td>{c.confidence}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className={styles.profileEmpty}>No components.</p>
-                )}
-              </details>
+              <ComponentTerritoryAssessmentsPanel components={currentProfile.components} />
 
               <details className={styles.collapsible} open>
                 <summary>Required Actions ({currentProfile.actions.length})</summary>

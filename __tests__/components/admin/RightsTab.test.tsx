@@ -262,6 +262,25 @@ const mockDashboard: BookRightsDashboard = {
         requiredAction: 'NONE',
         confidence: 'HIGH',
         notesRu: null,
+        territoryAssessments: [
+          {
+            id: 'assessment-gb',
+            rightsComponentId: 'c-1',
+            countryCode: 'GB',
+            status: 'BLOCKED',
+            accessPolicy: 'BLOCK',
+            geoBlockRequired: true,
+            reasonRu: 'Original text is restricted.',
+            legalBasisRu: 'UK term rule',
+            publicDomainFromYear: null,
+            rightsExpireAt: null,
+            sourceEvidenceIds: ['e-1'],
+            confidence: 'HIGH',
+            notesRu: null,
+            createdAt: '2026-07-26T10:00:00Z',
+            updatedAt: '2026-07-26T10:00:00Z',
+          },
+        ],
         createdAt: '2026-07-26T10:00:00Z',
         updatedAt: '2026-07-26T10:00:00Z',
       },
@@ -340,6 +359,10 @@ const mockDashboard: BookRightsDashboard = {
     unresolvedBlockingActionsCount: 0,
     evidenceCount: 1,
     componentsCount: 1,
+    componentTerritoryAssessmentsCount: 1,
+    blockedComponentTerritoryAssessmentsCount: 1,
+    reviewRequiredComponentTerritoryAssessmentsCount: 0,
+    expiringComponentTerritoryAssessmentsCount: 0,
     reviewsCount: 1,
     isStale: false,
     recheckRequired: false,
@@ -386,6 +409,8 @@ describe('RightsTab Components (Phase 10)', () => {
       // Active Rights Profile
       expect(screen.getByText('Rights Profile')).toBeInTheDocument();
       expect(screen.getByText('Regions & Countries')).toBeInTheDocument();
+      expect(screen.getByText('Total assessments: 1')).toBeInTheDocument();
+      expect(screen.getByTestId('component-territory-GB')).toBeInTheDocument();
 
       // Review History
       expect(screen.getByText('Review History (1)')).toBeInTheDocument();
