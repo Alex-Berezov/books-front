@@ -1,7 +1,8 @@
 'use client';
 
 import type { FC } from 'react';
-import { ShieldCheck, ShieldAlert, ShieldOff, RefreshCw } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { ShieldCheck, ShieldAlert, ShieldOff, RefreshCw, Copy, Check } from 'lucide-react';
 import {
   useVersionRightsContentHash,
   useCheckVersionRightsContentHash,
@@ -12,6 +13,31 @@ import styles from './RightsContentHashPanel.module.scss';
 export interface RightsContentHashPanelProps {
   versionId: string;
 }
+
+function truncateHash(hash: string): string {
+  return hash.length > 20 ? `${hash.slice(0, 10)}...${hash.slice(-6)}` : hash;
+}
+
+interface CopyButtonProps {
+  text: string;
+}
+
+const CopyButton: FC<CopyButtonProps> = ({ text }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    void navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }, [text]);
+
+  return (
+    <button type="button" className={styles.copyButton} onClick={handleCopy} title="Copy full hash">
+      {copied ? <Check size={12} /> : <Copy size={12} />}
+    </button>
+  );
+};
 
 export const RightsContentHashPanel: FC<RightsContentHashPanelProps> = ({ versionId }) => {
   const { data, isLoading, isError } = useVersionRightsContentHash(versionId);
@@ -74,6 +100,31 @@ export const RightsContentHashPanel: FC<RightsContentHashPanelProps> = ({ versio
       <div className={`${styles.statusBadge} ${statusClass}`}>{statusText}</div>
 
       {data.reasonRu && <p className={styles.reason}>{data.reasonRu}</p>}
+
+      <div className={styles.details}>
+        {data.baselineHash && (
+          <div className={styles.hashRow}>
+            <span className={styles.hashLabel}>Stored hash:</span>
+            <span className={styles.hashValue}>{truncateHash(data.baselineHash)}</span>
+            <CopyButton text={data.baselineHash} />
+          </div>
+        )}
+        <div className={styles.hashRow}>
+          <span className={styles.hashLabel}>Current hash:</span>
+          <span className={styles.hashValue}>{truncateHash(data.currentHash)}</span>
+          <CopyButton text={data.currentHash} />
+        </div>
+        <div className={styles.detailRow}>
+          <span className={styles.detailLabel}>Algorithm:</span>
+          <span className={styles.detailValue}>{data.algorithmVersion}</span>
+        </div>
+        {data.checkedAt && (
+          <div className={styles.detailRow}>
+            <span className={styles.detailLabel}>Checked at:</span>
+            <span className={styles.detailValue}>{new Date(data.checkedAt).toLocaleString()}</span>
+          </div>
+        )}
+      </div>
 
       <div className={styles.actions}>
         <Button variant="secondary" size="sm" onClick={handleCheck} loading={isChecking}>

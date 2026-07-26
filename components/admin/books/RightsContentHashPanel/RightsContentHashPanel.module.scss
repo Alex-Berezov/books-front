@@ -86,3 +86,66 @@
   display: flex;
   gap: $spacing-xs;
 }
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+}
+
+.hashRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-xs;
+  font-family: monospace;
+}
+
+.hashLabel {
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+}
+
+.hashValue {
+  color: $color-text-primary;
+  word-break: break-all;
+  flex: 1;
+  min-width: 0;
+}
+
+.detailRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-xs;
+}
+
+.detailLabel {
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+}
+
+.detailValue {
+  color: $color-text-secondary;
+}
+
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  background: transparent;
+  cursor: pointer;
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+  padding: 0;
+
+  &:hover {
+    background: $color-background-secondary;
+    color: $color-text-primary;
+  }
+}
