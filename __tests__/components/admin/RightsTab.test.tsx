@@ -216,6 +216,38 @@ const mockDashboard: BookRightsDashboard = {
         updatedAt: '2026-07-26T10:00:00Z',
       },
     ],
+    regionalTerritorySummary: [
+      {
+        regionCode: 'US',
+        label: 'United States',
+        status: 'ALLOWED',
+        countryCount: 1,
+        targetedCountryCount: 1,
+        allowedCountryCount: 1,
+        blockedCountryCount: 0,
+        licenseRequiredCountryCount: 0,
+        pendingReviewCountryCount: 0,
+        notTargetedCountryCount: 0,
+        geoBlockRequiredCount: 0,
+        countries: [],
+        blockingReasons: [],
+      },
+      {
+        regionCode: 'UK',
+        label: 'United Kingdom',
+        status: 'BLOCKED',
+        countryCount: 1,
+        targetedCountryCount: 1,
+        allowedCountryCount: 0,
+        blockedCountryCount: 1,
+        licenseRequiredCountryCount: 0,
+        pendingReviewCountryCount: 0,
+        notTargetedCountryCount: 0,
+        geoBlockRequiredCount: 1,
+        countries: [],
+        blockingReasons: [],
+      },
+    ],
     components: [
       {
         id: 'c-1',
@@ -348,6 +380,7 @@ describe('RightsTab Components (Phase 10)', () => {
 
       // Active Rights Profile
       expect(screen.getByText('Rights Profile')).toBeInTheDocument();
+      expect(screen.getByText('Regions & Countries')).toBeInTheDocument();
 
       // Review History
       expect(screen.getByText('Review History (1)')).toBeInTheDocument();

@@ -54,6 +54,12 @@ export interface BookRightsDashboardMetrics {
   reviewsCount: number;
   isStale: boolean;
   recheckRequired: boolean;
+  regionCount?: number;
+  blockedRegionCount?: number;
+  licenseRequiredRegionCount?: number;
+  pendingReviewRegionCount?: number;
+  mixedRegionCount?: number;
+  notTargetedRegionCount?: number;
 }
 
 export interface BookRightsDashboard {

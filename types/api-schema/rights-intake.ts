@@ -374,6 +374,50 @@ export interface RightsProfileSummary {
   updatedAt: string;
 }
 
+export type RegionalRightsStatus =
+  | 'ALLOWED'
+  | 'BLOCKED'
+  | 'LICENSE_REQUIRED'
+  | 'PENDING_REVIEW'
+  | 'NOT_TARGETED'
+  | 'MIXED';
+
+export interface TerritoryRegionCountry {
+  countryCode: string;
+  finalStatus: string;
+  accessPolicy: string;
+  geoBlockRequired: boolean;
+  geoBlockScope: string | null;
+  reasonRu: string;
+  legalBasisRu: string | null;
+  confidence: string;
+  nextReviewAt: string | null;
+}
+
+export interface TerritoryRegionReason {
+  countryCode: string;
+  finalStatus: string;
+  accessPolicy: string;
+  reasonRu: string;
+  legalBasisRu: string | null;
+}
+
+export interface TerritoryRegionSummary {
+  regionCode: string;
+  label: string;
+  status: RegionalRightsStatus;
+  countryCount: number;
+  targetedCountryCount: number;
+  allowedCountryCount: number;
+  blockedCountryCount: number;
+  licenseRequiredCountryCount: number;
+  pendingReviewCountryCount: number;
+  notTargetedCountryCount: number;
+  geoBlockRequiredCount: number;
+  countries: TerritoryRegionCountry[];
+  blockingReasons: TerritoryRegionReason[];
+}
+
 export interface RightsProfileDetail {
   id: string;
   rightsIntakeId: string;
@@ -390,6 +434,7 @@ export interface RightsProfileDetail {
   sourceEdition: SourceEdition | null;
   reviews: RightsReview[];
   territoryDecisions: TerritoryDecision[];
+  regionalTerritorySummary?: TerritoryRegionSummary[];
   components: RightsComponent[];
   evidence: RightsEvidence[];
   actions: RightsAction[];

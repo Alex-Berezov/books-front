@@ -1,0 +1,209 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  width: 100%;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+}
+
+.metricsBar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.metricCard {
+  background-color: $color-background-secondary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-sm $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metricLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metricValue {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.regionList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.regionCard {
+  background-color: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+
+  &[data-open='true'] {
+    border-color: $color-border-base;
+  }
+}
+
+.regionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $spacing-lg;
+  background-color: $color-background-primary;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: $color-background-secondary;
+  }
+}
+
+.regionTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.regionLabel {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: 3px 10px;
+  border-radius: $border-radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  border: 1px solid transparent;
+
+  &[data-status='ALLOWED'] {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-color: #a7f3d0;
+  }
+
+  &[data-status='BLOCKED'] {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-color: #fca5a5;
+  }
+
+  &[data-status='LICENSE_REQUIRED'] {
+    background-color: #ffedd5;
+    color: #9a3412;
+    border-color: #fed7aa;
+  }
+
+  &[data-status='PENDING_REVIEW'] {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+  }
+
+  &[data-status='NOT_TARGETED'] {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border-color: #e5e7eb;
+  }
+
+  &[data-status='MIXED'] {
+    background-color: #e0f2fe;
+    color: #075985;
+    border-color: #bae6fd;
+  }
+}
+
+.regionStats {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.regionBody {
+  padding: $spacing-md $spacing-lg;
+  border-top: 1px solid $color-border-light;
+  background-color: $color-background-primary;
+}
+
+.blockingReasonsBox {
+  margin-bottom: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  background-color: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: $border-radius-base;
+}
+
+.blockingReasonsTitle {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: #9f1239;
+  margin-bottom: $spacing-xs;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reasonList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reasonItem {
+  font-size: $font-size-xs;
+  color: #881337;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: $spacing-xs $spacing-sm;
+    text-align: left;
+    border-bottom: 1px solid $color-border-light;
+    font-size: $font-size-xs;
+  }
+
+  th {
+    font-weight: $font-weight-semibold;
+    color: $color-text-secondary;
+    background-color: $color-background-secondary;
+  }
+}
+
+.mutedText {
+  color: $color-text-tertiary;
+}

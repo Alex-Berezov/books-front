@@ -10,6 +10,7 @@ import type {
   RightsReviewImportListItem,
 } from '@/types/api-schema/rights-intake';
 import styles from './RightsProfilePanel.module.scss';
+import { TerritoryRegionsPanel } from '../TerritoryRegionsPanel/TerritoryRegionsPanel';
 
 interface RightsProfilePanelProps {
   intakeId?: string;
@@ -224,8 +225,23 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = ({
                 </details>
               )}
 
-              <details className={styles.collapsible} open>
-                <summary>Territory Decisions ({currentProfile.territoryDecisions.length})</summary>
+              {currentProfile.regionalTerritorySummary &&
+                currentProfile.regionalTerritorySummary.length > 0 && (
+                  <div style={{ marginTop: 16, marginBottom: 16 }}>
+                    <TerritoryRegionsPanel regions={currentProfile.regionalTerritorySummary} />
+                  </div>
+                )}
+
+              <details
+                className={styles.collapsible}
+                open={
+                  !currentProfile.regionalTerritorySummary ||
+                  currentProfile.regionalTerritorySummary.length === 0
+                }
+              >
+                <summary>
+                  Raw Country Decisions ({currentProfile.territoryDecisions.length})
+                </summary>
                 {currentProfile.territoryDecisions.length > 0 ? (
                   <table className={styles.profileTable}>
                     <thead>
