@@ -9,6 +9,18 @@
 
 ## 🚨 CRITICAL RULES (Read First!)
 
+### ⚠️ ESLint Import Ordering (`import/order`)
+
+**🔴 MANDATORY:** Imports MUST be strictly grouped and sorted alphabetically:
+
+1. `react` / core modules
+2. External packages (alphabetical by package: `lucide-react`, `next/link`)
+3. `@/` alias imports (alphabetical by path: `@/api/...`, `@/components/...`)
+4. Type imports `import type ...` (alphabetical by specifier)
+5. Relative imports `./...` (`.module.scss`, `./SubComponent`)
+
+Run `npx eslint <file> --fix` or `yarn lint` to verify zero warnings.
+
 ### ⚠️ SCSS Files - ALWAYS Import Tokens!
 
 **🔴 MANDATORY:** Every `.module.scss` file MUST start with token imports!

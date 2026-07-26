@@ -36,6 +36,22 @@ Key documentation paths:
 - Frontend CODE_STYLE Read file D:\newDev\books-front\CODE_STYLE.md
 - Backend STYLE_GUIDE D:\newDev\books\STYLE_GUIDE.md
 
+### 🔴 MANDATORY: ESLint Import Ordering Rules (`import/order`)
+
+Every modified or newly created file MUST strictly satisfy ESLint `import/order`.
+
+**Import Order Priority:**
+
+1. React & core built-ins (`import { FC } from 'react'`)
+2. Third-party packages (alphabetical by package name: e.g. `lucide-react`, `next/link`, etc.)
+3. Absolute path alias imports `@/...` (alphabetical by full path: `@/api/...`, `@/components/admin/...`)
+4. Type imports `import type ...` (alphabetical by module specifier)
+5. Relative imports `./...` (alphabetical by path: `./Component.module.scss`, `./SubComponent`)
+
+**Verification Protocol:**
+
+- Always run `yarn lint` or `npx eslint <path> --fix` before completing any frontend task to ensure 0 `import/order` warnings/errors!
+
 ## Language Support
 
 **Supported languages:** `en`, `es`, `fr`, `pt`, `ru`

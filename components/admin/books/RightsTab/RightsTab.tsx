@@ -10,8 +10,13 @@ import { ApprovalHistory } from '@/components/admin/RightsIntakeDetail/ApprovalH
 import { RightsProfilePanel } from '@/components/admin/RightsIntakeDetail/RightsProfilePanel/RightsProfilePanel';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PublicationStatus } from '@/types/api-schema';
+import type { SourceEdition } from '@/types/api-schema/rights-intake';
 import styles from './RightsTab.module.scss';
+import { RightsTabClaims } from './RightsTabClaims';
 import { RightsTabEmptyState } from './RightsTabEmptyState';
+import { RightsTabReviews } from './RightsTabReviews';
+import { RightsTabSourceEdition } from './RightsTabSourceEdition';
+import { RightsTabVersions } from './RightsTabVersions';
 
 export interface RightsTabProps {
   versionId: string;
@@ -42,15 +47,17 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, lang }) => {
     );
   }
 
-  const { book, currentVersion, summary, intake } = dashboard;
+  const { book, currentVersion, versions, summary, currentProfile, reviewHistory } = dashboard;
 
   if (!summary.hasClearance && !book.rightsIntakeId && !book.currentRightsProfileId) {
     return <RightsTabEmptyState lang={lang} />;
   }
 
+  const sourceEdition = (currentProfile?.sourceEdition as SourceEdition | null) || null;
+
   return (
     <div className={styles.rightsTabContainer}>
-      {/* Top summary strip */}
+      {/* 1. Top Summary Strip */}
       <div className={styles.summaryStrip}>
         <div className={styles.summaryBadges}>
           <span
@@ -94,7 +101,7 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, lang }) => {
         )}
       </div>
 
-      {/* Metrics Summary Grid */}
+      {/* 2. Metrics Summary Grid */}
       <div className={styles.metricsGrid}>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Blocked Countries</span>
@@ -118,32 +125,41 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, lang }) => {
         </div>
       </div>
 
-      {/* Publication Gate Panel */}
+      {/* 3. Language Versions Overview */}
+      <RightsTabVersions versions={versions} currentVersionId={currentVersion.id} lang={lang} />
+
+      {/* 4. Publication Gate Panel */}
       <div className={styles.section}>
         <PublishPanel versionId={versionId} status={currentVersion.status as PublicationStatus} />
       </div>
 
-      {/* Rights Content Hash Panel */}
+      {/* 5. Rights Content Hash Panel */}
       <div className={styles.section}>
         <RightsContentHashPanel versionId={versionId} />
       </div>
 
-      {/* Rights Profile Panel (Territories, Components, Evidence, Actions) */}
-      {book.rightsIntakeId && (
-        <RightsProfilePanel
-          intakeId={book.rightsIntakeId}
-          workflowStatus={intake?.workflowStatus || 'APPROVED'}
-          reviewImports={[]}
-        />
-      )}
+      {/* 6. Source Edition & Legal Basis */}
+      <RightsTabSourceEdition sourceEdition={sourceEdition} />
 
-      {/* Approval Audit Trail */}
+      {/* 7. Active Rights Profile (bound directly to current version) */}
+      {currentProfile && <RightsProfilePanel profile={currentProfile} />}
+
+      {/* 8. Review History */}
+      <RightsTabReviews
+        reviews={reviewHistory}
+        approvedReviewId={currentVersion.approvedRightsReviewId || book.approvedRightsReviewId}
+      />
+
+      {/* 9. Approval Audit Trail */}
       {book.rightsIntakeId && (
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Approval Audit Trail</h2>
           <ApprovalHistory intakeId={book.rightsIntakeId} />
         </div>
       )}
+
+      {/* 10. Copyright Claims & DMCA Placeholder */}
+      <RightsTabClaims />
     </div>
   );
 };

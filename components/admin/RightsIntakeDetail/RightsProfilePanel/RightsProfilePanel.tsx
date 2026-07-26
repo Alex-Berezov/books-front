@@ -5,26 +5,33 @@ import {
   useMaterializeRightsReviewImport,
   useCurrentRightsProfile,
 } from '@/api/hooks/useRightsIntakes';
-import type { RightsReviewImportListItem } from '@/types/api-schema/rights-intake';
+import type {
+  RightsProfileDetail,
+  RightsReviewImportListItem,
+} from '@/types/api-schema/rights-intake';
 import styles from './RightsProfilePanel.module.scss';
 
 interface RightsProfilePanelProps {
-  intakeId: string;
-  workflowStatus: string;
-  reviewImports: RightsReviewImportListItem[];
+  intakeId?: string;
+  workflowStatus?: string;
+  reviewImports?: RightsReviewImportListItem[];
+  profile?: RightsProfileDetail | null;
 }
 
 export const RightsProfilePanel: FC<RightsProfilePanelProps> = ({
   intakeId,
-  workflowStatus,
-  reviewImports,
+  workflowStatus = 'APPROVED',
+  reviewImports = [],
+  profile,
 }) => {
   const {
-    data: currentProfile,
+    data: fetchedProfile,
     isLoading: profileLoading,
     error: profileError,
     refetch: refetchProfile,
-  } = useCurrentRightsProfile(intakeId);
+  } = useCurrentRightsProfile(intakeId || '');
+
+  const currentProfile = profile !== undefined ? profile : fetchedProfile;
 
   const materializeMutation = useMaterializeRightsReviewImport();
 
