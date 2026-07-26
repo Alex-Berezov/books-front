@@ -12,6 +12,7 @@ import {
   PublishPanel,
   ReadContentTab,
   RightsContentHashPanel,
+  RightsTab,
   SummaryTab,
   TagsPanel,
   ImportModal,
@@ -164,6 +165,7 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
                 onSubmit={handleSubmit}
               />
             }
+            rightsContent={<RightsTab versionId={versionId} bookId={version.bookId} lang={lang} />}
             readContent={<ReadContentTab versionId={versionId} />}
             summaryContent={<SummaryTab versionId={versionId} />}
           />

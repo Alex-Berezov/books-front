@@ -24,3 +24,5 @@ export { BookVersionSwitcher } from './BookVersionSwitcher/BookVersionSwitcher';
 export { ImportModal } from './ImportModal';
 export { RightsContentHashPanel } from './RightsContentHashPanel';
 export type { RightsContentHashPanelProps } from './RightsContentHashPanel';
+export { RightsTab } from './RightsTab';
+export type { RightsTabProps } from './RightsTab';

@@ -12,6 +12,7 @@ import type {
   CreateBookVersionRequest,
   UpdateBookVersionRequest,
 } from '@/types/api-schema';
+import type { BookRightsDashboard } from '@/types/api-schema/book-rights';
 import type { SeoData, SeoInput } from '@/types/api-schema/pages';
 import type {
   PublicationGateResult,
@@ -187,4 +188,17 @@ export const checkVersionRightsContentHash = async (
 ): Promise<RightsContentHashCheck> => {
   const endpoint = `/admin/versions/${versionId}/rights-content-hash/check`;
   return httpPostAuth<RightsContentHashCheck>(endpoint);
+};
+
+/**
+ * Get consolidated rights dashboard for a book version
+ *
+ * @param versionId - Book version ID
+ * @returns Rights dashboard payload
+ */
+export const getVersionRightsDashboard = async (
+  versionId: string
+): Promise<BookRightsDashboard> => {
+  const endpoint = `/admin/versions/${versionId}/rights-dashboard`;
+  return httpGetAuth<BookRightsDashboard>(endpoint);
 };

@@ -1,0 +1,167 @@
+@import '@/styles/tokens.scss';
+
+.rightsTabContainer {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-6;
+  width: 100%;
+}
+
+.summaryStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-4;
+  background-color: $color-bg-container;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-lg;
+  padding: $spacing-4 $spacing-6;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.summaryBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-3;
+  align-items: center;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1-5;
+  padding: $spacing-1-5 $spacing-3;
+  border-radius: $border-radius-full;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  background-color: $color-bg-layout;
+  color: $color-text-secondary;
+  border: 1px solid $color-border;
+
+  &[data-status='APPROVED'],
+  &[data-status='ALLOW'],
+  &[data-status='HIGH'] {
+    background-color: $color-success-bg;
+    color: $color-success;
+    border-color: $color-success-border;
+  }
+
+  &[data-status='HUMAN_REVIEW_REQUIRED'],
+  &[data-status='MEDIUM'],
+  &[data-status='ALLOW_AFTER_GEO_CONFIGURATION'] {
+    background-color: $color-warning-bg;
+    color: $color-warning;
+    border-color: $color-warning-border;
+  }
+
+  &[data-status='REJECTED'],
+  &[data-status='BLOCK'],
+  &[data-status='LOW'],
+  &[data-status='STALE'] {
+    background-color: $color-error-bg;
+    color: $color-error;
+    border-color: $color-error-border;
+  }
+}
+
+.intakeLinkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-4;
+  border-radius: $border-radius-base;
+  background-color: $color-primary;
+  color: $color-white;
+  text-decoration: none;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 0.9;
+    color: $color-white;
+  }
+}
+
+.section {
+  background-color: $color-bg-container;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-lg;
+  padding: $spacing-6;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-4;
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: $spacing-4;
+  margin-bottom: $spacing-6;
+}
+
+.metricCard {
+  background-color: $color-bg-layout;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-base;
+  padding: $spacing-3 $spacing-4;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+.metricLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metricValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.emptyState {
+  background-color: $color-bg-container;
+  border: 1px dashed $color-border;
+  border-radius: $border-radius-lg;
+  padding: $spacing-10 $spacing-6;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-4;
+}
+
+.emptyIcon {
+  color: $color-text-tertiary;
+}
+
+.emptyTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.emptyDesc {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  max-width: 540px;
+  line-height: $line-height-relaxed;
+}
+
+.spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}

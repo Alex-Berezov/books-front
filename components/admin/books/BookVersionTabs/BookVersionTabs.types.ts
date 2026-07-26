@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 /**
  * Tab type
  */
-export type TabType = 'overview' | 'read' | 'listen' | 'summary';
+export type TabType = 'overview' | 'rights' | 'read' | 'listen' | 'summary';
 
 /**
  * Interface for single tab
@@ -23,6 +23,8 @@ export interface BookVersionTabsProps {
   onTabChange: (tab: TabType) => void;
   /** Content for Overview tab */
   overviewContent: ReactNode;
+  /** Content for Rights tab */
+  rightsContent?: ReactNode;
   /** Content for Read tab */
   readContent: ReactNode;
   /** Content for Listen tab */

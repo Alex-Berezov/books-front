@@ -7,6 +7,7 @@ import styles from './BookVersionTabs.module.scss';
  */
 const TABS: Tab[] = [
   { id: 'overview', label: 'Overview' },
+  { id: 'rights', label: 'Rights' },
   { id: 'read', label: 'Read Content' },
   { id: 'listen', label: 'Audio Content' },
   { id: 'summary', label: 'Summary' },

@@ -17,8 +17,15 @@ export type { BookVersionTabsProps, TabType } from './BookVersionTabs.types';
  * - Summary: Brief summary and conclusions
  */
 export const BookVersionTabs: FC<BookVersionTabsProps> = (props) => {
-  const { activeTab, listenContent, onTabChange, overviewContent, readContent, summaryContent } =
-    props;
+  const {
+    activeTab,
+    listenContent,
+    onTabChange,
+    overviewContent,
+    readContent,
+    rightsContent,
+    summaryContent,
+  } = props;
 
   /**
    * Get content for current active tab
@@ -27,6 +34,8 @@ export const BookVersionTabs: FC<BookVersionTabsProps> = (props) => {
     switch (activeTab) {
       case 'overview':
         return overviewContent;
+      case 'rights':
+        return rightsContent;
       case 'read':
         return readContent;
       case 'listen':

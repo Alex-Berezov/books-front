@@ -23,6 +23,7 @@ import {
   upsertVersionSeo,
   getPublicationGate,
   updateVersionRightsGeoBlock,
+  getVersionRightsDashboard,
 } from '@/api/endpoints/admin/bookVersions';
 import type { ApiError } from '@/types/api';
 import type {
@@ -30,6 +31,7 @@ import type {
   CreateBookVersionRequest,
   UpdateBookVersionRequest,
 } from '@/types/api-schema';
+import type { BookRightsDashboard } from '@/types/api-schema/book-rights';
 import type { SeoData, SeoInput } from '@/types/api-schema/pages';
 import type {
   PublicationGateResult,
@@ -48,6 +50,8 @@ export const versionKeys = {
   details: () => [...versionKeys.all, 'detail'] as const,
   /** Version details by ID */
   detail: (id: string) => [...versionKeys.details(), id] as const,
+  /** Version rights dashboard */
+  rightsDashboard: (id: string) => [...versionKeys.detail(id), 'rights-dashboard'] as const,
 };
 
 /**
@@ -362,6 +366,7 @@ export const useCheckVersionRightsContentHash = (
     ...options,
     onSuccess: (_data, versionId, context) => {
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(versionId) });
+      queryClient.invalidateQueries({ queryKey: versionKeys.rightsDashboard(versionId) });
       queryClient.invalidateQueries({
         queryKey: [...versionKeys.all, 'publication-gate', versionId],
       });
@@ -372,5 +377,17 @@ export const useCheckVersionRightsContentHash = (
         context
       );
     },
+  });
+};
+
+export const useVersionRightsDashboard = (
+  versionId: string | undefined,
+  options?: Omit<UseQueryOptions<BookRightsDashboard, ApiError>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery({
+    queryKey: versionKeys.rightsDashboard(versionId || ''),
+    queryFn: () => getVersionRightsDashboard(versionId!),
+    enabled: Boolean(versionId),
+    ...options,
   });
 };
