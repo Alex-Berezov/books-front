@@ -1,0 +1,72 @@
+@import '@/styles/tokens.scss';
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.section {
+  background: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-lg;
+}
+
+.sectionTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-md 0;
+  padding-bottom: $spacing-xs;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: $spacing-xs 0;
+  font-size: $font-size-sm;
+  gap: $spacing-md;
+
+  & + & {
+    border-top: 1px dashed $color-border-light;
+  }
+}
+
+.detailLabel {
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+  min-width: 120px;
+}
+
+.detailValue {
+  color: $color-text-primary;
+  text-align: right;
+  word-break: break-word;
+
+  a {
+    color: $color-primary;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.notesSection {
+  grid-column: 1 / -1;
+}
+
+.notes {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  white-space: pre-wrap;
+  background: $color-background-tertiary;
+  padding: $spacing-md;
+  border-radius: $border-radius-sm;
+}

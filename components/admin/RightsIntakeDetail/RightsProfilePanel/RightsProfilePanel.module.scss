@@ -1,0 +1,228 @@
+@import '@/styles/tokens.scss';
+
+.section {
+  background: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.sectionTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-xs 0;
+}
+
+.sectionHint {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-md 0;
+}
+
+.indicatorsBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+.indicatorChip {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 4px;
+
+  &[data-type='danger'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &[data-type='warning'] {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &[data-type='info'] {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  &[data-type='success'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+}
+
+.profileStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: $spacing-sm;
+  background: $color-background-tertiary;
+  padding: $spacing-md;
+  border-radius: $border-radius-sm;
+  margin-bottom: $spacing-md;
+}
+
+.profileStat {
+  display: flex;
+  flex-direction: column;
+}
+
+.profileStatLabel {
+  font-size: 11px;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+  font-weight: $font-weight-medium;
+}
+
+.profileStatValue {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-top: 2px;
+}
+
+.textBlock {
+  margin-bottom: $spacing-md;
+
+  p {
+    margin: $spacing-xs 0;
+    font-size: $font-size-sm;
+    color: $color-text-primary;
+  }
+}
+
+.textBlockTitle {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+}
+
+.collapsible {
+  margin-bottom: $spacing-md;
+
+  summary {
+    cursor: pointer;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+  }
+}
+
+.profileTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: $spacing-sm;
+
+  th {
+    text-align: left;
+    padding: $spacing-xs $spacing-sm;
+    font-size: 11px;
+    font-weight: $font-weight-semibold;
+    color: $color-text-secondary;
+    text-transform: uppercase;
+    border-bottom: 1px solid $color-border-light;
+  }
+
+  td {
+    padding: $spacing-xs $spacing-sm;
+    font-size: $font-size-xs;
+    color: $color-text-primary;
+    border-bottom: 1px dashed $color-border-light;
+  }
+}
+
+.blockingRow {
+  background: #fff5f5;
+  td {
+    color: #991b1b;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.evidenceList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.evidenceItem {
+  padding: $spacing-sm;
+  background: $color-background-tertiary;
+  border-radius: $border-radius-sm;
+}
+
+.evidenceHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: $color-text-secondary;
+  margin-bottom: 2px;
+}
+
+.evidenceTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  margin: 0 0 2px 0;
+}
+
+.evidenceAuthority {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: 0 0 2px 0;
+}
+
+.evidenceUrl {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.manifestActions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.actionBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  background: $color-primary;
+  color: #ffffff;
+  border: none;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.manifestErrorText {
+  color: #dc2626;
+  font-size: $font-size-sm;
+  margin-top: $spacing-xs;
+}
+
+.profileEmpty {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-top: $spacing-xs;
+}

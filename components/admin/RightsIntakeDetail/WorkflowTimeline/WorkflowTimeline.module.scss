@@ -1,0 +1,91 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  background: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.timeline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+  gap: $spacing-sm;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 20px;
+    right: 20px;
+    height: 2px;
+    background: $color-border-light;
+    z-index: 1;
+  }
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  text-align: center;
+}
+
+.iconWrapper {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: $color-background-primary;
+  border: 2px solid $color-border-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-text-secondary;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: $spacing-xs;
+  transition: all $transition-fast;
+
+  &[data-state='done'] {
+    background: #10b981;
+    border-color: #10b981;
+    color: #ffffff;
+  }
+
+  &[data-state='current'] {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  &[data-state='blocked'] {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #ffffff;
+  }
+
+  &[data-state='unavailable'] {
+    background: $color-background-tertiary;
+    border-color: $color-border-light;
+    color: $color-text-tertiary;
+  }
+}
+
+.stepTitle {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 2px;
+}
+
+.stepStatus {
+  font-size: 11px;
+  color: $color-text-secondary;
+}

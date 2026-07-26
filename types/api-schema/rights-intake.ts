@@ -46,8 +46,34 @@ export interface RightsIntake {
   updatedAt: string;
 }
 
+export interface IntakeReviewImportSummary {
+  id: string;
+  importStatus: RightsReviewImportStatus;
+  isCurrent: boolean;
+  validationErrorsCount: number;
+  validationWarningsCount: number;
+  createdAt: string;
+}
+
+export interface IntakeRightsProfileSummary {
+  id: string;
+  status: string;
+  overallStatus: string;
+  publicationGate: string;
+  confidence: string;
+  blockedCountriesCount: number;
+  licenseRequiredCountriesCount: number;
+  geoBlockRequiredCount: number;
+  blockingActionsCount: number;
+}
+
+export interface RightsIntakeListItem extends RightsIntake {
+  currentReviewImport?: IntakeReviewImportSummary | null;
+  currentRightsProfile?: IntakeRightsProfileSummary | null;
+}
+
 export interface RightsIntakesListResponse {
-  items: RightsIntake[];
+  items: RightsIntakeListItem[];
   total: number;
   page: number;
   limit: number;
@@ -84,6 +110,10 @@ export interface GetRightsIntakesParams {
   limit?: number;
   status?: RightsIntakeStatus;
   q?: string;
+  sourceProvider?: RightsSourceProvider;
+  targetLanguage?: string;
+  attentionOnly?: boolean;
+  includeSummary?: boolean;
 }
 
 export interface RightsAgentManifest {

@@ -1,0 +1,119 @@
+@import '@/styles/tokens.scss';
+
+.importHistory {
+  margin-top: $spacing-lg;
+  padding-top: $spacing-md;
+  border-top: 1px solid $color-border-light;
+}
+
+.importHistoryTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-md 0;
+}
+
+.importHistoryList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.importHistoryItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm $spacing-md;
+  background: $color-background-tertiary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: $color-background-primary;
+    border-color: $color-border-base;
+  }
+}
+
+.importHistoryItemLeft {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.currentBadge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: bold;
+  background: #3b82f6;
+  color: #ffffff;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.importHistoryDate {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.fileName {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.importHistoryItemRight {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.importIssueCount {
+  font-size: $font-size-xs;
+}
+
+.errorCount {
+  color: #dc2626;
+  font-weight: $font-weight-medium;
+}
+
+.warningCount {
+  color: #d97706;
+  font-weight: $font-weight-medium;
+  margin-left: 6px;
+}
+
+.cleanLabel {
+  color: #059669;
+  font-weight: $font-weight-medium;
+}
+
+.viewDetailArrow {
+  color: $color-text-secondary;
+  font-size: 14px;
+}
+
+.reviewImportBadge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+
+  &[data-status='VALIDATED'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &[data-status='VALIDATION_FAILED'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &[data-status='SUPERSEDED'] {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+}

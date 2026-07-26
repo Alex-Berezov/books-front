@@ -1,0 +1,250 @@
+@import '@/styles/tokens.scss';
+
+.section {
+  background: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.sectionTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-xs 0;
+}
+
+.sectionHint {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-md 0;
+}
+
+.reimportWarning {
+  padding: $spacing-sm $spacing-md;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  color: #d97706;
+  margin-bottom: $spacing-md;
+}
+
+.reviewImportRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.fileUploadLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background: $color-background-tertiary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-background-primary;
+  }
+}
+
+.fileInput {
+  display: none;
+}
+
+.textInput {
+  flex: 1;
+  min-width: 200px;
+  height: 36px;
+  padding: 0 $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+}
+
+.jsonTextarea {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-family: monospace;
+  font-size: 12px;
+  resize: vertical;
+  margin-bottom: $spacing-sm;
+  background: $color-background-primary;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+  }
+}
+
+.optionalSection {
+  margin-top: $spacing-md;
+  margin-bottom: $spacing-md;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  padding: $spacing-sm $spacing-md;
+
+  summary {
+    cursor: pointer;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-secondary;
+  }
+}
+
+.fieldLabel {
+  display: block;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  margin-top: $spacing-sm;
+  margin-bottom: 2px;
+}
+
+.actionBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background: $color-primary;
+  color: #ffffff;
+  border: none;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.actionBtnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background: $color-background-primary;
+  color: $color-text-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-background-tertiary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.importErrorText {
+  color: #dc2626;
+  font-size: $font-size-sm;
+  margin-top: $spacing-sm;
+}
+
+.importResult {
+  margin-top: $spacing-md;
+  padding: $spacing-md;
+  background: $color-background-tertiary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+}
+
+.importResultTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  margin: 0 0 $spacing-sm 0;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.validationList {
+  margin-top: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: #ffffff;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+}
+
+.validationErrorsTitle {
+  margin: 0 0 $spacing-xs 0;
+  color: #dc2626;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-xs;
+}
+
+.validationWarningsTitle {
+  margin: $spacing-xs 0;
+  color: #d97706;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-xs;
+}
+
+.validationItemError {
+  font-size: 11px;
+  color: #b91c1c;
+  margin-bottom: 2px;
+}
+
+.validationItemWarning {
+  font-size: 11px;
+  color: #b45309;
+  margin-bottom: 2px;
+}
+
+.validationPath {
+  font-family: monospace;
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.importNoIssues {
+  font-size: $font-size-xs;
+  color: #059669;
+  margin: $spacing-xs 0 0 0;
+  font-weight: $font-weight-medium;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+
+  &[data-status='VALIDATED'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &[data-status='VALIDATION_FAILED'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &[data-status='SUPERSEDED'] {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+}

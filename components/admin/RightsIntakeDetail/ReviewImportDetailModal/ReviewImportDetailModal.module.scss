@@ -1,0 +1,195 @@
+@import '@/styles/tokens.scss';
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: $color-background-primary;
+  border-radius: $border-radius-base;
+  width: 90%;
+  max-width: 850px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modalHeader {
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1px solid $color-border-light;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modalTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.modalClose {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: $color-text-secondary;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}
+
+.modalBody {
+  padding: $spacing-lg;
+  overflow-y: auto;
+}
+
+.modalDetailSection {
+  display: flex;
+  margin-bottom: $spacing-xs;
+  font-size: $font-size-sm;
+}
+
+.detailLabel {
+  width: 140px;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.detailValue {
+  flex: 1;
+  color: $color-text-primary;
+}
+
+.hashValue {
+  font-family: monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.modalDetailCollapsible {
+  margin: $spacing-md 0;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  padding: $spacing-sm;
+
+  summary {
+    cursor: pointer;
+    font-weight: $font-weight-medium;
+    font-size: $font-size-sm;
+    color: $color-text-primary;
+  }
+}
+
+.modalDetailPre {
+  margin-top: $spacing-sm;
+  padding: $spacing-md;
+  background: $color-background-tertiary;
+  border-radius: $border-radius-sm;
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.validationList {
+  margin-top: $spacing-md;
+  padding: $spacing-md;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: $border-radius-sm;
+}
+
+.validationErrorsTitle {
+  margin: 0 0 $spacing-xs 0;
+  color: #dc2626;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+}
+
+.validationWarningsTitle {
+  margin: $spacing-xs 0;
+  color: #d97706;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+}
+
+.validationItemError {
+  font-size: $font-size-xs;
+  color: #b91c1c;
+  margin-bottom: 2px;
+}
+
+.validationItemWarning {
+  font-size: $font-size-xs;
+  color: #b45309;
+  margin-bottom: 2px;
+}
+
+.validationPath {
+  font-family: monospace;
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.manifestActions {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.actionBtnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background: $color-background-primary;
+  color: $color-text-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-background-tertiary;
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+
+  &[data-status='VALIDATED'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &[data-status='VALIDATION_FAILED'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &[data-status='SUPERSEDED'] {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+}

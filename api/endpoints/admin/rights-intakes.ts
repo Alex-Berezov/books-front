@@ -26,6 +26,12 @@ export const getRightsIntakes = async (
   if (params.limit) queryParams.set('limit', String(params.limit));
   if (params.status) queryParams.set('status', params.status);
   if (params.q) queryParams.set('q', params.q);
+  if (params.sourceProvider) queryParams.set('sourceProvider', params.sourceProvider);
+  if (params.targetLanguage) queryParams.set('targetLanguage', params.targetLanguage);
+  if (params.attentionOnly !== undefined)
+    queryParams.set('attentionOnly', String(params.attentionOnly));
+  if (params.includeSummary !== undefined)
+    queryParams.set('includeSummary', String(params.includeSummary));
 
   const endpoint = `/admin/rights/intakes?${queryParams.toString()}`;
   return httpGetAuth<RightsIntakesListResponse>(endpoint, { requireAuth: true });

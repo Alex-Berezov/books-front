@@ -127,24 +127,33 @@ docker compose exec app npx prisma generate
 docker compose restart
 ```
 
----
+## Validation Workflow & Quality Gates
 
-## Validation Workflow
-
-**MANDATORY after every change (пропускать только для тривиальных правок в 1-2 строки):**
+**MANDATORY after every change:**
 
 ```bash
-yarn validate
+yarn lint
+yarn typecheck
+yarn test
 ```
 
-This runs:
+If backend code was modified as well:
 
-1. `yarn lint --fix` — auto-fix ESLint issues
-2. `yarn typecheck` — TypeScript type checking
+```bash
+cd D:\newDev\books && yarn lint && yarn typecheck && yarn test
+```
+
+### Strict Quality Rules:
+
+- **NEVER IGNORE LINT WARNINGS OR ERRORS**: All ESLint warnings and errors in modified or newly created files MUST be resolved prior to declaring task completion.
+- **ZERO `any` USAGE**: Using `any` or `@ts-ignore` is strictly prohibited.
+- **MANDATORY VERIFICATION**: Always run `yarn lint`, `yarn typecheck`, and `yarn test` before reporting task completion to the user.
+
+---
 
 ## Post-Task Checklist
 
-После завершения задачи (кроме тривиальных правок в 1-2 строки) **обязательно** выполнить:
+После завершения задачи **обязательно** выполнить:
 
 ### 1. Code Style Check
 
@@ -164,9 +173,8 @@ This runs:
 
 ### 3. Quality Gates
 
-- `yarn validate` (lint + typecheck) — обязательно
-- `yarn test` — при нетривиальных изменениях логики
-- Если менялся backend (не только frontend) — дополнительно `cd books && yarn lint && yarn typecheck && yarn test`
+- `yarn lint` + `yarn typecheck` + `yarn test` — обязательно
+- При любых изменениях бэкенда: `cd D:\newDev\books && yarn lint && yarn typecheck && yarn test`
 
 ---
 

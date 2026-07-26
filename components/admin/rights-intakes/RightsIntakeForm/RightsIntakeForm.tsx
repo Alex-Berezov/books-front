@@ -84,10 +84,10 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
       sourceTitle: '',
       sourceLanguage: '',
       sourceTextType: 'UNKNOWN' as RightsSourceTextType,
-      targetLanguages: [] as string[],
-      targetCountryCodes: '',
-      plannedContentTypes: [] as string[],
-      plannedComponents: [] as string[],
+      targetLanguages: ['en'],
+      targetCountryCodes: 'US, GB, ES, FR, BR, RU',
+      plannedContentTypes: ['TEXT'],
+      plannedComponents: ['ORIGINAL_TEXT'],
       notesRu: '',
     };
   });
@@ -115,16 +115,18 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
     e.preventDefault();
 
     const validationErrors: Record<string, string> = {};
-    if (!form.candidateTitle.trim()) validationErrors.candidateTitle = 'Title is required';
-    if (!form.candidateAuthor.trim()) validationErrors.candidateAuthor = 'Author is required';
+    if (!form.candidateTitle.trim())
+      validationErrors.candidateTitle = 'Candidate title is required';
+    if (!form.candidateAuthor.trim())
+      validationErrors.candidateAuthor = 'Candidate author is required';
     if (form.targetLanguages.length === 0)
-      validationErrors.targetLanguages = 'Select at least one language';
+      validationErrors.targetLanguages = 'Select at least one target language';
     if (form.plannedContentTypes.length === 0)
-      validationErrors.plannedContentTypes = 'Select at least one content type';
+      validationErrors.plannedContentTypes = 'Select at least one planned content type';
     if (form.sourceUrl && !/^https?:\/\/.+/.test(form.sourceUrl))
-      validationErrors.sourceUrl = 'Must be a valid URL (http:// or https://)';
+      validationErrors.sourceUrl = 'Must be a valid URL starting with http:// or https://';
     if (!form.targetCountryCodes.trim())
-      validationErrors.targetCountryCodes = 'Enter at least one country code';
+      validationErrors.targetCountryCodes = 'Enter at least one ISO-2 country code';
 
     const countryCodes = form.targetCountryCodes
       .split(',')
@@ -132,7 +134,15 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
       .filter(Boolean);
     const invalidCodes = countryCodes.filter((c) => !/^[A-Z]{2}$/.test(c));
     if (invalidCodes.length > 0) {
-      validationErrors.targetCountryCodes = `Invalid codes: ${invalidCodes.join(', ')}`;
+      validationErrors.targetCountryCodes = `Invalid 2-letter ISO codes: ${invalidCodes.join(', ')}`;
+    }
+
+    if (form.authorBirthYear && form.authorDeathYear) {
+      const birth = parseInt(form.authorBirthYear, 10);
+      const death = parseInt(form.authorDeathYear, 10);
+      if (!isNaN(birth) && !isNaN(death) && death < birth) {
+        validationErrors.authorDeathYear = 'Death year cannot be earlier than birth year';
+      }
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -171,21 +181,34 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
         const result = await createMutation.mutateAsync(payload);
         router.push(`/admin/${lang}/rights-intakes/${result.id}`);
       }
-    } catch {
-      setErrors({ submit: 'Failed to save rights intake. Please try again.' });
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : 'Failed to save rights intake. Please try again.';
+      setErrors({ submit: msg });
     }
+  };
+
+  const getSourceIdPlaceholder = () => {
+    if (form.sourceProvider === 'PROJECT_GUTENBERG') return 'e.g. 1342';
+    return 'e.g. external-id-123';
+  };
+
+  const getSourceUrlPlaceholder = () => {
+    if (form.sourceProvider === 'PROJECT_GUTENBERG') return 'https://www.gutenberg.org/ebooks/1342';
+    return 'https://example.com/source';
   };
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Work</h2>
+        <h2 className={styles.sectionTitle}>Work Details</h2>
         <div className={styles.field}>
           <label className={styles.label}>Candidate Title *</label>
           <input
             className={styles.input}
             value={form.candidateTitle}
             onChange={(e) => updateField('candidateTitle', e.target.value)}
+            placeholder="e.g. Pride and Prejudice"
           />
           {errors.candidateTitle && <span className={styles.error}>{errors.candidateTitle}</span>}
         </div>
@@ -195,6 +218,7 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
             className={styles.input}
             value={form.candidateAuthor}
             onChange={(e) => updateField('candidateAuthor', e.target.value)}
+            placeholder="e.g. Jane Austen"
           />
           {errors.candidateAuthor && <span className={styles.error}>{errors.candidateAuthor}</span>}
         </div>
@@ -205,6 +229,7 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
               className={styles.input}
               value={form.originalTitle}
               onChange={(e) => updateField('originalTitle', e.target.value)}
+              placeholder="e.g. Pride and Prejudice"
             />
           </div>
           <div className={styles.field}>
@@ -213,7 +238,7 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
               className={styles.input}
               value={form.originalLanguage}
               onChange={(e) => updateField('originalLanguage', e.target.value)}
-              placeholder="e.g. grc"
+              placeholder="e.g. en, grc, lat"
             />
           </div>
         </div>
@@ -225,6 +250,7 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
               type="number"
               value={form.authorBirthYear}
               onChange={(e) => updateField('authorBirthYear', e.target.value)}
+              placeholder="e.g. 1775"
             />
           </div>
           <div className={styles.field}>
@@ -234,13 +260,17 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
               type="number"
               value={form.authorDeathYear}
               onChange={(e) => updateField('authorDeathYear', e.target.value)}
+              placeholder="e.g. 1817"
             />
+            {errors.authorDeathYear && (
+              <span className={styles.error}>{errors.authorDeathYear}</span>
+            )}
           </div>
         </div>
       </div>
 
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Source</h2>
+        <h2 className={styles.sectionTitle}>Source Details</h2>
         <div className={styles.fieldRow}>
           <div className={styles.field}>
             <label className={styles.label}>Source Provider</label>
@@ -260,7 +290,7 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
               className={styles.input}
               value={form.sourceExternalId}
               onChange={(e) => updateField('sourceExternalId', e.target.value)}
-              placeholder="e.g. Gutenberg eBook #"
+              placeholder={getSourceIdPlaceholder()}
             />
           </div>
         </div>
@@ -270,6 +300,7 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
             className={styles.input}
             value={form.sourceUrl}
             onChange={(e) => updateField('sourceUrl', e.target.value)}
+            placeholder={getSourceUrlPlaceholder()}
           />
           {errors.sourceUrl && <span className={styles.error}>{errors.sourceUrl}</span>}
         </div>
@@ -279,6 +310,7 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
             className={styles.input}
             value={form.sourceTitle}
             onChange={(e) => updateField('sourceTitle', e.target.value)}
+            placeholder="e.g. Pride and Prejudice by Jane Austen"
           />
         </div>
         <div className={styles.fieldRow}>
@@ -288,6 +320,7 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
               className={styles.input}
               value={form.sourceLanguage}
               onChange={(e) => updateField('sourceLanguage', e.target.value)}
+              placeholder="e.g. en"
             />
           </div>
           <div className={styles.field}>
@@ -327,12 +360,14 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
           {errors.targetLanguages && <span className={styles.error}>{errors.targetLanguages}</span>}
         </div>
         <div className={styles.field}>
-          <label className={styles.label}>Target Country Codes *</label>
+          <label className={styles.label}>
+            Target Country Codes (ISO Alpha-2, comma separated) *
+          </label>
           <input
             className={styles.input}
             value={form.targetCountryCodes}
             onChange={(e) => updateField('targetCountryCodes', e.target.value)}
-            placeholder="US, GB, FR, DE, ..."
+            placeholder="US, GB, ES, FR, BR, RU"
           />
           {errors.targetCountryCodes && (
             <span className={styles.error}>{errors.targetCountryCodes}</span>
@@ -384,6 +419,7 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
             className={styles.textarea}
             value={form.notesRu}
             onChange={(e) => updateField('notesRu', e.target.value)}
+            placeholder="Особые примечания к заявке..."
           />
         </div>
       </div>

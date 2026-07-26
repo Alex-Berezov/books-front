@@ -1,14 +1,18 @@
 'use client';
 
 import { useState, type FC } from 'react';
-import { ClipboardList, Plus } from 'lucide-react';
+import { ClipboardList, Plus, AlertCircle, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useRightsIntakes } from '@/api/hooks/useRightsIntakes';
 import { EmptyState, Pagination } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { RightsIntakeStatus } from '@/types/api-schema/rights-intake';
+import type {
+  RightsIntakeStatus,
+  RightsSourceProvider,
+  RightsIntakeListItem,
+} from '@/types/api-schema/rights-intake';
 import styles from './RightsIntakeList.module.scss';
 
 const STATUS_OPTIONS: Array<{ value: RightsIntakeStatus | ''; label: string }> = [
@@ -23,6 +27,22 @@ const STATUS_OPTIONS: Array<{ value: RightsIntakeStatus | ''; label: string }> =
   { value: 'ARCHIVED', label: 'Archived' },
 ];
 
+const SOURCE_PROVIDER_OPTIONS: Array<{ value: RightsSourceProvider | ''; label: string }> = [
+  { value: '', label: 'All Providers' },
+  { value: 'PROJECT_GUTENBERG', label: 'Project Gutenberg' },
+  { value: 'OTHER', label: 'Other' },
+  { value: 'UNKNOWN', label: 'Unknown' },
+];
+
+const LANG_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: '', label: 'All Target Languages' },
+  { value: 'en', label: 'English (en)' },
+  { value: 'es', label: 'Spanish (es)' },
+  { value: 'fr', label: 'French (fr)' },
+  { value: 'pt', label: 'Portuguese (pt)' },
+  { value: 'ru', label: 'Russian (ru)' },
+];
+
 interface RightsIntakeListProps {
   lang: SupportedLang;
 }
@@ -31,12 +51,19 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<RightsIntakeStatus | ''>('');
+  const [sourceProviderFilter, setSourceProviderFilter] = useState<RightsSourceProvider | ''>('');
+  const [targetLangFilter, setTargetLangFilter] = useState<string>('');
+  const [attentionOnly, setAttentionOnly] = useState<boolean>(false);
 
   const { data, isLoading, error } = useRightsIntakes({
     page,
     limit: 20,
     status: statusFilter || undefined,
     q: search || undefined,
+    sourceProvider: sourceProviderFilter || undefined,
+    targetLanguage: targetLangFilter || undefined,
+    attentionOnly: attentionOnly || undefined,
+    includeSummary: true,
   });
 
   if (error) {
@@ -76,11 +103,11 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            placeholder="Search by title, author, source..."
+            placeholder="Search title, author, source..."
           />
         </div>
         <select
-          className={styles.statusSelect}
+          className={styles.filterSelect}
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value as RightsIntakeStatus | '');
@@ -93,6 +120,45 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
             </option>
           ))}
         </select>
+        <select
+          className={styles.filterSelect}
+          value={sourceProviderFilter}
+          onChange={(e) => {
+            setSourceProviderFilter(e.target.value as RightsSourceProvider | '');
+            setPage(1);
+          }}
+        >
+          {SOURCE_PROVIDER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <select
+          className={styles.filterSelect}
+          value={targetLangFilter}
+          onChange={(e) => {
+            setTargetLangFilter(e.target.value);
+            setPage(1);
+          }}
+        >
+          {LANG_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <button
+          className={styles.attentionToggle}
+          data-active={attentionOnly}
+          onClick={() => {
+            setAttentionOnly(!attentionOnly);
+            setPage(1);
+          }}
+        >
+          <AlertCircle size={14} />
+          Requires Attention
+        </button>
       </div>
 
       {data && (
@@ -106,12 +172,11 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Title</th>
-                <th>Author</th>
+                <th>Title & Author</th>
                 <th>Source</th>
                 <th>Languages</th>
                 <th>Countries</th>
-                <th>Status</th>
+                <th>Status & Indicators</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
@@ -119,7 +184,7 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
             <tbody>
               {Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: 8 }).map((_, j) => (
+                  {Array.from({ length: 7 }).map((_, j) => (
                     <td key={j} className={styles.skeletonCell}>
                       Loading...
                     </td>
@@ -131,15 +196,19 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
         </div>
       ) : intakes.length === 0 ? (
         <EmptyState
-          title="No rights intakes yet."
+          title="No rights intakes found."
           description={
-            search || statusFilter
-              ? 'Try adjusting your search or filter'
-              : 'Start by creating a new rights intake'
+            search || statusFilter || sourceProviderFilter || targetLangFilter || attentionOnly
+              ? 'Try adjusting your search or filter parameters'
+              : 'Start by creating a new rights intake request'
           }
           icon={<ClipboardList />}
           action={
-            !search && !statusFilter ? (
+            !search &&
+            !statusFilter &&
+            !sourceProviderFilter &&
+            !targetLangFilter &&
+            !attentionOnly ? (
               <Link href={`/admin/${lang}/rights-intakes/new`}>
                 <Button>New Rights Intake</Button>
               </Link>
@@ -152,12 +221,11 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Title</th>
-                  <th>Author</th>
+                  <th>Title & Author</th>
                   <th>Source</th>
                   <th>Languages</th>
                   <th>Countries</th>
-                  <th>Status</th>
+                  <th>Status & Indicators</th>
                   <th>Created</th>
                   <th>Actions</th>
                 </tr>
@@ -172,12 +240,28 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
                       >
                         {intake.candidateTitle}
                       </Link>
+                      <div className={styles.cellSub}>by {intake.candidateAuthor}</div>
+                      {intake.originalTitle && intake.originalTitle !== intake.candidateTitle && (
+                        <div className={styles.cellSub}>Orig: {intake.originalTitle}</div>
+                      )}
                     </td>
-                    <td>{intake.candidateAuthor}</td>
                     <td>
-                      {intake.sourceProvider !== 'UNKNOWN'
-                        ? `${intake.sourceProvider}${intake.sourceExternalId ? ` #${intake.sourceExternalId}` : ''}`
-                        : '-'}
+                      <div>
+                        {intake.sourceProvider !== 'UNKNOWN'
+                          ? `${intake.sourceProvider}${intake.sourceExternalId ? ` #${intake.sourceExternalId}` : ''}`
+                          : 'Unknown'}
+                      </div>
+                      {intake.sourceUrl && (
+                        <a
+                          href={intake.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.cellSub}
+                        >
+                          <ExternalLink size={12} style={{ display: 'inline', marginRight: 2 }} />
+                          Source Link
+                        </a>
+                      )}
                     </td>
                     <td>
                       <div className={styles.languages}>
@@ -194,7 +278,10 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
                       </span>
                     </td>
                     <td>
-                      <StatusBadge status={intake.workflowStatus} />
+                      <div style={{ marginBottom: 4 }}>
+                        <StatusBadge status={intake.workflowStatus} />
+                      </div>
+                      <RowIndicators intake={intake} />
                     </td>
                     <td>{new Date(intake.createdAt).toLocaleDateString()}</td>
                     <td>
@@ -205,6 +292,15 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
                         >
                           View
                         </Link>
+                        {intake.createdBookId && (
+                          <Link
+                            href={`/admin/${lang}/books/${intake.createdBookId}`}
+                            className={styles.actionBtn}
+                            title="Open created book"
+                          >
+                            Book →
+                          </Link>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -221,6 +317,61 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
     </div>
   );
 };
+
+function RowIndicators({ intake }: { intake: RightsIntakeListItem }) {
+  const indicators: Array<{ label: string; type: 'danger' | 'warning' | 'info' | 'success' }> = [];
+
+  const imp = intake.currentReviewImport;
+  const prof = intake.currentRightsProfile;
+
+  if (intake.workflowStatus === 'DRAFT') {
+    indicators.push({ label: 'Needs agent', type: 'info' });
+  } else if (intake.workflowStatus === 'READY_FOR_AGENT') {
+    indicators.push({ label: 'Ready for export', type: 'info' });
+  } else if (intake.workflowStatus === 'REVIEW_IMPORTED') {
+    indicators.push({ label: 'Review imported', type: 'info' });
+  } else if (intake.workflowStatus === 'HUMAN_REVIEW_REQUIRED') {
+    indicators.push({ label: 'Human review required', type: 'warning' });
+  }
+
+  if (imp?.importStatus === 'VALIDATION_FAILED') {
+    indicators.push({ label: 'Validation failed', type: 'danger' });
+  }
+
+  if (prof) {
+    if (prof.publicationGate === 'BLOCK' || prof.blockedCountriesCount > 0) {
+      indicators.push({ label: 'Blocked', type: 'danger' });
+    }
+    if (prof.overallStatus === 'LICENSE_REQUIRED' || prof.licenseRequiredCountriesCount > 0) {
+      indicators.push({ label: 'License required', type: 'warning' });
+    }
+    if (
+      prof.publicationGate === 'ALLOW_AFTER_GEO_CONFIGURATION' ||
+      prof.geoBlockRequiredCount > 0
+    ) {
+      indicators.push({ label: 'Geo restrictions', type: 'warning' });
+    }
+    if (prof.blockingActionsCount > 0) {
+      indicators.push({ label: 'Blocking actions', type: 'danger' });
+    }
+  }
+
+  if (intake.createdBookId) {
+    indicators.push({ label: 'Book created', type: 'success' });
+  }
+
+  if (indicators.length === 0) return null;
+
+  return (
+    <div className={styles.indicatorsList}>
+      {indicators.map((ind, i) => (
+        <span key={i} className={styles.indicatorChip} data-type={ind.type}>
+          {ind.label}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Draft',
