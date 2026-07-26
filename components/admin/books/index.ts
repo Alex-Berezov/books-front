@@ -12,6 +12,8 @@ export { SummaryTab } from './SummaryTab';
 export type { SummaryTabProps } from './SummaryTab';
 export { PublishPanel } from './PublishPanel';
 export type { PublishPanelProps } from './PublishPanel';
+export { GeoBlockRulesPanel } from './GeoBlockRulesPanel';
+export type { GeoBlockRulesPanelProps } from './GeoBlockRulesPanel';
 export { CategoriesPanel } from './CategoriesPanel';
 export type { CategoriesPanelProps } from './CategoriesPanel';
 export { TagsPanel } from './TagsPanel';

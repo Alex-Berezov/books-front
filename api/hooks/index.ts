@@ -25,6 +25,10 @@ export {
   useUpsertVersionSeo,
   usePublicationGate,
   useUpdateVersionRightsGeoBlock,
+  useGeoBlockRules,
+  useGenerateGeoBlockRules,
+  useCheckGeoBlockAccess,
+  useVerifyGeoBlockRules,
 } from './useBookVersions';
 
 // Book Summaries

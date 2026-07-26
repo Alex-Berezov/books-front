@@ -4,6 +4,7 @@ import { type FC } from 'react';
 import { ExternalLink, ShieldCheck, Scale, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useVersionRightsDashboard } from '@/api/hooks/useBookVersions';
+import { GeoBlockRulesPanel } from '@/components/admin/books/GeoBlockRulesPanel/GeoBlockRulesPanel';
 import { PublishPanel } from '@/components/admin/books/PublishPanel/PublishPanel';
 import { RightsContentHashPanel } from '@/components/admin/books/RightsContentHashPanel/RightsContentHashPanel';
 import { ApprovalHistory } from '@/components/admin/RightsIntakeDetail/ApprovalHistory/ApprovalHistory';
@@ -128,7 +129,14 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, lang }) => {
       {/* 3. Language Versions Overview */}
       <RightsTabVersions versions={versions} currentVersionId={currentVersion.id} lang={lang} />
 
-      {/* 4. Publication Gate Panel */}
+      {/* 4. Runtime GeoIP enforcement */}
+      {(currentVersion.rightsGeoBlockRequired || summary.blockedCountriesCount > 0) && (
+        <div className={styles.section}>
+          <GeoBlockRulesPanel versionId={versionId} />
+        </div>
+      )}
+
+      {/* 5. Publication Gate Panel */}
       <div className={styles.section}>
         <PublishPanel versionId={versionId} status={currentVersion.status as PublicationStatus} />
       </div>

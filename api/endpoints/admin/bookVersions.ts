@@ -13,6 +13,12 @@ import type {
   UpdateBookVersionRequest,
 } from '@/types/api-schema';
 import type { BookRightsDashboard } from '@/types/api-schema/book-rights';
+import type {
+  CheckGeoBlockAccessRequest,
+  GeoAccessCheckResult,
+  GeoBlockRulesResponse,
+  VerifyGeoBlockRulesRequest,
+} from '@/types/api-schema/geo-block';
 import type { SeoData, SeoInput } from '@/types/api-schema/pages';
 import type {
   PublicationGateResult,
@@ -201,4 +207,31 @@ export const getVersionRightsDashboard = async (
 ): Promise<BookRightsDashboard> => {
   const endpoint = `/admin/versions/${versionId}/rights-dashboard`;
   return httpGetAuth<BookRightsDashboard>(endpoint);
+};
+
+export const getGeoBlockRules = async (versionId: string): Promise<GeoBlockRulesResponse> => {
+  return httpGetAuth<GeoBlockRulesResponse>(`/admin/versions/${versionId}/geo-block-rules`);
+};
+
+export const generateGeoBlockRules = async (versionId: string): Promise<GeoBlockRulesResponse> => {
+  return httpPostAuth<GeoBlockRulesResponse>(
+    `/admin/versions/${versionId}/geo-block-rules/generate`
+  );
+};
+
+export const verifyGeoBlockRules = async (
+  versionId: string,
+  data: VerifyGeoBlockRulesRequest
+): Promise<GeoBlockRulesResponse> => {
+  return httpPostAuth<GeoBlockRulesResponse>(
+    `/admin/versions/${versionId}/geo-block-rules/verify`,
+    data
+  );
+};
+
+export const checkGeoBlockAccess = async (
+  versionId: string,
+  data: CheckGeoBlockAccessRequest
+): Promise<GeoAccessCheckResult> => {
+  return httpPostAuth<GeoAccessCheckResult>(`/admin/versions/${versionId}/geo-block-check`, data);
 };

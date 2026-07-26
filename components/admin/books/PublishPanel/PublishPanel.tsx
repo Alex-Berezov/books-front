@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
-import { Calendar, ShieldAlert, MapPin, AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Calendar, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import type { PublishPanelProps } from './PublishPanel.types';
 import { PublishConfirmModal } from './PublishConfirmModal';
@@ -22,8 +22,6 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
     isGateError,
     blockingReasons,
     warnings,
-    hasGeoBlockIssue,
-    handleMarkGeoBlockConfigured,
     handleOpenConfirmModal,
     handleCloseConfirmModal,
     handleConfirmAction,
@@ -96,27 +94,6 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
                 </li>
               ))}
             </ul>
-          </div>
-        )}
-
-        {hasGeoBlockIssue && !isPublished && (
-          <div className={styles.geoBlockSection}>
-            <div className={styles.geoBlockHeader}>
-              <MapPin size={16} />
-              <span className={styles.geoBlockTitle}>Geo-block configuration required</span>
-            </div>
-            <p className={styles.geoBlockText}>
-              Для прохождения publication gate требуется отметить geo-block как настроенный. Это
-              временная отметка до реализации Phase 12 (реальной GeoIP-блокировки).
-            </p>
-            <Button
-              variant="secondary"
-              size="sm"
-              loading={isLoading}
-              onClick={handleMarkGeoBlockConfigured}
-            >
-              Mark geo-block as configured
-            </Button>
           </div>
         )}
 

@@ -1,0 +1,193 @@
+@import '@/styles/tokens.scss';
+
+.panel {
+  padding: $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+  background: $color-background-primary;
+  box-shadow: $shadow-sm;
+}
+
+.header,
+.title,
+.warning,
+.formRow,
+.allowedResult,
+.blockedResult {
+  display: flex;
+  align-items: center;
+}
+
+.header {
+  justify-content: space-between;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.title {
+  gap: $spacing-xs;
+  margin: 0 0 $spacing-xs;
+  color: $color-text-primary;
+  font-size: $font-size-lg;
+}
+
+.description,
+.hint {
+  margin: 0;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.warning {
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+  padding: $spacing-sm;
+  border: 1px solid rgba($color-warning, 0.5);
+  border-radius: $border-radius-base;
+  background: rgba($color-warning, 0.1);
+  color: $color-text-primary;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  padding: $spacing-sm;
+  border-radius: $border-radius-base;
+  background: $color-background-tertiary;
+  font-size: $font-size-sm;
+
+  span,
+  small {
+    color: $color-text-secondary;
+  }
+
+  strong {
+    color: $color-text-primary;
+    word-break: break-word;
+  }
+}
+
+.tableWrap {
+  overflow-x: auto;
+  margin-bottom: $spacing-md;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+
+  th,
+  td {
+    padding: $spacing-sm;
+    border-bottom: 1px solid $color-border-light;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    color: $color-text-secondary;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.emptyCell {
+  color: $color-text-secondary;
+  text-align: center !important;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: $spacing-md;
+}
+
+.controlGroup {
+  padding: $spacing-md;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+
+  h3 {
+    margin: 0 0 $spacing-sm;
+    font-size: $font-size-base;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 80px;
+    margin-bottom: $spacing-xs;
+    padding: $spacing-sm;
+    border: 1px solid $color-border-base;
+    border-radius: $border-radius-base;
+    resize: vertical;
+  }
+}
+
+.formRow {
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+    color: $color-text-secondary;
+    font-size: $font-size-xs;
+  }
+
+  input,
+  select {
+    min-height: 32px;
+    padding: $spacing-xs $spacing-sm;
+    border: 1px solid $color-border-base;
+    border-radius: $border-radius-base;
+    background: $color-background-primary;
+    color: $color-text-primary;
+  }
+}
+
+.allowedResult,
+.blockedResult {
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
+  padding: $spacing-sm;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+}
+
+.allowedResult {
+  background: rgba($color-success, 0.1);
+  color: $color-success;
+}
+
+.blockedResult {
+  background: rgba($color-error, 0.1);
+  color: $color-error;
+}
+
+.hint {
+  margin-bottom: $spacing-sm;
+}
+
+.error {
+  color: $color-error;
+}
+
+@media (max-width: $breakpoint-sm) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .controls {
+    grid-template-columns: 1fr;
+  }
+}

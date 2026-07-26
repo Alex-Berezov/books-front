@@ -199,3 +199,14 @@ export type {
   ChangeRightsIntakeStatusRequest,
   GetRightsIntakesParams,
 } from './rights-intake';
+
+// GeoIP market blocking
+export type {
+  CheckGeoBlockAccessRequest,
+  GeoAccessCheckResult,
+  GeoBlockRule,
+  GeoBlockRulesResponse,
+  GeoBlockRulesSummary,
+  GeoBlockScope,
+  VerifyGeoBlockRulesRequest,
+} from './geo-block';

@@ -29,6 +29,9 @@ export interface BookRightsDashboardVersionSummary {
   rightsGeoBlockConfigured: boolean;
   rightsGeoBlockConfiguredAt?: string | null;
   rightsGeoBlockNotesRu?: string | null;
+  rightsGeoBlockVerifiedAt?: string | null;
+  rightsGeoBlockVerifiedByUserId?: string | null;
+  rightsGeoBlockLastGeneratedAt?: string | null;
   rightsContentHash?: string | null;
   rightsContentHashAlgorithmVersion?: string | null;
   rightsContentHashCalculatedAt?: string | null;

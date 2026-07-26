@@ -14,8 +14,11 @@ import {
 } from '@tanstack/react-query';
 import {
   checkVersionRightsContentHash,
+  checkGeoBlockAccess,
   createBookVersion,
+  generateGeoBlockRules,
   getBookVersion,
+  getGeoBlockRules,
   getVersionRightsContentHash,
   publishVersion,
   unpublishVersion,
@@ -24,6 +27,7 @@ import {
   getPublicationGate,
   updateVersionRightsGeoBlock,
   getVersionRightsDashboard,
+  verifyGeoBlockRules,
 } from '@/api/endpoints/admin/bookVersions';
 import type { ApiError } from '@/types/api';
 import type {
@@ -32,6 +36,12 @@ import type {
   UpdateBookVersionRequest,
 } from '@/types/api-schema';
 import type { BookRightsDashboard } from '@/types/api-schema/book-rights';
+import type {
+  CheckGeoBlockAccessRequest,
+  GeoAccessCheckResult,
+  GeoBlockRulesResponse,
+  VerifyGeoBlockRulesRequest,
+} from '@/types/api-schema/geo-block';
 import type { SeoData, SeoInput } from '@/types/api-schema/pages';
 import type {
   PublicationGateResult,
@@ -52,6 +62,8 @@ export const versionKeys = {
   detail: (id: string) => [...versionKeys.details(), id] as const,
   /** Version rights dashboard */
   rightsDashboard: (id: string) => [...versionKeys.detail(id), 'rights-dashboard'] as const,
+  /** Generated runtime geo-block rules */
+  geoBlockRules: (id: string) => [...versionKeys.detail(id), 'geo-block-rules'] as const,
 };
 
 /**
@@ -389,5 +401,84 @@ export const useVersionRightsDashboard = (
     queryFn: () => getVersionRightsDashboard(versionId!),
     enabled: Boolean(versionId),
     ...options,
+  });
+};
+
+const invalidateGeoBlockState = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  versionId: string
+) => {
+  queryClient.invalidateQueries({ queryKey: versionKeys.detail(versionId) });
+  queryClient.invalidateQueries({ queryKey: versionKeys.geoBlockRules(versionId) });
+  queryClient.invalidateQueries({ queryKey: versionKeys.rightsDashboard(versionId) });
+  queryClient.invalidateQueries({
+    queryKey: [...versionKeys.all, 'publication-gate', versionId],
+  });
+};
+
+export const useGeoBlockRules = (
+  versionId: string | undefined,
+  options?: Omit<UseQueryOptions<GeoBlockRulesResponse, ApiError>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery({
+    queryKey: versionKeys.geoBlockRules(versionId || ''),
+    queryFn: () => getGeoBlockRules(versionId!),
+    enabled: Boolean(versionId),
+    ...options,
+  });
+};
+
+export const useGenerateGeoBlockRules = (
+  options?: UseMutationOptions<GeoBlockRulesResponse, Error, string>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (versionId: string) => generateGeoBlockRules(versionId),
+    ...options,
+    onSuccess: (data, versionId, context) => {
+      invalidateGeoBlockState(queryClient, versionId);
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        versionId,
+        context
+      );
+    },
+  });
+};
+
+export const useCheckGeoBlockAccess = (
+  options?: UseMutationOptions<
+    GeoAccessCheckResult,
+    Error,
+    { versionId: string; data: CheckGeoBlockAccessRequest }
+  >
+) => {
+  return useMutation({
+    mutationFn: ({ versionId, data }) => checkGeoBlockAccess(versionId, data),
+    ...options,
+  });
+};
+
+export const useVerifyGeoBlockRules = (
+  options?: UseMutationOptions<
+    GeoBlockRulesResponse,
+    Error,
+    { versionId: string; data: VerifyGeoBlockRulesRequest }
+  >
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ versionId, data }) => verifyGeoBlockRules(versionId, data),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      invalidateGeoBlockState(queryClient, variables.versionId);
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
   });
 };

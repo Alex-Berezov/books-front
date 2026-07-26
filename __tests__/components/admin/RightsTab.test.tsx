@@ -31,6 +31,10 @@ vi.mock('@/api/hooks/useRightsIntakes', () => ({
   useRightsIntakeApprovals: () => ({ data: [], isLoading: false }),
 }));
 
+vi.mock('@/components/admin/books/GeoBlockRulesPanel/GeoBlockRulesPanel', () => ({
+  GeoBlockRulesPanel: () => <div data-testid="geo-block-rules-panel">Geo-block rules panel</div>,
+}));
+
 const mockReview = {
   id: 'review-1',
   rightsProfileId: 'profile-1',
@@ -372,6 +376,7 @@ describe('RightsTab Components (Phase 10)', () => {
       // Language Editions
       expect(screen.getByText('Language Editions (2)')).toBeInTheDocument();
       expect(screen.getByText('Orgullo y prejuicio (ES)')).toBeInTheDocument();
+      expect(screen.getByTestId('geo-block-rules-panel')).toBeInTheDocument();
 
       // Source Edition & Legal Basis
       expect(screen.getByText('Source Edition & Legal Basis')).toBeInTheDocument();
