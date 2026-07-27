@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import type { FC } from 'react';
+import { useState } from 'react';
 import { Button, Popconfirm, Tag } from 'antd';
 import { ExternalLink, Plus, Trash2, UserCheck } from 'lucide-react';
 import {
@@ -8,25 +8,22 @@ import {
   useUnlinkRightsComponentContributor,
   useUnlinkSourceEditionContributor,
 } from '@/api/hooks/useContributors';
-import type {
-  Contributor,
-  ContributorIdentityConfidence,
-  ContributorRole,
-} from '@/types/contributors';
+import type { Contributor, ContributorRole, RightsProfileContributor } from '@/types/contributors';
 import { ContributorModal } from './ContributorModal';
 import styles from './ContributorsPanel.module.scss';
 
-interface ContributorItem {
+export interface ContributorItem {
   linkId: string;
   contributor: Contributor;
   role: ContributorRole;
   creditedName?: string | null;
 }
 
-interface ContributorsPanelProps {
+export interface ContributorsPanelProps {
   sourceEditionId?: string;
   rightsComponentId?: string;
   items?: ContributorItem[];
+  profileContributors?: RightsProfileContributor[];
   title?: string;
   readOnly?: boolean;
 }
@@ -47,7 +44,7 @@ const ROLE_LABELS: Record<ContributorRole, string> = {
   OTHER: 'Другое',
 };
 
-const CONFIDENCE_COLORS: Record<ContributorIdentityConfidence, string> = {
+const CONFIDENCE_COLORS: Record<string, string> = {
   CONFIRMED: 'green',
   PROBABLE: 'blue',
   UNCERTAIN: 'orange',
@@ -58,6 +55,7 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
   sourceEditionId,
   rightsComponentId,
   items = [],
+  profileContributors,
   title = 'Участники и авторы (Contributors / Person Model)',
   readOnly = false,
 }) => {
@@ -94,12 +92,15 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
     }
   };
 
+  const displayProfileContributors = profileContributors && profileContributors.length > 0;
+  const count = displayProfileContributors ? profileContributors.length : items.length;
+
   return (
     <div className={styles.contributorsPanel}>
       <div className={styles.header}>
         <h4>
           <UserCheck size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} />
-          {title} ({items.length})
+          {title} ({count})
         </h4>
         {!readOnly && (sourceEditionId || rightsComponentId) && (
           <Button
@@ -113,15 +114,76 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
         )}
       </div>
 
-      {items.length === 0 ? (
+      {count === 0 ? (
         <div className={styles.empty}>Участники пока не привязаны.</div>
+      ) : displayProfileContributors ? (
+        <div className={styles.grid}>
+          {profileContributors.map((c) => (
+            <div key={c.id} className={styles.card}>
+              <div className={styles.cardHeader}>
+                <Tag color="blue">{ROLE_LABELS[c.role] || c.role}</Tag>
+                {c.confidence && (
+                  <Tag color={CONFIDENCE_COLORS[c.confidence] || 'default'}>{c.confidence}</Tag>
+                )}
+                {c.personId ? (
+                  <Tag color="green">Person Linked</Tag>
+                ) : (
+                  <Tag color="volcano">No Person</Tag>
+                )}
+              </div>
+
+              <div className={styles.name}>
+                {c.displayName}
+                {c.creditedName && c.creditedName !== c.displayName && (
+                  <span style={{ fontSize: '0.85em', color: '#666', marginLeft: 4 }}>
+                    (в источнике: &ldquo;{c.creditedName}&rdquo;)
+                  </span>
+                )}
+              </div>
+
+              <div className={styles.meta}>
+                {(c.birthYear || c.deathYear) && (
+                  <span>
+                    Годы жизни: {c.birthYear ?? '?'}&ndash;{c.deathYear ?? ''}
+                  </span>
+                )}
+
+                {c.nationalityCountryCode && <span>Страна: {c.nationalityCountryCode}</span>}
+
+                {c.viafId && (
+                  <a
+                    href={`https://viaf.org/viaf/${c.viafId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}
+                  >
+                    VIAF <ExternalLink size={12} />
+                  </a>
+                )}
+
+                {c.wikidataId && (
+                  <a
+                    href={`https://www.wikidata.org/wiki/${c.wikidataId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}
+                  >
+                    Wikidata <ExternalLink size={12} />
+                  </a>
+                )}
+              </div>
+
+              {c.notesRu && <div className={styles.notes}>{c.notesRu}</div>}
+            </div>
+          ))}
+        </div>
       ) : (
         <div className={styles.grid}>
           {items.map(({ linkId, contributor, role, creditedName }) => (
             <div key={linkId} className={styles.card}>
               <div className={styles.cardHeader}>
                 <Tag color="blue">{ROLE_LABELS[role] || role}</Tag>
-                <Tag color={CONFIDENCE_COLORS[contributor.identityConfidence]}>
+                <Tag color={CONFIDENCE_COLORS[contributor.identityConfidence] || 'default'}>
                   {contributor.identityConfidence}
                 </Tag>
               </div>

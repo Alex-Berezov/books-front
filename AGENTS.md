@@ -17,17 +17,15 @@
 
 ## Documentation Access
 
-Project documentation is available via MCP server `books-docs`. Use MCP tools:
+Project documentation lives in a separate repository: `D:\newDev\books-app-docs`. Read the files directly — no MCP server is required.
 
-- `listDocs` — list documentation files
-- `readDoc` — read specific documentation file
-- `searchDocs` — search across documentation
+Key documentation paths (relative to `D:\newDev\books-app-docs\`):
 
-Key documentation paths:
-
-- `frontend/INDEX.md` — frontend documentation index
+- `ai-context/README.md` — index: which document to read for which task (**start here**)
+- `ai-context/agent-rules.md` — mandatory rules for AI agents (read first)
+- `ai-context/frontend.md` — frontend structure, routing, how to add a feature
 - `frontend/frontend-agents/` — API integration guides
-- `frontend/ENDPOINTS.md` — full API endpoints catalog
+- `backend/api/endpoints.md` — full API endpoints catalog
 
 ---
 
@@ -88,7 +86,7 @@ export const SUPPORTED_LANGS = ['en', 'es', 'fr', 'pt', 'ru'] as const;
 - Protected endpoints: require `Authorization: Bearer {token}` header
 - Token types: accessToken (12h), refreshToken (7d)
 
-**Full API documentation:** Use MCP tool `readDoc` with path `frontend/ENDPOINTS.md`
+**Full API documentation:** `books-app-docs/backend/api/endpoints.md`
 
 ---
 
@@ -178,6 +176,8 @@ cd D:\newDev\books && yarn lint && yarn typecheck && yarn test
 - Если ни то, ни другое не нарушено — явно указать в ответе: "всё соответствует кодстайлу"
 
 ### 2. Docs Update Check
+
+> Пути ниже указаны относительно `D:\newDev\books-app-docs\`. Имена без папки (`api-contracts.md`, `content-model.md` и т.п.) лежат в `ai-context/`.
 
 - Проверить, нужно ли обновлять документацию в `books-app-docs`:
   - Менялись ли API-контракты/эндпоинты/DTO? → обновить `api-contracts.md` или `backend/api/endpoints.md`
@@ -323,7 +323,7 @@ The component checks `source` first, then falls back to `author` for the attribu
 
 ```tsx
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
-\`\`\`
+```
 
 **Used by:** author detail page, book detail page.
 
@@ -333,25 +333,27 @@ import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 
 ### Code Style Check (применять после каждой нетривиальной задачи)
 
-| Что трогали | Где проверять | Что проверять |
-| --- | --- | --- |
-| Frontend | `CODE_STYLE.md` | inline-стили, `any`/`@ts-ignore`, named exports, `import type`, импорты, naming, комментарии |
-| Backend | `STYLE_GUIDE.md` | DTO-структура, early throw, controller/service split, guards, swagger-декораторы |
-| Оба | оба файла | всё выше |
+| Что трогали | Где проверять               | Что проверять                                                                                |
+| ----------- | --------------------------- | -------------------------------------------------------------------------------------------- |
+| Frontend    | `books-front/CODE_STYLE.md` | inline-стили, `any`/`@ts-ignore`, named exports, `import type`, импорты, naming, комментарии |
+| Backend     | `books/STYLE_GUIDE.md`      | DTO-структура, early throw, controller/service split, guards, swagger-декораторы             |
+| Оба         | оба файла                   | всё выше                                                                                     |
 
 ### Docs Update Check (что может потребовать обновления)
 
-| Изменение | Документ для обновления |
-| --- | --- |
-| API-контракты / эндпоинты / DTO | `api-contracts.md` или `backend/api/endpoints.md` |
-| Сущности / модель данных | `content-model.md` или `database-schema.md` |
-| SEO-правила | `seo-rules.md` |
-| i18n / языки | `translation-rules.md`; если `SUPPORTED_LANGS` — синхронизация frontend+backend |
-| Таксономии | `taxonomy-rules.md` |
-| Public domain / копирайт | `public-domain-rules.md` |
-| Auth / permissions | `auth-and-permissions.md` |
-| Архитектурные изменения | `architecture.md`, возможно ADR в `adr/` |
-| Зависимости | `tech-stack.md` и `dependency-policy.md` |
+> Пути относительно `D:\newDev\books-app-docs\`. Имена без папки лежат в `ai-context/`.
+
+| Изменение                       | Документ для обновления                                                         |
+| ------------------------------- | ------------------------------------------------------------------------------- |
+| API-контракты / эндпоинты / DTO | `api-contracts.md` или `backend/api/endpoints.md`                               |
+| Сущности / модель данных        | `content-model.md` или `database-schema.md`                                     |
+| SEO-правила                     | `seo-rules.md`                                                                  |
+| i18n / языки                    | `translation-rules.md`; если `SUPPORTED_LANGS` — синхронизация frontend+backend |
+| Таксономии                      | `taxonomy-rules.md`                                                             |
+| Public domain / копирайт        | `public-domain-rules.md`                                                        |
+| Auth / permissions              | `auth-and-permissions.md`                                                       |
+| Архитектурные изменения         | `architecture.md`, возможно ADR в `adr/`                                        |
+| Зависимости                     | `tech-stack.md` и `dependency-policy.md`                                        |
 
 Если документация не требует правок — явно указать: "документация не требует обновления".
 
@@ -379,17 +381,16 @@ import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 
 ## Additional Resources
 
-- **Full code style:** `CODE_STYLE.md`
-- **AI checklist:** `.ai-agent-checklist.md`
-- **Backend API reference:** Use MCP `readDoc` with `frontend/frontend-agents/backend-api-reference.md`
-- **Architecture guide:** Use MCP `readDoc` with `frontend/frontend-agents/architecture-and-routing.md`
+- **Full code style:** `D:\newDev\books-front\CODE_STYLE.md`
+- **AI checklist:** `D:\newDev\books-front\.ai-agent-checklist.md`
+- **Backend API reference:** `books-app-docs/frontend/frontend-agents/backend-api-reference.md`
+- **Architecture guide:** `books-app-docs/frontend/frontend-agents/architecture-and-routing.md`
 
 ---
 
-**Last Updated:** July 24, 2026
+**Last Updated:** July 27, 2026
 **Status:** Project implemented and published; development proceeds iteratively. The formal milestone scheme (M0–M10) is no longer tracked — do not use milestones for planning/status assessment.
 **Supported Languages:** en, es, fr, pt, ru
 **P4 Content Quality:** implemented — empty book listing pages (landing + taxonomy detail) set `noindex, follow` in `generateMetadata`, excluded from sitemap when `total === 0`. Footer audiobooks link conditional server-side. Docs: `ai-context/seo-rules.md` and `frontend/frontend-agents/api-cheatsheet.md` updated.
 **P5 Approval Workflow:** ✅ Completed July 24, 2026 — RightsReviewStatus/RightsProfileStatus enums expanded, RightsReviewApproval audit trail model, approve/reject API endpoints with full business logic (publication gate check, blocking actions check, intake status updates, intakeId validation), frontend ApprovalPanel (with BLOCK/unresolved blocking disable logic) + ApprovalState + ApprovalHistory components. Re-import allowed for HUMAN_REVIEW_REQUIRED/APPROVED/REJECTED statuses. Migration fixed to map IMPORTED via USING clause. 403 tests pass.
 **P6 Create Book from Approved Clearance:** ✅ Completed July 24, 2026 — Book/BookVersion models extended with rights fields, RightsBookCreationService with full validation (status checks, publicationGate, blocking actions, slug uniqueness, targetLanguages), POST /admin/rights/intakes/:id/create-book endpoint, frontend CreateBookFromClearanceForm component with rights summary. 427 tests pass.
-```

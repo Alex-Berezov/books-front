@@ -61,6 +61,11 @@ export interface BookRightsDashboardMetrics {
   reviewsCount: number;
   isStale: boolean;
   recheckRequired: boolean;
+  contributorsCount?: number;
+  authorsCount?: number;
+  translatorsCount?: number;
+  narratorsCount?: number;
+  contributorsWithoutPersonCount?: number;
   regionCount?: number;
   blockedRegionCount?: number;
   licenseRequiredRegionCount?: number;

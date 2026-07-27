@@ -279,7 +279,10 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
 
               <ComponentTerritoryAssessmentsPanel components={currentProfile.components} />
 
-              <ContributorsPanel sourceEditionId={currentProfile.sourceEdition?.id} />
+              <ContributorsPanel
+                profileContributors={currentProfile.contributors}
+                sourceEditionId={currentProfile.sourceEdition?.id}
+              />
 
               <details className={styles.collapsible} open>
                 <summary>Required Actions ({currentProfile.actions.length})</summary>
