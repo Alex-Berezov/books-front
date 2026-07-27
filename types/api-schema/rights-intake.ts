@@ -457,6 +457,12 @@ export interface RightsProfileDetail {
   components: RightsComponent[];
   evidence: RightsEvidence[];
   actions: RightsAction[];
+  contributors?: import('../contributors').RightsProfileContributor[];
+  contributorsCount?: number;
+  authorsCount?: number;
+  translatorsCount?: number;
+  narratorsCount?: number;
+  contributorsWithoutPersonCount?: number;
   supersededAt: string | null;
   archivedAt: string | null;
   createdAt: string;
