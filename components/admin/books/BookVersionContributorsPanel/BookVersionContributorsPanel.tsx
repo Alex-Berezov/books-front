@@ -1,12 +1,13 @@
 import type { FC } from 'react';
 import { useState } from 'react';
 import { Button, Form, Input, Modal, Popconfirm, Select, Switch, Tag } from 'antd';
-import { ArrowDown, ArrowUp, Plus, Star, Trash2, Users } from 'lucide-react';
+import { ArrowDown, ArrowUp, Pencil, Plus, Star, Trash2, Users } from 'lucide-react';
 import {
   useAddBookVersionContributor,
   useBookVersionContributors,
   useRemoveBookVersionContributor,
   useReorderBookVersionContributors,
+  useUpdateBookVersionContributor,
 } from '@/api/hooks/useBookVersionContributors';
 import { PersonSearchSelect } from '@/components/admin/PersonSearchSelect/PersonSearchSelect';
 import type { BookVersionContributor, ContributorRole } from '@/types/contributors';
@@ -38,26 +39,63 @@ export const BookVersionContributorsPanel: FC<BookVersionContributorsPanelProps>
   readOnly = false,
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
-  const [form] = Form.useForm();
+  const [editingContributor, setEditingContributor] = useState<BookVersionContributor | null>(null);
+
+  const [addForm] = Form.useForm();
+  const [editForm] = Form.useForm();
 
   const { data: contributors = [], isLoading } = useBookVersionContributors(versionId);
   const addMutation = useAddBookVersionContributor(versionId);
+  const updateMutation = useUpdateBookVersionContributor(versionId);
   const removeMutation = useRemoveBookVersionContributor(versionId);
   const reorderMutation = useReorderBookVersionContributors(versionId);
 
   const handleAdd = async () => {
     try {
-      const values = await form.validateFields();
+      const values = await addForm.validateFields();
       await addMutation.mutateAsync({
         personId: values.personId,
         role: values.role,
         creditedName: values.creditedName || undefined,
+        creditedLanguage: values.creditedLanguage || undefined,
+        contributionNoteRu: values.contributionNoteRu || undefined,
         isPrimary: values.isPrimary || false,
       });
-      form.resetFields();
+      addForm.resetFields();
       setModalOpen(false);
     } catch {
       // Form validation failure
+    }
+  };
+
+  const handleStartEdit = (c: BookVersionContributor) => {
+    setEditingContributor(c);
+    editForm.setFieldsValue({
+      role: c.role,
+      isPrimary: c.isPrimary || false,
+      creditedName: c.creditedName || '',
+      creditedLanguage: c.creditedLanguage || '',
+      contributionNoteRu: c.contributionNoteRu || '',
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingContributor) return;
+    try {
+      const values = await editForm.validateFields();
+      await updateMutation.mutateAsync({
+        contributorId: editingContributor.id,
+        payload: {
+          role: values.role,
+          isPrimary: values.isPrimary || false,
+          creditedName: values.creditedName || undefined,
+          creditedLanguage: values.creditedLanguage || undefined,
+          contributionNoteRu: values.contributionNoteRu || undefined,
+        },
+      });
+      setEditingContributor(null);
+    } catch {
+      // Validation failed
     }
   };
 
@@ -116,10 +154,17 @@ export const BookVersionContributorsPanel: FC<BookVersionContributorsPanelProps>
                     (указан как: &ldquo;{c.creditedName}&rdquo;)
                   </span>
                 )}
+                {c.creditedLanguage && <Tag color="cyan">Язык: {c.creditedLanguage}</Tag>}
               </div>
 
               {!readOnly && (
                 <div className={styles.actions}>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<Pencil size={14} />}
+                    onClick={() => handleStartEdit(c)}
+                  />
                   <Button
                     type="text"
                     size="small"
@@ -149,6 +194,7 @@ export const BookVersionContributorsPanel: FC<BookVersionContributorsPanelProps>
         </div>
       )}
 
+      {/* Modal for adding new contributor */}
       <Modal
         title="Добавить участника версии"
         open={modalOpen}
@@ -156,7 +202,7 @@ export const BookVersionContributorsPanel: FC<BookVersionContributorsPanelProps>
         onCancel={() => setModalOpen(false)}
         confirmLoading={addMutation.isPending}
       >
-        <Form form={form} layout="vertical">
+        <Form form={addForm} layout="vertical">
           <Form.Item
             name="personId"
             label="Персоналия (Person)"
@@ -176,6 +222,55 @@ export const BookVersionContributorsPanel: FC<BookVersionContributorsPanelProps>
 
           <Form.Item name="creditedName" label="Имя как в источнике (Credited Name, необязательно)">
             <Input placeholder="Например: Гомер / И.И. Иванов" />
+          </Form.Item>
+
+          <Form.Item
+            name="creditedLanguage"
+            label="Язык в источнике / Перевода (Credited Language)"
+          >
+            <Input placeholder="Например: en, ru, es" />
+          </Form.Item>
+
+          <Form.Item name="contributionNoteRu" label="Заметка о вкладе (на русском)">
+            <Input.TextArea rows={2} placeholder="Дополнительное примечание к роли..." />
+          </Form.Item>
+
+          <Form.Item name="isPrimary" label="Основной участник" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal for editing existing contributor */}
+      <Modal
+        title={`Редактировать участника: ${editingContributor?.person?.canonicalName || editingContributor?.creditedName || ''}`}
+        open={Boolean(editingContributor)}
+        onOk={handleSaveEdit}
+        onCancel={() => setEditingContributor(null)}
+        confirmLoading={updateMutation.isPending}
+      >
+        <Form form={editForm} layout="vertical">
+          <Form.Item
+            name="role"
+            label="Роль участника (Role)"
+            rules={[{ required: true, message: 'Выберите роль' }]}
+          >
+            <Select options={ROLE_OPTIONS} />
+          </Form.Item>
+
+          <Form.Item name="creditedName" label="Имя как в источнике (Credited Name)">
+            <Input placeholder="Например: Гомер / И.И. Иванов" />
+          </Form.Item>
+
+          <Form.Item
+            name="creditedLanguage"
+            label="Язык в источнике / Перевода (Credited Language)"
+          >
+            <Input placeholder="Например: en, ru, es" />
+          </Form.Item>
+
+          <Form.Item name="contributionNoteRu" label="Заметка о вкладе (на русском)">
+            <Input.TextArea rows={2} placeholder="Дополнительное примечание к роли..." />
           </Form.Item>
 
           <Form.Item name="isPrimary" label="Основной участник" valuePropName="checked">
