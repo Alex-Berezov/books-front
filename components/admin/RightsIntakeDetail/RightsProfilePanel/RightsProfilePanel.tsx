@@ -7,6 +7,7 @@ import {
 } from '@/api/hooks/useRightsIntakes';
 import { ContributorsPanel } from '@/components/admin/ContributorsPanel/ContributorsPanel';
 import { ComponentTerritoryAssessmentsPanel } from '@/components/admin/RightsIntakeDetail/ComponentTerritoryAssessmentsPanel/ComponentTerritoryAssessmentsPanel';
+import { LicensesPanel } from '@/components/admin/RightsIntakeDetail/LicensesPanel/LicensesPanel';
 import { TerritoryRegionsPanel } from '@/components/admin/RightsIntakeDetail/TerritoryRegionsPanel/TerritoryRegionsPanel';
 import type {
   RightsProfileDetail,
@@ -62,6 +63,30 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
 
     if (currentProfile.overallStatus === 'LICENSE_REQUIRED') {
       ind.push({ label: 'License Required', type: 'warning' });
+    }
+
+    // Phase 15: license coverage of the markets that require a license
+    const coverageStatus = currentProfile.licenseCoverage?.status;
+    if (coverageStatus === 'NOT_COVERED') {
+      ind.push({ label: 'Лицензия отсутствует', type: 'danger' });
+    } else if (coverageStatus === 'PARTIAL') {
+      ind.push({ label: 'Лицензия покрывает не все рынки', type: 'warning' });
+    } else if (coverageStatus === 'COVERED') {
+      ind.push({ label: 'Покрыто лицензией', type: 'success' });
+    }
+
+    if ((currentProfile.expiringSoonLicensesCount ?? 0) > 0) {
+      ind.push({
+        label: `Истекающие лицензии: ${currentProfile.expiringSoonLicensesCount}`,
+        type: 'warning',
+      });
+    }
+
+    if ((currentProfile.revokedLicensesCount ?? 0) > 0) {
+      ind.push({
+        label: `Отозванные лицензии: ${currentProfile.revokedLicensesCount}`,
+        type: 'danger',
+      });
     }
 
     const blockedTerritories = currentProfile.territoryDecisions.filter(
@@ -278,6 +303,13 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
               </details>
 
               <ComponentTerritoryAssessmentsPanel components={currentProfile.components} />
+
+              <LicensesPanel
+                components={currentProfile.components}
+                coverage={currentProfile.licenseCoverage}
+                licenses={currentProfile.licenses}
+                rightsProfileId={currentProfile.id}
+              />
 
               <ContributorsPanel
                 profileContributors={currentProfile.contributors}

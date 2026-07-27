@@ -52,6 +52,30 @@ vi.mock('@/components/admin/books/GeoBlockRulesPanel/GeoBlockRulesPanel', () => 
   GeoBlockRulesPanel: () => <div data-testid="geo-block-rules-panel">Geo-block rules panel</div>,
 }));
 
+vi.mock('@/api/hooks/useRightsLicenses', () => ({
+  useLinkRightsLicense: () => ({ mutate: vi.fn(), isPending: false }),
+  useRevokeRightsLicense: () => ({ mutate: vi.fn(), isPending: false }),
+  useCreateRightsLicense: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateRightsLicense: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useVersionLicenseCoverage: () => ({
+    data: {
+      status: 'COVERED',
+      checkedAt: '2026-07-28T00:00:00.000Z',
+      requiredCountryCodes: ['ES'],
+      coveredCountryCodes: ['ES'],
+      uncoveredCountryCodes: [],
+      countries: [{ countryCode: 'ES', covered: true, licenseIds: ['lic-1'], issues: [] }],
+      licenseIds: ['lic-1'],
+      blockers: [],
+      warnings: [],
+      attributionTextsRu: [],
+    },
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
+}));
+
 const mockReview = {
   id: 'review-1',
   rightsProfileId: 'profile-1',
@@ -435,6 +459,51 @@ describe('RightsTab Components (Phase 10)', () => {
       // Copyright Claims & DMCA Placeholder
       expect(screen.getByText('Copyright Claims & DMCA Notices')).toBeInTheDocument();
       expect(screen.getByText('No Active Claims')).toBeInTheDocument();
+    });
+    // Phase 15: license metrics and coverage panel
+    it('renders license metric tiles and the coverage panel when licenses exist', () => {
+      mockUseVersionRightsDashboard.mockReturnValue({
+        data: {
+          ...mockDashboard,
+          summary: {
+            ...mockDashboard.summary,
+            licenseRequiredCountriesCount: 1,
+            licensesCount: 2,
+            licenseCoverageStatus: 'COVERED',
+            expiringSoonLicensesCount: 1,
+          },
+        },
+        isLoading: false,
+        isError: false,
+        refetch: vi.fn(),
+      });
+
+      render(<RightsTab versionId="v1" bookId="b1" lang="en" />);
+
+      expect(screen.getByText('Licenses')).toBeInTheDocument();
+      expect(screen.getByText('Coverage')).toBeInTheDocument();
+      expect(screen.getByText('Expiring')).toBeInTheDocument();
+      expect(screen.getByText('Покрытие лицензиями')).toBeInTheDocument();
+    });
+
+    it('hides the coverage panel when no license is required and none is registered', () => {
+      mockUseVersionRightsDashboard.mockReturnValue({
+        data: {
+          ...mockDashboard,
+          summary: {
+            ...mockDashboard.summary,
+            licenseRequiredCountriesCount: 0,
+            licensesCount: 0,
+          },
+        },
+        isLoading: false,
+        isError: false,
+        refetch: vi.fn(),
+      });
+
+      render(<RightsTab versionId="v1" bookId="b1" lang="en" />);
+
+      expect(screen.queryByText('Покрытие лицензиями')).not.toBeInTheDocument();
     });
   });
 });

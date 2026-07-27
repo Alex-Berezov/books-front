@@ -1,0 +1,27 @@
+@import '@/styles/tokens.scss';
+
+.hint {
+  margin: 0 0 $spacing-md;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.permissions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs $spacing-md;
+  margin-bottom: $spacing-md;
+  padding: $spacing-sm;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+}

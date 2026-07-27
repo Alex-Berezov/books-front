@@ -143,3 +143,18 @@ export {
   useChangeRightsIntakeStatus,
   useArchiveRightsIntake,
 } from './useRightsIntakes';
+
+// Rights Licenses (Phase 15)
+export {
+  rightsLicenseKeys,
+  useRightsLicenses,
+  useRightsLicense,
+  useProfileLicenses,
+  useProfileLicenseCoverage,
+  useVersionLicenseCoverage,
+  useCreateRightsLicense,
+  useUpdateRightsLicense,
+  useRevokeRightsLicense,
+  useLinkRightsLicense,
+  useUnlinkRightsLicense,
+} from './useRightsLicenses';

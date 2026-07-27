@@ -1,0 +1,164 @@
+@import '@/styles/tokens.scss';
+
+.panel {
+  margin-bottom: $spacing-md;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  cursor: pointer;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs $spacing-md;
+  margin-top: $spacing-sm;
+  padding: $spacing-sm;
+  border-block: 1px solid $color-border-light;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+}
+
+.coverage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs $spacing-md;
+  margin-top: $spacing-sm;
+  padding: $spacing-sm;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-xs;
+}
+
+.coverageOk {
+  background: rgba($color-success, 0.12);
+  color: $color-text-primary;
+}
+
+.coverageWarning {
+  background: rgba($color-warning, 0.14);
+  color: $color-text-primary;
+}
+
+.coverageDanger {
+  background: rgba($color-error, 0.12);
+  color: $color-error;
+}
+
+.coverageNeutral {
+  background: $color-background-tertiary;
+  color: $color-text-secondary;
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  margin-top: $spacing-sm;
+  border-collapse: collapse;
+
+  th {
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: 1px solid $color-border-light;
+    color: $color-text-secondary;
+    font-size: 11px;
+    font-weight: $font-weight-semibold;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: 1px dashed $color-border-light;
+    color: $color-text-primary;
+    font-size: $font-size-xs;
+    vertical-align: top;
+  }
+}
+
+.licenseTitle {
+  color: $color-text-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.licenseKey {
+  color: $color-text-secondary;
+  font-size: 11px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.chip {
+  padding: 1px $spacing-xs;
+  border-radius: $border-radius-sm;
+  background: $color-background-tertiary;
+  color: $color-text-secondary;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.linkControl {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.componentSelect {
+  min-width: 160px;
+}
+
+.details {
+  margin-top: $spacing-sm;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+
+  > summary {
+    cursor: pointer;
+  }
+}
+
+.detailsList {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: $spacing-xs $spacing-md;
+  margin: $spacing-xs 0 0;
+
+  dt {
+    color: $color-text-secondary;
+    font-weight: $font-weight-semibold;
+  }
+
+  dd {
+    margin: 0;
+    color: $color-text-primary;
+  }
+}
+
+.empty {
+  margin: $spacing-sm 0 0;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+}

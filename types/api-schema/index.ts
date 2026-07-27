@@ -210,3 +210,27 @@ export type {
   GeoBlockScope,
   VerifyGeoBlockRulesRequest,
 } from './geo-block';
+
+// Rights Licenses (Phase 15)
+export type {
+  CountryCoverageResult,
+  CreateRightsLicenseRequest,
+  LicenseCoverageResult,
+  LicenseCoverageStatus,
+  LicenseIssue,
+  LinkRightsLicenseRequest,
+  QueryRightsLicensesParams,
+  RevokeRightsLicenseRequest,
+  RightsLicense,
+  RightsLicenseEvent,
+  RightsLicenseEventType,
+  RightsLicenseLink,
+  RightsLicenseLinkType,
+  RightsLicenseMediaFormat,
+  RightsLicenseStatus,
+  RightsLicenseSummary,
+  RightsLicenseTerritoryScope,
+  RightsLicenseType,
+  RightsLicensesListResponse,
+  UpdateRightsLicenseRequest,
+} from './rights-licenses';

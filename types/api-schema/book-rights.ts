@@ -39,6 +39,10 @@ export interface BookRightsDashboardVersionSummary {
   rightsStaleDetectedAt?: string | null;
   rightsStaleReasonCode?: string | null;
   rightsStaleReasonRu?: string | null;
+  // Phase 15: license snapshot recorded at publish / book creation time
+  rightsLicenseCoverageStatus?: string | null;
+  rightsLicenseCheckedAt?: string | null;
+  rightsLicenseIds?: string[] | null;
 }
 
 export interface BookRightsDashboardMetrics {
@@ -72,6 +76,16 @@ export interface BookRightsDashboardMetrics {
   pendingReviewRegionCount?: number;
   mixedRegionCount?: number;
   notTargetedRegionCount?: number;
+  // Phase 15: license metrics
+  licensesCount?: number;
+  activeLicensesCount?: number;
+  expiredLicensesCount?: number;
+  revokedLicensesCount?: number;
+  expiringSoonLicensesCount?: number;
+  attributionRequiredLicensesCount?: number;
+  licenseCoverageStatus?: string;
+  licenseCoveredCountriesCount?: number;
+  licenseUncoveredCountriesCount?: number;
 }
 
 export interface BookRightsDashboard {

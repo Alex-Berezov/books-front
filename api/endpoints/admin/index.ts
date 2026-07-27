@@ -54,3 +54,6 @@ export type { GetAuthorsParams } from './authors';
 
 // Rights Intakes Domain
 export * from './rights-intakes';
+
+// Rights Licenses Domain (Phase 15)
+export * from './rights-licenses';

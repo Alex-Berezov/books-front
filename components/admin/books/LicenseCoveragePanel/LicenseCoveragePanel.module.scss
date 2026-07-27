@@ -1,0 +1,129 @@
+@import '@/styles/tokens.scss';
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin: 0;
+  color: $color-text-primary;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.hint {
+  margin: 0;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: $color-error;
+  font-size: $font-size-sm;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: 1px solid $color-border-light;
+    color: $color-text-secondary;
+    font-size: 11px;
+    font-weight: $font-weight-semibold;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: 1px dashed $color-border-light;
+    color: $color-text-primary;
+    font-size: $font-size-xs;
+    vertical-align: top;
+  }
+}
+
+.uncoveredRow {
+  background: rgba($color-error, 0.08);
+
+  td {
+    color: $color-error;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.issues {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.issuesTitle {
+  margin: 0;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  text-transform: uppercase;
+}
+
+.issuesList {
+  margin: 0;
+  padding-left: $spacing-md;
+  color: $color-text-primary;
+  font-size: $font-size-xs;
+}
+
+.code {
+  padding: 0 $spacing-xs;
+  border-radius: $border-radius-sm;
+  background: $color-background-tertiary;
+  font-size: 11px;
+}
+
+.attribution {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.attributionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  padding: $spacing-xs $spacing-sm;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  color: $color-text-primary;
+  font-size: $font-size-xs;
+}

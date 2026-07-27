@@ -312,6 +312,9 @@ export interface ComponentTerritoryAssessment {
   sourceEvidenceIds: string[] | null;
   confidence: string | null;
   notesRu: string | null;
+  /** Phase 15: license that justified this country, when the status is ALLOWED_BY_LICENSE. */
+  licenseId?: string | null;
+  licenseTitle?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -326,6 +329,8 @@ export interface RightsComponent {
   confidence: string;
   notesRu: string | null;
   territoryAssessments: ComponentTerritoryAssessment[];
+  /** Phase 15: licenses linked to this component or to its country assessments. */
+  licenses?: import('./rights-licenses').RightsLicenseSummary[];
   createdAt: string;
   updatedAt: string;
 }
@@ -428,6 +433,8 @@ export interface TerritoryRegionSummary {
   countryCount: number;
   targetedCountryCount: number;
   allowedCountryCount: number;
+  /** Phase 15: subset of allowed countries cleared by a license. */
+  licensedCountryCount?: number;
   blockedCountryCount: number;
   licenseRequiredCountryCount: number;
   pendingReviewCountryCount: number;
@@ -463,6 +470,17 @@ export interface RightsProfileDetail {
   translatorsCount?: number;
   narratorsCount?: number;
   contributorsWithoutPersonCount?: number;
+  // Phase 15: licenses reachable from this profile and their coverage of license-gated markets
+  licenses?: import('./rights-licenses').RightsLicenseSummary[];
+  licenseCoverage?: import('./rights-licenses').LicenseCoverageResult | null;
+  licensesCount?: number;
+  activeLicensesCount?: number;
+  expiredLicensesCount?: number;
+  revokedLicensesCount?: number;
+  expiringSoonLicensesCount?: number;
+  licenseRequiredCountriesCount?: number;
+  licenseCoveredCountriesCount?: number;
+  licenseUncoveredCountriesCount?: number;
   supersededAt: string | null;
   archivedAt: string | null;
   createdAt: string;
@@ -540,6 +558,12 @@ export interface PublicationGateResult {
   contentHashCurrent: string | null;
   contentHashMatches: boolean | null;
   rightsRecheckRequired: boolean;
+  // Phase 15: license coverage of the markets that require a license
+  licenseCoverageStatus?: string | null;
+  licenseRequiredCountryCodes?: string[];
+  licenseCoveredCountryCodes?: string[];
+  licenseUncoveredCountryCodes?: string[];
+  licenseIds?: string[];
 }
 
 export interface UpdateRightsGeoBlockRequest {

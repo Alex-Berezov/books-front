@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useVersionRightsDashboard } from '@/api/hooks/useBookVersions';
 import { BookVersionContributorsPanel } from '@/components/admin/books/BookVersionContributorsPanel/BookVersionContributorsPanel';
 import { GeoBlockRulesPanel } from '@/components/admin/books/GeoBlockRulesPanel/GeoBlockRulesPanel';
+import { LicenseCoveragePanel } from '@/components/admin/books/LicenseCoveragePanel/LicenseCoveragePanel';
 import { PublishPanel } from '@/components/admin/books/PublishPanel/PublishPanel';
 import { RightsContentHashPanel } from '@/components/admin/books/RightsContentHashPanel/RightsContentHashPanel';
 import { ApprovalHistory } from '@/components/admin/RightsIntakeDetail/ApprovalHistory/ApprovalHistory';
@@ -136,6 +137,18 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, lang }) => {
             {summary.narratorsCount ?? 0}
           </span>
         </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Licenses</span>
+          <span className={styles.metricValue}>{summary.licensesCount ?? 0}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Coverage</span>
+          <span className={styles.metricValue}>{summary.licenseCoverageStatus ?? '—'}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Expiring</span>
+          <span className={styles.metricValue}>{summary.expiringSoonLicensesCount ?? 0}</span>
+        </div>
       </div>
 
       {/* 3. Book Version Contributors Management */}
@@ -150,6 +163,13 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, lang }) => {
       {(currentVersion.rightsGeoBlockRequired || summary.blockedCountriesCount > 0) && (
         <div className={styles.section}>
           <GeoBlockRulesPanel versionId={versionId} />
+        </div>
+      )}
+
+      {/* 4b. License coverage of the markets that require a license */}
+      {(summary.licenseRequiredCountriesCount > 0 || (summary.licensesCount ?? 0) > 0) && (
+        <div className={styles.section}>
+          <LicenseCoveragePanel versionId={versionId} />
         </div>
       )}
 

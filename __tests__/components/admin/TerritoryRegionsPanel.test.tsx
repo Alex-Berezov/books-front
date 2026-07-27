@@ -9,6 +9,13 @@ vi.mock('@/api/hooks/useRightsIntakes', () => ({
   useMaterializeRightsReviewImport: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
+vi.mock('@/api/hooks/useRightsLicenses', () => ({
+  useLinkRightsLicense: () => ({ mutate: vi.fn(), isPending: false }),
+  useRevokeRightsLicense: () => ({ mutate: vi.fn(), isPending: false }),
+  useCreateRightsLicense: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateRightsLicense: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+
 vi.mock('@/api/hooks/useContributors', () => ({
   useContributors: () => ({ data: { items: [] }, isLoading: false }),
   useCreateContributor: () => ({ mutateAsync: vi.fn() }),
