@@ -65,6 +65,34 @@
   }
 }
 
+.titleIcon {
+  margin-right: $spacing-xs;
+  vertical-align: middle;
+}
+
+.creditedName {
+  margin-left: $spacing-xs;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-regular;
+  color: $color-text-secondary;
+}
+
+.authorityLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.evidenceIds {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.cardActions {
+  margin-top: $spacing-xs;
+  text-align: right;
+}
+
 .empty {
   padding: $spacing-lg;
   text-align: center;

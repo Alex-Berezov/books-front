@@ -23,8 +23,7 @@ import type {
   LinkRightsComponentContributorPayload,
   LinkSourceEditionContributorPayload,
   QueryContributorsParams,
-  RightsComponentContributorLink,
-  SourceEditionContributorLink,
+  RightsProfileContributor,
   UpdateContributorPayload,
 } from '@/types/contributors';
 
@@ -117,14 +116,14 @@ export const useDeleteContributor = (options?: UseMutationOptions<Contributor, E
 
 export const useLinkSourceEditionContributor = (
   options?: UseMutationOptions<
-    SourceEditionContributorLink,
+    RightsProfileContributor,
     Error,
     { sourceEditionId: string; payload: LinkSourceEditionContributorPayload }
   >
 ) => {
   const queryClient = useQueryClient();
   return useMutation<
-    SourceEditionContributorLink,
+    RightsProfileContributor,
     Error,
     { sourceEditionId: string; payload: LinkSourceEditionContributorPayload }
   >({
@@ -146,17 +145,13 @@ export const useLinkSourceEditionContributor = (
 
 export const useUnlinkSourceEditionContributor = (
   options?: UseMutationOptions<
-    SourceEditionContributorLink,
+    RightsProfileContributor,
     Error,
     { sourceEditionId: string; linkId: string }
   >
 ) => {
   const queryClient = useQueryClient();
-  return useMutation<
-    SourceEditionContributorLink,
-    Error,
-    { sourceEditionId: string; linkId: string }
-  >({
+  return useMutation<RightsProfileContributor, Error, { sourceEditionId: string; linkId: string }>({
     mutationFn: ({ sourceEditionId, linkId }) =>
       unlinkSourceEditionContributor(sourceEditionId, linkId),
     onSuccess: (data, variables, context) => {
@@ -175,14 +170,14 @@ export const useUnlinkSourceEditionContributor = (
 
 export const useLinkRightsComponentContributor = (
   options?: UseMutationOptions<
-    RightsComponentContributorLink,
+    RightsProfileContributor,
     Error,
     { rightsComponentId: string; payload: LinkRightsComponentContributorPayload }
   >
 ) => {
   const queryClient = useQueryClient();
   return useMutation<
-    RightsComponentContributorLink,
+    RightsProfileContributor,
     Error,
     { rightsComponentId: string; payload: LinkRightsComponentContributorPayload }
   >({
@@ -204,14 +199,14 @@ export const useLinkRightsComponentContributor = (
 
 export const useUnlinkRightsComponentContributor = (
   options?: UseMutationOptions<
-    RightsComponentContributorLink,
+    RightsProfileContributor,
     Error,
     { rightsComponentId: string; linkId: string }
   >
 ) => {
   const queryClient = useQueryClient();
   return useMutation<
-    RightsComponentContributorLink,
+    RightsProfileContributor,
     Error,
     { rightsComponentId: string; linkId: string }
   >({

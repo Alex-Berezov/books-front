@@ -45,10 +45,9 @@ const ROLE_LABELS: Record<ContributorRole, string> = {
 };
 
 const CONFIDENCE_COLORS: Record<string, string> = {
-  CONFIRMED: 'green',
-  PROBABLE: 'blue',
-  UNCERTAIN: 'orange',
-  UNKNOWN: 'default',
+  HIGH: 'green',
+  MEDIUM: 'blue',
+  LOW: 'orange',
 };
 
 export const ContributorsPanel: FC<ContributorsPanelProps> = ({
@@ -99,7 +98,7 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
     <div className={styles.contributorsPanel}>
       <div className={styles.header}>
         <h4>
-          <UserCheck size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+          <UserCheck size={18} className={styles.titleIcon} />
           {title} ({count})
         </h4>
         {!readOnly && (sourceEditionId || rightsComponentId) && (
@@ -135,7 +134,7 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
               <div className={styles.name}>
                 {c.displayName}
                 {c.creditedName && c.creditedName !== c.displayName && (
-                  <span style={{ fontSize: '0.85em', color: '#666', marginLeft: 4 }}>
+                  <span className={styles.creditedName}>
                     (в источнике: &ldquo;{c.creditedName}&rdquo;)
                   </span>
                 )}
@@ -155,7 +154,7 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
                     href={`https://viaf.org/viaf/${c.viafId}`}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}
+                    className={styles.authorityLink}
                   >
                     VIAF <ExternalLink size={12} />
                   </a>
@@ -166,14 +165,14 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
                     href={`https://www.wikidata.org/wiki/${c.wikidataId}`}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}
+                    className={styles.authorityLink}
                   >
                     Wikidata <ExternalLink size={12} />
                   </a>
                 )}
 
                 {Array.isArray(c.sourceEvidenceIds) && c.sourceEvidenceIds.length > 0 && (
-                  <span style={{ fontSize: '0.85em', color: '#666' }}>
+                  <span className={styles.evidenceIds}>
                     Evidence: {c.sourceEvidenceIds.join(', ')}
                   </span>
                 )}
@@ -189,15 +188,12 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
             <div key={linkId} className={styles.card}>
               <div className={styles.cardHeader}>
                 <Tag color="blue">{ROLE_LABELS[role] || role}</Tag>
-                <Tag color={CONFIDENCE_COLORS[contributor.identityConfidence] || 'default'}>
-                  {contributor.identityConfidence}
-                </Tag>
               </div>
 
               <div className={styles.name}>
                 {contributor.displayName}
                 {creditedName && creditedName !== contributor.displayName && (
-                  <span style={{ fontSize: '0.85em', color: '#666', marginLeft: 4 }}>
+                  <span className={styles.creditedName}>
                     (в источнике: &ldquo;{creditedName}&rdquo;)
                   </span>
                 )}
@@ -219,9 +215,20 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
                     href={`https://viaf.org/viaf/${contributor.viafId}`}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}
+                    className={styles.authorityLink}
                   >
                     VIAF <ExternalLink size={12} />
+                  </a>
+                )}
+
+                {contributor.wikidataId && (
+                  <a
+                    href={`https://www.wikidata.org/wiki/${contributor.wikidataId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.authorityLink}
+                  >
+                    Wikidata <ExternalLink size={12} />
                   </a>
                 )}
               </div>
@@ -229,7 +236,7 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
               {contributor.notesRu && <div className={styles.notes}>{contributor.notesRu}</div>}
 
               {!readOnly && (
-                <div style={{ marginTop: 8, textAlign: 'right' }}>
+                <div className={styles.cardActions}>
                   <Popconfirm
                     title="Удалить привязку участника?"
                     onConfirm={() => handleRemove(linkId)}

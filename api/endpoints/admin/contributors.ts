@@ -6,8 +6,7 @@ import type {
   LinkRightsComponentContributorPayload,
   LinkSourceEditionContributorPayload,
   QueryContributorsParams,
-  RightsComponentContributorLink,
-  SourceEditionContributorLink,
+  RightsProfileContributor,
   UpdateContributorPayload,
 } from '@/types/contributors';
 
@@ -19,7 +18,6 @@ export const getContributors = async (
   if (params.limit) queryParams.set('limit', String(params.limit));
   if (params.q) queryParams.set('q', params.q);
   if (params.role) queryParams.set('role', params.role);
-  if (params.identityConfidence) queryParams.set('identityConfidence', params.identityConfidence);
 
   const endpoint = `/admin/contributors?${queryParams.toString()}`;
   return httpGetAuth<ContributorListResponse>(endpoint, { requireAuth: true });
@@ -49,8 +47,8 @@ export const deleteContributor = async (id: string): Promise<Contributor> => {
 export const linkSourceEditionContributor = async (
   sourceEditionId: string,
   payload: LinkSourceEditionContributorPayload
-): Promise<SourceEditionContributorLink> => {
-  return httpPostAuth<SourceEditionContributorLink>(
+): Promise<RightsProfileContributor> => {
+  return httpPostAuth<RightsProfileContributor>(
     `/admin/source-editions/${sourceEditionId}/contributors`,
     payload,
     { requireAuth: true }
@@ -60,8 +58,8 @@ export const linkSourceEditionContributor = async (
 export const unlinkSourceEditionContributor = async (
   sourceEditionId: string,
   linkId: string
-): Promise<SourceEditionContributorLink> => {
-  return httpDeleteAuth<SourceEditionContributorLink>(
+): Promise<RightsProfileContributor> => {
+  return httpDeleteAuth<RightsProfileContributor>(
     `/admin/source-editions/${sourceEditionId}/contributors/${linkId}`,
     { requireAuth: true }
   );
@@ -70,8 +68,8 @@ export const unlinkSourceEditionContributor = async (
 export const linkRightsComponentContributor = async (
   rightsComponentId: string,
   payload: LinkRightsComponentContributorPayload
-): Promise<RightsComponentContributorLink> => {
-  return httpPostAuth<RightsComponentContributorLink>(
+): Promise<RightsProfileContributor> => {
+  return httpPostAuth<RightsProfileContributor>(
     `/admin/rights-components/${rightsComponentId}/contributors`,
     payload,
     { requireAuth: true }
@@ -81,8 +79,8 @@ export const linkRightsComponentContributor = async (
 export const unlinkRightsComponentContributor = async (
   rightsComponentId: string,
   linkId: string
-): Promise<RightsComponentContributorLink> => {
-  return httpDeleteAuth<RightsComponentContributorLink>(
+): Promise<RightsProfileContributor> => {
+  return httpDeleteAuth<RightsProfileContributor>(
     `/admin/rights-components/${rightsComponentId}/contributors/${linkId}`,
     { requireAuth: true }
   );

@@ -90,47 +90,25 @@ export interface RightsProfileContributor {
   person?: Person;
 }
 
-export type ContributorIdentityConfidence = 'CONFIRMED' | 'PROBABLE' | 'UNCERTAIN' | 'UNKNOWN';
-
-export interface SourceEditionContributorLink {
-  id: string;
-  sourceEditionId: string;
-  contributorId: string;
-  role: ContributorRole;
-  creditedName?: string | null;
-  evidenceId?: string | null;
-  notesRu?: string | null;
-  createdAt: string;
-}
-
-export interface RightsComponentContributorLink {
-  id: string;
-  rightsComponentId: string;
-  contributorId: string;
-  role: ContributorRole;
-  creditedName?: string | null;
-  notesRu?: string | null;
-  createdAt: string;
-}
-
+/**
+ * Участник в админском каталоге. Физически это запись `Person` —
+ * отдельной таблицы `Contributor` в базе нет (см. фазу 14).
+ */
 export interface Contributor {
   id: string;
   displayName: string;
-  originalName?: string | null;
+  sortName?: string | null;
   birthDate?: string | null;
   deathDate?: string | null;
   birthYear?: number | null;
   deathYear?: number | null;
   nationalityCountry?: string | null;
-  pseudonym?: string | null;
+  publicDomainFromYear?: number | null;
+  wikidataId?: string | null;
   viafId?: string | null;
-  locAuthorityId?: string | null;
-  otherAuthorityIds?: Record<string, unknown> | null;
-  identityConfidence: ContributorIdentityConfidence;
+  isni?: string | null;
+  gutenbergAgentId?: string | null;
   notesRu?: string | null;
-  authorId?: string | null;
-  sourceEditionContributors?: SourceEditionContributorLink[];
-  rightsComponentContributors?: RightsComponentContributorLink[];
   createdAt: string;
   updatedAt: string;
 }
@@ -144,17 +122,16 @@ export interface ContributorListResponse {
 
 export interface CreateContributorPayload {
   displayName: string;
-  originalName?: string;
   birthDate?: string;
   deathDate?: string;
   birthYear?: number;
   deathYear?: number;
   nationalityCountry?: string;
-  pseudonym?: string;
+  publicDomainFromYear?: number;
+  wikidataId?: string;
   viafId?: string;
-  locAuthorityId?: string;
-  otherAuthorityIds?: Record<string, unknown>;
-  identityConfidence?: ContributorIdentityConfidence;
+  isni?: string;
+  gutenbergAgentId?: string;
   notesRu?: string;
   authorId?: string;
 }
@@ -165,7 +142,6 @@ export interface LinkSourceEditionContributorPayload {
   contributorId: string;
   role: ContributorRole;
   creditedName?: string;
-  evidenceId?: string;
   notesRu?: string;
 }
 
@@ -179,7 +155,6 @@ export interface LinkRightsComponentContributorPayload {
 export interface QueryContributorsParams {
   q?: string;
   role?: ContributorRole;
-  identityConfidence?: ContributorIdentityConfidence;
   page?: number;
   limit?: number;
 }

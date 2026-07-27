@@ -2,11 +2,8 @@ import { useEffect } from 'react';
 import type { FC } from 'react';
 import { Form, Input, InputNumber, Modal, Select, message } from 'antd';
 import { useCreateContributor, useContributors } from '@/api/hooks/useContributors';
-import type {
-  Contributor,
-  ContributorIdentityConfidence,
-  ContributorRole,
-} from '@/types/contributors';
+import type { Contributor, ContributorRole } from '@/types/contributors';
+import styles from './ContributorModal.module.scss';
 
 interface ContributorModalProps {
   open: boolean;
@@ -34,13 +31,6 @@ const ROLE_OPTIONS: { label: string; value: ContributorRole }[] = [
   { label: 'Другое (Other)', value: 'OTHER' },
 ];
 
-const CONFIDENCE_OPTIONS: { label: string; value: ContributorIdentityConfidence }[] = [
-  { label: 'Confirmed (Подтверждено)', value: 'CONFIRMED' },
-  { label: 'Probable (Вероятно)', value: 'PROBABLE' },
-  { label: 'Uncertain (Сомнительно)', value: 'UNCERTAIN' },
-  { label: 'Unknown (Неизвестно)', value: 'UNKNOWN' },
-];
-
 export const ContributorModal: FC<ContributorModalProps> = ({
   open,
   onClose,
@@ -63,15 +53,12 @@ export const ContributorModal: FC<ContributorModalProps> = ({
       if (!contributorId) {
         const created = await createMutation.mutateAsync({
           displayName: values.displayName as string,
-          originalName: (values.originalName as string) || undefined,
           birthYear: (values.birthYear as number) || undefined,
           deathYear: (values.deathYear as number) || undefined,
           nationalityCountry: (values.nationalityCountry as string) || undefined,
-          pseudonym: (values.pseudonym as string) || undefined,
+          wikidataId: (values.wikidataId as string) || undefined,
           viafId: (values.viafId as string) || undefined,
-          locAuthorityId: (values.locAuthorityId as string) || undefined,
-          identityConfidence:
-            (values.identityConfidence as ContributorIdentityConfidence) || 'CONFIRMED',
+          isni: (values.isni as string) || undefined,
           notesRu: (values.notesRu as string) || undefined,
         });
         contributorId = created.id;
@@ -102,7 +89,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
         form={form}
         layout="vertical"
         onFinish={handleFinish}
-        initialValues={{ role: 'AUTHOR', identityConfidence: 'CONFIRMED' }}
+        initialValues={{ role: 'AUTHOR' }}
       >
         <Form.Item label="Выбрать существующего участника" name="existingContributorId">
           <Select
@@ -133,34 +120,33 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                   <Input placeholder="Например: Alexander Pope" />
                 </Form.Item>
 
-                <Form.Item label="Имя на языке оригинала" name="originalName">
-                  <Input placeholder="Например: Alexander Pope" />
-                </Form.Item>
-
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <Form.Item label="Год рождения" name="birthYear" style={{ flex: 1 }}>
-                    <InputNumber style={{ width: '100%' }} placeholder="1688" />
+                <div className={styles.fieldRow}>
+                  <Form.Item label="Год рождения" name="birthYear" className={styles.fieldRowItem}>
+                    <InputNumber className={styles.fullWidth} placeholder="1688" />
                   </Form.Item>
-                  <Form.Item label="Год смерти" name="deathYear" style={{ flex: 1 }}>
-                    <InputNumber style={{ width: '100%' }} placeholder="1744" />
+                  <Form.Item label="Год смерти" name="deathYear" className={styles.fieldRowItem}>
+                    <InputNumber className={styles.fullWidth} placeholder="1744" />
                   </Form.Item>
-                  <Form.Item label="Страна (ISO)" name="nationalityCountry" style={{ flex: 1 }}>
+                  <Form.Item
+                    label="Страна (ISO)"
+                    name="nationalityCountry"
+                    className={styles.fieldRowItem}
+                  >
                     <Input placeholder="GB" maxLength={2} />
                   </Form.Item>
                 </div>
 
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <Form.Item label="VIAF ID" name="viafId" style={{ flex: 1 }}>
+                <div className={styles.fieldRow}>
+                  <Form.Item label="VIAF ID" name="viafId" className={styles.fieldRowItem}>
                     <Input placeholder="e.g. 24606633" />
                   </Form.Item>
-                  <Form.Item label="LoC Authority ID" name="locAuthorityId" style={{ flex: 1 }}>
-                    <Input placeholder="e.g. n79084022" />
+                  <Form.Item label="Wikidata ID" name="wikidataId" className={styles.fieldRowItem}>
+                    <Input placeholder="e.g. Q7245" />
+                  </Form.Item>
+                  <Form.Item label="ISNI" name="isni" className={styles.fieldRowItem}>
+                    <Input placeholder="e.g. 0000000121174572" />
                   </Form.Item>
                 </div>
-
-                <Form.Item label="Уверенность идентификации" name="identityConfidence">
-                  <Select options={CONFIDENCE_OPTIONS} />
-                </Form.Item>
               </>
             ) : null
           }
