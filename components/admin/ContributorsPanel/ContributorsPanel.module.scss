@@ -3,8 +3,8 @@
 .contributorsPanel {
   margin-top: $spacing-md;
   padding: $spacing-md;
-  background-color: $color-bg-container;
-  border: 1px solid $color-border-subtle;
+  background-color: $color-background-primary;
+  border: 1px solid $color-border-light;
   border-radius: $border-radius-base;
 }
 
@@ -30,8 +30,8 @@
 
 .card {
   padding: $spacing-sm $spacing-md;
-  background-color: $color-bg-subtle;
-  border: 1px solid $color-border;
+  background-color: $color-background-tertiary;
+  border: 1px solid $color-border-base;
   border-radius: $border-radius-sm;
   display: flex;
   flex-direction: column;
@@ -60,7 +60,7 @@
 
   .notes {
     font-size: $font-size-xs;
-    color: $color-text-muted;
+    color: $color-text-tertiary;
     font-style: italic;
   }
 }
@@ -68,6 +68,6 @@
 .empty {
   padding: $spacing-lg;
   text-align: center;
-  color: $color-text-muted;
+  color: $color-text-tertiary;
   font-size: $font-size-sm;
 }
