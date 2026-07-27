@@ -9,6 +9,15 @@ vi.mock('@/api/hooks/useRightsIntakes', () => ({
   useMaterializeRightsReviewImport: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
+vi.mock('@/api/hooks/useContributors', () => ({
+  useContributors: () => ({ data: { items: [] }, isLoading: false }),
+  useCreateContributor: () => ({ mutateAsync: vi.fn() }),
+  useLinkSourceEditionContributor: () => ({ mutateAsync: vi.fn() }),
+  useUnlinkSourceEditionContributor: () => ({ mutateAsync: vi.fn() }),
+  useLinkRightsComponentContributor: () => ({ mutateAsync: vi.fn() }),
+  useUnlinkRightsComponentContributor: () => ({ mutateAsync: vi.fn() }),
+}));
+
 const mockRegions: TerritoryRegionSummary[] = [
   {
     regionCode: 'US',

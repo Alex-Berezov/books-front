@@ -5,6 +5,7 @@ import {
   useMaterializeRightsReviewImport,
   useCurrentRightsProfile,
 } from '@/api/hooks/useRightsIntakes';
+import { ContributorsPanel } from '@/components/admin/ContributorsPanel/ContributorsPanel';
 import { ComponentTerritoryAssessmentsPanel } from '@/components/admin/RightsIntakeDetail/ComponentTerritoryAssessmentsPanel/ComponentTerritoryAssessmentsPanel';
 import { TerritoryRegionsPanel } from '@/components/admin/RightsIntakeDetail/TerritoryRegionsPanel/TerritoryRegionsPanel';
 import type {
@@ -277,6 +278,8 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
               </details>
 
               <ComponentTerritoryAssessmentsPanel components={currentProfile.components} />
+
+              <ContributorsPanel sourceEditionId={currentProfile.sourceEdition?.id} />
 
               <details className={styles.collapsible} open>
                 <summary>Required Actions ({currentProfile.actions.length})</summary>
