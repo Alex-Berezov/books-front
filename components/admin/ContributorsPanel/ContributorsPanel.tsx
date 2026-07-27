@@ -171,6 +171,12 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
                     Wikidata <ExternalLink size={12} />
                   </a>
                 )}
+
+                {Array.isArray(c.sourceEvidenceIds) && c.sourceEvidenceIds.length > 0 && (
+                  <span style={{ fontSize: '0.85em', color: '#666' }}>
+                    Evidence: {c.sourceEvidenceIds.join(', ')}
+                  </span>
+                )}
               </div>
 
               {c.notesRu && <div className={styles.notes}>{c.notesRu}</div>}

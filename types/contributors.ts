@@ -82,6 +82,7 @@ export interface RightsProfileContributor {
   viafId?: string | null;
   isni?: string | null;
   gutenbergAgentId?: string | null;
+  creditedLanguage?: string | null;
   publicDomainFromYear?: number | null;
   sourceEvidenceIds?: string[] | null;
   confidence?: string | null;

@@ -34,6 +34,14 @@ vi.mock('@/api/hooks/useContributors', () => ({
   useUnlinkRightsComponentContributor: () => ({ mutateAsync: vi.fn() }),
 }));
 
+vi.mock('@/api/hooks/useBookVersionContributors', () => ({
+  useBookVersionContributors: () => ({ data: [], isLoading: false }),
+  useAddBookVersionContributor: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateBookVersionContributor: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useRemoveBookVersionContributor: () => ({ mutate: vi.fn() }),
+  useReorderBookVersionContributors: () => ({ mutateAsync: vi.fn() }),
+}));
+
 vi.mock('@/api/hooks/useRightsIntakes', () => ({
   useCurrentRightsProfile: () => ({ data: null, isLoading: false }),
   useMaterializeRightsReviewImport: () => ({ mutate: vi.fn(), isPending: false }),

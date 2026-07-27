@@ -4,6 +4,7 @@ import { type FC } from 'react';
 import { ExternalLink, ShieldCheck, Scale, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useVersionRightsDashboard } from '@/api/hooks/useBookVersions';
+import { BookVersionContributorsPanel } from '@/components/admin/books/BookVersionContributorsPanel/BookVersionContributorsPanel';
 import { GeoBlockRulesPanel } from '@/components/admin/books/GeoBlockRulesPanel/GeoBlockRulesPanel';
 import { PublishPanel } from '@/components/admin/books/PublishPanel/PublishPanel';
 import { RightsContentHashPanel } from '@/components/admin/books/RightsContentHashPanel/RightsContentHashPanel';
@@ -124,9 +125,25 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, lang }) => {
           <span className={styles.metricLabel}>Blocking Actions</span>
           <span className={styles.metricValue}>{summary.unresolvedBlockingActionsCount}</span>
         </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Contributors</span>
+          <span className={styles.metricValue}>{summary.contributorsCount ?? 0}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Authors / Translators / Narrators</span>
+          <span className={styles.metricValue}>
+            {summary.authorsCount ?? 0} / {summary.translatorsCount ?? 0} /{' '}
+            {summary.narratorsCount ?? 0}
+          </span>
+        </div>
       </div>
 
-      {/* 3. Language Versions Overview */}
+      {/* 3. Book Version Contributors Management */}
+      <div className={styles.section}>
+        <BookVersionContributorsPanel versionId={versionId} />
+      </div>
+
+      {/* 4. Language Versions Overview */}
       <RightsTabVersions versions={versions} currentVersionId={currentVersion.id} lang={lang} />
 
       {/* 4. Runtime GeoIP enforcement */}

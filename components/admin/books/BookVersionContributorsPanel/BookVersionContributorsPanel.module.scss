@@ -1,0 +1,66 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  background: var(--color-bg-card, #ffffff);
+  border: 1px solid var(--color-border, #e8e8e8);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+
+  h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+}
+
+.empty {
+  color: var(--color-text-secondary, #8c8c8c);
+  font-style: italic;
+  padding: 12px 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--color-bg-subtle, #fafafa);
+  border: 1px solid var(--color-border-subtle, #f0f0f0);
+  border-radius: 6px;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.name {
+  font-weight: 500;
+}
+
+.credited {
+  font-size: 0.85em;
+  color: var(--color-text-secondary, #666666);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
