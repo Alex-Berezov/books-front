@@ -54,7 +54,7 @@ Bibliaris состоит из трёх независимых git-репозит
 
 ## Обновление документации — обязательная часть задачи
 
-Документация — не побочный артефакт. После каждой нетривиальной задачи выполняй Docs Update Check из `AGENTS.md` и `ai-context/agent-rules.md`:
+Документация — не побочный артефакт. После каждой нетривиальной задачи выполняй Docs Update Check (см. также `ai-context/agent-rules.md`):
 
 - меняли API/DTO → `ai-context/api-contracts.md`, `backend/api/endpoints.md`;
 - меняли сущности → `ai-context/content-model.md`, `ai-context/database-schema.md`;
@@ -67,27 +67,6 @@ Bibliaris состоит из трёх независимых git-репозит
 
 ---
 
-## Quality gates (этот репозиторий)
+## Quality gates, код-стиль, жёсткие ограничения
 
-```bash
-yarn validate     # lint + typecheck (основная проверка)
-yarn lint
-yarn typecheck
-yarn test         # vitest run
-```
-
-Если в той же задаче менялся бэкенд — прогнать и его проверки:
-
-```bash
-cd D:\newDev\books && yarn lint && yarn typecheck && yarn test
-```
-
-Код-стиль: `D:\newDev\books-front\CODE_STYLE.md` (фронт), `D:\newDev\books\STYLE_GUIDE.md` (бэк). Файлы большие — читать по мере необходимости, не целиком.
-
----
-
-## Жёсткие ограничения
-
-- **БД недоступна локально.** Бэкенд живёт только в Docker на VPS. Никаких `prisma migrate` / `prisma seed` / `prisma generate` / `psql` локально — эти команды заблокированы в `.claude/settings.json`.
-- **Никогда не коммитить и не пушить без явного разрешения** — ни в одном из трёх репозиториев.
-- Без `any`, `@ts-ignore`, inline-стилей. Лишние `.md`-файлы и комментарии не создавать без просьбы.
+Все обязательные правила — команды проверок, запрет на `any`/`@ts-ignore`/inline-стили, запрет коммитить без разрешения, недоступность БД локально — описаны в `AGENTS.md` выше. Полная матрица проверок: `ai-context/quality-gates.md`.

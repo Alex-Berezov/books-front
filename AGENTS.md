@@ -1,6 +1,7 @@
 # AI Agent Guide — Bibliaris Frontend
 
 > Read this file BEFORE starting any development task.
+> Reference material lives in `D:\newDev\books-app-docs` — read it on demand instead of duplicating it here.
 
 ---
 
@@ -8,33 +9,32 @@
 
 **Bibliaris** — multilingual audiobook platform for classic literature.
 
-- **Languages:** en, es, fr, pt, ru (5 supported)
 - **Stack:** Next.js 14 (App Router), TypeScript, Ant Design 5, React Query, NextAuth.js v5
 - **Backend API:** `https://api.bibliaris.com/api`
-- **Package Manager:** Yarn (NOT npm/pnpm)
+- **Package manager:** Yarn (NOT npm/pnpm)
 
 ---
 
-## Documentation Access
+## Where to read what
 
-Project documentation lives in a separate repository: `D:\newDev\books-app-docs`. Read the files directly — no MCP server is required.
+Documentation repo: `D:\newDev\books-app-docs`. Read it directly with Read/Grep/Glob — no MCP server needed.
+Start with `ai-context/README.md` (index) and `ai-context/agent-rules.md` (mandatory agent rules).
+The full task → document map is in `CLAUDE.md`. **Do not read `ai-context/` wholesale** — it burns context.
 
-Key documentation paths (relative to `D:\newDev\books-app-docs\`):
+| Need                                    | Document                               |
+| --------------------------------------- | -------------------------------------- |
+| Component catalog + what NOT to rebuild | `ai-context/ui-kit.md`                 |
+| Folder/file map of all three repos      | `ai-context/folder-structure.md`       |
+| Full quality-gate matrix, CI guards     | `ai-context/quality-gates.md`          |
+| Project status, current focus           | `ai-context/current-sprint.md`         |
+| API endpoint catalog                    | `backend/api/endpoints.md`             |
+| VPS deploy commands (user runs them)    | `backend/deployment/quick-commands.md` |
 
-- `ai-context/README.md` — index: which document to read for which task (**start here**)
-- `ai-context/agent-rules.md` — mandatory rules for AI agents (read first)
-- `ai-context/frontend.md` — frontend structure, routing, how to add a feature
-- `frontend/frontend-agents/` — API integration guides
-- `backend/api/endpoints.md` — full API endpoints catalog
+**Before building any component, check `ai-context/ui-kit.md`.** It lists what already exists — `FaqBlock`, `QuotesBlock`, `SlugInput`, `RichTextEditor`, `SeoSections` — and what is explicitly forbidden to recreate.
 
 ---
 
-## Code Style Rules
-
-- Frontend CODE_STYLE Read file D:\newDev\books-front\CODE_STYLE.md
-- Backend STYLE_GUIDE D:\newDev\books\STYLE_GUIDE.md
-
-### 🔴 MANDATORY: ESLint Import Ordering Rules (`import/order`)
+## 🔴 MANDATORY: ESLint Import Ordering Rules (`import/order`)
 
 Every modified or newly created file MUST strictly satisfy ESLint `import/order`.
 
@@ -50,105 +50,66 @@ Every modified or newly created file MUST strictly satisfy ESLint `import/order`
 
 - Always run `yarn lint` or `npx eslint <path> --fix` before completing any frontend task to ensure 0 `import/order` warnings/errors!
 
-## Language Support
+---
 
-**Supported languages:** `en`, `es`, `fr`, `pt`, `ru`
+## Code Style
 
-**Single source of truth:** `lib/i18n/lang.ts`
+- Frontend: `D:\newDev\books-front\CODE_STYLE.md` — read sections as needed, the file is large.
+- Backend: `D:\newDev\books\STYLE_GUIDE.md`
+- **Zero `any`, zero `@ts-ignore`, zero inline styles.** Named exports, `import type` for types.
+- Every `.module.scss` starts with `@import '@/styles/tokens.scss';` and uses design tokens for all colors and spacing.
+- Do not create extra `.md` files or comments unless asked.
 
-```typescript
-export const SUPPORTED_LANGS = ['en', 'es', 'fr', 'pt', 'ru'] as const;
-```
+---
 
-**i18n routing:** URL prefix `/:lang` (e.g., `/en/books`, `/ru/books`)
+## i18n
 
-**Language utilities:**
-
-- `lib/i18n/lang.ts` — `SUPPORTED_LANGS`, `isSupportedLang()`, `switchLangInPath()`
-- `lib/i18n/dictionaries.ts` — translation dictionaries
-- `lib/i18n/useTranslation.ts` — translation hook
+- **Single source of truth:** `lib/i18n/lang.ts` → `SUPPORTED_LANGS = ['en', 'es', 'fr', 'pt', 'ru']`
+- Changing it requires syncing the Prisma `Language` enum in `books` **and** `ai-context/translation-rules.md`. CI guard: `yarn check:langs`.
+- Routing: URL prefix `/:lang` (`/en/books`, `/ru/books`).
+- Utilities: `lang.ts` (`isSupportedLang`, `switchLangInPath`), `dictionaries.ts`, `useTranslation.ts`.
 
 ---
 
 ## Backend API
 
-**Base URL:** `https://api.bibliaris.com/api`
-
-**Important URL structure:**
-
-- API endpoints: `/api/*` (e.g., `/api/books`, `/api/auth/login`)
-- Swagger docs: `/docs` (NOT `/api/docs`)
-- OpenAPI spec: `/docs-json` (NOT `/api/docs-json`)
-
-**Authentication:**
-
-- Public endpoints: no token needed (`GET /api/books`, `GET /api/:lang/pages/:slug`)
-- Protected endpoints: require `Authorization: Bearer {token}` header
-- Token types: accessToken (12h), refreshToken (7d)
-
-**Full API documentation:** `books-app-docs/backend/api/endpoints.md`
+- Base URL `https://api.bibliaris.com/api`; endpoints live under `/api/*`.
+- Swagger UI is `/docs`, OpenAPI spec is `/docs-json` — **not** `/api/docs-json`. There is a CI lint enforcing this in the docs repo.
+- Public endpoints need no token. Protected ones need `Authorization: Bearer {token}` (accessToken 12h, refreshToken 7d).
+- Use the typed client from `lib/api/`, send `Accept-Language` from the current `:lang`, handle 401 / 403 / 404 / 429.
+- Endpoint catalog: `books-app-docs/backend/api/endpoints.md`.
 
 ---
 
-## Backend Repository
+## Backend Repository Constraints
 
-**Location:** `D:\newDev\books` (NestJS + Prisma + PostgreSQL)
+`D:\newDev\books` (NestJS + Prisma + PostgreSQL). **The backend runs only in Docker on a VPS — there is no local database.**
 
-**CRITICAL: Backend runs ONLY in Docker on a VPS!**
+**NEVER run locally:** `prisma migrate`, `prisma seed`, `prisma generate`, `psql`, or the backend server itself. These are blocked in `.claude/settings.json`.
 
-- Backend is deployed on a VPS inside a Docker container
-- Database (PostgreSQL) is NOT available on localhost
-- **NEVER** attempt to run database migrations, seeds, or queries locally
-- **NEVER** run `yarn prisma:migrate`, `yarn prisma:seed`, `npx prisma generate`, or `psql` commands
-- All backend changes (schema, migrations, DTOs) must be reviewed by the user before deployment
-- To test backend changes, the user will deploy them to VPS manually
+**You may:** read and modify schema, DTOs, services, controllers; write migration SQL into `prisma/migrations/` for the user to apply on the VPS.
 
-**What you CAN do with backend code:**
+All backend changes must be reviewed by the user before deployment.
 
-- Read and modify schema, DTOs, services, controllers
-- Create migration SQL files in `prisma/migrations/` (user will apply them on VPS)
-- Review and suggest backend improvements
+---
 
-**What you CANNOT do:**
+## Common Tasks
 
-- Run the backend server locally
-- Connect to the database
-- Execute migrations, seeds, or `prisma generate`
-- Test API endpoints against local server
+**New component** — `components/{area}/{ComponentName}/{ComponentName}.tsx` plus `{ComponentName}.module.scss`. Named export, exported props type.
 
-**Deploying backend changes (user's workflow on VPS):**
+**New page** — `app/[lang]/` (public) or `app/admin/[lang]/`. Add `generateMetadata()`; public pages need canonical + hreflang (`ai-context/seo-rules.md`). Prefer server components for initial data fetching.
+
+**Type errors after API changes** — regenerate from OpenAPI: `npx openapi-typescript https://api.bibliaris.com/docs-json -o types/api.ts`. Details: `frontend/FRONTEND_TYPE_SYNC_GUIDE.md`.
+
+---
+
+## Quality Gates
+
+**MANDATORY before reporting a task complete:**
 
 ```bash
-# 1. SSH into the VPS
-ssh user@vps-host
-
-# 2. Navigate to the project directory
-cd /path/to/books
-
-# 3. Pull latest code (if using git)
-git pull
-
-# 4. Rebuild and restart the Docker container
-docker compose up -d --build
-
-# 5. Run migrations inside the container
-docker compose exec app npx prisma migrate deploy
-
-# 6. Regenerate Prisma Client (if schema changed)
-docker compose exec app npx prisma generate
-
-# 7. Restart to apply changes
-docker compose restart
-```
-
-## Validation Workflow & Quality Gates
-
-**MANDATORY after every change:**
-
-```bash
-yarn lint
-yarn typecheck
-yarn test
+yarn validate     # lint + typecheck — основная проверка
+yarn test         # vitest run
 ```
 
 If backend code was modified as well:
@@ -157,240 +118,27 @@ If backend code was modified as well:
 cd D:\newDev\books && yarn lint && yarn typecheck && yarn test
 ```
 
-### Strict Quality Rules:
-
-- **NEVER IGNORE LINT WARNINGS OR ERRORS**: All ESLint warnings and errors in modified or newly created files MUST be resolved prior to declaring task completion.
-- **ZERO `any` USAGE**: Using `any` or `@ts-ignore` is strictly prohibited.
-- **MANDATORY VERIFICATION**: Always run `yarn lint`, `yarn typecheck`, and `yarn test` before reporting task completion to the user.
-
----
-
-## Post-Task Checklist
-
-После завершения задачи **обязательно** выполнить:
-
-### 1. Code Style Check
-
-- Если менялся frontend — сверить изменения с `CODE_STYLE.md` (inline-стили, `any`/`@ts-ignore`, named exports, импорты, и т.д.)
-- Если менялся backend — сверить изменения с `books/STYLE_GUIDE.md`
-- Если ни то, ни другое не нарушено — явно указать в ответе: "всё соответствует кодстайлу"
-
-### 2. Docs Update Check
-
-> Пути ниже указаны относительно `D:\newDev\books-app-docs\`. Имена без папки (`api-contracts.md`, `content-model.md` и т.п.) лежат в `ai-context/`.
-
-- Проверить, нужно ли обновлять документацию в `books-app-docs`:
-  - Менялись ли API-контракты/эндпоинты/DTO? → обновить `api-contracts.md` или `backend/api/endpoints.md`
-  - Менялась ли контентная модель/сущности? → обновить `content-model.md` или `database-schema.md`
-  - Менялись ли бизнес-правила (SEO, i18n, таксономии, public domain)? → обновить соответствующий документ в `ai-context/`
-  - Менялся ли `SUPPORTED_LANGS`? → синхронизировать frontend/backend + docs
-  - Другие изменения, затрагивающие задокументированное поведение
-- Если документация не требует правок — явно указать: "документация не требует обновления"
-
-### 3. Quality Gates
-
-- `yarn lint` + `yarn typecheck` + `yarn test` — обязательно
-- При любых изменениях бэкенда: `cd D:\newDev\books && yarn lint && yarn typecheck && yarn test`
+- **NEVER ignore lint warnings or errors** in files you created or modified — resolve them all before declaring completion.
+- Full matrix (e2e, coverage thresholds, CI guards): `ai-context/quality-gates.md`.
 
 ---
 
 ## Git Workflow
 
-**CRITICAL RULE: NEVER commit or push without explicit user permission!**
+**CRITICAL: NEVER run `git commit` or `git push` without explicit user permission** — in any of the three repositories.
 
-The AI agent must **NEVER** execute `git commit` or `git push` on its own. All changes must be reviewed by the user first.
+Correct flow: implement → `yarn validate` → show the user a diff summary → **wait for review** → commit only if explicitly asked.
 
-**Correct workflow:**
-
-1. Complete the task
-2. Run `yarn typecheck && yarn lint`
-3. Show the user what was changed (diff summary)
-4. **WAIT for user to review the code**
-5. **Only commit/push if user explicitly asks to do so**
-
-**Example of correct behavior:**
-
-```
-✅ "Changes are ready. Here's what was modified:
-    - file1.tsx: added filter logic
-    - file2.ts: updated types
-
-    Run `git diff` to review. Should I commit and push?"
-```
-
-**Example of WRONG behavior:**
-
-```
-❌ Automatically running git commit and git push without asking
-```
+Each repository is a separate git. For git operations in another repo use `git -C D:\newDev\books ...`, never `cd`.
 
 ---
 
-## Project Structure
+## Post-Task Checklist
 
-```
-books-front/
-├── app/
-│   ├── [lang]/              # Public pages with i18n (en|es|fr|pt|ru)
-│   ├── admin/[lang]/        # Admin panel with i18n
-│   └── (neutral)/           # Language-neutral routes (e.g., /versions/[id])
-├── lib/
-│   ├── i18n/                # Internationalization utilities
-│   └── api/                 # API client utilities
-├── components/
-│   ├── common/              # Reusable UI components
-│   └── admin/               # Admin-specific components
-├── providers/               # React Query, AntD, Auth providers
-├── styles/
-│   └── tokens.scss          # Design tokens (colors, spacing, typography)
-└── types/                   # TypeScript type definitions
-```
+1. **Code style** — compare the diff against `CODE_STYLE.md` (frontend) / `STYLE_GUIDE.md` (backend). If nothing is violated, say so explicitly.
+2. **Docs update** — run the Docs Update Check from `CLAUDE.md`; always add an entry to `ai-context/changelog.md`. If no doc changes are needed, say so explicitly. Tech debt found outside the task scope goes to `ai-context/legacy-warnings.md` — record it, do not fix it.
+3. **Quality gates** — the commands above.
 
 ---
 
-## Common Tasks
-
-### Creating a new component
-
-1. Create component file: `components/{area}/{ComponentName}/{ComponentName}.tsx`
-2. Create SCSS module: `components/{area}/{ComponentName}/{ComponentName}.module.scss`
-3. Start SCSS with `@import '@/styles/tokens.scss';`
-4. Use design tokens for all colors and spacing
-5. Export component and props type
-
-### Adding a new page
-
-1. Create page in `app/[lang]/` or `app/admin/[lang]/`
-2. Use `generateMetadata()` for SEO (see `frontend/frontend-agents/seo.md`)
-3. Include canonical and hreflang tags for public pages
-4. Use server components for initial data fetching
-
-### Working with API
-
-1. Use typed HTTP client from `lib/api/`
-2. Include `Accept-Language` header from current `:lang`
-3. Include `Authorization` header for protected endpoints
-4. Handle errors properly (401, 403, 404, 429)
-
----
-
-## Reusable Components
-
-**BEFORE building something new, check if a reusable component already exists in `components/common/`.**
-
-### FaqBlock — FAQ accordion with JSON-LD
-
-**Location:** `components/common/FaqBlock/FaqBlock.tsx`
-
-Renders FAQ items as an accessible `<details>`/`<summary>` accordion with built-in JSON-LD structured data (FAQPage schema).
-
-**Props:**
-
-| Prop         | Type                   | Default | Description                           |
-| ------------ | ---------------------- | ------- | ------------------------------------- |
-| `items`      | `FaqItem[]` (required) | —       | Array of `{ question, answer }`       |
-| `title`      | `string`               | `"FAQ"` | Section heading text                  |
-| `showJsonLd` | `boolean`              | `true`  | Controls JSON-LD script injection     |
-| `className`  | `string`               | `''`    | Extra CSS class for outer `<section>` |
-| `icon`       | `ReactNode`            | —       | Optional icon before the title        |
-
-**Import:**
-
-```tsx
-import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
-```
-
-**Used by:** homepage, author detail, category/genre/collection detail, tag detail, taxonomy overview pages.
-
-### QuotesBlock — Quote cards with grid layout
-
-**Location:** `components/common/QuotesBlock/QuotesBlock.tsx`
-
-Renders quotes as styled `<blockquote>` cards in a responsive 2-column grid with left terracotta border.
-
-**Props:**
-
-| Prop        | Type                     | Default    | Description                           |
-| ----------- | ------------------------ | ---------- | ------------------------------------- |
-| `items`     | `QuoteItem[]` (required) | —          | Array of `{ text, source?, author? }` |
-| `title`     | `string`                 | `"Quotes"` | Section heading text                  |
-| `className` | `string`                 | `''`       | Extra CSS class for outer `<section>` |
-| `icon`      | `ReactNode`              | —          | Optional icon before the title        |
-
-The component checks `source` first, then falls back to `author` for the attribution line.
-
-**Import:**
-
-```tsx
-import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
-```
-
-**Used by:** author detail page, book detail page.
-
----
-
-## Post-Task Checklist Details
-
-### Code Style Check (применять после каждой нетривиальной задачи)
-
-| Что трогали | Где проверять               | Что проверять                                                                                |
-| ----------- | --------------------------- | -------------------------------------------------------------------------------------------- |
-| Frontend    | `books-front/CODE_STYLE.md` | inline-стили, `any`/`@ts-ignore`, named exports, `import type`, импорты, naming, комментарии |
-| Backend     | `books/STYLE_GUIDE.md`      | DTO-структура, early throw, controller/service split, guards, swagger-декораторы             |
-| Оба         | оба файла                   | всё выше                                                                                     |
-
-### Docs Update Check (что может потребовать обновления)
-
-> Пути относительно `D:\newDev\books-app-docs\`. Имена без папки лежат в `ai-context/`.
-
-| Изменение                       | Документ для обновления                                                         |
-| ------------------------------- | ------------------------------------------------------------------------------- |
-| API-контракты / эндпоинты / DTO | `api-contracts.md` или `backend/api/endpoints.md`                               |
-| Сущности / модель данных        | `content-model.md` или `database-schema.md`                                     |
-| SEO-правила                     | `seo-rules.md`                                                                  |
-| i18n / языки                    | `translation-rules.md`; если `SUPPORTED_LANGS` — синхронизация frontend+backend |
-| Таксономии                      | `taxonomy-rules.md`                                                             |
-| Public domain / копирайт        | `public-domain-rules.md`                                                        |
-| Auth / permissions              | `auth-and-permissions.md`                                                       |
-| Архитектурные изменения         | `architecture.md`, возможно ADR в `adr/`                                        |
-| Зависимости                     | `tech-stack.md` и `dependency-policy.md`                                        |
-
-Если документация не требует правок — явно указать: "документация не требует обновления".
-
----
-
-## Troubleshooting
-
-### Build fails with SCSS variable errors
-
-- Check that `.module.scss` starts with `@import '@/styles/tokens.scss';`
-- Verify variable names (use `$font-size-base`, not `$font-size-md`)
-
-### 401 Unauthorized on API calls
-
-- Check if endpoint requires authentication
-- Add `Authorization: Bearer {token}` header
-- Verify token is not expired
-
-### Type errors after API changes
-
-- Regenerate types from OpenAPI: `npx openapi-typescript https://api.bibliaris.com/docs-json -o types/api.ts`
-- Or update types manually in `types/` directory
-
----
-
-## Additional Resources
-
-- **Full code style:** `D:\newDev\books-front\CODE_STYLE.md`
-- **AI checklist:** `D:\newDev\books-front\.ai-agent-checklist.md`
-- **Backend API reference:** `books-app-docs/frontend/frontend-agents/backend-api-reference.md`
-- **Architecture guide:** `books-app-docs/frontend/frontend-agents/architecture-and-routing.md`
-
----
-
-**Last Updated:** July 27, 2026
-**Status:** Project implemented and published; development proceeds iteratively. The formal milestone scheme (M0–M10) is no longer tracked — do not use milestones for planning/status assessment.
-**Supported Languages:** en, es, fr, pt, ru
-**P4 Content Quality:** implemented — empty book listing pages (landing + taxonomy detail) set `noindex, follow` in `generateMetadata`, excluded from sitemap when `total === 0`. Footer audiobooks link conditional server-side. Docs: `ai-context/seo-rules.md` and `frontend/frontend-agents/api-cheatsheet.md` updated.
-**P5 Approval Workflow:** ✅ Completed July 24, 2026 — RightsReviewStatus/RightsProfileStatus enums expanded, RightsReviewApproval audit trail model, approve/reject API endpoints with full business logic (publication gate check, blocking actions check, intake status updates, intakeId validation), frontend ApprovalPanel (with BLOCK/unresolved blocking disable logic) + ApprovalState + ApprovalHistory components. Re-import allowed for HUMAN_REVIEW_REQUIRED/APPROVED/REJECTED statuses. Migration fixed to map IMPORTED via USING clause. 403 tests pass.
-**P6 Create Book from Approved Clearance:** ✅ Completed July 24, 2026 — Book/BookVersion models extended with rights fields, RightsBookCreationService with full validation (status checks, publicationGate, blocking actions, slug uniqueness, targetLanguages), POST /admin/rights/intakes/:id/create-book endpoint, frontend CreateBookFromClearanceForm component with rights summary. 427 tests pass.
+**Project status, current focus and completed phases:** `books-app-docs/ai-context/current-sprint.md` (do not track status here — it goes stale).
