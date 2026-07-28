@@ -15,6 +15,7 @@ import {
   Users,
   User,
   ClipboardList,
+  ShieldAlert,
 } from 'lucide-react';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
@@ -37,6 +38,12 @@ export const getAdminMenuItems = (lang: SupportedLang): AdminMenuItem[] => [
     label: 'Rights Intakes',
     icon: ClipboardList,
     path: `/admin/${lang}/rights-intakes`,
+  },
+  {
+    id: 'rights-claims',
+    label: 'Rights Claims',
+    icon: ShieldAlert,
+    path: `/admin/${lang}/rights-claims`,
   },
   {
     id: 'books',

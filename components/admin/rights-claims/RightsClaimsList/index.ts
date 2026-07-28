@@ -1,0 +1,1 @@
+export { RightsClaimsList } from './RightsClaimsList';

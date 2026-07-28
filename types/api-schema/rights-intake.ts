@@ -564,6 +564,15 @@ export interface PublicationGateResult {
   licenseCoveredCountryCodes?: string[];
   licenseUncoveredCountryCodes?: string[];
   licenseIds?: string[];
+  // Phase 16: rights claims / DMCA
+  activeClaimsCount?: number;
+  blockingClaimsCount?: number;
+  criticalClaimsCount?: number;
+  overdueClaimsCount?: number;
+  claimBlockedCountryCodes?: string[];
+  hasWorldwideClaimBlock?: boolean;
+  worstClaimSeverity?: string | null;
+  claimIds?: string[];
 }
 
 export interface UpdateRightsGeoBlockRequest {

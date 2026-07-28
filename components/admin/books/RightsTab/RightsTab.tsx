@@ -1,13 +1,21 @@
 'use client';
 
 import { type FC } from 'react';
-import { ExternalLink, ShieldCheck, Scale, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import {
+  ExternalLink,
+  ShieldAlert,
+  ShieldCheck,
+  Scale,
+  AlertTriangle,
+  CheckCircle2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useVersionRightsDashboard } from '@/api/hooks/useBookVersions';
 import { BookVersionContributorsPanel } from '@/components/admin/books/BookVersionContributorsPanel/BookVersionContributorsPanel';
 import { GeoBlockRulesPanel } from '@/components/admin/books/GeoBlockRulesPanel/GeoBlockRulesPanel';
 import { LicenseCoveragePanel } from '@/components/admin/books/LicenseCoveragePanel/LicenseCoveragePanel';
 import { PublishPanel } from '@/components/admin/books/PublishPanel/PublishPanel';
+import { RightsClaimsPanel } from '@/components/admin/books/RightsClaimsPanel/RightsClaimsPanel';
 import { RightsContentHashPanel } from '@/components/admin/books/RightsContentHashPanel/RightsContentHashPanel';
 import { ApprovalHistory } from '@/components/admin/RightsIntakeDetail/ApprovalHistory/ApprovalHistory';
 import { RightsProfilePanel } from '@/components/admin/RightsIntakeDetail/RightsProfilePanel/RightsProfilePanel';
@@ -15,7 +23,6 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PublicationStatus } from '@/types/api-schema';
 import type { SourceEdition } from '@/types/api-schema/rights-intake';
 import styles from './RightsTab.module.scss';
-import { RightsTabClaims } from './RightsTabClaims';
 import { RightsTabEmptyState } from './RightsTabEmptyState';
 import { RightsTabReviews } from './RightsTabReviews';
 import { RightsTabSourceEdition } from './RightsTabSourceEdition';
@@ -27,7 +34,7 @@ export interface RightsTabProps {
   lang: SupportedLang;
 }
 
-export const RightsTab: FC<RightsTabProps> = ({ versionId, lang }) => {
+export const RightsTab: FC<RightsTabProps> = ({ versionId, bookId, lang }) => {
   const { data: dashboard, isLoading, isError, refetch } = useVersionRightsDashboard(versionId);
 
   if (isLoading) {
@@ -91,6 +98,13 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, lang }) => {
               Stale / Hash Mismatch
             </span>
           )}
+
+          {currentVersion.rightsClaimBlockActive && (
+            <span className={styles.badge} data-status="BLOCK">
+              <ShieldAlert size={14} />
+              Claim block active
+            </span>
+          )}
         </div>
 
         {book.rightsIntakeId && (
@@ -149,6 +163,18 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, lang }) => {
           <span className={styles.metricLabel}>Expiring</span>
           <span className={styles.metricValue}>{summary.expiringSoonLicensesCount ?? 0}</span>
         </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Active Claims</span>
+          <span className={styles.metricValue}>{summary.activeClaimsCount ?? 0}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Blocking Claims</span>
+          <span className={styles.metricValue}>{summary.blockingClaimsCount ?? 0}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Claim Blocks</span>
+          <span className={styles.metricValue}>{summary.activeClaimBlocksCount ?? 0}</span>
+        </div>
       </div>
 
       {/* 3. Book Version Contributors Management */}
@@ -203,8 +229,10 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, lang }) => {
         </div>
       )}
 
-      {/* 10. Copyright Claims & DMCA Placeholder */}
-      <RightsTabClaims />
+      {/* 10. Copyright Claims & DMCA */}
+      <div className={styles.section}>
+        <RightsClaimsPanel bookId={bookId} versionId={versionId} />
+      </div>
     </div>
   );
 };

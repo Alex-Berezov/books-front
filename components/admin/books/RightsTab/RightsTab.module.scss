@@ -234,17 +234,6 @@
   border-radius: $border-radius-base;
 }
 
-.claimsCard {
-  background-color: $color-background-secondary;
-  border: 1px solid $color-border-light;
-  border-radius: $border-radius-base;
-  padding: $spacing-md;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-  align-items: flex-start;
-}
-
 .emptyState {
   background-color: $color-background-primary;
   border: 1px dashed $color-border-base;

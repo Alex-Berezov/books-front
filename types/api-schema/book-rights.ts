@@ -1,3 +1,4 @@
+import type { RightsClaimSummary } from './rights-claims';
 import type {
   RightsIntake,
   RightsProfileDetail,
@@ -43,6 +44,9 @@ export interface BookRightsDashboardVersionSummary {
   rightsLicenseCoverageStatus?: string | null;
   rightsLicenseCheckedAt?: string | null;
   rightsLicenseIds?: string[] | null;
+  // Phase 16: denormalised rights-claim block state
+  rightsClaimBlockActive?: boolean;
+  rightsClaimBlockAppliedAt?: string | null;
 }
 
 export interface BookRightsDashboardMetrics {
@@ -86,6 +90,16 @@ export interface BookRightsDashboardMetrics {
   licenseCoverageStatus?: string;
   licenseCoveredCountriesCount?: number;
   licenseUncoveredCountriesCount?: number;
+  // Phase 16: rights claims / DMCA
+  claimsCount?: number;
+  activeClaimsCount?: number;
+  blockingClaimsCount?: number;
+  criticalClaimsCount?: number;
+  overdueClaimsCount?: number;
+  activeClaimBlocksCount?: number;
+  claimBlockedCountriesCount?: number;
+  hasWorldwideClaimBlock?: boolean;
+  worstClaimSeverity?: string | null;
 }
 
 export interface BookRightsDashboard {
@@ -99,5 +113,7 @@ export interface BookRightsDashboard {
   approvalHistory: RightsApprovalDecision[];
   publicationGate: PublicationGateResult | null;
   contentHash: RightsContentHashCheck | null;
+  /** Phase 16: up to 50 most recent claims for this version and its book. */
+  claims?: RightsClaimSummary[];
   summary: BookRightsDashboardMetrics;
 }

@@ -52,6 +52,22 @@ vi.mock('@/components/admin/books/GeoBlockRulesPanel/GeoBlockRulesPanel', () => 
   GeoBlockRulesPanel: () => <div data-testid="geo-block-rules-panel">Geo-block rules panel</div>,
 }));
 
+vi.mock('@/api/hooks/useRightsClaims', () => ({
+  useVersionRightsClaims: () => ({
+    data: { items: [], total: 0, page: 1, limit: 0 },
+    isLoading: false,
+  }),
+  useRightsClaim: () => ({ data: undefined, isLoading: false }),
+  useApplyClaimBlock: () => ({ mutate: vi.fn(), isPending: false }),
+  useLiftClaimBlock: () => ({ mutate: vi.fn(), isPending: false }),
+  useCreateRightsClaim: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateRightsClaim: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useRecordClaimResponse: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useRecordCounterNotice: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useResolveRightsClaim: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useAddClaimAttachment: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+
 vi.mock('@/api/hooks/useRightsLicenses', () => ({
   useLinkRightsLicense: () => ({ mutate: vi.fn(), isPending: false }),
   useRevokeRightsLicense: () => ({ mutate: vi.fn(), isPending: false }),
@@ -456,9 +472,9 @@ describe('RightsTab Components (Phase 10)', () => {
       // Review History
       expect(screen.getByText('Review History (1)')).toBeInTheDocument();
 
-      // Copyright Claims & DMCA Placeholder
-      expect(screen.getByText('Copyright Claims & DMCA Notices')).toBeInTheDocument();
-      expect(screen.getByText('No Active Claims')).toBeInTheDocument();
+      // Phase 16: Copyright claims & DMCA panel replaced the old placeholder
+      expect(screen.getByText('Претензии и DMCA (0)')).toBeInTheDocument();
+      expect(screen.getByText('Активных претензий нет')).toBeInTheDocument();
     });
     // Phase 15: license metrics and coverage panel
     it('renders license metric tiles and the coverage panel when licenses exist', () => {

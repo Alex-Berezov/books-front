@@ -1,0 +1,118 @@
+@import '@/styles/tokens.scss';
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.headerBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.section {
+  padding-top: $spacing-sm;
+  border-top: 1px solid $color-border-light;
+}
+
+.sectionTitle {
+  margin: 0 0 $spacing-sm;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  text-transform: uppercase;
+}
+
+.definitionList {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: $spacing-xs $spacing-md;
+  margin: 0;
+  font-size: $font-size-xs;
+
+  dt {
+    color: $color-text-secondary;
+    font-weight: $font-weight-semibold;
+  }
+
+  dd {
+    margin: 0;
+    color: $color-text-primary;
+  }
+}
+
+.list {
+  margin: $spacing-sm 0 0;
+  padding-left: $spacing-md;
+  color: $color-text-primary;
+  font-size: $font-size-xs;
+}
+
+.blockList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blockItem {
+  padding: $spacing-sm;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+}
+
+.blockHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-xs;
+}
+
+.blockActions {
+  display: flex;
+  gap: $spacing-xs;
+  margin-top: $spacing-xs;
+}
+
+.form {
+  margin-top: $spacing-sm;
+}
+
+.muted {
+  margin: $spacing-xs 0 0;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timelineItem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  padding-bottom: $spacing-xs;
+  border-bottom: 1px dashed $color-border-light;
+  font-size: $font-size-xs;
+}
+
+.timelineDate {
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.timelineLabel {
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}

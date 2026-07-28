@@ -1,0 +1,152 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  min-height: 100vh;
+  padding: $spacing-lg;
+  border-radius: $border-radius-xl;
+  background: $color-background-primary;
+}
+
+.header {
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  margin: 0;
+  color: $color-text-primary;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+}
+
+.subtitle {
+  margin: $spacing-xs 0 0;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md 0;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 220px;
+}
+
+.filterSelect {
+  min-width: 140px;
+  height: 37px;
+  padding: 0 $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  background: $color-background-primary;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+}
+
+.filterToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  background: $color-background-primary;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  cursor: pointer;
+  user-select: none;
+
+  &[data-active='true'] {
+    border-color: $color-warning;
+    background: rgba($color-warning, 0.16);
+    color: $color-text-primary;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.info {
+  margin-top: $spacing-md;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.tableWrapper {
+  margin-top: $spacing-md;
+  overflow-x: auto;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  background: $color-background-primary;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    padding: $spacing-md $spacing-lg;
+    border-bottom: 2px solid $color-border-light;
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    letter-spacing: 0.05em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: $spacing-md $spacing-lg;
+    border-bottom: 1px solid $color-border-light;
+    color: $color-text-primary;
+    font-size: $font-size-sm;
+    vertical-align: top;
+  }
+}
+
+.claimNumber {
+  color: $color-text-primary;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+}
+
+.muted {
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+}
+
+.overdue {
+  color: $color-error;
+  font-weight: $font-weight-semibold;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.error {
+  padding: $spacing-lg;
+  border: 1px solid $color-error;
+  border-radius: $border-radius-base;
+  background: rgba($color-error, 0.08);
+  color: $color-error;
+}
+
+.errorMessage {
+  margin: $spacing-xs 0 0;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
