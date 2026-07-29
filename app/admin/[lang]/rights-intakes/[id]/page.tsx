@@ -12,6 +12,7 @@ import {
   useCurrentRightsProfile,
 } from '@/api/hooks/useRightsIntakes';
 import { RightsIntakeForm } from '@/components/admin/rights-intakes/RightsIntakeForm/RightsIntakeForm';
+import { AgentAutomationPanel } from '@/components/admin/RightsIntakeDetail/AgentAutomationPanel/AgentAutomationPanel';
 import { ApprovalHistory } from '@/components/admin/RightsIntakeDetail/ApprovalHistory/ApprovalHistory';
 import { ApprovalPanel } from '@/components/admin/RightsIntakeDetail/ApprovalPanel/ApprovalPanel';
 import { ApprovalState } from '@/components/admin/RightsIntakeDetail/ApprovalState/ApprovalState';
@@ -122,6 +123,8 @@ export default function RightsIntakeDetailPage() {
           <IntakeOverview intake={intake} />
 
           <ManifestPanel intakeId={id} workflowStatus={intake.workflowStatus} />
+
+          <AgentAutomationPanel intakeId={id} workflowStatus={intake.workflowStatus} />
 
           <ReviewImportPanel
             intakeId={id}

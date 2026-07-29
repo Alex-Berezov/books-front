@@ -5,6 +5,7 @@
 import type { ComponentType } from 'react';
 import {
   Archive,
+  Bell,
   BookOpen,
   FileText,
   FolderTree,
@@ -44,6 +45,12 @@ export const getAdminMenuItems = (lang: SupportedLang): AdminMenuItem[] => [
     label: 'Rights Claims',
     icon: ShieldAlert,
     path: `/admin/${lang}/rights-claims`,
+  },
+  {
+    id: 'rights-notifications',
+    label: 'Rights Notifications',
+    icon: Bell,
+    path: `/admin/${lang}/rights-notifications`,
   },
   {
     id: 'books',

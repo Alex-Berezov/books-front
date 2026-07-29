@@ -30,7 +30,7 @@ export const ReviewImportHistory: FC<ReviewImportHistoryProps> = ({ reviewImport
   if (reviewImports.length === 0) return null;
 
   return (
-    <div className={styles.importHistory}>
+    <div className={styles.importHistory} id="review-import-history">
       <h3 className={styles.importHistoryTitle}>Import History</h3>
       <div className={styles.importHistoryList}>
         {reviewImports.map((item) => (

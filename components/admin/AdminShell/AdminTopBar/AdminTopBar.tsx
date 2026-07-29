@@ -4,6 +4,7 @@
  * AdminTopBar - admin panel top bar
  *
  * Contains:
+ * - Rights notifications bell (RightsNotificationsBell)
  * - Language switcher (AdminLanguageSwitcher)
  * - User information
  * - Logout button
@@ -12,6 +13,7 @@
 import { LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { AdminLanguageSwitcher } from '@/components/admin/AdminShell/AdminTopBar/AdminLanguageSwitcher';
+import { RightsNotificationsBell } from '@/components/admin/AdminShell/AdminTopBar/RightsNotificationsBell/RightsNotificationsBell';
 import { PurgeCacheButton } from '@/components/admin/AdminShell/PurgeCacheButton/PurgeCacheButton';
 import { Button } from '@/components/common/Button';
 import styles from './AdminTopBar.module.scss';
@@ -42,6 +44,8 @@ export const AdminTopBar = (props: AdminTopBarProps) => {
       </div>
 
       <div className={styles.actions}>
+        <RightsNotificationsBell />
+
         <PurgeCacheButton />
 
         <AdminLanguageSwitcher />
