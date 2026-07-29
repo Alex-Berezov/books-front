@@ -1,0 +1,222 @@
+@import '@/styles/tokens.scss';
+
+.panel {
+  background: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-lg;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-xs;
+}
+
+.title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0;
+}
+
+.statusLine {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-md 0;
+}
+
+.overdue {
+  color: $color-error;
+  font-weight: $font-weight-semibold;
+}
+
+.reasonList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 $spacing-md 0;
+}
+
+.reasonBlocker {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  margin-bottom: $spacing-xs;
+  background: #fee2e2;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-xs;
+  color: #991b1b;
+}
+
+.reasonWarning {
+  composes: reasonBlocker;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.reasonCode {
+  font-family: $font-family-mono;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-xs;
+
+  th,
+  td {
+    text-align: left;
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: 1px solid $color-border-light;
+    white-space: nowrap;
+  }
+
+  th {
+    color: $color-text-secondary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.titleCell {
+  white-space: normal;
+  max-width: 280px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  border-radius: $border-radius-base;
+  background: $color-background-secondary;
+  color: $color-text-secondary;
+
+  &[data-severity='INFO'] {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  &[data-severity='WARNING'] {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &[data-severity='BLOCKING'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.actionBtn {
+  padding: 2px $spacing-sm;
+  background: $color-background-primary;
+  color: $color-text-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: 11px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-background-tertiary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.actionBtnDanger {
+  composes: actionBtn;
+  color: $color-error;
+  border-color: $color-error;
+}
+
+.emptyState {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.errorText {
+  color: $color-error;
+  font-size: $font-size-sm;
+  margin-top: $spacing-sm;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $spacing-lg;
+}
+
+.modal {
+  background: $color-background-primary;
+  border-radius: $border-radius-base;
+  padding: $spacing-lg;
+  width: 100%;
+  max-width: 480px;
+}
+
+.modalTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-md 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: $spacing-sm;
+}
+
+.fieldLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+}
+
+.textInput {
+  height: 36px;
+  padding: 0 $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+}
+
+.textArea {
+  min-height: 72px;
+  padding: $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.modalActions {
+  display: flex;
+  gap: $spacing-sm;
+  justify-content: flex-end;
+  margin-top: $spacing-md;
+}

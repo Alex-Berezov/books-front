@@ -1,0 +1,329 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  padding: $spacing-lg;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-md;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0;
+}
+
+.tabs {
+  display: flex;
+  gap: $spacing-xs;
+  border-bottom: 1px solid $color-border-light;
+  margin-bottom: $spacing-lg;
+}
+
+.tab {
+  padding: $spacing-sm $spacing-md;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}
+
+.tabActive {
+  composes: tab;
+  color: $color-primary;
+  border-bottom-color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.lastScan {
+  padding: $spacing-sm $spacing-md;
+  background: $color-background-tertiary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.lastScanMeta {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.filters {
+  display: flex;
+  gap: $spacing-md;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-md;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fieldLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+}
+
+.select {
+  min-width: 170px;
+  height: 36px;
+  padding: 0 $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  background: $color-background-primary;
+}
+
+.textInput {
+  min-width: 220px;
+  height: 36px;
+  padding: 0 $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+}
+
+.textArea {
+  min-width: 320px;
+  min-height: 90px;
+  padding: $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.actionBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background: $color-primary;
+  color: $color-text-inverse;
+  border: none;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.actionBtnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background: $color-background-primary;
+  color: $color-text-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-background-tertiary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.actionBtnDanger {
+  composes: actionBtnSecondary;
+  color: $color-error;
+  border-color: $color-error;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-xs;
+
+  th,
+  td {
+    text-align: left;
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: 1px solid $color-border-light;
+    white-space: nowrap;
+  }
+
+  th {
+    color: $color-text-secondary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.titleCell {
+  white-space: normal;
+  max-width: 300px;
+}
+
+.overdue {
+  color: $color-error;
+  font-weight: $font-weight-semibold;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  border-radius: $border-radius-base;
+  background: $color-background-secondary;
+  color: $color-text-secondary;
+
+  &[data-severity='INFO'] {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  &[data-severity='WARNING'],
+  &[data-status='DRAFT'] {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &[data-severity='BLOCKING'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &[data-status='APPLIED'],
+  &[data-status='SUCCEEDED'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &[data-status='ARCHIVED'] {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+
+  &[data-status='FAILED'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+.link {
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+}
+
+.paginationInfo {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.emptyState {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: $spacing-lg 0;
+}
+
+.errorText {
+  color: $color-error;
+  font-size: $font-size-sm;
+  margin-top: $spacing-sm;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $spacing-lg;
+}
+
+.modal {
+  background: $color-background-primary;
+  border-radius: $border-radius-base;
+  padding: $spacing-lg;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-md 0;
+}
+
+.modalWarning {
+  font-size: $font-size-sm;
+  color: #92400e;
+  background: #fef3c7;
+  padding: $spacing-sm;
+  border-radius: $border-radius-sm;
+  margin-bottom: $spacing-md;
+}
+
+.modalActions {
+  display: flex;
+  gap: $spacing-sm;
+  justify-content: flex-end;
+  margin-top: $spacing-md;
+}

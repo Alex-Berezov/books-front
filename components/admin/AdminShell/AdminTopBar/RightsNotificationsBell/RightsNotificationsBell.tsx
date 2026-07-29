@@ -10,6 +10,7 @@ import {
   useRightsNotifications,
   useRightsNotificationsUnreadCount,
 } from '@/api/hooks/useRightsAgent';
+import { RIGHTS_NOTIFICATION_TYPE_LABELS_RU } from '@/types/api-schema/rights-agent';
 import type {
   RightsNotification,
   RightsNotificationSeverity,
@@ -78,6 +79,11 @@ export const RightsNotificationsBell: FC = () => {
     setIsOpen(false);
     if (notification.rightsIntakeId) {
       router.push(`/admin/${lang}/rights-intakes/${notification.rightsIntakeId}`);
+      return;
+    }
+    // Version-scoped notifications (Phase 18 recheck tasks) carry no intake — open the version.
+    if (notification.bookVersionId) {
+      router.push(`/admin/${lang}/books/versions/${notification.bookVersionId}`);
     }
   };
 
@@ -131,6 +137,7 @@ export const RightsNotificationsBell: FC = () => {
                     <span className={styles.itemTitle}>{notification.titleRu}</span>
                     <span className={styles.itemMessage}>{notification.messageRu}</span>
                     <span className={styles.itemTime}>
+                      {RIGHTS_NOTIFICATION_TYPE_LABELS_RU[notification.type] ?? notification.type} ·{' '}
                       {formatRelativeTime(notification.createdAt)}
                     </span>
                   </span>

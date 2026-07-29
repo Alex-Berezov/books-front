@@ -2,6 +2,7 @@
 
 import { type FC } from 'react';
 import {
+  CalendarClock,
   ExternalLink,
   ShieldAlert,
   ShieldCheck,
@@ -17,6 +18,7 @@ import { LicenseCoveragePanel } from '@/components/admin/books/LicenseCoveragePa
 import { PublishPanel } from '@/components/admin/books/PublishPanel/PublishPanel';
 import { RightsClaimsPanel } from '@/components/admin/books/RightsClaimsPanel/RightsClaimsPanel';
 import { RightsContentHashPanel } from '@/components/admin/books/RightsContentHashPanel/RightsContentHashPanel';
+import { RightsRecheckPanel } from '@/components/admin/books/RightsRecheckPanel/RightsRecheckPanel';
 import { ApprovalHistory } from '@/components/admin/RightsIntakeDetail/ApprovalHistory/ApprovalHistory';
 import { RightsProfilePanel } from '@/components/admin/RightsIntakeDetail/RightsProfilePanel/RightsProfilePanel';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -104,6 +106,21 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, bookId, lang }) => {
               <ShieldAlert size={14} />
               Claim block active
             </span>
+          )}
+
+          {/* Phase 18: overdue wins over merely due — only one recheck badge is shown. */}
+          {(summary.overdueRecheckTasksCount ?? 0) > 0 ? (
+            <span className={styles.badge} data-status="BLOCK">
+              <CalendarClock size={14} />
+              Recheck overdue: {summary.overdueRecheckTasksCount}
+            </span>
+          ) : (
+            (summary.openRecheckTasksCount ?? 0) > 0 && (
+              <span className={styles.badge} data-status="STALE">
+                <CalendarClock size={14} />
+                Recheck due: {summary.openRecheckTasksCount}
+              </span>
+            )
           )}
         </div>
 
@@ -207,6 +224,11 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, bookId, lang }) => {
       {/* 5. Rights Content Hash Panel */}
       <div className={styles.section}>
         <RightsContentHashPanel versionId={versionId} />
+      </div>
+
+      {/* 5b. Automatic recheck tasks (Phase 18) — sits next to the content-hash block by design */}
+      <div className={styles.section}>
+        <RightsRecheckPanel versionId={versionId} />
       </div>
 
       {/* 6. Source Edition & Legal Basis */}

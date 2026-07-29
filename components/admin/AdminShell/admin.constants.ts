@@ -7,6 +7,7 @@ import {
   Archive,
   Bell,
   BookOpen,
+  CalendarClock,
   FileText,
   FolderTree,
   Library,
@@ -51,6 +52,12 @@ export const getAdminMenuItems = (lang: SupportedLang): AdminMenuItem[] => [
     label: 'Rights Notifications',
     icon: Bell,
     path: `/admin/${lang}/rights-notifications`,
+  },
+  {
+    id: 'rights-rechecks',
+    label: 'Rights Rechecks',
+    icon: CalendarClock,
+    path: `/admin/${lang}/rights-rechecks`,
   },
   {
     id: 'books',

@@ -286,6 +286,10 @@ export interface RightsReview {
   conclusionRu: string;
   reasoningRu: string | null;
   nextReviewAt: string | null;
+  // Phase 18: review history chain
+  previousReviewId?: string | null;
+  chainRootReviewId?: string | null;
+  revisionNumber?: number;
   approvedByUserId: string | null;
   approvedByUser: { id: string; name?: string; email: string } | null;
   approvedAt: string | null;
@@ -573,6 +577,12 @@ export interface PublicationGateResult {
   hasWorldwideClaimBlock?: boolean;
   worstClaimSeverity?: string | null;
   claimIds?: string[];
+  // Phase 18: automatic recheck
+  openRecheckTasksCount?: number;
+  overdueRecheckTasksCount?: number;
+  blockingRecheckTasksCount?: number;
+  nextRecheckDueAt?: string | null;
+  recheckTaskIds?: string[];
 }
 
 export interface UpdateRightsGeoBlockRequest {

@@ -19,6 +19,8 @@ import { ApprovalState } from '@/components/admin/RightsIntakeDetail/ApprovalSta
 import { CreateBookFromClearanceForm } from '@/components/admin/RightsIntakeDetail/CreateBookFromClearanceForm/CreateBookFromClearanceForm';
 import { IntakeOverview } from '@/components/admin/RightsIntakeDetail/IntakeOverview/IntakeOverview';
 import { ManifestPanel } from '@/components/admin/RightsIntakeDetail/ManifestPanel/ManifestPanel';
+import { RecheckPanel } from '@/components/admin/RightsIntakeDetail/RecheckPanel/RecheckPanel';
+import { ReviewChainPanel } from '@/components/admin/RightsIntakeDetail/ReviewChainPanel/ReviewChainPanel';
 import { ReviewImportPanel } from '@/components/admin/RightsIntakeDetail/ReviewImportPanel/ReviewImportPanel';
 import { RightsIntakeHeader } from '@/components/admin/RightsIntakeDetail/RightsIntakeHeader/RightsIntakeHeader';
 import { RightsProfilePanel } from '@/components/admin/RightsIntakeDetail/RightsProfilePanel/RightsProfilePanel';
@@ -164,6 +166,14 @@ export default function RightsIntakeDetailPage() {
           })()}
 
           <ApprovalHistory intakeId={id} />
+
+          <RecheckPanel
+            intakeId={id}
+            profileId={currentProfile?.id ?? null}
+            workflowStatus={intake.workflowStatus}
+          />
+
+          <ReviewChainPanel intakeId={id} />
 
           {intake.workflowStatus === 'BOOK_CREATED' && intake.createdBookId && (
             <div className={styles.section}>

@@ -23,8 +23,30 @@ export type RightsNotificationType =
   | 'AGENT_TOKEN_REVOKED'
   | 'HUMAN_REVIEW_REQUIRED'
   | 'RECHECK_DUE'
+  | 'RECHECK_OVERDUE'
+  | 'RECHECK_TASK_OPENED'
+  | 'RECHECK_COMPLETED'
+  | 'LEGAL_CHANGE_APPLIED'
   | 'LAWYER_REVIEW_REQUIRED'
   | 'OTHER';
+
+/** Human-readable labels shown in the bell and the notification inbox. */
+export const RIGHTS_NOTIFICATION_TYPE_LABELS_RU: Record<RightsNotificationType, string> = {
+  AGENT_REPORT_RECEIVED: 'Получен отчёт агента',
+  AGENT_REPORT_VALIDATION_FAILED: 'Отчёт агента не прошёл валидацию',
+  AGENT_REPORT_MATERIALIZED: 'Отчёт агента материализован',
+  AGENT_REPORT_MATERIALIZATION_FAILED: 'Ошибка материализации отчёта',
+  AGENT_TOKEN_ISSUED: 'Выпущен токен агента',
+  AGENT_TOKEN_REVOKED: 'Токен агента отозван',
+  HUMAN_REVIEW_REQUIRED: 'Требуется проверка человеком',
+  RECHECK_DUE: 'Срок перепроверки',
+  RECHECK_OVERDUE: 'Перепроверка просрочена',
+  RECHECK_TASK_OPENED: 'Открыта задача перепроверки',
+  RECHECK_COMPLETED: 'Перепроверка завершена',
+  LEGAL_CHANGE_APPLIED: 'Применено изменение законодательства',
+  LAWYER_REVIEW_REQUIRED: 'Требуется проверка юриста',
+  OTHER: 'Другое',
+};
 
 export type RightsNotificationSeverity = 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
 

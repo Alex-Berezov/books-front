@@ -8,6 +8,7 @@ import {
   useMarkRightsNotificationRead,
   useRightsNotifications,
 } from '@/api/hooks/useRightsAgent';
+import { RIGHTS_NOTIFICATION_TYPE_LABELS_RU } from '@/types/api-schema/rights-agent';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   RightsNotificationSeverity,
@@ -26,6 +27,10 @@ const NOTIFICATION_TYPES: RightsNotificationType[] = [
   'AGENT_TOKEN_REVOKED',
   'HUMAN_REVIEW_REQUIRED',
   'RECHECK_DUE',
+  'RECHECK_OVERDUE',
+  'RECHECK_TASK_OPENED',
+  'RECHECK_COMPLETED',
+  'LEGAL_CHANGE_APPLIED',
   'LAWYER_REVIEW_REQUIRED',
   'OTHER',
 ];
@@ -144,16 +149,27 @@ export const RightsNotificationsList: FC<RightsNotificationsListProps> = ({ lang
                   <p className={styles.itemMessage}>{notification.messageRu}</p>
                   <div className={styles.itemMeta}>
                     <span className={styles.badge} data-severity={notification.severity}>
-                      {notification.type}
+                      {RIGHTS_NOTIFICATION_TYPE_LABELS_RU[notification.type] ?? notification.type}
                     </span>
                     <span>{new Date(notification.createdAt).toLocaleString()}</span>
-                    {notification.rightsIntakeId && (
+                    {notification.rightsIntakeId ? (
                       <Link
                         className={styles.itemLink}
                         href={`/admin/${lang}/rights-intakes/${notification.rightsIntakeId}`}
                       >
                         Открыть интейк
                       </Link>
+                    ) : (
+                      // No intake link (e.g. a version-scoped recheck task) → open the book
+                      // version instead; its Rights tab holds the recheck panel.
+                      notification.bookVersionId && (
+                        <Link
+                          className={styles.itemLink}
+                          href={`/admin/${lang}/books/versions/${notification.bookVersionId}`}
+                        >
+                          Открыть версию книги
+                        </Link>
+                      )
                     )}
                     {!notification.isRead && (
                       <button

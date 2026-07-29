@@ -1,0 +1,115 @@
+@import '@/styles/tokens.scss';
+
+.section {
+  background: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.sectionTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-xs 0;
+}
+
+.sectionHint {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-md 0;
+}
+
+.chain {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.revision {
+  border: 1px solid $color-border-light;
+  border-left: 3px solid $color-primary;
+  border-radius: $border-radius-sm;
+  padding: $spacing-md;
+  background: $color-background-primary;
+}
+
+.revisionCurrent {
+  composes: revision;
+  background: $color-background-tertiary;
+}
+
+.revisionHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-xs;
+}
+
+.revisionNumber {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.revisionMeta {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.diff {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.diffItem {
+  padding: 2px 6px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: $border-radius-base;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  border-radius: $border-radius-base;
+  background: $color-background-secondary;
+  color: $color-text-secondary;
+
+  &[data-status='HUMAN_APPROVED'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &[data-status='HUMAN_REVIEW_REQUIRED'] {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &[data-status='HUMAN_REJECTED'],
+  &[data-status='STALE'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &[data-status='SUPERSEDED'] {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+}
+
+.emptyState {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0;
+}

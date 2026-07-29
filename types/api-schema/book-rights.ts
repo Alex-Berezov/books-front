@@ -7,6 +7,7 @@ import type {
   PublicationGateResult,
   RightsContentHashCheck,
 } from './rights-intake';
+import type { RightsRecheckSchedule, RightsRecheckTask } from './rights-recheck';
 
 export interface BookRightsDashboardBookSummary {
   id: string;
@@ -100,6 +101,13 @@ export interface BookRightsDashboardMetrics {
   claimBlockedCountriesCount?: number;
   hasWorldwideClaimBlock?: boolean;
   worstClaimSeverity?: string | null;
+  // Phase 18: automatic recheck
+  openRecheckTasksCount?: number;
+  overdueRecheckTasksCount?: number;
+  blockingRecheckTasksCount?: number;
+  nextRecheckDueAt?: string | null;
+  lastRecheckScanAt?: string | null;
+  recheckPolicy?: string | null;
 }
 
 export interface BookRightsDashboard {
@@ -115,5 +123,8 @@ export interface BookRightsDashboard {
   contentHash: RightsContentHashCheck | null;
   /** Phase 16: up to 50 most recent claims for this version and its book. */
   claims?: RightsClaimSummary[];
+  /** Phase 18: up to 50 recheck tasks of this version and its rights profile. */
+  recheckTasks?: RightsRecheckTask[];
+  recheckSchedule?: RightsRecheckSchedule | null;
   summary: BookRightsDashboardMetrics;
 }

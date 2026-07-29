@@ -1,0 +1,335 @@
+@import '@/styles/tokens.scss';
+
+.section {
+  background: $color-background-primary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.sectionTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-xs 0;
+}
+
+.sectionHint {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-md 0;
+}
+
+.subTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: $spacing-lg 0 $spacing-sm 0;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: $spacing-md;
+  margin-bottom: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.schedule {
+  padding: $spacing-sm $spacing-md;
+  background: $color-background-tertiary;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  margin-bottom: $spacing-md;
+}
+
+.scheduleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.scheduleItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scheduleLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.scheduleValue {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fieldLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+}
+
+.textInput {
+  min-width: 200px;
+  height: 36px;
+  padding: 0 $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+}
+
+.textArea {
+  min-width: 280px;
+  min-height: 72px;
+  padding: $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.numberInput {
+  width: 110px;
+  height: 36px;
+  padding: 0 $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+}
+
+.select {
+  min-width: 180px;
+  height: 36px;
+  padding: 0 $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  background: $color-background-primary;
+}
+
+.actionBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background: $color-primary;
+  color: $color-text-inverse;
+  border: none;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.actionBtnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background: $color-background-primary;
+  color: $color-text-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-background-tertiary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.actionBtnDanger {
+  composes: actionBtnSecondary;
+  color: $color-error;
+  border-color: $color-error;
+}
+
+.taskCard {
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  padding: $spacing-md;
+  margin-bottom: $spacing-sm;
+  background: $color-background-primary;
+}
+
+.taskHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-xs;
+}
+
+.taskTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0;
+}
+
+.taskDescription {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-sm 0;
+}
+
+.taskMeta {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-sm 0;
+}
+
+.overdue {
+  color: $color-error;
+  font-weight: $font-weight-semibold;
+}
+
+.taskActions {
+  display: flex;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  border-radius: $border-radius-base;
+  background: $color-background-secondary;
+  color: $color-text-secondary;
+
+  &[data-severity='INFO'] {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  &[data-severity='WARNING'] {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &[data-severity='BLOCKING'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &[data-status='COMPLETED'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &[data-status='DISMISSED'] {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+}
+
+.closedList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.closedItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  padding: $spacing-xs 0;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.emptyState {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.errorText {
+  color: $color-error;
+  font-size: $font-size-sm;
+  margin-top: $spacing-sm;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $spacing-lg;
+}
+
+.modal {
+  background: $color-background-primary;
+  border-radius: $border-radius-base;
+  padding: $spacing-lg;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-md 0;
+}
+
+.modalActions {
+  display: flex;
+  gap: $spacing-sm;
+  justify-content: flex-end;
+  margin-top: $spacing-md;
+}
+
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: $spacing-md 0 0 0;
+}
+
+.timelineItem {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  padding: $spacing-xs 0;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.timelineType {
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-right: $spacing-xs;
+}

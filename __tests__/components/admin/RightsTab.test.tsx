@@ -52,6 +52,28 @@ vi.mock('@/components/admin/books/GeoBlockRulesPanel/GeoBlockRulesPanel', () => 
   GeoBlockRulesPanel: () => <div data-testid="geo-block-rules-panel">Geo-block rules panel</div>,
 }));
 
+// Phase 18: the Rights tab renders the recheck panel next to the content-hash block.
+vi.mock('@/api/hooks/useRightsRecheck', () => ({
+  useVersionRecheck: () => ({
+    data: {
+      versionId: 'v1',
+      blockers: [],
+      warnings: [],
+      openTasksCount: 0,
+      overdueTasksCount: 0,
+      blockingTasksCount: 0,
+      nextRecheckDueAt: null,
+      taskIds: [],
+      tasks: [],
+      schedule: null,
+    },
+    isLoading: false,
+  }),
+  useCompleteRightsRecheckTask: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useDismissRightsRecheckTask: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useSnoozeRightsRecheckTask: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+
 vi.mock('@/api/hooks/useRightsClaims', () => ({
   useVersionRightsClaims: () => ({
     data: { items: [], total: 0, page: 1, limit: 0 },
