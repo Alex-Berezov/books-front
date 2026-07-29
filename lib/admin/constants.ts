@@ -20,15 +20,17 @@ export const STATUS_COLORS = {
 export const ROLE_LABELS: Record<RoleName, string> = {
   admin: 'Administrator',
   content_manager: 'Content Manager',
+  lawyer: 'Lawyer',
   user: 'User',
 };
 
 /**
  * Role colors mapping
  */
-export const ROLE_COLORS: Record<RoleName, 'blue' | 'green' | 'default'> = {
+export const ROLE_COLORS: Record<RoleName, 'blue' | 'green' | 'purple' | 'default'> = {
   admin: 'blue',
   content_manager: 'green',
+  lawyer: 'purple',
   user: 'default',
 };
 

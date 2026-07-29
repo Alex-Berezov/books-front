@@ -28,7 +28,14 @@ export type RightsNotificationType =
   | 'RECHECK_COMPLETED'
   | 'LEGAL_CHANGE_APPLIED'
   | 'LAWYER_REVIEW_REQUIRED'
-  | 'OTHER';
+  | 'OTHER'
+  // Phase 19: lawyer workflow
+  | 'LAWYER_REVIEW_ASSIGNED'
+  | 'LAWYER_REVIEW_APPROVED'
+  | 'LAWYER_REVIEW_REJECTED'
+  | 'LAWYER_REVIEW_WITHDRAWN'
+  | 'LAWYER_OPINION_EXPIRING'
+  | 'LAWYER_OPINION_EXPIRED';
 
 /** Human-readable labels shown in the bell and the notification inbox. */
 export const RIGHTS_NOTIFICATION_TYPE_LABELS_RU: Record<RightsNotificationType, string> = {
@@ -44,8 +51,14 @@ export const RIGHTS_NOTIFICATION_TYPE_LABELS_RU: Record<RightsNotificationType, 
   RECHECK_TASK_OPENED: 'Открыта задача перепроверки',
   RECHECK_COMPLETED: 'Перепроверка завершена',
   LEGAL_CHANGE_APPLIED: 'Применено изменение законодательства',
-  LAWYER_REVIEW_REQUIRED: 'Требуется проверка юриста',
+  LAWYER_REVIEW_REQUIRED: 'Требуется юридическая проверка',
   OTHER: 'Другое',
+  LAWYER_REVIEW_ASSIGNED: 'Вам назначена юридическая проверка',
+  LAWYER_REVIEW_APPROVED: 'Юрист согласовал права',
+  LAWYER_REVIEW_REJECTED: 'Юрист отказал',
+  LAWYER_REVIEW_WITHDRAWN: 'Юридическая проверка отозвана',
+  LAWYER_OPINION_EXPIRING: 'Заключение юриста истекает',
+  LAWYER_OPINION_EXPIRED: 'Заключение юриста истекло',
 };
 
 export type RightsNotificationSeverity = 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';

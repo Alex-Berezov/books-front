@@ -2,7 +2,7 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { notFound, redirect } from 'next/navigation';
 import { AdminSidebar } from '@/components/admin/AdminShell/AdminSidebar/AdminSidebar';
 import { AdminTopBar } from '@/components/admin/AdminShell/AdminTopBar/AdminTopBar';
-import { STAFF_ROLES } from '@/lib/auth/constants';
+import { ADMIN_PANEL_ROLES } from '@/lib/auth/constants';
 import { getCurrentUser } from '@/lib/auth/helpers';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
  * Admin Layout
  *
  * Protected layout for admin panel.
- * Requires authentication and admin or content_manager role.
+ * Requires authentication and an admin-panel role: admin, content_manager or lawyer.
  *
  * Middleware already checked authentication, but we do additional
  * server-side check to get user data.
@@ -45,11 +45,11 @@ export default async function AdminLayout({ children, params }: Props) {
     redirect(`/${lang}/auth/sign-in?callbackUrl=/admin/${lang}`);
   }
 
-  // Check roles
+  // Check roles: admin, content_manager or lawyer (Phase 19).
   const userRoles = session.user.roles || [];
-  const hasStaffRole = STAFF_ROLES.some((role) => userRoles.includes(role));
+  const hasAdminPanelRole = ADMIN_PANEL_ROLES.some((role) => userRoles.includes(role));
 
-  if (!hasStaffRole) {
+  if (!hasAdminPanelRole) {
     redirect(`/${lang}/403`);
   }
 

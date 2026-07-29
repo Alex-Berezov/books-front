@@ -159,6 +159,12 @@
     color: #92400e;
   }
 
+  // Phase 19: lawyer review
+  &[data-status='LAWYER_REVIEW_REQUIRED'] {
+    background: #ede9fe;
+    color: #5b21b6;
+  }
+
   &[data-status='APPROVED'] {
     background: #d1fae5;
     color: #065f46;

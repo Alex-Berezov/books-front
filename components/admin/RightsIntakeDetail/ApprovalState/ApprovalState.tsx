@@ -2,7 +2,7 @@
 
 import type { FC } from 'react';
 import { Card, Typography, Space } from 'antd';
-import { CheckCircle, XCircle, User, Calendar, FileText } from 'lucide-react';
+import { CheckCircle, XCircle, User, Calendar, FileText, Scale } from 'lucide-react';
 import type { RightsReview, RightsReviewStatus } from '@/types/api-schema/rights-intake';
 import styles from './ApprovalState.module.scss';
 
@@ -93,6 +93,44 @@ export const ApprovalState: FC<ApprovalStateProps> = ({ review }) => {
             <Text type="danger" className={styles.message}>
               This intake cannot proceed to book creation unless a new rights review is imported and
               materialized.
+            </Text>
+          </Space>
+        </Card>
+      </div>
+    );
+  }
+
+  // Phase 19: the two lawyer statuses of a rights review.
+  if (status === 'LAWYER_REVIEW_REQUIRED' || status === 'LAWYER_APPROVED') {
+    const isApproved = status === 'LAWYER_APPROVED';
+    return (
+      <div className={styles.container}>
+        <Card className={`${styles.card} ${isApproved ? styles.approvedCard : ''}`}>
+          <Space direction="vertical" size="middle" className={styles.space}>
+            <div className={styles.header}>
+              <Scale size={24} className={isApproved ? styles.approvedIcon : styles.icon} />
+              <Title level={5} className={styles.title}>
+                {isApproved ? 'Lawyer approved' : 'Lawyer review required'}
+              </Title>
+            </div>
+            <Space direction="vertical" size="small">
+              {review.lawyerApprovedAt && (
+                <div className={styles.row}>
+                  <Calendar size={16} className={styles.icon} />
+                  <Text>Decided at: {new Date(review.lawyerApprovedAt).toLocaleString()}</Text>
+                </div>
+              )}
+              {review.lawyerNameSnapshot && (
+                <div className={styles.row}>
+                  <User size={16} className={styles.icon} />
+                  <Text>Lawyer: {review.lawyerNameSnapshot}</Text>
+                </div>
+              )}
+            </Space>
+            <Text type={isApproved ? 'success' : 'warning'} className={styles.message}>
+              {isApproved
+                ? 'Юрист вынес положительное заключение — утверждение редактором доступно.'
+                : 'Утверждение заблокировано, пока юрист не вынесет положительное заключение.'}
             </Text>
           </Space>
         </Card>

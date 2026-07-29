@@ -16,6 +16,7 @@ const AVAILABLE_ROLES: { label: string; value: RoleName }[] = [
   { label: 'User', value: 'user' },
   { label: 'Admin', value: 'admin' },
   { label: 'Content Manager', value: 'content_manager' },
+  { label: 'Lawyer', value: 'lawyer' },
 ];
 
 export const UserRoleManager: FC<UserRoleManagerProps> = ({ user }) => {

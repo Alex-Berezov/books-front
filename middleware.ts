@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { STAFF_ROLES } from '@/lib/auth/constants';
+import { ADMIN_PANEL_ROLES } from '@/lib/auth/constants';
 import { DEFAULT_REDIRECT_LANG } from '@/lib/middleware.constants';
 import type { NextRequest } from 'next/server';
 
@@ -111,7 +111,10 @@ export async function middleware(request: NextRequest) {
 
   // DIAGNOSTIC: temporary logging for admin auth debug
   if (isAdminRoute(pathname)) {
-    const authCookies = request.cookies.getAll().map(c => c.name).filter(n => n.includes('auth') || n.includes('next') || n.includes('session'));
+    const authCookies = request.cookies
+      .getAll()
+      .map((c) => c.name)
+      .filter((n) => n.includes('auth') || n.includes('next') || n.includes('session'));
     const t = token as Record<string, unknown> | null;
     console.log('[AUTH] path:', pathname);
     console.log('[AUTH] token:', !!t);
@@ -145,12 +148,13 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(signInUrl);
     }
 
-    // Check for staff role (admin or content_manager)
+    // Check for an admin-panel role (admin, content_manager or lawyer).
+    // A lawyer is let in but sees only the legal sections — the sidebar filters by role.
     const userRoles = (token.roles as string[]) || [];
-    const hasStaffRole = STAFF_ROLES.some((role) => userRoles.includes(role));
+    const hasAdminPanelRole = ADMIN_PANEL_ROLES.some((role) => userRoles.includes(role));
 
     // If no required role - show 403
-    if (!hasStaffRole) {
+    if (!hasAdminPanelRole) {
       const lang = extractLangFromPath(pathname);
       return NextResponse.redirect(new URL(`/${lang}/403`, request.url));
     }

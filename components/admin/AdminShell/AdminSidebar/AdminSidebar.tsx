@@ -12,8 +12,9 @@
 import { BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import { getAdminMenuItems } from '../admin.constants';
+import { getVisibleAdminMenuItems } from '../admin.constants';
 import styles from './AdminSidebar.module.scss';
 
 interface AdminSidebarProps {
@@ -26,9 +27,11 @@ interface AdminSidebarProps {
 export const AdminSidebar = (props: AdminSidebarProps) => {
   const { lang } = props;
   const pathname = usePathname();
+  const { data: session } = useSession();
 
-  // Get menu items for current language
-  const menuItems = getAdminMenuItems(lang);
+  // Phase 19: the sidebar is filtered by role — a lawyer sees only the legal sections.
+  const userRoles = session?.user?.roles ?? [];
+  const menuItems = getVisibleAdminMenuItems(lang, userRoles);
 
   /**
    * Check if menu item is active

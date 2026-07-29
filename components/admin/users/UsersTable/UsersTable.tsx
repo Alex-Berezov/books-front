@@ -79,6 +79,7 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
                 { value: 'all', label: 'All Roles' },
                 { value: 'admin', label: 'Admin' },
                 { value: 'content_manager', label: 'Content Manager' },
+                { value: 'lawyer', label: 'Lawyer' },
                 { value: 'user', label: 'User' },
               ]}
             />

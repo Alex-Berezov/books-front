@@ -6,7 +6,7 @@
  */
 
 import { auth } from '@/lib/auth/auth';
-import { STAFF_ROLES } from './constants';
+import { ADMIN_PANEL_ROLES, STAFF_ROLES, UserRole } from './constants';
 
 /**
  * Get current user from session (server function)
@@ -61,4 +61,27 @@ export const isStaff = async (): Promise<boolean> => {
   // Type casting is necessary for compatibility with readonly array
   const staffRoles: readonly string[] = STAFF_ROLES;
   return session.user.roles.some((role) => staffRoles.includes(role));
+};
+
+/**
+ * Check if user has the Phase 19 lawyer role
+ *
+ * @returns true if user is a lawyer
+ */
+export const isLawyer = async (): Promise<boolean> => hasRole(UserRole.LAWYER);
+
+/**
+ * Check if user may enter `/admin/*` at all: admin, content manager or lawyer.
+ *
+ * Not the same as {@link isStaff} — a lawyer reaches the admin panel but only sees the legal
+ * sections, and must never gain content or moderation rights.
+ *
+ * @returns true if user may open the admin panel
+ */
+export const canAccessAdminPanel = async (): Promise<boolean> => {
+  const session = await getCurrentUser();
+  if (!session?.user?.roles) return false;
+
+  const adminPanelRoles: readonly string[] = ADMIN_PANEL_ROLES;
+  return session.user.roles.some((role) => adminPanelRoles.includes(role));
 };

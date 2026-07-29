@@ -37,6 +37,7 @@ export const WorkflowTimeline: FC<WorkflowTimelineProps> = ({
         'READY_FOR_AGENT',
         'REVIEW_IMPORTED',
         'HUMAN_REVIEW_REQUIRED',
+        'LAWYER_REVIEW_REQUIRED',
         'APPROVED',
         'REJECTED',
         'BOOK_CREATED',
@@ -50,9 +51,14 @@ export const WorkflowTimeline: FC<WorkflowTimelineProps> = ({
     let s3State: 'done' | 'current' | 'blocked' | 'unavailable' = 'unavailable';
     let s3Status = 'Waiting for import';
     if (
-      ['REVIEW_IMPORTED', 'HUMAN_REVIEW_REQUIRED', 'APPROVED', 'REJECTED', 'BOOK_CREATED'].includes(
-        status
-      )
+      [
+        'REVIEW_IMPORTED',
+        'HUMAN_REVIEW_REQUIRED',
+        'LAWYER_REVIEW_REQUIRED',
+        'APPROVED',
+        'REJECTED',
+        'BOOK_CREATED',
+      ].includes(status)
     ) {
       if (latestImport?.importStatus === 'VALIDATION_FAILED') {
         s3State = 'blocked';
@@ -80,7 +86,7 @@ export const WorkflowTimeline: FC<WorkflowTimelineProps> = ({
     // Stage 5: Human decision
     let s5State: 'done' | 'current' | 'blocked' | 'unavailable' = 'unavailable';
     let s5Status = 'Decision pending';
-    if (status === 'HUMAN_REVIEW_REQUIRED') {
+    if (status === 'HUMAN_REVIEW_REQUIRED' || status === 'LAWYER_REVIEW_REQUIRED') {
       s5State = 'current';
       s5Status = 'Needs human approval';
     } else if (status === 'APPROVED' || status === 'BOOK_CREATED') {
@@ -89,6 +95,22 @@ export const WorkflowTimeline: FC<WorkflowTimelineProps> = ({
     } else if (status === 'REJECTED') {
       s5State = 'blocked';
       s5Status = 'Rejected';
+    }
+
+    // Stage 5b: Legal review (Phase 19)
+    let sLawyerState: 'done' | 'current' | 'blocked' | 'unavailable' = 'unavailable';
+    let sLawyerStatus = 'Not required';
+    if (status === 'LAWYER_REVIEW_REQUIRED') {
+      sLawyerState = 'current';
+      sLawyerStatus = 'Waiting for the lawyer';
+    } else if (currentProfile?.lawyerApprovedAt) {
+      sLawyerState = 'done';
+      sLawyerStatus = currentProfile.lawyerApprovedLawyerName
+        ? `Approved by ${currentProfile.lawyerApprovedLawyerName}`
+        : 'Approved by the lawyer';
+    } else if (currentProfile?.lawyerReviewRequired) {
+      sLawyerState = 'blocked';
+      sLawyerStatus = 'Lawyer approval required';
     }
 
     // Stage 6: Book created
@@ -108,6 +130,8 @@ export const WorkflowTimeline: FC<WorkflowTimelineProps> = ({
       { id: 3, label: 'Review Imported', state: s3State, statusText: s3Status },
       { id: 4, label: 'Profile Built', state: s4State, statusText: s4Status },
       { id: 5, label: 'Human Approval', state: s5State, statusText: s5Status },
+      // Phase 19: legal review sits between the human decision and the final approval.
+      { id: 55, label: 'Legal Review', state: sLawyerState, statusText: sLawyerStatus },
       { id: 6, label: 'Book Created', state: s6State, statusText: s6Status },
     ];
   };

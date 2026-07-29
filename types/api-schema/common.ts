@@ -19,7 +19,7 @@ export type ISODate = string;
 /**
  * User roles
  */
-export type RoleName = 'user' | 'admin' | 'content_manager';
+export type RoleName = 'user' | 'admin' | 'content_manager' | 'lawyer';
 
 /**
  * Book version types

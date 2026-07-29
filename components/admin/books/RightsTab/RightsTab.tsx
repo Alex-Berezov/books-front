@@ -26,6 +26,7 @@ import type { PublicationStatus } from '@/types/api-schema';
 import type { SourceEdition } from '@/types/api-schema/rights-intake';
 import styles from './RightsTab.module.scss';
 import { RightsTabEmptyState } from './RightsTabEmptyState';
+import { RightsTabLawyer } from './RightsTabLawyer';
 import { RightsTabReviews } from './RightsTabReviews';
 import { RightsTabSourceEdition } from './RightsTabSourceEdition';
 import { RightsTabVersions } from './RightsTabVersions';
@@ -229,6 +230,12 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, bookId, lang }) => {
       {/* 5b. Automatic recheck tasks (Phase 18) — sits next to the content-hash block by design */}
       <div className={styles.section}>
         <RightsRecheckPanel versionId={versionId} />
+      </div>
+
+      {/* 5c. Legal review (Phase 19) — right after recheck, before the source edition */}
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>Юридическая проверка</h3>
+        <RightsTabLawyer versionId={versionId} />
       </div>
 
       {/* 6. Source Edition & Legal Basis */}

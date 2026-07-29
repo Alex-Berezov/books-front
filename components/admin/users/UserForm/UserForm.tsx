@@ -15,7 +15,7 @@ import type { User } from '@/types/api-schema/user';
 import styles from './UserForm.module.scss';
 
 const rolesSchema = z
-  .array(z.enum(['user', 'admin', 'content_manager']))
+  .array(z.enum(['user', 'admin', 'content_manager', 'lawyer']))
   .min(1, 'At least one role is required');
 
 const createUserSchema = z.object({
@@ -163,6 +163,7 @@ export const UserForm: FC<UserFormProps> = ({ initialData, lang }) => {
                   { value: 'user', label: 'User' },
                   { value: 'admin', label: 'Admin' },
                   { value: 'content_manager', label: 'Content Manager' },
+                  { value: 'lawyer', label: 'Lawyer' },
                 ]}
                 error={!!errors.roles}
                 fullWidth

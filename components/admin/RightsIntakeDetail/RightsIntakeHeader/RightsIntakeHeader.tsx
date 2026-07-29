@@ -23,6 +23,7 @@ const STATUS_LABELS: Record<string, string> = {
   READY_FOR_AGENT: 'Ready For Agent',
   REVIEW_IMPORTED: 'Review Imported',
   HUMAN_REVIEW_REQUIRED: 'Human Review Required',
+  LAWYER_REVIEW_REQUIRED: 'Lawyer Review Required',
   APPROVED: 'Approved',
   REJECTED: 'Rejected',
   BOOK_CREATED: 'Book Created',

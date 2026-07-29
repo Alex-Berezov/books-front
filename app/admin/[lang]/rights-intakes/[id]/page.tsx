@@ -11,6 +11,7 @@ import {
   useRightsReviewImports,
   useCurrentRightsProfile,
 } from '@/api/hooks/useRightsIntakes';
+import { useProfileRiskAssessment } from '@/api/hooks/useRightsLawyer';
 import { RightsIntakeForm } from '@/components/admin/rights-intakes/RightsIntakeForm/RightsIntakeForm';
 import { AgentAutomationPanel } from '@/components/admin/RightsIntakeDetail/AgentAutomationPanel/AgentAutomationPanel';
 import { ApprovalHistory } from '@/components/admin/RightsIntakeDetail/ApprovalHistory/ApprovalHistory';
@@ -18,6 +19,7 @@ import { ApprovalPanel } from '@/components/admin/RightsIntakeDetail/ApprovalPan
 import { ApprovalState } from '@/components/admin/RightsIntakeDetail/ApprovalState/ApprovalState';
 import { CreateBookFromClearanceForm } from '@/components/admin/RightsIntakeDetail/CreateBookFromClearanceForm/CreateBookFromClearanceForm';
 import { IntakeOverview } from '@/components/admin/RightsIntakeDetail/IntakeOverview/IntakeOverview';
+import { LawyerReviewPanel } from '@/components/admin/RightsIntakeDetail/LawyerReviewPanel/LawyerReviewPanel';
 import { ManifestPanel } from '@/components/admin/RightsIntakeDetail/ManifestPanel/ManifestPanel';
 import { RecheckPanel } from '@/components/admin/RightsIntakeDetail/RecheckPanel/RecheckPanel';
 import { ReviewChainPanel } from '@/components/admin/RightsIntakeDetail/ReviewChainPanel/ReviewChainPanel';
@@ -46,6 +48,10 @@ export default function RightsIntakeDetailPage() {
   const archiveMutation = useArchiveRightsIntake();
   const { data: reviewImportsData } = useRightsReviewImports(id, { limit: 50 });
   const { data: currentProfile, refetch: refetchProfile } = useCurrentRightsProfile(id);
+  // Phase 19: the approval panel mirrors the server-side lawyer gate.
+  const { data: riskAssessment } = useProfileRiskAssessment(currentProfile?.id ?? '', {
+    enabled: !!currentProfile?.id,
+  });
 
   const reviewImports = reviewImportsData?.items ?? [];
 
@@ -157,6 +163,7 @@ export default function RightsIntakeDetailPage() {
                   reviewId={activeReview.id}
                   reviewStatus={activeReview.status as RightsReviewStatus}
                   currentProfile={currentProfile}
+                  riskAssessment={riskAssessment ?? undefined}
                   onApproved={() => refetchProfile()}
                   onRejected={() => refetchProfile()}
                 />
@@ -166,6 +173,11 @@ export default function RightsIntakeDetailPage() {
           })()}
 
           <ApprovalHistory intakeId={id} />
+
+          {/* Phase 19: legal review — between approval and the automatic recheck block */}
+          <div id="lawyer-review-panel">
+            <LawyerReviewPanel intakeId={id} profileId={currentProfile?.id ?? null} />
+          </div>
 
           <RecheckPanel
             intakeId={id}

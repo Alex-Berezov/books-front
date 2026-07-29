@@ -4,6 +4,26 @@ import { RightsTab } from '@/components/admin/books/RightsTab/RightsTab';
 import { RightsTabEmptyState } from '@/components/admin/books/RightsTab/RightsTabEmptyState';
 import type { BookRightsDashboard } from '@/types/api-schema/book-rights';
 
+// Phase 19: RightsTabLawyer reads the session to decide which actions to show.
+vi.mock('next-auth/react', () => ({
+  useSession: () => ({ data: { user: { roles: ['admin'] } } }),
+}));
+
+vi.mock('@/api/hooks/useRightsLawyer', () => ({
+  useVersionLawyerReview: () => ({ data: null, isLoading: false }),
+  useLawyerReview: () => ({ data: null, isLoading: false, isError: false }),
+  useLawyers: () => ({ data: { items: [], total: 0, page: 1, limit: 20 } }),
+  useAssignLawyerReview: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useStartLawyerReview: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useDecideLawyerReview: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useWithdrawLawyerReview: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useReopenLawyerReview: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useAddLawyerReviewNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useAttachLegalOpinion: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useSatisfyLawyerCondition: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useWaiveLawyerCondition: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useParams: () => ({ lang: 'en', id: 'v1' }),

@@ -6,7 +6,9 @@ export type RightsIntakeStatus =
   | 'APPROVED'
   | 'REJECTED'
   | 'BOOK_CREATED'
-  | 'ARCHIVED';
+  | 'ARCHIVED'
+  // Phase 19: интейк ушёл на юридическую проверку
+  | 'LAWYER_REVIEW_REQUIRED';
 
 export type RightsSourceProvider = 'PROJECT_GUTENBERG' | 'OTHER' | 'UNKNOWN';
 
@@ -170,7 +172,10 @@ export type RightsReviewStatus =
   | 'HUMAN_APPROVED'
   | 'HUMAN_REJECTED'
   | 'SUPERSEDED'
-  | 'STALE';
+  | 'STALE'
+  // Phase 19: юридическая проверка
+  | 'LAWYER_REVIEW_REQUIRED'
+  | 'LAWYER_APPROVED';
 
 export type RightsReviewImportStatus = 'VALIDATED' | 'VALIDATION_FAILED' | 'SUPERSEDED';
 
@@ -233,7 +238,10 @@ export type RightsProfileStatus =
   | 'REJECTED'
   | 'SUPERSEDED'
   | 'STALE'
-  | 'ARCHIVED';
+  | 'ARCHIVED'
+  // Phase 19: юридическая проверка
+  | 'LAWYER_REVIEW_REQUIRED'
+  | 'LAWYER_APPROVED';
 export type RightsOverallStatus =
   | 'PUBLISHABLE'
   | 'PUBLISHABLE_AFTER_CHANGES'
@@ -290,6 +298,11 @@ export interface RightsReview {
   previousReviewId?: string | null;
   chainRootReviewId?: string | null;
   revisionNumber?: number;
+  // Phase 19: lawyer approval snapshot
+  lawyerReviewRequired?: boolean;
+  lawyerReviewId?: string | null;
+  lawyerApprovedAt?: string | null;
+  lawyerNameSnapshot?: string | null;
   approvedByUserId: string | null;
   approvedByUser: { id: string; name?: string; email: string } | null;
   approvedAt: string | null;
@@ -485,6 +498,16 @@ export interface RightsProfileDetail {
   licenseRequiredCountriesCount?: number;
   licenseCoveredCountriesCount?: number;
   licenseUncoveredCountriesCount?: number;
+  // Phase 19: снимок оценки риска и юридического утверждения
+  riskLevel?: import('./rights-lawyer').RightsRiskLevel;
+  riskFactors?: import('./rights-lawyer').RiskFactor[];
+  riskAssessedAt?: string | null;
+  lawyerReviewRequired?: boolean;
+  lawyerReviewBlocking?: boolean;
+  currentLawyerReviewId?: string | null;
+  lawyerApprovedAt?: string | null;
+  lawyerApprovedLawyerName?: string | null;
+  lawyerOpinionValidUntil?: string | null;
   supersededAt: string | null;
   archivedAt: string | null;
   createdAt: string;

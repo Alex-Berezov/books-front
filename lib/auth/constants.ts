@@ -66,12 +66,24 @@ export enum UserRole {
 
   /** Content manager */
   CONTENT_MANAGER = 'content_manager',
+
+  /** Phase 19: lawyer — legal review workflow only */
+  LAWYER = 'lawyer',
 }
 
 /**
- * Staff roles (have access to admin panel)
+ * Roles with access to the content part of the admin panel.
+ *
+ * Deliberately does NOT include `lawyer`: `isStaff()` and comment moderation are wired to this
+ * list, and a lawyer must not gain either (ADR-004).
  */
 export const STAFF_ROLES = [UserRole.ADMIN, UserRole.CONTENT_MANAGER] as const;
+
+/**
+ * Roles allowed into `/admin/*` at all. A lawyer gets in but sees only the legal sections —
+ * the sidebar is filtered by role and every other rights endpoint answers 403.
+ */
+export const ADMIN_PANEL_ROLES = [...STAFF_ROLES, UserRole.LAWYER] as const;
 
 /**
  * Authorization routes

@@ -13,6 +13,7 @@ import type {
   RightsProfileDetail,
   RightsAction,
 } from '@/types/api-schema/rights-intake';
+import type { RiskAssessmentSnapshot } from '@/types/api-schema/rights-lawyer';
 import styles from './ApprovalPanel.module.scss';
 
 const { TextArea } = Input;
@@ -23,6 +24,8 @@ interface ApprovalPanelProps {
   reviewId: string;
   reviewStatus: RightsReviewStatus;
   currentProfile?: RightsProfileDetail;
+  /** Phase 19: high-risk clearance may not be approved without a valid lawyer opinion. */
+  riskAssessment?: RiskAssessmentSnapshot;
   onApproved: () => void;
   onRejected: () => void;
 }
@@ -37,6 +40,7 @@ export const ApprovalPanel: FC<ApprovalPanelProps> = ({
   reviewId,
   reviewStatus,
   currentProfile,
+  riskAssessment,
   onApproved,
   onRejected,
 }) => {
@@ -71,21 +75,29 @@ export const ApprovalPanel: FC<ApprovalPanelProps> = ({
     },
   });
 
-  if (reviewStatus !== 'HUMAN_REVIEW_REQUIRED') {
+  // Phase 19: `LAWYER_APPROVED` is also approvable — the lawyer has unblocked the editor.
+  if (reviewStatus !== 'HUMAN_REVIEW_REQUIRED' && reviewStatus !== 'LAWYER_APPROVED') {
     return null;
   }
 
   const publicationGate = currentProfile?.publicationGate;
   const hasBlockingActions = hasUnresolvedBlockingActions(currentProfile?.actions);
+  // The server enforces this too (409 LAWYER_APPROVAL_REQUIRED); the UI only mirrors it.
+  const lawyerRequired = !!riskAssessment?.lawyerReviewRequired && !riskAssessment.lawyerApproved;
   const isApproveDisabled =
-    approveMutation.isPending || publicationGate === 'BLOCK' || hasBlockingActions;
+    approveMutation.isPending ||
+    publicationGate === 'BLOCK' ||
+    hasBlockingActions ||
+    lawyerRequired;
 
   const approveDisabledReason =
     publicationGate === 'BLOCK'
       ? 'Cannot approve: publication gate is BLOCK'
       : hasBlockingActions
         ? 'Cannot approve: there are unresolved blocking rights actions'
-        : undefined;
+        : lawyerRequired
+          ? 'Утверждение заблокировано: требуется заключение юриста'
+          : undefined;
 
   return (
     <div className={styles.container}>
@@ -94,12 +106,32 @@ export const ApprovalPanel: FC<ApprovalPanelProps> = ({
           Approval Actions
         </Title>
         <Space direction="vertical" size="large" className={styles.space}>
+          {reviewStatus === 'LAWYER_APPROVED' && (
+            <Alert
+              type="success"
+              message="Юрист одобрил"
+              description={
+                riskAssessment?.lawyerApprovedLawyerName
+                  ? `Положительное заключение вынес ${riskAssessment.lawyerApprovedLawyerName}.`
+                  : 'Юрист вынес положительное заключение — утверждение доступно.'
+              }
+              showIcon
+            />
+          )}
+
           {approveDisabledReason && (
             <Alert
               type="warning"
               message="Approval blocked"
               description={approveDisabledReason}
               showIcon
+              action={
+                lawyerRequired ? (
+                  <Button size="small" type="link" href="#lawyer-review-panel">
+                    Перейти к юридической проверке
+                  </Button>
+                ) : undefined
+              }
             />
           )}
 

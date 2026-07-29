@@ -269,3 +269,82 @@
   align-items: center;
   min-height: 300px;
 }
+
+// Phase 19: lawyer workflow section
+.emptyText {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+}
+
+.lawyerBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  border-radius: $border-radius-base;
+  background: $color-background-secondary;
+  color: $color-text-secondary;
+
+  &[data-tone='blue'] {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  &[data-tone='green'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &[data-tone='gold'] {
+    background: #fef9c3;
+    color: #854d0e;
+  }
+
+  &[data-tone='orange'] {
+    background: #fed7aa;
+    color: #9a3412;
+  }
+
+  &[data-tone='red'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &[data-tone='purple'] {
+    background: #ede9fe;
+    color: #5b21b6;
+  }
+}
+
+.lawyerList {
+  list-style: none;
+  padding: 0;
+  margin: $spacing-sm 0 0 0;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+
+  li {
+    padding: $spacing-xs 0;
+    border-bottom: 1px solid $color-border-light;
+  }
+}
+
+.lawyerLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: $color-primary;
+  cursor: pointer;
+  font-size: $font-size-sm;
+}

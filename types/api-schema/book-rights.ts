@@ -7,6 +7,7 @@ import type {
   PublicationGateResult,
   RightsContentHashCheck,
 } from './rights-intake';
+import type { RightsLawyerCondition, RightsLawyerReview, RightsRiskLevel } from './rights-lawyer';
 import type { RightsRecheckSchedule, RightsRecheckTask } from './rights-recheck';
 
 export interface BookRightsDashboardBookSummary {
@@ -108,6 +109,16 @@ export interface BookRightsDashboardMetrics {
   nextRecheckDueAt?: string | null;
   lastRecheckScanAt?: string | null;
   recheckPolicy?: string | null;
+  // Phase 19: lawyer workflow
+  riskLevel?: RightsRiskLevel | null;
+  lawyerReviewRequired?: boolean;
+  lawyerApproved?: boolean;
+  lawyerApprovedAt?: string | null;
+  lawyerApprovedLawyerName?: string | null;
+  lawyerOpinionValidUntil?: string | null;
+  openLawyerReviewsCount?: number;
+  pendingLawyerConditionsCount?: number;
+  lawyerReviewsCount?: number;
 }
 
 export interface BookRightsDashboard {
@@ -126,5 +137,8 @@ export interface BookRightsDashboard {
   /** Phase 18: up to 50 recheck tasks of this version and its rights profile. */
   recheckTasks?: RightsRecheckTask[];
   recheckSchedule?: RightsRecheckSchedule | null;
+  /** Phase 19: up to 50 legal reviews of the rights profile of this version. */
+  lawyerReviews?: RightsLawyerReview[];
+  pendingLawyerConditions?: RightsLawyerCondition[];
   summary: BookRightsDashboardMetrics;
 }
