@@ -206,6 +206,12 @@
     "chaptersFail": "Error al cargar los capítulos de audio.",
     "goBack": "Volver"
   },
+  "rightsBlocked": {
+    "title": "No disponible en tu región",
+    "message": "La lectura y la escucha de este libro no están disponibles en tu país debido a restricciones de derechos de autor. La página del libro sigue abierta y los demás libros del catálogo están disponibles como siempre.",
+    "backToBook": "Volver al libro",
+    "browseCatalog": "Ir al catálogo"
+  },
   "auth": {
     "sidebar": {
       "tagline": "Tu biblioteca digital te espera. Miles de libros y audiolibros a tu alcance.",

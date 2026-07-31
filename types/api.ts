@@ -80,6 +80,16 @@ export class ApiError extends Error {
   public isValidationError(): boolean {
     return this.statusCode === HTTP_STATUS.BAD_REQUEST && Boolean(this.details?.length);
   }
+
+  /**
+   * Checks if error is 451 — the backend refuses the content for legal reasons.
+   * Two codes reach this state, `GEO_BLOCKED_BY_RIGHTS` (rights clearance closes the market) and
+   * `BLOCKED_BY_RIGHTS_CLAIM` (a rightsholder claim). They are deliberately not distinguished for
+   * the reader: Phase 16 forbids disclosing claim or claimant data outward.
+   */
+  public isRightsBlocked(): boolean {
+    return this.statusCode === HTTP_STATUS.UNAVAILABLE_FOR_LEGAL_REASONS;
+  }
 }
 
 /**

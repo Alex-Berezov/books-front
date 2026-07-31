@@ -1,3 +1,4 @@
+import type { GeoCountrySourceHealth } from './geo-block';
 import type { RightsClaimSummary } from './rights-claims';
 import type {
   RightsIntake,
@@ -119,6 +120,8 @@ export interface BookRightsDashboardMetrics {
   openLawyerReviewsCount?: number;
   pendingLawyerConditionsCount?: number;
   lawyerReviewsCount?: number;
+  /** WP-1.2а: geo-block is mandatory for this version, but the country source looks broken. */
+  geoCountrySourceWarning?: boolean;
 }
 
 export interface BookRightsDashboard {
@@ -140,5 +143,7 @@ export interface BookRightsDashboard {
   /** Phase 19: up to 50 legal reviews of the rights profile of this version. */
   lawyerReviews?: RightsLawyerReview[];
   pendingLawyerConditions?: RightsLawyerCondition[];
+  /** WP-1.2а: health of the GeoIP country source. Counters are per backend process. */
+  geoCountrySource?: GeoCountrySourceHealth | null;
   summary: BookRightsDashboardMetrics;
 }

@@ -10,7 +10,11 @@ import {
   useVerifyGeoBlockRules,
 } from '@/api/hooks/useBookVersions';
 import { Button } from '@/components/common/Button';
-import type { GeoAccessCheckResult, GeoBlockScope } from '@/types/api-schema/geo-block';
+import type {
+  GeoAccessCheckResult,
+  GeoBlockScope,
+  GeoCountrySourceHealth,
+} from '@/types/api-schema/geo-block';
 import styles from './GeoBlockRulesPanel.module.scss';
 
 const GEO_BLOCK_SCOPES: GeoBlockScope[] = [
@@ -24,14 +28,18 @@ const GEO_BLOCK_SCOPES: GeoBlockScope[] = [
 
 export interface GeoBlockRulesPanelProps {
   versionId: string;
+  /** WP-1.2а: health of the country source Phase 12 depends on, taken from the rights dashboard. */
+  countrySource?: GeoCountrySourceHealth | null;
 }
 
 const formatDate = (value: string | null): string => {
   return value ? new Date(value).toLocaleString() : 'Not verified';
 };
 
+const formatPercent = (ratio: number): string => `${Math.round(ratio * 100)}%`;
+
 export const GeoBlockRulesPanel: FC<GeoBlockRulesPanelProps> = (props) => {
-  const { versionId } = props;
+  const { versionId, countrySource } = props;
   const { enqueueSnackbar } = useSnackbar();
   const { data, isLoading, isError, refetch } = useGeoBlockRules(versionId);
   const [countryCode, setCountryCode] = useState('GB');
@@ -116,6 +124,10 @@ export const GeoBlockRulesPanel: FC<GeoBlockRulesPanelProps> = (props) => {
     activeRules.find((rule) => rule.verifiedByUserId)?.verifiedByUserId ?? null;
   const canVerify =
     activeRules.length > 0 && hasBlockedCheck && hasAllowedCheck && !verifyMutation.isPending;
+  // WP-1.2а: rules only enforce anything while the upstream proxy keeps sending a country.
+  const countrySourceBroken =
+    summary.geoBlockRequired &&
+    (countrySource?.status === 'UNAVAILABLE' || countrySource?.status === 'DEGRADED');
 
   return (
     <section className={styles.panel} aria-labelledby="geo-block-rules-title">
@@ -145,6 +157,20 @@ export const GeoBlockRulesPanel: FC<GeoBlockRulesPanelProps> = (props) => {
         <div className={styles.warning} role="alert">
           <AlertTriangle size={16} />
           Geo-block is required, but no active runtime rules have been generated.
+        </div>
+      )}
+
+      {countrySourceBroken && countrySource && (
+        <div className={styles.warning} role="alert">
+          <AlertTriangle size={16} />
+          <span>
+            {countrySource.status === 'UNAVAILABLE'
+              ? 'The visitor country is not reaching the API at all — geo-block rules cannot fire.'
+              : `${formatPercent(countrySource.unknownRatio)} of requests arrive without a country — geo-block enforcement is partial.`}{' '}
+            Check that the API domain is proxied by Cloudflare and that IP Geolocation is enabled (
+            {countrySource.unknownCount} of {countrySource.totalCount} requests since{' '}
+            {formatDate(countrySource.windowStartedAt)}).
+          </span>
         </div>
       )}
 

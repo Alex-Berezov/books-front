@@ -246,6 +246,12 @@
     "chaptersFail": "Failed to load audio chapters.",
     "goBack": "Go Back"
   },
+  "rightsBlocked": {
+    "title": "Not available in your region",
+    "message": "Reading and listening to this book are unavailable in your country because of copyright restrictions. The book page stays open, and other books in the catalogue are available as usual.",
+    "backToBook": "Back to the book",
+    "browseCatalog": "Browse the catalogue"
+  },
   "auth": {
     "sidebar": {
       "tagline": "Your digital library awaits. Thousands of books and audiobooks at your fingertips.",

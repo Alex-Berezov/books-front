@@ -22,6 +22,8 @@ import {
   useRecordView,
   useUpdateAudioProgress,
 } from '@/api/hooks/usePublicAudio';
+import { RightsBlockedNotice } from '@/components/common/RightsBlockedNotice';
+import { isRightsBlockedError } from '@/lib/errors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './player.module.scss';
@@ -189,6 +191,12 @@ export default function ListenClient({ params }: Props) {
         </div>
       </div>
     );
+  }
+
+  // Rights blocking arrives as 451 from the audio-chapters request and must be told apart from a
+  // generic loading failure: the player is not broken, the market is closed (ADR-012).
+  if (isRightsBlockedError(error)) {
+    return <RightsBlockedNotice lang={lang} bookSlug={slug} />;
   }
 
   if (error || chapters.length === 0) {

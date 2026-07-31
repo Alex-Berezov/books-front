@@ -18,6 +18,7 @@ export enum ErrorType {
   NOT_FOUND = 'not_found',
   CONFLICT = 'conflict',
   RATE_LIMIT = 'rate_limit',
+  RIGHTS_BLOCKED = 'rights_blocked',
   SERVER_ERROR = 'server_error',
   NETWORK_ERROR = 'network_error',
   UNKNOWN = 'unknown',
@@ -33,6 +34,7 @@ export const ERROR_MESSAGES: Record<ErrorType, string> = {
   [ErrorType.NOT_FOUND]: 'The requested resource was not found',
   [ErrorType.CONFLICT]: 'This operation conflicts with existing data',
   [ErrorType.RATE_LIMIT]: 'Too many requests. Please try again later',
+  [ErrorType.RIGHTS_BLOCKED]: 'This content is not available in your region',
   [ErrorType.SERVER_ERROR]: 'Something went wrong on our end. Please try again later',
   [ErrorType.NETWORK_ERROR]: 'Network error. Please check your connection',
   [ErrorType.UNKNOWN]: 'An unexpected error occurred',
@@ -82,6 +84,10 @@ export const getErrorType = (statusCode: number): ErrorType => {
 
   if (statusCode === HTTP_STATUS.TOO_MANY_REQUESTS) {
     return ErrorType.RATE_LIMIT;
+  }
+
+  if (statusCode === HTTP_STATUS.UNAVAILABLE_FOR_LEGAL_REASONS) {
+    return ErrorType.RIGHTS_BLOCKED;
   }
 
   if (statusCode >= 500) {
@@ -218,4 +224,24 @@ export const getErrorAction = (error: unknown): 'retry' | 'signin' | 'dismiss' |
  */
 export const isApiError = (error: unknown): error is ApiError => {
   return error instanceof ApiError;
+};
+
+/**
+ * Check whether the backend refused the content for legal reasons (HTTP 451).
+ *
+ * The backend answers 451 both when rights clearance closes the visitor's market
+ * (`GEO_BLOCKED_BY_RIGHTS`) and when a rightsholder claim blocks the work
+ * (`BLOCKED_BY_RIGHTS_CLAIM`). The reader is shown the same explanation for both — the claim,
+ * the claimant and the reason are never disclosed outward (Phase 16, ADR-012).
+ *
+ * @param error - Any error
+ * @returns true if the content is blocked by rights
+ *
+ * @example
+ * ```tsx
+ * if (isRightsBlockedError(error)) return <RightsBlockedNotice lang={lang} />;
+ * ```
+ */
+export const isRightsBlockedError = (error: unknown): boolean => {
+  return error instanceof ApiError && error.isRightsBlocked();
 };

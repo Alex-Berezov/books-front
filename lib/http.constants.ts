@@ -22,6 +22,8 @@ export const HTTP_STATUS = {
   UNPROCESSABLE_ENTITY: 422,
   /** 429 - Rate limit exceeded */
   TOO_MANY_REQUESTS: 429,
+  /** 451 - Content blocked for legal reasons: rights clearance or a rightsholder claim */
+  UNAVAILABLE_FOR_LEGAL_REASONS: 451,
   /** 500 - Internal server error */
   INTERNAL_SERVER_ERROR: 500,
   /** 503 - Service unavailable */

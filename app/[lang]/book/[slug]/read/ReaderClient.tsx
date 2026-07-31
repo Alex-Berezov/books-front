@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useUpdateTextProgress } from '@/api/hooks/useProgress';
 import { useReaderBootstrap } from '@/api/hooks/usePublic';
+import { RightsBlockedNotice } from '@/components/common/RightsBlockedNotice';
+import { isRightsBlockedError } from '@/lib/errors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ChapterDetail } from '@/types/api-schema';
@@ -38,7 +40,11 @@ export default function ReaderClient({ params }: Props) {
   const { t } = useTranslation();
   const { data: session } = useSession();
 
-  const { data: bootstrapData, isLoading } = useReaderBootstrap(
+  const {
+    data: bootstrapData,
+    isLoading,
+    error,
+  } = useReaderBootstrap(
     supportedLang,
     slug,
     session?.user ? (session.user as { id?: string }).id || undefined : undefined
@@ -128,6 +134,12 @@ export default function ReaderClient({ params }: Props) {
   const goToNextChapter = () => {
     if (currentChapterIndex < chapters.length - 1) setCurrentChapterIndex((i) => i + 1);
   };
+
+  // Rights blocking arrives as 451 from the reader-bootstrap request. The reader is never rendered
+  // in that case — the visitor gets the explanation instead of a generic loading failure (ADR-012).
+  if (isRightsBlockedError(error)) {
+    return <RightsBlockedNotice lang={lang} bookSlug={slug} />;
+  }
 
   if (isLoading) {
     return (

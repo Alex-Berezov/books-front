@@ -65,3 +65,21 @@ export interface VerifyGeoBlockRulesRequest {
   verified: boolean;
   notesRu?: string | null;
 }
+
+/**
+ * WP-1.2а. Phase 12 resolves the visitor country from an upstream proxy header, so geo-blocking
+ * stops working silently if that header disappears. These counters make the outage visible.
+ */
+export type GeoCountrySourceStatus = 'NO_DATA' | 'HEALTHY' | 'DEGRADED' | 'UNAVAILABLE';
+
+export interface GeoCountrySourceHealth {
+  status: GeoCountrySourceStatus;
+  resolvedCount: number;
+  unknownCount: number;
+  totalCount: number;
+  unknownRatio: number;
+  lastResolvedHeader: string | null;
+  lastResolvedAt: string | null;
+  lastUnknownAt: string | null;
+  windowStartedAt: string;
+}

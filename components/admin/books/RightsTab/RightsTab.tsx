@@ -206,7 +206,7 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, bookId, lang }) => {
       {/* 4. Runtime GeoIP enforcement */}
       {(currentVersion.rightsGeoBlockRequired || summary.blockedCountriesCount > 0) && (
         <div className={styles.section}>
-          <GeoBlockRulesPanel versionId={versionId} />
+          <GeoBlockRulesPanel versionId={versionId} countrySource={dashboard.geoCountrySource} />
         </div>
       )}
 

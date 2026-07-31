@@ -206,6 +206,12 @@
     "chaptersFail": "Falha ao carregar capítulos de áudio.",
     "goBack": "Voltar"
   },
+  "rightsBlocked": {
+    "title": "Indisponível na sua região",
+    "message": "A leitura e a audição deste livro não estão disponíveis no seu país devido a restrições de direitos. A página do livro continua aberta e os demais livros do catálogo estão disponíveis normalmente.",
+    "backToBook": "Voltar ao livro",
+    "browseCatalog": "Ir para o catálogo"
+  },
   "auth": {
     "sidebar": {
       "tagline": "Sua biblioteca digital espera por você. Milhares de livros e audiolivros ao seu alcance.",
