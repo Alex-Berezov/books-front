@@ -14,6 +14,7 @@ import {
   archiveRightsIntake,
   getRightsAgentManifest,
   createRightsReviewImport,
+  getRightsReviewImport,
   getRightsReviewImports,
   materializeRightsReviewImport,
   getRightsProfileByIntake,
@@ -56,6 +57,8 @@ export const rightsIntakeKeys = {
     [...rightsIntakeKeys.all, 'review-imports', intakeId] as const,
   reviewImportsList: (intakeId: string, params: ListRightsReviewImportsParams) =>
     [...rightsIntakeKeys.reviewImports(intakeId), 'list', params] as const,
+  reviewImportDetail: (importId: string) =>
+    [...rightsIntakeKeys.all, 'review-import', importId] as const,
   rightsProfile: (profileId: string) =>
     [...rightsIntakeKeys.all, 'rights-profile', profileId] as const,
   currentRightsProfile: (intakeId: string) =>
@@ -222,6 +225,24 @@ export const useRightsReviewImports = (
     queryKey: rightsIntakeKeys.reviewImportsList(intakeId, params),
     queryFn: () => getRightsReviewImports(intakeId, params),
     enabled: !!intakeId,
+    ...options,
+  });
+};
+
+/**
+ * WP-9.2: детали импорта отдельным запросом.
+ *
+ * Список импортов не несёт полей PDF-отчёта (`hasReportPdf`, сумма, размер), поэтому карточка
+ * файла читает их отсюда.
+ */
+export const useRightsReviewImportDetail = (
+  importId: string,
+  options?: Omit<UseQueryOptions<RightsReviewImportDetail, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<RightsReviewImportDetail, Error>({
+    queryKey: rightsIntakeKeys.reviewImportDetail(importId),
+    queryFn: () => getRightsReviewImport(importId),
+    enabled: !!importId,
     ...options,
   });
 };

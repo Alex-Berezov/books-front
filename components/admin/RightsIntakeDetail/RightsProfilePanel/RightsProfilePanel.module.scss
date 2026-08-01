@@ -153,49 +153,6 @@
   }
 }
 
-.evidenceList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-  margin-top: $spacing-sm;
-}
-
-.evidenceItem {
-  padding: $spacing-sm;
-  background: $color-background-tertiary;
-  border-radius: $border-radius-sm;
-}
-
-.evidenceHeader {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: $color-text-secondary;
-  margin-bottom: 2px;
-}
-
-.evidenceTitle {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  margin: 0 0 2px 0;
-}
-
-.evidenceAuthority {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
-  margin: 0 0 2px 0;
-}
-
-.evidenceUrl {
-  font-size: $font-size-xs;
-  color: $color-primary;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .manifestActions {
   display: flex;
   gap: $spacing-sm;

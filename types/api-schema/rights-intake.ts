@@ -209,6 +209,19 @@ export interface RightsReviewImportDetail extends RightsReviewImportListItem {
   rawAgentOutputSha256: string | null;
   validationErrors: ValidationIssue[] | null;
   validationWarnings: ValidationIssue[] | null;
+  // WP-9.2: PDF-версия отчёта. Файл приватный — публичного URL у него нет, скачивается
+  // только через `GET /admin/rights/review-imports/:importId/report-pdf`.
+  hasReportPdf?: boolean;
+  reportPdfSha256?: string | null;
+  reportPdfFileName?: string | null;
+  reportPdfContentType?: string | null;
+  reportPdfSizeBytes?: number | null;
+  reportPdfUploadedAt?: string | null;
+  // WP-9: происхождение отчёта — по чему и чем он был получен.
+  inputManifestSha256?: string | null;
+  inputManifestVersion?: string | null;
+  promptVersion?: string | null;
+  agentModel?: string | null;
 }
 
 export interface RightsReviewImportsListResponse {
@@ -223,12 +236,59 @@ export interface CreateRightsReviewImportRequest {
   reportMarkdown?: string | null;
   rawAgentOutput?: string | null;
   sourceFileName?: string | null;
+  /** WP-9: модель агента, выдавшего отчёт (до 120 символов). */
+  agentModel?: string | null;
 }
 
 export interface ListRightsReviewImportsParams {
   page?: number;
   limit?: number;
   status?: RightsReviewImportStatus;
+}
+
+/**
+ * WP-9: дескриптор приватного юридического файла, ответ на успешную загрузку.
+ *
+ * Публичного URL у файла нет и быть не может: `storageKey` — внутренний ключ хранилища,
+ * скачивание идёт только админскими эндпоинтами под ролями Admin/ContentManager.
+ */
+export interface RightsFileDescriptor {
+  storageKey: string;
+  sha256: string;
+  fileName: string | null;
+  contentType: string | null;
+  sizeBytes: number | null;
+  uploadedAt: string | null;
+}
+
+/** WP-9: то, что карточка файла показывает редактору — дескриптор без ключа хранилища. */
+export interface RightsFileMeta {
+  sha256: string | null;
+  fileName: string | null;
+  contentType: string | null;
+  sizeBytes: number | null;
+  uploadedAt: string | null;
+}
+
+/** WP-9: `GET /admin/rights/files/limits`. */
+export interface RightsFileLimits {
+  maxSizeMb: number;
+  allowedContentTypes: {
+    reportPdf: string[];
+    sourceFile: string[];
+    evidence: string[];
+  };
+}
+
+/** WP-9.3: пометка доказательства заменённым — единственный способ сказать «оно не действует». */
+export interface SupersedeRightsEvidenceRequest {
+  supersededById: string;
+}
+
+export interface SupersedeRightsEvidenceResponse {
+  id: string;
+  isCurrent: boolean;
+  supersededById: string;
 }
 
 export type RightsProfileStatus =
@@ -266,6 +326,14 @@ export interface SourceEdition {
   status: string;
   notesRu: string | null;
   editionRights: EditionRights[];
+  // WP-8.3: файл исходного издания. Его контрольная сумма входит в content hash клиренса,
+  // поэтому загрузка помечает версии профиля требующими перепроверки.
+  hasSourceFile?: boolean;
+  sourceFileSha256?: string | null;
+  sourceFileName?: string | null;
+  sourceFileContentType?: string | null;
+  sourceFileSizeBytes?: number | null;
+  sourceFileUploadedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -387,6 +455,17 @@ export interface RightsEvidence {
   accessedAt: string | null;
   relevantExcerpt: string | null;
   summaryRu: string;
+  // WP-9.3: архивная копия документа. Внешний URL завтра отдаст 404 вместе с обоснованием
+  // блокировки страны, поэтому копию загружает редактор — сервер по внешним адресам не ходит.
+  isArchivedCopy?: boolean;
+  fileSha256?: string | null;
+  fileName?: string | null;
+  contentType?: string | null;
+  sizeBytes?: number | null;
+  archivedAt?: string | null;
+  /** `false` — доказательство заменено другим (удалить его нельзя, ADR-009). */
+  isCurrent?: boolean;
+  supersededById?: string | null;
   createdAt: string;
   updatedAt: string;
 }

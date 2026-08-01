@@ -1,0 +1,142 @@
+@import '@/styles/tokens.scss';
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.item {
+  padding: $spacing-sm;
+  background: $color-background-tertiary;
+  border-radius: $border-radius-sm;
+  border: 1px solid $color-border-light;
+
+  &[data-superseded='yes'] {
+    opacity: 0.75;
+    border-style: dashed;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-bottom: 2px;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px $spacing-sm;
+  border-radius: $border-radius-base;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+
+  &[data-tone='archived'] {
+    background: $color-success;
+    color: $color-text-inverse;
+  }
+
+  &[data-tone='superseded'] {
+    background: $color-warning;
+    color: $color-text-primary;
+  }
+}
+
+.title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  margin: $spacing-xs 0 2px 0;
+}
+
+.authority {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: 0 0 2px 0;
+}
+
+.url {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  text-decoration: none;
+  word-break: break-all;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.replacedBy {
+  font-size: $font-size-xs;
+  color: $color-text-primary;
+  margin: $spacing-xs 0 0 0;
+  font-weight: $font-weight-medium;
+}
+
+.supersedeRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.supersedeLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+  font-weight: $font-weight-medium;
+}
+
+.supersedeSelect {
+  min-width: 200px;
+  height: 32px;
+  padding: 0 $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  background: $color-background-primary;
+  color: $color-text-primary;
+}
+
+.supersedeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background: $color-background-primary;
+  color: $color-text-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-background-secondary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.empty {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-top: $spacing-xs;
+}
+
+.error {
+  font-size: $font-size-sm;
+  color: $color-error;
+  margin: $spacing-sm 0 0 0;
+}

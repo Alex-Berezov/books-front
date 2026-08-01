@@ -70,6 +70,14 @@ vi.mock('@/api/hooks/useRightsIntakes', () => ({
   useUpdateRightsAction: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }),
 }));
 
+// WP-9: карточки юридических файлов внутри RightsProfilePanel (доказательства, файл источника).
+vi.mock('@/api/hooks/useRightsFiles', () => ({
+  useRightsFileLimits: () => ({ data: undefined }),
+  useUploadRightsSourceFile: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUploadRightsEvidenceArchiveCopy: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useSupersedeRightsEvidence: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+
 vi.mock('@/components/admin/books/GeoBlockRulesPanel/GeoBlockRulesPanel', () => ({
   GeoBlockRulesPanel: () => <div data-testid="geo-block-rules-panel">Geo-block rules panel</div>,
 }));

@@ -8,6 +8,7 @@ import type {
   RightsReviewImportListItem,
 } from '@/types/api-schema/rights-intake';
 import styles from './ReviewImportPanel.module.scss';
+import { ReportPdfPanel } from '../ReportPdfPanel/ReportPdfPanel';
 import { ReviewImportHistory } from '../ReviewImportHistory/ReviewImportHistory';
 
 interface ReviewImportPanelProps {
@@ -32,6 +33,10 @@ export const ReviewImportPanel: FC<ReviewImportPanelProps> = ({
   const createReviewImportMutation = useCreateRightsReviewImport(intakeId);
 
   const canImport = workflowStatus === 'READY_FOR_AGENT' || workflowStatus === 'REVIEW_IMPORTED';
+
+  // WP-9.2: PDF прикрепляется к конкретному импорту — к текущему, а сразу после загрузки
+  // JSON текущим становится только что созданный.
+  const currentImport = importResult ?? reviewImports.find((item) => item.isCurrent) ?? null;
 
   const handleImportReview = async () => {
     setImportResult(null);
@@ -302,6 +307,8 @@ export const ReviewImportPanel: FC<ReviewImportPanelProps> = ({
           Review import is not available for intakes in <strong>{workflowStatus}</strong> status.
         </p>
       )}
+
+      <ReportPdfPanel importId={currentImport?.id ?? null} />
 
       <ReviewImportHistory reviewImports={reviewImports} />
     </div>

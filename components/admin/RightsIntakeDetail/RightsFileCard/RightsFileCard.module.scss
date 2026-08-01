@@ -1,0 +1,167 @@
+@import '@/styles/tokens.scss';
+
+.card {
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  padding: $spacing-sm $spacing-md;
+  background: $color-background-tertiary;
+  margin-top: $spacing-sm;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.status {
+  display: inline-block;
+  padding: 2px $spacing-sm;
+  border-radius: $border-radius-base;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+
+  &[data-uploaded='yes'] {
+    background: $color-success;
+    color: $color-text-inverse;
+  }
+
+  &[data-uploaded='no'] {
+    background: $color-background-secondary;
+    color: $color-text-secondary;
+  }
+}
+
+.hint {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: $spacing-xs 0 0 0;
+  line-height: $line-height-base;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: $spacing-xs $spacing-md;
+  margin: $spacing-sm 0 0 0;
+}
+
+.metaRow {
+  display: flex;
+  flex-direction: column;
+}
+
+.metaLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+  font-weight: $font-weight-medium;
+}
+
+.metaValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  margin: 0;
+  word-break: break-all;
+}
+
+.sha {
+  font-family: $font-family-mono;
+  font-size: $font-size-xs;
+  color: $color-text-primary;
+  margin: 0;
+  word-break: break-all;
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.downloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background: $color-background-primary;
+  color: $color-text-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-background-secondary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.uploadLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
+  padding: $spacing-xs $spacing-md;
+  background: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-background-secondary;
+  }
+
+  &[data-disabled='yes'] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.fileInput {
+  display: none;
+}
+
+.limit {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: $spacing-xs 0 0 0;
+}
+
+.warning {
+  font-size: $font-size-xs;
+  color: $color-warning;
+  background: $color-background-primary;
+  border: 1px solid $color-warning;
+  border-radius: $border-radius-sm;
+  padding: $spacing-xs $spacing-sm;
+  margin: $spacing-sm 0 0 0;
+  line-height: $line-height-base;
+}
+
+.notice {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: $spacing-sm 0 0 0;
+  line-height: $line-height-base;
+}
+
+.error {
+  font-size: $font-size-sm;
+  color: $color-error;
+  margin: $spacing-sm 0 0 0;
+}

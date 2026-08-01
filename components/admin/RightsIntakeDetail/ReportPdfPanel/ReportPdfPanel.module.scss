@@ -1,0 +1,29 @@
+@import '@/styles/tokens.scss';
+
+.block {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1px solid $color-border-light;
+}
+
+.blockTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0;
+}
+
+.hint {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: $spacing-xs 0 0 0;
+  line-height: $line-height-base;
+}
+
+.provenance {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: $spacing-sm 0 0 0;
+  font-family: $font-family-mono;
+  word-break: break-all;
+}

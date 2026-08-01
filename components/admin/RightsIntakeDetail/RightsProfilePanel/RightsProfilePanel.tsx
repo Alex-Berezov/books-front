@@ -7,8 +7,10 @@ import {
 } from '@/api/hooks/useRightsIntakes';
 import { ContributorsPanel } from '@/components/admin/ContributorsPanel/ContributorsPanel';
 import { ComponentTerritoryAssessmentsPanel } from '@/components/admin/RightsIntakeDetail/ComponentTerritoryAssessmentsPanel/ComponentTerritoryAssessmentsPanel';
+import { EvidencePanel } from '@/components/admin/RightsIntakeDetail/EvidencePanel/EvidencePanel';
 import { LicensesPanel } from '@/components/admin/RightsIntakeDetail/LicensesPanel/LicensesPanel';
 import { RightsActionsChecklist } from '@/components/admin/RightsIntakeDetail/RightsActionsChecklist/RightsActionsChecklist';
+import { SourceEditionFilePanel } from '@/components/admin/RightsIntakeDetail/SourceEditionFilePanel/SourceEditionFilePanel';
 import { TerritoryRegionsPanel } from '@/components/admin/RightsIntakeDetail/TerritoryRegionsPanel/TerritoryRegionsPanel';
 import type {
   RightsProfileDetail,
@@ -245,6 +247,11 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
                         </a>
                       </p>
                     )}
+                    {/* WP-8.3: файл источника — сумма файла входит в content hash клиренса. */}
+                    <SourceEditionFilePanel
+                      profileId={currentProfile.id}
+                      sourceEdition={currentProfile.sourceEdition}
+                    />
                   </div>
                 </details>
               )}
@@ -324,35 +331,11 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
                 <RightsActionsChecklist actions={currentProfile.actions} />
               </details>
 
+              {/* WP-9.3: список доказательств переехал в EvidencePanel — архивная копия и
+                  пометка «заменено» живут рядом с самим доказательством. */}
               <details className={styles.collapsible}>
                 <summary>Evidence ({currentProfile.evidence.length})</summary>
-                {currentProfile.evidence.length > 0 ? (
-                  <div className={styles.evidenceList}>
-                    {currentProfile.evidence.map((e) => (
-                      <div key={e.id} className={styles.evidenceItem}>
-                        <div className={styles.evidenceHeader}>
-                          <span>{e.evidenceType}</span>
-                          <span>{e.sourceLevel}</span>
-                        </div>
-                        <p className={styles.evidenceTitle}>{e.title}</p>
-                        <p className={styles.evidenceAuthority}>{e.authority}</p>
-                        {e.summaryRu && <p className={styles.evidenceAuthority}>{e.summaryRu}</p>}
-                        {e.url && (
-                          <a
-                            href={e.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.evidenceUrl}
-                          >
-                            {e.url}
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className={styles.profileEmpty}>No evidence.</p>
-                )}
+                <EvidencePanel evidence={currentProfile.evidence} />
               </details>
             </div>
           )}
