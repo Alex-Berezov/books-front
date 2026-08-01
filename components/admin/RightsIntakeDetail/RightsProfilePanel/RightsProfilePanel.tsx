@@ -8,6 +8,7 @@ import {
 import { ContributorsPanel } from '@/components/admin/ContributorsPanel/ContributorsPanel';
 import { ComponentTerritoryAssessmentsPanel } from '@/components/admin/RightsIntakeDetail/ComponentTerritoryAssessmentsPanel/ComponentTerritoryAssessmentsPanel';
 import { LicensesPanel } from '@/components/admin/RightsIntakeDetail/LicensesPanel/LicensesPanel';
+import { RightsActionsChecklist } from '@/components/admin/RightsIntakeDetail/RightsActionsChecklist/RightsActionsChecklist';
 import { TerritoryRegionsPanel } from '@/components/admin/RightsIntakeDetail/TerritoryRegionsPanel/TerritoryRegionsPanel';
 import type {
   RightsProfileDetail,
@@ -316,38 +317,11 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
                 sourceEditionId={currentProfile.sourceEdition?.id}
               />
 
+              {/* WP-5.4: таблица «только чтение» заменена чеклистом — закрыть действие
+                  человеку раньше было нечем (R3-02). */}
               <details className={styles.collapsible} open>
                 <summary>Required Actions ({currentProfile.actions.length})</summary>
-                {currentProfile.actions.length > 0 ? (
-                  <table className={styles.profileTable}>
-                    <thead>
-                      <tr>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Blocking</th>
-                        <th>Description</th>
-                        <th>Countries</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentProfile.actions.map((a) => (
-                        <tr key={a.id} className={a.isBlocking ? styles.blockingRow : ''}>
-                          <td>{a.actionType}</td>
-                          <td>{a.status}</td>
-                          <td>{a.isBlocking ? 'Yes' : 'No'}</td>
-                          <td>{a.descriptionRu}</td>
-                          <td>
-                            {Array.isArray(a.affectedCountryCodes)
-                              ? (a.affectedCountryCodes as string[]).join(', ')
-                              : '-'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className={styles.profileEmpty}>No required actions.</p>
-                )}
+                <RightsActionsChecklist actions={currentProfile.actions} />
               </details>
 
               <details className={styles.collapsible}>

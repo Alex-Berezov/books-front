@@ -392,8 +392,24 @@ export interface RightsAction {
   descriptionRu: string;
   affectedCountryCodes: unknown;
   isBlocking: boolean;
+  // WP-5.1: жизненный цикл действия — кто взял, к какому сроку, кто и когда закрыл.
+  assignedToUserId: string | null;
+  dueAt: string | null;
+  completedAt: string | null;
+  completedByUserId: string | null;
+  completionNotesRu: string | null;
+  /** Закрыто ли действие: `COMPLETED` или `WAIVED`. `CANCELLED` закрытым не считается. */
+  isResolved: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/** WP-5.2: изменение действия человеком. Комментарий обязателен при `WAIVED`. */
+export interface UpdateRightsActionRequest {
+  status?: string;
+  completionNotesRu?: string;
+  assignedToUserId?: string | null;
+  dueAt?: string | null;
 }
 
 export interface RightsProfileSummary {

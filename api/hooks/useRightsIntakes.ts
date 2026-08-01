@@ -22,7 +22,9 @@ import {
   rejectRightsReview,
   getRightsIntakeApprovals,
   createBookFromClearance,
+  updateRightsAction,
 } from '@/api/endpoints/admin/rights-intakes';
+import { versionKeys } from '@/api/hooks/useBookVersions';
 import type {
   RightsIntake,
   RightsIntakesListResponse,
@@ -39,6 +41,8 @@ import type {
   RightsApprovalDecision,
   CreateBookFromClearanceRequest,
   CreateBookFromClearanceResponse,
+  RightsAction,
+  UpdateRightsActionRequest,
 } from '@/types/api-schema/rights-intake';
 
 export const rightsIntakeKeys = {
@@ -321,6 +325,36 @@ export const useCreateBookFromClearance = (
     mutationFn: ({ intakeId, data }) => createBookFromClearance(intakeId, data),
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+    ...options,
+  });
+};
+
+/**
+ * WP-5.2: закрытие обязательного действия человеком.
+ *
+ * Изменение статуса двигает и гейт публикации, и вкладку прав, а закрытие действия на
+ * удаление компонента вдобавок пересчитывает вердикты по странам (WP-5.5), поэтому
+ * инвалидируются и версии, и интейки.
+ */
+export const useUpdateRightsAction = (
+  options?: UseMutationOptions<
+    RightsAction,
+    Error,
+    { actionId: string; data: UpdateRightsActionRequest }
+  >
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<RightsAction, Error, { actionId: string; data: UpdateRightsActionRequest }>({
+    mutationFn: ({ actionId, data }) => updateRightsAction(actionId, data),
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
+      queryClient.invalidateQueries({ queryKey: versionKeys.all });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,

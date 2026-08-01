@@ -7,6 +7,8 @@ import type { TerritoryRegionSummary, RightsProfileDetail } from '@/types/api-sc
 vi.mock('@/api/hooks/useRightsIntakes', () => ({
   useCurrentRightsProfile: () => ({ data: null, isLoading: false }),
   useMaterializeRightsReviewImport: () => ({ mutate: vi.fn(), isPending: false }),
+  // WP-5.4: чеклист обязательных действий внутри RightsProfilePanel.
+  useUpdateRightsAction: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }),
 }));
 
 vi.mock('@/api/hooks/useRightsLicenses', () => ({

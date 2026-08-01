@@ -16,6 +16,8 @@ import type {
   RightsApprovalDecision,
   CreateBookFromClearanceRequest,
   CreateBookFromClearanceResponse,
+  RightsAction,
+  UpdateRightsActionRequest,
 } from '@/types/api-schema/rights-intake';
 
 export const getRightsIntakes = async (
@@ -169,3 +171,13 @@ export const createBookFromClearance = (
     data,
     { requireAuth: true }
   );
+
+/**
+ * WP-5.2: закрытие обязательного действия человеком. До него статус действия писался
+ * единственный раз при материализации отчёта агента и не менялся никогда (R3-02).
+ */
+export const updateRightsAction = (
+  actionId: string,
+  data: UpdateRightsActionRequest
+): Promise<RightsAction> =>
+  httpPatchAuth<RightsAction>(`/admin/rights/actions/${actionId}`, data, { requireAuth: true });

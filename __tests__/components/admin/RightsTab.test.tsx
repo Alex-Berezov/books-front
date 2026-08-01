@@ -66,6 +66,8 @@ vi.mock('@/api/hooks/useRightsIntakes', () => ({
   useCurrentRightsProfile: () => ({ data: null, isLoading: false }),
   useMaterializeRightsReviewImport: () => ({ mutate: vi.fn(), isPending: false }),
   useRightsIntakeApprovals: () => ({ data: [], isLoading: false }),
+  // WP-5.4: чеклист обязательных действий внутри RightsProfilePanel.
+  useUpdateRightsAction: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }),
 }));
 
 vi.mock('@/components/admin/books/GeoBlockRulesPanel/GeoBlockRulesPanel', () => ({
@@ -410,6 +412,12 @@ const mockDashboard: BookRightsDashboard = {
         descriptionRu: 'Block UK IP range',
         affectedCountryCodes: ['GB'],
         isBlocking: true,
+        assignedToUserId: null,
+        dueAt: null,
+        completedAt: '2026-07-27T10:00:00Z',
+        completedByUserId: 'user-1',
+        completionNotesRu: null,
+        isResolved: true,
         createdAt: '2026-07-26T10:00:00Z',
         updatedAt: '2026-07-26T10:00:00Z',
       },

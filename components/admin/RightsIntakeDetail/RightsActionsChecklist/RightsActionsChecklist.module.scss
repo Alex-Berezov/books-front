@@ -1,0 +1,174 @@
+@import '@/styles/tokens.scss';
+
+.checklist {
+  margin: $spacing-md 0;
+}
+
+.summary {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-sm 0;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.item {
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  padding: $spacing-md;
+  margin-bottom: $spacing-sm;
+  background: $color-background-primary;
+}
+
+.itemBlocking {
+  border-color: $color-error;
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-xs;
+}
+
+.checkbox {
+  font-size: $font-size-base;
+  line-height: 1;
+  color: $color-text-secondary;
+}
+
+.itemTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.itemDescription {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-xs 0;
+}
+
+.itemMeta {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-sm 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  border-radius: $border-radius-base;
+  background: $color-background-secondary;
+  color: $color-text-secondary;
+
+  &[data-status='COMPLETED'] {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &[data-status='WAIVED'] {
+    background: #e0e7ff;
+    color: #3730a3;
+  }
+
+  &[data-status='IN_PROGRESS'] {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &[data-status='CANCELLED'] {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+
+  &[data-tone='blocking'] {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+.itemActions {
+  display: flex;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.noteInput {
+  flex: 1 1 240px;
+  min-width: 200px;
+  height: 32px;
+  padding: 0 $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+}
+
+.actionBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-md;
+  background: $color-primary;
+  color: $color-text-inverse;
+  border: none;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.actionBtnSecondary {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-md;
+  background: $color-background-primary;
+  color: $color-text-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-background-tertiary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.emptyState {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.errorText {
+  color: $color-error;
+  font-size: $font-size-sm;
+  margin-top: $spacing-xs;
+}
+
+.hint {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin: $spacing-xs 0 0 0;
+}

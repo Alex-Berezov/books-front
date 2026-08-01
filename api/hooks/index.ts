@@ -142,6 +142,7 @@ export {
   useUpdateRightsIntake,
   useChangeRightsIntakeStatus,
   useArchiveRightsIntake,
+  useUpdateRightsAction,
 } from './useRightsIntakes';
 
 // Rights Licenses (Phase 15)
