@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { BookOpen, ExternalLink } from 'lucide-react';
 import type { SourceEdition } from '@/types/api-schema/rights-intake';
 import styles from './RightsTab.module.scss';
+import { TRANSLATION_ORIGIN_LABELS } from './translationOrigin';
 
 interface RightsTabSourceEditionProps {
   sourceEdition: SourceEdition | null;
@@ -24,7 +25,11 @@ export const RightsTabSourceEdition: FC<RightsTabSourceEditionProps> = ({ source
     );
   }
 
-  const { editionRights } = sourceEdition;
+  // WP-7.1: до выката пакета бэкенд отдавал здесь один объект или null — не даём упасть
+  // вкладке, если фронт оказался новее сервера.
+  const editionRights = Array.isArray(sourceEdition.editionRights)
+    ? sourceEdition.editionRights
+    : [];
 
   return (
     <div className={styles.section}>
@@ -78,30 +83,67 @@ export const RightsTabSourceEdition: FC<RightsTabSourceEditionProps> = ({ source
         </div>
       )}
 
-      {editionRights && (
-        <div className={styles.subSection}>
-          <h3 className={styles.subSectionTitle}>Edition Rights & Legal Ground</h3>
-          <div className={styles.detailsGrid}>
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Rights Status</span>
-              <span className={styles.detailValue}>
-                <span className={styles.badge} data-status="APPROVED">
-                  {editionRights.status}
-                </span>
-              </span>
-            </div>
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Legal Basis</span>
-              <span className={styles.detailValue}>{editionRights.legalBasisRu || '—'}</span>
-            </div>
+      {/*
+        WP-7.1: права издания — запись на язык. Раньше здесь показывалась одна строка,
+        дословно повторявшая статус и заметку исходного издания (R7-02).
+      */}
+      <div className={styles.subSection}>
+        <h3 className={styles.subSectionTitle}>Language Rights & Legal Ground</h3>
+        {editionRights.length === 0 ? (
+          <p className={styles.mutedText}>
+            Языковой срез прав ещё не материализован. Он появится после импорта отчёта, в котором
+            есть блок оценок по языкам.
+          </p>
+        ) : (
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Language</th>
+                  <th>Rights Status</th>
+                  <th>Translation Origin</th>
+                  <th>Translated From</th>
+                  <th>Geo-block</th>
+                  <th>Legal Basis / Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {editionRights.map((record) => (
+                  <tr key={record.id}>
+                    <td>
+                      <strong>{record.languageCode.toUpperCase()}</strong>
+                    </td>
+                    <td>
+                      <span className={styles.badge} data-status={record.status}>
+                        {record.status}
+                      </span>
+                    </td>
+                    <td>
+                      {TRANSLATION_ORIGIN_LABELS[record.translationOrigin] ||
+                        record.translationOrigin}
+                    </td>
+                    <td>
+                      {record.translationSourceLanguage
+                        ? record.translationSourceLanguage.toUpperCase()
+                        : '—'}
+                    </td>
+                    <td>
+                      {record.requiresGeoBlock ? (
+                        <span className={styles.badge} data-status="MEDIUM">
+                          Требуется
+                        </span>
+                      ) : (
+                        <span className={styles.mutedText}>Не требуется</span>
+                      )}
+                    </td>
+                    <td>{record.legalBasisRu || record.notesRu || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          {editionRights.notesRu && (
-            <p className={styles.notesText}>
-              <strong>Legal Notes:</strong> {editionRights.notesRu}
-            </p>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

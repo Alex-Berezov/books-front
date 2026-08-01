@@ -67,6 +67,10 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, bookId, lang }) => {
   }
 
   const sourceEdition = (currentProfile?.sourceEdition as SourceEdition | null) || null;
+  // WP-7.4: языковой срез клиренса нужен и списку версий, и разделу исходного издания.
+  const editionRights = Array.isArray(sourceEdition?.editionRights)
+    ? sourceEdition.editionRights
+    : [];
 
   return (
     <div className={styles.rightsTabContainer}>
@@ -201,7 +205,12 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, bookId, lang }) => {
       </div>
 
       {/* 4. Language Versions Overview */}
-      <RightsTabVersions versions={versions} currentVersionId={currentVersion.id} lang={lang} />
+      <RightsTabVersions
+        versions={versions}
+        currentVersionId={currentVersion.id}
+        lang={lang}
+        editionRights={editionRights}
+      />
 
       {/* 4. Runtime GeoIP enforcement */}
       {(currentVersion.rightsGeoBlockRequired || summary.blockedCountriesCount > 0) && (

@@ -265,17 +265,22 @@ export interface SourceEdition {
   gutenbergStatus: string | null;
   status: string;
   notesRu: string | null;
-  editionRights: EditionRights | null;
+  editionRights: EditionRights[];
   createdAt: string;
   updatedAt: string;
 }
 
+/** WP-7.1: права одной языковой версии издания — одна запись на язык. */
 export interface EditionRights {
   id: string;
   sourceEditionId: string;
+  languageCode: string;
   status: string;
   notesRu: string | null;
   legalBasisRu: string | null;
+  translationOrigin: string;
+  translationSourceLanguage: string | null;
+  requiresGeoBlock: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -341,6 +346,8 @@ export interface RightsComponent {
   rightsProfileId: string;
   componentType: string;
   titleRu: string;
+  /** WP-7.2: `null` — компонент общий для всех языков версии. */
+  languageCode?: string | null;
   status: string;
   requiredAction: string;
   confidence: string;

@@ -40,6 +40,8 @@
 
   &[data-status='APPROVED'],
   &[data-status='ALLOW'],
+  &[data-status='ALLOWED'],
+  &[data-status='ALLOWED_BY_LICENSE'],
   &[data-status='HIGH'] {
     background-color: #d1fae5;
     color: #065f46;
@@ -48,6 +50,9 @@
 
   &[data-status='HUMAN_REVIEW_REQUIRED'],
   &[data-status='MEDIUM'],
+  &[data-status='ALLOWED_AFTER_CHANGES'],
+  &[data-status='LICENSE_REQUIRED'],
+  &[data-status='PENDING_REVIEW'],
   &[data-status='ALLOW_AFTER_GEO_CONFIGURATION'] {
     background-color: #fef3c7;
     color: #92400e;
@@ -56,12 +61,39 @@
 
   &[data-status='REJECTED'],
   &[data-status='BLOCK'],
+  &[data-status='BLOCKED'],
   &[data-status='LOW'],
   &[data-status='STALE'] {
     background-color: #fee2e2;
     color: #991b1b;
     border-color: #fca5a5;
   }
+}
+
+// WP-7.4: предупреждение о промежуточном переводе — единственное место, где видно цепочку
+// «оригинал → промежуточный перевод → перевод Bibliaris».
+.languageWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid #fde68a;
+  border-radius: $border-radius-base;
+  background-color: #fffbeb;
+  color: #92400e;
+  font-size: $font-size-sm;
+}
+
+.translationCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.translationVia {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
 }
 
 .intakeLinkBtn {
