@@ -558,6 +558,8 @@ export interface TerritoryRegionSummary {
   licenseRequiredCountryCount: number;
   pendingReviewCountryCount: number;
   notTargetedCountryCount: number;
+  /** Subset of `notTargetedCountryCount` that has no territory decision at all. */
+  undecidedCountryCount: number;
   geoBlockRequiredCount: number;
   countries: TerritoryRegionCountry[];
   blockingReasons: TerritoryRegionReason[];

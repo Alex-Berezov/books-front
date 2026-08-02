@@ -47,6 +47,7 @@ const mockRegions: TerritoryRegionSummary[] = [
     licenseRequiredCountryCount: 0,
     pendingReviewCountryCount: 0,
     notTargetedCountryCount: 0,
+    undecidedCountryCount: 0,
     geoBlockRequiredCount: 0,
     countries: [
       {
@@ -74,6 +75,7 @@ const mockRegions: TerritoryRegionSummary[] = [
     licenseRequiredCountryCount: 0,
     pendingReviewCountryCount: 0,
     notTargetedCountryCount: 25,
+    undecidedCountryCount: 25,
     geoBlockRequiredCount: 1,
     countries: [
       {
@@ -120,6 +122,7 @@ const mockRegions: TerritoryRegionSummary[] = [
     licenseRequiredCountryCount: 0,
     pendingReviewCountryCount: 0,
     notTargetedCountryCount: 1,
+    undecidedCountryCount: 1,
     geoBlockRequiredCount: 0,
     countries: [],
     blockingReasons: [],

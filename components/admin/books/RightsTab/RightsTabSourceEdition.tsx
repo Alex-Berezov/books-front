@@ -63,7 +63,9 @@ export const RightsTabSourceEdition: FC<RightsTabSourceEditionProps> = ({ source
         <div className={styles.detailItem}>
           <span className={styles.detailLabel}>Edition Status</span>
           <span className={styles.detailValue}>
-            <span className={styles.badge} data-status="APPROVED">
+            {/* WP-10.8 (R7-02): цвет считается из фактического статуса. Литерал "APPROVED"
+                красил COPYRIGHTED и UNCERTAIN зелёным «одобрено». */}
+            <span className={styles.badge} data-status={sourceEdition.status}>
               {sourceEdition.status}
             </span>
           </span>

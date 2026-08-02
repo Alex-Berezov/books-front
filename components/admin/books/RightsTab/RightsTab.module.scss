@@ -53,6 +53,10 @@
   &[data-status='ALLOWED_AFTER_CHANGES'],
   &[data-status='LICENSE_REQUIRED'],
   &[data-status='PENDING_REVIEW'],
+  // WP-10.8 (R7-02): статусы исходного издания, которые раньше не имели своего цвета,
+  // потому что бейдж всегда получал литерал APPROVED.
+  &[data-status='UNCERTAIN'],
+  &[data-status='INSUFFICIENT_DATA'],
   &[data-status='ALLOW_AFTER_GEO_CONFIGURATION'] {
     background-color: #fef3c7;
     color: #92400e;
@@ -62,6 +66,7 @@
   &[data-status='REJECTED'],
   &[data-status='BLOCK'],
   &[data-status='BLOCKED'],
+  &[data-status='COPYRIGHTED'],
   &[data-status='LOW'],
   &[data-status='STALE'] {
     background-color: #fee2e2;

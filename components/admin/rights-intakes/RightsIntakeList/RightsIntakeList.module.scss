@@ -151,6 +151,16 @@
   }
 }
 
+// WP-10.8 (R7-03): классы вместо двух inline-стилей, значения — из токенов.
+.cellLinkIcon {
+  display: inline;
+  margin-right: $spacing-xs;
+}
+
+.statusCellBadge {
+  margin-bottom: $spacing-xs;
+}
+
 .languages {
   display: flex;
   gap: $spacing-xs;
@@ -317,4 +327,3 @@
     color: #6b7280;
   }
 }
-

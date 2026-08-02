@@ -13,7 +13,6 @@ import {
   type UseQueryOptions,
 } from '@tanstack/react-query';
 import {
-  createBook,
   deleteBook,
   getBook,
   getBooks,
@@ -22,12 +21,7 @@ import {
   type GetBooksParams,
 } from '@/api/endpoints/admin/books';
 import { getUserBookRating, type UserRatingResponse } from '@/api/endpoints/rating';
-import type {
-  BookOverview,
-  CreateBookRequest,
-  CreateBookResponse,
-  PaginatedResponse,
-} from '@/types/api-schema';
+import type { BookOverview, CreateBookResponse, PaginatedResponse } from '@/types/api-schema';
 
 /**
  * Query keys for books
@@ -72,35 +66,6 @@ export const useBooks = (
     queryFn: () => getBooks(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
-  });
-};
-
-/**
- * Hook for creating a new book (container)
- *
- * @deprecated Books must be created from an approved rights intake via
- * POST /admin/rights/intakes/:id/create-book. Use useCreateBookFromClearance() instead.
- *
- * @param options - React Query mutation options
- * @returns React Query mutation for creating book
- */
-export const useCreateBook = (
-  options?: Omit<UseMutationOptions<CreateBookResponse, Error, CreateBookRequest>, 'mutationFn'>
-) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: createBook,
-    ...options,
-    onSuccess: (data, variables, context) => {
-      // Invalidate books list after creation
-      queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
-      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
-        data,
-        variables,
-        context
-      );
-    },
   });
 };
 

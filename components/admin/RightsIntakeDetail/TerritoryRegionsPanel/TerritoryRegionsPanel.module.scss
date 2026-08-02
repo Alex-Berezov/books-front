@@ -146,6 +146,12 @@
   color: $color-text-secondary;
 }
 
+// WP-10.8 (R7-04): непроверенные страны региона — предупреждение, а не нейтральная цифра.
+.notAssessed {
+  color: $color-warning;
+  font-weight: $font-weight-medium;
+}
+
 .regionBody {
   padding: $spacing-md $spacing-lg;
   border-top: 1px solid $color-border-light;

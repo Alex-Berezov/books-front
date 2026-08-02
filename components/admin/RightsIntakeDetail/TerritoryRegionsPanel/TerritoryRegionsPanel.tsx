@@ -99,7 +99,13 @@ export const TerritoryRegionsPanel: FC<TerritoryRegionsPanelProps> = ({
                     </span>
                   ) : (
                     <>
-                      <span>Targeted: {region.targetedCountryCount}</span>
+                      {/* WP-10.8 (R7-04): статус региона считается только по оценённым
+                          странам, поэтому рядом обязано стоять «сколько из скольких» —
+                          иначе «European Union [ALLOWED] · Targeted: 3» прячет 24
+                          непроверенные страны. */}
+                      <span>
+                        Targeted: {region.targetedCountryCount} / {region.countryCount}
+                      </span>
                       <span>Allowed: {region.allowedCountryCount}</span>
                       {region.blockedCountryCount > 0 && (
                         <span>Blocked: {region.blockedCountryCount}</span>
@@ -109,6 +115,19 @@ export const TerritoryRegionsPanel: FC<TerritoryRegionsPanelProps> = ({
                       )}
                       {region.geoBlockRequiredCount > 0 && (
                         <span>Geo-block: {region.geoBlockRequiredCount}</span>
+                      )}
+                      {/* WP-10.8: «не оценено» и «рынок не обслуживается» — разные вещи.
+                          Непроверенную страну надо проверить, осознанно исключённую — нет. */}
+                      {region.undecidedCountryCount > 0 && (
+                        <span className={styles.notAssessed}>
+                          Not assessed: {region.undecidedCountryCount}
+                        </span>
+                      )}
+                      {region.notTargetedCountryCount - region.undecidedCountryCount > 0 && (
+                        <span className={styles.mutedText}>
+                          Not targeted:{' '}
+                          {region.notTargetedCountryCount - region.undecidedCountryCount}
+                        </span>
                       )}
                     </>
                   )}

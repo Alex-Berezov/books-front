@@ -11,6 +11,13 @@ interface ManifestPanelProps {
   workflowStatus: string;
 }
 
+/**
+ * WP-10.3 (R4-06): белый список статусов, при которых манифест выгружается. ТЗ фазы 2
+ * разрешает выгрузку только в READY_FOR_AGENT; чёрный список из одного DRAFT оставлял
+ * кнопки активными для шести прочих статусов и упирал редактора в 400 бэкенда.
+ */
+const MANIFEST_EXPORTABLE_STATUSES: readonly string[] = ['READY_FOR_AGENT'];
+
 export const ManifestPanel: FC<ManifestPanelProps> = ({ intakeId, workflowStatus }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [manifestData, setManifestData] = useState<RightsAgentManifest | null>(null);
@@ -73,16 +80,22 @@ export const ManifestPanel: FC<ManifestPanelProps> = ({ intakeId, workflowStatus
     URL.revokeObjectURL(url);
   };
 
-  const isDisabled = workflowStatus === 'DRAFT';
+  const canExport = MANIFEST_EXPORTABLE_STATUSES.includes(workflowStatus);
 
   return (
     <div className={styles.section}>
       <h2 className={styles.sectionTitle}>Agent Manifest</h2>
-      {isDisabled ? (
+      {!canExport ? (
         <>
           <p className={styles.manifestHint}>
-            Mark this intake as <strong>Ready For Agent</strong> before exporting the agent
-            manifest.
+            {workflowStatus === 'DRAFT' ? (
+              <>
+                Mark this intake as <strong>Ready For Agent</strong> before exporting the agent
+                manifest.
+              </>
+            ) : (
+              'Manifest export is available only for intakes in Ready For Agent status.'
+            )}
           </p>
           <div className={styles.manifestActions}>
             <button className={styles.actionBtnSecondary} disabled>

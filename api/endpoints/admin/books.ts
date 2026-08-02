@@ -6,13 +6,8 @@
  * multiple versions in different languages.
  */
 
-import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
-import type {
-  BookOverview,
-  CreateBookRequest,
-  CreateBookResponse,
-  PaginatedResponse,
-} from '@/types/api-schema';
+import { httpDeleteAuth, httpGetAuth, httpPatchAuth } from '@/lib/http-client';
+import type { BookOverview, CreateBookResponse, PaginatedResponse } from '@/types/api-schema';
 
 /**
  * Parameters for fetching books list
@@ -47,21 +42,6 @@ export const getBooks = async (
 
   const endpoint = `/books?${queryParams.toString()}`;
   return httpGetAuth<PaginatedResponse<BookOverview>>(endpoint, { requireAuth: false });
-};
-
-/**
- * Create a new book (container)
- *
- * @deprecated Books must be created from an approved rights intake via
- * POST /admin/rights/intakes/:id/create-book. This endpoint now returns 400.
- * Use useCreateBookFromClearance() instead.
- *
- * @param data - Data for creating the book
- * @returns Created book
- */
-export const createBook = async (data: CreateBookRequest): Promise<CreateBookResponse> => {
-  const endpoint = '/books';
-  return httpPostAuth<CreateBookResponse>(endpoint, data);
 };
 
 /**

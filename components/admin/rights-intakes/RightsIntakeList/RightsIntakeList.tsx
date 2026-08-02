@@ -259,7 +259,7 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
                           rel="noopener noreferrer"
                           className={styles.cellSub}
                         >
-                          <ExternalLink size={12} style={{ display: 'inline', marginRight: 2 }} />
+                          <ExternalLink size={12} className={styles.cellLinkIcon} />
                           Source Link
                         </a>
                       )}
@@ -279,7 +279,7 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
                       </span>
                     </td>
                     <td>
-                      <div style={{ marginBottom: 4 }}>
+                      <div className={styles.statusCellBadge}>
                         <StatusBadge status={intake.workflowStatus} />
                       </div>
                       <RowIndicators intake={intake} />
