@@ -7,6 +7,7 @@ import type {
   GetRightsIntakesParams,
   RightsIntakeStatus,
   RightsAgentManifest,
+  RightsIntakeReadiness,
   RightsReviewImportDetail,
   RightsReviewImportsListResponse,
   CreateRightsReviewImportRequest,
@@ -74,6 +75,13 @@ export const archiveRightsIntake = async (id: string): Promise<RightsIntake> => 
 
 export const getRightsAgentManifest = async (id: string): Promise<RightsAgentManifest> => {
   return httpGetAuth<RightsAgentManifest>(`/admin/rights/intakes/${id}/agent-manifest`, {
+    requireAuth: true,
+  });
+};
+
+/** WP-F.5: неблокирующая проверка готовности интейка — доступна в любом статусе. */
+export const getRightsIntakeReadiness = async (id: string): Promise<RightsIntakeReadiness> => {
+  return httpGetAuth<RightsIntakeReadiness>(`/admin/rights/intakes/${id}/readiness`, {
     requireAuth: true,
   });
 };

@@ -9,6 +9,8 @@ import type {
 } from '@/types/api-schema/rights-intake';
 import styles from './WorkflowTimeline.module.scss';
 
+type StepState = 'done' | 'current' | 'warning' | 'blocked' | 'unavailable';
+
 interface WorkflowTimelineProps {
   intake: RightsIntake;
   currentProfile: RightsProfileDetail | null;
@@ -48,7 +50,7 @@ export const WorkflowTimeline: FC<WorkflowTimelineProps> = ({
     }
 
     // Stage 3: Review imported
-    let s3State: 'done' | 'current' | 'blocked' | 'unavailable' = 'unavailable';
+    let s3State: StepState = 'unavailable';
     let s3Status = 'Waiting for import';
     if (
       [
@@ -69,6 +71,14 @@ export const WorkflowTimeline: FC<WorkflowTimelineProps> = ({
       } else {
         s3State = 'done';
         s3Status = 'Review validated';
+      }
+
+      // WP-G.9: часть проверок стала предупреждениями. Принятый отчёт с замечаниями обязан
+      // выглядеть принятым — отдельное состояние вместо красного «Validation failed».
+      const warningsCount = latestImport?.validationWarningsCount ?? 0;
+      if (s3State !== 'blocked' && warningsCount > 0) {
+        s3State = 'warning';
+        s3Status = `${s3Status}, ${warningsCount} warning${warningsCount > 1 ? 's' : ''}`;
       }
     }
 
@@ -142,13 +152,18 @@ export const WorkflowTimeline: FC<WorkflowTimelineProps> = ({
     <div className={styles.container}>
       <div className={styles.timeline}>
         {steps.map((step) => (
-          <div key={step.id} className={styles.step}>
+          <div
+            key={step.id}
+            className={styles.step}
+            data-state={step.state}
+            data-testid={`timeline-step-${step.id}`}
+          >
             <div className={styles.iconWrapper} data-state={step.state}>
               {step.state === 'done' ? (
                 <Check size={16} />
               ) : step.state === 'current' ? (
                 <Clock size={16} />
-              ) : step.state === 'blocked' ? (
+              ) : step.state === 'blocked' || step.state === 'warning' ? (
                 <AlertTriangle size={16} />
               ) : (
                 <Circle size={12} />

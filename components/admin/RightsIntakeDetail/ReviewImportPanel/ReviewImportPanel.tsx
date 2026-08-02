@@ -266,6 +266,25 @@ export const ReviewImportPanel: FC<ReviewImportPanelProps> = ({
                 </button>
               </div>
 
+              {/*
+                WP-G.9: часть проверок стала предупреждениями, и принятый отчёт с замечаниями
+                нельзя показывать так же, как отклонённый. Отказ и замечание — разные сообщения.
+              */}
+              {importResult.importStatus === 'VALIDATION_FAILED' ? (
+                <p className={styles.importRejectedNotice} data-testid="import-rejected-notice">
+                  The report was rejected: no rights profile is built until the errors below are
+                  fixed and the report is re-imported.
+                </p>
+              ) : (
+                importResult.validationWarnings &&
+                importResult.validationWarnings.length > 0 && (
+                  <p className={styles.importWarningsNotice} data-testid="import-warnings-notice">
+                    The report was accepted. The remarks below do not block the import — review them
+                    before approving the clearance.
+                  </p>
+                )
+              )}
+
               {importResult.validationErrors && importResult.validationErrors.length > 0 && (
                 <div className={styles.validationList}>
                   <p className={styles.validationErrorsTitle}>Validation Errors:</p>

@@ -118,6 +118,24 @@ export interface GetRightsIntakesParams {
   includeSummary?: boolean;
 }
 
+/** WP-F.5: пробел интейка, найденный неблокирующей проверкой готовности. */
+export interface RightsIntakeReadinessItem {
+  code: string;
+  field: string;
+  messageRu: string;
+}
+
+/**
+ * WP-F.5: `GET /admin/rights/intakes/:id/readiness`. Проверка справочная — ни выгрузку
+ * манифеста, ни смену статуса интейка она не запрещает.
+ */
+export interface RightsIntakeReadiness {
+  intakeId: string;
+  isReady: boolean;
+  missing: RightsIntakeReadinessItem[];
+  warnings: RightsIntakeReadinessItem[];
+}
+
 export interface RightsAgentManifest {
   manifestVersion: string;
   manifestType: 'BIBLIARIS_RIGHTS_CLEARANCE_INPUT';
@@ -144,6 +162,8 @@ export interface RightsAgentManifest {
     title: string | null;
     language: string | null;
     textType: RightsSourceTextType;
+    /** WP-F.1: провайдер и ID выведены приложением из ссылки, а не установлены человеком. */
+    derivedFromUrl?: boolean;
   };
   publicationPlan: {
     targetLanguages: string[];
@@ -162,6 +182,11 @@ export interface RightsAgentManifest {
     format: 'json';
     requiredTopLevelFields: string[];
     notes: string[];
+  };
+  /** WP-F.5: пробелы интейка. Справочные — выдачу манифеста они не останавливают. */
+  readiness?: {
+    missing: RightsIntakeReadinessItem[];
+    warnings: RightsIntakeReadinessItem[];
   };
 }
 
@@ -551,6 +576,10 @@ export interface TerritoryRegionSummary {
   status: RegionalRightsStatus;
   countryCount: number;
   targetedCountryCount: number;
+  /** WP-C.4: второй знаменатель — страны региона, входящие в план публикации версии. */
+  targetCountryCount?: number;
+  /** WP-C.4: числитель доли по плану публикации — разрешённые страны плана в этом регионе. */
+  targetAllowedCountryCount?: number;
   allowedCountryCount: number;
   /** Phase 15: subset of allowed countries cleared by a license. */
   licensedCountryCount?: number;

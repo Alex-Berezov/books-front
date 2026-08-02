@@ -13,6 +13,13 @@ export interface StructuredPublishError {
   warnings: PublicationGateReason[];
 }
 
+/**
+ * WP-A.5: «гейт ещё не ответил», «гейт не ответил вовсе» и «гейт запретил» — три разных причины
+ * неактивной кнопки. Раньше все три выглядели одинаково, и сетевая ошибка читалась как правовой
+ * запрет.
+ */
+export type PublishGateState = 'not_applicable' | 'loading' | 'error' | 'blocked' | 'allowed';
+
 export const usePublishPanel = (props: PublishPanelProps) => {
   const { versionId, status, onPublishSuccess, onUnpublishSuccess } = props;
   const { enqueueSnackbar } = useSnackbar();
@@ -64,7 +71,20 @@ export const usePublishPanel = (props: PublishPanelProps) => {
 
   const blockingReasons = gateData?.blockingReasons ?? gateError?.blockingReasons ?? [];
   const warnings = gateData?.warnings ?? gateError?.warnings ?? [];
-  const canPublish = isPublished ? true : isGateError ? false : gateData?.canPublish === true;
+
+  const gateState: PublishGateState = !isDraft
+    ? 'not_applicable'
+    : isGateLoading
+      ? 'loading'
+      : isGateError
+        ? 'error'
+        : gateData?.canPublish === true
+          ? 'allowed'
+          : 'blocked';
+
+  // Публикация по-прежнему недоступна во всех трёх случаях, кроме `allowed` — ослабления нет,
+  // изменилось только объяснение.
+  const canPublish = isPublished ? true : gateState === 'allowed';
 
   const handleOpenConfirmModal = (action: 'publish' | 'unpublish') => {
     setActionType(action);
@@ -91,6 +111,7 @@ export const usePublishPanel = (props: PublishPanelProps) => {
     isArchived,
     isLoading: isLoading || isGateLoading,
     canPublish,
+    gateState,
     isGateError,
     blockingReasons,
     warnings,

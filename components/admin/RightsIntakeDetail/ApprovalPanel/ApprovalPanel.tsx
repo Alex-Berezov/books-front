@@ -2,7 +2,7 @@
 
 import { useState, type FC } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Card, Button, Input, Typography, Space, message, Alert } from 'antd';
+import { Card, Button, Input, Typography, Space, message, Alert, Popconfirm } from 'antd';
 import {
   useApproveRightsReview,
   useRejectRightsReview,
@@ -34,6 +34,18 @@ const hasUnresolvedBlockingActions = (actions?: RightsAction[]): boolean => {
   if (!actions) return false;
   return actions.some((a) => a.isBlocking && a.status !== 'COMPLETED' && a.status !== 'WAIVED');
 };
+
+/** Статусы, в которых редактор может утвердить или отклонить клиренс. */
+const ACTIONABLE_REVIEW_STATUSES: RightsReviewStatus[] = [
+  'HUMAN_REVIEW_REQUIRED',
+  'LAWYER_APPROVED',
+];
+
+/** WP-E.5: панель не исчезает — она объясняет, почему действия недоступны. */
+const readOnlyReason = (reviewStatus: RightsReviewStatus): string =>
+  reviewStatus === 'LAWYER_REVIEW_REQUIRED'
+    ? 'Клиренс на юридической проверке — утвердить или отклонить его можно после решения юриста.'
+    : `Статус проверки — ${reviewStatus}: утверждение и отклонение недоступны.`;
 
 export const ApprovalPanel: FC<ApprovalPanelProps> = ({
   intakeId,
@@ -76,28 +88,57 @@ export const ApprovalPanel: FC<ApprovalPanelProps> = ({
   });
 
   // Phase 19: `LAWYER_APPROVED` is also approvable — the lawyer has unblocked the editor.
-  if (reviewStatus !== 'HUMAN_REVIEW_REQUIRED' && reviewStatus !== 'LAWYER_APPROVED') {
-    return null;
+  if (!ACTIONABLE_REVIEW_STATUSES.includes(reviewStatus)) {
+    return (
+      <div className={styles.container}>
+        <Card className={styles.card}>
+          <Title level={5} className={styles.cardTitle}>
+            Approval Actions
+          </Title>
+          <Alert
+            type="info"
+            message="Действия недоступны"
+            description={readOnlyReason(reviewStatus)}
+            showIcon
+          />
+        </Card>
+      </div>
+    );
   }
 
   const publicationGate = currentProfile?.publicationGate;
   const hasBlockingActions = hasUnresolvedBlockingActions(currentProfile?.actions);
   // The server enforces this too (409 LAWYER_APPROVAL_REQUIRED); the UI only mirrors it.
   const lawyerRequired = !!riskAssessment?.lawyerReviewRequired && !riskAssessment.lawyerApproved;
-  const isApproveDisabled =
-    approveMutation.isPending ||
-    publicationGate === 'BLOCK' ||
-    hasBlockingActions ||
-    lawyerRequired;
+  // WP-E.5: кнопка гаснет только при реальном требовании юриста. Остальное — предупреждение
+  // с подтверждением: редактор видит причину и решает сам, а сервер по-прежнему проверяет всё.
+  const isApproveDisabled = approveMutation.isPending || lawyerRequired;
 
-  const approveDisabledReason =
+  const approveWarningReason =
     publicationGate === 'BLOCK'
-      ? 'Cannot approve: publication gate is BLOCK'
+      ? 'Publication gate is BLOCK'
       : hasBlockingActions
-        ? 'Cannot approve: there are unresolved blocking rights actions'
-        : lawyerRequired
-          ? 'Утверждение заблокировано: требуется заключение юриста'
-          : undefined;
+        ? 'There are unresolved blocking rights actions'
+        : undefined;
+
+  const runApprove = () =>
+    approveMutation.mutate({
+      intakeId,
+      reviewId,
+      data: { notesRu: approveNotes.trim() || undefined },
+    });
+
+  const approveButton = (
+    <Button
+      type="primary"
+      className={styles.approveButton}
+      loading={approveMutation.isPending}
+      disabled={isApproveDisabled}
+      onClick={approveWarningReason ? undefined : runApprove}
+    >
+      Approve Review
+    </Button>
+  );
 
   return (
     <div className={styles.container}>
@@ -119,19 +160,26 @@ export const ApprovalPanel: FC<ApprovalPanelProps> = ({
             />
           )}
 
-          {approveDisabledReason && (
+          {lawyerRequired && (
             <Alert
               type="warning"
               message="Approval blocked"
-              description={approveDisabledReason}
+              description="Утверждение заблокировано: требуется заключение юриста"
               showIcon
               action={
-                lawyerRequired ? (
-                  <Button size="small" type="link" href="#lawyer-review-panel">
-                    Перейти к юридической проверке
-                  </Button>
-                ) : undefined
+                <Button size="small" type="link" href="#lawyer-review-panel">
+                  Перейти к юридической проверке
+                </Button>
               }
+            />
+          )}
+
+          {approveWarningReason && (
+            <Alert
+              type="warning"
+              message="Approval warning"
+              description={approveWarningReason}
+              showIcon
             />
           )}
 
@@ -146,21 +194,20 @@ export const ApprovalPanel: FC<ApprovalPanelProps> = ({
               value={approveNotes}
               onChange={(e) => setApproveNotes(e.target.value)}
             />
-            <Button
-              type="primary"
-              className={styles.approveButton}
-              loading={approveMutation.isPending}
-              disabled={isApproveDisabled}
-              onClick={() =>
-                approveMutation.mutate({
-                  intakeId,
-                  reviewId,
-                  data: { notesRu: approveNotes.trim() || undefined },
-                })
-              }
-            >
-              Approve Review
-            </Button>
+            {approveWarningReason ? (
+              <Popconfirm
+                title="Утвердить несмотря на предупреждение?"
+                description={approveWarningReason}
+                okText="Утвердить"
+                cancelText="Отмена"
+                onConfirm={runApprove}
+                disabled={isApproveDisabled}
+              >
+                {approveButton}
+              </Popconfirm>
+            ) : (
+              approveButton
+            )}
           </div>
 
           <div className={styles.divider} />

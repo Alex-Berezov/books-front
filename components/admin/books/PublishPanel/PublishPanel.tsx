@@ -1,13 +1,24 @@
 'use client';
 
 import type { FC } from 'react';
-import { AlertTriangle, Calendar, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, Calendar, Loader2, PlugZap, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import type { PublishPanelProps } from './PublishPanel.types';
+import { gateReasonLabel } from './gateReasonLabels';
 import { PublishConfirmModal } from './PublishConfirmModal';
 import styles from './PublishPanel.module.scss';
 import { PublishStatusBadge } from './PublishStatusBadge';
 import { usePublishPanel } from './usePublishPanel';
+
+/**
+ * WP-A.5: три причины неактивной кнопки получают три разные подписи. Правовой запрет остаётся
+ * запретом, но техническая ошибка и незавершённая загрузка больше на него не похожи.
+ */
+const DISABLED_CAPTIONS: Record<'loading' | 'error' | 'blocked', string> = {
+  loading: 'Checking the rights gate — the button unlocks as soon as the answer arrives.',
+  error: 'The gate check did not complete, so publishing stays disabled until it does.',
+  blocked: 'The rights gate answered: publication is not allowed yet.',
+};
 
 export const PublishPanel: FC<PublishPanelProps> = (props) => {
   const { status, publishBlockedReason } = props;
@@ -19,7 +30,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
     isArchived,
     isLoading,
     canPublish,
-    isGateError,
+    gateState,
     blockingReasons,
     warnings,
     handleOpenConfirmModal,
@@ -29,6 +40,16 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
 
   const hasLegacyBlockingReason = Boolean(publishBlockedReason);
   const isPublishDisabled = isArchived || hasLegacyBlockingReason || (!isPublished && !canPublish);
+  const disabledCaption =
+    isPublished || isArchived || hasLegacyBlockingReason || gateState === 'allowed'
+      ? null
+      : gateState === 'loading'
+        ? DISABLED_CAPTIONS.loading
+        : gateState === 'error'
+          ? DISABLED_CAPTIONS.error
+          : gateState === 'blocked'
+            ? DISABLED_CAPTIONS.blocked
+            : null;
 
   return (
     <>
@@ -51,6 +72,15 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
           </div>
         )}
 
+        {gateState === 'loading' && !isPublished && (
+          <div className={styles.gatePendingSection}>
+            <div className={styles.gatePendingHeader}>
+              <Loader2 size={16} />
+              <span className={styles.gateTitle}>Checking the rights gate…</span>
+            </div>
+          </div>
+        )}
+
         {blockingReasons.length > 0 && !isPublished && (
           <div className={styles.gateBlockedSection} role="alert">
             <div className={styles.gateHeader}>
@@ -60,7 +90,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
             <ul className={styles.reasonList}>
               {blockingReasons.map((reason) => (
                 <li key={reason.code} className={styles.reasonItem}>
-                  <span className={styles.reasonCode}>{reason.code}</span>
+                  <span className={styles.reasonCode}>{gateReasonLabel(reason.code)}</span>
                   <span className={styles.reasonMessage}>{reason.messageRu}</span>
                 </li>
               ))}
@@ -68,14 +98,15 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
           </div>
         )}
 
-        {isGateError && blockingReasons.length === 0 && !isPublished && (
-          <div className={styles.gateBlockedSection} role="alert">
-            <div className={styles.gateHeader}>
-              <ShieldAlert size={18} />
+        {gateState === 'error' && blockingReasons.length === 0 && !isPublished && (
+          <div className={styles.gateErrorSection} role="alert">
+            <div className={styles.gateErrorHeader}>
+              <PlugZap size={18} />
               <span className={styles.gateTitle}>Failed to check publication gate</span>
             </div>
             <p className={styles.gateText}>
-              Unable to verify publication permissions. Publishing is disabled.
+              This is a technical error, not a legal restriction: the answer of the gate never
+              arrived. Reload the page or try again later.
             </p>
           </div>
         )}
@@ -89,7 +120,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
             <ul className={styles.reasonList}>
               {warnings.map((w) => (
                 <li key={w.code} className={styles.reasonItem}>
-                  <span className={styles.reasonCode}>{w.code}</span>
+                  <span className={styles.reasonCode}>{gateReasonLabel(w.code)}</span>
                   <span className={styles.reasonMessage}>{w.messageRu}</span>
                 </li>
               ))}
@@ -118,6 +149,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
               Publish
             </Button>
           )}
+          {disabledCaption && <p className={styles.disabledCaption}>{disabledCaption}</p>}
         </div>
 
         <div className={styles.info}>

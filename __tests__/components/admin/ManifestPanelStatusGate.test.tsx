@@ -13,6 +13,8 @@ vi.mock('@/api/hooks/useRightsIntakes', () => ({
     isFetching: false,
     refetch: vi.fn(),
   }),
+  // WP-F.5: панель показывает пробелы интейка; статусный гейт от них не зависит.
+  useRightsIntakeReadiness: () => ({ data: undefined, isLoading: false }),
 }));
 
 const EXPORT_BUTTONS = ['Preview Manifest', 'Copy JSON', 'Download JSON'];

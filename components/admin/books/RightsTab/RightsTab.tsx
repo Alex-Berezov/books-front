@@ -251,7 +251,12 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, bookId, lang }) => {
       <RightsTabSourceEdition sourceEdition={sourceEdition} />
 
       {/* 7. Active Rights Profile (bound directly to current version) */}
-      {currentProfile && <RightsProfilePanel profile={currentProfile} />}
+      {currentProfile && (
+        <RightsProfilePanel
+          profile={currentProfile}
+          targetCountryCodes={dashboard.intake?.targetCountryCodes}
+        />
+      )}
 
       {/* 8. Review History */}
       <RightsTabReviews

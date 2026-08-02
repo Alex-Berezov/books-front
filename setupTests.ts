@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom';
+import { configure } from '@testing-library/react';
 import { beforeAll, afterEach, afterAll, vi } from 'vitest';
 import { server } from './__tests__/msw/server';
+
+configure({ asyncUtilTimeout: 5000 });
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());

@@ -65,6 +65,13 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
   }
 
+  // WP-G.9: отчёт принят, но с замечаниями. Это не отказ, поэтому не красный.
+  &[data-state='warning'] {
+    background: $color-warning;
+    border-color: $color-warning;
+    color: $color-text-inverse;
+  }
+
   &[data-state='blocked'] {
     background: #ef4444;
     border-color: #ef4444;

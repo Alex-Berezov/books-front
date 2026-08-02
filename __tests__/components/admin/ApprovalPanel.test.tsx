@@ -103,12 +103,57 @@ describe('ApprovalPanel — Phase 19 lawyer gate', () => {
     expect(screen.getByText('Положительное заключение вынес Иванова Анна.')).toBeInTheDocument();
   });
 
-  it('renders nothing for a review that is still with the lawyer', () => {
-    const { container } = renderPanel({
+  it('renders a read-only panel for a review that is still with the lawyer', () => {
+    renderPanel({
       reviewStatus: 'LAWYER_REVIEW_REQUIRED',
       riskAssessment: makeAssessment(),
     });
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByText('Approval Actions')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Клиренс на юридической проверке — утвердить или отклонить его можно после решения юриста.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Approve Review/i })).not.toBeInTheDocument();
+  });
+
+  it('keeps Approve available with a confirmation when the publication gate is BLOCK', () => {
+    const profile = {
+      id: 'profile-1',
+      publicationGate: 'BLOCK',
+      actions: [],
+    } as unknown as RightsProfileDetail;
+
+    renderPanel({ currentProfile: profile });
+
+    expect(screen.getByText('Approval warning')).toBeInTheDocument();
+    expect(screen.getByText('Publication gate is BLOCK')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Approve Review/i })).toBeEnabled();
+  });
+
+  it('keeps Approve available with a confirmation while blocking actions are open', () => {
+    const profile = {
+      id: 'profile-1',
+      publicationGate: 'ALLOW',
+      actions: [{ id: 'a1', isBlocking: true, status: 'PENDING' }],
+    } as unknown as RightsProfileDetail;
+
+    renderPanel({ currentProfile: profile });
+
+    expect(screen.getByText('Approval warning')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Approve Review/i })).toBeEnabled();
+  });
+
+  it('still disables Approve when a lawyer opinion is required and a warning is present', () => {
+    const profile = {
+      id: 'profile-1',
+      publicationGate: 'BLOCK',
+      actions: [],
+    } as unknown as RightsProfileDetail;
+
+    renderPanel({ currentProfile: profile, riskAssessment: makeAssessment() });
+
+    expect(screen.getByRole('button', { name: /Approve Review/i })).toBeDisabled();
   });
 });

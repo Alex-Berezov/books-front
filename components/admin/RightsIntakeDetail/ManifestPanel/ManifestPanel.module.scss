@@ -21,6 +21,31 @@
   margin: 0 0 $spacing-md 0;
 }
 
+.readiness {
+  margin: 0 0 $spacing-md 0;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  background: $color-background-secondary;
+}
+
+.readinessTitle {
+  margin: 0 0 $spacing-xs 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.readinessList {
+  margin: 0;
+  padding-left: $spacing-lg;
+}
+
+.readinessItem {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
 .manifestActions {
   display: flex;
   gap: $spacing-sm;

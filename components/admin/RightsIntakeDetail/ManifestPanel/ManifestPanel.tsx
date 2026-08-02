@@ -2,7 +2,7 @@
 
 import { useState, useCallback, type FC } from 'react';
 import { Eye, Copy, FileDown, X } from 'lucide-react';
-import { useRightsAgentManifest } from '@/api/hooks/useRightsIntakes';
+import { useRightsAgentManifest, useRightsIntakeReadiness } from '@/api/hooks/useRightsIntakes';
 import type { RightsAgentManifest } from '@/types/api-schema/rights-intake';
 import styles from './ManifestPanel.module.scss';
 
@@ -25,6 +25,7 @@ export const ManifestPanel: FC<ManifestPanelProps> = ({ intakeId, workflowStatus
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
 
   const manifestQuery = useRightsAgentManifest(intakeId);
+  const readinessQuery = useRightsIntakeReadiness(intakeId);
 
   const fetchManifest = useCallback(async (): Promise<RightsAgentManifest | null> => {
     setErrorMsg(null);
@@ -82,9 +83,28 @@ export const ManifestPanel: FC<ManifestPanelProps> = ({ intakeId, workflowStatus
 
   const canExport = MANIFEST_EXPORTABLE_STATUSES.includes(workflowStatus);
 
+  // WP-F.5: пробелы интейка — подсказка, а не запрет. Кнопки выгрузки от них не зависят:
+  // блокирующая проверка сделала бы вход в систему строже, а не мягче.
+  const readiness = readinessQuery.data;
+  const readinessGaps = [...(readiness?.missing ?? []), ...(readiness?.warnings ?? [])];
+
   return (
     <div className={styles.section}>
       <h2 className={styles.sectionTitle}>Agent Manifest</h2>
+      {readinessGaps.length > 0 && (
+        <div className={styles.readiness}>
+          <p className={styles.readinessTitle}>
+            Intake data gaps — the agent will work without them, but the answer will be weaker:
+          </p>
+          <ul className={styles.readinessList}>
+            {readinessGaps.map((gap) => (
+              <li key={gap.code} className={styles.readinessItem}>
+                {gap.messageRu}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {!canExport ? (
         <>
           <p className={styles.manifestHint}>

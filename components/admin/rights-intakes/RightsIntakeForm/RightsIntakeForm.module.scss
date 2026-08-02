@@ -134,6 +134,12 @@
   margin-top: 2px;
 }
 
+.hint {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-top: $spacing-xs;
+}
+
 .submitError {
   font-size: $font-size-sm;
   color: #dc2626;

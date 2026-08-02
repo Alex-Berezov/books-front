@@ -144,6 +144,7 @@ export default function RightsIntakeDetailPage() {
             intakeId={id}
             workflowStatus={intake.workflowStatus}
             reviewImports={reviewImports}
+            targetCountryCodes={intake.targetCountryCodes}
           />
 
           {(() => {

@@ -3,6 +3,7 @@
 import { useState, type FC, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCreateRightsIntake, useUpdateRightsIntake } from '@/api/hooks/useRightsIntakes';
+import { deriveRightsSourceFromUrl } from '@/lib/utils/rights-source-url';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   CreateRightsIntakeRequest,
@@ -99,6 +100,33 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
     setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
+  /**
+   * WP-F.1: ссылка на Gutenberg заполняет только пустые поля источника. Явный выбор
+   * редактора форма не переписывает — вывод из URL остаётся догадкой приложения.
+   */
+  const handleSourceUrlChange = (value: string) => {
+    const derived = deriveRightsSourceFromUrl(value);
+    setForm((prev) => {
+      const next = { ...prev, sourceUrl: value };
+      if (!derived) return next;
+      if (next.sourceProvider === 'UNKNOWN') {
+        next.sourceProvider = derived.provider;
+      }
+      if (derived.externalId && next.sourceExternalId.trim() === '') {
+        next.sourceExternalId = derived.externalId;
+      }
+      if (
+        next.sourceTextType === 'UNKNOWN' &&
+        next.sourceLanguage.trim() !== '' &&
+        next.sourceLanguage.trim().toLowerCase() === next.originalLanguage.trim().toLowerCase()
+      ) {
+        next.sourceTextType = 'ORIGINAL_TEXT';
+      }
+      return next;
+    });
+    setErrors((prev) => ({ ...prev, sourceUrl: '' }));
+  };
+
   const handleCheckboxGroup = (field: string, value: string, checked: boolean) => {
     const current = form[field as keyof typeof form] as string[];
     if (checked) {
@@ -192,6 +220,10 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
     if (form.sourceProvider === 'PROJECT_GUTENBERG') return 'e.g. 1342';
     return 'e.g. external-id-123';
   };
+
+  const isDerivedFromUrl =
+    form.sourceProvider === 'PROJECT_GUTENBERG' &&
+    deriveRightsSourceFromUrl(form.sourceUrl) !== null;
 
   const getSourceUrlPlaceholder = () => {
     if (form.sourceProvider === 'PROJECT_GUTENBERG') return 'https://www.gutenberg.org/ebooks/1342';
@@ -299,10 +331,16 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
           <input
             className={styles.input}
             value={form.sourceUrl}
-            onChange={(e) => updateField('sourceUrl', e.target.value)}
+            onChange={(e) => handleSourceUrlChange(e.target.value)}
             placeholder={getSourceUrlPlaceholder()}
           />
           {errors.sourceUrl && <span className={styles.error}>{errors.sourceUrl}</span>}
+          {isDerivedFromUrl && (
+            <span className={styles.hint}>
+              Provider and source ID were derived from this link by Bibliaris — check them before
+              sending the intake to the agent.
+            </span>
+          )}
         </div>
         <div className={styles.field}>
           <label className={styles.label}>Source Title</label>

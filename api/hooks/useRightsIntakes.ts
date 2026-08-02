@@ -13,6 +13,7 @@ import {
   changeRightsIntakeStatus,
   archiveRightsIntake,
   getRightsAgentManifest,
+  getRightsIntakeReadiness,
   createRightsReviewImport,
   getRightsReviewImport,
   getRightsReviewImports,
@@ -34,6 +35,7 @@ import type {
   RightsIntakeStatus,
   GetRightsIntakesParams,
   RightsAgentManifest,
+  RightsIntakeReadiness,
   RightsReviewImportDetail,
   RightsReviewImportsListResponse,
   CreateRightsReviewImportRequest,
@@ -53,6 +55,7 @@ export const rightsIntakeKeys = {
   details: () => [...rightsIntakeKeys.all, 'detail'] as const,
   detail: (id: string) => [...rightsIntakeKeys.details(), id] as const,
   manifest: (id: string) => [...rightsIntakeKeys.all, 'manifest', id] as const,
+  readiness: (id: string) => [...rightsIntakeKeys.all, 'readiness', id] as const,
   reviewImports: (intakeId: string) =>
     [...rightsIntakeKeys.all, 'review-imports', intakeId] as const,
   reviewImportsList: (intakeId: string, params: ListRightsReviewImportsParams) =>
@@ -194,6 +197,22 @@ export const useRightsAgentManifest = (
     queryKey: rightsIntakeKeys.manifest(id),
     queryFn: () => getRightsAgentManifest(id),
     enabled: false,
+    ...options,
+  });
+};
+
+/**
+ * WP-F.5: пробелы интейка до отправки агенту. Запрос идёт в любом статусе — именно в `DRAFT`
+ * подсказка и нужна, — и ничего не блокирует.
+ */
+export const useRightsIntakeReadiness = (
+  id: string,
+  options?: Omit<UseQueryOptions<RightsIntakeReadiness, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<RightsIntakeReadiness, Error>({
+    queryKey: rightsIntakeKeys.readiness(id),
+    queryFn: () => getRightsIntakeReadiness(id),
+    enabled: !!id,
     ...options,
   });
 };

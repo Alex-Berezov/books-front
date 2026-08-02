@@ -23,10 +23,18 @@ interface RightsProfilePanelProps {
   workflowStatus?: string;
   reviewImports?: RightsReviewImportListItem[];
   profile?: RightsProfileDetail | null;
+  /** WP-C.5: план публикации интейка — вторая доля покрытия в региональной сводке. */
+  targetCountryCodes?: string[];
 }
 
 export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
-  const { intakeId, workflowStatus = 'APPROVED', reviewImports = [], profile } = props;
+  const {
+    intakeId,
+    workflowStatus = 'APPROVED',
+    reviewImports = [],
+    profile,
+    targetCountryCodes,
+  } = props;
   const {
     data: fetchedProfile,
     isLoading: profileLoading,
@@ -259,7 +267,10 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
               {currentProfile.regionalTerritorySummary &&
                 currentProfile.regionalTerritorySummary.length > 0 && (
                   <div className={styles.regionsPanel}>
-                    <TerritoryRegionsPanel regions={currentProfile.regionalTerritorySummary} />
+                    <TerritoryRegionsPanel
+                      regions={currentProfile.regionalTerritorySummary}
+                      targetCountryCodes={targetCountryCodes}
+                    />
                   </div>
                 )}
 

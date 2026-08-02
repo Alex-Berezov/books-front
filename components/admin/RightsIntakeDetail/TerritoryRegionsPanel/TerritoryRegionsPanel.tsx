@@ -7,11 +7,14 @@ import styles from './TerritoryRegionsPanel.module.scss';
 
 export interface TerritoryRegionsPanelProps {
   regions: TerritoryRegionSummary[];
+  /** WP-C.5: целевые страны версии — план публикации, по которому считается вторая доля. */
+  targetCountryCodes?: string[];
   title?: string;
 }
 
 export const TerritoryRegionsPanel: FC<TerritoryRegionsPanelProps> = ({
   regions,
+  targetCountryCodes = [],
   title = 'Regions & Countries',
 }) => {
   const [openRegions, setOpenRegions] = useState<Record<string, boolean>>(() => {
@@ -40,6 +43,7 @@ export const TerritoryRegionsPanel: FC<TerritoryRegionsPanelProps> = ({
   const mixedRegionsCount = regions.filter((r) => r.status === 'MIXED').length;
   const pendingReviewRegionsCount = regions.filter((r) => r.status === 'PENDING_REVIEW').length;
   const totalGeoBlockCount = regions.reduce((acc, r) => acc + r.geoBlockRequiredCount, 0);
+  const targetCountrySet = new Set(targetCountryCodes.map((code) => code.toUpperCase()));
 
   return (
     <div className={styles.container}>
@@ -106,6 +110,15 @@ export const TerritoryRegionsPanel: FC<TerritoryRegionsPanelProps> = ({
                       <span>
                         Targeted: {region.targetedCountryCount} / {region.countryCount}
                       </span>
+                      {/* WP-C.5: вторая доля — по плану публикации. Она стоит рядом с долей
+                          по справочнику региона, а не вместо неё: зелёным регион делает
+                          только полное покрытие справочника (R6-04). */}
+                      {(region.targetCountryCount ?? 0) > 0 && (
+                        <span className={styles.planShare}>
+                          Target markets: {region.targetAllowedCountryCount ?? 0} /{' '}
+                          {region.targetCountryCount}
+                        </span>
+                      )}
                       <span>Allowed: {region.allowedCountryCount}</span>
                       {region.blockedCountryCount > 0 && (
                         <span>Blocked: {region.blockedCountryCount}</span>
@@ -177,6 +190,11 @@ export const TerritoryRegionsPanel: FC<TerritoryRegionsPanelProps> = ({
                             <tr key={c.countryCode}>
                               <td>
                                 <strong>{c.countryCode}</strong>
+                                {/* WP-C.5: страна плана публикации отличима от страны,
+                                    попавшей в отчёт вскользь. */}
+                                {targetCountrySet.has(c.countryCode.toUpperCase()) && (
+                                  <span className={styles.planMarker}>in plan</span>
+                                )}
                               </td>
                               <td>
                                 <span className={styles.badge} data-status={c.finalStatus}>

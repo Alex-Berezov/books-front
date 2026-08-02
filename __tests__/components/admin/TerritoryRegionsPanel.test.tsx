@@ -208,6 +208,39 @@ describe('TerritoryRegionsPanel (Phase 11)', () => {
     expect(screen.getByText('Raw Country Decisions (1)')).toBeInTheDocument();
   });
 
+  // WP-C.4 / C.5: у региона два знаменателя — справочник региона и план публикации.
+  describe('WP-C.5: доля по плану публикации', () => {
+    const regionsWithPlan: TerritoryRegionSummary[] = mockRegions.map((region) =>
+      region.regionCode === 'EU'
+        ? { ...region, targetCountryCount: 2, targetAllowedCountryCount: 2 }
+        : region
+    );
+
+    it('shows the publication-plan share next to the region share', () => {
+      render(
+        <TerritoryRegionsPanel regions={regionsWithPlan} targetCountryCodes={['US', 'FR', 'DE']} />
+      );
+
+      expect(screen.getByText('Targeted: 2 / 27')).toBeInTheDocument();
+      expect(screen.getByText('Target markets: 2 / 2')).toBeInTheDocument();
+    });
+
+    it('обратная сторона: полное покрытие плана не красит регион в зелёный', () => {
+      render(
+        <TerritoryRegionsPanel regions={regionsWithPlan} targetCountryCodes={['US', 'FR', 'DE']} />
+      );
+
+      expect(screen.getByText('MIXED')).toBeInTheDocument();
+      expect(screen.getByText('Not assessed: 25')).toBeInTheDocument();
+    });
+
+    it('без плана публикации доля по плану не показывается', () => {
+      render(<TerritoryRegionsPanel regions={mockRegions} />);
+
+      expect(screen.queryByText(/Target markets:/)).toBeNull();
+    });
+  });
+
   it('Fallback: RightsProfilePanel still renders raw territory decisions if regionalTerritorySummary missing', () => {
     const profileWithoutRegions = { ...mockProfile, regionalTerritorySummary: undefined };
     render(<RightsProfilePanel profile={profileWithoutRegions} />);
