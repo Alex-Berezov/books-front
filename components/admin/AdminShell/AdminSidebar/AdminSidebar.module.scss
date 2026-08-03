@@ -78,6 +78,34 @@
 }
 
 /**
+ * Группы: разделы прав свёрнуты под одним родителем, чтобы не вытеснять из поля зрения
+ * повседневные разделы.
+ */
+.groupToggle {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+
+  &.groupActive {
+    color: $color-primary;
+  }
+}
+
+.subMenuList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menuLink.nested {
+  padding-left: calc(#{$spacing-lg} + #{$spacing-xl});
+  font-size: $font-size-sm;
+}
+
+/**
  * Responsive: hide or make it slide-out on small screens
  */
 @media (max-width: 768px) {
