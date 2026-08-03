@@ -72,6 +72,13 @@ export const usePublishPanel = (props: PublishPanelProps) => {
   const blockingReasons = gateData?.blockingReasons ?? gateError?.blockingReasons ?? [];
   const warnings = gateData?.warnings ?? gateError?.warnings ?? [];
 
+  // WP-H: гейт отвечает на два вопроса. Поля опциональны — бэкенд до выката WP-H их не присылает,
+  // и в этом случае про подготовку не говорится ничего: выдумывать разрешение фронт не вправе.
+  const canPrepare = gateData?.canPrepare;
+  const preparationBlockingCodes = new Set(
+    (gateData?.preparationBlockingReasons ?? []).map((reason) => reason.code)
+  );
+
   const gateState: PublishGateState = !isDraft
     ? 'not_applicable'
     : isGateLoading
@@ -115,6 +122,8 @@ export const usePublishPanel = (props: PublishPanelProps) => {
     isGateError,
     blockingReasons,
     warnings,
+    canPrepare,
+    preparationBlockingCodes,
     handleOpenConfirmModal,
     handleCloseConfirmModal,
     handleConfirmAction,

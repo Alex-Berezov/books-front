@@ -204,6 +204,24 @@
   color: $color-text-primary;
 }
 
+/* Preparation stage (WP-H) */
+.preparationBlockedBadge {
+  flex-shrink: 0;
+  padding: 0 $spacing-xs;
+  border-radius: $border-radius-sm;
+  background: rgba($color-error, 0.12);
+  color: $color-error;
+  font-size: $font-size-xs;
+  white-space: nowrap;
+}
+
+.preparationNote {
+  margin: $spacing-xs 0 0;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+  line-height: $line-height-base;
+}
+
 /* Publication gate - check in flight (WP-A.5) */
 .gatePendingSection {
   margin-bottom: $spacing-md;

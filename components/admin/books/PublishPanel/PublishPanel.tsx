@@ -33,6 +33,8 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
     gateState,
     blockingReasons,
     warnings,
+    canPrepare,
+    preparationBlockingCodes,
     handleOpenConfirmModal,
     handleCloseConfirmModal,
     handleConfirmAction,
@@ -92,9 +94,21 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
                 <li key={reason.code} className={styles.reasonItem}>
                   <span className={styles.reasonCode}>{gateReasonLabel(reason.code)}</span>
                   <span className={styles.reasonMessage}>{reason.messageRu}</span>
+                  {preparationBlockingCodes.has(reason.code) && (
+                    <span className={styles.preparationBlockedBadge}>Blocks preparation too</span>
+                  )}
                 </li>
               ))}
             </ul>
+            {/* WP-H: подготовка и публикация — разные вопросы. Пока ни один блокер не входит в
+                список запрещающих подготовку, редактору есть чем заняться, и молчание об этом
+                читалось как «работа остановлена». */}
+            {canPrepare === true && (
+              <p className={styles.preparationNote}>
+                Publication is closed, but preparation is not: keep filling chapters and metadata —
+                nothing goes public until the gate opens.
+              </p>
+            )}
           </div>
         )}
 

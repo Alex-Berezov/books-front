@@ -73,6 +73,14 @@ export const archiveRightsIntake = async (id: string): Promise<RightsIntake> => 
   return httpDeleteAuth<RightsIntake>(`/admin/rights/intakes/${id}`, { requireAuth: true });
 };
 
+/**
+ * WP-L.3: архивация из любого статуса. Доступна только роли `admin` — контент-менеджер получит
+ * 403. Физического удаления нет и здесь (ADR-009): запись уходит в `ARCHIVED` со следом `archivedAt`.
+ */
+export const forceArchiveRightsIntake = async (id: string): Promise<RightsIntake> => {
+  return httpDeleteAuth<RightsIntake>(`/admin/rights/intakes/${id}/force`, { requireAuth: true });
+};
+
 export const getRightsAgentManifest = async (id: string): Promise<RightsAgentManifest> => {
   return httpGetAuth<RightsAgentManifest>(`/admin/rights/intakes/${id}/agent-manifest`, {
     requireAuth: true,

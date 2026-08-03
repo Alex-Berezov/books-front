@@ -16,6 +16,8 @@ interface RightsIntakeHeaderProps {
   onArchive?: () => void;
   isPendingStatusChange?: boolean;
   isPendingArchive?: boolean;
+  /** WP-L.3: админу кнопка доступна из любого статуса, остальным — только из DRAFT/READY_FOR_AGENT. */
+  canForceArchive?: boolean;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -39,12 +41,18 @@ export const RightsIntakeHeader: FC<RightsIntakeHeaderProps> = ({
   onArchive,
   isPendingStatusChange = false,
   isPendingArchive = false,
+  canForceArchive = false,
 }) => {
   const editableStatuses = ['DRAFT', 'READY_FOR_AGENT'];
   const canEdit = editableStatuses.includes(intake.workflowStatus);
   const canMarkReady = intake.workflowStatus === 'DRAFT';
   const canReturnToDraft = intake.workflowStatus === 'READY_FOR_AGENT';
-  const canArchive = ['DRAFT', 'READY_FOR_AGENT'].includes(intake.workflowStatus);
+  const isArchived = intake.workflowStatus === 'ARCHIVED';
+  const canArchiveByStatus = ['DRAFT', 'READY_FOR_AGENT'].includes(intake.workflowStatus);
+  const canArchive = !isArchived && (canArchiveByStatus || canForceArchive);
+  // Разные подписи не косметика: во втором случае запись уходит из работы, уже пройдя проверку,
+  // и по ней может быть создана книга — это должно быть видно до нажатия.
+  const archiveLabel = canArchiveByStatus ? 'Archive' : 'Force Archive';
 
   return (
     <div className={styles.header}>
@@ -98,7 +106,7 @@ export const RightsIntakeHeader: FC<RightsIntakeHeaderProps> = ({
               disabled={isPendingArchive}
             >
               <Archive size={16} />
-              {isPendingArchive ? 'Archiving...' : 'Archive'}
+              {isPendingArchive ? 'Archiving...' : archiveLabel}
             </button>
           )}
 

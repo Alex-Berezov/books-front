@@ -714,6 +714,10 @@ export interface PublicationGateResult {
   rightsStatus: string | null;
   blockingReasons: PublicationGateReason[];
   warnings: PublicationGateReason[];
+  // WP-H: стадия подготовки. `canPublish` и `blockingReasons` по-прежнему отвечают только про
+  // публикацию; поля опциональны — бэкенд до выката WP-H их не присылает.
+  canPrepare?: boolean;
+  preparationBlockingReasons?: PublicationGateReason[];
   contentHashBaseline: string | null;
   contentHashCurrent: string | null;
   contentHashMatches: boolean | null;
@@ -751,8 +755,9 @@ export interface CreateBookFromClearanceVersion {
   language: string;
   title: string;
   author: string;
-  description: string;
-  coverImageUrl: string;
+  /** WP-L.1: контентные поля необязательны — они заполняются в разделе «Книги». */
+  description?: string | null;
+  coverImageUrl?: string | null;
   type: string;
   isFree: boolean;
   referralUrl?: string | null;
@@ -771,7 +776,12 @@ export interface CreateBookFromClearanceVersion {
 
 export interface CreateBookFromClearanceRequest {
   slug: string;
-  versions: CreateBookFromClearanceVersion[];
+  /**
+   * WP-L.2 (переходное): привязать клиренс к уже существующей книге с этим слагом вместо создания
+   * новой. В этом режиме `versions` не передаются — снимок прав получают заведённые версии.
+   */
+  attachToExistingBook?: boolean;
+  versions?: CreateBookFromClearanceVersion[];
 }
 
 export interface CreateBookFromClearanceResponse {

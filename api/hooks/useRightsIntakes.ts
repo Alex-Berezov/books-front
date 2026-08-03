@@ -12,6 +12,7 @@ import {
   updateRightsIntake,
   changeRightsIntakeStatus,
   archiveRightsIntake,
+  forceArchiveRightsIntake,
   getRightsAgentManifest,
   getRightsIntakeReadiness,
   createRightsReviewImport,
@@ -223,6 +224,25 @@ export const useArchiveRightsIntake = (
   const queryClient = useQueryClient();
   return useMutation<RightsIntake, Error, string>({
     mutationFn: archiveRightsIntake,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
+      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
+        data,
+        variables,
+        context
+      );
+    },
+    ...options,
+  });
+};
+
+/** WP-L.3: архивация из любого статуса, только для админа. */
+export const useForceArchiveRightsIntake = (
+  options?: UseMutationOptions<RightsIntake, Error, string>
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<RightsIntake, Error, string>({
+    mutationFn: forceArchiveRightsIntake,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(

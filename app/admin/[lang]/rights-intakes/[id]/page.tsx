@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
   useRightsIntake,
   useChangeRightsIntakeStatus,
   useArchiveRightsIntake,
+  useForceArchiveRightsIntake,
   useRightsReviewImports,
   useCurrentRightsProfile,
 } from '@/api/hooks/useRightsIntakes';
@@ -27,6 +29,7 @@ import { ReviewImportPanel } from '@/components/admin/RightsIntakeDetail/ReviewI
 import { RightsIntakeHeader } from '@/components/admin/RightsIntakeDetail/RightsIntakeHeader/RightsIntakeHeader';
 import { RightsProfilePanel } from '@/components/admin/RightsIntakeDetail/RightsProfilePanel/RightsProfilePanel';
 import { WorkflowTimeline } from '@/components/admin/RightsIntakeDetail/WorkflowTimeline/WorkflowTimeline';
+import { UserRole } from '@/lib/auth/constants';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   RightsReviewStatus,
@@ -46,6 +49,9 @@ export default function RightsIntakeDetailPage() {
   const { data: intake, isLoading, error } = useRightsIntake(id);
   const changeStatusMutation = useChangeRightsIntakeStatus();
   const archiveMutation = useArchiveRightsIntake();
+  const forceArchiveMutation = useForceArchiveRightsIntake();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.roles?.includes(UserRole.ADMIN) ?? false;
   const { data: reviewImportsData } = useRightsReviewImports(id, { limit: 50 });
   const { data: currentProfile, refetch: refetchProfile } = useCurrentRightsProfile(id);
   // Phase 19: the approval panel mirrors the server-side lawyer gate.
@@ -67,7 +73,21 @@ export default function RightsIntakeDetailPage() {
 
   const handleArchive = async () => {
     if (!intake) return;
-    await archiveMutation.mutateAsync(intake.id);
+
+    // WP-L.3: из DRAFT/READY_FOR_AGENT архивирует любой сотрудник обычным эндпоинтом. Дальше по
+    // воркфлоу — только админ и только через `force`, с подтверждением: по такой проверке уже
+    // может быть создана книга, и запись уходит из работы навсегда (вернуть из ARCHIVED нельзя).
+    const canArchiveByStatus = ['DRAFT', 'READY_FOR_AGENT'].includes(intake.workflowStatus);
+    if (canArchiveByStatus) {
+      await archiveMutation.mutateAsync(intake.id);
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Архивировать проверку в статусе ${intake.workflowStatus}? Запись останется в базе как юридический след, но вернуть её в работу будет нельзя.`
+    );
+    if (!confirmed) return;
+    await forceArchiveMutation.mutateAsync(intake.id);
   };
 
   if (isLoading) {
@@ -119,7 +139,8 @@ export default function RightsIntakeDetailPage() {
             onReturnToDraft={handleReturnToDraft}
             onArchive={handleArchive}
             isPendingStatusChange={changeStatusMutation.isPending}
-            isPendingArchive={archiveMutation.isPending}
+            isPendingArchive={archiveMutation.isPending || forceArchiveMutation.isPending}
+            canForceArchive={isAdmin}
           />
 
           <WorkflowTimeline

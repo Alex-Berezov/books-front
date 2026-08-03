@@ -16,6 +16,9 @@ export default defineConfig({
       '**/.{idea,git,cache,output,temp}/**',
       '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
       'e2e/**',
+      // Рабочие копии агентских сессий лежат внутри репозитория. Без этого исключения весь набор
+      // прогоняется дважды, а половина результатов относится к чужой незакоммиченной ветке.
+      '.claude/worktrees/**',
     ],
     coverage: {
       provider: 'v8',

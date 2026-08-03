@@ -32,6 +32,7 @@ export const GATE_REASON_LABELS: Record<string, string> = {
   PENDING_TERRITORIES: 'Территории без решения',
   PENDING_TERRITORIES_OUTSIDE_TARGET_MARKETS: 'Территории без решения вне целевых рынков',
   MISSING_LANGUAGE_RIGHTS_ASSESSMENT: 'Язык версии не покрыт правовой оценкой',
+  VERSION_CONTENT_INCOMPLETE: 'Версия не наполнена: нет описания или обложки',
   BLOCKED_COUNTRIES_REQUIRE_GEO_BLOCK: 'Закрытые страны требуют настройки geo-block',
   BLOCKED_COUNTRIES_WITH_GEO_BLOCK: 'Есть закрытые страны, geo-block настроен',
   GEO_BLOCK_NOT_CONFIGURED: 'Geo-block не настроен',

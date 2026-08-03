@@ -11,6 +11,7 @@ import type {
   CreateBookFromClearanceResponse,
   CreateBookFromClearanceVersion,
 } from '@/types/api-schema/rights-intake';
+import { bookCreationErrorMessage, type BookCreationErrorBody } from './bookCreationErrorLabels';
 import styles from './CreateBookFromClearanceForm.module.scss';
 
 const { TextArea } = Input;
@@ -41,8 +42,6 @@ interface VersionFormState {
   language: string;
   title: string;
   author: string;
-  description: string;
-  coverImageUrl: string;
   type: string;
   isFree: boolean;
   referralUrl: string;
@@ -67,8 +66,6 @@ const createInitialVersions = (intake: RightsIntake): VersionFormState[] => {
     language: lang,
     title: intake.candidateTitle,
     author: intake.candidateAuthor,
-    description: '',
-    coverImageUrl: '',
     type: 'text',
     isFree: false,
     referralUrl: '',
@@ -90,8 +87,6 @@ const createSingleVersion = (intake: RightsIntake, defaultLang: string): Version
   language: defaultLang,
   title: intake.candidateTitle,
   author: intake.candidateAuthor,
-  description: '',
-  coverImageUrl: '',
   type: 'text',
   isFree: false,
   referralUrl: '',
@@ -114,15 +109,24 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
   const initialSlug = useMemo(() => generateSlug(intake.candidateTitle), [intake.candidateTitle]);
 
   const [slug, setSlug] = useState(initialSlug);
+  const [attachToExistingBook, setAttachToExistingBook] = useState(false);
   const [versions, setVersions] = useState<VersionFormState[]>(() => createInitialVersions(intake));
 
   const createBookMutation = useCreateBookFromClearance({
     onSuccess: (response) => {
-      message.success('Book created successfully');
+      message.success(
+        attachToExistingBook
+          ? 'Clearance attached to the existing book'
+          : 'Book created successfully'
+      );
       onSuccess(response);
     },
+    // WP-H: отказ несёт машинный код — показываем причину, а не английскую строку сервера.
     onError: (error) => {
-      message.error(error instanceof Error ? error.message : 'Failed to create book');
+      const body = (error as { data?: BookCreationErrorBody })?.data;
+      message.error(
+        bookCreationErrorMessage(body, error instanceof Error ? error.message : undefined)
+      );
     },
   });
 
@@ -185,8 +189,6 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
         language: version.language,
         title: version.title,
         author: version.author,
-        description: version.description,
-        coverImageUrl: version.coverImageUrl,
         type: version.type,
         isFree: version.isFree,
       };
@@ -205,24 +207,26 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
       if (version.coverAlt) base.coverAlt = version.coverAlt;
       return base;
     });
-    return { slug, versions: requestVersions };
+    // WP-L.2: при привязке версии не передаются — снимок прав ложится на уже заведённые.
+    return attachToExistingBook
+      ? { slug, attachToExistingBook: true }
+      : { slug, versions: requestVersions };
   };
 
+  // WP-L.1: описание и обложка больше не проверяются — их здесь нет. Обязательный минимум версии
+  // — то, что относится к правам и к идентификации издания.
   const isVersionValid = (version: VersionFormState): boolean => {
     return (
-      !!version.language &&
-      !!version.title.trim() &&
-      !!version.author.trim() &&
-      !!version.description.trim() &&
-      !!version.coverImageUrl.trim() &&
-      !!version.type
+      !!version.language && !!version.title.trim() && !!version.author.trim() && !!version.type
     );
   };
 
   const allVersionsValid = versions.length > 0 && versions.every(isVersionValid);
   const isSlugValid = slug.trim().length > 0;
   const canSubmit =
-    isSlugValid && allVersionsValid && !hasDuplicateLanguages && !createBookMutation.isPending;
+    isSlugValid &&
+    (attachToExistingBook || (allVersionsValid && !hasDuplicateLanguages)) &&
+    !createBookMutation.isPending;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -260,264 +264,264 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
               status={!isSlugValid && slug.length > 0 ? 'error' : undefined}
             />
             <Text type="secondary" className={styles.slugHint}>
-              Generated from: {intake.candidateTitle}
+              {attachToExistingBook
+                ? 'Slug of the book the clearance will be attached to'
+                : `Generated from: ${intake.candidateTitle}`}
             </Text>
           </div>
 
-          <div className={styles.sectionDivider}>
-            Versions (Target Languages: {intake.targetLanguages.join(', ')})
+          {/* WP-L.2 (переходное): у книг, заведённых до системы прав, нет способа получить профиль
+              — без него гейт публикации закрыт навсегда. Убрать вместе с бэкфиллом старых книг. */}
+          <div className={styles.field}>
+            <Checkbox
+              checked={attachToExistingBook}
+              onChange={(event) => setAttachToExistingBook(event.target.checked)}
+            >
+              Attach the clearance to an existing book with this slug
+            </Checkbox>
           </div>
 
-          {versions.map((version, index) => (
-            <div key={index} className={styles.fieldGroup}>
-              <Text strong>
-                Version {index + 1}:{' '}
-                {LANG_LABELS[version.language] || version.language.toUpperCase()}
-              </Text>
-
-              <div className={styles.fieldRow}>
-                <div className={styles.field}>
-                  <label className={styles.fieldLabel}>
-                    Language<span className={styles.required}>*</span>
-                  </label>
-                  <Select
-                    value={version.language}
-                    onChange={(value) => handleVersionFieldChange(index, 'language', value)}
-                    options={getLanguageOptions(index)}
-                    placeholder="Select language"
-                  />
-                </div>
-                <div className={styles.field}>
-                  <label className={styles.fieldLabel}>
-                    Type<span className={styles.required}>*</span>
-                  </label>
-                  <Select
-                    value={version.type}
-                    onChange={(value) => handleVersionFieldChange(index, 'type', value)}
-                    options={VERSION_TYPES}
-                    placeholder="Select type"
-                  />
-                </div>
-              </div>
-
-              <div className={styles.fieldRow}>
-                <div className={styles.field}>
-                  <label className={styles.fieldLabel}>
-                    Title<span className={styles.required}>*</span>
-                  </label>
-                  <Input
-                    value={version.title}
-                    onChange={(event) =>
-                      handleVersionFieldChange(index, 'title', event.target.value)
-                    }
-                    placeholder="Book title"
-                  />
-                </div>
-                <div className={styles.field}>
-                  <label className={styles.fieldLabel}>
-                    Author<span className={styles.required}>*</span>
-                  </label>
-                  <Input
-                    value={version.author}
-                    onChange={(event) =>
-                      handleVersionFieldChange(index, 'author', event.target.value)
-                    }
-                    placeholder="Author name"
-                  />
-                </div>
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.fieldLabel}>
-                  Description<span className={styles.required}>*</span>
-                </label>
-                <TextArea
-                  rows={3}
-                  value={version.description}
-                  onChange={(event) =>
-                    handleVersionFieldChange(index, 'description', event.target.value)
-                  }
-                  placeholder="Book description"
-                />
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.fieldLabel}>
-                  Cover Image URL<span className={styles.required}>*</span>
-                </label>
-                <Input
-                  value={version.coverImageUrl}
-                  onChange={(event) =>
-                    handleVersionFieldChange(index, 'coverImageUrl', event.target.value)
-                  }
-                  placeholder="https://example.com/cover.jpg"
-                />
-              </div>
-
-              <div className={styles.field}>
-                <Checkbox
-                  checked={version.isFree}
-                  onChange={(event) =>
-                    handleVersionFieldChange(index, 'isFree', event.target.checked)
-                  }
-                >
-                  Free
-                </Checkbox>
-              </div>
-
-              <details>
-                <summary>Optional fields</summary>
-                <Space direction="vertical" size="middle" className={styles.optionalFieldsSpace}>
-                  <div className={styles.fieldRow}>
-                    <div className={styles.field}>
-                      <label className={styles.fieldLabel}>Referral URL</label>
-                      <Input
-                        value={version.referralUrl}
-                        onChange={(event) =>
-                          handleVersionFieldChange(index, 'referralUrl', event.target.value)
-                        }
-                        placeholder="https://..."
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.fieldLabel}>Primary Category ID</label>
-                      <Input
-                        value={version.primaryCategoryId}
-                        onChange={(event) =>
-                          handleVersionFieldChange(index, 'primaryCategoryId', event.target.value)
-                        }
-                        placeholder="Category UUID"
-                      />
-                    </div>
-                  </div>
-                  <div className={styles.fieldRow}>
-                    <div className={styles.field}>
-                      <label className={styles.fieldLabel}>First Published Year</label>
-                      <Input
-                        type="number"
-                        value={version.firstPublishedYear}
-                        onChange={(event) =>
-                          handleVersionFieldChange(index, 'firstPublishedYear', event.target.value)
-                        }
-                        placeholder="1850"
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.fieldLabel}>Edition Published Year</label>
-                      <Input
-                        type="number"
-                        value={version.editionPublishedYear}
-                        onChange={(event) =>
-                          handleVersionFieldChange(
-                            index,
-                            'editionPublishedYear',
-                            event.target.value
-                          )
-                        }
-                        placeholder="2024"
-                      />
-                    </div>
-                  </div>
-                  <div className={styles.fieldRow}>
-                    <div className={styles.field}>
-                      <label className={styles.fieldLabel}>Original Language</label>
-                      <Input
-                        value={version.originalLanguage}
-                        onChange={(event) =>
-                          handleVersionFieldChange(index, 'originalLanguage', event.target.value)
-                        }
-                        placeholder="fr"
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.fieldLabel}>Original Title</label>
-                      <Input
-                        value={version.originalTitle}
-                        onChange={(event) =>
-                          handleVersionFieldChange(index, 'originalTitle', event.target.value)
-                        }
-                        placeholder="Original title"
-                      />
-                    </div>
-                  </div>
-                  <div className={styles.fieldRow}>
-                    <div className={styles.field}>
-                      <label className={styles.fieldLabel}>Copyright Status</label>
-                      <Input
-                        value={version.copyrightStatus}
-                        onChange={(event) =>
-                          handleVersionFieldChange(index, 'copyrightStatus', event.target.value)
-                        }
-                        placeholder="public_domain"
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.fieldLabel}>Author Page URL</label>
-                      <Input
-                        value={version.authorPageUrl}
-                        onChange={(event) =>
-                          handleVersionFieldChange(index, 'authorPageUrl', event.target.value)
-                        }
-                        placeholder="https://..."
-                      />
-                    </div>
-                  </div>
-                  <div className={styles.fieldRow}>
-                    <div className={styles.field}>
-                      <label className={styles.fieldLabel}>Author ID</label>
-                      <Input
-                        value={version.authorId}
-                        onChange={(event) =>
-                          handleVersionFieldChange(index, 'authorId', event.target.value)
-                        }
-                        placeholder="Author UUID"
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.fieldLabel}>Cover Alt Text</label>
-                      <Input
-                        value={version.coverAlt}
-                        onChange={(event) =>
-                          handleVersionFieldChange(index, 'coverAlt', event.target.value)
-                        }
-                        placeholder="Cover description"
-                      />
-                    </div>
-                  </div>
-                  <div className={styles.field}>
-                    <label className={styles.fieldLabel}>Short Description</label>
-                    <TextArea
-                      rows={2}
-                      value={version.shortDescription}
-                      onChange={(event) =>
-                        handleVersionFieldChange(index, 'shortDescription', event.target.value)
-                      }
-                      placeholder="Short description"
-                    />
-                  </div>
-                  <div className={styles.field}>
-                    <label className={styles.fieldLabel}>Summary Short</label>
-                    <TextArea
-                      rows={2}
-                      value={version.summaryShort}
-                      onChange={(event) =>
-                        handleVersionFieldChange(index, 'summaryShort', event.target.value)
-                      }
-                      placeholder="Short summary"
-                    />
-                  </div>
-                </Space>
-              </details>
-
-              {versions.length > 1 && (
-                <Button danger size="small" onClick={() => handleRemoveVersion(index)}>
-                  Remove Version
-                </Button>
-              )}
+          {attachToExistingBook ? (
+            <Alert
+              type="info"
+              showIcon
+              message="Existing book mode"
+              description="No versions are created. The rights snapshot is written onto the versions this book already has in the target languages of the clearance; versions in other languages stay untouched and remain blocked by the gate."
+            />
+          ) : (
+            <div className={styles.sectionDivider}>
+              Versions (Target Languages: {intake.targetLanguages.join(', ')})
             </div>
-          ))}
+          )}
 
-          {versions.length < intake.targetLanguages.length && (
+          {!attachToExistingBook &&
+            versions.map((version, index) => (
+              <div key={index} className={styles.fieldGroup}>
+                <Text strong>
+                  Version {index + 1}:{' '}
+                  {LANG_LABELS[version.language] || version.language.toUpperCase()}
+                </Text>
+
+                <div className={styles.fieldRow}>
+                  <div className={styles.field}>
+                    <label className={styles.fieldLabel}>
+                      Language<span className={styles.required}>*</span>
+                    </label>
+                    <Select
+                      value={version.language}
+                      onChange={(value) => handleVersionFieldChange(index, 'language', value)}
+                      options={getLanguageOptions(index)}
+                      placeholder="Select language"
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label className={styles.fieldLabel}>
+                      Type<span className={styles.required}>*</span>
+                    </label>
+                    <Select
+                      value={version.type}
+                      onChange={(value) => handleVersionFieldChange(index, 'type', value)}
+                      options={VERSION_TYPES}
+                      placeholder="Select type"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.fieldRow}>
+                  <div className={styles.field}>
+                    <label className={styles.fieldLabel}>
+                      Title<span className={styles.required}>*</span>
+                    </label>
+                    <Input
+                      value={version.title}
+                      onChange={(event) =>
+                        handleVersionFieldChange(index, 'title', event.target.value)
+                      }
+                      placeholder="Book title"
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label className={styles.fieldLabel}>
+                      Author<span className={styles.required}>*</span>
+                    </label>
+                    <Input
+                      value={version.author}
+                      onChange={(event) =>
+                        handleVersionFieldChange(index, 'author', event.target.value)
+                      }
+                      placeholder="Author name"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.field}>
+                  <Checkbox
+                    checked={version.isFree}
+                    onChange={(event) =>
+                      handleVersionFieldChange(index, 'isFree', event.target.checked)
+                    }
+                  >
+                    Free
+                  </Checkbox>
+                </div>
+
+                <details>
+                  <summary>Optional fields</summary>
+                  <Space direction="vertical" size="middle" className={styles.optionalFieldsSpace}>
+                    <div className={styles.fieldRow}>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}>Referral URL</label>
+                        <Input
+                          value={version.referralUrl}
+                          onChange={(event) =>
+                            handleVersionFieldChange(index, 'referralUrl', event.target.value)
+                          }
+                          placeholder="https://..."
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}>Primary Category ID</label>
+                        <Input
+                          value={version.primaryCategoryId}
+                          onChange={(event) =>
+                            handleVersionFieldChange(index, 'primaryCategoryId', event.target.value)
+                          }
+                          placeholder="Category UUID"
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.fieldRow}>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}>First Published Year</label>
+                        <Input
+                          type="number"
+                          value={version.firstPublishedYear}
+                          onChange={(event) =>
+                            handleVersionFieldChange(
+                              index,
+                              'firstPublishedYear',
+                              event.target.value
+                            )
+                          }
+                          placeholder="1850"
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}>Edition Published Year</label>
+                        <Input
+                          type="number"
+                          value={version.editionPublishedYear}
+                          onChange={(event) =>
+                            handleVersionFieldChange(
+                              index,
+                              'editionPublishedYear',
+                              event.target.value
+                            )
+                          }
+                          placeholder="2024"
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.fieldRow}>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}>Original Language</label>
+                        <Input
+                          value={version.originalLanguage}
+                          onChange={(event) =>
+                            handleVersionFieldChange(index, 'originalLanguage', event.target.value)
+                          }
+                          placeholder="fr"
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}>Original Title</label>
+                        <Input
+                          value={version.originalTitle}
+                          onChange={(event) =>
+                            handleVersionFieldChange(index, 'originalTitle', event.target.value)
+                          }
+                          placeholder="Original title"
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.fieldRow}>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}>Copyright Status</label>
+                        <Input
+                          value={version.copyrightStatus}
+                          onChange={(event) =>
+                            handleVersionFieldChange(index, 'copyrightStatus', event.target.value)
+                          }
+                          placeholder="public_domain"
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}>Author Page URL</label>
+                        <Input
+                          value={version.authorPageUrl}
+                          onChange={(event) =>
+                            handleVersionFieldChange(index, 'authorPageUrl', event.target.value)
+                          }
+                          placeholder="https://..."
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.fieldRow}>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}>Author ID</label>
+                        <Input
+                          value={version.authorId}
+                          onChange={(event) =>
+                            handleVersionFieldChange(index, 'authorId', event.target.value)
+                          }
+                          placeholder="Author UUID"
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}>Cover Alt Text</label>
+                        <Input
+                          value={version.coverAlt}
+                          onChange={(event) =>
+                            handleVersionFieldChange(index, 'coverAlt', event.target.value)
+                          }
+                          placeholder="Cover description"
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.field}>
+                      <label className={styles.fieldLabel}>Short Description</label>
+                      <TextArea
+                        rows={2}
+                        value={version.shortDescription}
+                        onChange={(event) =>
+                          handleVersionFieldChange(index, 'shortDescription', event.target.value)
+                        }
+                        placeholder="Short description"
+                      />
+                    </div>
+                    <div className={styles.field}>
+                      <label className={styles.fieldLabel}>Summary Short</label>
+                      <TextArea
+                        rows={2}
+                        value={version.summaryShort}
+                        onChange={(event) =>
+                          handleVersionFieldChange(index, 'summaryShort', event.target.value)
+                        }
+                        placeholder="Short summary"
+                      />
+                    </div>
+                  </Space>
+                </details>
+
+                {versions.length > 1 && (
+                  <Button danger size="small" onClick={() => handleRemoveVersion(index)}>
+                    Remove Version
+                  </Button>
+                )}
+              </div>
+            ))}
+
+          {!attachToExistingBook && versions.length < intake.targetLanguages.length && (
             <Button type="dashed" onClick={handleAddVersion}>
               Add Another Version Language
             </Button>
@@ -554,17 +558,17 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
           {!isSlugValid && slug.length > 0 && (
             <Alert type="error" message="Slug is required" showIcon />
           )}
-          {hasDuplicateLanguages && (
+          {!attachToExistingBook && hasDuplicateLanguages && (
             <Alert
               type="error"
               message="Duplicate language selection. Each version row must have a unique target language."
               showIcon
             />
           )}
-          {versions.length === 0 && (
+          {!attachToExistingBook && versions.length === 0 && (
             <Alert type="warning" message="At least one version is required" showIcon />
           )}
-          {versions.length > 0 && !allVersionsValid && (
+          {!attachToExistingBook && versions.length > 0 && !allVersionsValid && (
             <Alert
               type="warning"
               message="Fill all required version fields for each language row"
@@ -580,7 +584,7 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
               disabled={!canSubmit}
               onClick={handleSubmit}
             >
-              Create Book
+              {attachToExistingBook ? 'Attach Clearance' : 'Create Book'}
             </Button>
           </div>
         </div>

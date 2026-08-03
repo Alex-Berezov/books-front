@@ -72,5 +72,47 @@ describe('Rights Clearance Phase 9 Components', () => {
       expect(screen.getByText('by Jane Austen')).toBeInTheDocument();
       expect(screen.getByText('Ready For Agent')).toBeInTheDocument();
     });
+
+    // WP-L.3, строгая сторона: без прав админа статус по-прежнему закрывает архивацию.
+    it('hides the archive action on an approved intake without admin rights', () => {
+      render(
+        <RightsIntakeHeader
+          intake={{ ...mockIntake, workflowStatus: 'APPROVED' }}
+          lang="en"
+          onArchive={vi.fn()}
+        />
+      );
+
+      expect(screen.queryByText('Archive')).not.toBeInTheDocument();
+      expect(screen.queryByText('Force Archive')).not.toBeInTheDocument();
+    });
+
+    // Смягчённая сторона: админ архивирует из любого статуса, и подпись отличает этот случай.
+    it('offers a force archive action on an approved intake for an admin', () => {
+      render(
+        <RightsIntakeHeader
+          intake={{ ...mockIntake, workflowStatus: 'APPROVED' }}
+          lang="en"
+          onArchive={vi.fn()}
+          canForceArchive
+        />
+      );
+
+      expect(screen.getByText('Force Archive')).toBeInTheDocument();
+    });
+
+    // Единственный статус, из которого кнопки нет ни у кого: запись уже архивирована.
+    it('hides the archive action on an already archived intake even for an admin', () => {
+      render(
+        <RightsIntakeHeader
+          intake={{ ...mockIntake, workflowStatus: 'ARCHIVED' }}
+          lang="en"
+          onArchive={vi.fn()}
+          canForceArchive
+        />
+      );
+
+      expect(screen.queryByText('Force Archive')).not.toBeInTheDocument();
+    });
   });
 });

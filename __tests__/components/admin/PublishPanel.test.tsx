@@ -170,3 +170,86 @@ describe('PublishPanel — WP-A.5 gate codes are never shown raw', () => {
     expect(screen.getByText('Geo-block отмечен, но закрытых стран нет')).toBeInTheDocument();
   });
 });
+
+/**
+ * WP-H: гейт отвечает на два вопроса. Публикация закрыта — материал по-прежнему можно готовить,
+ * если ни один блокер не входит в список запрещающих подготовку.
+ */
+describe('PublishPanel — WP-H preparation stage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('tells the editor that preparation continues while publication is blocked', () => {
+    arrangeGate({
+      data: gateResult({
+        canPublish: false,
+        canPrepare: true,
+        preparationBlockingReasons: [],
+        blockingReasons: [
+          {
+            code: 'PENDING_TERRITORIES',
+            severity: 'BLOCKER',
+            messageRu: 'Есть территории без решения.',
+          },
+        ],
+      }),
+    });
+    renderPanel();
+
+    expect(publishButton()).toBeDisabled();
+    expect(screen.getByText(/keep filling chapters and metadata/i)).toBeInTheDocument();
+    expect(screen.queryByText('Blocks preparation too')).not.toBeInTheDocument();
+  });
+
+  it('marks the reason that stops preparation as well and drops the note', () => {
+    arrangeGate({
+      data: gateResult({
+        canPublish: false,
+        canPrepare: false,
+        preparationBlockingReasons: [
+          {
+            code: 'PUBLICATION_GATE_BLOCK',
+            severity: 'BLOCKER',
+            messageRu: 'Публикация запрещена по результатам проверки.',
+          },
+        ],
+        blockingReasons: [
+          {
+            code: 'PUBLICATION_GATE_BLOCK',
+            severity: 'BLOCKER',
+            messageRu: 'Публикация запрещена по результатам проверки.',
+          },
+          {
+            code: 'PENDING_TERRITORIES',
+            severity: 'BLOCKER',
+            messageRu: 'Есть территории без решения.',
+          },
+        ],
+      }),
+    });
+    renderPanel();
+
+    expect(screen.getByText('Blocks preparation too')).toBeInTheDocument();
+    expect(screen.queryByText(/keep filling chapters and metadata/i)).not.toBeInTheDocument();
+  });
+
+  it('says nothing about preparation when the backend does not report the stage', () => {
+    arrangeGate({
+      data: gateResult({
+        canPublish: false,
+        blockingReasons: [
+          {
+            code: 'PENDING_TERRITORIES',
+            severity: 'BLOCKER',
+            messageRu: 'Есть территории без решения.',
+          },
+        ],
+      }),
+    });
+    renderPanel();
+
+    expect(screen.queryByText(/keep filling chapters and metadata/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Blocks preparation too')).not.toBeInTheDocument();
+  });
+});

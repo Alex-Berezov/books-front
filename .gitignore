@@ -46,3 +46,7 @@ coverage
 # Documentation (moved to books-app-docs)
 docs/
 tsconfig.tsbuildinfo
+
+# Рабочие копии агентских сессий (EnterWorktree). Внутри репозитория, но частью его не являются:
+# без этого правила `git add -A` затаскивает в коммит целую вторую копию проекта.
+.claude/worktrees/
