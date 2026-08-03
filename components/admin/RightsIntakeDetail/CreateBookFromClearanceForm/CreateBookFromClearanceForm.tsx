@@ -265,7 +265,7 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
             />
             <Text type="secondary" className={styles.slugHint}>
               {attachToExistingBook
-                ? 'Slug of the book the clearance will be attached to'
+                ? 'Slug of the book to attach the clearance to — the one from its public URL (version slug) or the legacy book slug'
                 : `Generated from: ${intake.candidateTitle}`}
             </Text>
           </div>
