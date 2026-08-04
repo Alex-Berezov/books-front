@@ -1,6 +1,18 @@
 {
   "common": {
-    "back": "Retour"
+    "back": "Retour",
+    "siteTitle": "Bibliaris — Plateforme de livres audio multilingue",
+    "siteDescription": "Découvrez et profitez de livres audio en plusieurs langues",
+    "loading": "Chargement...",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "retry": "Réessayer",
+    "serverError": "Erreur du serveur. Veuillez réessayer plus tard.",
+    "lastUpdated": "Dernière mise à jour : {date}",
+    "faqTitle": "FAQ",
+    "bookSingular": "livre",
+    "bookPlural": "livres",
+    "anonymousUser": "Utilisateur"
   },
   "header": {
     "popular": "Populaire",
@@ -67,7 +79,9 @@
   "genres": {
     "title": "Parcourir les Genres",
     "subtitle": "Découvrez des livres de tous genres et styles",
-    "booksCount": "livres"
+    "booksCount": "livres",
+    "metaTitle": "Genres Littéraires | Bibliaris",
+    "metaDescription": "Parcourez les genres littéraires sur Bibliaris. Découvrez le drame, le gothique, le mystère, la romance, l'aventure, la satire, la fantaisie et l'horreur."
   },
   "tags": {
     "title": "Tags Littéraires et Thèmes de Livres",
@@ -75,7 +89,9 @@
     "booksCount": "livres",
     "noTags": "Aucun tag disponible",
     "allTags": "Tous les Tags",
-    "viewAll": "Voir Tout"
+    "viewAll": "Voir Tout",
+    "metaTitle": "Tags Littéraires et Thèmes de Livres | Bibliaris",
+    "metaDescription": "Parcourez les tags littéraires et les thèmes de livres sur Bibliaris. Découvrez des livres par idées, personnages, décors, ambiances, genres et époques."
   },
   "tag": {
     "books": "livres",
@@ -90,7 +106,10 @@
   },
   "collections": {
     "title": "Collections",
-    "subtitle": "Explorez des collections choisies de littérature classique"
+    "subtitle": "Explorez des collections choisies de littérature classique",
+    "booksCount": "livres",
+    "metaTitle": "Collections de Livres | Bibliaris",
+    "metaDescription": "Explorez des collections de livres sélectionnées sur Bibliaris : lectures courtes, livres gratuits, lectures scolaires, livres audio, résumés et thèmes."
   },
   "catalog": {
     "sidebarTitle": "Genres",
@@ -100,7 +119,8 @@
     "popular": "Populaire",
     "booksFound": "livres trouvés",
     "noBooksFound": "Aucun livre trouvé.",
-    "clearFilters": "Effacer les filtres"
+    "clearFilters": "Effacer les filtres",
+    "searchPlaceholder": "Rechercher par titre ou auteur..."
   },
   "book": {
     "back": "Retour",
@@ -140,7 +160,20 @@
     "copyrightStatus": "Statut du droit d'auteur",
     "alternativeTitles": "Titres alternatifs",
     "showMore": "Afficher plus",
-    "showLess": "Afficher moins"
+    "showLess": "Afficher moins",
+    "newRelease": "Nouveau",
+    "symbols": "Symboles",
+    "mainCharacters": "Personnages principaux",
+    "quotes": "Citations",
+    "faqTitle": "Questions Fréquemment Posées",
+    "summaryNotFound": "Résumé non trouvé",
+    "summaryNotFoundText": "Nous n'avons pas pu charger le résumé de cette version du livre.",
+    "summaryPageSubtitle": "Résumé du livre",
+    "summaryHeading": "Résumé",
+    "keyTakeaways": "Points clés",
+    "analysis": "Analyse",
+    "themesSection": "Thèmes",
+    "metaFallback": "Détails du livre - Bibliaris"
   },
   "author": {
     "back": "Retour",
@@ -184,8 +217,11 @@
       "readingProgress": "Progression de lecture",
       "continue": "Continuer la lecture",
       "start": "Commencer la lecture",
-      "listen": "Écouter"
-    }
+      "listen": "Écouter",
+      "chapterAbbr": "Ch.",
+      "durationShort": "{minutes} min {seconds} s"
+    },
+    "signInPrompt": "Connectez-vous pour accéder à votre bibliothèque personnelle, suivre votre progression de lecture et reprendre là où vous vous étiez arrêté."
   },
   "reader": {
     "toc": "Table des matières",
@@ -209,8 +245,12 @@
     "nowPlaying": "Lecture en cours",
     "chapters": "Chapitres",
     "noChapters": "Ce livre audio n'a pas encore de chapitres.",
-    "chaptersFail": "Échec du chargement des chapitres audio.",
-    "goBack": "Retour"
+    "chaptersFail": "Échec du chargement des chapitres audio. Cette version n'est peut-être pas encore publiée.",
+    "goBack": "Retour",
+    "speed": "Vitesse",
+    "loadingChapters": "Chargement des chapitres audio…",
+    "audioUnsupported": "Votre navigateur ne prend pas en charge l'élément audio.",
+    "selectChapter": "Sélectionnez un chapitre pour commencer l'écoute."
   },
   "rightsBlocked": {
     "title": "Indisponible dans votre région",
@@ -238,7 +278,11 @@
       "submitBtn": "Se Connecter",
       "noAccount": "Pas encore de compte ?",
       "createOne": "Créer un compte",
-      "or": "ou"
+      "or": "ou",
+      "genericError": "Échec de l'authentification",
+      "invalidCredentials": "Adresse e-mail ou mot de passe incorrect",
+      "rateLimit": "Trop de tentatives. Veuillez réessayer plus tard.",
+      "missingCredentials": "L'adresse e-mail et le mot de passe sont obligatoires"
     },
     "register": {
       "successTitle": "Compte Créé !",
@@ -258,7 +302,10 @@
       "confirmMatch": "Les mots de passe ne correspondent pas",
       "submitBtn": "Créer un Compte",
       "hasAccount": "Vous avez déjà un compte ?",
-      "signinLink": "Se connecter"
+      "signinLink": "Se connecter",
+      "genericError": "Échec de la création du compte",
+      "passwordPlaceholder": "Au moins 6 caractères",
+      "confirmPlaceholder": "Répétez votre mot de passe"
     }
   },
   "profile": {
@@ -284,7 +331,8 @@
     "invalidNickname": "Le pseudonyme ne doit contenir que des lettres, des chiffres et des traits de soulignement.",
     "unauthTitle": "Profil Personnel",
     "unauthText": "Connectez-vous pour gérer votre profil, personnaliser votre pseudonyme unique et afficher vos critiques.",
-    "signIn": "Se connecter"
+    "signIn": "Se connecter",
+    "nicknamePlaceholder": "john_doe"
   },
   "reviews": {
     "title": "Critiques et commentaires",
@@ -326,7 +374,7 @@
     "categories": "Catégories",
     "genres": "Genres",
     "collections": "Collections",
-    "tags": "Tags"
+    "tags": "Étiquettes"
   },
   "a11y": {
     "openMenu": "Ouvrir le menu principal",
@@ -352,7 +400,14 @@
     "volume": "Volume",
     "mute": "Muet",
     "unmute": "Activer le son",
-    "audioProgress": "Progression audio"
+    "audioProgress": "Progression audio",
+    "close": "Fermer",
+    "breadcrumb": "Fil d'Ariane",
+    "pagination": "Pagination",
+    "ratingOutOfFive": "Note {rating} sur 5",
+    "starOne": "1 étoile",
+    "starsCount": "{count} étoiles",
+    "userAvatar": "Avatar de l'utilisateur"
   },
   "breadcrumb": {
     "home": "Accueil",
@@ -387,11 +442,98 @@
     "genresLink": "Genres",
     "categoriesLink": "Catégories",
     "collectionsLink": "Collections",
-    "tagsLink": "Étiquettes"
+    "tagsLink": "Étiquettes",
+    "mainCategories": "Catégories Principales",
+    "genreGroups": "Groupes de Genres",
+    "featuredCollections": "Collections en Vedette",
+    "noItems": "Rien de disponible pour le moment.",
+    "categoryMetaFallback": "Catégorie - Bibliaris",
+    "genreMetaFallback": "Genre - Bibliaris",
+    "collectionMetaFallback": "Collection - Bibliaris"
   },
   "categories": {
     "title": "Parcourir les Catégories",
     "subtitle": "Explorez les catégories de livres sur Bibliaris",
-    "booksCount": "livres"
+    "booksCount": "livres",
+    "metaTitle": "Catégories de Livres | Bibliaris",
+    "metaDescription": "Parcourez les catégories de livres sur Bibliaris. Découvrez la littérature classique, la fiction, l'histoire, la science, l'éducation et plus encore."
+  },
+  "errorPage": {
+    "title": "Une erreur est survenue !",
+    "description": "Nous vous prions de nous excuser pour la gêne occasionnée."
+  },
+  "forbidden": {
+    "title": "Accès interdit",
+    "description": "Vous n'avez pas l'autorisation d'accéder à cette page.",
+    "adminOnly": "Seuls les administrateurs et les gestionnaires de contenu peuvent accéder au panneau d'administration."
+  },
+  "privacy": {
+    "metaTitle": "Politique de Confidentialité - Bibliaris",
+    "metaDescription": "Lisez notre politique de confidentialité pour comprendre comment nous collectons, utilisons et protégeons vos données.",
+    "title": "Politique de Confidentialité",
+    "s1": {
+      "title": "1. Informations que nous collectons",
+      "body": "Lorsque vous utilisez notre service, nous pouvons collecter des informations personnelles telles que votre nom, votre adresse e-mail et votre photo de profil, principalement lorsque vous vous inscrivez ou vous connectez à l'aide de services tiers comme Google ou Facebook."
+    },
+    "s2": {
+      "title": "2. Comment nous utilisons vos informations",
+      "lead": "Nous utilisons les informations que nous collectons pour :",
+      "item1": "Fournir, maintenir et améliorer nos services ;",
+      "item2": "Personnaliser votre expérience de lecture et votre bibliothèque ;",
+      "item3": "Authentifier votre identité par e-mail/mot de passe ou via des fournisseurs OAuth ;",
+      "item4": "Communiquer avec vous au sujet des mises à jour, des alertes de sécurité et des avis relatifs à votre compte."
+    },
+    "s3": {
+      "title": "3. Partage des données",
+      "body": "Nous ne vendons pas vos données personnelles. Nous ne partageons les données qu'avec les fournisseurs d'authentification tiers (Google, Facebook) afin de faciliter les processus de connexion sécurisés."
+    },
+    "s4": {
+      "title": "4. Suppression et conservation des données",
+      "body": "Nous conservons vos données aussi longtemps que votre compte est actif. Vous pouvez demander à tout moment la suppression de votre compte et de toutes les données personnelles associées en nous contactant à {b}, ou en suivant les Instructions de Suppression des Données."
+    },
+    "s5": {
+      "title": "5. Nous contacter",
+      "body": "Si vous avez des questions concernant cette Politique de Confidentialité, veuillez nous contacter à {b}."
+    }
+  },
+  "terms": {
+    "metaTitle": "Conditions d'utilisation - Bibliaris",
+    "metaDescription": "Lisez nos conditions d'utilisation pour comprendre les règles et directives d'utilisation de notre bibliothèque numérique.",
+    "title": "Conditions d'utilisation",
+    "s1": {
+      "title": "1. Acceptation des conditions",
+      "body": "En accédant à Bibliaris ou en l'utilisant, vous acceptez d'être lié par ces Conditions d'utilisation. Si vous n'acceptez pas l'ensemble des conditions, vous ne pouvez pas accéder à notre plateforme ni l'utiliser."
+    },
+    "s2": {
+      "title": "2. Comptes et inscription",
+      "body": "Pour utiliser certaines fonctionnalités, vous devez créer un compte. Vous acceptez de fournir des informations exactes et de garder vos identifiants en sécurité. Vous êtes responsable de toute activité effectuée sur votre compte."
+    },
+    "s3": {
+      "title": "3. Utilisation du contenu",
+      "body": "Tous les livres, livres audio, métadonnées, images et autres contenus présents sur Bibliaris sont la propriété intellectuelle de Bibliaris ou de ses concédants de licence. Vous pouvez accéder à ce contenu strictement pour un usage personnel et non commercial."
+    },
+    "s4": {
+      "title": "4. Résiliation",
+      "body": "Nous nous réservons le droit de suspendre ou de résilier votre compte ou votre accès à la plateforme, à notre seule discrétion et sans préavis, en cas de comportement que nous estimons contraire à ces Conditions ou préjudiciable aux autres utilisateurs ou à nos intérêts commerciaux."
+    },
+    "s5": {
+      "title": "5. Nous contacter",
+      "body": "Pour toute question concernant ces Conditions, veuillez nous contacter à {b}."
+    }
+  },
+  "deletion": {
+    "metaTitle": "Instructions de Suppression des Données - Bibliaris",
+    "metaDescription": "Instructions pour demander la suppression de votre compte et des données personnelles associées à Bibliaris.",
+    "title": "Instructions de Suppression des Données",
+    "intro": "Bibliaris utilise Facebook Login pour l'authentification. Conformément aux règles de la plateforme Facebook, nous offrons aux utilisateurs un moyen de demander la suppression de leurs données associées à notre application.",
+    "stepsLead": "Si vous souhaitez supprimer vos activités et vos données associées à Bibliaris, vous pouvez le faire en suivant ces étapes :",
+    "step1": "Accédez à la section {b} de votre profil Facebook.",
+    "step1Path": "Paramètres et confidentialité > Paramètres > Applications et sites web",
+    "step2": "Trouvez et sélectionnez {b}.",
+    "step3": "Cliquez sur le bouton {b}.",
+    "step3Action": "Supprimer",
+    "step4": "Vous pouvez également envoyer un e-mail directement à {b} avec votre demande. Nous traiterons votre demande et supprimerons de notre base de données toutes les données de votre profil utilisateur (e-mail, nom, avatar et entrées personnalisées de la bibliothèque) dans un délai de 24 heures.",
+    "confirmationTitle": "Confirmation de la suppression",
+    "confirmationBody": "Dès réception et traitement de votre demande, nous enverrons un e-mail de confirmation à l'adresse associée à votre profil confirmant que toutes les informations personnelles ont été définitivement supprimées de nos bases de données actives."
   }
 }

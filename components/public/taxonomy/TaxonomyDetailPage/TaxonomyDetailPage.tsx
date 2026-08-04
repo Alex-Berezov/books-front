@@ -45,6 +45,7 @@ interface TaxonomyDetailPageProps {
     showMore: string;
     showLess: string;
     noBooks: string;
+    paginationLabel: string;
   };
   path: string;
   currentPage: number;
@@ -141,10 +142,12 @@ function PaginationLinks({
   currentPage,
   totalPages,
   baseUrl,
+  label,
 }: {
   currentPage: number;
   totalPages: number;
   baseUrl: string;
+  label: string;
 }) {
   if (totalPages <= 1) return null;
 
@@ -156,7 +159,7 @@ function PaginationLinks({
   }
 
   return (
-    <nav className={styles.pagination} aria-label="Pagination">
+    <nav className={styles.pagination} aria-label={label}>
       {currentPage > 1 && (
         <Link href={`${baseUrl}?page=${currentPage - 1}`} className={styles.paginationLink}>
           ←
@@ -407,6 +410,7 @@ export function TaxonomyDetailPage({
                   currentPage={currentPage}
                   totalPages={totalPages}
                   baseUrl={`/${lang}/${path}/${slug}`}
+                  label={translations.paginationLabel}
                 />
               </>
             )}

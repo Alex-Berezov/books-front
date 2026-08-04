@@ -42,7 +42,7 @@ export async function RelatedBooksSection({ lang, slug }: RelatedBooksSectionPro
                   coverAltTemplate: dict.a11y?.bookCover || '{title} cover',
                   readLabel: dict.book?.read || 'Read',
                   listenLabel: dict.book?.listen || 'Listen',
-                  newLabel: 'New',
+                  newLabel: dict.book.newRelease,
                   unknownAuthor: dict.book?.unknownAuthor || 'Unknown Author',
                 }}
                 size="md"
@@ -65,7 +65,7 @@ export async function RelatedBooksSection({ lang, slug }: RelatedBooksSectionPro
                   coverAltTemplate: dict.a11y?.bookCover || '{title} cover',
                   readLabel: dict.book?.read || 'Read',
                   listenLabel: dict.book?.listen || 'Listen',
-                  newLabel: 'New',
+                  newLabel: dict.book.newRelease,
                   unknownAuthor: dict.book?.unknownAuthor || 'Unknown Author',
                 }}
                 size="md"

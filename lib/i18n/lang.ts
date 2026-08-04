@@ -21,12 +21,31 @@ export const LANGUAGE_FLAGS: Record<SupportedLang, string> = {
   ru: '🇷🇺',
 };
 
+/**
+ * BCP 47 tags used for Intl formatting (dates, numbers) per supported language.
+ */
+export const LOCALE_TAGS: Record<SupportedLang, string> = {
+  en: 'en-US',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  pt: 'pt-BR',
+  ru: 'ru-RU',
+};
+
 export const isSupportedLang = (lang: string): lang is SupportedLang => {
   return SUPPORTED_LANGS.includes(lang as SupportedLang);
 };
 
+/**
+ * Resolve the Intl locale tag for a language code, falling back to the default language.
+ */
+export const getLocaleTag = (lang: string): string => {
+  return isSupportedLang(lang) ? LOCALE_TAGS[lang] : LOCALE_TAGS[getDefaultLang()];
+};
+
 export const getDefaultLang = (): SupportedLang => {
-  return (process.env.NEXT_PUBLIC_DEFAULT_LANG as SupportedLang) || 'en';
+  const configured = process.env.NEXT_PUBLIC_DEFAULT_LANG;
+  return configured && isSupportedLang(configured) ? configured : 'en';
 };
 
 /**

@@ -17,6 +17,8 @@ export interface TaxonomyCardGridProps {
   emptyText: string;
   isLoading?: boolean;
   itemKind: TaxonomyCardItemKind;
+  bookSingular: string;
+  bookPlural: string;
 }
 
 const getName = (item: CategoryTree | TagListItem, lang: SupportedLang): string => {
@@ -52,6 +54,8 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
   emptyText,
   isLoading,
   itemKind,
+  bookSingular,
+  bookPlural,
 }) => {
   const isTagKind = itemKind === 'tag';
 
@@ -108,7 +112,7 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
                 {name}
               </Link>
               <span className={styles.bookCount}>
-                {booksCount} {booksCount === 1 ? 'book' : 'books'}
+                {booksCount} {booksCount === 1 ? bookSingular : bookPlural}
               </span>
             </div>
             {children.length > 0 && (

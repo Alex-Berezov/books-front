@@ -249,7 +249,7 @@ export default function ReaderClient({ params }: Props) {
                 type="button"
                 onClick={() => setShowToc(false)}
                 className={styles.drawerClose}
-                aria-label={t('a11y.close') || 'Close'}
+                aria-label={t('a11y.close')}
               >
                 <X size={18} />
               </button>
@@ -300,7 +300,7 @@ export default function ReaderClient({ params }: Props) {
                 type="button"
                 onClick={() => setShowSettings(false)}
                 className={styles.drawerClose}
-                aria-label={t('a11y.close') || 'Close'}
+                aria-label={t('a11y.close')}
               >
                 <X size={18} />
               </button>
@@ -387,10 +387,7 @@ export default function ReaderClient({ params }: Props) {
       </div>
 
       <footer className={styles.footer}>
-        <nav
-          aria-label={t('a11y.footerNavigation') || 'Reader chapter navigation'}
-          style={{ display: 'contents' }}
-        >
+        <nav aria-label={t('a11y.footerNavigation')} style={{ display: 'contents' }}>
           <button
             type="button"
             onClick={goToPrevChapter}

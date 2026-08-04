@@ -1,4 +1,5 @@
 import { getAuthorBookCards, getPublicAuthorBySlug } from '@/api/endpoints/public';
+import { getDictionary } from '@/lib/i18n/dictionaries';
 import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -154,7 +155,7 @@ export default async function AuthorDetailPage({ params }: Props) {
   const siteUrl = getSiteUrl();
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(
     [
-      { name: 'Home', url: `${siteUrl}/${supportedLang}` },
+      { name: getDictionary(supportedLang).breadcrumb.home, url: `${siteUrl}/${supportedLang}` },
       {
         name: author?.name || displayName,
         url: `${siteUrl}/${supportedLang}/author/${authorSlug}`,

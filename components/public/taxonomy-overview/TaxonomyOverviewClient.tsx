@@ -5,6 +5,7 @@ import { useCategoriesTree } from '@/api/hooks/useCategories';
 import { usePage, usePublicTags } from '@/api/hooks/usePublic';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { PageBackButton } from '@/components/public/navigation';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { TagListItem } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTree, PageResponse } from '@/types/api-schema';
@@ -27,6 +28,7 @@ export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({
   initialPage,
 }) => {
   const config: TaxonomyOverviewConfig = TAXONOMY_OVERVIEW_CONFIGS[configKey];
+  const { t } = useTranslation();
 
   const { data: page } = usePage(lang, config.pageKey, {
     initialData: initialPage,
@@ -51,18 +53,18 @@ export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({
 
   const isLoading = configKey === 'tag' ? tagsLoading : treeLoading;
 
-  const h1 = page?.h1 || page?.title || config.fallback.h1;
-  const shortDescription = page?.shortDescription || config.fallback.shortDescription;
+  const h1 = page?.h1 || page?.title || t(config.fallback.h1Key);
+  const shortDescription = page?.shortDescription || t(config.fallback.shortDescriptionKey);
   const description = page?.content || '';
   const faq = page?.faq || null;
 
   const breadcrumbItems = [
     {
-      label: config.breadcrumbs[0].label,
+      label: t(config.breadcrumbs[0].labelKey),
       href: `/${lang}`,
     },
     {
-      label: config.breadcrumbs[1].label,
+      label: t(config.breadcrumbs[1].labelKey),
     },
   ];
 
@@ -80,18 +82,20 @@ export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({
 
         <div className={styles.taxonomySection}>
           <h2 className={styles.sectionTitle}>
-            {configKey === 'category' && 'Main Categories'}
-            {configKey === 'genre' && 'Genre Groups'}
-            {configKey === 'collection' && 'Featured Collections'}
-            {configKey === 'tag' && 'All Tags'}
+            {configKey === 'category' && t('taxonomy.mainCategories')}
+            {configKey === 'genre' && t('taxonomy.genreGroups')}
+            {configKey === 'collection' && t('taxonomy.featuredCollections')}
+            {configKey === 'tag' && t('taxonomy.allTags')}
           </h2>
           <TaxonomyCardGrid
             lang={lang}
             items={allItems}
             routeBase={config.routeBase}
-            emptyText={`No ${config.routeBase} available yet.`}
+            emptyText={t('taxonomy.noItems')}
             isLoading={isLoading}
             itemKind={configKey === 'tag' ? 'tag' : 'category'}
+            bookSingular={t('common.bookSingular')}
+            bookPlural={t('common.bookPlural')}
           />
         </div>
 

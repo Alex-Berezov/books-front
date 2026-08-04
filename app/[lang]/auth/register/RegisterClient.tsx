@@ -65,7 +65,7 @@ const RegisterClient: FC = () => {
 
       setIsSuccess(true);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create account';
+      const errorMessage = err instanceof Error ? err.message : t('auth.register.genericError');
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -193,7 +193,7 @@ const RegisterClient: FC = () => {
                       >
                         <Input.Password
                           prefix={<LockOutlined />}
-                          placeholder="At least 6 characters"
+                          placeholder={t('auth.register.passwordPlaceholder')}
                           autoComplete="new-password"
                           aria-invalid={hasError ? 'true' : 'false'}
                           aria-describedby={hasError ? 'register_password_help' : undefined}
@@ -226,7 +226,7 @@ const RegisterClient: FC = () => {
                       >
                         <Input.Password
                           prefix={<LockOutlined />}
-                          placeholder="Repeat your password"
+                          placeholder={t('auth.register.confirmPlaceholder')}
                           autoComplete="new-password"
                           aria-invalid={hasError ? 'true' : 'false'}
                           aria-describedby={hasError ? 'register_confirmPassword_help' : undefined}

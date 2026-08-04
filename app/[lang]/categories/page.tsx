@@ -1,4 +1,5 @@
 import { TaxonomyOverviewClient } from '@/components/public/taxonomy-overview/TaxonomyOverviewClient';
+import { getDictionary } from '@/lib/i18n/dictionaries';
 import { fetchPageBySlug } from '@/lib/utils/fetch-page';
 import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
@@ -9,18 +10,16 @@ type Props = {
   params: Promise<{ lang: string }> | { lang: string };
 };
 
-const FALLBACK_TITLE = 'Book Categories | Bibliaris';
-const FALLBACK_DESCRIPTION =
-  'Browse book categories on Bibliaris. Discover classic literature, fiction, history, science, education, and more.';
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const lang = resolvedParams.lang as SupportedLang;
 
   const page = await fetchPageBySlug(lang, 'taxonomy-categories-index');
+  const dict = getDictionary(lang);
 
-  const title = page?.seo?.metaTitle || page?.h1 || page?.title || FALLBACK_TITLE;
-  const description = page?.seo?.metaDescription || page?.shortDescription || FALLBACK_DESCRIPTION;
+  const title = page?.seo?.metaTitle || page?.h1 || page?.title || dict.categories.metaTitle;
+  const description =
+    page?.seo?.metaDescription || page?.shortDescription || dict.categories.metaDescription;
 
   return getPageMetadata(lang, '/categories', title, description);
 }
@@ -30,12 +29,13 @@ export default async function CategoriesIndexPage({ params }: Props) {
   const lang = resolvedParams.lang as SupportedLang;
 
   const page = await fetchPageBySlug(lang, 'taxonomy-categories-index');
+  const dict = getDictionary(lang);
 
   const siteUrl = getSiteUrl();
-  const title = page?.h1 || page?.title || 'Categories';
+  const title = page?.h1 || page?.title || dict.categories.title;
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(
     [
-      { name: 'Home', url: `${siteUrl}/${lang}` },
+      { name: dict.breadcrumb.home, url: `${siteUrl}/${lang}` },
       { name: title, url: `${siteUrl}/${lang}/categories` },
     ],
     `${siteUrl}/${lang}/categories`

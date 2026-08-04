@@ -1,6 +1,18 @@
 {
   "common": {
-    "back": "Volver"
+    "back": "Volver",
+    "siteTitle": "Bibliaris — Plataforma Multilingüe de Audiolibros",
+    "siteDescription": "Descubre y disfruta audiolibros en varios idiomas",
+    "loading": "Cargando...",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "retry": "Inténtalo de nuevo",
+    "serverError": "Error del servidor. Inténtalo de nuevo más tarde.",
+    "lastUpdated": "Última actualización: {date}",
+    "faqTitle": "Preguntas Frecuentes",
+    "bookSingular": "libro",
+    "bookPlural": "libros",
+    "anonymousUser": "Usuario"
   },
   "header": {
     "popular": "Popular",
@@ -67,7 +79,9 @@
   "genres": {
     "title": "Explorar Géneros",
     "subtitle": "Descubre libros de todos los géneros y estilos",
-    "booksCount": "libros"
+    "booksCount": "libros",
+    "metaTitle": "Géneros Literarios | Bibliaris",
+    "metaDescription": "Explora géneros literarios en Bibliaris. Descubre drama, novela gótica, misterio, romance, aventura, sátira, fantasía, terror y mucho más."
   },
   "tags": {
     "title": "Etiquetas Literarias y Temas de Libros",
@@ -75,7 +89,9 @@
     "booksCount": "libros",
     "noTags": "No hay etiquetas disponibles",
     "allTags": "Todas las Etiquetas",
-    "viewAll": "Ver Todas"
+    "viewAll": "Ver Todas",
+    "metaTitle": "Etiquetas Literarias y Temas | Bibliaris",
+    "metaDescription": "Explora etiquetas literarias y temas de libros en Bibliaris. Descubre libros por ideas, personajes, ambientes, tonos, géneros, épocas e intereses de lectura."
   },
   "tag": {
     "books": "libros",
@@ -90,7 +106,10 @@
   },
   "collections": {
     "title": "Colecciones",
-    "subtitle": "Explora colecciones seleccionadas de literatura clásica"
+    "subtitle": "Explora colecciones seleccionadas de literatura clásica",
+    "booksCount": "libros",
+    "metaTitle": "Colecciones de Libros | Bibliaris",
+    "metaDescription": "Explora colecciones de libros seleccionadas en Bibliaris: lecturas cortas, libros gratis, lecturas escolares, audiolibros, resúmenes y selecciones temáticas."
   },
   "catalog": {
     "sidebarTitle": "Géneros",
@@ -100,7 +119,8 @@
     "popular": "Popular",
     "booksFound": "libros encontrados",
     "noBooksFound": "No se encontraron libros.",
-    "clearFilters": "Limpiar filtros"
+    "clearFilters": "Limpiar filtros",
+    "searchPlaceholder": "Buscar por título o autor..."
   },
   "book": {
     "back": "Volver",
@@ -140,7 +160,20 @@
     "copyrightStatus": "Estado de derechos de autor",
     "alternativeTitles": "Títulos alternativos",
     "showMore": "Mostrar más",
-    "showLess": "Mostrar menos"
+    "showLess": "Mostrar menos",
+    "newRelease": "Nuevo",
+    "symbols": "Símbolos",
+    "mainCharacters": "Personajes Principales",
+    "quotes": "Citas",
+    "faqTitle": "Preguntas Frecuentes",
+    "summaryNotFound": "Resumen no encontrado",
+    "summaryNotFoundText": "No pudimos cargar el resumen de esta versión del libro.",
+    "summaryPageSubtitle": "Resumen del Libro",
+    "summaryHeading": "Resumen",
+    "keyTakeaways": "Ideas Clave",
+    "analysis": "Análisis",
+    "themesSection": "Temas",
+    "metaFallback": "Detalles del libro - Bibliaris"
   },
   "author": {
     "back": "Volver",
@@ -184,8 +217,11 @@
       "readingProgress": "Progreso de lectura",
       "continue": "Continuar leyendo",
       "start": "Comenzar a leer",
-      "listen": "Escuchar"
-    }
+      "listen": "Escuchar",
+      "chapterAbbr": "Cap.",
+      "durationShort": "{minutes}m {seconds}s"
+    },
+    "signInPrompt": "Inicie sesión para acceder a su estantería personal, seguir su progreso de lectura y continuar donde lo dejó."
   },
   "reader": {
     "toc": "Índice",
@@ -209,8 +245,12 @@
     "nowPlaying": "Reproduciendo ahora",
     "chapters": "Capítulos",
     "noChapters": "Este audiolibro aún no tiene capítulos.",
-    "chaptersFail": "Error al cargar los capítulos de audio.",
-    "goBack": "Volver"
+    "chaptersFail": "No se pudieron cargar los capítulos de audio. Es posible que la versión aún no esté publicada.",
+    "goBack": "Volver",
+    "speed": "Velocidad",
+    "loadingChapters": "Cargando capítulos de audio…",
+    "audioUnsupported": "Tu navegador no admite el elemento de audio.",
+    "selectChapter": "Selecciona un capítulo para empezar a escuchar."
   },
   "rightsBlocked": {
     "title": "No disponible en tu región",
@@ -238,7 +278,11 @@
       "submitBtn": "Iniciar Sesión",
       "noAccount": "¿No tienes cuenta?",
       "createOne": "Regístrate",
-      "or": "o"
+      "or": "o",
+      "genericError": "Error de autenticación",
+      "invalidCredentials": "Correo electrónico o contraseña incorrectos",
+      "rateLimit": "Demasiadas solicitudes. Inténtelo de nuevo más tarde.",
+      "missingCredentials": "El correo electrónico y la contraseña son obligatorios"
     },
     "register": {
       "successTitle": "¡Cuenta Creada!",
@@ -258,7 +302,10 @@
       "confirmMatch": "Las contraseñas no coinciden",
       "submitBtn": "Crear Cuenta",
       "hasAccount": "¿Ya tienes cuenta?",
-      "signinLink": "Inicia sesión"
+      "signinLink": "Inicia sesión",
+      "genericError": "No se pudo crear la cuenta",
+      "passwordPlaceholder": "Al menos 6 caracteres",
+      "confirmPlaceholder": "Repite tu contraseña"
     }
   },
   "profile": {
@@ -284,7 +331,8 @@
     "invalidNickname": "El apodo debe contener solo letras, números y guiones bajos.",
     "unauthTitle": "Perfil Personal",
     "unauthText": "Inicie sesión para administrar su perfil, personalizar su apodo único y ver sus reseñas.",
-    "signIn": "Iniciar sesión"
+    "signIn": "Iniciar sesión",
+    "nicknamePlaceholder": "john_doe"
   },
   "reviews": {
     "title": "Reseñas y comentarios",
@@ -352,7 +400,14 @@
     "volume": "Volumen",
     "mute": "Silenciar",
     "unmute": "Activar sonido",
-    "audioProgress": "Progreso de audio"
+    "audioProgress": "Progreso de audio",
+    "close": "Cerrar",
+    "breadcrumb": "Ruta de navegación",
+    "pagination": "Paginación",
+    "ratingOutOfFive": "Calificación {rating} de 5",
+    "starOne": "1 estrella",
+    "starsCount": "{count} estrellas",
+    "userAvatar": "Avatar de usuario"
   },
   "breadcrumb": {
     "home": "Inicio",
@@ -387,11 +442,98 @@
     "genresLink": "Géneros",
     "categoriesLink": "Categorías",
     "collectionsLink": "Colecciones",
-    "tagsLink": "Etiquetas"
+    "tagsLink": "Etiquetas",
+    "mainCategories": "Categorías Principales",
+    "genreGroups": "Grupos de Géneros",
+    "featuredCollections": "Colecciones Destacadas",
+    "noItems": "Aún no hay nada disponible.",
+    "categoryMetaFallback": "Categoría - Bibliaris",
+    "genreMetaFallback": "Género - Bibliaris",
+    "collectionMetaFallback": "Colección - Bibliaris"
   },
   "categories": {
     "title": "Explorar Categorías",
     "subtitle": "Explora categorías de libros en Bibliaris",
-    "booksCount": "libros"
+    "booksCount": "libros",
+    "metaTitle": "Categorías de Libros | Bibliaris",
+    "metaDescription": "Explora categorías de libros en Bibliaris. Descubre literatura clásica, ficción, historia, ciencia, educación y mucho más."
+  },
+  "errorPage": {
+    "title": "¡Algo salió mal!",
+    "description": "Lamentamos las molestias."
+  },
+  "forbidden": {
+    "title": "Acceso Denegado",
+    "description": "No tienes permiso para acceder a esta página.",
+    "adminOnly": "Solo los administradores y los gestores de contenido pueden acceder al panel de administración."
+  },
+  "privacy": {
+    "metaTitle": "Política de Privacidad - Bibliaris",
+    "metaDescription": "Lee nuestra política de privacidad para saber cómo recopilamos, usamos y protegemos tus datos.",
+    "title": "Política de Privacidad",
+    "s1": {
+      "title": "1. Información que Recopilamos",
+      "body": "Cuando utilizas nuestro servicio, podemos recopilar información personal como tu nombre, tu dirección de correo electrónico y tu foto de perfil, principalmente cuando te registras o inicias sesión mediante servicios de terceros como Google o Facebook."
+    },
+    "s2": {
+      "title": "2. Cómo Usamos tu Información",
+      "lead": "Usamos la información que recopilamos para:",
+      "item1": "Proporcionar, mantener y mejorar nuestros servicios;",
+      "item2": "Personalizar tu experiencia de lectura y tu estantería;",
+      "item3": "Autenticar tu identidad mediante correo electrónico/contraseña o proveedores OAuth;",
+      "item4": "Comunicarnos contigo sobre actualizaciones, alertas de seguridad y avisos relacionados con tu cuenta."
+    },
+    "s3": {
+      "title": "3. Compartición de Datos",
+      "body": "No vendemos tus datos personales. Solo compartimos datos con proveedores de autenticación de terceros (Google, Facebook) para facilitar flujos de inicio de sesión seguros."
+    },
+    "s4": {
+      "title": "4. Eliminación y Conservación de Datos",
+      "body": "Conservamos tus datos mientras tu cuenta esté activa. Puedes solicitar la eliminación de tu cuenta y de todos los datos personales asociados en cualquier momento escribiéndonos a {b}, o siguiendo las Instrucciones de Eliminación de Datos."
+    },
+    "s5": {
+      "title": "5. Contáctanos",
+      "body": "Si tienes alguna pregunta sobre esta Política de Privacidad, contáctanos en {b}."
+    }
+  },
+  "terms": {
+    "metaTitle": "Términos de Servicio - Bibliaris",
+    "metaDescription": "Lee nuestros términos de servicio para conocer las normas y directrices de uso de nuestra biblioteca digital.",
+    "title": "Términos de Servicio",
+    "s1": {
+      "title": "1. Aceptación de los Términos",
+      "body": "Al acceder o utilizar Bibliaris, aceptas quedar vinculado por estos Términos de Servicio. Si no aceptas todos los términos, no podrás acceder ni utilizar nuestra plataforma."
+    },
+    "s2": {
+      "title": "2. Cuentas y Registro",
+      "body": "Para utilizar determinadas funciones, debes registrar una cuenta. Aceptas proporcionar información veraz y mantener seguras tus credenciales. Eres responsable de toda la actividad en tu cuenta."
+    },
+    "s3": {
+      "title": "3. Uso del Contenido",
+      "body": "Todos los libros, audiolibros, metadatos, imágenes y demás materiales de Bibliaris son propiedad intelectual de Bibliaris o de sus licenciantes. Puedes acceder a este contenido estrictamente para uso personal y no comercial."
+    },
+    "s4": {
+      "title": "4. Terminación",
+      "body": "Nos reservamos el derecho de suspender o cancelar tu cuenta o tu acceso a la plataforma a nuestra entera discreción, sin previo aviso, por conductas que consideremos que infringen estos Términos o que resultan perjudiciales para otros usuarios o para nuestros intereses comerciales."
+    },
+    "s5": {
+      "title": "5. Contáctanos",
+      "body": "Para cualquier pregunta relativa a estos Términos, ponte en contacto con nosotros en {b}."
+    }
+  },
+  "deletion": {
+    "metaTitle": "Instrucciones de Eliminación de Datos - Bibliaris",
+    "metaDescription": "Instrucciones sobre cómo solicitar la eliminación de tu cuenta y de los datos personales asociados a Bibliaris.",
+    "title": "Instrucciones de Eliminación de Datos",
+    "intro": "Bibliaris utiliza el Inicio de sesión con Facebook para la autenticación. De acuerdo con las normas de la Plataforma de Facebook, ofrecemos a los usuarios una forma de solicitar la eliminación de sus datos asociados a nuestra aplicación.",
+    "stepsLead": "Si quieres eliminar tus actividades y datos asociados a Bibliaris, puedes hacerlo siguiendo estos pasos:",
+    "step1": "Ve a {b} de tu perfil de Facebook.",
+    "step1Path": "Configuración y privacidad > Configuración > Aplicaciones y sitios web",
+    "step2": "Busca y selecciona {b}.",
+    "step3": "Haz clic en el botón {b}.",
+    "step3Action": "Eliminar",
+    "step4": "También puedes enviar un correo electrónico directamente a {b} con tu solicitud. Procesaremos tu solicitud y eliminaremos de nuestra base de datos todos los datos de tu perfil de usuario (correo electrónico, nombre, avatar y entradas personalizadas de la estantería) en un plazo de 24 horas.",
+    "confirmationTitle": "Confirmación de la Eliminación",
+    "confirmationBody": "Tras recibir y procesar tu solicitud, enviaremos un correo electrónico de confirmación a la dirección asociada a tu perfil confirmando que toda la información personal ha sido eliminada de forma permanente de nuestras bases de datos activas."
   }
 }

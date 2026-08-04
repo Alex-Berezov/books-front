@@ -31,6 +31,7 @@ interface TagDetailPageProps {
     relatedGenres: string;
     relatedCategories: string;
     relatedCollections: string;
+    paginationLabel: string;
   };
   currentPage: number;
   totalPages: number;
@@ -117,7 +118,7 @@ export function TagDetailPage({
                 </div>
 
                 {totalPages > 1 && (
-                  <nav className={styles.pagination} aria-label="Pagination">
+                  <nav className={styles.pagination} aria-label={translations.paginationLabel}>
                     {currentPage > 1 && (
                       <Link
                         href={`/${lang}/tag/${tagSlug}?page=${currentPage - 1}`}

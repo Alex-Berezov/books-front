@@ -156,9 +156,9 @@ export function CatalogContent({
                     type="text"
                     name="q"
                     defaultValue={currentQ || ''}
-                    placeholder="Search by title or author..."
+                    placeholder={t('catalog.searchPlaceholder')}
                     className={styles.searchInput}
-                    aria-label="Search books"
+                    aria-label={t('a11y.searchBooks')}
                   />
                 </form>
               </div>
@@ -236,7 +236,7 @@ export function CatalogContent({
                         })}`}
                         className={styles.pageLink}
                       >
-                        Previous
+                        {t('common.previous')}
                       </Link>
                     )}
                     {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
@@ -276,7 +276,7 @@ export function CatalogContent({
                         })}`}
                         className={styles.pageLink}
                       >
-                        Next
+                        {t('common.next')}
                       </Link>
                     )}
                   </div>

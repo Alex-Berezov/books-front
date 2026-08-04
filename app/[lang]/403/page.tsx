@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { PageBackButton } from '@/components/public/navigation';
+import { getDictionary } from '@/lib/i18n/dictionaries';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './403.module.scss';
 
@@ -14,19 +15,18 @@ type Props = {
  */
 export default async function ForbiddenPage({ params }: Props) {
   const { lang } = await params;
+  const dict = getDictionary(lang);
 
   return (
     <div className={styles.container}>
       <PageBackButton lang={lang} />
 
       <h1 className={styles.title}>403</h1>
-      <p className={styles.message}>Access Forbidden</p>
-      <p className={styles.description}>You don&apos;t have permission to access this page.</p>
-      <p className={styles.description}>
-        Only administrators and content managers can access the admin panel.
-      </p>
+      <p className={styles.message}>{dict.forbidden.title}</p>
+      <p className={styles.description}>{dict.forbidden.description}</p>
+      <p className={styles.description}>{dict.forbidden.adminOnly}</p>
       <Link href={`/${lang}`} className={styles.link}>
-        Go back to home
+        {dict.notFound.backHome}
       </Link>
     </div>
   );

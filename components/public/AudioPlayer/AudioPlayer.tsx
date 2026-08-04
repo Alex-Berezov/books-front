@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FC } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePublicAudioChapters, useRecordView, useUpdateAudioProgress } from '@/api/hooks';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { formatDuration } from '@/lib/utils/audio';
 import styles from './AudioPlayer.module.scss';
 
@@ -15,6 +16,7 @@ export interface AudioPlayerProps {
 }
 
 export const AudioPlayer: FC<AudioPlayerProps> = ({ versionId }) => {
+  const { t } = useTranslation();
   const { data, error, isLoading } = usePublicAudioChapters(versionId);
   const chapters = useMemo(() => data?.items ?? [], [data?.items]);
 
@@ -91,23 +93,19 @@ export const AudioPlayer: FC<AudioPlayerProps> = ({ versionId }) => {
   }, [activeChapter, isAuthenticated, updateProgressMutation]);
 
   if (isLoading) {
-    return <div className={styles.loading}>Loading audio chapters…</div>;
+    return <div className={styles.loading}>{t('player.loadingChapters')}</div>;
   }
   if (error) {
-    return (
-      <div className={styles.error}>
-        Failed to load audio chapters. The version may not be published yet.
-      </div>
-    );
+    return <div className={styles.error}>{t('player.chaptersFail')}</div>;
   }
   if (chapters.length === 0) {
-    return <div className={styles.empty}>This audio book has no chapters yet.</div>;
+    return <div className={styles.empty}>{t('player.noChapters')}</div>;
   }
 
   return (
     <div className={styles.container}>
       <aside className={styles.sidebar}>
-        <h2 className={styles.sidebarTitle}>Chapters</h2>
+        <h2 className={styles.sidebarTitle}>{t('player.chapters')}</h2>
         <ul className={styles.chapterList}>
           {chapters.map((chapter) => {
             const isActive = chapter.id === activeChapterId;
@@ -131,7 +129,7 @@ export const AudioPlayer: FC<AudioPlayerProps> = ({ versionId }) => {
       <section className={styles.main}>
         {activeChapter ? (
           <div className={styles.nowPlaying}>
-            <p className={styles.nowPlayingLabel}>Now playing</p>
+            <p className={styles.nowPlayingLabel}>{t('player.nowPlaying')}</p>
             <h1 className={styles.nowPlayingTitle}>
               {activeChapter.number}. {activeChapter.title}
             </h1>
@@ -145,14 +143,14 @@ export const AudioPlayer: FC<AudioPlayerProps> = ({ versionId }) => {
               onPlay={handlePlay}
               onTimeUpdate={handleTimeUpdate}
             >
-              Your browser does not support the audio element.
+              {t('player.audioUnsupported')}
             </audio>
             {activeChapter.description && (
               <div className={styles.description}>{activeChapter.description}</div>
             )}
           </div>
         ) : (
-          <div className={styles.empty}>Select a chapter to start listening.</div>
+          <div className={styles.empty}>{t('player.selectChapter')}</div>
         )}
       </section>
     </div>

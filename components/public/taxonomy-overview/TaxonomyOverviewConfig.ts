@@ -1,13 +1,13 @@
 export type TaxonomyType = 'category' | 'genre' | 'collection' | 'tag';
 
 export type BreadcrumbItem = {
-  label: string;
+  labelKey: string;
   href?: string;
 };
 
 export interface FallbackContent {
-  h1: string;
-  shortDescription: string;
+  h1Key: string;
+  shortDescriptionKey: string;
   metaTitle: string;
   metaDescription: string;
 }
@@ -25,10 +25,10 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     type: 'category',
     pageKey: 'taxonomy-categories-index',
     routeBase: 'category',
-    breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'Browse Categories' }],
+    breadcrumbs: [{ labelKey: 'breadcrumb.home', href: '/' }, { labelKey: 'categories.title' }],
     fallback: {
-      h1: 'Browse Book Categories',
-      shortDescription: 'Explore book categories on Bibliaris.',
+      h1Key: 'categories.title',
+      shortDescriptionKey: 'categories.subtitle',
       metaTitle: 'Book Categories | Bibliaris',
       metaDescription:
         'Browse book categories on Bibliaris. Discover classic literature, fiction, history, science, education, and more.',
@@ -38,10 +38,10 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     type: 'genre',
     pageKey: 'taxonomy-genres-index',
     routeBase: 'genre',
-    breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'Browse Genres' }],
+    breadcrumbs: [{ labelKey: 'breadcrumb.home', href: '/' }, { labelKey: 'genres.title' }],
     fallback: {
-      h1: 'Browse Book Genres',
-      shortDescription: 'Discover books across every genre and literary style.',
+      h1Key: 'genres.title',
+      shortDescriptionKey: 'genres.subtitle',
       metaTitle: 'Book Genres | Bibliaris',
       metaDescription:
         'Browse literary genres on Bibliaris. Discover drama, gothic fiction, mystery, romance, adventure, satire, fantasy, horror, and more.',
@@ -51,10 +51,10 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     type: 'collection',
     pageKey: 'taxonomy-collections-index',
     routeBase: 'collection',
-    breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'Collections' }],
+    breadcrumbs: [{ labelKey: 'breadcrumb.home', href: '/' }, { labelKey: 'collections.title' }],
     fallback: {
-      h1: 'Book Collections',
-      shortDescription: 'Explore curated collections of classic literature.',
+      h1Key: 'collections.title',
+      shortDescriptionKey: 'collections.subtitle',
       metaTitle: 'Book Collections | Bibliaris',
       metaDescription:
         'Explore curated book collections on Bibliaris, including short reads, free books, school reading, audiobooks, summaries, and themed selections.',
@@ -64,11 +64,10 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     type: 'tag',
     pageKey: 'taxonomy-tags-index',
     routeBase: 'tag',
-    breadcrumbs: [{ label: 'Home', href: '/' }, { label: 'All Tags' }],
+    breadcrumbs: [{ labelKey: 'breadcrumb.home', href: '/' }, { labelKey: 'tags.allTags' }],
     fallback: {
-      h1: 'Literary Tags & Book Themes',
-      shortDescription:
-        'Explore literary tags, themes, motifs, characters, settings, moods, and reading interests on Bibliaris.',
+      h1Key: 'tags.title',
+      shortDescriptionKey: 'tags.subtitle',
       metaTitle: 'Literary Tags & Book Themes | Bibliaris',
       metaDescription:
         'Browse literary tags and book themes on Bibliaris. Discover books by ideas, characters, settings, moods, genres, periods, and reading interests.',

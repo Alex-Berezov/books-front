@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { PageBackButton } from '@/components/public/navigation';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './error.module.scss';
 
 export default function Error({
@@ -11,18 +12,20 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t, lang } = useTranslation();
+
   useEffect(() => {
     console.error('Application error:', error);
   }, [error]);
 
   return (
     <div className={styles.errorContainer}>
-      <PageBackButton lang="en" />
+      <PageBackButton lang={lang} />
 
-      <h1>Something went wrong!</h1>
-      <p>We apologize for the inconvenience.</p>
+      <h1>{t('errorPage.title')}</h1>
+      <p>{t('errorPage.description')}</p>
       <button type="button" onClick={() => reset()} className={styles.retryButton}>
-        Try again
+        {t('common.retry')}
       </button>
     </div>
   );

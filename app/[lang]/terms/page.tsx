@@ -1,5 +1,8 @@
 import { BookOutlined } from '@ant-design/icons';
+import { TextWithBold } from '@/components/common/TextWithBold/TextWithBold';
 import { PageBackButton } from '@/components/public/navigation';
+import { getDictionary } from '@/lib/i18n/dictionaries';
+import { getLocaleTag } from '@/lib/i18n/lang';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -8,20 +11,28 @@ type Props = {
   params: Promise<{ lang: string }> | { lang: string };
 };
 
+const SUPPORT_EMAIL = 'support@bibliaris.com';
+const LAST_UPDATED_DATE = '2026-06-11';
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const lang = resolvedParams.lang as SupportedLang;
+  const dict = getDictionary(lang);
 
-  return getPageMetadata(
-    lang,
-    '/terms',
-    'Terms of Service - Bibliaris',
-    'Read our terms of service to understand the rules and guidelines for using our digital library.'
-  );
+  return getPageMetadata(lang, '/terms', dict.terms.metaTitle, dict.terms.metaDescription);
 }
 
 export default async function TermsPage({ params }: Props) {
-  const { lang } = await params;
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang as SupportedLang;
+  const dict = getDictionary(lang);
+
+  const formattedDate = new Intl.DateTimeFormat(getLocaleTag(lang), {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${LAST_UPDATED_DATE}T00:00:00Z`));
 
   return (
     <div
@@ -51,58 +62,46 @@ export default async function TermsPage({ params }: Props) {
       </div>
 
       <h1 style={{ fontSize: '32px', marginBottom: '24px', fontWeight: '700' }}>
-        Terms of Service
+        {dict.terms.title}
       </h1>
-      <p style={{ color: '#666', marginBottom: '24px' }}>Last updated: June 11, 2026</p>
+      <p style={{ color: '#666', marginBottom: '24px' }}>
+        {dict.common.lastUpdated.replace('{date}', formattedDate)}
+      </p>
 
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>
-          1. Agreement to Terms
+          {dict.terms.s1.title}
         </h2>
-        <p style={{ marginBottom: '12px' }}>
-          By accessing or using Bibliaris, you agree to be bound by these Terms of Service. If you
-          do not agree to all terms, you may not access or use our platform.
-        </p>
+        <p style={{ marginBottom: '12px' }}>{dict.terms.s1.body}</p>
       </section>
 
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>
-          2. Accounts and Registration
+          {dict.terms.s2.title}
         </h2>
-        <p style={{ marginBottom: '12px' }}>
-          To use certain features, you must register for an account. You agree to provide accurate
-          information and keep your credentials secure. You are responsible for all activity on your
-          account.
-        </p>
+        <p style={{ marginBottom: '12px' }}>{dict.terms.s2.body}</p>
       </section>
 
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>
-          3. Use of Content
+          {dict.terms.s3.title}
         </h2>
-        <p style={{ marginBottom: '12px' }}>
-          All books, audiobooks, metadata, images, and other materials on Bibliaris are the
-          intellectual property of Bibliaris or its licensors. You may access this content strictly
-          for personal, non-commercial use.
-        </p>
+        <p style={{ marginBottom: '12px' }}>{dict.terms.s3.body}</p>
       </section>
 
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>
-          4. Termination
+          {dict.terms.s4.title}
         </h2>
-        <p style={{ marginBottom: '12px' }}>
-          We reserve the right to suspend or terminate your account or access to the platform at our
-          sole discretion, without notice, for conduct that we believe violates these Terms or is
-          harmful to other users or our business interests.
-        </p>
+        <p style={{ marginBottom: '12px' }}>{dict.terms.s4.body}</p>
       </section>
 
       <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>5. Contact Us</h2>
+        <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>
+          {dict.terms.s5.title}
+        </h2>
         <p style={{ marginBottom: '12px' }}>
-          For any questions regarding these Terms, please reach out to us at{' '}
-          <strong>support@bibliaris.com</strong>.
+          <TextWithBold text={dict.terms.s5.body} bold={SUPPORT_EMAIL} />
         </p>
       </section>
     </div>

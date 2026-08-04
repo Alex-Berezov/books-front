@@ -75,7 +75,7 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
             )}
           </div>
         </Link>
-        {isNewRelease && <span className={styles.ribbon}>New</span>}
+        {isNewRelease && <span className={styles.ribbon}>{t('book.newRelease')}</span>}
       </div>
 
       {/* Book Metadata */}

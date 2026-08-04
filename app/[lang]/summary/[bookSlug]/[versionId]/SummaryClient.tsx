@@ -8,6 +8,7 @@ import { useBookSummary } from '@/api/hooks/useBookSummary';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import { useSmartBack } from '@/components/public/navigation';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './summary.module.scss';
 
@@ -19,6 +20,7 @@ export default function SummaryClient({ params }: Props) {
   const { lang, bookSlug, versionId } = params;
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
+  const { t } = useTranslation();
   const goBack = useSmartBack(`/${lang}/book/${bookSlug}`);
 
   // Fetch book overview for meta info (title, author, cover, etc.)
@@ -48,10 +50,10 @@ export default function SummaryClient({ params }: Props) {
   if (!book || !summaryData) {
     return (
       <div className={styles.errorContainer}>
-        <h2>Summary not found</h2>
-        <p>We couldn&apos;t load the summary for this book version.</p>
+        <h2>{t('book.summaryNotFound')}</h2>
+        <p>{t('book.summaryNotFoundText')}</p>
         <Button variant="secondary" onClick={goBack}>
-          Go Back
+          {t('player.goBack')}
         </Button>
       </div>
     );
@@ -71,7 +73,7 @@ export default function SummaryClient({ params }: Props) {
           />
           <div className={styles.bookInfo}>
             <span className={styles.bookTitle}>{book.title}</span>
-            <span className={styles.pageSubtitle}>Book Summary</span>
+            <span className={styles.pageSubtitle}>{t('book.summaryPageSubtitle')}</span>
           </div>
         </div>
       </header>
@@ -79,11 +81,13 @@ export default function SummaryClient({ params }: Props) {
       {/* Main Content */}
       <div className={styles.mainContent}>
         <article className={styles.card}>
-          <h1 className={styles.title}>{book.title} — Summary</h1>
+          <h1 className={styles.title}>
+            {book.title} — {t('book.summaryHeading')}
+          </h1>
 
           {summaryData.summary && (
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Key Takeaways</h2>
+              <h2 className={styles.sectionTitle}>{t('book.keyTakeaways')}</h2>
               <div
                 className={styles.bodyText}
                 dangerouslySetInnerHTML={{ __html: summaryData.summary }}
@@ -93,7 +97,7 @@ export default function SummaryClient({ params }: Props) {
 
           {summaryData.analysis && (
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Analysis</h2>
+              <h2 className={styles.sectionTitle}>{t('book.analysis')}</h2>
               <div
                 className={styles.bodyText}
                 dangerouslySetInnerHTML={{ __html: summaryData.analysis }}
@@ -103,7 +107,7 @@ export default function SummaryClient({ params }: Props) {
 
           {summaryData.themes && (
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Themes</h2>
+              <h2 className={styles.sectionTitle}>{t('book.themesSection')}</h2>
               <div
                 className={styles.bodyText}
                 dangerouslySetInnerHTML={{ __html: summaryData.themes }}

@@ -1,5 +1,8 @@
 import { BookOutlined } from '@ant-design/icons';
+import { TextWithBold } from '@/components/common/TextWithBold/TextWithBold';
 import { PageBackButton } from '@/components/public/navigation';
+import { getDictionary } from '@/lib/i18n/dictionaries';
+import { getLocaleTag } from '@/lib/i18n/lang';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -8,20 +11,28 @@ type Props = {
   params: Promise<{ lang: string }> | { lang: string };
 };
 
+const SUPPORT_EMAIL = 'support@bibliaris.com';
+const LAST_UPDATED_DATE = '2026-06-11';
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const lang = resolvedParams.lang as SupportedLang;
+  const dict = getDictionary(lang);
 
-  return getPageMetadata(
-    lang,
-    '/privacy',
-    'Privacy Policy - Bibliaris',
-    'Read our privacy policy to understand how we collect, use, and protect your data.'
-  );
+  return getPageMetadata(lang, '/privacy', dict.privacy.metaTitle, dict.privacy.metaDescription);
 }
 
 export default async function PrivacyPage({ params }: Props) {
-  const { lang } = await params;
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang as SupportedLang;
+  const dict = getDictionary(lang);
+
+  const formattedDate = new Intl.DateTimeFormat(getLocaleTag(lang), {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${LAST_UPDATED_DATE}T00:00:00Z`));
 
   return (
     <div
@@ -50,61 +61,55 @@ export default async function PrivacyPage({ params }: Props) {
         </span>
       </div>
 
-      <h1 style={{ fontSize: '32px', marginBottom: '24px', fontWeight: '700' }}>Privacy Policy</h1>
-      <p style={{ color: '#666', marginBottom: '24px' }}>Last updated: June 11, 2026</p>
+      <h1 style={{ fontSize: '32px', marginBottom: '24px', fontWeight: '700' }}>
+        {dict.privacy.title}
+      </h1>
+      <p style={{ color: '#666', marginBottom: '24px' }}>
+        {dict.common.lastUpdated.replace('{date}', formattedDate)}
+      </p>
 
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>
-          1. Information We Collect
+          {dict.privacy.s1.title}
         </h2>
-        <p style={{ marginBottom: '12px' }}>
-          When you use our service, we may collect personal information such as your name, email
-          address, and profile picture, primarily when you register or log in using third-party
-          services like Google or Facebook.
-        </p>
+        <p style={{ marginBottom: '12px' }}>{dict.privacy.s1.body}</p>
       </section>
 
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>
-          2. How We Use Your Information
+          {dict.privacy.s2.title}
         </h2>
-        <p style={{ marginBottom: '12px' }}>We use the information we collect to:</p>
+        <p style={{ marginBottom: '12px' }}>{dict.privacy.s2.lead}</p>
         <ul style={{ paddingLeft: '20px', marginBottom: '12px' }}>
-          <li>Provide, maintain, and improve our services;</li>
-          <li>Personalize your reading experience and bookshelf;</li>
-          <li>Authenticate your identity via email/password or OAuth providers;</li>
-          <li>
-            Communicate with you regarding updates, security alerts, and account-related notices.
-          </li>
+          <li>{dict.privacy.s2.item1}</li>
+          <li>{dict.privacy.s2.item2}</li>
+          <li>{dict.privacy.s2.item3}</li>
+          <li>{dict.privacy.s2.item4}</li>
         </ul>
       </section>
 
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>
-          3. Data Sharing
+          {dict.privacy.s3.title}
+        </h2>
+        <p style={{ marginBottom: '12px' }}>{dict.privacy.s3.body}</p>
+      </section>
+
+      <section style={{ marginBottom: '32px' }}>
+        <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>
+          {dict.privacy.s4.title}
         </h2>
         <p style={{ marginBottom: '12px' }}>
-          We do not sell your personal data. We only share data with third-party authentication
-          providers (Google, Facebook) to facilitate secure sign-in flows.
+          <TextWithBold text={dict.privacy.s4.body} bold={SUPPORT_EMAIL} />
         </p>
       </section>
 
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>
-          4. Data Deletion and Retention
+          {dict.privacy.s5.title}
         </h2>
         <p style={{ marginBottom: '12px' }}>
-          We retain your data for as long as your account is active. You can request deletion of
-          your account and all associated personal data at any time by contacting us at{' '}
-          <strong>support@bibliaris.com</strong>, or by following the Data Deletion Instructions.
-        </p>
-      </section>
-
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '22px', marginBottom: '12px', fontWeight: '600' }}>5. Contact Us</h2>
-        <p style={{ marginBottom: '12px' }}>
-          If you have any questions about this Privacy Policy, please contact us at{' '}
-          <strong>support@bibliaris.com</strong>.
+          <TextWithBold text={dict.privacy.s5.body} bold={SUPPORT_EMAIL} />
         </p>
       </section>
     </div>

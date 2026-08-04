@@ -7,6 +7,7 @@ import { permanentRedirect, notFound } from 'next/navigation';
 import { StarRating } from '@/components/public/books/StarRating';
 import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
 import { getDictionary } from '@/lib/i18n/dictionaries';
+import { getDefaultLang } from '@/lib/i18n/lang';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import styles from './book.module.scss';
@@ -15,7 +16,7 @@ import DescriptionWrapper from './DescriptionWrapper';
 import { RelatedBooksSection } from './RelatedBooksSection';
 
 const ReviewsLoading = () => {
-  let text = 'Loading reviews...';
+  let text = getDictionary(getDefaultLang()).book.loadingReviews;
   if (typeof window !== 'undefined') {
     const segments = window.location.pathname.split('/');
     const lang = segments[1] as SupportedLang;
@@ -112,7 +113,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch (error) {
     console.error('Error generating metadata for book:', error);
-    let fallbackTitle = 'Book Details - Bibliaris';
+    let fallbackTitle = getDictionary(supportedLang).book.metaFallback;
     if (slug) {
       const decoded = decodeURIComponent(slug).replace(/-/g, ' ');
       fallbackTitle =
@@ -199,7 +200,7 @@ export default async function BookDetailPage({ params }: Props) {
           />
         )}
 
-        <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
+        <nav className={styles.breadcrumbs} aria-label={dict.a11y.breadcrumb}>
           <ol
             style={{
               display: 'inline-flex',
@@ -438,9 +439,7 @@ export default async function BookDetailPage({ params }: Props) {
           </DescriptionWrapper>
         </div>
 
-        {activeVersion && (
-          <BookExtraDetails activeVersion={activeVersion} supportedLang={supportedLang} />
-        )}
+        {activeVersion && <BookExtraDetails activeVersion={activeVersion} />}
 
         {versionId && (
           <BookReviews

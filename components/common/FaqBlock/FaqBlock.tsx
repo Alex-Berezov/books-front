@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC, ReactNode } from 'react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './FaqBlock.module.scss';
 
 export interface FaqItem {
@@ -18,11 +19,13 @@ export interface FaqBlockProps {
 
 export const FaqBlock: FC<FaqBlockProps> = ({
   items,
-  title = 'FAQ',
+  title,
   showJsonLd = true,
   className = '',
   icon,
 }) => {
+  const { t } = useTranslation();
+
   if (!items || items.length === 0) return null;
 
   return (
@@ -45,7 +48,7 @@ export const FaqBlock: FC<FaqBlockProps> = ({
       )}
       <h2 className={styles.title}>
         {icon && <span className={styles.icon}>{icon}</span>}
-        {title}
+        {title ?? t('common.faqTitle')}
       </h2>
       <div className={styles.items}>
         {items.map((item, index) => (

@@ -1,4 +1,5 @@
 export { InternalNavigationTracker } from './InternalNavigationTracker';
+export { NotFoundContent } from './NotFoundContent/NotFoundContent';
 export { PageBackButton } from './PageBackButton';
 export { SmartBackButton } from './SmartBackButton';
 export { useSmartBack } from './useSmartBack';

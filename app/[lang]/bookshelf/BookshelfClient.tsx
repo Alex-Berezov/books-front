@@ -44,15 +44,16 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
   let progressPct = 0;
   let progressLabel = '';
 
-  const chapterAbbr = lang === 'en' || lang === 'fr' ? 'Ch.' : 'Cap.';
+  const chapterAbbr = t('bookshelf.card.chapterAbbr');
 
   if (progress) {
     if (isAudio) {
       const minutes = Math.floor(progress.position / 60);
       const seconds = Math.floor(progress.position % 60);
+      const duration = t('bookshelf.card.durationShort', { minutes, seconds });
       progressLabel = progress.audioChapterNumber
-        ? `${chapterAbbr} ${progress.audioChapterNumber} • ${minutes}m ${seconds}s`
-        : `${minutes}m ${seconds}s`;
+        ? `${chapterAbbr} ${progress.audioChapterNumber} • ${duration}`
+        : duration;
       progressPct = 50; // default indicator for audiobooks in progress
     } else {
       const chaptersCount = version.chaptersCount || 0;
@@ -254,17 +255,7 @@ export default function BookshelfClient() {
         <div className={styles.unauthContainer}>
           <BookFilled className={styles.unauthIcon} />
           <h1 className={styles.unauthTitle}>{t('bookshelf.title')}</h1>
-          <p className={styles.unauthText}>
-            {lang === 'ru'
-              ? 'Войдите, чтобы получить доступ к своей книжной полке, отслеживать прогресс чтения и продолжать с того места, где остановились.'
-              : lang === 'es'
-                ? 'Inicie sesión para acceder a su estantería personal, realizar un seguimiento de su progreso de leitura y continuar donde lo dejó.'
-                : lang === 'fr'
-                  ? 'Connectez-vous pour accéder à votre bibliothèque personnelle, suivre votre progression de lecture et reprendre là où vous vous étiez arrêté.'
-                  : lang === 'pt'
-                    ? 'Faça login para acessar sua estante pessoal, acompanhar seu progresso de leitura e continuar de onde parou.'
-                    : 'Sign in to access your personal bookshelf, track your reading progress, and pick up where you left off.'}
-          </p>
+          <p className={styles.unauthText}>{t('bookshelf.signInPrompt')}</p>
           <div className={styles.unauthBtnGroup}>
             <Button
               variant="primary"
@@ -272,11 +263,7 @@ export default function BookshelfClient() {
               className={styles.signInBtn}
               onClick={() => router.push(`/${lang}/auth/sign-in?callbackUrl=/${lang}/bookshelf`)}
             >
-              {t('bookshelf.card.listen')
-                .replace('Listen', 'Sign In')
-                .replace('Escuchar', 'Iniciar Sesión')
-                .replace('Écouter', 'Se Connecter')
-                .replace('Ouvir', 'Entrar')}
+              {t('header.signIn')}
             </Button>
             <Button
               variant="secondary"
@@ -343,7 +330,8 @@ export default function BookshelfClient() {
           <div>
             <h1 className={styles.headerTitle}>{t('bookshelf.title')}</h1>
             <p className={styles.headerSubtitle}>
-              {items.length} {items.length === 1 ? 'book' : 'books'} {t('bookshelf.booksSaved')}
+              {items.length} {t(items.length === 1 ? 'common.bookSingular' : 'common.bookPlural')}{' '}
+              {t('bookshelf.booksSaved')}
             </p>
           </div>
           <Link href={`/${lang}/catalog`} passHref legacyBehavior>

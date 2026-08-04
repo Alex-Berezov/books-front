@@ -22,6 +22,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/common/Button';
 import { PageBackButton } from '@/components/public/navigation';
+import { AUTH_ERROR_MESSAGES, AuthErrorType } from '@/lib/auth/constants';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './sign-in.module.scss';
 
@@ -50,6 +51,22 @@ const SignInClient: FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   /**
+   * Map the English messages thrown by the NextAuth authorize callback onto dictionary keys.
+   */
+  const translateAuthError = (message: string): string => {
+    switch (message) {
+      case AUTH_ERROR_MESSAGES[AuthErrorType.INVALID_CREDENTIALS]:
+        return t('auth.signin.invalidCredentials');
+      case AUTH_ERROR_MESSAGES[AuthErrorType.RATE_LIMIT_EXCEEDED]:
+        return t('auth.signin.rateLimit');
+      case AUTH_ERROR_MESSAGES[AuthErrorType.MISSING_CREDENTIALS]:
+        return t('auth.signin.missingCredentials');
+      default:
+        return t('auth.signin.genericError');
+    }
+  };
+
+  /**
    * Form submission handler
    */
   const handleSubmit = async (values: SignInFormValues) => {
@@ -65,8 +82,8 @@ const SignInClient: FC = () => {
       });
 
       if (result?.error) {
-        // Handle NextAuth errors
-        setError(result.error);
+        // NextAuth surfaces the raw English message thrown by the authorize callback
+        setError(translateAuthError(result.error));
       } else if (result?.ok) {
         // Successful authentication - set cookie and redirect
         document.cookie = 'logged_in=true; path=/; max-age=31536000';
@@ -74,8 +91,8 @@ const SignInClient: FC = () => {
         router.refresh();
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
-      setError(errorMessage);
+      console.error('Sign-in failed:', err);
+      setError(t('auth.signin.genericError'));
     } finally {
       setIsLoading(false);
     }

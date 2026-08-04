@@ -178,6 +178,7 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
     relatedGenres: t('tag.relatedGenres'),
     relatedCategories: t('tag.relatedCategories'),
     relatedCollections: t('tag.relatedCollections'),
+    paginationLabel: t('a11y.pagination'),
   };
 
   const siteUrl = getSiteUrl();

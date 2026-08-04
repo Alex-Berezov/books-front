@@ -145,7 +145,8 @@ export default function AuthorDetailClient({
                 <>
                   <span className={styles.statItem}>
                     <BookOpen size={16} />
-                    {totalBooks} {totalBooks === 1 ? 'book' : 'books'} {t('author.booksInLibrary')}
+                    {totalBooks} {t(totalBooks === 1 ? 'common.bookSingular' : 'common.bookPlural')}{' '}
+                    {t('author.booksInLibrary')}
                   </span>
                   {hasAudiobooks && (
                     <span className={styles.audioAvailable}>{t('author.audiobooksAvailable')}</span>

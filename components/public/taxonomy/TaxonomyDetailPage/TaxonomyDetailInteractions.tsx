@@ -2,6 +2,7 @@
 
 import { useState, useId, type ReactNode } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './TaxonomyDetailPage.module.scss';
 
 interface TaxonomyDetailInteractionsProps {
@@ -21,6 +22,7 @@ export function TaxonomyDetailInteractions({
   showMoreLabel,
   showLessLabel,
 }: TaxonomyDetailInteractionsProps) {
+  const { t } = useTranslation();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const descId = useId();
@@ -53,7 +55,11 @@ export function TaxonomyDetailInteractions({
           />
           <div className={styles.mobileOverlayPanel}>
             <div className={styles.mobileOverlayClose}>
-              <button type="button" onClick={() => setMobileSidebarOpen(false)} aria-label="Close">
+              <button
+                type="button"
+                onClick={() => setMobileSidebarOpen(false)}
+                aria-label={t('a11y.close')}
+              >
                 <X size={20} />
               </button>
             </div>

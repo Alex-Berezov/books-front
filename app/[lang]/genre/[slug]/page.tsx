@@ -103,7 +103,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   } catch (error) {
     logError('Error generating metadata for genre:', error);
     return {
-      title: 'Genre - Bibliaris',
+      title: getDictionary(supportedLang).taxonomy.genreMetaFallback,
     };
   }
 }
@@ -224,6 +224,7 @@ export default async function GenreDetailPage({ params, searchParams }: Props) {
     showMore: t('book.showMore'),
     showLess: t('book.showLess'),
     noBooks: t('taxonomy.noBooks'),
+    paginationLabel: t('a11y.pagination'),
   };
 
   const totalPages = data?.pagination?.totalPages ?? 1;

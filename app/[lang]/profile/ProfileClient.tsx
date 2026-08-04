@@ -10,6 +10,7 @@ import { useSession } from 'next-auth/react';
 import { useMe, useUpdateProfile, useUserActivities, useUploadAvatar } from '@/api/hooks/useAuth';
 import { Button } from '@/components/common/Button';
 import { PageBackButton } from '@/components/public/navigation';
+import { getLocaleTag } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { toast } from '@/lib/utils/toast';
 import styles from './profile.module.scss';
@@ -162,7 +163,7 @@ export default function ProfileClient() {
                   {avatarUrl ? (
                     <Image
                       src={avatarUrl}
-                      alt="User Avatar"
+                      alt={t('a11y.userAvatar')}
                       width={110}
                       height={110}
                       className={styles.avatarImage}
@@ -237,7 +238,7 @@ export default function ProfileClient() {
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
                     maxLength={30}
-                    placeholder="john_doe"
+                    placeholder={t('profile.nicknamePlaceholder')}
                     aria-describedby="profile-nickname-hint"
                   />
                 </div>
@@ -305,7 +306,10 @@ export default function ProfileClient() {
                         <MessageSquare size={12} />
                         <span>
                           {t('profile.repliedTo')} @
-                          {activity.parent.user.nickname || activity.parent.user.name || 'User'}:
+                          {activity.parent.user.nickname ||
+                            activity.parent.user.name ||
+                            t('common.anonymousUser')}
+                          :
                         </span>
                         <p className={styles.parentText}>&ldquo;{activity.parent.text}&rdquo;</p>
                       </div>
@@ -313,10 +317,11 @@ export default function ProfileClient() {
 
                     <p className={styles.activityText}>{activity.text}</p>
                     <span className={styles.activityDate}>
-                      {new Date(activity.createdAt).toLocaleDateString(
-                        lang === 'ru' ? 'ru-RU' : 'en-US',
-                        { year: 'numeric', month: 'short', day: 'numeric' }
-                      )}
+                      {new Date(activity.createdAt).toLocaleDateString(getLocaleTag(lang), {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
                     </span>
 
                     {/* Replies count */}
@@ -329,7 +334,10 @@ export default function ProfileClient() {
                           {activity.replies.map((reply) => (
                             <div key={reply.id} className={styles.replyItem}>
                               <span className={styles.replyAuthor}>
-                                @{reply.user.nickname || reply.user.name || 'User'}
+                                @
+                                {reply.user.nickname ||
+                                  reply.user.name ||
+                                  t('common.anonymousUser')}
                               </span>
                               <p className={styles.replyText}>{reply.text}</p>
                             </div>

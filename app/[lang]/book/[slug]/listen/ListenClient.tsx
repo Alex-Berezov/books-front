@@ -265,7 +265,7 @@ export default function ListenClient({ params }: Props) {
                 type="button"
                 onClick={() => setShowChapters(false)}
                 className={styles.drawerClose}
-                aria-label={t('a11y.close') || 'Close'}
+                aria-label={t('a11y.close')}
               >
                 <X size={18} />
               </button>

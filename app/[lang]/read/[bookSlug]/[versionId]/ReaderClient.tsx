@@ -309,10 +309,7 @@ export default function ReaderClient({ params }: Props) {
 
       {/* Footer Controls */}
       <footer className={styles.footer}>
-        <nav
-          aria-label={t('a11y.footerNavigation') || 'Reader chapter navigation'}
-          style={{ display: 'contents' }}
-        >
+        <nav aria-label={t('a11y.footerNavigation')} style={{ display: 'contents' }}>
           <Button
             variant="ghost"
             onClick={goToPrevChapter}

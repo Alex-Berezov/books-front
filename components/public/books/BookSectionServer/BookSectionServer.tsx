@@ -1,5 +1,7 @@
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { getDictionary } from '@/lib/i18n/dictionaries';
+import { isSupportedLang } from '@/lib/i18n/lang';
 import type { BookCardModel } from '@/types/api-schema';
 import { BookCardServer } from '../BookCardServer/BookCardServer';
 import styles from '../BookSection.module.scss';
@@ -34,6 +36,8 @@ export function BookSectionServer({
   size = 'md',
   priorityCount = 0,
 }: BookSectionServerProps) {
+  const dict = getDictionary(isSupportedLang(lang) ? lang : 'en');
+
   return (
     <section className={styles.section}>
       <div className={styles.header}>
@@ -61,7 +65,7 @@ export function BookSectionServer({
             />
           ))
         ) : (
-          <div className={styles.empty}>No books found</div>
+          <div className={styles.empty}>{dict.catalog.noBooksFound}</div>
         )}
       </div>
     </section>

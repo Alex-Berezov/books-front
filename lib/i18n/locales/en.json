@@ -1,6 +1,18 @@
 {
   "common": {
-    "back": "Back"
+    "back": "Back",
+    "siteTitle": "Bibliaris — Multilingual Audiobook Platform",
+    "siteDescription": "Discover and enjoy audiobooks in multiple languages",
+    "loading": "Loading...",
+    "previous": "Previous",
+    "next": "Next",
+    "retry": "Try again",
+    "serverError": "Server error. Please try again later.",
+    "lastUpdated": "Last updated: {date}",
+    "faqTitle": "FAQ",
+    "bookSingular": "book",
+    "bookPlural": "books",
+    "anonymousUser": "User"
   },
   "header": {
     "popular": "Popular",
@@ -97,17 +109,28 @@
     "genresLink": "Genres",
     "categoriesLink": "Categories",
     "collectionsLink": "Collections",
-    "tagsLink": "Tags"
+    "tagsLink": "Tags",
+    "mainCategories": "Main Categories",
+    "genreGroups": "Genre Groups",
+    "featuredCollections": "Featured Collections",
+    "noItems": "Nothing available yet.",
+    "categoryMetaFallback": "Category - Bibliaris",
+    "genreMetaFallback": "Genre - Bibliaris",
+    "collectionMetaFallback": "Collection - Bibliaris"
   },
   "genres": {
     "title": "Browse Genres",
     "subtitle": "Discover books across every genre and style",
-    "booksCount": "books"
+    "booksCount": "books",
+    "metaTitle": "Book Genres | Bibliaris",
+    "metaDescription": "Browse literary genres on Bibliaris. Discover drama, gothic fiction, mystery, romance, adventure, satire, fantasy, horror, and more."
   },
   "categories": {
     "title": "Browse Categories",
     "subtitle": "Explore book categories on Bibliaris",
-    "booksCount": "books"
+    "booksCount": "books",
+    "metaTitle": "Book Categories | Bibliaris",
+    "metaDescription": "Browse book categories on Bibliaris. Discover classic literature, fiction, history, science, education, and more."
   },
   "tags": {
     "title": "Literary Tags & Book Themes",
@@ -115,7 +138,9 @@
     "booksCount": "books",
     "noTags": "No tags available",
     "allTags": "All Tags",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "metaTitle": "Literary Tags & Book Themes | Bibliaris",
+    "metaDescription": "Browse literary tags and book themes on Bibliaris. Discover books by ideas, characters, settings, moods, genres, periods, and reading interests."
   },
   "tag": {
     "books": "books",
@@ -130,7 +155,10 @@
   },
   "collections": {
     "title": "Collections",
-    "subtitle": "Explore curated collections of classic literature"
+    "subtitle": "Explore curated collections of classic literature",
+    "booksCount": "books",
+    "metaTitle": "Book Collections | Bibliaris",
+    "metaDescription": "Explore curated book collections on Bibliaris, including short reads, free books, school reading, audiobooks, summaries, and themed selections."
   },
   "catalog": {
     "sidebarTitle": "Genres",
@@ -140,7 +168,8 @@
     "popular": "Popular",
     "booksFound": "books found",
     "noBooksFound": "No books found.",
-    "clearFilters": "Clear Filters"
+    "clearFilters": "Clear Filters",
+    "searchPlaceholder": "Search by title or author..."
   },
   "book": {
     "back": "Back",
@@ -180,7 +209,20 @@
     "copyrightStatus": "Copyright Status",
     "alternativeTitles": "Alternative Titles",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "newRelease": "New",
+    "symbols": "Symbols",
+    "mainCharacters": "Main Characters",
+    "quotes": "Quotes",
+    "faqTitle": "Frequently Asked Questions",
+    "summaryNotFound": "Summary not found",
+    "summaryNotFoundText": "We couldn't load the summary for this book version.",
+    "summaryPageSubtitle": "Book Summary",
+    "summaryHeading": "Summary",
+    "keyTakeaways": "Key Takeaways",
+    "analysis": "Analysis",
+    "themesSection": "Themes",
+    "metaFallback": "Book Details - Bibliaris"
   },
   "author": {
     "back": "Back",
@@ -224,8 +266,11 @@
       "readingProgress": "Reading Progress",
       "continue": "Continue Reading",
       "start": "Start Reading",
-      "listen": "Listen"
-    }
+      "listen": "Listen",
+      "chapterAbbr": "Ch.",
+      "durationShort": "{minutes}m {seconds}s"
+    },
+    "signInPrompt": "Sign in to access your personal bookshelf, track your reading progress, and pick up where you left off."
   },
   "reader": {
     "toc": "Table of Contents",
@@ -249,8 +294,12 @@
     "nowPlaying": "Now Playing",
     "chapters": "Chapters",
     "noChapters": "This audiobook has no chapters yet.",
-    "chaptersFail": "Failed to load audio chapters.",
-    "goBack": "Go Back"
+    "chaptersFail": "Failed to load audio chapters. The version may not be published yet.",
+    "goBack": "Go Back",
+    "speed": "Speed",
+    "loadingChapters": "Loading audio chapters…",
+    "audioUnsupported": "Your browser does not support the audio element.",
+    "selectChapter": "Select a chapter to start listening."
   },
   "rightsBlocked": {
     "title": "Not available in your region",
@@ -278,7 +327,11 @@
       "submitBtn": "Sign In",
       "noAccount": "Don't have an account?",
       "createOne": "Create one",
-      "or": "or"
+      "or": "or",
+      "genericError": "Authentication failed",
+      "invalidCredentials": "Invalid email or password",
+      "rateLimit": "Too many requests. Please try again later.",
+      "missingCredentials": "Email and password are required"
     },
     "register": {
       "successTitle": "Account Created!",
@@ -298,7 +351,10 @@
       "confirmMatch": "Passwords do not match",
       "submitBtn": "Create Account",
       "hasAccount": "Already have an account?",
-      "signinLink": "Sign in"
+      "signinLink": "Sign in",
+      "genericError": "Failed to create account",
+      "passwordPlaceholder": "At least 6 characters",
+      "confirmPlaceholder": "Repeat your password"
     }
   },
   "profile": {
@@ -324,7 +380,8 @@
     "invalidNickname": "Nickname must contain only letters, numbers and underscores.",
     "unauthTitle": "Personal Profile",
     "unauthText": "Sign in to manage your profile, customize your unique nickname, and view your reviews.",
-    "signIn": "Sign In"
+    "signIn": "Sign In",
+    "nicknamePlaceholder": "john_doe"
   },
   "reviews": {
     "title": "Reviews & Comments",
@@ -392,6 +449,91 @@
     "volume": "Volume",
     "mute": "Mute",
     "unmute": "Unmute",
-    "audioProgress": "Audio progress"
+    "audioProgress": "Audio progress",
+    "close": "Close",
+    "breadcrumb": "Breadcrumb",
+    "pagination": "Pagination",
+    "ratingOutOfFive": "Rating {rating} out of 5",
+    "starOne": "1 star",
+    "starsCount": "{count} stars",
+    "userAvatar": "User avatar"
+  },
+  "errorPage": {
+    "title": "Something went wrong!",
+    "description": "We apologize for the inconvenience."
+  },
+  "forbidden": {
+    "title": "Access Forbidden",
+    "description": "You don't have permission to access this page.",
+    "adminOnly": "Only administrators and content managers can access the admin panel."
+  },
+  "privacy": {
+    "metaTitle": "Privacy Policy - Bibliaris",
+    "metaDescription": "Read our privacy policy to understand how we collect, use, and protect your data.",
+    "title": "Privacy Policy",
+    "s1": {
+      "title": "1. Information We Collect",
+      "body": "When you use our service, we may collect personal information such as your name, email address, and profile picture, primarily when you register or log in using third-party services like Google or Facebook."
+    },
+    "s2": {
+      "title": "2. How We Use Your Information",
+      "lead": "We use the information we collect to:",
+      "item1": "Provide, maintain, and improve our services;",
+      "item2": "Personalize your reading experience and bookshelf;",
+      "item3": "Authenticate your identity via email/password or OAuth providers;",
+      "item4": "Communicate with you regarding updates, security alerts, and account-related notices."
+    },
+    "s3": {
+      "title": "3. Data Sharing",
+      "body": "We do not sell your personal data. We only share data with third-party authentication providers (Google, Facebook) to facilitate secure sign-in flows."
+    },
+    "s4": {
+      "title": "4. Data Deletion and Retention",
+      "body": "We retain your data for as long as your account is active. You can request deletion of your account and all associated personal data at any time by contacting us at {b}, or by following the Data Deletion Instructions."
+    },
+    "s5": {
+      "title": "5. Contact Us",
+      "body": "If you have any questions about this Privacy Policy, please contact us at {b}."
+    }
+  },
+  "terms": {
+    "metaTitle": "Terms of Service - Bibliaris",
+    "metaDescription": "Read our terms of service to understand the rules and guidelines for using our digital library.",
+    "title": "Terms of Service",
+    "s1": {
+      "title": "1. Agreement to Terms",
+      "body": "By accessing or using Bibliaris, you agree to be bound by these Terms of Service. If you do not agree to all terms, you may not access or use our platform."
+    },
+    "s2": {
+      "title": "2. Accounts and Registration",
+      "body": "To use certain features, you must register for an account. You agree to provide accurate information and keep your credentials secure. You are responsible for all activity on your account."
+    },
+    "s3": {
+      "title": "3. Use of Content",
+      "body": "All books, audiobooks, metadata, images, and other materials on Bibliaris are the intellectual property of Bibliaris or its licensors. You may access this content strictly for personal, non-commercial use."
+    },
+    "s4": {
+      "title": "4. Termination",
+      "body": "We reserve the right to suspend or terminate your account or access to the platform at our sole discretion, without notice, for conduct that we believe violates these Terms or is harmful to other users or our business interests."
+    },
+    "s5": {
+      "title": "5. Contact Us",
+      "body": "For any questions regarding these Terms, please reach out to us at {b}."
+    }
+  },
+  "deletion": {
+    "metaTitle": "Data Deletion Instructions - Bibliaris",
+    "metaDescription": "Instructions on how to request the deletion of your account and personal data associated with Bibliaris.",
+    "title": "Data Deletion Instructions",
+    "intro": "Bibliaris uses Facebook Login for authentication. According to Facebook Platform rules, we provide a way for users to request the deletion of their data associated with our application.",
+    "stepsLead": "If you want to delete your activities and data associated with Bibliaris, you can do so by following these steps:",
+    "step1": "Go to your Facebook Profile's {b}.",
+    "step1Path": "Settings & Privacy > Settings > Apps and Websites",
+    "step2": "Find and select {b}.",
+    "step3": "Click the {b} button.",
+    "step3Action": "Remove",
+    "step4": "Alternatively, you can send an email directly to {b} with your request. We will process your request and delete all your user profile data (email, name, avatar, and customized bookshelf entries) from our database within 24 hours.",
+    "confirmationTitle": "Confirmation of Deletion",
+    "confirmationBody": "Upon receiving and processing your request, we will send a confirmation email to the address associated with your profile confirming that all personal information has been permanently removed from our active databases."
   }
 }

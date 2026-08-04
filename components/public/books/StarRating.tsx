@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Star } from 'lucide-react';
+import { getLocaleTag } from '@/lib/i18n/lang';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './StarRating.module.scss';
 
 interface StarRatingProps {
@@ -24,12 +26,13 @@ export function StarRating({
   disabled = false,
 }: StarRatingProps) {
   const [hoverRating, setHoverRating] = useState<number | null>(null);
+  const { t, lang } = useTranslation();
   const stars = [1, 2, 3, 4, 5];
 
   const displayRating = hoverRating !== null ? hoverRating : rating;
   const roundedRating = Math.round(displayRating);
 
-  const ratingLabel = `Rating ${rating} out of 5`;
+  const ratingLabel = t('a11y.ratingOutOfFive', { rating });
 
   if (interactive) {
     return (
@@ -58,7 +61,7 @@ export function StarRating({
                     className="sr-only"
                   />
                   <span className="sr-only">
-                    {star} {star === 1 ? 'star' : 'stars'}
+                    {star === 1 ? t('a11y.starOne') : t('a11y.starsCount', { count: star })}
                   </span>
                   <Star
                     size={size === 'sm' ? 12 : 16}
@@ -73,7 +76,7 @@ export function StarRating({
           </div>
         </fieldset>
         {showCount && count !== undefined && (
-          <span className={styles.count}>({count.toLocaleString()})</span>
+          <span className={styles.count}>({count.toLocaleString(getLocaleTag(lang))})</span>
         )}
       </div>
     );

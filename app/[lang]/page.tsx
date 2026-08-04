@@ -243,7 +243,7 @@ export default async function PublicLangPage({ params }: Props) {
         viewMore: t('home.viewMore'),
         readLabel: t('book.read'),
         listenLabel: t('book.listen'),
-        newLabel: 'New',
+        newLabel: t('book.newRelease'),
         coverAltTemplate: t('a11y.bookCover'),
         unknownAuthor: t('book.unknownAuthor'),
       }}

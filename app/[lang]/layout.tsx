@@ -6,7 +6,7 @@ import { LayoutChrome } from '@/components/public/layout/LayoutChrome';
 import { InternalNavigationTracker } from '@/components/public/navigation/InternalNavigationTracker';
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
-import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
+import { getDefaultLang, isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import type { BookCardsResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import styles from '@/styles/layouts.module.scss';
@@ -20,13 +20,16 @@ export const dynamicParams = true;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params;
+  const dict = getDictionary(isSupportedLang(lang) ? lang : getDefaultLang());
+  const title = dict.common.siteTitle;
+  const description = dict.common.siteDescription;
 
   return {
-    title: 'Bibliaris - Multilingual Audiobook Platform',
-    description: 'Discover and enjoy audiobooks in multiple languages',
+    title,
+    description,
     openGraph: {
-      title: 'Bibliaris - Multilingual Audiobook Platform',
-      description: 'Discover and enjoy audiobooks in multiple languages',
+      title,
+      description,
       locale: lang,
       type: 'website',
     },

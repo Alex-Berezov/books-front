@@ -1,6 +1,7 @@
 import { BookOpen, Headphones } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { isSupportedLang } from '@/lib/i18n/lang';
 import type { BookCardModel } from '@/types/api-schema';
 import styles from '../BookCard.module.scss';
 import { StarRatingServer } from '../StarRatingServer';
@@ -101,7 +102,13 @@ export function BookCardServer({
           <span className={`${styles.author} ${textClass}`}>{author}</span>
         ) : null}
 
-        {rating !== null && <StarRatingServer rating={rating} size="sm" />}
+        {rating !== null && (
+          <StarRatingServer
+            rating={rating}
+            size="sm"
+            lang={isSupportedLang(lang) ? lang : undefined}
+          />
+        )}
 
         <div className={styles.actions}>
           {hasText && (

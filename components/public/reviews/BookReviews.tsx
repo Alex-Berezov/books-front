@@ -15,6 +15,7 @@ import {
 } from '@/api/hooks/useBookComments';
 import { bookKeys } from '@/api/hooks/useBooks';
 import { StarRating } from '@/components/public/books/StarRating';
+import { getLocaleTag } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { queryKeys } from '@/lib/queryClient';
 import { toast } from '@/lib/utils/toast';
@@ -378,16 +379,13 @@ function ReviewItem({
     }
   };
 
-  const formattedDate = new Date(comment.createdAt).toLocaleDateString(
-    lang === 'ru' ? 'ru-RU' : 'en-US',
-    {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }
-  );
+  const formattedDate = new Date(comment.createdAt).toLocaleDateString(getLocaleTag(lang), {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
-  const displayName = comment.user?.nickname || comment.user?.name || 'User';
+  const displayName = comment.user?.nickname || comment.user?.name || t('common.anonymousUser');
   const initialLetter = displayName.charAt(0).toUpperCase();
 
   return (

@@ -20,6 +20,8 @@ import { SnackbarProvider } from 'notistack';
 import { ToastConfigurator } from '@/components/common/ToastConfigurator';
 import { SESSION_SETTINGS } from '@/lib/auth/constants';
 import { setSession } from '@/lib/http-client/auth';
+import { getDictionary } from '@/lib/i18n/dictionaries';
+import { getLangFromPath } from '@/lib/i18n/lang';
 import { QUERY_CACHE_TIME } from '@/lib/queryClient.constants';
 import { toast } from '@/lib/utils/toast';
 import { ApiError } from '@/types/api';
@@ -29,6 +31,13 @@ interface AppProvidersProps {
   children: ReactNode;
   session?: Session | null;
 }
+
+const getServerErrorMessage = (): string => {
+  const pathname = typeof window === 'undefined' ? '' : window.location.pathname;
+  const dict = getDictionary(getLangFromPath(pathname));
+
+  return dict.common.serverError;
+};
 
 /**
  * AppProviders component
@@ -86,7 +95,8 @@ export const AppProviders = (props: AppProvidersProps) => {
             // Global error handling for queries
             // Only show toast for server errors (5xx)
             if (error instanceof ApiError && error.statusCode >= 500) {
-              toast.error(`Server Error: ${error.message}`);
+              console.error('Server error:', error.message);
+              toast.error(getServerErrorMessage());
             }
           },
         }),
@@ -95,7 +105,8 @@ export const AppProviders = (props: AppProvidersProps) => {
             // Global error handling for mutations
             // Show toast for server errors (5xx)
             if (error instanceof ApiError && error.statusCode >= 500) {
-              toast.error(`Server Error: ${error.message}`);
+              console.error('Server error:', error.message);
+              toast.error(getServerErrorMessage());
             }
           },
         }),

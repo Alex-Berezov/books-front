@@ -3,6 +3,7 @@
 import { Fragment } from 'react';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './Breadcrumbs.module.scss';
 
 export interface BreadcrumbItem {
@@ -16,6 +17,8 @@ interface BreadcrumbsProps {
 }
 
 export function Breadcrumbs({ items, emitJsonLd = true }: BreadcrumbsProps) {
+  const { t } = useTranslation();
+
   if (items.length === 0) return null;
 
   const jsonLd = emitJsonLd
@@ -39,7 +42,7 @@ export function Breadcrumbs({ items, emitJsonLd = true }: BreadcrumbsProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <nav aria-label="Breadcrumb" className={styles.breadcrumbs}>
+      <nav aria-label={t('a11y.breadcrumb')} className={styles.breadcrumbs}>
         <ol className={styles.list}>
           {items.map((item, index) => {
             const isLast = index === items.length - 1;
