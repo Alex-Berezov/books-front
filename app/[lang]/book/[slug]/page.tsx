@@ -54,7 +54,7 @@ const BookActions = dynamic(() => import('./BookActions'), {
   loading: () => (
     <div
       style={{
-        height: '56px',
+        height: '48px',
         backgroundColor: 'var(--skeleton-bg)',
         borderRadius: '6px',
         width: '200px',
@@ -289,16 +289,6 @@ export default async function BookDetailPage({ params }: Props) {
 
             <BookRating bookId={book.id} slug={slug} lang={supportedLang} />
 
-            <BookActions
-              slug={slug}
-              lang={supportedLang}
-              bookId={book.id}
-              versionId={versionId}
-              textVersion={textVersion}
-              audioVersion={audioVersion}
-              hasSummary={hasSummary}
-            />
-
             <div className={styles.tagsContainer}>
               {book.categories?.map((cat) => {
                 const trans =
@@ -317,6 +307,16 @@ export default async function BookDetailPage({ params }: Props) {
                 );
               })}
             </div>
+
+            <BookActions
+              slug={slug}
+              lang={supportedLang}
+              bookId={book.id}
+              versionId={versionId}
+              textVersion={textVersion}
+              audioVersion={audioVersion}
+              hasSummary={hasSummary}
+            />
 
             {book.tags && book.tags.length > 0 && (
               <div className={styles.bookTagsContainer}>

@@ -100,11 +100,11 @@ export default function BookActions({
 
   const bookshelfIcon = (() => {
     if (isPending) return <span className={styles.spinner} aria-hidden="true" />;
-    if (showRemoveHint) return <BookmarkX size={20} aria-hidden="true" />;
+    if (showRemoveHint) return <BookmarkX size={18} aria-hidden="true" />;
     return inBookshelf ? (
-      <Check size={20} aria-hidden="true" />
+      <Check size={18} aria-hidden="true" />
     ) : (
-      <Bookmark size={20} aria-hidden="true" />
+      <Bookmark size={18} aria-hidden="true" />
     );
   })();
 
@@ -115,7 +115,7 @@ export default function BookActions({
           href={`/${lang}/book/${slug}/read`}
           className={`${styles.ctaBase} ${styles.ctaPrimary}`}
         >
-          <BookOpen size={20} aria-hidden="true" />
+          <BookOpen size={18} aria-hidden="true" />
           {textVersion.isFree ? t('book.readFree') : t('book.read')}
         </Link>
       )}
@@ -125,7 +125,7 @@ export default function BookActions({
           href={`/${lang}/book/${slug}/listen`}
           className={`${styles.ctaBase} ${styles.ctaSecondary}`}
         >
-          <Headphones size={20} aria-hidden="true" />
+          <Headphones size={18} aria-hidden="true" />
           {t('book.listen')}
         </Link>
       )}
@@ -135,7 +135,7 @@ export default function BookActions({
           href={`/${lang}/book/${slug}#summary`}
           className={`${styles.ctaBase} ${styles.ctaTertiary}`}
         >
-          <FileText size={20} aria-hidden="true" />
+          <FileText size={18} aria-hidden="true" />
           {t('book.summary')}
         </Link>
       )}

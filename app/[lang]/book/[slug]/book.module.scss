@@ -221,7 +221,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: $spacing-md - 0.25rem;
+  gap: $spacing-md;
   padding: $spacing-sm 0;
 
   @media (max-width: 639px) {
@@ -234,8 +234,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  height: 52px;
+  gap: 8px;
+  padding: 8px 20px;
   border-radius: 8px;
   font-family: inherit;
   font-size: 16px;
@@ -256,8 +256,6 @@
 
 // 1. Read — the single gold-filled action on the page.
 .ctaPrimary {
-  height: 56px;
-  padding: 0 28px;
   font-weight: 500;
   color: var(--brand-ink);
   background-color: var(--brand-gold);
@@ -280,7 +278,6 @@
 
 // 2. Listen — secondary, header green.
 .ctaSecondary {
-  padding: 0 24px;
   font-weight: 500;
   color: var(--brand-paper);
   background-color: var(--brand-ink);
@@ -298,7 +295,6 @@
 
 // 3. Tertiary — outlined (Summary, Bookshelf in the unsaved state).
 .ctaTertiary {
-  padding: 0 20px;
   font-weight: 400;
   color: var(--brand-ink-hover);
   background-color: transparent;
