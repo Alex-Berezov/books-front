@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Footer } from '@/components/public/layout/Footer';
 import { Header } from '@/components/public/layout/Header';
+import { LayoutChrome } from '@/components/public/layout/LayoutChrome';
 import { InternalNavigationTracker } from '@/components/public/navigation/InternalNavigationTracker';
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
@@ -55,14 +56,18 @@ export default async function PublicLayout({ children, params }: Props) {
       <a href="#main-content" className="skip-link">
         {skipText}
       </a>
-      <Header />
+      <LayoutChrome>
+        <Header />
+      </LayoutChrome>
       <Suspense fallback={null}>
         <InternalNavigationTracker />
       </Suspense>
       <main id="main-content" className={styles.publicMain}>
         {children}
       </main>
-      <Footer hasAudiobooks={hasAudiobooks} />
+      <LayoutChrome>
+        <Footer hasAudiobooks={hasAudiobooks} />
+      </LayoutChrome>
     </div>
   );
 }

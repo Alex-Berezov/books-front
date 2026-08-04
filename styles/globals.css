@@ -101,6 +101,12 @@ a {
   top: 16px;
 }
 
+/* Immersive mode (reader): the page itself never scrolls, only the content area inside it */
+body[data-immersive='true'] {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 /* Reduced Motion Preferences */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -53,6 +53,18 @@ export default function ReaderClient({ params }: Props) {
   const chapters = useMemo(() => bootstrapData?.chapters || [], [bootstrapData]);
   const versionId = bootstrapData?.versionId || '';
 
+  // The reader owns the viewport: the public chrome is hidden (LayoutChrome) and the page
+  // scroll is locked so only the chapter text scrolls — no second scrollbar hiding the bars.
+  const isImmersive = !isRightsBlockedError(error);
+
+  useEffect(() => {
+    if (!isImmersive) return;
+    document.body.dataset.immersive = 'true';
+    return () => {
+      delete document.body.dataset.immersive;
+    };
+  }, [isImmersive]);
+
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
   const [fontSize, setFontSize] = useState<FontSize>('md');
