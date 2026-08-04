@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTags } from '@/api/hooks/useTags';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { buildLangUrl } from '@/lib/seo/urls';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Tag } from '@/types/api-schema';
 import styles from './page.module.scss';
@@ -46,13 +47,13 @@ export default function TagsClient({ lang }: TagsClientProps) {
             '@type': 'ListItem',
             position: 1,
             name: t('book.home'),
-            item: `https://bibliaris.com/${supportedLang}`,
+            item: buildLangUrl(supportedLang),
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: t('tags.allTags'),
-            item: `https://bibliaris.com/${supportedLang}/tags`,
+            item: buildLangUrl(supportedLang, '/tags'),
           },
         ],
       },
@@ -60,7 +61,7 @@ export default function TagsClient({ lang }: TagsClientProps) {
         '@type': 'CollectionPage',
         name: t('tags.title'),
         description: t('tags.subtitle'),
-        url: `https://bibliaris.com/${supportedLang}/tags`,
+        url: buildLangUrl(supportedLang, '/tags'),
         numberOfItems: tagsWithBooks.length,
       },
     ],

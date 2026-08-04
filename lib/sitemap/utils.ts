@@ -1,3 +1,5 @@
+import { buildPublicUrl, getSiteUrl } from '@/lib/seo/urls';
+
 export function escapeXml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -8,11 +10,11 @@ export function escapeXml(value: string): string {
 }
 
 export function getBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || 'https://bibliaris.com').replace(/\/$/, '');
+  return getSiteUrl();
 }
 
 export function buildUrl(path: string): string {
-  return `${getBaseUrl()}${path}`;
+  return buildPublicUrl(path);
 }
 
 const BOOKS_SITEMAP_PAGE_SIZE = 1000;

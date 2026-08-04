@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/check-site-url.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -15,6 +16,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "validate": "./scripts/validate-work.sh",
     "check:env": "node scripts/check-env.mjs",
+    "check:site-url": "node scripts/check-site-url.mjs",
     "check:langs": "node scripts/check-langs-sync.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

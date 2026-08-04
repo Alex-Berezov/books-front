@@ -3,6 +3,7 @@ import { TagDetailPage } from '@/components/public/taxonomy/TagDetailPage/TagDet
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
+import { buildLangUrl, toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import { buildItemListJsonLd, getSiteUrl, schemaContainsType } from '@/lib/utils/json-ld';
 import { shouldNoindexPaginatedPage } from '@/lib/utils/seo-indexing';
 import type { SeoResolveResponse, TagBookCardsResponse } from '@/types/api-schema';
@@ -50,17 +51,13 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const currentPage = Math.max(1, Number(sParams.page) || 1);
     const outOfRange = shouldNoindexPaginatedPage(currentPage, totalItems, TAXONOMY_PAGE_SIZE);
 
-    const alternatesLanguages: Record<string, string> = {};
-    (seo.hreflangs || seo.hreflang)?.forEach((item) => {
-      if (item.hreflang) {
-        alternatesLanguages[item.hreflang] = item.href;
-      }
-    });
+    const alternatesLanguages = toPublicAlternates(seo.hreflangs || seo.hreflang);
 
-    const canonicalUrl = seo.meta.canonicalUrl
+    const publicCanonical = toPublicUrl(seo.meta.canonicalUrl);
+    const canonicalUrl = publicCanonical
       ? currentPage > 1
-        ? `${seo.meta.canonicalUrl}?page=${currentPage}`
-        : seo.meta.canonicalUrl
+        ? `${publicCanonical}?page=${currentPage}`
+        : publicCanonical
       : undefined;
 
     return {
@@ -76,7 +73,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         title: seo.openGraph.title,
         description: seo.openGraph.description || undefined,
         type: 'website',
-        url: seo.openGraph.url,
+        url: toPublicUrl(seo.openGraph.url),
         images: seo.openGraph.image
           ? [
               {
@@ -143,7 +140,10 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
     data = null;
   }
 
-  if (!data) {
+  // `tag: null` is the API's "no such term" answer. It must be a hard 404, not a
+  // 200 with an empty list — a soft 404 keeps a non-existent URL alive in the
+  // index. An existing term with zero books stays 200 + noindex.
+  if (!data || !data.tag) {
     notFound();
   }
 
@@ -202,19 +202,19 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
         '@type': 'ListItem',
         position: 1,
         name: translations.breadcrumbHome,
-        item: `https://bibliaris.com/${supportedLang}`,
+        item: buildLangUrl(supportedLang),
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: translations.allTags,
-        item: `https://bibliaris.com/${supportedLang}/tags`,
+        item: buildLangUrl(supportedLang, '/tags'),
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: tagSlug,
-        item: `https://bibliaris.com/${supportedLang}/tag/${tagSlug}`,
+        item: buildLangUrl(supportedLang, `/tag/${tagSlug}`),
       },
     ],
   };
@@ -222,11 +222,11 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
   const collectionPageSchema = {
     '@type': 'CollectionPage',
     name: tagSlug,
-    url: `https://bibliaris.com/${supportedLang}/tag/${tagSlug}`,
+    url: buildLangUrl(supportedLang, `/tag/${tagSlug}`),
     numberOfItems: total,
   };
 
-  const backendGraph = seoData?.schema as Record<string, unknown> | undefined;
+  const backendGraph = toPublicJsonLd(seoData?.schema) as Record<string, unknown> | undefined;
   const backendGraphItems =
     backendGraph && Array.isArray(backendGraph['@graph'])
       ? (backendGraph['@graph'] as Record<string, unknown>[])

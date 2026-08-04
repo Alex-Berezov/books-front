@@ -3,6 +3,7 @@ import { TaxonomyDetailPage } from '@/components/public/taxonomy/TaxonomyDetailP
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
+import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { shouldNoindexPaginatedPage } from '@/lib/utils/seo-indexing';
 import type {
@@ -56,17 +57,13 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const currentPage = Math.max(1, Number(sParams.page) || 1);
     const outOfRange = shouldNoindexPaginatedPage(currentPage, totalItems, TAXONOMY_PAGE_SIZE);
 
-    const alternatesLanguages: Record<string, string> = {};
-    (seo.hreflangs || seo.hreflang)?.forEach((item) => {
-      if (item.hreflang) {
-        alternatesLanguages[item.hreflang] = item.href;
-      }
-    });
+    const alternatesLanguages = toPublicAlternates(seo.hreflangs || seo.hreflang);
 
-    const canonicalUrl = seo.meta.canonicalUrl
+    const publicCanonical = toPublicUrl(seo.meta.canonicalUrl);
+    const canonicalUrl = publicCanonical
       ? currentPage > 1
-        ? `${seo.meta.canonicalUrl}?page=${currentPage}`
-        : seo.meta.canonicalUrl
+        ? `${publicCanonical}?page=${currentPage}`
+        : publicCanonical
       : undefined;
 
     return {
@@ -82,7 +79,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         title: seo.openGraph.title,
         description: seo.openGraph.description || undefined,
         type: 'website',
-        url: seo.openGraph.url,
+        url: toPublicUrl(seo.openGraph.url),
         images: seo.openGraph.image
           ? [
               {
@@ -191,6 +188,13 @@ export default async function GenreDetailPage({ params, searchParams }: Props) {
     notFound();
   }
 
+  // `category: null` is the API's "no such term" answer. It must be a hard 404,
+  // not a 200 with an empty list — a soft 404 keeps a non-existent URL alive in
+  // the index. An existing term with zero books stays 200 + noindex.
+  if (data && !data.category) {
+    notFound();
+  }
+
   const dict = getDictionary(supportedLang);
   const t = (key: string) => {
     const keys = key.split('.');
@@ -246,7 +250,7 @@ export default async function GenreDetailPage({ params, searchParams }: Props) {
       {seoData?.schema && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(seoData.schema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(toPublicJsonLd(seoData.schema)) }}
         />
       )}
       {itemListJsonLd && (

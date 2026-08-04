@@ -23,6 +23,21 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
   const sitemapItems: SitemapItem[] = [];
 
+  /**
+   * A taxonomy page belongs in the sitemap only while it is indexable.
+   * `autoIndexable` is the stored hysteresis state (close <=2 books, open >=5)
+   * that also drives the robots meta tag — the two must never disagree.
+   * Older backends that do not send the field fall back to "has any books".
+   */
+  const isTaxonomyIndexable = (
+    translation: CategoryTranslation | TagTranslation | undefined,
+    booksCount: number | undefined
+  ) => {
+    if (!translation) return false;
+    if (translation.autoIndexable !== undefined) return translation.autoIndexable;
+    return (booksCount ?? 0) > 0;
+  };
+
   const getAlternates = (languages: readonly string[], pathBuilder: (lang: string) => string) => {
     const alternates: Record<string, string> = {};
     languages.forEach((lang) => {
@@ -158,13 +173,11 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       categories.forEach((cat) => {
-        // Skip genres without books
-        if (!cat.booksCount || cat.booksCount === 0) return;
-
         const currentTranslation = cat.translations?.find(
           (t: CategoryTranslation) => t.language === lang && t.slug
         );
         if (!currentTranslation?.slug) return;
+        if (!isTaxonomyIndexable(currentTranslation, cat.booksCount)) return;
 
         const url = `${cleanBaseUrl}/${lang}/genre/${currentTranslation.slug}`;
 
@@ -210,12 +223,11 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       categories.forEach((cat) => {
-        if (!cat.booksCount || cat.booksCount === 0) return;
-
         const currentTranslation = cat.translations?.find(
           (t: CategoryTranslation) => t.language === lang && t.slug
         );
         if (!currentTranslation?.slug) return;
+        if (!isTaxonomyIndexable(currentTranslation, cat.booksCount)) return;
 
         const url = `${cleanBaseUrl}/${lang}/category/${currentTranslation.slug}`;
 
@@ -258,13 +270,11 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       categories.forEach((cat) => {
-        // Skip collections without books
-        if (!cat.booksCount || cat.booksCount === 0) return;
-
         const currentTranslation = cat.translations?.find(
           (t: CategoryTranslation) => t.language === lang && t.slug
         );
         if (!currentTranslation?.slug) return;
+        if (!isTaxonomyIndexable(currentTranslation, cat.booksCount)) return;
 
         const url = `${cleanBaseUrl}/${lang}/collection/${currentTranslation.slug}`;
 
@@ -365,13 +375,11 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       tags.forEach((tag) => {
-        // Skip tags without books
-        if (!tag.booksCount || tag.booksCount === 0) return;
-
         const currentTranslation = tag.translations?.find(
           (t: TagTranslation) => t.language === lang && t.slug
         );
         if (!currentTranslation?.slug) return;
+        if (!isTaxonomyIndexable(currentTranslation, tag.booksCount)) return;
 
         const url = `${cleanBaseUrl}/${lang}/tag/${currentTranslation.slug}`;
 

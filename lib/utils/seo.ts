@@ -1,4 +1,4 @@
-import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { buildAlternateLanguages, buildLangUrl } from '@/lib/seo/urls';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 
@@ -23,20 +23,11 @@ export function getPageMetadata(
   description: string,
   page?: number
 ): Metadata {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bibliaris.com';
-  const cleanBase = baseUrl.replace(/\/$/, '');
-
   const formattedRoutePath = routePath.startsWith('/') ? routePath : `/${routePath}`;
   const path = formattedRoutePath === '/' ? '' : formattedRoutePath;
 
-  const pathWithPage = page && page > 1 ? `${path}?page=${page}` : path;
-  const canonicalUrl = `${cleanBase}/${lang}${pathWithPage}`;
-
-  const alternatesLanguages: Record<string, string> = {};
-  SUPPORTED_LANGS.forEach((l) => {
-    alternatesLanguages[l] = `${cleanBase}/${l}${pathWithPage}`;
-  });
-  alternatesLanguages['x-default'] = `${cleanBase}/en${pathWithPage}`;
+  const canonicalUrl = buildLangUrl(lang, path, page);
+  const alternatesLanguages = buildAlternateLanguages(path, page);
 
   return {
     title,

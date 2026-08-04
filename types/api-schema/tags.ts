@@ -60,8 +60,12 @@ export interface TagTranslation {
   canonicalUrl?: string;
   /** Robots directive (index, follow / noindex, follow) */
   robots?: string;
-  /** Whether this tag should be indexed by search engines */
+  /** Whether this tag should be indexed by search engines (editorial switch) */
   indexable?: boolean;
+  /** Published books attached to this term in this language (cached by the backend) */
+  bookCount?: number;
+  /** Automatic indexability derived from bookCount with hysteresis (close <=2, open >=5) */
+  autoIndexable?: boolean;
   /** FAQ items as JSON array */
   faq?: Array<{ question: string; answer: string }>;
   /** Related tag slugs */

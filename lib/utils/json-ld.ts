@@ -1,3 +1,5 @@
+import { getSiteUrl } from '@/lib/seo/urls';
+
 function schemaContainsType(schema: unknown, type: string): boolean {
   if (!schema || typeof schema !== 'object') return false;
   const matchesType = (value: unknown): boolean => {
@@ -11,10 +13,6 @@ function schemaContainsType(schema: unknown, type: string): boolean {
     return (s['@graph'] as Record<string, unknown>[]).some((item) => matchesType(item['@type']));
   }
   return false;
-}
-
-function getSiteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || 'https://bibliaris.com').replace(/\/$/, '');
 }
 
 function buildBreadcrumbJsonLd(

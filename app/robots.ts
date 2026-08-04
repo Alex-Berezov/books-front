@@ -1,8 +1,7 @@
+import { buildPublicUrl } from '@/lib/seo/urls';
 import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bibliaris.com';
-
   return {
     rules: {
       userAgent: '*',
@@ -43,6 +42,6 @@ export default function robots(): MetadataRoute.Robots {
         '/api/*',
       ],
     },
-    sitemap: `${baseUrl.replace(/\/$/, '')}/sitemap.xml`,
+    sitemap: buildPublicUrl('/sitemap.xml'),
   };
 }

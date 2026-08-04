@@ -114,6 +114,10 @@ export interface CategoryTranslation {
   ogImageAlt?: string;
   /** FAQ items */
   faq?: Array<{ question: string; answer: string }>;
+  /** Published books attached to this term in this language (cached by the backend) */
+  bookCount?: number;
+  /** Automatic indexability derived from bookCount with hysteresis (close <=2, open >=5) */
+  autoIndexable?: boolean;
   /** SEO metadata for the localized category page */
   seoId?: number | null;
   seo?: SeoData | null;

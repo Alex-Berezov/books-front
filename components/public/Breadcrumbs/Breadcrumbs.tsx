@@ -4,6 +4,7 @@ import { Fragment } from 'react';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { buildPublicUrl } from '@/lib/seo/urls';
 import styles from './Breadcrumbs.module.scss';
 
 export interface BreadcrumbItem {
@@ -29,7 +30,7 @@ export function Breadcrumbs({ items, emitJsonLd = true }: BreadcrumbsProps) {
           '@type': 'ListItem',
           position: index + 1,
           name: item.label,
-          ...(item.href ? { item: `https://bibliaris.com${item.href}` } : {}),
+          ...(item.href ? { item: buildPublicUrl(item.href) } : {}),
         })),
       }
     : null;

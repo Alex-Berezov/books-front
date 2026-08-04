@@ -8,6 +8,7 @@ import { StarRating } from '@/components/public/books/StarRating';
 import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getDefaultLang } from '@/lib/i18n/lang';
+import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import styles from './book.module.scss';
@@ -79,26 +80,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
     const seo = await getCachedBookSeo(supportedLang, slug);
-    const alternatesLanguages: Record<string, string> = {};
-    (seo.hreflangs || seo.hreflang)?.forEach((item) => {
-      if (item.hreflang) {
-        alternatesLanguages[item.hreflang] = item.href;
-      }
-    });
+    const alternatesLanguages = toPublicAlternates(seo.hreflangs || seo.hreflang);
 
     return {
       title: seo.meta.title,
       description: seo.meta.description || undefined,
       robots: seo.meta.robots || undefined,
       alternates: {
-        canonical: seo.meta.canonicalUrl || undefined,
+        canonical: toPublicUrl(seo.meta.canonicalUrl),
         languages: alternatesLanguages,
       },
       openGraph: {
         title: seo.openGraph.title,
         description: seo.openGraph.description || undefined,
         type: 'book',
-        url: seo.openGraph.url,
+        url: toPublicUrl(seo.openGraph.url),
         images: seo.openGraph.image
           ? [{ url: seo.openGraph.image.url, alt: seo.openGraph.image.alt }]
           : undefined,
@@ -196,7 +192,7 @@ export default async function BookDetailPage({ params }: Props) {
         {seoData?.schema && (
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(seoData.schema) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(toPublicJsonLd(seoData.schema)) }}
           />
         )}
 
