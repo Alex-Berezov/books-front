@@ -21,6 +21,10 @@ Documentation repo: `D:\newDev\books-app-docs`. Read it directly with Read/Grep/
 Start with `ai-context/README.md` (index) and `ai-context/agent-rules.md` (mandatory agent rules).
 The full task → document map is in `CLAUDE.md`. **Do not read `ai-context/` wholesale** — it burns context.
 
+**Читать документы больше ~10 КБ только секциями:** `grep -nE "^## " <файл>` → выбрать заголовок → `Read` с `offset`/`limit`. Целиком — `endpoints.md` (167 КБ), `changelog.md`, `legacy-warnings.md`, `database-schema.md`, `rights-clearance.md`, `api-contracts.md`, `content-model.md`, `frontend.md`, файлы в `tasks/` — **не читать**. Протокол и таблица размеров: `ai-context/agent-rules.md` §«Как читать документацию».
+
+**Структуру кода в документации не искать** — состав папок, список компонентов и место символа даёт `ast-index` (см. `.claude/rules/ast-index.md`).
+
 | Need                                    | Document                               |
 | --------------------------------------- | -------------------------------------- |
 | Component catalog + what NOT to rebuild | `ai-context/ui-kit.md`                 |
