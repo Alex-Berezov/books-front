@@ -1,6 +1,7 @@
 import { SlidersHorizontal, Filter, Search } from 'lucide-react';
 import Link from 'next/link';
 import { BookCard } from '@/components/public/books/BookCard';
+import { PageBackButton } from '@/components/public/navigation';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import type { CategoryListItem } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -77,6 +78,8 @@ export function CatalogContent({
   return (
     <div className={styles.catalogPage}>
       <div className={styles.container}>
+        <PageBackButton lang={lang} />
+
         <div className={styles.layout}>
           <aside className={styles.sidebar}>
             <div className={styles.stickySidebar}>

@@ -16,6 +16,7 @@ import { useSession } from 'next-auth/react';
 import { useBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
 import { useProgress } from '@/api/hooks/useProgress';
 import { Button } from '@/components/common/Button';
+import { PageBackButton } from '@/components/public/navigation';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { BookshelfItemDto } from '@/api/endpoints/bookshelf';
 import styles from './bookshelf.module.scss';
@@ -247,6 +248,9 @@ export default function BookshelfClient() {
   if (status === 'unauthenticated' || !session) {
     return (
       <div className={styles.pageContainer}>
+        <div className={styles.container}>
+          <PageBackButton lang={lang} />
+        </div>
         <div className={styles.unauthContainer}>
           <BookFilled className={styles.unauthIcon} />
           <h1 className={styles.unauthTitle}>{t('bookshelf.title')}</h1>
@@ -333,6 +337,8 @@ export default function BookshelfClient() {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.container}>
+        <PageBackButton lang={lang} />
+
         <div className={styles.header}>
           <div>
             <h1 className={styles.headerTitle}>{t('bookshelf.title')}</h1>

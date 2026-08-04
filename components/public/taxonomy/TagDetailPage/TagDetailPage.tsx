@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
+import { PageBackButton } from '@/components/public/navigation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Tag, TagBookCardsResponse, TagTranslation } from '@/types/api-schema';
 import { TagDetailInteractions } from './TagDetailInteractions';
@@ -87,6 +88,8 @@ export function TagDetailPage({
 
           <div className={styles.main}>
             <Breadcrumbs items={breadcrumbItems} emitJsonLd={false} />
+
+            <PageBackButton lang={lang} />
 
             <header className={styles.hero}>
               <h1 className={styles.title}>{tagName}</h1>

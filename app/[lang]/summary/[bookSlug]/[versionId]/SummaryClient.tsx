@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useBookSummary } from '@/api/hooks/useBookSummary';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
+import { useSmartBack } from '@/components/public/navigation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './summary.module.scss';
 
@@ -18,6 +19,7 @@ export default function SummaryClient({ params }: Props) {
   const { lang, bookSlug, versionId } = params;
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
+  const goBack = useSmartBack(`/${lang}/book/${bookSlug}`);
 
   // Fetch book overview for meta info (title, author, cover, etc.)
   const { data: book, isLoading: isBookLoading } = useBookOverview(supportedLang, bookSlug);
@@ -48,7 +50,7 @@ export default function SummaryClient({ params }: Props) {
       <div className={styles.errorContainer}>
         <h2>Summary not found</h2>
         <p>We couldn&apos;t load the summary for this book version.</p>
-        <Button variant="secondary" onClick={() => router.back()}>
+        <Button variant="secondary" onClick={goBack}>
           Go Back
         </Button>
       </div>
@@ -64,7 +66,7 @@ export default function SummaryClient({ params }: Props) {
             variant="ghost"
             shape="circle"
             leftIcon={<ArrowLeft size={18} />}
-            onClick={() => router.back()}
+            onClick={goBack}
             className={styles.backBtn}
           />
           <div className={styles.bookInfo}>

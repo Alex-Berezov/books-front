@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PageBackButton } from '@/components/public/navigation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './403.module.scss';
 
@@ -16,6 +17,8 @@ export default async function ForbiddenPage({ params }: Props) {
 
   return (
     <div className={styles.container}>
+      <PageBackButton lang={lang} />
+
       <h1 className={styles.title}>403</h1>
       <p className={styles.message}>Access Forbidden</p>
       <p className={styles.description}>You don&apos;t have permission to access this page.</p>

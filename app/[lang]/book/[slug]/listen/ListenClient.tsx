@@ -23,6 +23,7 @@ import {
   useUpdateAudioProgress,
 } from '@/api/hooks/usePublicAudio';
 import { RightsBlockedNotice } from '@/components/common/RightsBlockedNotice';
+import { useSmartBack } from '@/components/public/navigation';
 import { isRightsBlockedError } from '@/lib/errors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -46,6 +47,7 @@ export default function ListenClient({ params }: Props) {
   const { lang, slug } = params;
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
+  const goBack = useSmartBack(`/${lang}/book/${slug}`);
   const { t } = useTranslation();
 
   const { data: book, isLoading: loadingBook } = useBookOverview(supportedLang, slug);
@@ -205,7 +207,7 @@ export default function ListenClient({ params }: Props) {
         <p className={styles.errorText}>
           {chapters.length === 0 ? t('player.noChapters') : t('player.chaptersFail')}
         </p>
-        <button type="button" onClick={() => router.back()} className={styles.secondaryBtn}>
+        <button type="button" onClick={goBack} className={styles.secondaryBtn}>
           {t('player.goBack')}
         </button>
       </div>
@@ -221,7 +223,7 @@ export default function ListenClient({ params }: Props) {
       <header className={styles.header}>
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={goBack}
           className={styles.backBtn}
           aria-label={t('book.back')}
         >

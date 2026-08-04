@@ -1,0 +1,7 @@
+@import '@/styles/tokens.scss';
+
+.backBar {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-xl $spacing-xl 0;
+}

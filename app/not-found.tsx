@@ -1,9 +1,12 @@
 import Link from 'next/link';
+import { PageBackButton } from '@/components/public/navigation';
 import styles from './not-found.module.scss';
 
 export default function NotFound() {
   return (
     <div className={styles.container}>
+      <PageBackButton lang="en" />
+
       <div className={styles.code}>404</div>
       <h1 className={styles.title}>Page Not Found</h1>
       <p className={styles.subtitle}>

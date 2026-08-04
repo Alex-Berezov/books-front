@@ -1,4 +1,7 @@
 {
+  "common": {
+    "back": "Voltar"
+  },
   "header": {
     "popular": "Popular",
     "newReleases": "Novidades",

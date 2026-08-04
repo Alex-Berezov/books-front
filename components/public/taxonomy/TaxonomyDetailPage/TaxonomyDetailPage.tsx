@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
+import { PageBackButton } from '@/components/public/navigation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Category, CategoryBookCardsResponse, CategoryTranslation } from '@/types/api-schema';
 import { TaxonomyDetailInteractions } from './TaxonomyDetailInteractions';
@@ -340,6 +341,8 @@ export function TaxonomyDetailPage({
 
           <div className={styles.main}>
             <Breadcrumbs items={breadcrumbItems} />
+
+            <PageBackButton lang={lang} />
 
             <header className={styles.hero}>
               <h1 className={styles.title}>{categoryName}</h1>

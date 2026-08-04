@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { PageBackButton } from '@/components/public/navigation';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import styles from './not-found.module.scss';
@@ -26,6 +27,8 @@ export default async function CatchAllNotFound({ params }: Props) {
 
   return (
     <div className={styles.container}>
+      <PageBackButton lang={lang} />
+
       <div className={styles.code}>404</div>
       <h1 className={styles.title}>{dict.notFound?.title || 'Page Not Found'}</h1>
       <p className={styles.subtitle}>{dict.notFound?.subtitle || ''}</p>

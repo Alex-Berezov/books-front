@@ -9,6 +9,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useMe, useUpdateProfile, useUserActivities, useUploadAvatar } from '@/api/hooks/useAuth';
 import { Button } from '@/components/common/Button';
+import { PageBackButton } from '@/components/public/navigation';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { toast } from '@/lib/utils/toast';
 import styles from './profile.module.scss';
@@ -120,6 +121,9 @@ export default function ProfileClient() {
   if (status === 'unauthenticated' || !user) {
     return (
       <div className={styles.pageContainer}>
+        <div className={styles.container}>
+          <PageBackButton lang={lang} />
+        </div>
         <div className={styles.unauthContainer}>
           <User className={styles.unauthIcon} size={48} />
           <h1 className={styles.unauthTitle}>{t('profile.unauthTitle')}</h1>
@@ -139,6 +143,8 @@ export default function ProfileClient() {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.container}>
+        <PageBackButton lang={lang} />
+
         <h1 className={styles.headerTitle}>{t('profile.cabinet')}</h1>
 
         <div className={styles.profileLayoutGrid}>

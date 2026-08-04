@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { PageBackButton } from '@/components/public/navigation';
 import styles from './error.module.scss';
 
 export default function Error({
@@ -16,6 +17,8 @@ export default function Error({
 
   return (
     <div className={styles.errorContainer}>
+      <PageBackButton lang="en" />
+
       <h1>Something went wrong!</h1>
       <p>We apologize for the inconvenience.</p>
       <button type="button" onClick={() => reset()} className={styles.retryButton}>

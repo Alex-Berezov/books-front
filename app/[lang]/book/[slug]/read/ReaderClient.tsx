@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useUpdateTextProgress } from '@/api/hooks/useProgress';
 import { useReaderBootstrap } from '@/api/hooks/usePublic';
 import { RightsBlockedNotice } from '@/components/common/RightsBlockedNotice';
+import { useSmartBack } from '@/components/public/navigation';
 import { isRightsBlockedError } from '@/lib/errors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -37,6 +38,7 @@ export default function ReaderClient({ params }: Props) {
   const { lang, slug } = params;
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
+  const goBack = useSmartBack(`/${lang}/book/${slug}`);
   const { t } = useTranslation();
   const { data: session } = useSession();
 
@@ -185,7 +187,7 @@ export default function ReaderClient({ params }: Props) {
         <div className={styles.headerLeft}>
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={goBack}
             className={styles.iconBtn}
             aria-label={t('book.back')}
           >

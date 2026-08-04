@@ -21,6 +21,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/common/Button';
+import { PageBackButton } from '@/components/public/navigation';
 import { httpPost } from '@/lib/http';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './register.module.scss';
@@ -100,6 +101,8 @@ const RegisterClient: FC = () => {
       {/* Right Form Section */}
       <div className={styles.formSection}>
         <div className={styles.formWrapper}>
+          <PageBackButton lang={lang} />
+
           {/* Mobile Header */}
           <div className={styles.mobileHeader}>
             <BookOutlined className={styles.logoIcon} />

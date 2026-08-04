@@ -1,4 +1,7 @@
 {
+  "common": {
+    "back": "Назад"
+  },
   "header": {
     "popular": "Популярное",
     "newReleases": "Новинки",

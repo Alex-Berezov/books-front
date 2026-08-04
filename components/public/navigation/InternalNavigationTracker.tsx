@@ -13,12 +13,17 @@ export function InternalNavigationTracker() {
   const isFirstRender = useRef(true);
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-
     try {
+      // First render after a full page load: seed the current path and drop the
+      // previous one, otherwise a stale entry from an earlier visit would be
+      // treated as "where the user came from".
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        sessionStorage.setItem(STORAGE_KEY_CURRENT, fullPath);
+        sessionStorage.removeItem(STORAGE_KEY_PREVIOUS);
+        return;
+      }
+
       const current = sessionStorage.getItem(STORAGE_KEY_CURRENT);
       if (current !== null && current !== fullPath) {
         sessionStorage.setItem(STORAGE_KEY_PREVIOUS, current);

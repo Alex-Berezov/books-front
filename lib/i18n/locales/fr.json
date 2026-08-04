@@ -1,4 +1,7 @@
 {
+  "common": {
+    "back": "Retour"
+  },
   "header": {
     "popular": "Populaire",
     "newReleases": "Nouveautés",

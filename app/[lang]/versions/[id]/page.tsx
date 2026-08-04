@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { AudioPlayer } from '@/components/public/AudioPlayer';
+import { PageBackButton } from '@/components/public/navigation';
 import { isSupportedLang } from '@/lib/i18n/lang';
+import styles from './page.module.scss';
 
 type Props = {
   params: Promise<{ lang: string; id: string }>;
@@ -20,7 +22,14 @@ const PublicVersionPage = async ({ params }: Props) => {
     notFound();
   }
 
-  return <AudioPlayer versionId={id} />;
+  return (
+    <>
+      <div className={styles.backBar}>
+        <PageBackButton lang={lang} />
+      </div>
+      <AudioPlayer versionId={id} />
+    </>
+  );
 };
 
 export default PublicVersionPage;

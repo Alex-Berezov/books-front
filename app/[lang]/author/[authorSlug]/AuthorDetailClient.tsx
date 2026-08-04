@@ -18,6 +18,7 @@ import { Button } from '@/components/common/Button';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { BookCard } from '@/components/public/books/BookCard';
+import { useSmartBack } from '@/components/public/navigation';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { toBookCardModel } from '@/lib/mappers/book';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -49,6 +50,7 @@ export default function AuthorDetailClient({
 }: Props) {
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
+  const goBack = useSmartBack(`/${lang}/catalog`);
   const { t } = useTranslation();
 
   // If fallback, use books array and filter client-side.
@@ -113,7 +115,7 @@ export default function AuthorDetailClient({
         <Button
           variant="ghost"
           leftIcon={<ChevronLeft size={16} />}
-          onClick={() => router.back()}
+          onClick={goBack}
           className={styles.backBtn}
         >
           {t('author.back')}

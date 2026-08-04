@@ -1,4 +1,5 @@
 import { BookOutlined } from '@ant-design/icons';
+import { PageBackButton } from '@/components/public/navigation';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -19,7 +20,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   );
 }
 
-export default async function TermsPage() {
+export default async function TermsPage({ params }: Props) {
+  const { lang } = await params;
+
   return (
     <div
       style={{
@@ -31,6 +34,8 @@ export default async function TermsPage() {
         lineHeight: '1.6',
       }}
     >
+      <PageBackButton lang={lang} />
+
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '32px' }}>
         <BookOutlined style={{ fontSize: '24px', color: '#8c5300' }} />
         <span

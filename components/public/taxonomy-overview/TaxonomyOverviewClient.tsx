@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { useCategoriesTree } from '@/api/hooks/useCategories';
 import { usePage, usePublicTags } from '@/api/hooks/usePublic';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
+import { PageBackButton } from '@/components/public/navigation';
 import type { TagListItem } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTree, PageResponse } from '@/types/api-schema';
@@ -72,6 +73,8 @@ export const TaxonomyOverviewClient: FC<TaxonomyOverviewClientProps> = ({
     <div className={styles.page}>
       <div className={styles.container}>
         <Breadcrumbs items={breadcrumbItems} />
+
+        <PageBackButton lang={lang} />
 
         <OverviewHero h1={h1} shortDescription={shortDescription} />
 
