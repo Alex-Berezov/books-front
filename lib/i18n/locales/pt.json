@@ -116,6 +116,8 @@
     "readSummary": "Ler resumo completo",
     "inBookshelf": "Na Estante",
     "addToBookshelf": "Adicionar à Estante",
+    "inYourBookshelf": "Na Sua Estante",
+    "removeFromBookshelf": "Remover da Estante",
     "published": "Publicado:",
     "firstPublished": "Primeira publicação:",
     "editionPublished": "Edição publicada:",
@@ -166,6 +168,7 @@
     "cancelBtn": "Cancelar",
     "removeSuccess": "\"{title}\" removido da estante",
     "removeFail": "Falha ao remover livro da estante",
+    "addFail": "Falha ao adicionar o livro à estante",
     "tabs": {
       "all": "Todos",
       "reading": "Livros de texto",

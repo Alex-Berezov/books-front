@@ -18,6 +18,18 @@
   --public-border: oklch(0.88 0.015 72);
   --skeleton-bg: rgba(0, 0, 0, 0.05);
   --cover-placeholder-bg: #8B7355;
+
+  /* Brand CTA palette — gold accent (logo), ink (header green), leaf tints */
+  --brand-gold: #D98E1F;
+  --brand-gold-hover: #C07C15;
+  --brand-gold-active: #A96A10;
+  --brand-ink: #1F2E1B;
+  --brand-ink-hover: #2C4127;
+  --brand-paper: #F6F4EF;
+  --brand-leaf-tint: #E7EEE2;
+  --brand-leaf-tint-hover: #DCE6D5;
+  --brand-leaf-border: #6E8A63;
+  --brand-outline: #C3CDBB;
 }
 
 .dark {

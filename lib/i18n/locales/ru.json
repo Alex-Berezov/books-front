@@ -116,6 +116,8 @@
     "readSummary": "Читать полный пересказ",
     "inBookshelf": "На полке",
     "addToBookshelf": "Добавить на полку",
+    "inYourBookshelf": "На вашей полке",
+    "removeFromBookshelf": "Убрать с полки",
     "published": "Опубликовано:",
     "firstPublished": "Впервые опубликовано:",
     "editionPublished": "Издание опубликовано:",
@@ -166,6 +168,7 @@
     "cancelBtn": "Отмена",
     "removeSuccess": "Книга «{title}» удалена с полки",
     "removeFail": "Не удалось удалить книгу с полки",
+    "addFail": "Не удалось добавить книгу на полку",
     "tabs": {
       "all": "Все",
       "reading": "Текстовые книги",

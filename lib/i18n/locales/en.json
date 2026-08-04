@@ -156,6 +156,8 @@
     "readSummary": "Read Full Summary",
     "inBookshelf": "In Bookshelf",
     "addToBookshelf": "Add to Bookshelf",
+    "inYourBookshelf": "In Your Bookshelf",
+    "removeFromBookshelf": "Remove from Bookshelf",
     "published": "Published:",
     "firstPublished": "First published:",
     "editionPublished": "Edition published:",
@@ -206,6 +208,7 @@
     "cancelBtn": "Cancel",
     "removeSuccess": "Removed \"{title}\" from bookshelf",
     "removeFail": "Failed to remove book from bookshelf",
+    "addFail": "Failed to add book to bookshelf",
     "tabs": {
       "all": "All",
       "reading": "Text Books",

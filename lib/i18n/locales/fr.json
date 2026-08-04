@@ -116,6 +116,8 @@
     "readSummary": "Lire le résumé complet",
     "inBookshelf": "Dans la Bibliothèque",
     "addToBookshelf": "Ajouter à la Bibliothèque",
+    "inYourBookshelf": "Dans Votre Bibliothèque",
+    "removeFromBookshelf": "Retirer de la Bibliothèque",
     "published": "Publié :",
     "firstPublished": "Première publication :",
     "editionPublished": "Édition publiée :",
@@ -166,6 +168,7 @@
     "cancelBtn": "Annuler",
     "removeSuccess": "\"{title}\" retiré de la bibliothèque",
     "removeFail": "Échec du retrait du livre",
+    "addFail": "Échec de l'ajout du livre à la bibliothèque",
     "tabs": {
       "all": "Tous",
       "reading": "Livres textuels",
