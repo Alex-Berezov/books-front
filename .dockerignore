@@ -49,6 +49,8 @@ LICENSE
 Thumbs.db
 
 # Misc
+# scripts/ is excluded, but check-site-url.mjs runs as `prebuild` inside the image
 scripts
+!scripts/check-site-url.mjs
 *.log
 .cache
