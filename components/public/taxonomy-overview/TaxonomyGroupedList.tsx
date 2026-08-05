@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import Link from 'next/link';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTree } from '@/types/api-schema';
 import styles from './TaxonomyGroupedList.module.scss';
@@ -13,16 +14,8 @@ const getTranslatedName = (item: CategoryTree): string => {
   return item.translation?.name || item.name || '';
 };
 
-const isPublic = (item: CategoryTree): boolean => {
-  return item.isVisible !== false && item.indexable !== false;
-};
-
-const hasBooks = (item: CategoryTree): boolean => {
-  return (item.booksCount || 0) > 0;
-};
-
 export const TaxonomyGroupedList: FC<TaxonomyGroupedListProps> = ({ lang, items }) => {
-  const rootItems = items.filter((item) => !item.parentId && isPublic(item) && hasBooks(item));
+  const rootItems = items.filter((item) => !item.parentId && isTaxonomyLinkable(item));
 
   if (rootItems.length === 0) {
     return <p className={styles.empty}>No genres available yet.</p>;
@@ -31,9 +24,7 @@ export const TaxonomyGroupedList: FC<TaxonomyGroupedListProps> = ({ lang, items 
   return (
     <div className={styles.list}>
       {rootItems.map((item) => {
-        const children = (item.children || []).filter(
-          (child) => isPublic(child) && (child.booksCount || 0) > 0
-        );
+        const children = (item.children || []).filter((child) => isTaxonomyLinkable(child));
 
         const totalBooks = item.booksCount || 0;
 

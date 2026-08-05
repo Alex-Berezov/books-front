@@ -4,6 +4,7 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { PageBackButton } from '@/components/public/navigation';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Category, CategoryBookCardsResponse, CategoryTranslation } from '@/types/api-schema';
 import { TaxonomyDetailInteractions } from './TaxonomyDetailInteractions';
@@ -96,7 +97,7 @@ function getParentCategory(category: Category, allCategories: Category[]): Categ
 
 function getChildCategories(category: Category, allCategories: Category[]): Category[] {
   return allCategories
-    .filter((cat) => cat.parentId === category.id)
+    .filter((cat) => cat.parentId === category.id && isTaxonomyLinkable(cat))
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name));
 }
 
@@ -106,8 +107,7 @@ function getSiblingCategories(category: Category, allCategories: Category[]): Ca
       (cat) =>
         cat.parentId === (category.parentId || null) &&
         cat.id !== category.id &&
-        cat.isVisible !== false &&
-        (cat.booksCount || 0) > 0
+        isTaxonomyLinkable(cat)
     )
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name))
     .slice(0, 10);
@@ -121,13 +121,7 @@ function getRelatedByType(
   limit = 8
 ): TaxonomyLink[] {
   return allCategories
-    .filter(
-      (cat) =>
-        cat.id !== currentId &&
-        cat.type === targetType &&
-        cat.isVisible !== false &&
-        (cat.booksCount || 0) > 0
-    )
+    .filter((cat) => cat.id !== currentId && cat.type === targetType && isTaxonomyLinkable(cat))
     .sort((a, b) => (b.booksCount || 0) - (a.booksCount || 0))
     .slice(0, limit)
     .map((cat) => ({

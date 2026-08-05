@@ -1,6 +1,7 @@
 import { getBookCards, getPublicCategories } from '@/api/endpoints/public';
 import { CatalogContent } from '@/components/public/catalog/CatalogContent/CatalogContent';
 import { getDictionary } from '@/lib/i18n/dictionaries';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { buildBreadcrumbJsonLd, buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import { buildRobotsByContent, shouldNoindexPaginatedPage } from '@/lib/utils/seo-indexing';
@@ -56,8 +57,8 @@ export default async function PopularBooksPage({ params, searchParams }: Props) 
 
   const books = booksRes?.items ?? [];
   const pagination = booksRes?.pagination ?? { page: 1, limit: PAGE_SIZE, total: 0, totalPages: 0 };
-  const categories = (categoriesRes?.data ?? []).filter((cat) => cat.booksCount > 0);
-  const genres = (genresRes?.data ?? []).filter((gen) => gen.booksCount > 0);
+  const categories = (categoriesRes?.data ?? []).filter(isTaxonomyLinkable);
+  const genres = (genresRes?.data ?? []).filter(isTaxonomyLinkable);
 
   const siteUrl = getSiteUrl();
   const routeUrl = `${siteUrl}/${supportedLang}/popular-books`;

@@ -3,6 +3,7 @@ import { getCategories } from '@/api/endpoints/admin/categories';
 import { getTags } from '@/api/endpoints/admin/tags';
 import { getPublicBooks, getBookCards, getPublicAuthors } from '@/api/endpoints/public';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { getBaseUrl, buildUrlSetXml, type SitemapItem } from '@/lib/sitemap/utils';
 import type {
   BookOverview,
@@ -24,18 +25,20 @@ export async function GET(request: Request, { params }: { params: { filename: st
   const sitemapItems: SitemapItem[] = [];
 
   /**
-   * A taxonomy page belongs in the sitemap only while it is indexable.
-   * `autoIndexable` is the stored hysteresis state (close <=2 books, open >=5)
-   * that also drives the robots meta tag — the two must never disagree.
-   * Older backends that do not send the field fall back to "has any books".
+   * A taxonomy page belongs in the sitemap only while it is indexable — the same
+   * rule that decides whether the app may link to it. Here the signal lives on the
+   * per-language translation rather than on the term itself, so it is reshaped into
+   * `LinkableTerm` before being handed to the one shared predicate.
    */
   const isTaxonomyIndexable = (
     translation: CategoryTranslation | TagTranslation | undefined,
     booksCount: number | undefined
   ) => {
     if (!translation) return false;
-    if (translation.autoIndexable !== undefined) return translation.autoIndexable;
-    return (booksCount ?? 0) > 0;
+    return isTaxonomyLinkable({
+      autoIndexable: translation.autoIndexable,
+      booksCount,
+    });
   };
 
   const getAlternates = (languages: readonly string[], pathBuilder: (lang: string) => string) => {

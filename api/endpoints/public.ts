@@ -283,7 +283,25 @@ export interface TagListItem {
   name: string;
   slug: string;
   booksCount: number;
-  translations: Array<{ language: string; name: string; slug: string }>;
+  /** Cached per-language book count for the requested `?lang` (undefined without it) */
+  langBookCount?: number;
+  /**
+   * Automatic indexability (hysteresis) for the requested `?lang`; undefined without it
+   * or when the tag has no translation into that language. Decide linkability with
+   * `isTaxonomyLinkable`, never with `booksCount` directly.
+   */
+  autoIndexable?: boolean;
+  /** Editorial switch: tag excluded from indexing */
+  indexable?: boolean;
+  /** Editorial switch: tag hidden from public lists */
+  isVisible?: boolean;
+  translations: Array<{
+    language: string;
+    name: string;
+    slug: string;
+    bookCount?: number;
+    autoIndexable?: boolean;
+  }>;
 }
 
 export interface PaginatedTagsResponse {

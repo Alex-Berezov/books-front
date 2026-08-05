@@ -11,6 +11,7 @@ import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { toBookCardModel } from '@/lib/mappers/book';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './CatalogTemplate.module.scss';
@@ -35,8 +36,8 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
   const { t } = useTranslation();
   const { data: categoriesData } = useCategories({ type: 'category', limit: 50 });
   const { data: genresData } = useCategories({ type: 'genre', limit: 50 });
-  const categories = (categoriesData?.data || []).filter((cat) => (cat.booksCount || 0) > 0);
-  const genres = (genresData?.data || []).filter((gen) => (gen.booksCount || 0) > 0);
+  const categories = (categoriesData?.data || []).filter(isTaxonomyLinkable);
+  const genres = (genresData?.data || []).filter(isTaxonomyLinkable);
 
   const search = searchParams.get('q') || '';
   const type = searchParams.get('type') || '';

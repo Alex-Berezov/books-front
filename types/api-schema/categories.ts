@@ -26,6 +26,14 @@ export interface Category {
   language: SupportedLang;
   parentId?: UUID | null;
   booksCount?: number;
+  /** Cached per-language book count for the requested `?lang` (undefined without it) */
+  langBookCount?: number;
+  /**
+   * Automatic indexability (hysteresis) for the requested `?lang`; undefined without it
+   * or when the term has no translation into that language. Decide linkability with
+   * `isTaxonomyLinkable`, never with `booksCount` directly.
+   */
+  autoIndexable?: boolean;
   /** Whether the page is indexable by search engines */
   indexable?: boolean;
   /** Whether the category is visible in public lists */

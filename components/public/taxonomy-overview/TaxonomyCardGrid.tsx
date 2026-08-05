@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import Link from 'next/link';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import type { TagListItem } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTree } from '@/types/api-schema';
@@ -35,16 +36,8 @@ const getChildName = (child: CategoryTree): string => {
   return child.translation?.name || child.name || '';
 };
 
-const isPublicItem = (item: CategoryTree): boolean => {
-  return item.isVisible !== false && item.indexable !== false;
-};
-
 const getTotalBooks = (item: CategoryTree | TagListItem): number => {
   return item.booksCount || 0;
-};
-
-const hasAnyBooks = (item: CategoryTree): boolean => {
-  return (item.booksCount || 0) > 0;
 };
 
 export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
@@ -80,12 +73,7 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
     );
   }
 
-  const filtered = items.filter((item) => {
-    if (isTagKind) {
-      return (item.booksCount || 0) > 0;
-    }
-    return isPublicItem(item as CategoryTree) && hasAnyBooks(item as CategoryTree);
-  });
+  const filtered = items.filter((item) => isTaxonomyLinkable(item));
 
   if (filtered.length === 0) {
     return <p className={styles.empty}>{emptyText}</p>;
@@ -100,9 +88,7 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
         let children: CategoryTree[] = [];
         if (!isTagKind) {
           const cat = item as CategoryTree;
-          children = (cat.children || []).filter(
-            (child) => isPublicItem(child) && (child.booksCount || 0) > 0
-          );
+          children = (cat.children || []).filter((child) => isTaxonomyLinkable(child));
         }
 
         return (

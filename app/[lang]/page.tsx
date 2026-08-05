@@ -10,6 +10,7 @@ import {
 import { HomePageContent } from '@/components/public/home/HomePageContent/HomePageContent';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
@@ -44,6 +45,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 function sortByBooksCount<T extends { booksCount?: number }>(items: T[]): T[] {
   return [...items].sort((a, b) => (b.booksCount || 0) - (a.booksCount || 0));
+}
+
+/** Only terms that will answer `index` may appear on the homepage. */
+function linkableSortedByBooksCount<T extends { booksCount?: number }>(items: T[]): T[] {
+  return sortByBooksCount(items.filter(isTaxonomyLinkable));
 }
 
 const MAX_COLLECTION_SECTIONS = 4;
@@ -99,10 +105,10 @@ export default async function PublicLangPage({ params }: Props) {
     const featuredBooks = popularRes?.items || [];
     const newReleases = newRes?.items || [];
     const audiobooks = audioRes?.items || [];
-    const allCategories = sortByBooksCount(catsRes?.data || []).slice(0, 12);
-    const allGenres = sortByBooksCount(genresRes?.data || []).slice(0, 12);
-    const allCollections = sortByBooksCount(colsRes?.data || []).slice(0, 12);
-    const allTags = sortByBooksCount(tagsRes?.data || []).slice(0, 12);
+    const allCategories = linkableSortedByBooksCount(catsRes?.data || []).slice(0, 12);
+    const allGenres = linkableSortedByBooksCount(genresRes?.data || []).slice(0, 12);
+    const allCollections = linkableSortedByBooksCount(colsRes?.data || []).slice(0, 12);
+    const allTags = linkableSortedByBooksCount(tagsRes?.data || []).slice(0, 12);
     const allAuthors = sortByBooksCount(authorsRes?.data || []).slice(0, 12);
 
     const [classicBooks, fantasyBooks] = await Promise.all([

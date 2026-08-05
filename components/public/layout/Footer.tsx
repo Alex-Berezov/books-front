@@ -98,37 +98,6 @@ export function Footer({ hasAudiobooks = true }: FooterProps) {
                 </li>
               </ul>
             </div>
-
-            <div>
-              <h3 className={styles.sectionTitle}>{t('footer.genresTitle')}</h3>
-              <ul className={styles.linksList}>
-                <li>
-                  <Link href={`/${lang}/category/classic-literature`} className={styles.link}>
-                    {t('footer.classicLiterature')}
-                  </Link>
-                </li>
-                <li>
-                  <Link href={`/${lang}/genre/fantasy`} className={styles.link}>
-                    {t('footer.fantasy')}
-                  </Link>
-                </li>
-                <li>
-                  <Link href={`/${lang}/genre/science-fiction`} className={styles.link}>
-                    {t('footer.scienceFiction')}
-                  </Link>
-                </li>
-                <li>
-                  <Link href={`/${lang}/genre/mystery`} className={styles.link}>
-                    {t('footer.mystery')}
-                  </Link>
-                </li>
-                <li>
-                  <Link href={`/${lang}/genre/romance`} className={styles.link}>
-                    {t('footer.romance')}
-                  </Link>
-                </li>
-              </ul>
-            </div>
           </nav>
         </div>
 

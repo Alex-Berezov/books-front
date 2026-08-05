@@ -13,6 +13,7 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import styles from './book.module.scss';
 import { getCachedBookOverview, getCachedBookSeo } from './bookData';
+import { BookTaxonomyChips } from './BookTaxonomyChips';
 import DescriptionWrapper from './DescriptionWrapper';
 import { RelatedBooksSection } from './RelatedBooksSection';
 
@@ -286,24 +287,11 @@ export default async function BookDetailPage({ params }: Props) {
 
             <BookRating bookId={book.id} slug={slug} lang={supportedLang} />
 
-            <div className={styles.tagsContainer}>
-              {book.categories?.map((cat) => {
-                const trans =
-                  cat.translations?.find((t) => t.language === supportedLang) ||
-                  cat.translations?.[0];
-                const catSlug = trans?.slug || cat.slug || cat.id;
-                const categoryPath = cat.type === 'genre' ? 'genre' : 'category';
-                return (
-                  <Link
-                    key={cat.id}
-                    href={`/${supportedLang}/${categoryPath}/${catSlug}`}
-                    className={styles.tagButton}
-                  >
-                    {trans?.name || cat.id}
-                  </Link>
-                );
-              })}
-            </div>
+            <BookTaxonomyChips
+              lang={supportedLang}
+              terms={book.categories ?? []}
+              variant="categories"
+            />
 
             <BookActions
               slug={slug}
@@ -315,26 +303,7 @@ export default async function BookDetailPage({ params }: Props) {
               hasSummary={hasSummary}
             />
 
-            {book.tags && book.tags.length > 0 && (
-              <div className={styles.bookTagsContainer}>
-                {book.tags.map((tag) => {
-                  const trans =
-                    tag.translations?.find((t) => t.language === supportedLang) ||
-                    tag.translations?.[0];
-                  const tagName = trans?.name || tag.name || tag.id;
-                  const tagSlug = trans?.slug || tag.slug || tag.id;
-                  return (
-                    <Link
-                      key={tag.id}
-                      href={`/${supportedLang}/tag/${tagSlug}`}
-                      className={styles.tagButton}
-                    >
-                      {tagName}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+            <BookTaxonomyChips lang={supportedLang} terms={book.tags ?? []} variant="tags" />
 
             <div className={styles.metadataList}>
               {(activeVersion?.author || book.author) && (

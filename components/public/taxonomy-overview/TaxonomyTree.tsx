@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import Link from 'next/link';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CategoryTree } from '@/types/api-schema';
 import styles from './TaxonomyTree.module.scss';
@@ -21,16 +22,8 @@ const getTotalBooksCount = (item: CategoryTree): number => {
   return item.booksCount || 0;
 };
 
-const isPublic = (item: CategoryTree): boolean => {
-  return item.isVisible !== false && item.indexable !== false;
-};
-
-const hasBooks = (item: CategoryTree): boolean => {
-  return (item.booksCount || 0) > 0;
-};
-
 export const TaxonomyTree: FC<TaxonomyTreeProps> = ({ lang, items }) => {
-  const rootItems = items.filter((item) => !item.parentId && isPublic(item) && hasBooks(item));
+  const rootItems = items.filter((item) => !item.parentId && isTaxonomyLinkable(item));
 
   if (rootItems.length === 0) {
     return <p className={styles.empty}>No categories available yet.</p>;
@@ -39,9 +32,7 @@ export const TaxonomyTree: FC<TaxonomyTreeProps> = ({ lang, items }) => {
   return (
     <div className={styles.tree}>
       {rootItems.map((item) => {
-        const children = (item.children || []).filter(
-          (child) => isPublic(child) && (child.booksCount || 0) > 0
-        );
+        const children = (item.children || []).filter((child) => isTaxonomyLinkable(child));
 
         return (
           <div key={item.id} className={styles.group}>
