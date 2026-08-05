@@ -1,5 +1,7 @@
-import { getAuthorBookCards, getPublicAuthorBySlug } from '@/api/endpoints/public';
+import { notFound } from 'next/navigation';
+import { getPublicAuthorBySlug } from '@/api/endpoints/public';
 import { getDictionary } from '@/lib/i18n/dictionaries';
+import { handleContentFailure } from '@/lib/utils/content-failure';
 import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -123,20 +125,22 @@ export default async function AuthorDetailPage({ params }: Props) {
   const displayName = toTitleCase(searchName);
 
   let author: PublicAuthorDetail | null = null;
-  let initialBooks: BookCardModel[] = [];
-  let isFallback = false;
+  const initialBooks: BookCardModel[] = [];
 
   try {
     author = await getPublicAuthorBySlug(supportedLang, authorSlug);
   } catch (error) {
-    console.error('Failed to fetch author via getPublicAuthorBySlug, using fallback:', error);
-    isFallback = true;
-    try {
-      const booksRes = await getAuthorBookCards(supportedLang, authorSlug, 1, 48);
-      initialBooks = booksRes.items || [];
-    } catch (err) {
-      console.error('Error fetching author books on server:', err);
-    }
+    // A slug that resolves to no author is a 404, full stop. Rendering a page
+    // built out of the slug itself made every invented, mistyped or deliberately
+    // generated slug answer 200 with a plausible title — an unbounded space of
+    // soft-404s that anyone outside could fill by publishing links. It also
+    // produced a second live URL per author on non-English pages, because the
+    // author sitemap lists base slugs: /ru/author/sun-tzu rendered this fallback
+    // while the real page lives at /ru/author/sun-czy.
+    //
+    // An outage is different and must not be turned into a 404 — handled by
+    // handleContentFailure, which rethrows anything that is not a 404.
+    handleContentFailure(error, notFound);
   }
 
   // Construct JSON-LD Person schema if author details are available
@@ -181,7 +185,7 @@ export default async function AuthorDetailPage({ params }: Props) {
         authorSlug={authorSlug}
         displayName={author?.name || displayName}
         authorData={author}
-        isFallback={isFallback}
+        isFallback={false}
         initialBooks={initialBooks}
       />
     </>

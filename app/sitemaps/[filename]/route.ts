@@ -351,22 +351,31 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       allAuthors.forEach((author) => {
-        const slug = author.slug;
+        // The URL must use this language's own slug, not the root one. Listing the
+        // root slug put /ru/author/sun-tzu in the Russian sitemap while the page
+        // actually lives at /ru/author/sun-czy — and the API answers 404 for the
+        // former, so the entry was only "working" thanks to the soft-404 fallback
+        // this commit removes. An author without a slug in this language has no
+        // address here and is skipped.
+        const slugByLang = new Map<string, string>();
+        (author.translations ?? []).forEach((t) => {
+          if (t.slug && (SUPPORTED_LANGS as readonly string[]).includes(t.language)) {
+            slugByLang.set(t.language, t.slug);
+          }
+        });
+
+        const slug = slugByLang.get(lang);
         if (!slug) return;
 
-        const activeLangs: string[] = [];
-        if (author.translations) {
-          author.translations.forEach((t) => {
-            if (t.slug && (SUPPORTED_LANGS as readonly string[]).includes(t.language)) {
-              activeLangs.push(t.language);
-            }
-          });
-        }
+        const activeLangs = [...slugByLang.keys()];
 
         const url = `${cleanBaseUrl}/${lang}/author/${slug}`;
         const alternates =
           activeLangs.length > 0
-            ? getAlternates(activeLangs, (l) => `${cleanBaseUrl}/${l}/author/${slug}`)
+            ? getAlternates(
+                activeLangs,
+                (l) => `${cleanBaseUrl}/${l}/author/${slugByLang.get(l) ?? slug}`
+              )
             : undefined;
 
         sitemapItems.push({
