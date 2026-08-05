@@ -62,7 +62,9 @@ export default async function NewReleasesPage({ params, searchParams }: Props) {
   const currentPage = Math.max(1, Number(sParams.page) || 1);
 
   const [booksRes, categoriesRes, genresRes] = await Promise.all([
-    getBookCards(supportedLang, currentPage, PAGE_SIZE, { sort: LANDING_SORT }).catch(() => null),
+    // Deliberately uncaught: a landing that could not load its books must answer
+    // 5xx, not a confident empty 200 that now also carries index.
+    getBookCards(supportedLang, currentPage, PAGE_SIZE, { sort: LANDING_SORT }),
     getPublicCategories(supportedLang, 'category').catch(() => null),
     getPublicCategories(supportedLang, 'genre').catch(() => null),
   ]);

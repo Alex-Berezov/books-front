@@ -76,7 +76,9 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   const q = sParams.q || undefined;
 
   const [booksRes, categoriesRes, genresRes] = await Promise.all([
-    getBookCards(supportedLang, currentPage, PAGE_SIZE, { sort, type, q }).catch(() => null),
+    // Deliberately uncaught, same rule as the landings: a catalog that failed to
+    // load must not be served as a catalog with nothing in it.
+    getBookCards(supportedLang, currentPage, PAGE_SIZE, { sort, type, q }),
     getPublicCategories(supportedLang, 'category').catch(() => null),
     getPublicCategories(supportedLang, 'genre').catch(() => null),
   ]);

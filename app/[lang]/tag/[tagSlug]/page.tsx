@@ -4,6 +4,7 @@ import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import { buildLangUrl, toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
+import { handleContentFailure } from '@/lib/utils/content-failure';
 import { buildItemListJsonLd, getSiteUrl, schemaContainsType } from '@/lib/utils/json-ld';
 import { shouldNoindexPaginatedPage, toCountResult } from '@/lib/utils/seo-indexing';
 import type { SeoResolveResponse, TagBookCardsResponse } from '@/types/api-schema';
@@ -145,8 +146,9 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
       }).catch(() => null),
     ]);
   } catch (error) {
+    // Content missing, not "content is empty" — see handleContentFailure.
     logError('Error loading tag page data:', error);
-    data = null;
+    handleContentFailure(error, notFound);
   }
 
   // `tag: null` is the API's "no such term" answer. It must be a hard 404, not a

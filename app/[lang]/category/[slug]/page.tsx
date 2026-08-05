@@ -5,6 +5,7 @@ import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import { isUnaddressableInLanguage, resolveTaxonomyDestination } from '@/lib/seo/taxonomy-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
+import { handleContentFailure } from '@/lib/utils/content-failure';
 import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { shouldNoindexPaginatedPage, toCountResult } from '@/lib/utils/seo-indexing';
 import type {
@@ -195,13 +196,11 @@ export default async function CategoryDetailPage({ params, searchParams }: Props
       })),
     ]);
   } catch (error) {
+    // Only the books request can reach here — the other two carry their own
+    // fallbacks. Losing it means the page has no content to show, so it must not
+    // be served as an empty 200; see handleContentFailure.
     logError('Error loading category page data:', error);
-    data = null;
-    allCategoriesData = { data: [], meta: { total: 0, page: 1, limit: 100, totalPages: 0 } };
-  }
-
-  if (!data && !seoData) {
-    notFound();
+    handleContentFailure(error, notFound);
   }
 
   // `category: null` is the API's "no such term" answer. It must be a hard 404,
