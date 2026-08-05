@@ -22,18 +22,23 @@ export interface TaxonomyCardGridProps {
   bookPlural: string;
 }
 
+const findTranslation = (item: CategoryTree | TagListItem, lang: SupportedLang) =>
+  (item.translations ?? []).find((t) => t.language === lang);
+
 const getName = (item: CategoryTree | TagListItem, lang: SupportedLang): string => {
-  if ('translations' in item) {
-    const trans = (item.translations ?? []).find(
-      (t: { language: string; name: string; slug: string }) => t.language === lang
-    );
-    return trans?.name || item.name || '';
-  }
-  return item.name || '';
+  return findTranslation(item, lang)?.name || item.name || '';
 };
 
-const getChildName = (child: CategoryTree): string => {
-  return child.translation?.name || child.name || '';
+/**
+ * The slug this term has in the language being rendered — or `null`.
+ *
+ * Deliberately no fallback to `item.slug`: that is the base (English) slug, and
+ * linking to it from a localized page mints a second URL for a page that already
+ * exists under its own slug, e.g. `/ru/genre/historical-fiction` next to
+ * `/ru/genre/istoricheskaya-proza`.
+ */
+const getSlug = (item: CategoryTree | TagListItem, lang: SupportedLang): string | null => {
+  return findTranslation(item, lang)?.slug || null;
 };
 
 const getTotalBooks = (item: CategoryTree | TagListItem): number => {
@@ -73,7 +78,10 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
     );
   }
 
-  const filtered = items.filter((item) => isTaxonomyLinkable(item));
+  // A term without a slug in this language is dropped here rather than skipped
+  // during render, so that "nothing to show" still reaches `emptyText` instead
+  // of leaving an empty grid behind.
+  const filtered = items.filter((item) => isTaxonomyLinkable(item) && getSlug(item, lang));
 
   if (filtered.length === 0) {
     return <p className={styles.empty}>{emptyText}</p>;
@@ -82,19 +90,30 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
   return (
     <div className={styles.grid}>
       {filtered.map((item) => {
+        const slug = getSlug(item, lang);
+        if (!slug) return null; // Already excluded above; keeps the type honest.
+
         const name = getName(item, lang);
         const booksCount = getTotalBooks(item);
 
-        let children: CategoryTree[] = [];
+        let children: Array<{ id: string; slug: string; name: string }> = [];
         if (!isTagKind) {
           const cat = item as CategoryTree;
-          children = (cat.children || []).filter((child) => isTaxonomyLinkable(child));
+          children = (cat.children || [])
+            .filter((child) => isTaxonomyLinkable(child))
+            .map((child) => {
+              const childSlug = getSlug(child, lang);
+              return childSlug
+                ? { id: child.id, slug: childSlug, name: getName(child, lang) }
+                : null;
+            })
+            .filter((child): child is { id: string; slug: string; name: string } => child !== null);
         }
 
         return (
           <div key={item.id} className={styles.card}>
             <div className={styles.cardHeader}>
-              <Link href={`/${lang}/${routeBase}/${item.slug}`} className={styles.cardTitle}>
+              <Link href={`/${lang}/${routeBase}/${slug}`} className={styles.cardTitle}>
                 {name}
               </Link>
               <span className={styles.bookCount}>
@@ -109,7 +128,7 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
                     href={`/${lang}/${routeBase}/${child.slug}`}
                     className={styles.childLink}
                   >
-                    {getChildName(child)}
+                    {child.name}
                   </Link>
                 ))}
               </div>

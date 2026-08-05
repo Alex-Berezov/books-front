@@ -28,7 +28,11 @@ export interface BookTaxonomyChipsProps {
 
 const routeSegment = (term: BookTaxonomyTerm, variant: BookTaxonomyChipsProps['variant']) => {
   if (variant === 'tags') return 'tag';
-  return term.type === 'genre' ? 'genre' : 'category';
+  // Collections have their own route; folding them into /category/ produced a
+  // link to a page that does not exist under that segment.
+  if (term.type === 'genre') return 'genre';
+  if (term.type === 'collection') return 'collection';
+  return 'category';
 };
 
 /**
@@ -48,17 +52,14 @@ export function BookTaxonomyChips({ lang, terms, variant }: BookTaxonomyChipsPro
     <div className={containerClass}>
       {terms.map((term) => {
         const localTranslation = term.translations?.find((t) => t.language === lang);
-        const displayed = localTranslation || term.translations?.[0];
-        const label = displayed?.name || term.name || term.id;
-        const slug = displayed?.slug || term.slug || term.id;
+        // No fallback to another language: its name would read as foreign text and
+        // its slug would mint a duplicate URL such as /ru/genre/historical-fiction.
+        // The term still shows — under its base name — but never as a link.
+        const label = localTranslation?.name || term.name || term.id;
+        const slug = localTranslation?.slug;
 
-        // No translation into the page language → no link, ever. Following the
-        // foreign-language slug would mint a duplicate URL such as
-        // /ru/genre/historical-fiction. Checked explicitly rather than left to
-        // fall out of the predicate: `autoIndexable` is simply absent here, and
-        // an absent cache value means "unknown", not "forbidden".
         const linkable =
-          Boolean(localTranslation) &&
+          Boolean(slug) &&
           isTaxonomyLinkable({
             isVisible: term.isVisible,
             indexable: term.indexable,

@@ -85,9 +85,21 @@ function getTaxonomyName(cat: Category, lang: SupportedLang): string {
   return (translation as CategoryTranslation | null)?.name || cat.name || '';
 }
 
-function getTaxonomySlug(cat: Category, lang: SupportedLang): string {
-  const translation = cat.translation || cat.translations?.find((t) => t.language === lang) || null;
-  return (translation as CategoryTranslation | null)?.slug || cat.slug || '';
+/**
+ * Slug of the term in the language being rendered, or `null`.
+ *
+ * No fallback to `cat.slug`: that is the base (English) slug, and linking to it
+ * from a localized page creates a second live URL for a page that already exists
+ * under its own slug. Callers drop terms that return `null`.
+ */
+function getTaxonomySlug(cat: Category, lang: SupportedLang): string | null {
+  const translation = cat.translations?.find((t) => t.language === lang) || cat.translation || null;
+  return (translation as CategoryTranslation | null)?.slug || null;
+}
+
+/** Terms that can be both linked and addressed in this language. */
+function isRenderableIn(cat: Category, lang: SupportedLang): boolean {
+  return isTaxonomyLinkable(cat) && getTaxonomySlug(cat, lang) !== null;
 }
 
 function getParentCategory(category: Category, allCategories: Category[]): Category | null {
@@ -95,19 +107,27 @@ function getParentCategory(category: Category, allCategories: Category[]): Categ
   return allCategories.find((cat) => cat.id === category.parentId) || null;
 }
 
-function getChildCategories(category: Category, allCategories: Category[]): Category[] {
+function getChildCategories(
+  category: Category,
+  allCategories: Category[],
+  lang: SupportedLang
+): Category[] {
   return allCategories
-    .filter((cat) => cat.parentId === category.id && isTaxonomyLinkable(cat))
+    .filter((cat) => cat.parentId === category.id && isRenderableIn(cat, lang))
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name));
 }
 
-function getSiblingCategories(category: Category, allCategories: Category[]): Category[] {
+function getSiblingCategories(
+  category: Category,
+  allCategories: Category[],
+  lang: SupportedLang
+): Category[] {
   return allCategories
     .filter(
       (cat) =>
         cat.parentId === (category.parentId || null) &&
         cat.id !== category.id &&
-        isTaxonomyLinkable(cat)
+        isRenderableIn(cat, lang)
     )
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name))
     .slice(0, 10);
@@ -121,13 +141,13 @@ function getRelatedByType(
   limit = 8
 ): TaxonomyLink[] {
   return allCategories
-    .filter((cat) => cat.id !== currentId && cat.type === targetType && isTaxonomyLinkable(cat))
+    .filter((cat) => cat.id !== currentId && cat.type === targetType && isRenderableIn(cat, lang))
     .sort((a, b) => (b.booksCount || 0) - (a.booksCount || 0))
     .slice(0, limit)
     .map((cat) => ({
       id: cat.id,
       name: getTaxonomyName(cat, lang),
-      slug: getTaxonomySlug(cat, lang),
+      slug: getTaxonomySlug(cat, lang) ?? '',
       booksCount: cat.booksCount || 0,
     }));
 }
@@ -217,10 +237,17 @@ export function TaxonomyDetailPage({
   const booksCount = category?.booksCount || total;
 
   const parentCategory = category ? getParentCategory(category, allCategories) : null;
-  const children = category ? getChildCategories(category, allCategories) : [];
-  const siblings = category ? getSiblingCategories(category, allCategories) : [];
+  const children = category ? getChildCategories(category, allCategories, lang) : [];
+  const siblings = category ? getSiblingCategories(category, allCategories, lang) : [];
 
   const parentName = parentCategory ? getTaxonomyName(parentCategory, lang) : '';
+  // The parent was linked by its base slug, which on a localized page is a
+  // foreign-language URL. No translated slug (or a parent that answers noindex)
+  // → the breadcrumb link is simply not rendered.
+  const parentSlug =
+    parentCategory && isRenderableIn(parentCategory, lang)
+      ? getTaxonomySlug(parentCategory, lang)
+      : null;
 
   const breadcrumbItems = [
     { label: translations.breadcrumbHome, href: `/${lang}` },
@@ -272,6 +299,7 @@ export function TaxonomyDetailPage({
         {siblings.map((sibling) => {
           const sibName = getTaxonomyName(sibling, lang);
           const sibSlug = getTaxonomySlug(sibling, lang);
+          if (!sibSlug) return null; // Already excluded by isRenderableIn.
           return (
             <Link
               key={sibling.id}
@@ -347,11 +375,8 @@ export function TaxonomyDetailPage({
               <p className={styles.count}>
                 {translations.booksCount.replace('{count}', String(booksCount))}
               </p>
-              {parentCategory && parentName && (
-                <Link
-                  href={`/${lang}/${path}/${parentCategory.slug}`}
-                  className={styles.parentLink}
-                >
+              {parentCategory && parentName && parentSlug && (
+                <Link href={`/${lang}/${path}/${parentSlug}`} className={styles.parentLink}>
                   <ChevronRight size={14} className={styles.parentIcon} />
                   {parentName}
                 </Link>
@@ -364,6 +389,7 @@ export function TaxonomyDetailPage({
                   {children.slice(0, 12).map((child) => {
                     const childName = getTaxonomyName(child, lang);
                     const childSlug = getTaxonomySlug(child, lang);
+                    if (!childSlug) return null; // Already excluded by isRenderableIn.
                     return (
                       <Link
                         key={child.id}

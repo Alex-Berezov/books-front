@@ -1,8 +1,9 @@
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { TaxonomyDetailPage } from '@/components/public/taxonomy/TaxonomyDetailPage/TaxonomyDetailPage';
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
+import { isUnaddressableInLanguage, resolveTaxonomyDestination } from '@/lib/seo/taxonomy-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { shouldNoindexPaginatedPage } from '@/lib/utils/seo-indexing';
@@ -160,7 +161,13 @@ export default async function CollectionDetailPage({ params, searchParams }: Pro
     const booksEndpoint = buildLangPath(supportedLang, `/categories/${slug}/books/cards`);
     const booksParams = new URLSearchParams({ page: String(currentPage), limit: '20' });
 
-    const sidebarParams = new URLSearchParams({ type: 'collection', limit: '100' });
+    // `lang` matters: without it booksCount comes back summed across all
+    // languages, and that is the value isTaxonomyLinkable uses as its floor.
+    const sidebarParams = new URLSearchParams({
+      type: 'collection',
+      limit: '100',
+      lang: supportedLang,
+    });
 
     [seoData, data, allCategoriesData] = await Promise.all([
       httpGet<SeoResolveResponse>(`${seoEndpoint}?${seoParams.toString()}`, {
@@ -193,6 +200,21 @@ export default async function CollectionDetailPage({ params, searchParams }: Pro
   // the index. An existing term with zero books stays 200 + noindex.
   if (data && !data.category) {
     notFound();
+  }
+
+  // The term exists but has no slug in this language — there is no correct URL
+  // to send anyone to, so this is a 404, not a redirect back onto itself.
+  if (isUnaddressableInLanguage(data?.category, supportedLang)) {
+    notFound();
+  }
+
+  // Reached by a foreign-language slug, or under the wrong route segment (every
+  // term resolves under every segment). Either way the same page would be live
+  // at two addresses; send the visitor and the crawler to the real one.
+  const destination = resolveTaxonomyDestination(data?.category, supportedLang, 'collection', slug);
+  if (destination) {
+    const query = currentPage > 1 ? `?page=${currentPage}` : '';
+    permanentRedirect(`/${supportedLang}/${destination.segment}/${destination.slug}${query}`);
   }
 
   const dict = getDictionary(supportedLang);
