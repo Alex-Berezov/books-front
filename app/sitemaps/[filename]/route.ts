@@ -5,6 +5,7 @@ import { getPublicBooks, getBookCards, getPublicAuthors } from '@/api/endpoints/
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { getBaseUrl, buildUrlSetXml, type SitemapItem } from '@/lib/sitemap/utils';
+import { toCountResult, type CountResult } from '@/lib/utils/seo-indexing';
 import type {
   BookOverview,
   Category,
@@ -47,21 +48,39 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
   // 1. Static Sitemap
   if (filename === 'sitemap-static.xml') {
-    const landingCounts = new Map<string, { audiobooks: number; popular: number; new: number }>();
+    // A landing is dropped from the sitemap only when it is *known* to be empty.
+    // `.catch(() => null)` collapsed into `?? 0` used to silently un-list all
+    // three landings in every language whenever the API blinked during a crawl.
+    const landingCounts = new Map<
+      string,
+      { audiobooks: CountResult; popular: CountResult; new: CountResult }
+    >();
     await Promise.all(
       SUPPORTED_LANGS.map(async (lang) => {
-        const [audioRes, popRes, newRes] = await Promise.all([
-          getBookCards(lang as SupportedLang, 1, 1, { type: 'audio' }).catch(() => null),
-          getBookCards(lang as SupportedLang, 1, 1, { sort: 'popular' }).catch(() => null),
-          getBookCards(lang as SupportedLang, 1, 1, { sort: 'new' }).catch(() => null),
+        const count = async (params: Parameters<typeof getBookCards>[3]) => {
+          try {
+            const res = await getBookCards(lang as SupportedLang, 1, 1, params);
+            return toCountResult(res?.pagination?.total ?? null);
+          } catch (error) {
+            console.error(`Error counting landing books for sitemap (${lang}):`, error);
+            return toCountResult(null);
+          }
+        };
+        const [audiobooks, popular, newest] = await Promise.all([
+          count({ type: 'audio' }),
+          count({ sort: 'popular' }),
+          count({ sort: 'new' }),
         ]);
-        landingCounts.set(lang, {
-          audiobooks: audioRes?.pagination?.total ?? 0,
-          popular: popRes?.pagination?.total ?? 0,
-          new: newRes?.pagination?.total ?? 0,
-        });
+        landingCounts.set(lang, { audiobooks, popular, new: newest });
       })
     );
+
+    /** Unknown counts as "keep": dropping a live URL costs more than listing an empty one. */
+    const hasLanding = (lang: string, key: 'audiobooks' | 'popular' | 'new'): boolean => {
+      const count = landingCounts.get(lang)?.[key];
+      if (!count || !count.ok) return true;
+      return count.total > 0;
+    };
 
     const staticRoutes: { path: string; include: (lang: string) => boolean }[] = [
       { path: '', include: () => true },
@@ -70,9 +89,9 @@ export async function GET(request: Request, { params }: { params: { filename: st
       { path: '/collections', include: () => true },
       { path: '/tags', include: () => true },
       { path: '/catalog', include: () => true },
-      { path: '/audiobooks', include: (lang) => (landingCounts.get(lang)?.audiobooks ?? 0) > 0 },
-      { path: '/popular-books', include: (lang) => (landingCounts.get(lang)?.popular ?? 0) > 0 },
-      { path: '/new-releases', include: (lang) => (landingCounts.get(lang)?.new ?? 0) > 0 },
+      { path: '/audiobooks', include: (lang) => hasLanding(lang, 'audiobooks') },
+      { path: '/popular-books', include: (lang) => hasLanding(lang, 'popular') },
+      { path: '/new-releases', include: (lang) => hasLanding(lang, 'new') },
       { path: '/privacy', include: () => true },
       { path: '/terms', include: () => true },
       { path: '/deletion', include: () => true },

@@ -6,7 +6,7 @@ import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import { isUnaddressableInLanguage, resolveTaxonomyDestination } from '@/lib/seo/taxonomy-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
-import { shouldNoindexPaginatedPage } from '@/lib/utils/seo-indexing';
+import { shouldNoindexPaginatedPage, toCountResult } from '@/lib/utils/seo-indexing';
 import type {
   Category,
   CategoryBookCardsResponse,
@@ -52,11 +52,16 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         language: supportedLang,
         next: { revalidate: 300 },
       }
-    ).catch(() => null);
-    const totalItems = countRes?.pagination?.total ?? 0;
-    const hasBooks = totalItems > 0;
+    ).catch((error) => {
+      logError('Error counting books for category metadata:', error);
+      return null;
+    });
+    // Unknown count must not masquerade as zero — see buildRobotsByCount.
+    const count = toCountResult(countRes?.pagination?.total ?? null);
     const currentPage = Math.max(1, Number(sParams.page) || 1);
-    const outOfRange = shouldNoindexPaginatedPage(currentPage, totalItems, TAXONOMY_PAGE_SIZE);
+    const outOfRange = count.ok
+      ? shouldNoindexPaginatedPage(currentPage, count.total, TAXONOMY_PAGE_SIZE)
+      : false;
 
     const alternatesLanguages = toPublicAlternates(seo.hreflangs || seo.hreflang);
 
@@ -70,8 +75,12 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {
       title: seo.meta.title,
       description: seo.meta.description || undefined,
-      robots:
-        hasBooks && !outOfRange ? seo.meta.robots || undefined : { index: false, follow: true },
+      robots: !count.ok
+        ? // Count unknown: keep whatever the SEO bundle says, never force noindex.
+          seo.meta.robots || undefined
+        : count.total > 0 && !outOfRange
+          ? seo.meta.robots || undefined
+          : { index: false, follow: true },
       alternates: {
         canonical: canonicalUrl,
         languages: alternatesLanguages,

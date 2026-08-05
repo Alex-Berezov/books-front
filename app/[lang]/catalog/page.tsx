@@ -2,8 +2,9 @@ import { getBookCards, getPublicCategories } from '@/api/endpoints/public';
 import { CatalogContent } from '@/components/public/catalog/CatalogContent/CatalogContent';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import { logError } from '@/lib/utils/log-error';
 import { getPageMetadata } from '@/lib/utils/seo';
-import { shouldNoindexPaginatedPage } from '@/lib/utils/seo-indexing';
+import { shouldNoindexPaginatedPage, toCountResult } from '@/lib/utils/seo-indexing';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import { catalogTitles, catalogDescriptions } from './catalog-landing-config';
@@ -42,9 +43,17 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return baseMetadata;
   }
 
-  const countRes = await getBookCards(supportedLang, 1, 1).catch(() => null);
-  const totalItems = countRes?.pagination?.total ?? 0;
-  const outOfRange = shouldNoindexPaginatedPage(currentPage, totalItems, PAGE_SIZE);
+  const countRes = await getBookCards(supportedLang, 1, 1).catch((error) => {
+    logError('Error counting books for catalog metadata:', error);
+    return null;
+  });
+  // With an unknown total, shouldNoindexPaginatedPage would read zero and call
+  // every page past the first out of range — a failed request would noindex the
+  // paginated catalog. Unknown means "decide nothing".
+  const count = toCountResult(countRes?.pagination?.total ?? null);
+  const outOfRange = count.ok
+    ? shouldNoindexPaginatedPage(currentPage, count.total, PAGE_SIZE)
+    : false;
 
   const baseMetadata = getPageMetadata(supportedLang, '/catalog', title, description, currentPage);
   if (outOfRange) {

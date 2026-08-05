@@ -3,8 +3,13 @@ import { CatalogContent } from '@/components/public/catalog/CatalogContent/Catal
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { buildBreadcrumbJsonLd, buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import { logError } from '@/lib/utils/log-error';
 import { getPageMetadata } from '@/lib/utils/seo';
-import { buildRobotsByContent, shouldNoindexPaginatedPage } from '@/lib/utils/seo-indexing';
+import {
+  buildRobotsByCount,
+  shouldNoindexPaginatedPage,
+  toCountResult,
+} from '@/lib/utils/seo-indexing';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import { catalogDescriptions, catalogTitles } from '../catalog/catalog-landing-config';
@@ -26,16 +31,23 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const description =
     catalogDescriptions[supportedLang]?.[TITLE_KEY] || catalogDescriptions.en[TITLE_KEY];
 
+  // A failed count must not read as "no books": that would answer 200 + noindex,
+  // which Google treats as final. Unknown → no robots tag → the page stays.
   const countRes = await getBookCards(supportedLang, 1, 1, { sort: LANDING_SORT }).catch(
-    () => null
+    (error) => {
+      logError('Error counting books for popular-books metadata:', error);
+      return null;
+    }
   );
-  const totalItems = countRes?.pagination?.total ?? 0;
-  const hasBooks = totalItems > 0;
+  const count = toCountResult(countRes?.pagination?.total ?? null);
   const currentPage = Math.max(1, Number(sParams.page) || 1);
-  const outOfRange = shouldNoindexPaginatedPage(currentPage, totalItems, PAGE_SIZE);
+  const outOfRange = count.ok
+    ? shouldNoindexPaginatedPage(currentPage, count.total, PAGE_SIZE)
+    : false;
 
   const meta = getPageMetadata(supportedLang, '/popular-books', title, description, currentPage);
-  meta.robots = buildRobotsByContent(hasBooks && !outOfRange);
+  const robots = buildRobotsByCount(count, outOfRange);
+  if (robots) meta.robots = robots;
   return meta;
 }
 
