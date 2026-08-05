@@ -8,6 +8,7 @@ const poetry = (overrides: Partial<BookTaxonomyTerm> = {}): BookTaxonomyTerm => 
   name: 'Poetry',
   slug: 'poetry',
   type: 'genre',
+  booksCount: 6,
   translations: [{ language: 'en', name: 'Poetry', slug: 'poetry', autoIndexable: true }],
   ...overrides,
 });
@@ -27,6 +28,15 @@ describe('BookTaxonomyChips', () => {
           }),
         ]}
       />
+    );
+
+    expect(screen.getByText('Poetry')).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('drops the link when the term has no books, whatever the cache claims', () => {
+    render(
+      <BookTaxonomyChips lang="en" variant="categories" terms={[poetry({ booksCount: 0 })]} />
     );
 
     expect(screen.getByText('Poetry')).toBeInTheDocument();
@@ -80,6 +90,7 @@ describe('BookTaxonomyChips', () => {
             id: 't1',
             name: 'Adventure',
             slug: 'adventure',
+            booksCount: 4,
             translations: [
               { language: 'en', name: 'Adventure', slug: 'adventure', autoIndexable: true },
             ],
@@ -88,6 +99,7 @@ describe('BookTaxonomyChips', () => {
             id: 't2',
             name: 'Hidden',
             slug: 'hidden',
+            booksCount: 4,
             isVisible: false,
             translations: [{ language: 'en', name: 'Hidden', slug: 'hidden', autoIndexable: true }],
           },

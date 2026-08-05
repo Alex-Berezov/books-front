@@ -16,6 +16,24 @@ describe('isTaxonomyLinkable', () => {
     expect(isTaxonomyLinkable({})).toBe(false);
   });
 
+  /**
+   * Exact snapshot of the production state on 05.08.2026: every taxonomy
+   * translation carried `autoIndexable: true` straight from the schema default
+   * while holding no books at all. Under the previous composition the cache won
+   * and the sitemap advertised 2205 empty pages. This test must fail on that
+   * implementation.
+   */
+  it('never lets a cached true override a zero live count', () => {
+    expect(isTaxonomyLinkable({ booksCount: 0, autoIndexable: true })).toBe(false);
+    expect(isTaxonomyLinkable({ autoIndexable: true })).toBe(false);
+  });
+
+  it('lets the cache narrow a non-empty term but not widen an empty one', () => {
+    expect(isTaxonomyLinkable({ booksCount: 4, autoIndexable: false })).toBe(false);
+    expect(isTaxonomyLinkable({ booksCount: 4, autoIndexable: true })).toBe(true);
+    expect(isTaxonomyLinkable({ booksCount: 4 })).toBe(true);
+  });
+
   it('lets the editorial switches veto an auto-indexable term', () => {
     expect(isTaxonomyLinkable({ isVisible: false, autoIndexable: true })).toBe(false);
     expect(isTaxonomyLinkable({ indexable: false, autoIndexable: true })).toBe(false);

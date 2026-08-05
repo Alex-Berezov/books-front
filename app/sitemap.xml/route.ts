@@ -5,6 +5,9 @@ import { getBaseUrl, getBookSitemapUrls, buildSitemapIndexXml } from '@/lib/site
 
 export const dynamic = 'force-dynamic';
 
+/** Same reason as in `app/sitemaps/[filename]/route.ts`: the index must not be built from cached counts. */
+export const fetchCache = 'force-no-store';
+
 async function fetchBooksTotal(lang: string): Promise<number> {
   const res = await getPublicBooks(lang as SupportedLang, { page: 1, limit: 1 });
   return res.meta.total;

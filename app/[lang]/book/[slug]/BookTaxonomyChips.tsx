@@ -10,6 +10,7 @@ export interface BookTaxonomyTerm {
   type?: string;
   isVisible?: boolean;
   indexable?: boolean;
+  /** Live count of published books in the page language, sent by the overview endpoint. */
   booksCount?: number;
   translations?: Array<{
     language: string;
@@ -51,12 +52,19 @@ export function BookTaxonomyChips({ lang, terms, variant }: BookTaxonomyChipsPro
         const label = displayed?.name || term.name || term.id;
         const slug = displayed?.slug || term.slug || term.id;
 
-        const linkable = isTaxonomyLinkable({
-          isVisible: term.isVisible,
-          indexable: term.indexable,
-          autoIndexable: localTranslation?.autoIndexable,
-          booksCount: term.booksCount,
-        });
+        // No translation into the page language → no link, ever. Following the
+        // foreign-language slug would mint a duplicate URL such as
+        // /ru/genre/historical-fiction. Checked explicitly rather than left to
+        // fall out of the predicate: `autoIndexable` is simply absent here, and
+        // an absent cache value means "unknown", not "forbidden".
+        const linkable =
+          Boolean(localTranslation) &&
+          isTaxonomyLinkable({
+            isVisible: term.isVisible,
+            indexable: term.indexable,
+            autoIndexable: localTranslation?.autoIndexable,
+            booksCount: term.booksCount,
+          });
 
         if (!linkable) {
           return (

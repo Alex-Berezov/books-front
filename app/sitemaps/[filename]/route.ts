@@ -17,29 +17,24 @@ import type {
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * The sitemap must never be built from stale taxonomy state.
+ *
+ * `dynamic = 'force-dynamic'` only guarantees the handler re-runs per request —
+ * the upstream `fetch` calls still land in the Next data cache, because the API
+ * sends no `Cache-Control` header of its own. On 05.08.2026 that combination
+ * kept the sitemap advertising 2205 taxonomy URLs for hours after the backend
+ * had already recomputed `autoIndexable` to `false` for all of them: the handler
+ * ran fresh (`lastmod` was current) while its data was hours old.
+ */
+export const fetchCache = 'force-no-store';
+
 export async function GET(request: Request, { params }: { params: { filename: string } }) {
   const { filename } = params;
   const cleanBaseUrl = getBaseUrl();
   const defaultLang = 'en';
 
   const sitemapItems: SitemapItem[] = [];
-
-  /**
-   * A taxonomy page belongs in the sitemap only while it is indexable — the same
-   * rule that decides whether the app may link to it. Here the signal lives on the
-   * per-language translation rather than on the term itself, so it is reshaped into
-   * `LinkableTerm` before being handed to the one shared predicate.
-   */
-  const isTaxonomyIndexable = (
-    translation: CategoryTranslation | TagTranslation | undefined,
-    booksCount: number | undefined
-  ) => {
-    if (!translation) return false;
-    return isTaxonomyLinkable({
-      autoIndexable: translation.autoIndexable,
-      booksCount,
-    });
-  };
 
   const getAlternates = (languages: readonly string[], pathBuilder: (lang: string) => string) => {
     const alternates: Record<string, string> = {};
@@ -169,7 +164,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
       let categories: Category[] = [];
       try {
-        const catRes = await getCategories({ type: 'genre', limit: 1000 });
+        const catRes = await getCategories({ type: 'genre', limit: 1000, lang });
         categories = catRes?.data || [];
       } catch (error) {
         console.error(`Error fetching genres for sitemap (${lang}):`, error);
@@ -180,7 +175,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
           (t: CategoryTranslation) => t.language === lang && t.slug
         );
         if (!currentTranslation?.slug) return;
-        if (!isTaxonomyIndexable(currentTranslation, cat.booksCount)) return;
+        if (!isTaxonomyLinkable(cat)) return;
 
         const url = `${cleanBaseUrl}/${lang}/genre/${currentTranslation.slug}`;
 
@@ -219,7 +214,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
       let categories: Category[] = [];
       try {
-        const catRes = await getCategories({ type: 'category', limit: 1000 });
+        const catRes = await getCategories({ type: 'category', limit: 1000, lang });
         categories = catRes?.data || [];
       } catch (error) {
         console.error(`Error fetching categories for sitemap (${lang}):`, error);
@@ -230,7 +225,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
           (t: CategoryTranslation) => t.language === lang && t.slug
         );
         if (!currentTranslation?.slug) return;
-        if (!isTaxonomyIndexable(currentTranslation, cat.booksCount)) return;
+        if (!isTaxonomyLinkable(cat)) return;
 
         const url = `${cleanBaseUrl}/${lang}/category/${currentTranslation.slug}`;
 
@@ -266,7 +261,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
       let categories: Category[] = [];
       try {
-        const catRes = await getCategories({ type: 'collection', limit: 1000 });
+        const catRes = await getCategories({ type: 'collection', limit: 1000, lang });
         categories = catRes?.data || [];
       } catch (error) {
         console.error(`Error fetching collections for sitemap (${lang}):`, error);
@@ -277,7 +272,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
           (t: CategoryTranslation) => t.language === lang && t.slug
         );
         if (!currentTranslation?.slug) return;
-        if (!isTaxonomyIndexable(currentTranslation, cat.booksCount)) return;
+        if (!isTaxonomyLinkable(cat)) return;
 
         const url = `${cleanBaseUrl}/${lang}/collection/${currentTranslation.slug}`;
 
@@ -371,7 +366,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
       let tags: Tag[] = [];
       try {
-        const tagsRes = await getTags({ limit: 1000 });
+        const tagsRes = await getTags({ limit: 1000, lang });
         tags = tagsRes?.data || [];
       } catch (error) {
         console.error(`Error fetching tags for sitemap (${lang}):`, error);
@@ -382,7 +377,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
           (t: TagTranslation) => t.language === lang && t.slug
         );
         if (!currentTranslation?.slug) return;
-        if (!isTaxonomyIndexable(currentTranslation, tag.booksCount)) return;
+        if (!isTaxonomyLinkable(tag)) return;
 
         const url = `${cleanBaseUrl}/${lang}/tag/${currentTranslation.slug}`;
 

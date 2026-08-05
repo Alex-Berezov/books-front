@@ -15,16 +15,31 @@ export interface LinkableTerm {
   isVisible?: boolean;
   /** Editorial switch: term excluded from indexing. */
   indexable?: boolean;
-  /** Stored hysteresis state for the current language. Authoritative when present. */
+  /** Stored hysteresis state for the current language. May only narrow, never widen. */
   autoIndexable?: boolean;
-  /** Live book count. Fallback only, for API responses without `autoIndexable`. */
+  /** Live book count. The hard floor — a term with no books is never linkable. */
   booksCount?: number;
 }
 
+/**
+ * The signals are combined with AND, deliberately: the live count is the floor
+ * and the cached state can only narrow it further.
+ *
+ * An earlier version let `autoIndexable` win outright whenever it was present.
+ * On 05.08.2026 that cost us production: the column had never been recomputed
+ * and sat at its schema default of `true` for every term, so the moment the API
+ * started returning it, the "cache" waved through 100% of the taxonomy —
+ * including terms with zero books — and the sitemap advertised 2205 empty
+ * pages. Under the rule below the same broken cache would have degraded to
+ * "every non-empty term" instead of "everything".
+ *
+ * `booksCount` must therefore be the count for the language being rendered.
+ * Passing a cross-language count weakens the floor without breaking it.
+ */
 export function isTaxonomyLinkable(term: LinkableTerm | null | undefined): boolean {
   if (!term) return false;
   if (term.isVisible === false) return false;
   if (term.indexable === false) return false;
-  if (term.autoIndexable !== undefined) return term.autoIndexable;
-  return (term.booksCount ?? 0) > 0;
+  if ((term.booksCount ?? 0) <= 0) return false;
+  return term.autoIndexable ?? true;
 }
