@@ -36,7 +36,9 @@ const LANGS = ['en', 'ru', 'es', 'fr', 'pt'];
  * from "busy" is worse than none, because a daily alert nobody trusts is a
  * daily alert nobody reads.
  */
-const CONCURRENCY = 2;
+const CONCURRENCY = 1;
+/** Breathing room between requests — see the note above CONCURRENCY. */
+const PACE_MS = 150;
 /** A 5xx or a transport error is retried before it is believed. */
 const ATTEMPTS = 3;
 /** Above this share of failed fetches the run is not evidence about the site. */
@@ -89,6 +91,7 @@ async function mapLimit(items, fn) {
       cursor += 1;
       if (i >= items.length) return;
       out[i] = await fn(items[i], i);
+      if (PACE_MS) await sleep(PACE_MS);
     }
   });
   await Promise.all(workers);
