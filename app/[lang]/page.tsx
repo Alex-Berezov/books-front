@@ -13,12 +13,7 @@ import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type {
-  AuthorListItem,
-  BookCardModel,
-  BookCollection,
-  BookCollectionData,
-} from '@/types/api-schema';
+import type { AuthorListItem, BookCollection, BookCollectionData } from '@/types/api-schema';
 import type { PageResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 
@@ -202,27 +197,11 @@ export default async function PublicLangPage({ params }: Props) {
     };
   }
 
-  const data = await fetchHomepageData().catch(() => ({
-    featuredBooks: [] as BookCardModel[],
-    newReleases: [] as BookCardModel[],
-    audiobooks: [] as BookCardModel[],
-    allCategories: [],
-    allGenres: [],
-    allCollections: [],
-    allTags: [],
-    allAuthors: [],
-    classicBooks: [] as BookCardModel[],
-    fantasyBooks: [] as BookCardModel[],
-    collectionSections: [] as BookCollectionData[],
-    heroStackBooks: [] as BookCardModel[],
-    audiobooksCount: 0,
-    sections: {} as Record<string, unknown>,
-    whyBibliaris: [],
-    aboutText: '',
-    faqItems: null,
-    heroTitle: t('home.title'),
-    heroText: t('home.subtitle'),
-  }));
+  // No blanket catch. Every request above degrades on its own — a missing
+  // homepage-index Page costs the editorial text and nothing else. Wrapping the
+  // whole thing meant one failing section blanked the books that had loaded
+  // fine, which is exactly what was seen when the Page slug drifted.
+  const data = await fetchHomepageData();
 
   return (
     <HomePageContent
@@ -273,9 +252,15 @@ export default async function PublicLangPage({ params }: Props) {
   );
 }
 
+/**
+ * `return promise` inside `try` does not put the rejection anywhere the `catch`
+ * can see it — the caller gets the rejected promise. Both helpers were named
+ * Safe and caught nothing, which is how a single failing section could reject
+ * the whole `Promise.all` and blank the homepage.
+ */
 async function getTagBookCardsSafe(lang: SupportedLang, slug: string, page: number, limit: number) {
   try {
-    return getTagBookCards(lang, slug, page, limit);
+    return await getTagBookCards(lang, slug, page, limit);
   } catch {
     return null;
   }
@@ -288,7 +273,7 @@ async function getCategoryBookCardsSafe(
   limit: number
 ) {
   try {
-    return getCategoryBookCards(lang, slug, page, limit);
+    return await getCategoryBookCards(lang, slug, page, limit);
   } catch {
     return null;
   }

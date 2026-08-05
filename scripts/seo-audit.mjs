@@ -10,7 +10,7 @@
  *
  *   7.2  nothing indexable links to something non-indexable
  *   7.4  everything advertised is indexable and addressable
- *   7.6  everything advertised is reachable by at least one internal link
+ *   7.6  everything advertised is reachable without executing JavaScript
  *
  * No sampling and no caps: the whole sitemap is a few hundred URLs across five
  * languages. A threshold would only create a second thing to get wrong.
@@ -231,7 +231,12 @@ async function main() {
   // paginate, so absence from the first page is not an orphan.
   for (const url of sitemap.keys()) {
     if (!/\/(category|genre|collection|tag)\//.test(url)) continue;
-    if (!linked.has(url)) note('7.6', url, 'in sitemap but no internal link points at it');
+    if (!linked.has(url))
+      note(
+        '7.6',
+        url,
+        'in sitemap but unreachable without JavaScript — no internal link in server HTML'
+      );
   }
 
   report({ sitemap: sitemap.size, linked: linked.size, checked: pages.size });
@@ -260,7 +265,8 @@ function inconclusive(failed, total) {
   ].join(String.fromCharCode(10));
 
   console.error(out);
-  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, out + String.fromCharCode(10));
+  if (process.env.GITHUB_STEP_SUMMARY)
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, out + String.fromCharCode(10));
   process.exit(2);
 }
 

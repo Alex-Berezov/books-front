@@ -11,7 +11,7 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ChangeEvent, FC, FocusEvent } from 'react';
 import { useSlugValidation } from '@/lib/hooks/useSlugValidation';
 import { generateSlug, isValidSlug } from '@/lib/utils/slug';
@@ -55,21 +55,20 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
   } = props;
 
   // State: was slug manually edited by user
-  const [wasManuallyEdited, setWasManuallyEdited] = useState(false);
-
-  // Detect form reset in edit mode (both value and sourceValue go from empty to populated simultaneously)
-  const prevValueRef = useRef(value);
-  const prevSourceRef = useRef(sourceValue);
-
-  useEffect(() => {
-    const valueJustPopulated = !prevValueRef.current && value;
-    const sourceJustPopulated = !prevSourceRef.current && sourceValue;
-    if (valueJustPopulated && sourceJustPopulated) {
-      setWasManuallyEdited(true);
-    }
-    prevValueRef.current = value;
-    prevSourceRef.current = sourceValue;
-  }, [value, sourceValue]);
+  /**
+   * Editing an existing entity never regenerates the slug.
+   *
+   * `excludeId` is only ever passed when a record is being edited, so it is the
+   * reliable signal for "this slug is already published somewhere". The previous
+   * guard tried to infer the same thing by watching for `value` and `sourceValue`
+   * becoming populated *in the same render*, which is a race: whenever the form
+   * hydrated the title a render earlier than the slug, the guard did not arm and
+   * the next effect rewrote the slug from the title. That is how the homepage's
+   * `homepage-index` became `homepage` — silently, on an ordinary save, with a
+   * published URL on the other end of it.
+   */
+  const isEditing = Boolean(excludeId);
+  const [wasManuallyEdited, setWasManuallyEdited] = useState(isEditing);
 
   // Hook for slug uniqueness check
   const { existingItem, isUnique, status, suggestedSlug, validate } = useSlugValidation({
