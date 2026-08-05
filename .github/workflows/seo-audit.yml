@@ -1,0 +1,40 @@
+name: 🔎 SEO contract audit
+
+# The unit tests guard the code; this guards the state. У0 survived for months
+# with correct code because only the data moved — nothing was committed on the
+# day the sitemap started advertising 2205 empty pages. So the audit is tied to
+# time as well as to deployment:
+#   - after every deploy, while the cause is obvious and the rollback is cheap;
+#   - daily, because data drifts without anyone pushing.
+on:
+  workflow_run:
+    workflows: ['Deploy Frontend']
+    types: [completed]
+  schedule:
+    # 04:00 UTC — an hour after the backend recomputes taxonomy indexability.
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Site to audit'
+        required: false
+        default: 'https://bibliaris.com'
+
+jobs:
+  audit:
+    name: Crawl sitemap and internal links
+    runs-on: ubuntu-latest
+    # A failed deploy has nothing to audit.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Exit 1 = the contract is broken. Exit 2 = the audit could not get clean
+      # answers and says nothing about the site; that is not a contract failure
+      # and must not be reported as one.
+      - name: Run audit
+        run: node scripts/seo-audit.mjs --base=${{ github.event.inputs.base_url || 'https://bibliaris.com' }}

@@ -96,6 +96,18 @@ function getAuthorDisplayName(author: AuthorListItem, lang: string): string {
   return tr?.name || '';
 }
 
+/**
+ * The author's slug in the language being rendered, or `null`.
+ *
+ * `author.slug` from the list endpoint is the English one whatever the path
+ * language, so linking to it produced /ru/author/sun-tzu while the page lives at
+ * /ru/author/sun-czy. That used to resolve to a fallback page; now that an
+ * unresolvable slug is an honest 404, the same link would simply break.
+ */
+function getAuthorSlug(author: AuthorListItem, lang: string): string | null {
+  return (author.translations || []).find((t) => t.language === lang)?.slug || null;
+}
+
 function renderCollections(
   collections: BookCollectionData[],
   pos: string,
@@ -420,10 +432,14 @@ export function HomePageContent({
             <div className={pageStyles.authorCarousel}>
               {featuredAuthors.map((author) => {
                 const name = getAuthorDisplayName(author, lang);
+                const slug = getAuthorSlug(author, lang);
+                // Not addressable in this language → not shown, rather than shown
+                // as a link that 404s.
+                if (!slug) return null;
                 return (
                   <Link
                     key={author.id}
-                    href={`/${lang}/author/${author.slug}`}
+                    href={`/${lang}/author/${slug}`}
                     className={pageStyles.authorCard}
                   >
                     <div className={pageStyles.authorAvatar}>

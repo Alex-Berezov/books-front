@@ -36,10 +36,39 @@ export interface LinkableTerm {
  * `booksCount` must therefore be the count for the language being rendered.
  * Passing a cross-language count weakens the floor without breaking it.
  */
+/**
+ * The missing-field fallback must not be silent.
+ *
+ * `autoIndexable` absent means the API is not sending it, and the predicate then
+ * decides on the live count alone. That is a survivable degradation, not a
+ * normal mode — and it is precisely what hid the У0 defect for months: both the
+ * sitemap and the predicate quietly fell back to the same weaker rule and agreed
+ * with each other while being equally wrong. Warned once per process, because
+ * this runs per term on every render.
+ */
+let fallbackWarned = false;
+
+export function resetTaxonomyFallbackWarning(): void {
+  fallbackWarned = false;
+}
+
 export function isTaxonomyLinkable(term: LinkableTerm | null | undefined): boolean {
   if (!term) return false;
   if (term.isVisible === false) return false;
   if (term.indexable === false) return false;
   if ((term.booksCount ?? 0) <= 0) return false;
-  return term.autoIndexable ?? true;
+
+  if (term.autoIndexable === undefined) {
+    if (!fallbackWarned) {
+      fallbackWarned = true;
+      console.warn(
+        '[taxonomy-linkable] autoIndexable missing from the API response — ' +
+          'falling back to booksCount alone. Linking and the sitemap are now ' +
+          'deciding on a weaker signal than meta robots.'
+      );
+    }
+    return true;
+  }
+
+  return term.autoIndexable;
 }
