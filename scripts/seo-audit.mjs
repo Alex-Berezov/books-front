@@ -115,8 +115,8 @@ function matchAll(re, text, pick) {
 async function collectSitemapUrls() {
   const index = await fetchText(`${BASE}/sitemap.xml`);
   if (index.status !== 200) {
-    console.error(`sitemap index answered ${index.status}`);
-    process.exit(2);
+    // Nothing to audit and nothing proven — the loudest outcome, not a quiet exit.
+    inconclusive(totalFetches, totalFetches);
   }
   const files = matchAll(LOC_RE, index.body, (m) => decode(m[1]));
 
@@ -187,11 +187,7 @@ async function main() {
   // about the site — it says the site was busy, quite possibly because of us.
   // Reporting violations here would be manufacturing them.
   if (transientFailures / Math.max(totalFetches, 1) > UNRELIABLE_RATIO) {
-    console.error(
-      `Audit unreliable: ${transientFailures} of ${totalFetches} fetches failed after ` +
-        `${ATTEMPTS} attempts. Not reporting violations — rerun when the site is idle.`
-    );
-    process.exit(2);
+    inconclusive(transientFailures, totalFetches);
   }
 
   // 7.2 — nothing indexable links to something non-indexable.
@@ -236,6 +232,33 @@ async function main() {
   }
 
   report({ sitemap: sitemap.size, linked: linked.size, checked: pages.size });
+}
+
+/**
+ * "Could not check" must be the loudest outcome, not the quietest.
+ *
+ * Refusing to report violations when most fetches failed protects against
+ * manufacturing alerts — but it has an obvious failure mode: when the site is
+ * genuinely down, every fetch fails and the check would fall silent exactly when
+ * it matters most. So this is its own status, it fails the step, and it says so
+ * before anything else.
+ */
+function inconclusive(failed, total) {
+  const share = Math.round((failed / Math.max(total, 1)) * 100);
+  const out = [
+    `# 🚨 INCONCLUSIVE — the SEO audit could not check ${BASE}`,
+    '',
+    `**${failed} of ${total} requests (${share}%) never got a clean answer after ${ATTEMPTS} attempts.**`,
+    '',
+    'This is not "clean" and not "violations found" — it is a third state, and a worse one:',
+    'the site may be down, unreachable or overloaded, and nothing about the contract was verified.',
+    '',
+    'Check the site is up before rerunning. If it is up, the audit itself is the problem.',
+  ].join(String.fromCharCode(10));
+
+  console.error(out);
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, out + String.fromCharCode(10));
+  process.exit(2);
 }
 
 function report({ sitemap, linked, checked }) {
