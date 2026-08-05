@@ -37,10 +37,22 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const hasFilters = !!(sParams.q || sParams.type || sParams.sort);
   const currentPage = Math.max(1, Number(sParams.page) || 1);
 
+  // A filtered catalog is deliberately noindex — facet combinations are duplicates
+  // of the clean listing. It must not also claim that listing's canonical and
+  // hreflang: the page would simultaneously say "do not index me" and "the
+  // canonical version of me is this other, indexable URL". Built by hand rather
+  // than through getPageMetadata, which always attaches alternates.
   if (hasFilters) {
-    const baseMetadata = getPageMetadata(supportedLang, '/catalog', title, description);
-    baseMetadata.robots = 'noindex, follow';
-    return baseMetadata;
+    return {
+      title,
+      description,
+      robots: { index: false, follow: true },
+      openGraph: {
+        title,
+        description,
+        type: 'website',
+      },
+    };
   }
 
   const countRes = await getBookCards(supportedLang, 1, 1).catch((error) => {
