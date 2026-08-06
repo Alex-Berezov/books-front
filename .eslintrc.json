@@ -66,5 +66,19 @@
     "jsx-a11y/no-static-element-interactions": "warn",
     "jsx-a11y/label-has-associated-control": "warn",
     "jsx-a11y/img-redundant-alt": "warn"
-  }
+  },
+  "overrides": [
+    {
+      // `return somePromise` inside `try` does not put the rejection anywhere the
+      // `catch` can see it — the caller receives the rejected promise instead. Two
+      // helpers literally named *Safe were written that way and caught nothing,
+      // which is how one failing homepage section blanked the whole page. This is
+      // a type-aware rule, hence the separate override with `project`.
+      "files": ["**/*.ts", "**/*.tsx"],
+      "parserOptions": { "project": "./tsconfig.json" },
+      "rules": {
+        "@typescript-eslint/return-await": ["error", "in-try-catch"]
+      }
+    }
+  ]
 }

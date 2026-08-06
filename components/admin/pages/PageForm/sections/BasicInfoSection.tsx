@@ -135,6 +135,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
             excludeId={initialData?.id}
             id="slug"
             lang={watch('language')}
+            mode={initialData?.id ? 'edit' : 'create'}
             onChange={(value) => setValue('slug', value)}
             placeholder="about-us"
             showGenerateButton

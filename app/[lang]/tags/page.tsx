@@ -1,4 +1,5 @@
-import { TaxonomyOverviewClient } from '@/components/public/taxonomy-overview/TaxonomyOverviewClient';
+import { getPublicTags } from '@/api/endpoints/public';
+import { TaxonomyOverview } from '@/components/public/taxonomy-overview/TaxonomyOverview';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { fetchPageBySlug } from '@/lib/utils/fetch-page';
 import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
@@ -9,6 +10,11 @@ import type { Metadata } from 'next';
 type Props = {
   params: Promise<{ lang: string }> | { lang: string };
 };
+
+export const revalidate = 300;
+
+/** Same ceiling the client-side version used. */
+const TAGS_LIMIT = 200;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
@@ -28,7 +34,12 @@ export default async function TagsPage({ params }: Props) {
   const resolvedParams = await params;
   const lang = resolvedParams.lang as SupportedLang;
 
-  const page = await fetchPageBySlug(lang, 'taxonomy-tags-index');
+  // Deliberately not caught: the terms *are* this page. A failed request must
+  // surface as 5xx, not as a 200 that says the site has no tags.
+  const [page, tags] = await Promise.all([
+    fetchPageBySlug(lang, 'taxonomy-tags-index'),
+    getPublicTags(lang, { limit: TAGS_LIMIT }),
+  ]);
   const dict = getDictionary(lang);
 
   const siteUrl = getSiteUrl();
@@ -47,7 +58,7 @@ export default async function TagsPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <TaxonomyOverviewClient lang={lang} configKey="tag" initialPage={page ?? undefined} />
+      <TaxonomyOverview configKey="tag" items={tags.data} lang={lang} page={page} />
     </>
   );
 }

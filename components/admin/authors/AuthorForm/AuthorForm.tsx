@@ -599,6 +599,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
                     sourceValue={trans.name}
                     entityType="book"
                     lang={langKey}
+                    mode={isEditMode ? 'edit' : 'create'}
                     autoGenerate={!isEditMode || !trans.slug}
                   />
                 </div>

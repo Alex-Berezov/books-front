@@ -145,6 +145,7 @@ export const TagModal: FC<TagModalProps> = (props) => {
                 sourceValue={watch('name')}
                 entityType="book" // Fallback
                 lang={lang}
+                mode={isEditMode ? 'edit' : 'create'}
                 autoGenerate
               />
             )}

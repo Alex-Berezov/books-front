@@ -33,6 +33,7 @@ import { ValidationHint } from './ui/ValidationHint';
  *   sourceValue={watch('title')}
  *   entityType="page"
  *   lang="en"
+ *   mode={initialData ? 'edit' : 'create'}
  *   autoGenerate
  *   showGenerateButton
  * />
@@ -47,6 +48,7 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
     excludeId,
     id = 'slug',
     lang,
+    mode,
     onChange,
     placeholder = 'about-us',
     showGenerateButton = true,
@@ -54,21 +56,26 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
     value,
   } = props;
 
-  // State: was slug manually edited by user
   /**
-   * Editing an existing entity never regenerates the slug.
-   *
-   * `excludeId` is only ever passed when a record is being edited, so it is the
-   * reliable signal for "this slug is already published somewhere". The previous
-   * guard tried to infer the same thing by watching for `value` and `sourceValue`
-   * becoming populated *in the same render*, which is a race: whenever the form
-   * hydrated the title a render earlier than the slug, the guard did not arm and
+   * Editing an existing record never regenerates the slug, because that slug is
+   * already a live URL. `mode` says so outright rather than being inferred: the
+   * original guard tried to deduce it by watching `value` and `sourceValue`
+   * become populated *in the same render*, which is a race — a form that
+   * hydrated the title one render before the slug left the guard disarmed and
    * the next effect rewrote the slug from the title. That is how the homepage's
-   * `homepage-index` became `homepage` — silently, on an ordinary save, with a
-   * published URL on the other end of it.
+   * `homepage-index` became `homepage`, silently, on an ordinary save.
+   *
+   * Typing in the field locks generation for the rest of a create session; the
+   * lock is released when the same mounted form switches to another record
+   * (modals are reused rather than remounted).
    */
-  const isEditing = Boolean(excludeId);
-  const [wasManuallyEdited, setWasManuallyEdited] = useState(isEditing);
+  const [wasManuallyEdited, setWasManuallyEdited] = useState(false);
+  const [modeOfLock, setModeOfLock] = useState(mode);
+  if (modeOfLock !== mode) {
+    setModeOfLock(mode);
+    setWasManuallyEdited(false);
+  }
+  const autoGenerationLocked = mode === 'edit' || wasManuallyEdited;
 
   // Hook for slug uniqueness check
   const { existingItem, isUnique, status, suggestedSlug, validate } = useSlugValidation({
@@ -84,9 +91,9 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
   useEffect(() => {
     // Don't auto-generate if:
     // - autoGenerate is disabled
-    // - slug was manually edited
+    // - the form is editing an existing record, or the slug was typed by hand
     // - no sourceValue
-    if (!autoGenerate || wasManuallyEdited || !sourceValue) {
+    if (!autoGenerate || autoGenerationLocked || !sourceValue) {
       return;
     }
 
@@ -96,7 +103,7 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
     if (generatedSlug !== value) {
       onChange(generatedSlug);
     }
-  }, [sourceValue, autoGenerate, wasManuallyEdited, value, onChange]);
+  }, [sourceValue, autoGenerate, autoGenerationLocked, value, onChange]);
 
   /**
    * Check uniqueness when slug changes

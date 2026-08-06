@@ -196,6 +196,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
           error={errors.bookSlug?.message}
           excludeId={bookId}
           id="bookSlug"
+          mode={bookId ? 'edit' : 'create'}
           onChange={(value) => setValue('bookSlug', value)}
           placeholder="harry-potter"
           showGenerateButton

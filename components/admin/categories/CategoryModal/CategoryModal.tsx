@@ -169,6 +169,7 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
                 error={errors.slug?.message}
                 sourceValue={watch('name')}
                 entityType="category"
+                mode={isEditMode ? 'edit' : 'create'}
                 // We handle validation manually in onSubmit for now
               />
             )}

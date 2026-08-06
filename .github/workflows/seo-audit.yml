@@ -11,8 +11,10 @@ on:
     workflows: ['Deploy Frontend']
     types: [completed]
   schedule:
-    # 04:00 UTC — an hour after the backend recomputes taxonomy indexability.
-    - cron: '0 4 * * *'
+    # An hour after the backend recomputes taxonomy indexability (03:00 UTC).
+    # Not on the hour: GitHub's scheduler queues everything set to :00 together
+    # and delays it — the 06.08 run was asked for at 04:00 and started at 05:00.
+    - cron: '17 4 * * *'
   workflow_dispatch:
     inputs:
       base_url:
@@ -32,6 +34,35 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      # The site runs as a single container, so a deploy is a restart and requests
+      # during the swap are simply not served. Three of the four post-deploy runs
+      # measured that gap and reported it as the site being broken (21%, 37%, 13%
+      # of fetches failing); the scheduled run over the same site at an idle hour
+      # had zero failures. So the audit waits for the site to be back before it
+      # starts crawling — otherwise it keeps measuring the deploy, not the site.
+      #
+      # Three *consecutive* successes, because the first 200 can still come from
+      # the outgoing container.
+      - name: Wait for the site to be serving
+        env:
+          BASE: ${{ github.event.inputs.base_url || 'https://bibliaris.com' }}
+        run: |
+          streak=0
+          for attempt in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$BASE/en" || echo 000)
+            if [ "$code" = "200" ]; then
+              streak=$((streak + 1))
+              echo "attempt $attempt: 200 (streak $streak/3)"
+              [ "$streak" -ge 3 ] && exit 0
+            else
+              [ "$streak" -gt 0 ] && echo "attempt $attempt: $code — streak reset"
+              streak=0
+            fi
+            sleep 5
+          done
+          echo "::error::The site never answered 200 three times in a row within 5 minutes. Not crawling — this run would have measured an outage, not the contract."
+          exit 2
 
       # Exit 1 = the contract is broken. Exit 2 = the audit could not get clean
       # answers and says nothing about the site; that is not a contract failure

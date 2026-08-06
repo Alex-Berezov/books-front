@@ -13,6 +13,7 @@ import type {
   BookOverview,
   CategoryBookCardsResponse,
   CategoryBooksResponse,
+  CategoryTree,
   PageResponse,
   TagBookCardsResponse,
   TagBooksResponse,
@@ -341,6 +342,26 @@ export const getTagBookCards = async (
 ): Promise<TagBookCardsResponse> => {
   const endpoint = buildLangPath(lang, `/tags/${slug}/books/cards?page=${page}&limit=${limit}`);
   return httpGet<TagBookCardsResponse>(endpoint, { language: lang });
+};
+
+/**
+ * Category/genre/collection tree with children, for server rendering.
+ *
+ * The overview pages used to fetch this from the browser, which meant their
+ * server HTML contained no links to any term — every taxonomy page in the
+ * sitemap was reachable only by executing JavaScript (rule 7.6). `/categories/tree`
+ * is not language-prefixed; it takes `?lang=`.
+ */
+export const getPublicCategoriesTree = async (
+  lang: SupportedLang,
+  type?: 'category' | 'genre' | 'collection'
+): Promise<CategoryTree[]> => {
+  const params = new URLSearchParams({ lang });
+  if (type) params.append('type', type);
+  return httpGet<CategoryTree[]>(`/categories/tree?${params.toString()}`, {
+    language: lang,
+    next: { revalidate: 300 },
+  });
 };
 
 /**

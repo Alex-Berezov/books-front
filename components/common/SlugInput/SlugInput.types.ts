@@ -9,6 +9,17 @@ export interface SlugInputProps {
   value: string;
   /** Callback on slug change */
   onChange: (value: string) => void;
+  /**
+   * Whether the form is creating a new record or editing an existing one.
+   *
+   * Required on purpose, and deliberately not inferred from `excludeId`: an
+   * existing slug is a published URL, and auto-generation must never touch it.
+   * The previous guard derived the same fact from other props and got it wrong
+   * on any form that hydrated its title before its slug — which is how the
+   * homepage's `homepage-index` quietly became `homepage`. A form that forgets
+   * to state its mode now fails to compile instead of failing in production.
+   */
+  mode: 'create' | 'edit';
   /** Source value for auto-generation (usually title) */
   sourceValue?: string;
   /** Entity type (page | book) for uniqueness check */
