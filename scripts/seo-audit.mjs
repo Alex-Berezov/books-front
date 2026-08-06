@@ -15,8 +15,12 @@
  * No sampling and no caps: the whole sitemap is a few hundred URLs across five
  * languages. A threshold would only create a second thing to get wrong.
  *
- * Usage:  node scripts/seo-audit.mjs [--base https://bibliaris.com]
- * Exit:   0 clean, 1 violations found, 2 the audit itself could not run.
+ * Two modes, because "after a deploy" and "on a quiet night" are different
+ * questions. `--mode=smoke` checks a handful of addresses and that the hubs still
+ * render their links; `--mode=full` (default) checks the whole contract.
+ *
+ * Usage:  node scripts/seo-audit.mjs [--base=https://bibliaris.com] [--mode=smoke|full]
+ * Exit:   0 clean, 1 problems found, 2 the audit itself could not run.
  */
 
 import { appendFileSync } from 'node:fs';
@@ -26,6 +30,11 @@ const BASE = (
   process.env.SEO_AUDIT_BASE_URL ||
   'https://bibliaris.com'
 ).replace(/\/$/, '');
+
+const MODE =
+  process.argv.find((a) => a.startsWith('--mode='))?.slice('--mode='.length) === 'smoke'
+    ? 'smoke'
+    : 'full';
 
 const LANGS = ['en', 'ru', 'es', 'fr', 'pt'];
 /**
@@ -52,8 +61,28 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 /** Entry points crawled for internal links (7.2). */
 const SEED_PATHS = ['', '/categories', '/genres', '/collections', '/tags', '/catalog'];
 
-const violations = [];
-const note = (rule, url, detail) => violations.push({ rule, url, detail });
+/**
+ * Findings are keyed by the URL that is actually broken — one address, one row.
+ *
+ * The flat list this replaced counted the same address several times: once as a
+ * linked page (7.2), once as a sitemap entry (7.4), and once per *referring* URL
+ * when it appeared as an hreflang alternate. The 06.08 post-deploy run turned
+ * ~25 momentarily failing addresses into "138 violations". Even after the cold
+ * start is fixed, that arithmetic would make any single blip look like a
+ * catastrophe, and a report nobody can read is a report nobody reads.
+ */
+const findings = new Map();
+
+const note = (rule, url, problem, source) => {
+  let entry = findings.get(url);
+  if (!entry) {
+    entry = { rules: new Set(), problems: new Set(), sources: new Set() };
+    findings.set(url, entry);
+  }
+  entry.rules.add(rule);
+  entry.problems.add(problem);
+  if (source) entry.sources.add(source);
+};
 
 async function fetchText(url) {
   totalFetches += 1;
@@ -145,7 +174,9 @@ async function crawlInternalLinks() {
   const seeds = [];
   for (const lang of LANGS) for (const p of SEED_PATHS) seeds.push(`${BASE}/${lang}${p}`);
 
-  const links = new Set();
+  // url -> the entry points it was linked from, so a broken page can say where
+  // the link lives instead of just that one exists.
+  const links = new Map();
   await mapLimit(seeds, async (seed) => {
     const res = await fetchText(seed);
     if (res.status !== 200) {
@@ -154,7 +185,9 @@ async function crawlInternalLinks() {
     }
     for (const href of matchAll(ANCHOR_RE, res.body, (m) => m[1])) {
       if (/^\/(en|ru|es|fr|pt)\/(category|genre|collection|tag|author|book)\//.test(href)) {
-        links.add(`${BASE}${href}`);
+        const url = `${BASE}${href}`;
+        if (!links.has(url)) links.set(url, new Set());
+        links.get(url).add(seed);
       }
     }
   });
@@ -178,11 +211,11 @@ async function inspect(urls) {
 
 const isNoindex = (robots) => !!robots && /noindex/i.test(robots);
 
-async function main() {
+async function runFullContract() {
   const sitemap = await collectSitemapUrls();
   const linked = await crawlInternalLinks();
 
-  const everything = new Set([...sitemap.keys(), ...linked]);
+  const everything = new Set([...sitemap.keys(), ...linked.keys()]);
   for (const alts of sitemap.values()) for (const a of alts) everything.add(a);
   const pages = await inspect(everything);
 
@@ -194,11 +227,12 @@ async function main() {
   }
 
   // 7.2 — nothing indexable links to something non-indexable.
-  for (const url of linked) {
+  for (const [url, sources] of linked) {
     const page = pages.get(url);
     if (!page) continue;
-    if (page.status !== 200) note('7.2', url, `linked page answered ${page.status}`);
-    else if (isNoindex(page.robots)) note('7.2', url, 'linked page is noindex');
+    const from = [...sources].join(', ');
+    if (page.status !== 200) note('7.2', url, `answered ${page.status}`, from);
+    else if (isNoindex(page.robots)) note('7.2', url, 'is noindex', from);
   }
 
   // 7.4 — everything advertised is indexable and addressable.
@@ -217,12 +251,15 @@ async function main() {
     if (page.canonical && page.canonical.replace(/\/$/, '') !== url.replace(/\/$/, '')) {
       note('7.4', url, `in sitemap but canonicalises to ${page.canonical}`);
     }
+    // Keyed by the alternate, not by the page that declares it: one broken
+    // alternate is one broken address, however many pages point at it.
     for (const alt of alternates) {
       const altPage = pages.get(alt);
       if (!altPage) continue;
       if (altPage.status !== 200)
-        note('7.4', url, `hreflang alternate ${alt} answered ${altPage.status}`);
-      else if (isNoindex(altPage.robots)) note('7.4', url, `hreflang alternate ${alt} is noindex`);
+        note('7.4', alt, `declared as hreflang alternate but answered ${altPage.status}`, url);
+      else if (isNoindex(altPage.robots))
+        note('7.4', alt, 'declared as hreflang alternate but is noindex', url);
     }
   }
 
@@ -240,6 +277,66 @@ async function main() {
   }
 
   report({ sitemap: sitemap.size, linked: linked.size, checked: pages.size });
+}
+
+/** How many addresses the smoke run touches. Small enough to survive a cold start. */
+const SMOKE_HUBS = ['categories', 'genres', 'collections', 'tags'];
+
+/**
+ * The post-deploy run: a handful of addresses, not the whole contract.
+ *
+ * The full crawl was tried three times immediately after a deploy and produced
+ * false findings all three times (21%, 37% and 13% of fetches failing, then 164
+ * and 138 "violations" whose addresses all answered 200 minutes later). A single
+ * container has just restarted; 206 sequential requests are the load. This is not
+ * a threshold to tune, it is the wrong moment to ask.
+ *
+ * So the deploy gets a smoke test: every hub, one taxonomy of each kind, a book
+ * and an author. It catches the coarse regressions — a hub that stopped rendering
+ * its links, a page type that started answering 500 — and it warms the instance
+ * for the nightly run that does check the contract in full.
+ */
+async function runSmoke() {
+  const sitemap = await collectSitemapUrls();
+  const byKind = (kind) => [...sitemap.keys()].filter((u) => u.includes(`/${kind}/`)).sort()[0];
+
+  const hubs = LANGS.map((lang, i) => `${BASE}/${lang}/${SMOKE_HUBS[i % SMOKE_HUBS.length]}`);
+  const samples = ['category', 'genre', 'collection', 'tag', 'book', 'author']
+    .map(byKind)
+    .filter(Boolean);
+  const homes = LANGS.map((lang) => `${BASE}/${lang}`);
+  const targets = [...new Set([...homes, ...hubs, ...samples])];
+
+  const pages = await inspect(new Set(targets));
+
+  if (transientFailures / Math.max(totalFetches, 1) > UNRELIABLE_RATIO) {
+    inconclusive(transientFailures, totalFetches);
+  }
+
+  for (const url of targets) {
+    const page = pages.get(url);
+    if (!page) continue;
+    if (page.status !== 200 && page.status !== 308) {
+      note('smoke', url, `answered ${page.status}`);
+    } else if (page.status === 200 && isNoindex(page.robots)) {
+      note('smoke', url, 'is noindex');
+    }
+  }
+
+  // The regression that started all of this: a hub whose server HTML contains no
+  // link to any term. Cheap to check and the whole point of the deploy gate.
+  await mapLimit(hubs, async (hub) => {
+    const res = await fetchText(hub);
+    if (res.status !== 200) return;
+    const termLinks = matchAll(ANCHOR_RE, res.body, (m) => m[1]).filter((href) =>
+      /^\/(en|ru|es|fr|pt)\/(category|genre|collection|tag)\//.test(href)
+    );
+    if (termLinks.length === 0) {
+      note('smoke', hub, 'hub renders no taxonomy link in server HTML (7.6 regression)');
+    }
+  });
+
+  report({ sitemap: sitemap.size, linked: hubs.length, checked: pages.size });
 }
 
 /**
@@ -271,35 +368,51 @@ function inconclusive(failed, total) {
 }
 
 function report({ sitemap, linked, checked }) {
-  const byRule = new Map();
-  for (const v of violations) byRule.set(v.rule, [...(byRule.get(v.rule) ?? []), v]);
+  const rows = [...findings.entries()].sort(([a], [b]) => a.localeCompare(b));
 
   const lines = [
-    `# SEO contract audit — ${BASE}`,
+    `# SEO contract audit — ${BASE} (${MODE})`,
     '',
     `Sitemap URLs: **${sitemap}** · internal links found: **${linked}** · pages fetched: **${checked}**`,
     '',
   ];
 
-  if (violations.length === 0) {
-    lines.push('✅ **Clean.** 7.2, 7.4 and 7.6 all hold.');
+  if (rows.length === 0) {
+    lines.push(
+      MODE === 'smoke'
+        ? '✅ **Clean.** Hubs render their links and every sampled page answers.'
+        : '✅ **Clean.** 7.2, 7.4 and 7.6 all hold.'
+    );
   } else {
-    lines.push(`❌ **${violations.length} violation(s).**`, '');
-    for (const [rule, items] of [...byRule].sort()) {
-      lines.push(`## ${rule} — ${items.length}`, '', '| URL | Problem |', '| --- | --- |');
-      for (const v of items) lines.push(`| ${v.url} | ${v.detail} |`);
-      lines.push('');
+    // Addresses, not occurrences. One blinking page used to be counted three or
+    // more times over; that arithmetic is what made a small outage unreadable.
+    lines.push(`❌ **${rows.length} address(es) with problems.**`, '');
+    lines.push('| URL | Checks | Problem | Seen from |', '| --- | --- | --- | --- |');
+    for (const [url, entry] of rows) {
+      const sources = [...entry.sources];
+      const from =
+        sources.length === 0
+          ? '—'
+          : sources.length > 2
+            ? `${sources.slice(0, 2).join(', ')} +${sources.length - 2}`
+            : sources.join(', ');
+      lines.push(
+        `| ${url} | ${[...entry.rules].sort().join(', ')} | ${[...entry.problems].join('; ')} | ${from} |`
+      );
     }
+    lines.push('');
   }
 
   const out = lines.join('\n');
   console.log(out);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${out}\n`);
 
-  process.exit(violations.length === 0 ? 0 : 1);
+  process.exit(rows.length === 0 ? 0 : 1);
 }
 
-main().catch((error) => {
+const run = MODE === 'smoke' ? runSmoke : runFullContract;
+
+run().catch((error) => {
   console.error('SEO audit could not run:', error);
   process.exit(2);
 });

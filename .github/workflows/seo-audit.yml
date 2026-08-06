@@ -4,8 +4,9 @@ name: 🔎 SEO contract audit
 # with correct code because only the data moved — nothing was committed on the
 # day the sitemap started advertising 2205 empty pages. So the audit is tied to
 # time as well as to deployment:
-#   - after every deploy, while the cause is obvious and the rollback is cheap;
-#   - daily, because data drifts without anyone pushing.
+#   - after every deploy, while the cause is obvious and the rollback is cheap —
+#     but only as a smoke test, see the audit step for why;
+#   - daily, because data drifts without anyone pushing. This one is the gate.
 on:
   workflow_run:
     workflows: ['Deploy Frontend']
@@ -96,5 +97,19 @@ jobs:
       # Exit 1 = the contract is broken. Exit 2 = the audit could not get clean
       # answers and says nothing about the site; that is not a contract failure
       # and must not be reported as one.
+      #
+      # Deploy-triggered runs do the smoke set, scheduled runs do the whole
+      # contract. The full crawl right after a container restart was tried three
+      # times and produced false findings three times; the same crawl at 05:00 UTC
+      # has been clean every time. Different question, different moment.
+      #
+      # continue-on-error on the deploy run: until the smoke set has a track
+      # record, a step that reddens on every deploy for infrastructural reasons
+      # would train everyone to ignore it — and then the nightly one too. The
+      # nightly run stays blocking, and it is the one that gates the contract.
       - name: Run audit
-        run: node scripts/seo-audit.mjs --base=${{ github.event.inputs.base_url || 'https://bibliaris.com' }}
+        continue-on-error: ${{ github.event_name == 'workflow_run' }}
+        run: |
+          node scripts/seo-audit.mjs \
+            --base=${{ github.event.inputs.base_url || 'https://bibliaris.com' }} \
+            --mode=${{ github.event_name == 'workflow_run' && 'smoke' || 'full' }}

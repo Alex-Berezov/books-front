@@ -9,6 +9,8 @@ import { SmartBackButton } from '@/components/public/navigation/SmartBackButton'
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getDefaultLang } from '@/lib/i18n/lang';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
+import { handleContentFailure } from '@/lib/utils/content-failure';
+import { logError } from '@/lib/utils/log-error';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import styles from './book.module.scss';
@@ -129,17 +131,30 @@ export default async function BookDetailPage({ params }: Props) {
   const { lang, slug } = await params;
   const supportedLang = lang as SupportedLang;
 
-  let seoData;
-  let book;
-
-  try {
-    [book, seoData] = await Promise.all([
-      getCachedBookOverview(supportedLang, slug),
-      getCachedBookSeo(supportedLang, slug),
-    ]);
-  } catch (error) {
-    console.error('Error loading book overview or SEO data:', error);
-  }
+  // Two requests, two different consequences — and they must not share a fate.
+  //
+  // This used to be one `Promise.all` inside a blanket catch, after which
+  // `if (!book) notFound()`. Any failure of either request therefore produced a
+  // **404**: a rate-limited or briefly unavailable API deleted an existing book,
+  // and with `revalidate = 300` that 404 was then cached for up to five minutes.
+  // Measured on production: /ru/book/gordost-i-predubezhdenie and
+  // /ru/book/grozovoy-pereval answered 404 on ~5% of 100 requests while the API
+  // answered 200 on 100 of 100; a control book never 404'd at all.
+  //
+  // So: only the API's own 404 means the book does not exist. Anything else is
+  // "could not find out" and must surface as 5xx, which nothing caches as a
+  // missing page. And the SEO bundle is decoration — its failure costs metadata,
+  // never the page.
+  const [book, seoData] = await Promise.all([
+    getCachedBookOverview(supportedLang, slug).catch((error) => {
+      logError('Error loading book overview:', error);
+      return handleContentFailure(error, notFound);
+    }),
+    getCachedBookSeo(supportedLang, slug).catch((error) => {
+      logError('Error loading book SEO bundle:', error);
+      return null;
+    }),
+  ]);
 
   if (!book) {
     notFound();
