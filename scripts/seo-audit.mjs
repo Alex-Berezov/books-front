@@ -54,9 +54,15 @@ const CONCURRENCY = 1;
  * Its default budget is 100 requests per 60s. At the previous 150 ms the audit
  * ran at ~400/min, sailed past the limit, collected 403s, and then reported the
  * pages as broken: the measuring instrument was manufacturing the fault it
- * measured. 750 ms is ~80/min — under the default with room to spare.
+ * measured.
+ *
+ * 1400 ms is ~43/min — deliberately less than half the budget, because the
+ * budget is *shared with live traffic*. At ~80/min a single visitor browsing
+ * during the nightly run would push the audit over the limit. Raise it back once
+ * the limiter is keyed on the real client rather than on our own container
+ * (LEGACY-064); until then the headroom is the point.
  */
-const PACE_MS = 750;
+const PACE_MS = 1400;
 /** Answers that mean "you were throttled", never "this page is broken". */
 const THROTTLED = new Set([403, 429]);
 /** A 5xx or a transport error is retried before it is believed. */
