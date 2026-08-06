@@ -33,6 +33,11 @@
   color: $color-error;
 }
 
+.hint {
+  @include text-xs;
+  color: $color-text-secondary;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

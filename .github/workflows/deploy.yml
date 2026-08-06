@@ -61,6 +61,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
           build-args: |
+            APP_COMMIT_SHA=${{ github.sha }}
             NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL }}
             NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}
             NEXT_PUBLIC_DEFAULT_LANG=${{ vars.NEXT_PUBLIC_DEFAULT_LANG }}

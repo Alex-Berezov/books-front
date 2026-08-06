@@ -30,10 +30,16 @@ RUN yarn build
 FROM node:${NODE_VERSION} AS runner
 WORKDIR /app
 
+# Identifies the running build to the post-deploy audit — see app/api/version.
+# Runtime value, not a NEXT_PUBLIC_ one: it must describe the container, not be
+# inlined into the client bundle.
+ARG APP_COMMIT_SHA=unknown
+
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
-    HOSTNAME=0.0.0.0
+    HOSTNAME=0.0.0.0 \
+    APP_COMMIT_SHA=${APP_COMMIT_SHA}
 
 RUN addgroup -S app && adduser -S app -G app
 

@@ -146,10 +146,20 @@ export const TagModal: FC<TagModalProps> = (props) => {
                 entityType="book" // Fallback
                 lang={lang}
                 mode={isEditMode ? 'edit' : 'create'}
+                // Locked while editing: this slug is a live, indexed URL and there
+                // is no redirect table yet, so changing it deletes the old address
+                // outright (LEGACY-062). Temporary until SlugRedirect exists.
+                disabled={isEditMode}
                 autoGenerate
               />
             )}
           />
+          {isEditMode && (
+            <span className={styles.hint}>
+              The slug is a published URL. Changing it would break the existing address — there is
+              no redirect yet, so it is locked.
+            </span>
+          )}
         </div>
 
         <div className={styles.field}>

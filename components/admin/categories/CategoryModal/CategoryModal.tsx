@@ -170,10 +170,20 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
                 sourceValue={watch('name')}
                 entityType="category"
                 mode={isEditMode ? 'edit' : 'create'}
+                // Locked while editing: this slug is a live, indexed URL and there
+                // is no redirect table yet, so changing it deletes the old address
+                // outright (LEGACY-062). Temporary until SlugRedirect exists.
+                disabled={isEditMode}
                 // We handle validation manually in onSubmit for now
               />
             )}
           />
+          {isEditMode && (
+            <span className={styles.hint}>
+              The slug is a published URL. Changing it would break the existing address — there is
+              no redirect yet, so it is locked.
+            </span>
+          )}
         </div>
 
         <div className={styles.field}>
