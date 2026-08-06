@@ -46,14 +46,27 @@ const LANGS = ['en', 'ru', 'es', 'fr', 'pt'];
  * daily alert nobody reads.
  */
 const CONCURRENCY = 1;
-/** Breathing room between requests — see the note above CONCURRENCY. */
-const PACE_MS = 150;
+/**
+ * Paced to stay under the API's rate limit, not merely to be polite.
+ *
+ * `GlobalRateLimitGuard` counts per client IP — and the whole site is one client
+ * to the API, because every server-rendered page fetches from the same container.
+ * Its default budget is 100 requests per 60s. At the previous 150 ms the audit
+ * ran at ~400/min, sailed past the limit, collected 403s, and then reported the
+ * pages as broken: the measuring instrument was manufacturing the fault it
+ * measured. 750 ms is ~80/min — under the default with room to spare.
+ */
+const PACE_MS = 750;
+/** Answers that mean "you were throttled", never "this page is broken". */
+const THROTTLED = new Set([403, 429]);
 /** A 5xx or a transport error is retried before it is believed. */
 const ATTEMPTS = 3;
 /** Above this share of failed fetches the run is not evidence about the site. */
 const UNRELIABLE_RATIO = 0.1;
 
 let transientFailures = 0;
+/** Times the API told us to slow down. Reported as its own line, never as a defect. */
+let throttled = 0;
 let totalFetches = 0;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -96,6 +109,13 @@ async function fetchText(url) {
       });
       const body = res.status >= 200 && res.status < 300 ? await res.text() : '';
       last = { status: res.status, location: res.headers.get('location'), body };
+      // Being throttled says nothing about the page. It is also our own doing —
+      // so it is counted apart from everything else and backed off harder.
+      if (THROTTLED.has(res.status)) {
+        throttled += 1;
+        await sleep(attempt * 5000);
+        continue;
+      }
       // 404 is not believed on the first try either: several pages call
       // notFound() when their data request fails, so an overloaded API surfaces
       // as a 404 rather than a 5xx. Only a repeated 404 is an answer.
@@ -374,6 +394,14 @@ function report({ sitemap, linked, checked }) {
     `# SEO contract audit — ${BASE} (${MODE})`,
     '',
     `Sitemap URLs: **${sitemap}** · internal links found: **${linked}** · pages fetched: **${checked}**`,
+    ...(throttled > 0
+      ? [
+          '',
+          `⏳ **Throttled ${throttled} time(s)** (403/429). That is the audit hitting the API's per-IP`,
+          "rate limit, not a defect in any page. If this is not zero, the audit's pacing is too fast",
+          'for the current `RATE_LIMIT_GLOBAL_MAX` — fix the pacing, do not read it as a finding.',
+        ]
+      : []),
     '',
   ];
 
