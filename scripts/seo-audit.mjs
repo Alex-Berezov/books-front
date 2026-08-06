@@ -11,6 +11,7 @@
  *   7.2  nothing indexable links to something non-indexable
  *   7.4  everything advertised is indexable and addressable
  *   7.6  everything advertised is reachable without executing JavaScript
+ *   7.7  the page's robots verdict agrees with the linking predicate
  *
  * No sampling and no caps: the whole sitemap is a few hundred URLs across five
  * languages. A threshold would only create a second thing to get wrong.
@@ -24,6 +25,12 @@
  */
 
 import { appendFileSync } from 'node:fs';
+import {
+  describeDrift,
+  findVerdictDrift,
+  judgedEnough,
+  linkablePredicate,
+} from './lib/taxonomy-verdict.mjs';
 
 const BASE = (
   process.argv.find((a) => a.startsWith('--base='))?.slice('--base='.length) ||
@@ -237,12 +244,168 @@ async function inspect(urls) {
 
 const isNoindex = (robots) => !!robots && /noindex/i.test(robots);
 
+/**
+ * 7.7 — the page's robots verdict and the linking predicate must agree.
+ *
+ * `seo-rules.md` §391 requires link, sitemap and meta robots to decide alike, but
+ * they reach that verdict by different routes: the page consumes an already
+ * collapsed `seo.meta.robots` from the backend plus two narrowing overlays,
+ * while `isTaxonomyLinkable` reads four fields directly. The collapsed verdict
+ * hides which fields produced it, so a change to the backend predicate would
+ * drift apart from the frontend silently — and no unit test in either repository
+ * would notice, because each side is individually correct.
+ *
+ * This rule is the alternative to duplicating `autoIndexable` into the page. It
+ * catches drift wherever it originates and needs no synchronised deploy.
+ */
+const API_BASE = (
+  process.argv.find((a) => a.startsWith('--api='))?.slice('--api='.length) ||
+  process.env.SEO_AUDIT_API_URL ||
+  'https://api.bibliaris.com/api'
+).replace(/\/$/, '');
+
+/** How many non-indexable terms per language are checked as a control sample. */
+const CONTROL_SAMPLE = 3;
+
+const TERM_ROUTE = { category: 'category', genre: 'genre', collection: 'collection', tag: 'tag' };
+
+async function fetchJson(url) {
+  const res = await fetchText(url);
+  if (res.status !== 200) return null;
+  try {
+    return JSON.parse(res.body);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Every term with the fields the predicate needs, per rendered language.
+ *
+ * `lang` is passed on purpose: without it `booksCount` comes back summed across
+ * languages and the floor weakens (`seo-rules.md` §391). This is the same call
+ * the sitemap route makes.
+ */
+async function collectTaxonomyTerms() {
+  const terms = [];
+  for (const lang of LANGS) {
+    for (const type of ['category', 'genre', 'collection', 'tag']) {
+      const url =
+        type === 'tag'
+          ? `${API_BASE}/tags?limit=1000&lang=${lang}`
+          : `${API_BASE}/categories?type=${type}&limit=1000&lang=${lang}`;
+      const payload = await fetchJson(url);
+      if (!payload?.data) {
+        note('7.7', url, 'taxonomy list endpoint did not answer — cross-check incomplete');
+        continue;
+      }
+      for (const term of payload.data) {
+        const slug = term.translations?.find((t) => t.language === lang && t.slug)?.slug;
+        if (!slug) continue;
+        const fields = {
+          isVisible: term.isVisible,
+          indexable: term.indexable,
+          autoIndexable: term.autoIndexable,
+          booksCount: term.booksCount,
+        };
+        terms.push({
+          lang,
+          type,
+          slug,
+          fields,
+          expected: linkablePredicate(fields),
+          url: `${BASE}/${lang}/${TERM_ROUTE[type]}/${slug}`,
+        });
+      }
+    }
+  }
+  return terms;
+}
+
+/**
+ * Which term URLs 7.7 needs fetched: every term the predicate says is indexable
+ * (those are in the sitemap anyway, so usually free) plus a small control sample
+ * of terms it says are not. Without the second half the rule could only ever see
+ * the agreeing side and would pass by construction.
+ */
+function termUrlsToInspect(terms) {
+  const wanted = new Set();
+  for (const t of terms) if (t.expected) wanted.add(t.url);
+  for (const lang of LANGS) {
+    const sample = terms.filter((t) => t.lang === lang && !t.expected).slice(0, CONTROL_SAMPLE);
+    for (const t of sample) wanted.add(t.url);
+  }
+  return wanted;
+}
+
+/**
+ * 7.7, with two guards the first cut lacked.
+ *
+ * **Re-read before believing.** Since LEGACY-069 a page whose SEO bundle failed
+ * answers `200 + noindex` on purpose. From outside that is identical to real
+ * drift, so a single disagreeing read would turn every transient API failure
+ * during the audit into a false violation. Each suspect is fetched once more;
+ * only a disagreement that survives is reported.
+ *
+ * **Refuse to conclude from too small a sample.** The skip-on-non-200 escape
+ * hatch means an outage can quietly empty the sample, and "0 violations" would
+ * then be indistinguishable from "nothing was checked". Below the floor the run
+ * is INCONCLUSIVE, which fails the step and says why on the first line.
+ */
+async function checkVerdictAgreement(terms, pages, intended) {
+  const { suspects, judged, skipped } = findVerdictDrift(terms, pages);
+
+  if (!judgedEnough(judged, intended)) {
+    inconclusiveSample(judged, intended, skipped);
+  }
+
+  let confirmed = 0;
+  for (const suspect of suspects) {
+    const again = await fetchText(suspect.term.url);
+    if (again.status !== 200) continue; // became an outage — 7.4's business, not ours
+    const stillSaysIndex = !/noindex/i.test(again.body.match(ROBOTS_RE)?.[1] ?? '');
+    if (stillSaysIndex === suspect.term.expected) continue; // first read was a blip
+    const { url, problem } = describeDrift({ ...suspect, pageSaysIndex: stillSaysIndex });
+    note('7.7', url, problem);
+    confirmed += 1;
+  }
+
+  return { judged, skipped, suspected: suspects.length, confirmed };
+}
+
+/** The sample was too small for silence to mean anything. Loudest outcome. */
+function inconclusiveSample(judged, intended, skipped) {
+  const out = [
+    `# 🚨 INCONCLUSIVE — rule 7.7 could not judge enough of ${BASE}`,
+    '',
+    `**Judged ${judged} of ${intended} taxonomy terms; ${skipped} skipped because their page did not answer 200.**`,
+    '',
+    'Rule 7.7 skips pages that did not answer, so an outage empties its sample instead of',
+    'failing it. Reporting "0 violations" from what is left would be a statement about nothing —',
+    'and it would be quietest exactly when the site is worst. Nothing about the robots contract',
+    'was verified on this run.',
+    '',
+    'Check the site and the API are up before rerunning.',
+  ].join(String.fromCharCode(10));
+
+  console.error(out);
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${out}
+`);
+  process.exit(2);
+}
+
 async function runFullContract() {
   const sitemap = await collectSitemapUrls();
   const linked = await crawlInternalLinks();
 
+  const terms = await collectTaxonomyTerms();
+
   const everything = new Set([...sitemap.keys(), ...linked.keys()]);
   for (const alts of sitemap.values()) for (const a of alts) everything.add(a);
+  // 7.7 needs the indexable terms (already here via the sitemap) and a control
+  // sample of non-indexable ones (not here — they are excluded from it).
+  const termUrls = termUrlsToInspect(terms);
+  for (const url of termUrls) everything.add(url);
   const pages = await inspect(everything);
 
   // If a large share of fetches never got a clean answer, this run says nothing
@@ -302,7 +465,10 @@ async function runFullContract() {
       );
   }
 
-  report({ sitemap: sitemap.size, linked: linked.size, checked: pages.size });
+  // 7.7 — the page's robots verdict agrees with the linking predicate.
+  const verdicts = await checkVerdictAgreement(terms, pages, termUrls.size);
+
+  report({ sitemap: sitemap.size, linked: linked.size, checked: pages.size, verdicts });
 }
 
 /** How many addresses the smoke run touches. Small enough to survive a cold start. */
@@ -393,13 +559,23 @@ function inconclusive(failed, total) {
   process.exit(2);
 }
 
-function report({ sitemap, linked, checked }) {
+function report({ sitemap, linked, checked, verdicts }) {
   const rows = [...findings.entries()].sort(([a], [b]) => a.localeCompare(b));
 
   const lines = [
     `# SEO contract audit — ${BASE} (${MODE})`,
     '',
     `Sitemap URLs: **${sitemap}** · internal links found: **${linked}** · pages fetched: **${checked}**`,
+    ...(verdicts
+      ? [
+          '',
+          `7.7 verdict cross-check: **${verdicts.judged} judged**, ${verdicts.suspected} suspected, ` +
+            `${verdicts.confirmed} confirmed after a second read.`,
+          // Kept on its own line and never folded into the finding count: a term
+          // skipped because its page was down is not a contract violation.
+          `Skipped because a dependency did not answer: **${verdicts.skipped}**.`,
+        ]
+      : []),
     ...(throttled > 0
       ? [
           '',
@@ -415,7 +591,7 @@ function report({ sitemap, linked, checked }) {
     lines.push(
       MODE === 'smoke'
         ? '✅ **Clean.** Hubs render their links and every sampled page answers.'
-        : '✅ **Clean.** 7.2, 7.4 and 7.6 all hold.'
+        : '✅ **Clean.** 7.2, 7.4, 7.6 and 7.7 all hold.'
     );
   } else {
     // Addresses, not occurrences. One blinking page used to be counted three or

@@ -1,3 +1,4 @@
+import { noteDegraded } from '@/lib/seo/degraded';
 import { buildPublicUrl, getSiteUrl } from '@/lib/seo/urls';
 
 export function escapeXml(value: string): string {
@@ -19,8 +20,24 @@ export function buildUrl(path: string): string {
 
 const BOOKS_SITEMAP_PAGE_SIZE = 1000;
 
-export type GetTotalBooksFn = (lang: string) => Promise<number>;
+/** `null` means the count could not be established — never "zero books". */
+export type GetTotalBooksFn = (lang: string) => Promise<number | null>;
 
+/**
+ * Book sitemap files for the index, one language at a time.
+ *
+ * The failure branch used to `return []`, which removed **every** book sitemap
+ * for that language from an index still served as 200 OK — the site silently
+ * appeared to have lost a whole language. A 403 from the rate limiter was enough,
+ * and it fires for all five languages in parallel from one request.
+ *
+ * This follows `sitemap-static.xml` instead, which is the correct implementation
+ * of the same problem: an unknown count is kept apart from a zero count, and
+ * unknown fails towards *keeping* the URL. Page 1 is emitted so the language stays
+ * in the index; the per-file route decides what that page contains.
+ *
+ * A genuine zero still yields nothing — that is an answer, not a failure.
+ */
 export async function getBookSitemapUrls(
   cleanBaseUrl: string,
   supportedLangs: readonly string[],
@@ -28,16 +45,28 @@ export async function getBookSitemapUrls(
 ): Promise<string[]> {
   const results = await Promise.all(
     supportedLangs.map(async (lang) => {
+      const fileUrl = (index: number) =>
+        `${cleanBaseUrl}/sitemaps/sitemap-books-${lang}-${index}.xml`;
+
+      let total: number | null = null;
       try {
-        const total = await getTotalBooks(lang);
-        const pages = Math.ceil(total / BOOKS_SITEMAP_PAGE_SIZE);
-        return Array.from(
-          { length: pages },
-          (_, index) => `${cleanBaseUrl}/sitemaps/sitemap-books-${lang}-${index + 1}.xml`
-        );
+        total = await getTotalBooks(lang);
       } catch {
-        return [] as string[];
+        total = null;
       }
+
+      if (total === null || !Number.isFinite(total)) {
+        noteDegraded({
+          surface: 'sitemap-index',
+          reason: 'count-unreadable',
+          lang,
+          outcome: 'kept-url',
+        });
+        return [fileUrl(1)];
+      }
+
+      const pages = Math.ceil(total / BOOKS_SITEMAP_PAGE_SIZE);
+      return Array.from({ length: pages }, (_, index) => fileUrl(index + 1));
     })
   );
   return results.flat();

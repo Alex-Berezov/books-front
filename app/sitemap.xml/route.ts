@@ -8,9 +8,16 @@ export const dynamic = 'force-dynamic';
 /** Same reason as in `app/sitemaps/[filename]/route.ts`: the index must not be built from cached counts. */
 export const fetchCache = 'force-no-store';
 
-async function fetchBooksTotal(lang: string): Promise<number> {
+/**
+ * `res.meta.total` was read unguarded. A missing `meta` threw; worse, a non-numeric
+ * `total` did not even throw — it produced `Math.ceil(NaN)`, then an empty array of
+ * book sitemaps, with no error anywhere. Returning `null` keeps "could not tell"
+ * distinct from "no books", which is the whole point of the branch downstream.
+ */
+async function fetchBooksTotal(lang: string): Promise<number | null> {
   const res = await getPublicBooks(lang as SupportedLang, { page: 1, limit: 1 });
-  return res.meta.total;
+  const total = res?.meta?.total;
+  return typeof total === 'number' && Number.isFinite(total) ? total : null;
 }
 
 export async function GET() {

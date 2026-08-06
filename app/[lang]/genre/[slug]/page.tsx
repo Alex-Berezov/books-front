@@ -3,11 +3,18 @@ import { TaxonomyDetailPage } from '@/components/public/taxonomy/TaxonomyDetailP
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
+import { noteDegraded } from '@/lib/seo/degraded';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { isUnaddressableInLanguage, resolveTaxonomyDestination } from '@/lib/seo/taxonomy-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import { handleContentFailure } from '@/lib/utils/content-failure';
 import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
-import { shouldNoindexPaginatedPage, toCountResult } from '@/lib/utils/seo-indexing';
+import {
+  applyEditorialVisibility,
+  robotsForUnreadableBundle,
+  shouldNoindexPaginatedPage,
+  toCountResult,
+} from '@/lib/utils/seo-indexing';
 import type {
   Category,
   CategoryBookCardsResponse,
@@ -37,17 +44,19 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const sParams = await searchParams;
   const supportedLang = lang as SupportedLang;
 
-  try {
-    const endpoint = buildLangPath(supportedLang, `/seo/resolve`);
-    const seoParams = new URLSearchParams({ type: 'genre', id: slug });
-    const seo = await httpGet<SeoResolveResponse>(`${endpoint}?${seoParams.toString()}`, {
-      language: supportedLang,
-      next: { revalidate: 300 },
-    });
+  // Hoisted: the catch below needs it. The bundle and the count are separate
+  // requests and can fail independently, so "did the count arrive" is exactly
+  // what decides whether anything is known at all.
+  let countRes: CategoryBookCardsResponse | null = null;
 
+  try {
+    // The computable half is fetched FIRST, on purpose. It is what decides the
+    // branch when the bundle turns out to be unreadable, and awaiting the bundle
+    // first would mean this request never runs in exactly that case — leaving
+    // nothing to narrow with and turning every bundle failure into a 5xx.
     const booksEndpoint = buildLangPath(supportedLang, `/categories/${slug}/books/cards`);
     const booksParams = new URLSearchParams({ page: '1', limit: '1' });
-    const countRes = await httpGet<CategoryBookCardsResponse>(
+    countRes = await httpGet<CategoryBookCardsResponse>(
       `${booksEndpoint}?${booksParams.toString()}`,
       {
         language: supportedLang,
@@ -57,6 +66,14 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       logError('Error counting books for genre metadata:', error);
       return null;
     });
+
+    const endpoint = buildLangPath(supportedLang, `/seo/resolve`);
+    const seoParams = new URLSearchParams({ type: 'genre', id: slug });
+    const seo = await httpGet<SeoResolveResponse>(`${endpoint}?${seoParams.toString()}`, {
+      language: supportedLang,
+      next: { revalidate: 300 },
+    });
+
     // Unknown count must not masquerade as zero — see buildRobotsByCount.
     const count = toCountResult(countRes?.pagination?.total ?? null);
     const currentPage = Math.max(1, Number(sParams.page) || 1);
@@ -76,12 +93,18 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {
       title: seo.meta.title,
       description: seo.meta.description || undefined,
-      robots: !count.ok
-        ? // Count unknown: keep whatever the SEO bundle says, never force noindex.
-          seo.meta.robots || undefined
-        : count.total > 0 && !outOfRange
-          ? seo.meta.robots || undefined
-          : { index: false, follow: true },
+      // Editorial visibility is applied last and only narrows: see
+      // applyEditorialVisibility. Everything inside it is the previous chain,
+      // untouched.
+      robots: applyEditorialVisibility(
+        !count.ok
+          ? // Count unknown: keep whatever the SEO bundle says, never force noindex.
+            seo.meta.robots || undefined
+          : count.total > 0 && !outOfRange
+            ? seo.meta.robots || undefined
+            : { index: false, follow: true },
+        countRes?.category?.isVisible
+      ),
       alternates: {
         canonical: canonicalUrl,
         languages: alternatesLanguages,
@@ -110,8 +133,31 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     };
   } catch (error) {
     logError('Error generating metadata for genre:', error);
+    noteDegraded({
+      surface: 'taxonomy-detail',
+      reason: countRes ? 'bundle-unreadable' : 'nothing-known',
+      lang: supportedLang,
+      slug: slug,
+      outcome: 'noindex',
+    });
     return {
       title: getDictionary(supportedLang).taxonomy.genreMetaFallback,
+      // `robots` is never guessed here. The bundle is unreadable, so the only
+      // thing that may narrow the verdict is the independently computable half —
+      // isVisible and the live count, which arrive on /books/cards, not on the
+      // bundle. Not linkable by that half -> noindex, a conclusion from data.
+      // Linkable, or that half unknown too -> nothing is known -> throw -> 5xx.
+      robots: robotsForUnreadableBundle(
+        'taxonomy-detail',
+        countRes
+          ? isTaxonomyLinkable({
+              isVisible: countRes?.category?.isVisible,
+              indexable: countRes?.category?.indexable,
+              booksCount: countRes.pagination?.total,
+            })
+          : undefined,
+        slug
+      ),
     };
   }
 }

@@ -8,8 +8,9 @@ import { StarRating } from '@/components/public/books/StarRating';
 import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getDefaultLang } from '@/lib/i18n/lang';
+import { noteDegraded } from '@/lib/seo/degraded';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
-import { handleContentFailure } from '@/lib/utils/content-failure';
+import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
 import { logError } from '@/lib/utils/log-error';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -112,16 +113,41 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch (error) {
     console.error('Error generating metadata for book:', error);
-    let fallbackTitle = getDictionary(supportedLang).book.metaFallback;
-    if (slug) {
-      const decoded = decodeURIComponent(slug).replace(/-/g, ' ');
-      fallbackTitle =
-        decoded.replace(
-          /\w\S*/g,
-          (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
-        ) + ' - Bibliaris';
+
+    // A 404 is an answer: this book does not exist here. Narrowing on it is
+    // allowed, and the page body reaches the same conclusion through
+    // handleContentFailure. Everything else is a transport failure.
+    if (isNotFoundError(error)) {
+      let fallbackTitle = getDictionary(supportedLang).book.metaFallback;
+      if (slug) {
+        const decoded = decodeURIComponent(slug).replace(/-/g, ' ');
+        fallbackTitle =
+          decoded.replace(
+            /\w\S*/g,
+            (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
+          ) + ' - Bibliaris';
+      }
+      return { title: fallbackTitle, robots: { index: false, follow: true } };
     }
-    return { title: fallbackTitle };
+
+    // LEGACY-063 hardened this page's BODY; its metadata kept the LEGACY-069
+    // shape — a title and no `robots`, which is `index` by default, on the
+    // highest-value page type on the site.
+    //
+    // Unlike a taxonomy term, a book has NO independently computable half: the
+    // bundle is the only source of the verdict. So there is nothing to narrow
+    // with and nothing to guess from. Rethrowing answers 5xx, which Google reads
+    // as temporary and repairs on the next successful crawl at nearly zero cost —
+    // whereas a guessed `noindex` on 40 book URLs is a directive costing days and
+    // a manual restore, and a guessed `index` is how the defect started.
+    noteDegraded({
+      surface: 'book-detail',
+      reason: 'bundle-unreadable',
+      lang: supportedLang,
+      slug,
+      outcome: 'threw-5xx',
+    });
+    throw error;
   }
 }
 

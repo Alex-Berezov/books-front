@@ -3,10 +3,17 @@ import { TagDetailPage } from '@/components/public/taxonomy/TagDetailPage/TagDet
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
+import { noteDegraded } from '@/lib/seo/degraded';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { buildLangUrl, toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import { handleContentFailure } from '@/lib/utils/content-failure';
 import { buildItemListJsonLd, getSiteUrl, schemaContainsType } from '@/lib/utils/json-ld';
-import { shouldNoindexPaginatedPage, toCountResult } from '@/lib/utils/seo-indexing';
+import {
+  applyEditorialVisibility,
+  robotsForUnreadableBundle,
+  shouldNoindexPaginatedPage,
+  toCountResult,
+} from '@/lib/utils/seo-indexing';
 import type { SeoResolveResponse, TagBookCardsResponse } from '@/types/api-schema';
 import type { Metadata } from 'next';
 
@@ -30,7 +37,30 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const sParams = await searchParams;
   const supportedLang = lang as SupportedLang;
 
+  // Hoisted: the catch below needs it. The bundle and the count are separate
+  // requests and can fail independently, so "did the count arrive" is exactly
+  // what decides whether anything is known at all.
+  let countRes: TagBookCardsResponse | null = null;
+
   try {
+    // The computable half is fetched FIRST, on purpose. It is what decides the
+    // branch when the bundle turns out to be unreadable, and awaiting the bundle
+    // first would mean this request never runs in exactly that case — leaving
+    // nothing to narrow with and turning every bundle failure into a 5xx.
+    const booksEndpoint = buildLangPath(supportedLang, `/tags/${tagSlug}/books/cards`);
+    // `includeTag` is what puts the tag object — and with it `isVisible` — into
+    // the response; without it the field never arrives and the visibility veto
+    // silently does nothing. The categories endpoint returns its term
+    // unconditionally, tags do not. Existing query param, no backend change.
+    const booksParams = new URLSearchParams({ page: '1', limit: '1', includeTag: 'true' });
+    countRes = await httpGet<TagBookCardsResponse>(`${booksEndpoint}?${booksParams.toString()}`, {
+      language: supportedLang,
+      next: { revalidate: 300 },
+    }).catch((error) => {
+      logError('Error counting books for tag metadata:', error);
+      return null;
+    });
+
     const endpoint = buildLangPath(supportedLang, `/seo/resolve`);
     const seoParams = new URLSearchParams({ type: 'tag', id: tagSlug });
     const seo = await httpGet<SeoResolveResponse>(`${endpoint}?${seoParams.toString()}`, {
@@ -38,18 +68,6 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       next: { revalidate: 300 },
     });
 
-    const booksEndpoint = buildLangPath(supportedLang, `/tags/${tagSlug}/books/cards`);
-    const booksParams = new URLSearchParams({ page: '1', limit: '1' });
-    const countRes = await httpGet<TagBookCardsResponse>(
-      `${booksEndpoint}?${booksParams.toString()}`,
-      {
-        language: supportedLang,
-        next: { revalidate: 300 },
-      }
-    ).catch((error) => {
-      logError('Error counting books for tag metadata:', error);
-      return null;
-    });
     // Unknown count must not masquerade as zero — see buildRobotsByCount.
     const count = toCountResult(countRes?.pagination?.total ?? null);
     const currentPage = Math.max(1, Number(sParams.page) || 1);
@@ -69,12 +87,18 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {
       title: seo.meta.title,
       description: seo.meta.description || undefined,
-      robots: !count.ok
-        ? // Count unknown: keep whatever the SEO bundle says, never force noindex.
-          seo.meta.robots || undefined
-        : count.total > 0 && !outOfRange
-          ? seo.meta.robots || undefined
-          : { index: false, follow: true },
+      // Editorial visibility is applied last and only narrows: see
+      // applyEditorialVisibility. Everything inside it is the previous chain,
+      // untouched.
+      robots: applyEditorialVisibility(
+        !count.ok
+          ? // Count unknown: keep whatever the SEO bundle says, never force noindex.
+            seo.meta.robots || undefined
+          : count.total > 0 && !outOfRange
+            ? seo.meta.robots || undefined
+            : { index: false, follow: true },
+        countRes?.tag?.isVisible
+      ),
       alternates: {
         canonical: canonicalUrl,
         languages: alternatesLanguages,
@@ -103,8 +127,31 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     };
   } catch (error) {
     logError('Error generating metadata for tag:', error);
+    noteDegraded({
+      surface: 'tag-detail',
+      reason: countRes ? 'bundle-unreadable' : 'nothing-known',
+      lang: supportedLang,
+      slug: tagSlug,
+      outcome: 'noindex',
+    });
     return {
       title: `${tagSlug} - Bibliaris`,
+      // `robots` is never guessed here. The bundle is unreadable, so the only
+      // thing that may narrow the verdict is the independently computable half —
+      // isVisible and the live count, which arrive on /books/cards, not on the
+      // bundle. Not linkable by that half -> noindex, a conclusion from data.
+      // Linkable, or that half unknown too -> nothing is known -> throw -> 5xx.
+      robots: robotsForUnreadableBundle(
+        'tag-detail',
+        countRes
+          ? isTaxonomyLinkable({
+              isVisible: countRes?.tag?.isVisible,
+              indexable: countRes?.tag?.indexable,
+              booksCount: countRes.pagination?.total,
+            })
+          : undefined,
+        tagSlug
+      ),
     };
   }
 }
@@ -140,10 +187,16 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
         language: supportedLang,
         ...cache,
       }).catch(() => null),
+      // Deliberately NOT caught, unlike the SEO bundle beside it. This is the
+      // page's content: swallowing its failure into `null` walked straight into
+      // the `!data.tag -> notFound()` below, so a 403 from the rate limiter came
+      // out as a hard 404 and got cached — the LEGACY-063 defect, still present
+      // here after the book and taxonomy pages were fixed. handleContentFailure
+      // now turns only a real 404 into notFound() and lets everything else 5xx.
       httpGet<TagBookCardsResponse>(`${booksEndpoint}?${booksParams.toString()}`, {
         language: supportedLang,
         ...cache,
-      }).catch(() => null),
+      }),
     ]);
   } catch (error) {
     // Content missing, not "content is empty" — see handleContentFailure.

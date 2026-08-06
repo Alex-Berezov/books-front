@@ -105,14 +105,35 @@ describe('getBookSitemapUrls', () => {
     expect(urls).not.toContain('https://bibliaris.com/sitemaps/sitemap-books-ru-4.xml');
   });
 
-  it('should handle fetch errors gracefully', async () => {
-    const getTotalBooks: (lang: string) => Promise<number> = async (_lang) => {
+  /**
+   * This test used to assert `toHaveLength(0)` — it encoded the defect as the
+   * expected behaviour and stayed green while doing it. Dropping every book
+   * sitemap for a language from an index still served as 200 OK says those URLs
+   * no longer exist; a 403 from the rate limiter was enough to say it, for all
+   * five languages at once.
+   *
+   * The rule is the one `sitemap-static.xml` already follows: an unknown count is
+   * not a zero count, and unknown fails towards keeping the URL.
+   */
+  it('keeps the language in the index when the count cannot be established', async () => {
+    const getTotalBooks: (lang: string) => Promise<number | null> = async (_lang) => {
       throw new Error('API error');
     };
 
     const urls = await getBookSitemapUrls(baseUrl, langs, getTotalBooks);
 
-    expect(urls).toHaveLength(0);
+    expect(urls).toHaveLength(langs.length);
+    for (const lang of langs) {
+      expect(urls).toContain(`${baseUrl}/sitemaps/sitemap-books-${lang}-1.xml`);
+    }
+  });
+
+  it('treats a null count as unknown, not as zero', async () => {
+    const getTotalBooks: (lang: string) => Promise<number | null> = async (_lang) => null;
+
+    const urls = await getBookSitemapUrls(baseUrl, langs, getTotalBooks);
+
+    expect(urls).toHaveLength(langs.length);
   });
 
   it('should skip languages with zero books', async () => {

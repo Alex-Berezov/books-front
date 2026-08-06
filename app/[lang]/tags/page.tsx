@@ -27,7 +27,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description =
     page?.seo?.metaDescription || page?.shortDescription || dict.tags.metaDescription;
 
-  return getPageMetadata(lang, '/tags', title, description);
+  const meta = getPageMetadata(lang, '/tags', title, description);
+
+  // The editorial `robots` field was fetched on every render and thrown away:
+  // an editor who set `noindex, follow` on this CMS page got no effect at all,
+  // and the hub stayed in the sitemap besides. This is a success-path defect —
+  // no failure needed. Applied only when the field is present, so a missing or
+  // unreadable bundle changes nothing here.
+  return page?.seo?.robots ? { ...meta, robots: page.seo.robots } : meta;
 }
 
 export default async function TagsPage({ params }: Props) {
