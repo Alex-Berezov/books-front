@@ -10,7 +10,6 @@
  */
 
 import CredentialsProvider from 'next-auth/providers/credentials';
-import Facebook from 'next-auth/providers/facebook';
 import Google from 'next-auth/providers/google';
 import type { User, Session, Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
@@ -182,10 +181,15 @@ export const authOptions = {
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
     }),
-    Facebook({
-      clientId: process.env.AUTH_FACEBOOK_ID,
-      clientSecret: process.env.AUTH_FACEBOOK_SECRET,
-    }),
+    // Facebook is deliberately absent. It was configured but never finished, and
+    // no button ever called it — yet registering the provider kept
+    // /api/auth/signin/facebook reachable by URL. Facebook has no OIDC id_token
+    // (only an access_token), so such a sign-in could not present the proof the
+    // backend now requires and would have had to keep the unverified e-mail path
+    // alive for it. The backend still verifies Facebook tokens
+    // (SocialIdentityService), so bringing it back is: register the provider
+    // here, send account.access_token, and set AUTH_FACEBOOK_ID/SECRET on the
+    // API. See tasks/auth-social/CR.md.
   ],
 
   // Callbacks for JWT and session handling
@@ -212,10 +216,24 @@ export const authOptions = {
             accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
           };
         } else {
-          // OAuth Login (Google, Facebook)
+          // OAuth login. The backend is told *nothing* about who signed in —
+          // it is handed the provider's own id_token and works the identity out
+          // itself. Sending `email` used to be the whole story, which meant the
+          // caller named the account and got a session for it (LEGACY-070).
           try {
             const API_BASE_URL =
               process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+
+            const idToken = account.id_token;
+            if (!idToken) {
+              // No proof, no session. Falling back to the e-mail here would
+              // quietly restore the hole for whichever provider stopped
+              // returning an id_token.
+              console.error(
+                `Social login: provider "${account.provider}" returned no id_token; refusing to sign in`
+              );
+              return { ...token, error: AuthErrorType.INVALID_CREDENTIALS };
+            }
 
             const response = await fetch(`${API_BASE_URL}/auth/social`, {
               method: 'POST',
@@ -223,10 +241,8 @@ export const authOptions = {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                email: user.email,
-                name: user.name || undefined,
-                avatarUrl: user.image || undefined,
                 provider: account.provider,
+                token: idToken,
               }),
             });
 

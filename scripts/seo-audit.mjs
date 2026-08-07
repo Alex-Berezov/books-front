@@ -394,6 +394,51 @@ function inconclusiveSample(judged, intended, skipped) {
   process.exit(2);
 }
 
+/**
+ * Which build this run judged. Printed as the first line of every report.
+ *
+ * The nightly run of 07.08.2026 reported "Clean" without knowing what it had
+ * audited: `EXPECTED_SHA` is only set on deploy-triggered runs, so a scheduled
+ * run checked liveness alone. It happened to be judging the *previous* build,
+ * and that only came to light because the deployed SHA was known independently.
+ * On any ordinary day the report would have been read as "clean on current code".
+ *
+ * "I do not know what I checked" is the third state, and it has to be loud
+ * (`agent-rules.md` §"«Не смог проверить» должно быть громче"). Note this does
+ * NOT compare against `main`: production may legitimately lag. The requirement is
+ * only that the report states what it judged.
+ */
+let auditedSha = null;
+
+async function resolveAuditedBuild() {
+  const res = await fetchText(`${BASE}/api/version`);
+  const sha = res.status === 200 ? (res.body.match(/"sha"\s*:\s*"([^"]*)"/)?.[1] ?? null) : null;
+  if (!sha) {
+    inconclusiveBuild(res.status);
+  }
+  auditedSha = sha;
+}
+
+/** No build identity — refuse to judge. Never "Clean". */
+function inconclusiveBuild(status) {
+  const out = [
+    `# 🚨 INCONCLUSIVE — the SEO audit could not tell which build it was judging`,
+    '',
+    `**\`GET ${BASE}/api/version\` answered ${status || 'nothing'} or carried no \`sha\`.**`,
+    '',
+    'A report that does not name the build it audited is unreadable after the fact: "clean"',
+    'could mean the current code or the one before it. That ambiguity already produced a',
+    'misleading green on 07.08.2026. Nothing about the contract was verified on this run.',
+    '',
+    'Check the site is up and that /api/version is being served.',
+  ].join(String.fromCharCode(10));
+
+  console.error(out);
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${out}
+`);
+  process.exit(2);
+}
+
 async function runFullContract() {
   const sitemap = await collectSitemapUrls();
   const linked = await crawlInternalLinks();
@@ -565,6 +610,10 @@ function report({ sitemap, linked, checked, verdicts }) {
   const lines = [
     `# SEO contract audit — ${BASE} (${MODE})`,
     '',
+    // First line of substance, in every mode: what was judged. Without it a
+    // "Clean" cannot be attributed to any particular build.
+    `Judged build: **${auditedSha ?? 'unknown'}**`,
+    '',
     `Sitemap URLs: **${sitemap}** · internal links found: **${linked}** · pages fetched: **${checked}**`,
     ...(verdicts
       ? [
@@ -620,7 +669,12 @@ function report({ sitemap, linked, checked, verdicts }) {
   process.exit(rows.length === 0 ? 0 : 1);
 }
 
-const run = MODE === 'smoke' ? runSmoke : runFullContract;
+// Identity first, judgement second — the run must be able to say what it looked
+// at before it looks at anything.
+const run = async () => {
+  await resolveAuditedBuild();
+  return MODE === 'smoke' ? runSmoke() : runFullContract();
+};
 
 run().catch((error) => {
   console.error('SEO audit could not run:', error);
