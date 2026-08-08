@@ -11,6 +11,7 @@
 
 import CredentialsProvider from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
+import { visitorIpHeader } from '@/lib/visitor-ip';
 import type { User, Session, Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import {
@@ -58,6 +59,9 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // Адрес посетителя: эти запросы делает сервер, и без заголовка API
+        // считает все входы сайта одной корзиной (LEGACY-064).
+        ...visitorIpHeader(),
       },
       body: JSON.stringify({
         refreshToken: token.refreshToken,
@@ -133,6 +137,9 @@ export const authOptions = {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              // Адрес посетителя: эти запросы делает сервер, и без заголовка API
+              // считает все входы сайта одной корзиной (LEGACY-064).
+              ...visitorIpHeader(),
             },
             body: JSON.stringify({
               email: credentials.email,
@@ -239,6 +246,9 @@ export const authOptions = {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                // Адрес посетителя: эти запросы делает сервер, и без заголовка API
+                // считает все входы сайта одной корзиной (LEGACY-064).
+                ...visitorIpHeader(),
               },
               body: JSON.stringify({
                 provider: account.provider,

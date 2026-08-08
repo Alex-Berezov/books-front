@@ -9,6 +9,7 @@
  * - JSON by default
  */
 
+import { visitorIpHeader } from '@/lib/visitor-ip';
 import { ApiError } from '@/types/api';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { HttpRequestOptions } from '@/types/api';
@@ -51,6 +52,11 @@ const createHeaders = (options?: HttpRequestOptions, isFormData = false): Header
   if (options?.language) {
     headers[HTTP_HEADER.ACCEPT_LANGUAGE] = options.language;
   }
+
+  // Адрес посетителя, за которого делается этот серверный запрос. Без него API
+  // видит все обращения сайта с одного адреса и считает весь сайт одним клиентом
+  // (LEGACY-064). На клиенте и вне контекста запроса возвращается пустой объект.
+  Object.assign(headers, visitorIpHeader());
 
   return headers;
 };
