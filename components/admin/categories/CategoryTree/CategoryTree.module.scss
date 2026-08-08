@@ -110,6 +110,41 @@
   border-radius: $border-radius-sm;
 }
 
+// Статус индексируемости термина на выбранном языке. Цветом отличается только
+// «indexed» — остальные состояния одинаково означают «страницы в индексе нет»,
+// и разными оттенками их различать нечем: разница между ними в том, что делать,
+// а это написано в подсказке.
+.statusBadge {
+  font-size: $font-size-xs;
+  padding: 2px 6px;
+  border-radius: $border-radius-sm;
+  border: 1px solid transparent;
+  cursor: help;
+  white-space: nowrap;
+}
+
+.status_indexed {
+  color: $color-success;
+  border-color: $color-success;
+}
+
+.status_hidden,
+.status_noindex {
+  color: $color-error;
+  border-color: $color-error;
+}
+
+.status_empty,
+.status_auto_closed {
+  color: $color-warning;
+  border-color: $color-warning;
+}
+
+.status_no_translation {
+  color: $color-text-secondary;
+  border-color: $color-text-secondary;
+}
+
 .flags {
   display: flex;
   gap: $spacing-xs;

@@ -2,6 +2,7 @@
 
 import { useState, type FC, useMemo } from 'react';
 import { FileJson, Plus, Search } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import {
   useCategoriesTree,
@@ -14,6 +15,7 @@ import { DeleteCategoryModal } from '@/components/admin/categories/DeleteCategor
 import { ImportJsonModal, Skeleton } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { getLangFromPath } from '@/lib/i18n/lang';
 import type { Category, CategoryTree as CategoryTreeType } from '@/types/api-schema';
 import styles from './CategoryTree.module.scss';
 import { CategoryTreeNode } from './CategoryTreeNode';
@@ -22,7 +24,14 @@ export const CategoryTree: FC<{ type?: 'category' | 'genre' | 'collection' }> = 
   type = 'category',
 }) => {
   const { enqueueSnackbar } = useSnackbar();
-  const { data: treeData, isLoading, isError } = useCategoriesTree(type);
+  const pathname = usePathname();
+  // Индексируемость термина — величина **поязыковая**: `autoIndexable` и
+  // `langBookCount` бэкенд присылает только при `?lang`. Без языка в запросе
+  // значки в дереве пришлось бы считать по кросс-язычному счётчику, то есть
+  // показывать не то, что решает robots. Язык берётся из адреса админки
+  // (`/admin/:lang/...`) — тем же способом, что и AdminLanguageSwitcher.
+  const adminLang = getLangFromPath(pathname);
+  const { data: treeData, isLoading, isError } = useCategoriesTree(type, undefined, adminLang);
 
   // Search state
   const [search, setSearch] = useState('');

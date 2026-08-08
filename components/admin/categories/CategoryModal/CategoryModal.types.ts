@@ -15,6 +15,12 @@ export const categorySchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Key must contain only lowercase letters, numbers, and hyphens'),
   parentId: z.string().nullable().optional(),
   type: z.enum(['category', 'genre', 'collection']),
+  // Оба поля — вето: они умеют закрыть термин и не умеют открыть. Открытие
+  // решает автоматическое правило по числу книг языка (гистерезис). Подписи в
+  // форме обязаны говорить именно это, иначе редактор будет ждать от галочки
+  // гарантии, которой у неё нет.
+  indexable: z.boolean().optional(),
+  isVisible: z.boolean().optional(),
 });
 
 export type CategoryFormData = z.infer<typeof categorySchema>;

@@ -11,6 +11,7 @@ import {
 } from '@/components/admin/common/ActionButtons';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { type SupportedLang } from '@/lib/i18n/lang';
+import { getTaxonomyVisibilityStatus } from '@/lib/seo/taxonomy-visibility-status';
 import type { CategoryTree } from '@/types/api-schema';
 import styles from './CategoryTree.module.scss';
 
@@ -45,6 +46,13 @@ export const CategoryTreeNode: FC<CategoryTreeNodeProps> = (props) => {
   });
 
   const translations = node.translations || fetchedTranslations;
+
+  const status = getTaxonomyVisibilityStatus({
+    isVisible: node.isVisible,
+    indexable: node.indexable,
+    autoIndexable: node.autoIndexable,
+    langBookCount: node.langBookCount,
+  });
 
   // Update expansion state when forceExpand changes
   if (forceExpand && !isExpanded) {
@@ -90,6 +98,16 @@ export const CategoryTreeNode: FC<CategoryTreeNodeProps> = (props) => {
           <span className={styles.nodeName}>{node.name}</span>
           <span className={styles.nodeSlug}>/{node.slug}</span>
           {node.type && <span className={styles.nodeType}>{node.type}</span>}
+          {/* Значок рисуется всегда, включая «indexed». Значок только у скрытых
+              означал бы, что отсутствие значка — это «всё хорошо», хотя чаще это
+              «данных о языке не пришло». Статус считается тем же предикатом, что
+              и meta robots (см. taxonomy-visibility-status). */}
+          <span
+            className={`${styles.statusBadge} ${styles[`status_${status.state.replace('-', '_')}`] ?? ''}`}
+            title={status.detail}
+          >
+            {status.label}
+          </span>
           <div className={styles.flags}>
             <span title={node.name}>
               {FLAG_COMPONENTS[(node.language || 'en') as SupportedLang]}

@@ -7,9 +7,11 @@ import { useForm, Controller } from 'react-hook-form';
 import { checkCategorySlugUniqueness } from '@/api/endpoints/slug-validation';
 import { useCreateCategory, useUpdateCategory, useCategoriesTree } from '@/api/hooks/useCategories';
 import { Button } from '@/components/common/Button';
+import { Checkbox } from '@/components/common/Checkbox';
 import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
 import { SlugInput } from '@/components/common/SlugInput';
+import { getTaxonomyVisibilityStatus } from '@/lib/seo/taxonomy-visibility-status';
 import { generateSlug } from '@/lib/utils/slug';
 import styles from './CategoryModal.module.scss';
 import {
@@ -38,6 +40,8 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
       key: '',
       parentId: initialParentId || null,
       type,
+      indexable: true,
+      isVisible: true,
     },
   });
 
@@ -55,6 +59,10 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
           key: category.key,
           parentId: category.parentId || null,
           type,
+          // `?? true` повторяет бэкенд: колонки nullable, и отсутствующее
+          // значение там читается как «разрешено» (`item.indexable ?? true`).
+          indexable: category.indexable ?? true,
+          isVisible: category.isVisible ?? true,
         });
       } else {
         reset({
@@ -63,6 +71,8 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
           key: '',
           parentId: initialParentId || null,
           type,
+          indexable: true,
+          isVisible: true,
         });
       }
     }
@@ -79,6 +89,18 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
     }
   }, [watchedSlug, isEditMode, setValue, watch]);
 
+  // Считается по **текущим** значениям формы, а не по сохранённым: строка должна
+  // отвечать на вопрос «что будет после сохранения», иначе редактор снимет
+  // галочку и увидит прежнее состояние, которое к моменту чтения уже неверно.
+  // Автоматическая часть (`autoIndexable`, `langBookCount`) приходит из дерева и
+  // редактированию не подлежит вовсе.
+  const status = getTaxonomyVisibilityStatus({
+    isVisible: watch('isVisible'),
+    indexable: watch('indexable'),
+    autoIndexable: category?.autoIndexable,
+    langBookCount: category?.langBookCount,
+  });
+
   const onSubmit = async (data: CategoryFormData) => {
     try {
       // Validate slug uniqueness
@@ -92,7 +114,16 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
       }
 
       if (isEditMode && category) {
-        await updateMutation.mutateAsync({ id: category.id, data });
+        // 🔴 `slug` в тело PATCH не попадает намеренно (LEGACY-068). В сервисе
+        // ветка `dto.key ?? dto.slug` делает слаг ключом, когда `key` не пришёл, —
+        // то есть форма, потерявшая поле Key, молча переписала бы опорный `key`
+        // слагом. Поле слага в режиме редактирования и так заблокировано, менять
+        // там нечего, поэтому отправлять его незачем.
+        const { name, key, parentId, type: formType, indexable, isVisible } = data;
+        await updateMutation.mutateAsync({
+          id: category.id,
+          data: { name, key, parentId, type: formType, indexable, isVisible },
+        });
       } else {
         await createMutation.mutateAsync(data);
       }
@@ -229,6 +260,58 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
             <span className={styles.errorMessage}>{errors.parentId.message}</span>
           )}
         </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="category-visible-checkbox">
+            Visible
+          </label>
+          <Controller
+            name="isVisible"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                id="category-visible-checkbox"
+                checked={field.value ?? true}
+                onChange={(e) => field.onChange(e.target.checked)}
+              />
+            )}
+          />
+          <span className={styles.hint}>
+            Show in public lists. Unticking also makes the term&apos;s page answer noindex — hiding
+            is the stronger of the two switches.
+          </span>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="category-indexable-checkbox">
+            Indexable
+          </label>
+          <Controller
+            name="indexable"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                id="category-indexable-checkbox"
+                checked={field.value ?? true}
+                onChange={(e) => field.onChange(e.target.checked)}
+              />
+            )}
+          />
+          <span className={styles.hint}>
+            Allow search engines to index the term&apos;s page. Both switches can only close a term,
+            never open one: a term with too few books stays out of the index whatever is ticked
+            here.
+          </span>
+        </div>
+
+        {isEditMode && (
+          <div className={styles.field}>
+            <span className={styles.label}>After saving</span>
+            <span className={styles.hint}>
+              <strong>{status.label}</strong> — {status.detail}
+            </span>
+          </div>
+        )}
 
         <div className={styles.actions}>
           <Button variant="ghost" onClick={onClose} type="button">
