@@ -16,6 +16,7 @@ import { AdminLanguageSwitcher } from '@/components/admin/AdminShell/AdminTopBar
 import { RightsNotificationsBell } from '@/components/admin/AdminShell/AdminTopBar/RightsNotificationsBell/RightsNotificationsBell';
 import { PurgeCacheButton } from '@/components/admin/AdminShell/PurgeCacheButton/PurgeCacheButton';
 import { Button } from '@/components/common/Button';
+import { clearLoggedInMarker } from '@/lib/auth/sessionMarker';
 import styles from './AdminTopBar.module.scss';
 
 interface AdminTopBarProps {
@@ -33,6 +34,7 @@ export const AdminTopBar = (props: AdminTopBarProps) => {
    * Logout handler
    */
   const handleLogout = async () => {
+    clearLoggedInMarker();
     await signOut({ callbackUrl: '/en/auth/sign-in' });
   };
 

@@ -22,6 +22,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/common/Button';
 import { PageBackButton } from '@/components/public/navigation';
+import { markLoggedIn } from '@/lib/auth/sessionMarker';
 import { httpPost } from '@/lib/http';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './register.module.scss';
@@ -257,6 +258,9 @@ const RegisterClient: FC = () => {
                   leftIcon={<GoogleOutlined style={{ color: '#ea4335' }} />}
                   onClick={() => {
                     setIsLoading(true);
+                    // Отметку ставим до ухода на Google: вернётся браузер уже на
+                    // `callbackUrl`, и этот код не выполнится (LEGACY-075).
+                    markLoggedIn();
                     signIn('google', { callbackUrl });
                   }}
                   disabled={isLoading}

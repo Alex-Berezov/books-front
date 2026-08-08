@@ -16,6 +16,9 @@ export { SessionProvider } from './SessionProvider';
 // Helper functions for server components
 export { getCurrentUser, isAuthenticated, hasRole, isStaff } from './helpers';
 
+// Client-side "a session probably exists" marker
+export { markLoggedIn, clearLoggedInMarker, hasLoggedInMarker } from './sessionMarker';
+
 // Constants and types
 export {
   AUTH_TOKEN_EXPIRY,

@@ -19,6 +19,7 @@ import { SessionProvider } from 'next-auth/react';
 import { SnackbarProvider } from 'notistack';
 import { ToastConfigurator } from '@/components/common/ToastConfigurator';
 import { SESSION_SETTINGS } from '@/lib/auth/constants';
+import { hasLoggedInMarker } from '@/lib/auth/sessionMarker';
 import { setSession } from '@/lib/http-client/auth';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getLangFromPath } from '@/lib/i18n/lang';
@@ -56,12 +57,10 @@ export const AppProviders = (props: AppProvidersProps) => {
 
   const [activeSession, setActiveSession] = useState<Session | null | undefined>(() => {
     if (session !== undefined) return session;
-    if (typeof window !== 'undefined') {
-      const hasLoggedInCookie = document.cookie
-        .split(';')
-        .some((item) => item.trim().startsWith('logged_in='));
-      if (!hasLoggedInCookie) return null;
-    }
+    // `null` здесь означает «точно не залогинен», и провайдер после него не
+    // спрашивает сервер до следующего планового опроса. Ставить его можно только
+    // по отметке из `sessionMarker` — см. разбор цены ошибок в самом модуле.
+    if (typeof window !== 'undefined' && !hasLoggedInMarker()) return null;
     return undefined;
   });
 

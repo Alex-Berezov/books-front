@@ -5,6 +5,7 @@
  */
 
 import { getSession, signOut } from 'next-auth/react';
+import { clearLoggedInMarker } from '@/lib/auth/sessionMarker';
 import { ApiError } from '@/types/api';
 import type { Session } from 'next-auth';
 
@@ -106,6 +107,7 @@ export const getAccessToken = async (
  */
 export const handleAuthFailure = async (): Promise<void> => {
   if (typeof window !== 'undefined') {
+    clearLoggedInMarker();
     await signOut({ redirect: true, callbackUrl: '/en/auth/sign-in' });
   }
 };

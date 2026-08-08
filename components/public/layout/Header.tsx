@@ -8,6 +8,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { getBookCards } from '@/api/endpoints/public';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { clearLoggedInMarker } from '@/lib/auth/sessionMarker';
 import { getLangFromPath, type SupportedLang } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './Header.module.scss';
@@ -117,7 +118,7 @@ export function Header() {
   );
 
   const handleSignOut = () => {
-    document.cookie = 'logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    clearLoggedInMarker();
     signOut({ callbackUrl: `/${lang}` });
   };
 
