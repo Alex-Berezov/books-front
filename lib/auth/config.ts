@@ -11,7 +11,7 @@
 
 import CredentialsProvider from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
-import { visitorIpHeader } from '@/lib/visitor-ip';
+import { visitorIpHeaderFrom } from '@/lib/visitor-ip';
 import type { User, Session, Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import {
@@ -59,9 +59,11 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Адрес посетителя: эти запросы делает сервер, и без заголовка API
-        // считает все входы сайта одной корзиной (LEGACY-064).
-        ...visitorIpHeader(),
+        // Адреса посетителя здесь нет: обновление токена идёт из колбэка `jwt`,
+        // которому Auth.js объект запроса не передаёт. Лимит на `/auth/refresh`
+        // остаётся общим для сайта (10 в минуту). Терпимо: обновление происходит
+        // раз в 12 часов на сессию, а не на каждое действие. Если это перестанет
+        // быть правдой, адрес придётся класть в сам токен при входе (LEGACY-064).
       },
       body: JSON.stringify({
         refreshToken: token.refreshToken,
@@ -124,7 +126,7 @@ export const authOptions = {
        *
        * Calls POST /auth/login and returns user with tokens
        */
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         // Validate required fields
         if (!credentials?.email || !credentials?.password) {
           throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.MISSING_CREDENTIALS]);
@@ -137,9 +139,12 @@ export const authOptions = {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              // Адрес посетителя: эти запросы делает сервер, и без заголовка API
-              // считает все входы сайта одной корзиной (LEGACY-064).
-              ...visitorIpHeader(),
+              // Адрес посетителя берётся из объекта запроса, который фреймворк
+              // передаёт вторым аргументом. Без него API видит все входы сайта с
+              // одного адреса и отбивает шестую попытку за минуту — у всех сразу
+              // (LEGACY-064). Именно этот путь и был критичным: вход выполняет
+              // сервер, а не браузер.
+              ...visitorIpHeaderFrom(request),
             },
             body: JSON.stringify({
               email: credentials.email,
@@ -246,9 +251,10 @@ export const authOptions = {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                // Адрес посетителя: эти запросы делает сервер, и без заголовка API
-                // считает все входы сайта одной корзиной (LEGACY-064).
-                ...visitorIpHeader(),
+                // Здесь тоже нет объекта запроса: колбэк `jwt` его не получает.
+                // Вход через провайдера остаётся на общей корзине `auth:other`
+                // (10 в минуту на сайт). Это заметно мягче, чем было у парольного
+                // входа (5), и происходит один раз за сессию (LEGACY-064).
               },
               body: JSON.stringify({
                 provider: account.provider,

@@ -38,3 +38,16 @@ jobs:
 
       - name: Run Unit Tests with Coverage
         run: yarn test:coverage
+
+      # Сборка здесь потому, что lint, typecheck и тесты её не заменяют.
+      # 08.08.2026 импорт `next/headers` в файл, общий для сервера и клиента,
+      # прошёл все три проверки зелёными и упал только в деплое: запрет на такой
+      # импорт действует на этапе сборки, а сборка выполнялась лишь при выкате.
+      # Значения NEXT_PUBLIC_* — те же, что подставляет деплой; секретов среди них
+      # нет, они и так попадают в клиентский бандл.
+      - name: Build (catches server/client boundary errors)
+        run: yarn build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://api.bibliaris.com/api
+          NEXT_PUBLIC_SITE_URL: https://bibliaris.com
+          NEXT_PUBLIC_DEFAULT_LANG: en

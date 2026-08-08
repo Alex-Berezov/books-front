@@ -9,7 +9,6 @@
  * - JSON by default
  */
 
-import { visitorIpHeader } from '@/lib/visitor-ip';
 import { ApiError } from '@/types/api';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { HttpRequestOptions } from '@/types/api';
@@ -53,11 +52,12 @@ const createHeaders = (options?: HttpRequestOptions, isFormData = false): Header
     headers[HTTP_HEADER.ACCEPT_LANGUAGE] = options.language;
   }
 
-  // Адрес посетителя, за которого делается этот серверный запрос. Без него API
-  // видит все обращения сайта с одного адреса и считает весь сайт одним клиентом
-  // (LEGACY-064). На клиенте и вне контекста запроса возвращается пустой объект.
-  Object.assign(headers, visitorIpHeader());
-
+  // Адрес посетителя здесь **не** проставляется, и это осознанно: файл общий для
+  // сервера и клиента (его тянет, например, RegisterClient), а получить заголовки
+  // входящего запроса можно только на сервере. Попытка сделать это через
+  // `next/headers` уронила сборку — запрет времени сборки, `try/catch` его не
+  // обходит. Адрес посетителя передаётся там, где фреймворк даёт объект запроса:
+  // `lib/auth/config.ts` → `authorize(credentials, request)` (LEGACY-064).
   return headers;
 };
 
