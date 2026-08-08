@@ -14,6 +14,7 @@ import { EmptyState, Skeleton } from '@/components/admin/shared';
 import { Pagination } from '@/components/admin/shared/Pagination';
 import { Button } from '@/components/common/Button';
 import type { MediaType, MediaFile } from '@/types/api-schema/media';
+import { deleteErrorMessage } from './deleteErrorMessage';
 import styles from '@/components/admin/media/MediaPage.module.scss';
 
 export default function MediaPage() {
@@ -63,7 +64,10 @@ export default function MediaPage() {
       enqueueSnackbar('File deleted successfully', { variant: 'success' });
       setFileToDelete(null);
     } catch (error) {
-      enqueueSnackbar('Failed to delete file', { variant: 'error' });
+      // Отказ 409 объясняет, **что именно** держит файл (LEGACY-060): обложка книги,
+      // аудио главы, аватар. Прежний текст «Failed to delete file» это объяснение
+      // выбрасывал, и оператор оставался с сообщением, из которого нечего сделать.
+      enqueueSnackbar(deleteErrorMessage(error), { variant: 'error' });
     }
   };
 
