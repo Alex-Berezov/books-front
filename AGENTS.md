@@ -89,7 +89,9 @@ Every modified or newly created file MUST strictly satisfy ESLint `import/order`
 
 `D:\newDev\books` (NestJS + Prisma + PostgreSQL). **The production backend runs only in Docker on a VPS.** Locally there is only a throwaway PostgreSQL + Redis pair for e2e tests (added 31.07.2026) — not a dev environment, no production data.
 
-**NEVER run locally:** `prisma migrate`, `prisma seed`, `prisma generate`, `psql`, or the backend server itself. These are blocked in `.claude/settings.json`. Migrations reach a database only through the e2e harness (which builds a fresh throwaway DB per run) or through the user on the VPS.
+**NEVER run locally:** `prisma migrate`, `prisma seed`, `prisma studio`, `psql`, or the backend server itself. These are blocked in `.claude/settings.json`. Migrations reach a database only through the e2e harness (which builds a fresh throwaway DB per run) or through the user on the VPS.
+
+**Исключение — `yarn prisma:generate`** (разрешён 08.08.2026): это кодогенерация типов из `schema.prisma`, к базе не обращается. Без неё после правки схемы падают typecheck и lint, потому что новая модель для TypeScript не существует.
 
 **You may:** read and modify schema, DTOs, services, controllers; write migration SQL into `prisma/migrations/` for the user to apply on the VPS; run `yarn test:e2e` and `yarn drift-check` in `books`. Details: `books/AGENTS.md` §Backend Execution Environment.
 
