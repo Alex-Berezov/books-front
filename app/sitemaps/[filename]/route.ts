@@ -4,6 +4,7 @@ import { getTags } from '@/api/endpoints/admin/tags';
 import { getPublicBooks, getBookCards, getPublicAuthors } from '@/api/endpoints/public';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { isAuthorLinkable } from '@/lib/seo/author-linkable';
+import { buildIndexableAlternates, type AlternateCandidate } from '@/lib/seo/hreflang-alternates';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { getBaseUrl, buildUrlSetXml, type SitemapItem } from '@/lib/sitemap/utils';
 import { toCountResult, type CountResult } from '@/lib/utils/seo-indexing';
@@ -30,6 +31,42 @@ export const dynamic = 'force-dynamic';
  * ran fresh (`lastmod` was current) while its data was hours old.
  */
 export const fetchCache = 'force-no-store';
+
+/**
+ * Переводы термина, приведённые к кандидатам hreflang.
+ *
+ * 🔴 Линкуемость считается **по переводу**, а не по термину целиком: у hreflang
+ * вопрос задаётся про каждый язык отдельно. Термин-уровневые переключатели
+ * (`isVisible`, `indexable`) редакторские и общие для всех языков, а
+ * `autoIndexable`/`bookCount` — свои у каждого перевода.
+ *
+ * Для языка самого файла это даёт тот же ответ, что и `isTaxonomyLinkable(term)`
+ * выше по ветке: список отдаётся с `?lang`, и верхнеуровневые `autoIndexable` и
+ * `langBookCount` там — значения этого же перевода. Значит, self-ссылка кластера
+ * не может пропасть у URL, который в карту попал.
+ */
+function toAlternateCandidates(
+  term: { isVisible?: boolean; indexable?: boolean },
+  translations: Array<{
+    language: string;
+    slug?: string;
+    autoIndexable?: boolean;
+    bookCount?: number;
+  }>
+): AlternateCandidate[] {
+  return translations
+    .filter((t) => Boolean(t.slug))
+    .map((t) => ({
+      language: t.language,
+      slug: t.slug as string,
+      linkable: isTaxonomyLinkable({
+        isVisible: term.isVisible,
+        indexable: term.indexable,
+        autoIndexable: t.autoIndexable,
+        booksCount: t.bookCount,
+      }),
+    }));
+}
 
 export async function GET(request: Request, { params }: { params: { filename: string } }) {
   const { filename } = params;
@@ -109,9 +146,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
           lastModified: new Date(),
           changeFrequency: route === '' ? 'daily' : 'weekly',
           priority: route === '' ? 1.0 : 0.8,
-          alternates: {
-            languages: alternates,
-          },
+          ...(alternates ? { alternates: { languages: alternates } } : {}),
         });
       });
     });
@@ -199,31 +234,21 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
         const url = `${cleanBaseUrl}/${lang}/genre/${currentTranslation.slug}`;
 
-        const alternates: Record<string, string> = {};
-        cat.translations?.forEach((t: CategoryTranslation) => {
-          if (t.slug) {
-            alternates[t.language] = `${cleanBaseUrl}/${t.language}/genre/${t.slug}`;
-          }
-        });
-
-        const enTranslation = cat.translations?.find(
-          (t: CategoryTranslation) => t.language === 'en' && t.slug
+        // 🔴 Альтернативы строятся только из индексируемых языков (LEGACY-057).
+        // Раньше сюда шли все переводы подряд: URL фильтровался по линкуемости в
+        // языке файла, а список hreflang — нет, и термин, закрытый на `ru`,
+        // объявлялся альтернативой открытого `en`.
+        const alternates = buildIndexableAlternates(
+          toAlternateCandidates(cat, cat.translations ?? []),
+          (language, slug) => `${cleanBaseUrl}/${language}/genre/${slug}`
         );
-        const fallbackTranslation = cat.translations?.find((t: CategoryTranslation) => t.slug);
-        const defaultTranslation = enTranslation || fallbackTranslation;
-        if (defaultTranslation?.slug) {
-          alternates['x-default'] =
-            `${cleanBaseUrl}/${defaultTranslation.language}/genre/${defaultTranslation.slug}`;
-        }
 
         sitemapItems.push({
           url,
           lastModified: new Date(),
           changeFrequency: 'weekly',
           priority: 0.7,
-          alternates: {
-            languages: alternates,
-          },
+          ...(alternates ? { alternates: { languages: alternates } } : {}),
         });
       });
     }
@@ -249,28 +274,18 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
         const url = `${cleanBaseUrl}/${lang}/category/${currentTranslation.slug}`;
 
-        const alternates: Record<string, string> = {};
-        cat.translations?.forEach((t: CategoryTranslation) => {
-          if (t.slug) {
-            alternates[t.language] = `${cleanBaseUrl}/${t.language}/category/${t.slug}`;
-          }
-        });
-
-        const enTranslation = cat.translations?.find(
-          (t: CategoryTranslation) => t.language === 'en' && t.slug
+        // 🔴 Альтернативы строятся только из индексируемых языков (LEGACY-057).
+        // Раньше сюда шли все переводы подряд: URL фильтровался по линкуемости в
+        // языке файла, а список hreflang — нет, и термин, закрытый на `ru`,
+        // объявлялся альтернативой открытого `en`.
+        const alternates = buildIndexableAlternates(
+          toAlternateCandidates(cat, cat.translations ?? []),
+          (language, slug) => `${cleanBaseUrl}/${language}/category/${slug}`
         );
-        const fallbackTranslation = cat.translations?.find((t: CategoryTranslation) => t.slug);
-        const defaultTranslation = enTranslation || fallbackTranslation;
-        if (defaultTranslation?.slug) {
-          alternates['x-default'] =
-            `${cleanBaseUrl}/${defaultTranslation.language}/category/${defaultTranslation.slug}`;
-        }
 
         sitemapItems.push({
           url,
-          alternates: {
-            languages: alternates,
-          },
+          ...(alternates ? { alternates: { languages: alternates } } : {}),
         });
       });
     }
@@ -296,31 +311,21 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
         const url = `${cleanBaseUrl}/${lang}/collection/${currentTranslation.slug}`;
 
-        const alternates: Record<string, string> = {};
-        cat.translations?.forEach((t: CategoryTranslation) => {
-          if (t.slug) {
-            alternates[t.language] = `${cleanBaseUrl}/${t.language}/collection/${t.slug}`;
-          }
-        });
-
-        const enTranslation = cat.translations?.find(
-          (t: CategoryTranslation) => t.language === 'en' && t.slug
+        // 🔴 Альтернативы строятся только из индексируемых языков (LEGACY-057).
+        // Раньше сюда шли все переводы подряд: URL фильтровался по линкуемости в
+        // языке файла, а список hreflang — нет, и термин, закрытый на `ru`,
+        // объявлялся альтернативой открытого `en`.
+        const alternates = buildIndexableAlternates(
+          toAlternateCandidates(cat, cat.translations ?? []),
+          (language, slug) => `${cleanBaseUrl}/${language}/collection/${slug}`
         );
-        const fallbackTranslation = cat.translations?.find((t: CategoryTranslation) => t.slug);
-        const defaultTranslation = enTranslation || fallbackTranslation;
-        if (defaultTranslation?.slug) {
-          alternates['x-default'] =
-            `${cleanBaseUrl}/${defaultTranslation.language}/collection/${defaultTranslation.slug}`;
-        }
 
         sitemapItems.push({
           url,
           lastModified: new Date(),
           changeFrequency: 'weekly',
           priority: 0.7,
-          alternates: {
-            languages: alternates,
-          },
+          ...(alternates ? { alternates: { languages: alternates } } : {}),
         });
       });
     }
@@ -351,6 +356,36 @@ export async function GET(request: Request, { params }: { params: { filename: st
         console.error(`Error fetching authors for sitemap (${lang}):`, error);
       }
 
+      /**
+       * 🔴 Для hreflang нужна линкуемость **каждого** языка, а список авторов
+       * отдаёт `booksCount` только для запрошенного (LEGACY-057). Поэтому здесь
+       * снимается состав остальных языков: автор линкуем в языке ровно тогда,
+       * когда попадает в его список — тот уже отфильтрован и по наличию
+       * перевода, и по числу книг.
+       *
+       * ⚠️ Цена: по одному запросу на язык вместо одного на файл. При нынешних
+       * десяти авторах это ничто, но при росте каталога ветку придётся переводить
+       * на счётчики по языкам в самом ответе — сегодня их в нём нет.
+       *
+       * Отказ запроса трактуется как «язык неизвестен», а не «закрыт»: молча
+       * выкинуть живую альтернативу дороже, чем оставить лишнюю.
+       */
+      const linkableByLang = new Map<string, Set<string>>();
+      await Promise.all(
+        SUPPORTED_LANGS.map(async (other) => {
+          if (other === lang) return;
+          try {
+            const res = await getPublicAuthors(other as SupportedLang, { page: 1, limit: 1000 });
+            linkableByLang.set(
+              other,
+              new Set(res.data.filter((a) => isAuthorLinkable(a)).map((a) => a.id))
+            );
+          } catch (error) {
+            console.error(`Error fetching authors for hreflang (${other}):`, error);
+          }
+        })
+      );
+
       allAuthors.forEach((author) => {
         // The URL must use this language's own slug, not the root one. Listing the
         // root slug put /ru/author/sun-tzu in the Russian sitemap while the page
@@ -378,16 +413,21 @@ export async function GET(request: Request, { params }: { params: { filename: st
         // после бэкенда, иначе она обнулит все файлы `sitemap-authors-*`.
         if (!isAuthorLinkable(author)) return;
 
-        const activeLangs = [...slugByLang.keys()];
-
         const url = `${cleanBaseUrl}/${lang}/author/${slug}`;
-        const alternates =
-          activeLangs.length > 0
-            ? getAlternates(
-                activeLangs,
-                (l) => `${cleanBaseUrl}/${l}/author/${slugByLang.get(l) ?? slug}`
-              )
-            : undefined;
+        const alternates = buildIndexableAlternates(
+          [...slugByLang.entries()].map(([language, langSlug]) => ({
+            language,
+            slug: langSlug,
+            // Язык файла уже прошёл `isAuthorLinkable` выше. Для остальных —
+            // членство в их списке; отсутствие данных (отказ запроса) не
+            // считается закрытием.
+            linkable:
+              language === lang ||
+              !linkableByLang.has(language) ||
+              (linkableByLang.get(language)?.has(author.id) ?? false),
+          })),
+          (language, langSlug) => `${cleanBaseUrl}/${language}/author/${langSlug}`
+        );
 
         sitemapItems.push({
           url,
@@ -420,31 +460,19 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
         const url = `${cleanBaseUrl}/${lang}/tag/${currentTranslation.slug}`;
 
-        const alternates: Record<string, string> = {};
-        tag.translations?.forEach((t: TagTranslation) => {
-          if (t.slug) {
-            alternates[t.language] = `${cleanBaseUrl}/${t.language}/tag/${t.slug}`;
-          }
-        });
-
-        const enTranslation = tag.translations?.find(
-          (t: TagTranslation) => t.language === 'en' && t.slug
+        // Альтернативы — только из индексируемых языков (LEGACY-057), тем же
+        // правилом, что у категорий, жанров и коллекций.
+        const alternates = buildIndexableAlternates(
+          toAlternateCandidates(tag, tag.translations ?? []),
+          (language, slug) => `${cleanBaseUrl}/${language}/tag/${slug}`
         );
-        const fallbackTranslation = tag.translations?.find((t: TagTranslation) => t.slug);
-        const defaultTranslation = enTranslation || fallbackTranslation;
-        if (defaultTranslation?.slug) {
-          alternates['x-default'] =
-            `${cleanBaseUrl}/${defaultTranslation.language}/tag/${defaultTranslation.slug}`;
-        }
 
         sitemapItems.push({
           url,
           lastModified: new Date(),
           changeFrequency: 'weekly',
           priority: 0.6,
-          alternates: {
-            languages: alternates,
-          },
+          ...(alternates ? { alternates: { languages: alternates } } : {}),
         });
       });
     }
