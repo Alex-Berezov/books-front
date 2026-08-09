@@ -1,7 +1,7 @@
 import {
   getBookCards,
   getCategoryBookCards,
-  getPage,
+  getPageBySystemKey,
   getPublicAuthors,
   getPublicCategories,
   getPublicTags,
@@ -94,7 +94,7 @@ export default async function PublicLangPage({ params }: Props) {
         data: [] as AuthorListItem[],
         meta: { total: 0, page: 1, limit: 12, totalPages: 0 },
       })),
-      getPage(supportedLang, 'homepage-index').catch(() => null as PageResponse | null),
+      getPageBySystemKey(supportedLang, 'homepage').catch(() => null as PageResponse | null),
     ]);
 
     const featuredBooks = popularRes?.items || [];
@@ -198,9 +198,11 @@ export default async function PublicLangPage({ params }: Props) {
   }
 
   // No blanket catch. Every request above degrades on its own — a missing
-  // homepage-index Page costs the editorial text and nothing else. Wrapping the
+  // homepage Page costs the editorial text and nothing else. Wrapping the
   // whole thing meant one failing section blanked the books that had loaded
-  // fine, which is exactly what was seen when the Page slug drifted.
+  // fine, which is exactly what was seen when the Page slug drifted. The slug
+  // can no longer drift out from under the lookup (it is found by systemKey
+  // since 09.08.2026), but the page can still be unpublished or deleted.
   const data = await fetchHomepageData();
 
   return (

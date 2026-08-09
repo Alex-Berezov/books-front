@@ -1,7 +1,8 @@
 import { getPublicTags } from '@/api/endpoints/public';
 import { TaxonomyOverview } from '@/components/public/taxonomy-overview/TaxonomyOverview';
+import { TAXONOMY_OVERVIEW_CONFIGS } from '@/components/public/taxonomy-overview/TaxonomyOverviewConfig';
 import { getDictionary } from '@/lib/i18n/dictionaries';
-import { fetchPageBySlug } from '@/lib/utils/fetch-page';
+import { fetchPageBySystemKey } from '@/lib/utils/fetch-page';
 import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const lang = resolvedParams.lang as SupportedLang;
 
-  const page = await fetchPageBySlug(lang, 'taxonomy-tags-index');
+  const page = await fetchPageBySystemKey(lang, TAXONOMY_OVERVIEW_CONFIGS.tag.pageKey);
   const dict = getDictionary(lang);
 
   const title = page?.seo?.metaTitle || page?.h1 || page?.title || dict.tags.metaTitle;
@@ -44,7 +45,7 @@ export default async function TagsPage({ params }: Props) {
   // Deliberately not caught: the terms *are* this page. A failed request must
   // surface as 5xx, not as a 200 that says the site has no tags.
   const [page, tags] = await Promise.all([
-    fetchPageBySlug(lang, 'taxonomy-tags-index'),
+    fetchPageBySystemKey(lang, TAXONOMY_OVERVIEW_CONFIGS.tag.pageKey),
     getPublicTags(lang, { limit: TAGS_LIMIT }),
   ]);
   const dict = getDictionary(lang);

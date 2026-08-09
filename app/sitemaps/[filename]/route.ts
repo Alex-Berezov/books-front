@@ -3,6 +3,7 @@ import { getCategories } from '@/api/endpoints/admin/categories';
 import { getTags } from '@/api/endpoints/admin/tags';
 import { getPublicBooks, getBookCards, getPublicAuthors } from '@/api/endpoints/public';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
+import { isAuthorLinkable } from '@/lib/seo/author-linkable';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { getBaseUrl, buildUrlSetXml, type SitemapItem } from '@/lib/sitemap/utils';
 import { toCountResult, type CountResult } from '@/lib/utils/seo-indexing';
@@ -366,6 +367,16 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
         const slug = slugByLang.get(lang);
         if (!slug) return;
+
+        // 🔴 Автор без опубликованных книг в карту сайта не идёт: страница у него
+        // тонкая, а `seo-rules.md` требует, чтобы ссылка, sitemap и meta robots
+        // решали про один объект одинаково. До 09.08.2026 авторы были вне этого
+        // контура целиком — фильтровалось только наличие слага.
+        //
+        // ⚠️ Опирается на `booksCount`, который до 09.08.2026 был нулём у всех
+        // из-за подсчёта по пустому FK. Эта строка **обязана** ехать на прод
+        // после бэкенда, иначе она обнулит все файлы `sitemap-authors-*`.
+        if (!isAuthorLinkable(author)) return;
 
         const activeLangs = [...slugByLang.keys()];
 

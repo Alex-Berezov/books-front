@@ -1,7 +1,8 @@
 import { getPublicCategoriesTree } from '@/api/endpoints/public';
 import { TaxonomyOverview } from '@/components/public/taxonomy-overview/TaxonomyOverview';
+import { TAXONOMY_OVERVIEW_CONFIGS } from '@/components/public/taxonomy-overview/TaxonomyOverviewConfig';
 import { getDictionary } from '@/lib/i18n/dictionaries';
-import { fetchPageBySlug } from '@/lib/utils/fetch-page';
+import { fetchPageBySystemKey } from '@/lib/utils/fetch-page';
 import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const lang = resolvedParams.lang as SupportedLang;
 
-  const page = await fetchPageBySlug(lang, 'taxonomy-genres-index');
+  const page = await fetchPageBySystemKey(lang, TAXONOMY_OVERVIEW_CONFIGS.genre.pageKey);
   const dict = getDictionary(lang);
 
   const title = page?.seo?.metaTitle || page?.h1 || page?.title || dict.genres.metaTitle;
@@ -41,7 +42,7 @@ export default async function GenresPage({ params }: Props) {
   // Deliberately not caught: the terms *are* this page. A failed request must
   // surface as 5xx, not as a 200 that says the site has no genres.
   const [page, items] = await Promise.all([
-    fetchPageBySlug(lang, 'taxonomy-genres-index'),
+    fetchPageBySystemKey(lang, TAXONOMY_OVERVIEW_CONFIGS.genre.pageKey),
     getPublicCategoriesTree(lang, 'genre'),
   ]);
   const dict = getDictionary(lang);

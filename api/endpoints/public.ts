@@ -7,6 +7,7 @@
 
 import { httpGet, buildLangPath } from '@/lib/http';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { SystemPageKey } from '@/lib/system-pages';
 import type {
   AuthorListItem,
   BookCardsResponse,
@@ -172,6 +173,26 @@ export const getPublicBooks = async (
  */
 export const getPage = async (lang: SupportedLang, slug: string): Promise<PageResponse> => {
   const endpoint = buildLangPath(lang, `/pages/${slug}`);
+  return httpGet<PageResponse>(endpoint, { language: lang });
+};
+
+/**
+ * Get a page the site looks up for itself, by its immutable key
+ *
+ * Главная и четыре хаба таксономий адресуются ключом, а не слагом: слаг админка
+ * генерирует из заголовка, и переименование заголовка раньше рвало связь молча —
+ * страница отвечала 200, но уже без своих meta, H1, SEO-текста и FAQ.
+ *
+ * @example
+ * ```ts
+ * const page = await getPageBySystemKey('en', 'homepage');
+ * ```
+ */
+export const getPageBySystemKey = async (
+  lang: SupportedLang,
+  systemKey: SystemPageKey
+): Promise<PageResponse> => {
+  const endpoint = buildLangPath(lang, `/pages/by-key/${systemKey}`);
   return httpGet<PageResponse>(endpoint, { language: lang });
 };
 

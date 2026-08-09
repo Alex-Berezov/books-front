@@ -1,23 +1,60 @@
+# Продакшн-фронт в двух экземплярах — «синем» и «зелёном».
+#
+# Одновременно работает **один**: второй поднимается только на время выката и
+# гасится после того, как трафик переведён. Это не про масштабирование — это про
+# то, что раньше выкат означал остановку единственного контейнера, и между этим
+# моментом и стартом нового запросы не обслуживал никто. Замерено аудитом:
+# 13–37 % запросов без чистого ответа в прогонах после деплоя против 0 из 206 в
+# тихий час (`books-app-docs/tasks/zero-downtime-deploy/TASK.md`).
+#
+# Порт наружу у каждого свой (3001 / 3002), потому что занять один и тот же
+# нельзя, а Caddy должен видеть обоих одновременно, чтобы переключиться.
+#
+# ⚠️ `docker compose up -d` без имени сервиса поднимет **оба** и сделает ровно то,
+# чего схема избегает. Выкат идёт только через `scripts/deploy-bluegreen.sh`.
+
+# 🔴 Имя проекта задано явно, потому что по умолчанию Compose берёт его из имени
+# папки — а фронт и бэкенд лежат в папках, которые обе называются `src`
+# (`/opt/bibliaris-frontend/app/src` и `/opt/books/app/src`). Оба набора
+# контейнеров оказывались одним проектом `src`: `docker compose down` в любой из
+# директорий уносил и чужие контейнеры, а `--remove-orphans` — тем более. При
+# этом `backend/deployment/quick-commands.md` прямо разрешает `docker compose down`
+# как безопасную команду.
+#
+# ⚠️ Бэкенду такое переименование так просто не сделать: его том с Postgres
+# помечен именем проекта, и смена имени увела бы базу на пустой том. Здесь
+# переименование безопасно — у фронта состояния нет вовсе.
+name: bibliaris-frontend
+
+x-frontend: &frontend
+  image: ghcr.io/${GHCR_OWNER:-bibliaris}/bibliaris-frontend:${IMAGE_TAG:-latest}
+  restart: unless-stopped
+  environment:
+    NODE_ENV: production
+    PORT: '3000'
+  env_file:
+    - /opt/bibliaris-frontend/app/.env.production
+  healthcheck:
+    test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/']
+    interval: 30s
+    timeout: 5s
+    start_period: 30s
+    retries: 3
+  logging:
+    driver: json-file
+    options:
+      max-size: '10m'
+      max-file: '5'
+
 services:
-  frontend:
-    image: ghcr.io/${GHCR_OWNER:-bibliaris}/bibliaris-frontend:${IMAGE_TAG:-latest}
-    container_name: bibliaris-frontend
-    restart: unless-stopped
-    environment:
-      NODE_ENV: production
-      PORT: "3000"
-    env_file:
-      - /opt/bibliaris-frontend/app/.env.production
+  frontend-blue:
+    <<: *frontend
+    container_name: bibliaris-frontend-blue
     ports:
-      - "127.0.0.1:3000:3000"
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
-      interval: 30s
-      timeout: 5s
-      start_period: 30s
-      retries: 3
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "5"
+      - '127.0.0.1:3001:3000'
+
+  frontend-green:
+    <<: *frontend
+    container_name: bibliaris-frontend-green
+    ports:
+      - '127.0.0.1:3002:3000'

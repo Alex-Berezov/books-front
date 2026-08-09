@@ -4,7 +4,9 @@ import { getDictionary } from '@/lib/i18n/dictionaries';
 import { handleContentFailure } from '@/lib/utils/content-failure';
 import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
+import { buildRobotsByCount, toCountResult } from '@/lib/utils/seo-indexing';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { CountResult } from '@/lib/utils/seo-indexing';
 import type { BookCardModel, PublicAuthorDetail } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import AuthorDetailClient from './AuthorDetailClient';
@@ -37,6 +39,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let displayName = toTitleCase(searchName);
 
   let seoDataFromDb: PublicAuthorDetail['seo'] = null;
+  // Сколько у автора книг на этом языке — или что выяснить не удалось. Различие
+  // принципиально: `200 + noindex` — уверенный ответ, Google по нему страницу
+  // выбрасывает, и возвращается она неделями. Отсутствие тега на время сбоя
+  // бэкенда не стоит ничего.
+  let bookCount: CountResult = { ok: false };
   try {
     const author = await getPublicAuthorBySlug(supportedLang, authorSlug);
     if (author && author.name) {
@@ -44,6 +51,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
     if (author && author.seo) {
       seoDataFromDb = author.seo;
+    }
+    // Берётся поштучный ответ детального эндпоинта, а не `booksCount` из списка.
+    // Он честен давно (fallback по имени работает здесь с самого начала), тогда
+    // как батчевый счётчик починен только 09.08.2026 — и фронт выкатывается
+    // отдельно от бэкенда. Опираться здесь на список значило бы в окне между
+    // двумя выкатами закрыть noindex'ом все страницы авторов разом.
+    if (author) {
+      bookCount = toCountResult(Array.isArray(author.books) ? author.books.length : null);
     }
   } catch {
     // Fallback if Remote API is not updated yet
@@ -113,6 +128,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         images: seoDataFromDb.ogImageUrl ? [seoDataFromDb.ogImageUrl] : undefined,
       };
     }
+  }
+
+  // 🔴 Единственное место, где счётчик что-то решает, и он умеет только **сужать**.
+  //
+  // Автор без опубликованных книг на этом языке — тонкая страница: имя, иногда
+  // биография и ничего больше. Такие страницы до 09.08.2026 отдавали
+  // `index, follow` наравне с наполненными, потому что авторы вообще не входили
+  // в контур «ссылка = sitemap = robots», выстроенный по таксономиям.
+  //
+  // Неизвестность нулём не считается: при `!ok` вердикт бэкенда остаётся как был.
+  // И редакторский `noindex` из SEO-бандла тоже остаётся — открыть страницу
+  // счётчик не может, только закрыть.
+  const countVerdict = buildRobotsByCount(bookCount, false);
+  if (countVerdict && !countVerdict.index) {
+    baseMetadata.robots = { index: false, follow: true };
   }
 
   return baseMetadata;

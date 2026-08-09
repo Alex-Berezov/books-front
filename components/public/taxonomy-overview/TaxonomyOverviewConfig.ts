@@ -1,3 +1,5 @@
+import type { SystemPageKey } from '@/lib/system-pages';
+
 export type TaxonomyType = 'category' | 'genre' | 'collection' | 'tag';
 
 export type BreadcrumbItem = {
@@ -14,7 +16,12 @@ export interface FallbackContent {
 
 export interface TaxonomyOverviewConfig {
   type: TaxonomyType;
-  pageKey: string;
+  /**
+   * Неизменяемый ключ CMS-страницы хаба. Раньше здесь лежал слаг, и то же
+   * значение дублировалось литералом в самом маршруте — при этом читался только
+   * литерал, а поле не читал никто. Теперь ключ живёт здесь одним экземпляром.
+   */
+  pageKey: SystemPageKey;
   routeBase: string;
   breadcrumbs: BreadcrumbItem[];
   fallback: FallbackContent;
@@ -23,7 +30,7 @@ export interface TaxonomyOverviewConfig {
 export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewConfig> = {
   category: {
     type: 'category',
-    pageKey: 'taxonomy-categories-index',
+    pageKey: 'taxonomy-categories',
     routeBase: 'category',
     breadcrumbs: [{ labelKey: 'breadcrumb.home', href: '/' }, { labelKey: 'categories.title' }],
     fallback: {
@@ -36,7 +43,7 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
   },
   genre: {
     type: 'genre',
-    pageKey: 'taxonomy-genres-index',
+    pageKey: 'taxonomy-genres',
     routeBase: 'genre',
     breadcrumbs: [{ labelKey: 'breadcrumb.home', href: '/' }, { labelKey: 'genres.title' }],
     fallback: {
@@ -49,7 +56,7 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
   },
   collection: {
     type: 'collection',
-    pageKey: 'taxonomy-collections-index',
+    pageKey: 'taxonomy-collections',
     routeBase: 'collection',
     breadcrumbs: [{ labelKey: 'breadcrumb.home', href: '/' }, { labelKey: 'collections.title' }],
     fallback: {
@@ -62,7 +69,7 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
   },
   tag: {
     type: 'tag',
-    pageKey: 'taxonomy-tags-index',
+    pageKey: 'taxonomy-tags',
     routeBase: 'tag',
     breadcrumbs: [{ labelKey: 'breadcrumb.home', href: '/' }, { labelKey: 'tags.allTags' }],
     fallback: {

@@ -87,11 +87,16 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Copy compose file to server
+      - name: Copy compose file and deploy script to server
         run: |
           scp docker-compose.prod.yml ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/bibliaris-frontend/app/src/docker-compose.prod.yml
+          scp scripts/deploy-bluegreen.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/bibliaris-frontend/app/src/deploy-bluegreen.sh
 
-      - name: Deploy via SSH
+      # Выкат идёт скриптом, а не `compose up`, потому что нужен порядок:
+      # поднять рядом → дождаться ответа → переключить Caddy → погасить старое.
+      # `compose up` останавливал единственный контейнер раньше, чем новый
+      # начинал отвечать, и всё это время сайт не обслуживал никто.
+      - name: Deploy via SSH (blue-green)
         env:
           IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
           GHCR_OWNER: ${{ needs.build.outputs.image_owner }}
@@ -104,9 +109,8 @@ jobs:
             echo '${GHCR_TOKEN}' | docker login ghcr.io -u '${GHCR_USER}' --password-stdin
             export IMAGE_TAG=${IMAGE_TAG}
             export GHCR_OWNER=${GHCR_OWNER}
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d
-            docker image prune -f
+            chmod +x deploy-bluegreen.sh
+            ./deploy-bluegreen.sh
           "
 
       - name: Health check
