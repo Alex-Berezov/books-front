@@ -1,7 +1,8 @@
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { getPublicAuthorBySlug } from '@/api/endpoints/public';
 import { getDictionary } from '@/lib/i18n/dictionaries';
-import { handleContentFailure } from '@/lib/utils/content-failure';
+import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
+import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
 import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import { buildRobotsByCount, toCountResult } from '@/lib/utils/seo-indexing';
@@ -170,7 +171,32 @@ export default async function AuthorDetailPage({ params }: Props) {
     //
     // An outage is different and must not be turned into a 404 — handled by
     // handleContentFailure, which rethrows anything that is not a 404.
+    //
+    // Но прежде чем отдать 404 — спросить историю слагов (LEGACY-062). Слаг автора
+    // существует только на уровне перевода (базового у Author нет), поэтому запись
+    // и резолв идут по языку. Порядок обязателен: попытка отдать живого автора уже
+    // провалилась 404-м, и только теперь история имеет право говорить.
+    if (isNotFoundError(error)) {
+      const retired = await resolveRetiredSlug('author', supportedLang, authorSlug);
+      if (retired && retired !== authorSlug) {
+        permanentRedirect(`/${supportedLang}/author/${retired}`);
+      }
+    }
     handleContentFailure(error, notFound);
+  }
+
+  // Второй путь к тому же выводу, до сих пор не закрытый ничем: запрос не бросил,
+  // но автора нет. Сегодня это недостижимо только потому, что бэкенд честно бросает
+  // NotFoundException — то есть контракт держится на честном слове, а не на коде.
+  // Без этой ветки вырожденный успешный ответ отрендерил бы страницу с именем,
+  // собранным из самого слага, — ровно тот soft-404, против которого написан
+  // комментарий выше.
+  if (!author) {
+    const retired = await resolveRetiredSlug('author', supportedLang, authorSlug);
+    if (retired && retired !== authorSlug) {
+      permanentRedirect(`/${supportedLang}/author/${retired}`);
+    }
+    notFound();
   }
 
   // Construct JSON-LD Person schema if author details are available

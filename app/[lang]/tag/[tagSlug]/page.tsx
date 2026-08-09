@@ -1,12 +1,13 @@
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { TagDetailPage } from '@/components/public/taxonomy/TagDetailPage/TagDetailPage';
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import { noteDegraded } from '@/lib/seo/degraded';
+import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { buildLangUrl, toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
-import { handleContentFailure } from '@/lib/utils/content-failure';
+import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
 import { buildItemListJsonLd, getSiteUrl, schemaContainsType } from '@/lib/utils/json-ld';
 import {
   applyEditorialVisibility,
@@ -201,6 +202,17 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
   } catch (error) {
     // Content missing, not "content is empty" — see handleContentFailure.
     logError('Error loading tag page data:', error);
+    // Тот же отказ, что и ниже, но пришедший другим путём: API ответил 404, и до
+    // проверки `data.tag` дело не дошло. Оба пути обязаны заглянуть в историю
+    // слагов (LEGACY-062) — закрытие одного дало бы редирект «через раз», в
+    // зависимости от того, каким способом API сообщил об отсутствии.
+    if (isNotFoundError(error)) {
+      const retired = await resolveRetiredSlug('tag', supportedLang, tagSlug);
+      if (retired && retired !== tagSlug) {
+        const query = currentPage > 1 ? `?page=${currentPage}` : '';
+        permanentRedirect(`/${supportedLang}/tag/${retired}${query}`);
+      }
+    }
     handleContentFailure(error, notFound);
   }
 
@@ -208,6 +220,14 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
   // 200 with an empty list — a soft 404 keeps a non-existent URL alive in the
   // index. An existing term with zero books stays 200 + noindex.
   if (!data || !data.tag) {
+    // Прежде чем отдать 404 — спросить историю слагов. Порядок обязателен: сначала
+    // попытка отдать живую сущность, и лишь затем история, иначе слаг, освобождённый
+    // и занятый заново другим тегом, увёл бы посетителя со страницы, которая есть.
+    const retired = await resolveRetiredSlug('tag', supportedLang, tagSlug);
+    if (retired && retired !== tagSlug) {
+      const query = currentPage > 1 ? `?page=${currentPage}` : '';
+      permanentRedirect(`/${supportedLang}/tag/${retired}${query}`);
+    }
     notFound();
   }
 

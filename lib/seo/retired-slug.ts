@@ -14,7 +14,7 @@ import type { SupportedLang } from '@/types/api-schema';
  * попробовать отдать страницу, и лишь потом смотреть историю» — не оптимизация,
  * а условие корректности.
  */
-export type RetiredSlugEntityType = 'category' | 'tag';
+export type RetiredSlugEntityType = 'category' | 'tag' | 'book' | 'author';
 
 interface SlugRedirectResponse {
   newSlug: string | null;

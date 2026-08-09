@@ -9,6 +9,7 @@ import { SmartBackButton } from '@/components/public/navigation/SmartBackButton'
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getDefaultLang } from '@/lib/i18n/lang';
 import { noteDegraded } from '@/lib/seo/degraded';
+import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
 import { logError } from '@/lib/utils/log-error';
@@ -172,8 +173,18 @@ export default async function BookDetailPage({ params }: Props) {
   // missing page. And the SEO bundle is decoration — its failure costs metadata,
   // never the page.
   const [book, seoData] = await Promise.all([
-    getCachedBookOverview(supportedLang, slug).catch((error) => {
+    getCachedBookOverview(supportedLang, slug).catch(async (error) => {
       logError('Error loading book overview:', error);
+      // API ответил 404 — книги по этому слагу нет. Прежде чем отдать 404, спросить
+      // историю слагов (LEGACY-062): книга могла быть переименована, и тогда у этого
+      // адреса есть законный преемник. 308 переносит накопленные сигналы, 404 их
+      // теряет, и заметно это становится через недели, по падению трафика.
+      if (isNotFoundError(error)) {
+        const retired = await resolveRetiredSlug('book', supportedLang, slug);
+        if (retired && retired !== slug) {
+          permanentRedirect(`/${supportedLang}/book/${retired}`);
+        }
+      }
       return handleContentFailure(error, notFound);
     }),
     getCachedBookSeo(supportedLang, slug).catch((error) => {
@@ -183,6 +194,15 @@ export default async function BookDetailPage({ params }: Props) {
   ]);
 
   if (!book) {
+    // Второй, независимый путь к тому же выводу: запрос не бросил, но сущности нет
+    // (вырожденный 200/204 — `handleResponse` отдаёт `undefined`). Он обязан
+    // заглянуть в историю так же, как ветка выше: закрытие одного пути дало бы
+    // редирект «через раз», в зависимости от того, как именно API сообщил об
+    // отсутствии.
+    const retired = await resolveRetiredSlug('book', supportedLang, slug);
+    if (retired && retired !== slug) {
+      permanentRedirect(`/${supportedLang}/book/${retired}`);
+    }
     notFound();
   }
 
