@@ -238,8 +238,23 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
             {...register('key')}
             error={!!errors.key}
             placeholder="e.g. classic-literature"
+            // Ключ задаётся один раз при создании и дальше неизменяем: по нему
+            // связывает JSON-импорт, и уехавший ключ даёт не ошибку, а дубликат
+            // термина (LEGACY-068). Бэкенд отвергает смену сам — это поле лишь
+            // перестаёт обещать то, чего сделать нельзя.
+            //
+            // ⚠️ `readOnly`, а не `disabled`: react-hook-form исключает
+            // disabled-поля из данных формы, а `key` в схеме обязателен — форма
+            // перестала бы сохраняться вовсе.
+            readOnly={isEditMode}
           />
           {errors.key?.message && <span className={styles.errorMessage}>{errors.key.message}</span>}
+          {isEditMode && (
+            <span className={styles.hint}>
+              The key is the term&apos;s permanent identifier — imports and links resolve by it. It
+              cannot be changed after creation.
+            </span>
+          )}
         </div>
 
         <div className={styles.field}>

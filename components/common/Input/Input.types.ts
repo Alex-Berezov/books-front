@@ -41,6 +41,16 @@ export interface InputProps {
   disabled?: boolean;
 
   /**
+   * Значение видно и уходит в форму, но правке не поддаётся.
+   *
+   * ⚠️ Не то же самое, что `disabled`: react-hook-form исключает disabled-поля
+   * из данных формы, поэтому обязательное поле с `disabled` роняет валидацию и
+   * форма перестаёт сохраняться вовсе. Для «показать, но не давать менять»
+   * нужен именно `readOnly`.
+   */
+  readOnly?: boolean;
+
+  /**
    * Loading state - shows spinner
    * @default false
    */

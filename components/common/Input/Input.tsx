@@ -50,6 +50,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     fullWidth = false,
     error = false,
     disabled = false,
+    readOnly = false,
     loading = false,
     placeholder,
     value,
@@ -103,6 +104,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     fullWidth && styles.fullWidth,
     error && styles.error,
     disabled && styles.disabled,
+    readOnly && styles.disabled,
     loading && styles.loading,
     leftIcon && styles.hasLeftIcon,
     className,
@@ -119,6 +121,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
         ref={ref}
         type={inputType}
         disabled={disabled || loading}
+        readOnly={readOnly}
         placeholder={placeholder}
         value={value}
         defaultValue={value === undefined ? defaultValue : undefined}
@@ -135,7 +138,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
       />
 
       {/* Clear button */}
-      {allowClear && currentValue && !disabled && !loading && (
+      {allowClear && currentValue && !disabled && !readOnly && !loading && (
         <button
           type="button"
           className={styles.clearButton}
