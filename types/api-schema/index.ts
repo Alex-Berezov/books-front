@@ -98,6 +98,8 @@ export type {
   CreateTagRequest,
   CreateTagTranslationRequest,
   DetachTagRequest,
+  RelatedTerm,
+  RelatedTerms,
   Tag,
   TagBookCardsResponse,
   TagBooksResponse,

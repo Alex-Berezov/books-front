@@ -4,8 +4,9 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { PageBackButton } from '@/components/public/navigation';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { Tag, TagBookCardsResponse, TagTranslation } from '@/types/api-schema';
+import type { RelatedTerm, Tag, TagBookCardsResponse, TagTranslation } from '@/types/api-schema';
 import { TagDetailInteractions } from './TagDetailInteractions';
 import styles from './TagDetailPage.module.scss';
 
@@ -58,10 +59,32 @@ export function TagDetailPage({
   const tagDescription = tagTranslation?.description || '';
   const tagShortDescription = tagTranslation?.shortDescription || '';
   const tagFaq = tagTranslation?.faq || [];
-  const relatedTagSlugs = tagTranslation?.relatedTagSlugs || [];
-  const relatedGenreSlugs = tagTranslation?.relatedGenreSlugs || [];
-  const relatedCategorySlugs = tagTranslation?.relatedCategorySlugs || [];
-  const relatedCollectionSlugs = tagTranslation?.relatedCollectionSlugs || [];
+  /**
+   * 🔴 Раньше здесь брались сырые `related*Slugs` из перевода и рендерились как
+   * есть: существование термина не проверялось, видимость и индексируемость
+   * тоже, а текстом ссылки шёл сам слаг. Замер на проде 09.08.2026 по `en`: из
+   * 1039 таких ссылок 114 вели на несуществующий термин (56 уникальных → 404) и
+   * 622 — на закрытый `noindex`. Живыми были 303.
+   *
+   * Теперь бэкенд разрешает слаги в термины и отдаёт факты, а решение принимает
+   * `isTaxonomyLinkable` — тот же предикат, что у sitemap и внутренних ссылок.
+   * Свой порог здесь заводить нельзя: расхождение предикатов и есть дефект.
+   */
+  const relatedTerms = tag?.relatedTerms;
+  const linkable = (terms: RelatedTerm[] | undefined) =>
+    (terms ?? []).filter((term) =>
+      isTaxonomyLinkable({
+        isVisible: term.isVisible,
+        indexable: term.indexable,
+        autoIndexable: term.autoIndexable,
+        booksCount: term.langBookCount,
+      })
+    );
+
+  const relatedTagLinks = linkable(relatedTerms?.tags);
+  const relatedGenreLinks = linkable(relatedTerms?.genres);
+  const relatedCategoryLinks = linkable(relatedTerms?.categories);
+  const relatedCollectionLinks = linkable(relatedTerms?.collections);
 
   const breadcrumbItems = [
     { label: translations.breadcrumbHome, href: `/${lang}` },
@@ -162,60 +185,68 @@ export function TagDetailPage({
               showLessLabel={translations.showLess}
             />
 
-            {relatedTagSlugs.length > 0 && (
+            {relatedTagLinks.length > 0 && (
               <section className={styles.relatedSection}>
                 <h2 className={styles.sectionTitle}>{translations.relatedTags}</h2>
                 <div className={styles.relatedChips}>
-                  {relatedTagSlugs.map((slug: string) => (
-                    <Link key={slug} href={`/${lang}/tag/${slug}`} className={styles.relatedChip}>
-                      {slug}
+                  {relatedTagLinks.map((term) => (
+                    <Link
+                      key={term.slug}
+                      href={`/${lang}/tag/${term.slug}`}
+                      className={styles.relatedChip}
+                    >
+                      {term.name}
                     </Link>
                   ))}
                 </div>
               </section>
             )}
 
-            {relatedGenreSlugs.length > 0 && (
+            {relatedGenreLinks.length > 0 && (
               <section className={styles.relatedSection}>
                 <h2 className={styles.sectionTitle}>{translations.relatedGenres}</h2>
                 <div className={styles.relatedChips}>
-                  {relatedGenreSlugs.map((slug: string) => (
-                    <Link key={slug} href={`/${lang}/genre/${slug}`} className={styles.relatedChip}>
-                      {slug}
+                  {relatedGenreLinks.map((term) => (
+                    <Link
+                      key={term.slug}
+                      href={`/${lang}/genre/${term.slug}`}
+                      className={styles.relatedChip}
+                    >
+                      {term.name}
                     </Link>
                   ))}
                 </div>
               </section>
             )}
 
-            {relatedCategorySlugs.length > 0 && (
+            {relatedCategoryLinks.length > 0 && (
               <section className={styles.relatedSection}>
                 <h2 className={styles.sectionTitle}>{translations.relatedCategories}</h2>
                 <div className={styles.relatedChips}>
-                  {relatedCategorySlugs.map((slug: string) => (
+                  {relatedCategoryLinks.map((term) => (
                     <Link
-                      key={slug}
-                      href={`/${lang}/category/${slug}`}
+                      key={term.slug}
+                      href={`/${lang}/category/${term.slug}`}
                       className={styles.relatedChip}
                     >
-                      {slug}
+                      {term.name}
                     </Link>
                   ))}
                 </div>
               </section>
             )}
 
-            {relatedCollectionSlugs.length > 0 && (
+            {relatedCollectionLinks.length > 0 && (
               <section className={styles.relatedSection}>
                 <h2 className={styles.sectionTitle}>{translations.relatedCollections}</h2>
                 <div className={styles.relatedChips}>
-                  {relatedCollectionSlugs.map((slug: string) => (
+                  {relatedCollectionLinks.map((term) => (
                     <Link
-                      key={slug}
-                      href={`/${lang}/collection/${slug}`}
+                      key={term.slug}
+                      href={`/${lang}/collection/${term.slug}`}
                       className={styles.relatedChip}
                     >
-                      {slug}
+                      {term.name}
                     </Link>
                   ))}
                 </div>

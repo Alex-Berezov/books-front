@@ -11,6 +11,31 @@ import type { SeoData, SeoInput } from './pages';
 /**
  * Book tag
  */
+/**
+ * Термин, на который ссылается страница тега, разрешённый бэкендом из
+ * `related*Slugs`.
+ *
+ * 🔴 Здесь только факты, без вердикта: решение «ставить ли ссылку» принимает
+ * `isTaxonomyLinkable`, и он обязан остаться единственным предикатом. Слаги,
+ * которым не соответствует ни один термин, в ответ не попадают вовсе.
+ */
+export interface RelatedTerm {
+  slug: string;
+  name: string;
+  isVisible: boolean;
+  indexable: boolean;
+  autoIndexable: boolean;
+  /** Кэшированное число книг в языке страницы — вход для порога линкуемости. */
+  langBookCount: number;
+}
+
+export interface RelatedTerms {
+  tags: RelatedTerm[];
+  genres: RelatedTerm[];
+  categories: RelatedTerm[];
+  collections: RelatedTerm[];
+}
+
 export interface Tag {
   id: UUID;
   key: string;
@@ -23,6 +48,8 @@ export interface Tag {
   sortOrder?: number;
   translation?: TagTranslation | null;
   translations?: TagTranslation[];
+  /** Присутствует только в ответе публичной страницы тега (`includeTag=true`). */
+  relatedTerms?: RelatedTerms;
   createdAt: ISODate;
   updatedAt: ISODate;
 }
