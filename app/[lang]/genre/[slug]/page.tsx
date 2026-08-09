@@ -4,10 +4,11 @@ import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import { noteDegraded } from '@/lib/seo/degraded';
+import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { isUnaddressableInLanguage, resolveTaxonomyDestination } from '@/lib/seo/taxonomy-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
-import { handleContentFailure } from '@/lib/utils/content-failure';
+import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
 import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import {
   applyEditorialVisibility,
@@ -242,6 +243,17 @@ export default async function GenreDetailPage({ params, searchParams }: Props) {
     // fallbacks. Losing it means the page has no content to show, so it must not
     // be served as an empty 200; see handleContentFailure.
     logError('Error loading genre page data:', error);
+    // Тот же путь, что и ниже, но для случая, когда API ответил 404 и до проверки
+    // `data.category` дело не дошло. Оба пути ведут к одному отказу, значит оба
+    // обязаны сначала заглянуть в историю слагов (LEGACY-062) — иначе редирект
+    // работал бы через раз, в зависимости от того, как именно API сообщил об отсутствии.
+    if (isNotFoundError(error)) {
+      const retired = await resolveRetiredSlug('category', supportedLang, slug);
+      if (retired && retired !== slug) {
+        const query = currentPage > 1 ? `?page=${currentPage}` : '';
+        permanentRedirect(`/${supportedLang}/genre/${retired}${query}`);
+      }
+    }
     handleContentFailure(error, notFound);
   }
 
@@ -249,6 +261,16 @@ export default async function GenreDetailPage({ params, searchParams }: Props) {
   // not a 200 with an empty list — a soft 404 keeps a non-existent URL alive in
   // the index. An existing term with zero books stays 200 + noindex.
   if (data && !data.category) {
+    // Прежде чем отдать 404 — спросить историю слагов (LEGACY-062). Термин мог быть
+    // переименован, и тогда у этого адреса есть законный преемник: 308 переносит
+    // накопленные сигналы, а 404 их теряет. Порядок обязателен — сначала попытка
+    // отдать живую сущность, и лишь затем история: слаг, занятый заново, иначе увёл
+    // бы посетителя со страницы, которая существует.
+    const retired = await resolveRetiredSlug('category', supportedLang, slug);
+    if (retired && retired !== slug) {
+      const query = currentPage > 1 ? `?page=${currentPage}` : '';
+      permanentRedirect(`/${supportedLang}/genre/${retired}${query}`);
+    }
     notFound();
   }
 
