@@ -12,6 +12,7 @@ import {
   checkBookSlugUniqueness,
   checkCategorySlugUniqueness,
   checkPageSlugUniqueness,
+  checkTagSlugUniqueness,
 } from '@/api/endpoints/slug-validation';
 import type { SlugValidationResult } from '@/api/endpoints/slug-validation';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -19,7 +20,7 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 /**
  * Entity type for slug validation
  */
-export type SlugEntityType = 'page' | 'book' | 'category';
+export type SlugEntityType = 'page' | 'book' | 'category' | 'tag';
 
 /**
  * Slug validation status
@@ -121,6 +122,10 @@ export const useSlugValidation = (params: UseSlugValidationParams): UseSlugValid
           validationResult = await checkPageSlugUniqueness(slug, lang, excludeId);
         } else if (entityType === 'category') {
           validationResult = await checkCategorySlugUniqueness(slug, excludeId);
+        } else if (entityType === 'tag') {
+          // Своё пространство слагов: тег и категория могут законно совпадать по
+          // имени, поэтому проверка отдельная (LEGACY-061).
+          validationResult = await checkTagSlugUniqueness(slug, excludeId);
         } else {
           // entityType === 'book'
           validationResult = await checkBookSlugUniqueness(slug, excludeId);

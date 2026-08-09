@@ -114,15 +114,18 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
       }
 
       if (isEditMode && category) {
-        // 🔴 `slug` в тело PATCH не попадает намеренно (LEGACY-068). В сервисе
-        // ветка `dto.key ?? dto.slug` делает слаг ключом, когда `key` не пришёл, —
-        // то есть форма, потерявшая поле Key, молча переписала бы опорный `key`
-        // слагом. Поле слага в режиме редактирования и так заблокировано, менять
-        // там нечего, поэтому отправлять его незачем.
-        const { name, key, parentId, type: formType, indexable, isVisible } = data;
+        // Слаг снова отправляется: с 09.08.2026 его смена оставляет 308 со старого
+        // адреса (LEGACY-062).
+        //
+        // 🔴 `key` при этом передаётся **всегда и явно**. В сервисе ветка
+        // `dto.key ?? dto.slug` делает слаг ключом, когда `key` не пришёл, — то есть
+        // форма, потерявшая это поле, молча переписала бы опорный `key` слагом
+        // (LEGACY-068). Пока слаг не отправлялся, ловушка была недостижима; теперь
+        // единственное, что её держит, — эта строка.
+        const { name, slug, key, parentId, type: formType, indexable, isVisible } = data;
         await updateMutation.mutateAsync({
           id: category.id,
-          data: { name, key, parentId, type: formType, indexable, isVisible },
+          data: { name, slug, key, parentId, type: formType, indexable, isVisible },
         });
       } else {
         await createMutation.mutateAsync(data);
@@ -200,19 +203,28 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
                 error={errors.slug?.message}
                 sourceValue={watch('name')}
                 entityType="category"
+                // Без него встроенная проверка сравнивает слаг редактируемой записи
+                // с ней же самой и сообщает «занят» (LEGACY-061). Ручная проверка в
+                // `onSubmit` id передавала правильно — расхождение и маскировало дефект.
+                excludeId={category?.id}
                 mode={isEditMode ? 'edit' : 'create'}
-                // Locked while editing: this slug is a live, indexed URL and there
-                // is no redirect table yet, so changing it deletes the old address
-                // outright (LEGACY-062). Temporary until SlugRedirect exists.
-                disabled={isEditMode}
+                // Разблокировано 09.08.2026: `SlugRedirect` появился, и смена слага
+                // теперь оставляет 308 со старого адреса (LEGACY-062). До этого поле
+                // было заперто, потому что правка молча удаляла проиндексированный URL.
+                //
+                // ⚠️ Автогенерация из имени при этом по-прежнему выключена (`mode="edit"`):
+                // редирект делает смену слага восстановимой, но не бесплатной, и она
+                // должна оставаться осознанным действием, а не побочным эффектом
+                // переименования.
                 // We handle validation manually in onSubmit for now
               />
             )}
           />
           {isEditMode && (
             <span className={styles.hint}>
-              The slug is a published URL. Changing it would break the existing address — there is
-              no redirect yet, so it is locked.
+              This slug is a published URL. Changing it keeps the old address working — visitors and
+              search engines are redirected (308) — but the old URL stays a redirect forever, so
+              change it only when it is worth it.
             </span>
           )}
         </div>

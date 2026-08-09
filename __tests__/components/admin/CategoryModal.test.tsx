@@ -68,17 +68,23 @@ describe('CategoryModal — editorial visibility switches', () => {
     expect(payload.data.indexable).toBe(true);
   });
 
-  it('never puts slug into the PATCH body (LEGACY-068)', async () => {
-    // В сервисе `dto.key ?? dto.slug` делает слаг ключом, когда `key` не пришёл.
-    // Слаг в режиме редактирования заблокирован, менять там нечего — и отправлять
-    // тоже, иначе форма остаётся в одном шаге от переписывания опорного ключа.
+  // 🔴 Переписано 09.08.2026. Раньше здесь закреплялось, что `slug` в тело PATCH **не
+  // попадает** — это было верно, пока поле слага было заперто (редиректов не
+  // существовало, и правка молча удаляла проиндексированный URL). С появлением
+  // `SlugRedirect` поле разблокировано, и слаг обязан отправляться.
+  //
+  // Инвариант при этом сохранился и стал важнее: `key` идёт **всегда и явно**. В
+  // сервисе ветка `dto.key ?? dto.slug` делает слаг ключом, когда `key` не пришёл
+  // (LEGACY-068). Пока слаг не отправлялся, ловушка была недостижима — теперь её
+  // держит только это поле.
+  it('sends the slug, and always sends key explicitly with it (LEGACY-068)', async () => {
     renderModal();
 
     fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
 
     await waitFor(() => expect(mocks.update).toHaveBeenCalled());
     const payload = mocks.update.mock.calls[0][0] as { data: Record<string, unknown> };
-    expect(payload.data).not.toHaveProperty('slug');
+    expect(payload.data.slug).toBe('victorian-literature');
     expect(payload.data.key).toBe('victorian-literature');
   });
 

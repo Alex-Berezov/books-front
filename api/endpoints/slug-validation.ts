@@ -196,3 +196,40 @@ export const checkCategorySlugUniqueness = async (
     };
   }
 };
+
+/**
+ * Проверка слага тега (LEGACY-061).
+ *
+ * До 09.08.2026 её не существовало, и форма тегов проверяла слаг **по книгам**
+ * (`entityType="book" // Fallback`): отвечала на другой вопрос и молчала о настоящих
+ * совпадениях. Отдельная функция, а не параметр к категориям, — потому что это
+ * разные пространства слагов: тег и категория могут законно называться одинаково.
+ */
+export const checkTagSlugUniqueness = async (
+  slug: string,
+  excludeTagId?: string
+): Promise<SlugValidationResult> => {
+  try {
+    const params = new URLSearchParams({ slug });
+    if (excludeTagId) {
+      params.append('excludeId', excludeTagId);
+    }
+
+    const endpoint = `/tags/check-slug?${params.toString()}`;
+    const response = await httpGetAuth<{ exists: boolean; suggestedSlug?: string }>(endpoint);
+
+    return {
+      slug,
+      isUnique: !response.exists,
+      suggestedSlug: response.suggestedSlug,
+    };
+  } catch (error) {
+    // Отказ проверки не должен блокировать форму: считаем слаг свободным, а
+    // настоящую уникальность всё равно стережёт уникальный индекс в базе.
+    console.error('[checkTagSlugUniqueness] Error checking slug:', error);
+    return {
+      slug,
+      isUnique: true,
+    };
+  }
+};

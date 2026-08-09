@@ -143,21 +143,31 @@ export const TagModal: FC<TagModalProps> = (props) => {
                 onChange={field.onChange}
                 error={errors.slug?.message}
                 sourceValue={watch('name')}
-                entityType="book" // Fallback
+                // Был `"book" // Fallback` — форма тега проверяла слаг по книгам,
+                // то есть отвечала на другой вопрос и молчала о совпадениях с другими
+                // тегами (LEGACY-061). Своя проверка появилась 09.08.2026.
+                entityType="tag"
+                // Без `excludeId` проверка сравнивает слаг записи с ней же самой и
+                // сообщает «занят» на собственном слаге. `mode` и `excludeId` — разные
+                // факты: первый управляет автогенерацией, второй проверкой уникальности.
+                excludeId={tag?.id}
                 lang={lang}
                 mode={isEditMode ? 'edit' : 'create'}
-                // Locked while editing: this slug is a live, indexed URL and there
-                // is no redirect table yet, so changing it deletes the old address
-                // outright (LEGACY-062). Temporary until SlugRedirect exists.
-                disabled={isEditMode}
+                // Разблокировано 09.08.2026: `SlugRedirect` появился, и смена слага
+                // оставляет 308 со старого адреса (LEGACY-062).
+                //
+                // ⚠️ `autoGenerate` остаётся, но `mode="edit"` его при правке гасит:
+                // редирект делает смену восстановимой, а не бесплатной, и она должна
+                // быть осознанной, а не побочным эффектом переименования.
                 autoGenerate
               />
             )}
           />
           {isEditMode && (
             <span className={styles.hint}>
-              The slug is a published URL. Changing it would break the existing address — there is
-              no redirect yet, so it is locked.
+              This slug is a published URL. Changing it keeps the old address working — visitors and
+              search engines are redirected (308) — but the old URL stays a redirect forever, so
+              change it only when it is worth it.
             </span>
           )}
         </div>
