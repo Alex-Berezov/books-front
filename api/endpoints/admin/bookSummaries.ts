@@ -16,9 +16,15 @@ import type { BookSummaryDetail, UpsertBookSummaryRequest } from '@/types/api-sc
  * @param versionId - Book version ID
  * @returns Summary data or null
  */
+/**
+ * ⚠️ `optionalAuth`, а не `requireAuth: false`. Один и тот же адрес обслуживает
+ * публичную страницу саммари и админскую вкладку, где редактор пишет текст **до**
+ * публикации. С 10.08.2026 черновик отдаётся только по токену (`LEGACY-090`);
+ * без него редактор увидел бы 404 на собственной незавершённой работе.
+ */
 export const getBookSummary = async (versionId: string): Promise<BookSummaryDetail | null> => {
   const endpoint = `/versions/${versionId}/summary`;
-  return httpGetAuth<BookSummaryDetail | null>(endpoint, { requireAuth: false });
+  return httpGetAuth<BookSummaryDetail | null>(endpoint, { optionalAuth: true });
 };
 
 /**
