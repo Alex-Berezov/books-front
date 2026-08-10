@@ -4,9 +4,8 @@ import { Badge, Skeleton } from 'antd';
 import { ListFilter as Filter, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useBooks } from '@/api/hooks/useBooks';
 import { useCategories } from '@/api/hooks/useCategories';
-import { useCategoryBooks } from '@/api/hooks/usePublic';
+import { useCategoryBooks, usePublicBooks } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import { BookCard } from '@/components/public/books/BookCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -52,7 +51,14 @@ export function CatalogTemplate({ lang, categorySlug }: CatalogTemplateProps) {
     { enabled: !!categorySlug }
   );
 
-  const { data: allBooksData, isLoading: loadingAllBooks } = useBooks(
+  /**
+   * 🔴 Публичный каталог ходил на административный `GET /books` — маршрут без
+   * гварда, отдававший **все** статусы, и черновики отсекались уже здесь, на
+   * клиенте (`LEGACY-093`). Теперь берём публичный `GET /:lang/books`, где
+   * фильтр стоит на сервере.
+   */
+  const { data: allBooksData, isLoading: loadingAllBooks } = usePublicBooks(
+    lang,
     { limit: 100 },
     { enabled: !categorySlug }
   );

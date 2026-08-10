@@ -41,7 +41,9 @@ export const getBooks = async (
   });
 
   const endpoint = `/books?${queryParams.toString()}`;
-  return httpGetAuth<PaginatedResponse<BookOverview>>(endpoint, { requireAuth: false });
+  // ⚠️ Токен обязателен с 10.08.2026: маршрут админский и показывает черновики
+  // (`LEGACY-093`). Публичной витрине нужен `getPublicBooks` — `/:lang/books`.
+  return httpGetAuth<PaginatedResponse<BookOverview>>(endpoint);
 };
 
 /**
