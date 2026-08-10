@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildIndexableAlternates } from '@/lib/seo/hreflang-alternates';
+import { buildIndexableAlternates, toAlternateCandidates } from '@/lib/seo/hreflang-alternates';
+import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 
 /**
  * `LEGACY-057`. URL попадал в sitemap только если термин линкуем в языке файла,
@@ -85,5 +86,55 @@ describe('buildIndexableAlternates', () => {
     );
 
     expect(res).not.toHaveProperty('fr');
+  });
+});
+
+/**
+ * 🔴 Функция перенесена сюда из `app/sitemaps/[filename]/route.ts`: внутри
+ * маршрута она была недостижима для тестов, и правило оказалось единственным
+ * непроверяемым звеном контура «ссылка = sitemap = robots».
+ */
+describe('toAlternateCandidates', () => {
+  const term = { isVisible: true, indexable: true };
+
+  it('takes indexability from each translation, not from the term as a whole', () => {
+    const res = toAlternateCandidates(
+      term,
+      [
+        { language: 'en', slug: 'adventure', autoIndexable: true, bookCount: 7 },
+        { language: 'ru', slug: 'priklyucheniya', autoIndexable: false, bookCount: 1 },
+      ],
+      isTaxonomyLinkable
+    );
+
+    expect(res).toEqual([
+      { language: 'en', slug: 'adventure', linkable: true },
+      { language: 'ru', slug: 'priklyucheniya', linkable: false },
+    ]);
+  });
+
+  // Редакторский переключатель общий для всех языков и обязан закрыть каждый.
+  it('lets a term-level switch close every language', () => {
+    const res = toAlternateCandidates(
+      { isVisible: false, indexable: true },
+      [{ language: 'en', slug: 'adventure', autoIndexable: true, bookCount: 7 }],
+      isTaxonomyLinkable
+    );
+
+    expect(res[0].linkable).toBe(false);
+  });
+
+  // Перевод без слага адреса не имеет — в кандидаты ему попадать нечем.
+  it('skips a translation without a slug', () => {
+    const res = toAlternateCandidates(
+      term,
+      [
+        { language: 'en', slug: 'adventure', autoIndexable: true, bookCount: 7 },
+        { language: 'fr', autoIndexable: true, bookCount: 7 },
+      ],
+      isTaxonomyLinkable
+    );
+
+    expect(res.map((c) => c.language)).toEqual(['en']);
   });
 });

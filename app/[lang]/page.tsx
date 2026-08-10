@@ -10,6 +10,7 @@ import {
 import { HomePageContent } from '@/components/public/home/HomePageContent/HomePageContent';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { isAuthorLinkable } from '@/lib/seo/author-linkable';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -45,6 +46,19 @@ function sortByBooksCount<T extends { booksCount?: number }>(items: T[]): T[] {
 /** Only terms that will answer `index` may appear on the homepage. */
 function linkableSortedByBooksCount<T extends { booksCount?: number }>(items: T[]): T[] {
   return sortByBooksCount(items.filter(isTaxonomyLinkable));
+}
+
+/**
+ * 🔴 Авторы фильтруются **своим** предикатом, а не остаются без него.
+ *
+ * 09.08.2026 авторы без книг закрыты `noindex` и убраны из sitemap, а ссылки на
+ * них с главной остались — то есть из трёх сигналов согласовали два. Аудит 7.2
+ * поймал ровно это: шесть внутренних ссылок на noindex-страницы
+ * (`fyodor-dostoevsky`, `homer` и его переводы). Контур «ссылка = sitemap =
+ * robots» замыкается третьим сигналом, иначе он не замкнут вовсе.
+ */
+function linkableAuthorsSortedByBooksCount<T extends { booksCount?: number }>(items: T[]): T[] {
+  return sortByBooksCount(items.filter(isAuthorLinkable));
 }
 
 const MAX_COLLECTION_SECTIONS = 4;
@@ -104,7 +118,7 @@ export default async function PublicLangPage({ params }: Props) {
     const allGenres = linkableSortedByBooksCount(genresRes?.data || []).slice(0, 12);
     const allCollections = linkableSortedByBooksCount(colsRes?.data || []).slice(0, 12);
     const allTags = linkableSortedByBooksCount(tagsRes?.data || []).slice(0, 12);
-    const allAuthors = sortByBooksCount(authorsRes?.data || []).slice(0, 12);
+    const allAuthors = linkableAuthorsSortedByBooksCount(authorsRes?.data || []).slice(0, 12);
 
     const [classicBooks, fantasyBooks] = await Promise.all([
       getCategoryBookCards(supportedLang, 'classics', 1, 8)

@@ -49,3 +49,57 @@ export function buildIndexableAlternates(
 
   return alternates;
 }
+
+/** Перевод термина в том виде, в каком его отдаёт список таксономий. */
+export type TermTranslation = {
+  language: string;
+  slug?: string;
+  autoIndexable?: boolean;
+  bookCount?: number;
+};
+
+/** Редакторские переключатели уровня термина — общие для всех языков. */
+export type TermSwitches = {
+  isVisible?: boolean;
+  indexable?: boolean;
+};
+
+/**
+ * Переводы термина, приведённые к кандидатам hreflang.
+ *
+ * 🔴 Линкуемость считается **по переводу**, а не по термину целиком: у hreflang
+ * вопрос задаётся про каждый язык отдельно. Переключатели `isVisible`/`indexable`
+ * редакторские и общие, а `autoIndexable`/`bookCount` — свои у каждого перевода.
+ *
+ * Для языка самого файла это даёт тот же ответ, что и `isTaxonomyLinkable(term)`
+ * в ветке карты сайта: список отдаётся с `?lang`, и верхнеуровневые
+ * `autoIndexable`/`langBookCount` там — значения этого же перевода. Значит
+ * self-ссылка кластера не может пропасть у URL, который в карту попал.
+ *
+ * ⚠️ Функция живёт здесь, а не внутри `app/sitemaps/[filename]/route.ts`, где
+ * была написана изначально: в маршруте она недостижима для тестов, и правило
+ * оказалось бы единственным непроверяемым звеном контура.
+ */
+export function toAlternateCandidates(
+  term: TermSwitches,
+  translations: TermTranslation[],
+  isLinkable: (t: {
+    isVisible?: boolean;
+    indexable?: boolean;
+    autoIndexable?: boolean;
+    booksCount?: number;
+  }) => boolean
+): AlternateCandidate[] {
+  return translations
+    .filter((t) => Boolean(t.slug))
+    .map((t) => ({
+      language: t.language,
+      slug: t.slug as string,
+      linkable: isLinkable({
+        isVisible: term.isVisible,
+        indexable: term.indexable,
+        autoIndexable: t.autoIndexable,
+        booksCount: t.bookCount,
+      }),
+    }));
+}

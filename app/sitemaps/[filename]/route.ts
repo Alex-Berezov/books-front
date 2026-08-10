@@ -4,7 +4,7 @@ import { getTags } from '@/api/endpoints/admin/tags';
 import { getPublicBooks, getBookCards, getPublicAuthors } from '@/api/endpoints/public';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { isAuthorLinkable } from '@/lib/seo/author-linkable';
-import { buildIndexableAlternates, type AlternateCandidate } from '@/lib/seo/hreflang-alternates';
+import { buildIndexableAlternates, toAlternateCandidates } from '@/lib/seo/hreflang-alternates';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { getBaseUrl, buildUrlSetXml, type SitemapItem } from '@/lib/sitemap/utils';
 import { toCountResult, type CountResult } from '@/lib/utils/seo-indexing';
@@ -31,42 +31,6 @@ export const dynamic = 'force-dynamic';
  * ran fresh (`lastmod` was current) while its data was hours old.
  */
 export const fetchCache = 'force-no-store';
-
-/**
- * Переводы термина, приведённые к кандидатам hreflang.
- *
- * 🔴 Линкуемость считается **по переводу**, а не по термину целиком: у hreflang
- * вопрос задаётся про каждый язык отдельно. Термин-уровневые переключатели
- * (`isVisible`, `indexable`) редакторские и общие для всех языков, а
- * `autoIndexable`/`bookCount` — свои у каждого перевода.
- *
- * Для языка самого файла это даёт тот же ответ, что и `isTaxonomyLinkable(term)`
- * выше по ветке: список отдаётся с `?lang`, и верхнеуровневые `autoIndexable` и
- * `langBookCount` там — значения этого же перевода. Значит, self-ссылка кластера
- * не может пропасть у URL, который в карту попал.
- */
-function toAlternateCandidates(
-  term: { isVisible?: boolean; indexable?: boolean },
-  translations: Array<{
-    language: string;
-    slug?: string;
-    autoIndexable?: boolean;
-    bookCount?: number;
-  }>
-): AlternateCandidate[] {
-  return translations
-    .filter((t) => Boolean(t.slug))
-    .map((t) => ({
-      language: t.language,
-      slug: t.slug as string,
-      linkable: isTaxonomyLinkable({
-        isVisible: term.isVisible,
-        indexable: term.indexable,
-        autoIndexable: t.autoIndexable,
-        booksCount: t.bookCount,
-      }),
-    }));
-}
 
 export async function GET(request: Request, { params }: { params: { filename: string } }) {
   const { filename } = params;
@@ -239,7 +203,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
         // языке файла, а список hreflang — нет, и термин, закрытый на `ru`,
         // объявлялся альтернативой открытого `en`.
         const alternates = buildIndexableAlternates(
-          toAlternateCandidates(cat, cat.translations ?? []),
+          toAlternateCandidates(cat, cat.translations ?? [], isTaxonomyLinkable),
           (language, slug) => `${cleanBaseUrl}/${language}/genre/${slug}`
         );
 
@@ -279,7 +243,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
         // языке файла, а список hreflang — нет, и термин, закрытый на `ru`,
         // объявлялся альтернативой открытого `en`.
         const alternates = buildIndexableAlternates(
-          toAlternateCandidates(cat, cat.translations ?? []),
+          toAlternateCandidates(cat, cat.translations ?? [], isTaxonomyLinkable),
           (language, slug) => `${cleanBaseUrl}/${language}/category/${slug}`
         );
 
@@ -316,7 +280,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
         // языке файла, а список hreflang — нет, и термин, закрытый на `ru`,
         // объявлялся альтернативой открытого `en`.
         const alternates = buildIndexableAlternates(
-          toAlternateCandidates(cat, cat.translations ?? []),
+          toAlternateCandidates(cat, cat.translations ?? [], isTaxonomyLinkable),
           (language, slug) => `${cleanBaseUrl}/${language}/collection/${slug}`
         );
 
@@ -463,7 +427,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
         // Альтернативы — только из индексируемых языков (LEGACY-057), тем же
         // правилом, что у категорий, жанров и коллекций.
         const alternates = buildIndexableAlternates(
-          toAlternateCandidates(tag, tag.translations ?? []),
+          toAlternateCandidates(tag, tag.translations ?? [], isTaxonomyLinkable),
           (language, slug) => `${cleanBaseUrl}/${language}/tag/${slug}`
         );
 
