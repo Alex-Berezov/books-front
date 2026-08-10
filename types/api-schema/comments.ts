@@ -2,16 +2,34 @@ import type { UUID, ISODate, PaginationMeta } from './common';
 
 export type CommentStatus = 'visible' | 'hidden';
 
+export interface CommentAuthor {
+  id: UUID;
+  name: string | null;
+  nickname: string | null;
+  /** Почта под гвардом: модератору нужно отличать однофамильцев (LEGACY-089). */
+  email: string;
+  avatarUrl: string | null;
+}
+
+/**
+ * Comment as the moderation screen sees it — the shape of `GET /admin/comments`.
+ *
+ * 🔴 Until 10.08.2026 this interface described a contract that did not exist
+ * anywhere: `authorName`, `bookTitle` and a `status` field the schema never had
+ * (LEGACY-092). The real comment carries `isHidden`, a nested `author` and an
+ * optional book — an entity is either hidden or not, there is no third state.
+ */
 export interface Comment {
   id: UUID;
-  content: string;
-  authorName: string;
-  authorEmail?: string;
-  authorAvatar?: string;
-  bookTitle: string;
-  bookId: UUID;
+  text: string;
+  isHidden: boolean;
   createdAt: ISODate;
-  status: CommentStatus;
+  author: CommentAuthor;
+  bookTitle: string | null;
+  bookId: UUID | null;
+  /** Нужен, чтобы ответить: создание комментария требует цель, а не только parentId. */
+  bookVersionId: UUID | null;
+  parentId: UUID | null;
   repliesCount: number;
 }
 
@@ -28,12 +46,14 @@ export interface CommentsResponse {
   meta: PaginationMeta;
 }
 
-export interface UpdateCommentStatusRequest {
-  status: CommentStatus;
+export interface ModerateCommentRequest {
+  isHidden: boolean;
 }
 
-export interface ReplyToCommentRequest {
-  content: string;
+export interface CreateReplyRequest {
+  parentId: UUID;
+  bookVersionId: UUID;
+  text: string;
 }
 
 // --- Client comments & reviews types ---

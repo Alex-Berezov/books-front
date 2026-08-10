@@ -6,7 +6,7 @@ import styles from './CommentItem.module.scss';
 
 interface CommentItemProps {
   comment: Comment;
-  onToggleStatus: (id: string, currentStatus: 'visible' | 'hidden') => void;
+  onToggleStatus: (id: string, isHidden: boolean) => void;
   onDelete: (id: string) => void;
   onReply?: (id: string) => void;
   isUpdating?: boolean;
@@ -23,33 +23,39 @@ export const CommentItem: FC<CommentItemProps> = (props) => {
     isDeleting = false,
   } = props;
 
-  const { id, content, authorName, authorEmail, bookTitle, createdAt, status, repliesCount } =
-    comment;
+  const { id, text, author, bookTitle, createdAt, isHidden, repliesCount } = comment;
+
+  // Имя может отсутствовать: у аккаунта заполнен либо `name`, либо `nickname`,
+  // либо ни то ни другое — тогда остаётся почта.
+  const displayName = author.name || author.nickname || author.email;
 
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(createdAt));
-  const isVisible = status === 'visible';
+  const isVisible = !isHidden;
+  const status = isHidden ? 'hidden' : 'visible';
 
   return (
     <div className={styles.item}>
       <div className={styles.header}>
         <div className={styles.author}>
-          <div className={styles.avatar}>{authorName.charAt(0).toUpperCase()}</div>
+          <div className={styles.avatar}>{displayName.charAt(0).toUpperCase()}</div>
           <div className={styles.info}>
-            <span className={styles.name}>{authorName}</span>
-            {authorEmail && <span className={styles.email}>{authorEmail}</span>}
+            <span className={styles.name}>{displayName}</span>
+            <span className={styles.email}>{author.email}</span>
           </div>
         </div>
         <div className={`${styles.status} ${styles[status]}`}>{status}</div>
       </div>
 
-      <div className={styles.book}>
-        On book: <strong>{bookTitle}</strong>
-      </div>
+      {bookTitle && (
+        <div className={styles.book}>
+          On book: <strong>{bookTitle}</strong>
+        </div>
+      )}
 
-      <div className={styles.content}>{content}</div>
+      <div className={styles.content}>{text}</div>
 
       <div className={styles.meta}>
         <span>{formattedDate}</span>
@@ -75,7 +81,7 @@ export const CommentItem: FC<CommentItemProps> = (props) => {
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => onToggleStatus(id, status)}
+          onClick={() => onToggleStatus(id, isHidden)}
           loading={isUpdating}
           leftIcon={isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
         >

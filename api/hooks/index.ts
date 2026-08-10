@@ -87,7 +87,7 @@ export {
 export {
   commentKeys,
   useComments,
-  useUpdateCommentStatus,
+  useModerateComment,
   useDeleteComment,
   useReplyToComment,
 } from './useComments';

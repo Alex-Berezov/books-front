@@ -2,8 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { commentsApi } from '@/api/endpoints/admin';
 import type {
   GetCommentsParams,
-  UpdateCommentStatusRequest,
-  ReplyToCommentRequest,
+  ModerateCommentRequest,
+  CreateReplyRequest,
 } from '@/types/api-schema/comments';
 import type { UUID } from '@/types/api-schema/common';
 
@@ -20,12 +20,12 @@ export const useComments = (params: GetCommentsParams) => {
   });
 };
 
-export const useUpdateCommentStatus = () => {
+export const useModerateComment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: UUID; data: UpdateCommentStatusRequest }) =>
-      commentsApi.updateCommentStatus(id, data),
+    mutationFn: ({ id, data }: { id: UUID; data: ModerateCommentRequest }) =>
+      commentsApi.moderateComment(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comments'] });
     },
@@ -47,8 +47,7 @@ export const useReplyToComment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: UUID; data: ReplyToCommentRequest }) =>
-      commentsApi.replyToComment(id, data),
+    mutationFn: (data: CreateReplyRequest) => commentsApi.replyToComment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comments'] });
     },

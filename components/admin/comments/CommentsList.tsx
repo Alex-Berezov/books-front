@@ -6,7 +6,7 @@ import { MessageSquare, Search } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import {
   useComments,
-  useUpdateCommentStatus,
+  useModerateComment,
   useDeleteComment,
   useReplyToComment,
 } from '@/api/hooks/useComments';
@@ -43,14 +43,13 @@ export const CommentsList: FC = () => {
     status: statusFilter,
   });
 
-  const updateStatusMutation = useUpdateCommentStatus();
+  const moderateMutation = useModerateComment();
   const deleteMutation = useDeleteComment();
   const replyMutation = useReplyToComment();
 
   // Handlers
-  const handleToggleStatus = (id: string, currentStatus: CommentStatus) => {
-    const newStatus = currentStatus === 'visible' ? 'hidden' : 'visible';
-    updateStatusMutation.mutate({ id, data: { status: newStatus } });
+  const handleToggleStatus = (id: string, isHidden: boolean) => {
+    moderateMutation.mutate({ id, data: { isHidden: !isHidden } });
   };
 
   const handleDelete = () => {
@@ -61,15 +60,18 @@ export const CommentsList: FC = () => {
     }
   };
 
-  const handleReplySubmit = (data: { content: string }) => {
-    if (replyId) {
-      replyMutation.mutate(
-        { id: replyId, data },
-        {
-          onSuccess: () => setReplyId(null),
-        }
-      );
-    }
+  const handleReplySubmit = (form: { content: string }) => {
+    // `form`, а не `data`: имя `data` уже занято ответом списка выше, и
+    // затенение здесь молча увело бы поиск родителя в форму.
+    const parent = data?.data.find((item) => item.id === replyId);
+    // Ответ создаётся как обычный комментарий: нужен и родитель, и цель —
+    // одного `parentId` серверу мало (XOR по полям цели).
+    if (!parent?.bookVersionId) return;
+
+    replyMutation.mutate(
+      { parentId: parent.id, bookVersionId: parent.bookVersionId, text: form.content },
+      { onSuccess: () => setReplyId(null) }
+    );
   };
 
   return (
@@ -129,7 +131,7 @@ export const CommentsList: FC = () => {
               onToggleStatus={handleToggleStatus}
               onDelete={setDeleteId}
               onReply={setReplyId}
-              isUpdating={updateStatusMutation.isPending}
+              isUpdating={moderateMutation.isPending}
             />
           ))
         )}
