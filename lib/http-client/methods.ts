@@ -15,7 +15,7 @@ import {
   httpPut as baseHttpPut,
   httpDelete as baseHttpDelete,
 } from '../http';
-import { getAccessToken } from './auth';
+import { getAccessToken, getOptionalAccessToken } from './auth';
 import { withAuthRetry } from './retry';
 
 /**
@@ -31,13 +31,16 @@ export const httpGetAuth = async <T>(
 ): Promise<T> => {
   const {
     requireAuth = true,
+    optionalAuth = false,
     retry401 = true,
     maxRetries: _maxRetries = 0,
     ...fetchOptions
   } = options;
 
-  // Get token if requireAuth = true
-  const initialToken = await getAccessToken(requireAuth, fetchOptions.accessToken);
+  // Get token if requireAuth = true; with optionalAuth an absent session is not an error
+  const initialToken = optionalAuth
+    ? fetchOptions.accessToken || (await getOptionalAccessToken())
+    : await getAccessToken(requireAuth, fetchOptions.accessToken);
 
   // Wrap request in retry logic
   return withAuthRetry(async (refreshedToken?: string) => {

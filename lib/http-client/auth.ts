@@ -103,6 +103,21 @@ export const getAccessToken = async (
 };
 
 /**
+ * Get access token for a route that works without authorization but returns a
+ * personal part to the token bearer — the reader, for one (`LEGACY-088`).
+ *
+ * ⚠️ Unlike `getAccessToken`, a missing session is not an error here: anonymous
+ * callers get the same response without the personal part. There used to be no
+ * third mode — either demand a token and fail with 401, or send none at all —
+ * so the reader worked around it by passing `userId` in the query string. That
+ * workaround is precisely what turned out to be the leak.
+ */
+export const getOptionalAccessToken = async (): Promise<string | undefined> => {
+  const session = await getCurrentSession();
+  return session?.accessToken;
+};
+
+/**
  * Perform logout on authentication failure
  */
 export const handleAuthFailure = async (): Promise<void> => {

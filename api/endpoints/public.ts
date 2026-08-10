@@ -6,6 +6,7 @@
  */
 
 import { httpGet, buildLangPath } from '@/lib/http';
+import { httpGetAuth } from '@/lib/http-client';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { SystemPageKey } from '@/lib/system-pages';
 import type {
@@ -130,17 +131,19 @@ export interface ReaderBootstrapResponse {
 
 /**
  * Get Reader bootstrap data in a single request.
+ *
+ * 🔴 The reader must not be named by a parameter. Until 10.08.2026 this call
+ * carried `?userId=<id from the session>` — and the browser is exactly where
+ * such a parameter is trivially swapped: substituting someone else's id
+ * returned their reading progress to an anonymous caller (`LEGACY-088`). The
+ * reader now arrives only as a token, and the server takes them from there.
  */
 export const getReaderBootstrap = async (
   lang: SupportedLang,
-  slug: string,
-  userId?: string
+  slug: string
 ): Promise<ReaderBootstrapResponse> => {
-  const endpoint = buildLangPath(
-    lang,
-    `/books/${slug}/reader-bootstrap${userId ? `?userId=${userId}` : ''}`
-  );
-  return httpGet<ReaderBootstrapResponse>(endpoint, { language: lang });
+  const endpoint = buildLangPath(lang, `/books/${slug}/reader-bootstrap`);
+  return httpGetAuth<ReaderBootstrapResponse>(endpoint, { language: lang, optionalAuth: true });
 };
 
 /**

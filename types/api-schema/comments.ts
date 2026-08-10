@@ -38,9 +38,13 @@ export interface ReplyToCommentRequest {
 
 // --- Client comments & reviews types ---
 
+/**
+ * ⚠️ `email` is deliberately absent: reviews are visible to anonymous callers,
+ * and until 10.08.2026 every commenter's address travelled along with them
+ * (`LEGACY-089`). No component ever read the field — it just went over the wire.
+ */
 export interface CommentUser {
   id: UUID;
-  email: string;
   name: string | null;
   nickname: string | null;
   avatarUrl: string | null;

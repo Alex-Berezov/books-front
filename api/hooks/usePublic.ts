@@ -243,8 +243,12 @@ export const useReaderBootstrap = (
   >
 ): UseQueryResult<publicApi.ReaderBootstrapResponse, ApiError> => {
   return useQuery<publicApi.ReaderBootstrapResponse, ApiError>({
+    // `userId` stays part of the key but not of the request: the server takes
+    // the reader from the token (`LEGACY-088`), while the key must still tell
+    // sessions apart — otherwise one user's progress would outlive the next
+    // user's sign-in inside the React Query cache.
     queryKey: ['readerBootstrap', lang, slug, userId],
-    queryFn: () => publicApi.getReaderBootstrap(lang, slug, userId),
+    queryFn: () => publicApi.getReaderBootstrap(lang, slug),
     staleTime: staleTimeConfig.public,
     enabled: !!slug,
     ...options,
