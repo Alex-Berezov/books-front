@@ -15,6 +15,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "validate": "bash ./scripts/validate-work.sh",
+    "ci": "yarn check:env && yarn check:langs && yarn lint && yarn typecheck && yarn test:coverage",
     "check:env": "node scripts/check-env.mjs",
     "check:site-url": "node scripts/check-site-url.mjs",
     "check:langs": "node scripts/check-langs-sync.mjs",

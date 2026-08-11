@@ -21,23 +21,17 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
-      - name: Canonical env guard
-        run: node scripts/check-env.mjs
-
-      - name: Language sync guard (frontend vs backend)
-        run: node scripts/check-langs-sync.mjs
-
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Lint
-        run: yarn lint
-
-      - name: Typecheck
-        run: yarn typecheck
-
-      - name: Run Unit Tests with Coverage
-        run: yarn test:coverage
+      # 🔴 Один и тот же `yarn ci` гоняют и эта проверка, и выкат. Раньше списки
+      # шагов были разными: CI знал про `check-env`, `check-langs-sync` и порог
+      # покрытия, выкат — нет. 10.08.2026 это разошлось до предела: CI краснел на
+      # покрытии, а выкат тех же коммитов был зелёным и уезжал на прод
+      # (`LEGACY-078`). Состав проверок теперь живёт в `package.json`, и
+      # разъехаться двум конвейерам больше нечем.
+      - name: Quality gates (same command the deploy runs)
+        run: yarn ci
 
       # Сборка здесь потому, что lint, typecheck и тесты её не заменяют.
       # 08.08.2026 импорт `next/headers` в файл, общий для сервера и клиента,

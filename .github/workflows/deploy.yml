@@ -20,9 +20,12 @@ jobs:
           node-version: '20'
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
-      - run: yarn lint
-      - run: yarn typecheck
-      - run: yarn test --run
+      # ⚠️ Тот же `yarn ci`, что и в проверке CI, — и это не дубль ради
+      # надёжности, а единственный способ не дать конвейерам разойтись. Здесь
+      # раньше стояли `lint`, `typecheck` и `test --run` **без** порога покрытия
+      # и без гвардов окружения, поэтому выкат пропускал то, на чём CI краснел
+      # (`LEGACY-078`).
+      - run: yarn ci
 
   build:
     name: Build & Push Docker Image
