@@ -10,18 +10,6 @@ export const LANGUAGE_LABELS: Record<SupportedLang, string> = {
 };
 
 /**
- * @deprecated Use FLAG_COMPONENTS from '@/lib/i18n/FlagIcon' for cross-platform SVG flags.
- * Emoji flags do not render on Windows.
- */
-export const LANGUAGE_FLAGS: Record<SupportedLang, string> = {
-  en: '🇬🇧',
-  es: '🇪🇸',
-  fr: '🇫🇷',
-  pt: '🇵🇹',
-  ru: '🇷🇺',
-};
-
-/**
  * BCP 47 tags used for Intl formatting (dates, numbers) per supported language.
  */
 export const LOCALE_TAGS: Record<SupportedLang, string> = {

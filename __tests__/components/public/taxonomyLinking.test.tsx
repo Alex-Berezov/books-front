@@ -1,8 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { TaxonomyCardGrid } from '@/components/public/taxonomy-overview/TaxonomyCardGrid';
-import { TaxonomyGroupedList } from '@/components/public/taxonomy-overview/TaxonomyGroupedList';
-import { TaxonomyTree } from '@/components/public/taxonomy-overview/TaxonomyTree';
 import type { CategoryTree } from '@/types/api-schema';
 
 type TermShape = {
@@ -44,17 +42,14 @@ const renderCardGrid = (term: TermShape) =>
 /**
  * Every renderer below must agree with `isTaxonomyLinkable`: a term that answers
  * noindex gets no internal link, whatever its raw book count says.
+ *
+ * The list held `TaxonomyTree` and `TaxonomyGroupedList` until 11.08.2026, when
+ * both were deleted as dead (`LEGACY-051`). This test was their only caller —
+ * which is exactly what made them look alive in a usage search. A renderer
+ * belongs here when a page renders it; add the next one together with its page.
  */
 const RENDERERS: Array<{ name: string; render: (term: TermShape) => void }> = [
   { name: 'TaxonomyCardGrid', render: (term) => void renderCardGrid(term) },
-  {
-    name: 'TaxonomyTree',
-    render: (term) => void render(<TaxonomyTree lang="en" items={[makeCategory(term)]} />),
-  },
-  {
-    name: 'TaxonomyGroupedList',
-    render: (term) => void render(<TaxonomyGroupedList lang="en" items={[makeCategory(term)]} />),
-  },
 ];
 
 describe.each(RENDERERS)('$name link filtering', ({ render: renderComponent }) => {

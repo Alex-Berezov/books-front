@@ -368,15 +368,22 @@ export const calculateDiscount = (price: number, percent: number): number => {
 };
 ```
 
-```typescript
+```tsx
 // lib/i18n/languageSelectOptions.tsx
 export const getLanguageSelectOptions = () => {
   return SUPPORTED_LANGS.map((lang) => ({
-    label: <span>{LANGUAGE_FLAGS[lang]} {LANGUAGE_LABELS[lang]}</span>,
+    label: (
+      <span>
+        {FLAG_COMPONENTS[lang]} {LANGUAGE_LABELS[lang]}
+      </span>
+    ),
     value: lang,
   }));
 };
 ```
+
+> Флаги — только `FLAG_COMPONENTS` из `@/lib/i18n/FlagIcon`. Emoji-константа `LANGUAGE_FLAGS`
+> удалена 11.08.2026 (`LEGACY-014`): emoji-флаги не рендерятся на Windows.
 
 **❌ INCORRECT:**
 

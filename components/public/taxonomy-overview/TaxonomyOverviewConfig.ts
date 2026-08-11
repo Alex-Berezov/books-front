@@ -7,11 +7,18 @@ export type BreadcrumbItem = {
   href?: string;
 };
 
+/**
+ * Fallback shown when the CMS page for a hub has no content of its own.
+ *
+ * Keys only — no literal strings. It used to carry `metaTitle`/`metaDescription`
+ * in English, which nobody read: every hub builds its metadata from the
+ * dictionary (`dict.categories.metaTitle` and so on). They were removed
+ * 11.08.2026 (`LEGACY-051`); an untranslated literal that looks authoritative is
+ * worse than no field, because the next edit goes into it and changes nothing.
+ */
 export interface FallbackContent {
   h1Key: string;
   shortDescriptionKey: string;
-  metaTitle: string;
-  metaDescription: string;
 }
 
 export interface TaxonomyOverviewConfig {
@@ -36,9 +43,6 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     fallback: {
       h1Key: 'categories.title',
       shortDescriptionKey: 'categories.subtitle',
-      metaTitle: 'Book Categories | Bibliaris',
-      metaDescription:
-        'Browse book categories on Bibliaris. Discover classic literature, fiction, history, science, education, and more.',
     },
   },
   genre: {
@@ -49,9 +53,6 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     fallback: {
       h1Key: 'genres.title',
       shortDescriptionKey: 'genres.subtitle',
-      metaTitle: 'Book Genres | Bibliaris',
-      metaDescription:
-        'Browse literary genres on Bibliaris. Discover drama, gothic fiction, mystery, romance, adventure, satire, fantasy, horror, and more.',
     },
   },
   collection: {
@@ -62,9 +63,6 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     fallback: {
       h1Key: 'collections.title',
       shortDescriptionKey: 'collections.subtitle',
-      metaTitle: 'Book Collections | Bibliaris',
-      metaDescription:
-        'Explore curated book collections on Bibliaris, including short reads, free books, school reading, audiobooks, summaries, and themed selections.',
     },
   },
   tag: {
@@ -75,9 +73,6 @@ export const TAXONOMY_OVERVIEW_CONFIGS: Record<TaxonomyType, TaxonomyOverviewCon
     fallback: {
       h1Key: 'tags.title',
       shortDescriptionKey: 'tags.subtitle',
-      metaTitle: 'Literary Tags & Book Themes | Bibliaris',
-      metaDescription:
-        'Browse literary tags and book themes on Bibliaris. Discover books by ideas, characters, settings, moods, genres, periods, and reading interests.',
     },
   },
 };
