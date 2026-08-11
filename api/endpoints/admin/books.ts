@@ -93,9 +93,16 @@ export const updateBook = async (
  * const book = await getBook('book-uuid-123');
  * ```
  */
+/**
+ * ⚠️ `optionalAuth`, а не `requireAuth: false`. Тот же адрес обслуживает
+ * публичный запрос и админский переключатель версий. С 11.08.2026 черновые
+ * версии приходят только по токену модератора (`LEGACY-090`); без него редактор
+ * увидел бы книгу без своего неопубликованного перевода — и решил бы, что тот
+ * пропал.
+ */
 export const getBook = async (bookId: string): Promise<BookOverview> => {
   const endpoint = `/books/${bookId}`;
-  return httpGetAuth<BookOverview>(endpoint, { requireAuth: false });
+  return httpGetAuth<BookOverview>(endpoint, { optionalAuth: true });
 };
 
 /**
