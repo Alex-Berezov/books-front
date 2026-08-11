@@ -135,6 +135,13 @@ cd D:\newDev\books && yarn lint && yarn typecheck && yarn test
 
 Correct flow: implement → `yarn validate` → show the user a diff summary → **wait for review** → commit only if explicitly asked.
 
+**Единственное исключение — режим автопилота по техдолгу.** Пользователь 11.08.2026 выдал постоянное
+разрешение коммитить и пушить без подтверждения для записей `legacy-warnings.md`, помеченных классом
+**АВТО** в `books-app-docs/ai-context/tech-debt-autopilot.md`. Исключение действует только внутри
+этого протокола и только в его границах: классы ПОЛУ и РУЧНОЙ, как и любая работа вне реестра
+техдолга, по-прежнему требуют явного разрешения на каждый коммит. Режим включается командой
+`/tech-debt`. 🔴 Помни: push в `main` запускает выкат на прод в обоих репозиториях.
+
 Each repository is a separate git. For git operations in another repo use `git -C D:\newDev\books ...`, never `cd`.
 
 ---

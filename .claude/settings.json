@@ -14,8 +14,17 @@
   },
   "permissions": {
     "additionalDirectories": ["../books", "../books-app-docs"],
-    "allow": ["Bash", "Read", "Edit", "Write", "Glob", "Grep"],
-    "ask": ["Bash(git commit:*)", "Bash(git push:*)"],
+    "allow": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ],
+    "ask": [],
     "deny": [
       "Bash(yarn prisma:migrate:*)",
       "Bash(yarn prisma:seed:*)",
