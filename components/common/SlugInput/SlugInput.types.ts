@@ -71,6 +71,18 @@ export interface ValidationHintProps {
 }
 
 /**
+ * Props for ReservedWarning component
+ */
+export interface ReservedWarningProps {
+  /** Current slug */
+  slug: string;
+  /** Suggested slug that is not reserved */
+  suggestedSlug?: string;
+  /** Handler for applying suggested slug */
+  onUseSuggested: () => void;
+}
+
+/**
  * Props for DuplicateWarning component
  */
 export interface DuplicateWarningProps {

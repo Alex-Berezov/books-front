@@ -43,6 +43,8 @@ export interface UseSlugValidationResult {
     title: string;
     status: string;
   };
+  /** Slug is claimed by a site route and can never be served (pages only) */
+  reserved?: boolean;
   /** Function to manually trigger validation */
   validate: (slug: string) => void;
 }
@@ -176,6 +178,7 @@ export const useSlugValidation = (params: UseSlugValidationParams): UseSlugValid
     isUnique: result?.isUnique,
     suggestedSlug: result?.suggestedSlug,
     existingItem: result?.existingPage,
+    reserved: result?.reserved,
     validate,
   };
 };

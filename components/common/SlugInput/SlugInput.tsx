@@ -13,12 +13,14 @@
 
 import { useEffect, useState } from 'react';
 import type { ChangeEvent, FC, FocusEvent } from 'react';
+import { isReservedSlug } from '@/lib/constants/reserved-slugs';
 import { useSlugValidation } from '@/lib/hooks/useSlugValidation';
 import { generateSlug, isValidSlug } from '@/lib/utils/slug';
 import type { SlugInputProps } from './SlugInput.types';
 import styles from './SlugInput.module.scss';
 import { DuplicateWarning } from './ui/DuplicateWarning';
 import { GenerateButton } from './ui/GenerateButton';
+import { ReservedWarning } from './ui/ReservedWarning';
 import { StatusIcon } from './ui/StatusIcon';
 import { ValidationHint } from './ui/ValidationHint';
 
@@ -78,7 +80,7 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
   const autoGenerationLocked = mode === 'edit' || wasManuallyEdited;
 
   // Hook for slug uniqueness check
-  const { existingItem, isUnique, status, suggestedSlug, validate } = useSlugValidation({
+  const { existingItem, isUnique, reserved, status, suggestedSlug, validate } = useSlugValidation({
     entityType,
     lang,
     excludeId,
@@ -178,8 +180,29 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
     return '';
   };
 
+  /**
+   * Only page slugs can be reserved. Everything else is served under a prefix
+   * (`/:lang/book/:slug`), so a book called `catalog` collides with nothing — and
+   * the backend refuses the slug for pages only. Warning more widely than it
+   * enforces would block a legitimate name for no reason.
+   *
+   * The local half exists because the API client fails open on error
+   * (`isUnique: true`) so as not to block the form: right for a uniqueness
+   * question, which only the database can answer, but reservation is answerable
+   * here, and staying silent would leave the editor to find out from a 400.
+   *
+   * It runs in create mode only. A page that already sits on a reserved slug is
+   * grandfathered by the backend — it may be saved as-is, and it is reachable
+   * through the admin — so a local check blind to that would warn the owner
+   * about a slug the API accepts, with no way to dismiss it. In edit mode the
+   * API is the authority: it knows which page is asking, and this component
+   * does not.
+   */
+  const isReserved =
+    entityType === 'page' && (reserved === true || (mode === 'create' && isReservedSlug(value)));
+
   // Determine whether to show duplication
-  const showDuplicateWarning = !error && isUnique === false && existingItem;
+  const showDuplicateWarning = !error && !isReserved && isUnique === false && existingItem;
 
   return (
     <div className={`${styles.container} ${className || ''}`}>
@@ -206,10 +229,19 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
       </div>
 
       {/* Hint: URL-friendly format */}
-      {!error && !existingItem && <ValidationHint placeholder={placeholder} />}
+      {!error && !existingItem && !isReserved && <ValidationHint placeholder={placeholder} />}
 
       {/* Validation error from react-hook-form */}
       {error && <span className={styles.error}>{error}</span>}
+
+      {/* Warning about a slug the router owns */}
+      {!error && isReserved && (
+        <ReservedWarning
+          slug={value}
+          suggestedSlug={suggestedSlug}
+          onUseSuggested={handleUseSuggested}
+        />
+      )}
 
       {/* Warning about non-unique slug */}
       {showDuplicateWarning && (

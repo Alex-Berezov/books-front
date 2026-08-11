@@ -29,6 +29,12 @@ export interface SlugValidationResult {
     id: string;
     slug: string;
   };
+  /**
+   * Slug is claimed by a site route, so no page can ever be served at it.
+   * Kept apart from `existingPage`: this one has no owner to describe, and a
+   * consumer that renders the owner would break on a truthy "taken" without it.
+   */
+  reserved?: boolean;
 }
 
 /**
@@ -42,6 +48,7 @@ interface CheckPageSlugResponse {
     title: string;
     status: 'draft' | 'published' | 'archived';
   };
+  reserved?: boolean;
 }
 
 /**
@@ -95,9 +102,12 @@ export const checkPageSlugUniqueness = async (
 
     return {
       slug,
-      isUnique: !response.exists,
+      // Reserved counts as not unique: both mean "you cannot save this", and a
+      // form that only looked at `exists` would let the editor through to a 400.
+      isUnique: !response.exists && !response.reserved,
       suggestedSlug: response.suggestedSlug,
       existingPage: response.existingPage,
+      reserved: response.reserved,
     };
   } catch (error) {
     // In case of error (e.g., no authorization) consider slug unique
