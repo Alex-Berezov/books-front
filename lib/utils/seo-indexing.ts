@@ -1,3 +1,5 @@
+import { ApiError } from '@/types/api';
+
 export function hasIndexableContent<T>(items: T[] | undefined | null): boolean {
   return Array.isArray(items) && items.length > 0;
 }
@@ -96,14 +98,62 @@ export function applyEditorialVisibility<T extends RobotsDirective | undefined>(
  * A 404, or a bundle that arrives and is simply empty, is *data* — narrowing on it
  * is allowed. Only a transport failure counts as unknown.
  */
+/**
+ * Почему бандл оказался нечитаемым — одной строкой для лога (`LEGACY-074`).
+ *
+ * 🔴 Без этого причина неотличима от следствия. 08.08.2026 в логах фронта
+ * четыре термина подряд отдали 5xx с сообщением «бандл не прочитался», и по
+ * нему нельзя было понять главное: отказал ли вызов к API (таймаут, 429 от
+ * лимитера — весь фронт ходит в API одним IP, `LEGACY-064`) или бандл пришёл,
+ * но неполным. Это два разных дефекта с разной починкой, и различить их можно
+ * только здесь, в момент отказа.
+ *
+ * Само решение отвечать 5xx правильное и под сомнение не ставится: выдумывать
+ * robots-директиву, не зная индексируемости, хуже, чем отказать. Вопрос был
+ * только к диагностике.
+ */
+export function describeBundleFailure(error: unknown): string {
+  if (error instanceof ApiError) {
+    // Транспорт ответил — значит вопрос к API: код и есть диагноз.
+    return `API ответил ${error.statusCode}`;
+  }
+
+  if (error instanceof TypeError) {
+    // 🔴 Не всякий `TypeError` — про форму ответа. `fetch` в undici бросает
+    // именно `TypeError: fetch failed` при недоступности хоста, сбросе
+    // соединения и таймауте, а настоящая причина лежит в `cause`. Первая
+    // версия этой функции ловила такой отказ первой веткой и объявляла его
+    // «бандл неполон» — то есть ровно переворачивала диагноз, ради которого
+    // запись и заведена: оператор шёл искать дефект сериализации, пока API
+    // был просто недоступен.
+    const cause = (error as { cause?: unknown }).cause;
+    if (cause !== undefined || /fetch failed/i.test(error.message)) {
+      const detail =
+        cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause ?? error.message);
+      return `сеть недоступна (${detail})`;
+    }
+    // `cause` нет и сообщение не сетевое — значит дошли до поля, а поля нет.
+    return `бандл неполон (${error.message})`;
+  }
+
+  if (error instanceof Error) {
+    // Прочее: имя класса отличает таймаут от ошибки разбора.
+    return `${error.name}: ${error.message}`;
+  }
+
+  return String(error);
+}
+
 export class UnknownIndexabilityError extends Error {
-  constructor(surface: string, slug?: string) {
+  constructor(surface: string, slug?: string, cause?: unknown) {
+    const reason = cause === undefined ? '' : ` Причина: ${describeBundleFailure(cause)}.`;
     super(
       `Indexability of ${surface}${slug ? ` "${slug}"` : ''} is unknown: the SEO bundle ` +
         'could not be read and nothing independently computable narrows it. ' +
-        'Answering 5xx rather than guessing a robots directive.'
+        `Answering 5xx rather than guessing a robots directive.${reason}`
     );
     this.name = 'UnknownIndexabilityError';
+    if (cause !== undefined) this.cause = cause;
   }
 }
 
@@ -113,15 +163,18 @@ export class UnknownIndexabilityError extends Error {
  *
  * @param linkable result of the linking predicate over data that did NOT come from
  *   the bundle, or `undefined` when that data is unavailable too.
+ * @param cause оригинальный отказ — попадает в сообщение, чтобы по логу было
+ *   видно, отказал ли API или бандл пришёл неполным (`LEGACY-074`).
  * @throws {UnknownIndexabilityError} when nothing narrows the verdict.
  */
 export function robotsForUnreadableBundle(
   surface: string,
   linkable: boolean | undefined,
-  slug?: string
+  slug?: string,
+  cause?: unknown
 ): { index: boolean; follow: boolean } {
   if (linkable === false) return { index: false, follow: true };
-  throw new UnknownIndexabilityError(surface, slug);
+  throw new UnknownIndexabilityError(surface, slug, cause);
 }
 
 export function shouldNoindexPaginatedPage(

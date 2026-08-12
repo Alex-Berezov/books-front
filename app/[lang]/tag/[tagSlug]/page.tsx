@@ -151,7 +151,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
               booksCount: countRes.pagination?.total,
             })
           : undefined,
-        tagSlug
+        tagSlug,
+        error
       ),
     };
   }

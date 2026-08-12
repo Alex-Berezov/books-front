@@ -6,6 +6,9 @@ import {
   getBookSitemapUrls,
   buildSitemapIndexXml,
   buildUrlSetXml,
+  takeCompletePage,
+  fetchAllPages,
+  sitemapUnavailable,
   type SitemapItem,
 } from '@/lib/sitemap/utils';
 
@@ -238,5 +241,154 @@ describe('buildUrlSetXml', () => {
 
     expect(xml).toContain('<urlset');
     expect(xml).toContain('</urlset>');
+  });
+});
+
+/**
+ * `LEGACY-098` — детектор усечения и `LEGACY-082` — правильный код отказа.
+ *
+ * Оба про одно: ответ, который выглядит успешным, но неполон, хуже явной
+ * ошибки. Короткий `<urlset>` с кодом 200 и 404 на живой карте одинаково
+ * убирают адреса из индекса, только молча.
+ */
+describe('takeCompletePage: полнота СТРАНИЦЫ, а не выборки (LEGACY-098)', () => {
+  it('отдаёт данные, когда страница пришла целиком', () => {
+    expect(takeCompletePage({ data: [1, 2, 3], meta: { total: 3 } }, 'books')).toEqual([1, 2, 3]);
+  });
+
+  it('падает, когда одностраничная выдача короче обещанной', () => {
+    expect(() => takeCompletePage({ data: [1, 2], meta: { total: 441 } }, 'categories en')).toThrow(
+      /получено 2 из 441/
+    );
+  });
+
+  it('называет место в сообщении — иначе по логу не найти виноватую секцию', () => {
+    expect(() => takeCompletePage({ data: [], meta: { total: 5 } }, 'tags ru')).toThrow(/tags ru/);
+  });
+
+  /**
+   * 🔴 Регрессия, найденная код-ревью. `meta.total` — счётчик по **всей**
+   * выборке, а не по странице. Сравнение с ним длины одной страницы объявляло
+   * усечением нормальную пагинацию: карта книг ушла бы в 503 навсегда в тот
+   * день, когда каталог перевалит за тысячу. Детектор неполноты стал бы
+   * причиной полной потери.
+   */
+  it('полная первая страница из нескольких — не усечение', () => {
+    const page = {
+      data: Array.from({ length: 1000 }, (_, i) => i),
+      meta: { total: 1500, page: 1, limit: 1000 },
+    };
+    expect(takeCompletePage(page, 'books en p1')).toHaveLength(1000);
+  });
+
+  it('последняя, неполная по размеру страница — тоже не усечение', () => {
+    const page = {
+      data: Array.from({ length: 500 }, (_, i) => i),
+      meta: { total: 1500, page: 2, limit: 1000 },
+    };
+    expect(takeCompletePage(page, 'books en p2')).toHaveLength(500);
+  });
+
+  it('страница за пределами выборки пуста законно — это путь к 404, а не к 503', () => {
+    expect(
+      takeCompletePage({ data: [], meta: { total: 500, page: 2, limit: 1000 } }, 'books en p2')
+    ).toEqual([]);
+  });
+
+  it('но недобор внутри страницы по-прежнему усечение', () => {
+    const page = {
+      data: Array.from({ length: 900 }, (_, i) => i),
+      meta: { total: 1500, page: 1, limit: 1000 },
+    };
+    expect(() => takeCompletePage(page, 'books en p1')).toThrow(/усечена/);
+  });
+
+  it('не считает ошибкой, когда строк больше обещанного', () => {
+    // Гонка с добавлением записей между подсчётом и выборкой — не потеря.
+    expect(takeCompletePage({ data: [1, 2, 3], meta: { total: 2 } }, 'authors')).toEqual([1, 2, 3]);
+  });
+
+  it('пропускает ответ без meta.total — сверять не с чем', () => {
+    expect(takeCompletePage({ data: [1] }, 'legacy endpoint')).toEqual([1]);
+  });
+
+  it('пустой ответ при total = 0 законен', () => {
+    expect(takeCompletePage({ data: [], meta: { total: 0 } }, 'collections fr')).toEqual([]);
+  });
+});
+
+describe('fetchAllPages: обход всех страниц (LEGACY-098)', () => {
+  const pageOf = (items: number[], page: number, limit: number, total: number) => ({
+    data: items,
+    meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+  });
+
+  it('собирает все страницы, а не первую', async () => {
+    const fetchPage = vi.fn(async (page: number) => pageOf(page === 1 ? [1, 2] : [3], page, 2, 3));
+
+    await expect(fetchAllPages(fetchPage, 'genres en')).resolves.toEqual([1, 2, 3]);
+    expect(fetchPage).toHaveBeenCalledTimes(2);
+  });
+
+  it('переживает единичный сбой страницы — одна повторная попытка', async () => {
+    let attempts = 0;
+    const fetchPage = vi.fn(async (page: number) => {
+      attempts += 1;
+      if (attempts === 1) throw new Error('429');
+      return pageOf([1], page, 1, 1);
+    });
+
+    await expect(fetchAllPages(fetchPage, 'tags ru')).resolves.toEqual([1]);
+  });
+
+  it('но два отказа подряд — уже не рябь: падает громко', async () => {
+    const fetchPage = vi.fn(async () => {
+      throw new Error('502');
+    });
+
+    await expect(fetchAllPages(fetchPage, 'tags ru')).rejects.toThrow(/502/);
+  });
+
+  it('падает, если собранное меньше обещанного', async () => {
+    const fetchPage = vi.fn(async (page: number) => ({
+      data: page === 1 ? [1] : [],
+      meta: { total: 5, page, limit: 1, totalPages: 1 },
+    }));
+
+    await expect(fetchAllPages(fetchPage, 'categories es')).rejects.toThrow(/обход неполон/);
+  });
+
+  it('отказывается обходить неправдоподобное число страниц', async () => {
+    const fetchPage = vi.fn(async (page: number) => pageOf([1], page, 1, 10_000));
+
+    await expect(fetchAllPages(fetchPage, 'books en', 50)).rejects.toThrow(/потолок обхода/);
+  });
+});
+
+describe('sitemapUnavailable (LEGACY-082)', () => {
+  it('отвечает 503, а не 404 — 404 снял бы с индекса все адреса файла', () => {
+    expect(sitemapUnavailable(['books en p1: timeout']).status).toBe(503);
+  });
+
+  it('даёт краулеру явный срок возврата', () => {
+    expect(sitemapUnavailable(['x']).headers.get('Retry-After')).toBe('120');
+  });
+
+  it('запрещает кэшировать временный отказ', () => {
+    expect(sitemapUnavailable(['x']).headers.get('Cache-Control')).toBe('no-store');
+  });
+
+  /**
+   * Причины нужны оператору, а не анониму: в тексте ошибки API попадаются
+   * внутренние хосты и фрагменты запросов, а тело этого ответа отдаётся кому
+   * угодно, включая краулера.
+   */
+  it('не раскрывает причины в теле — они уходят в лог', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const body = await sitemapUnavailable(['books en p1: http://internal-api:5000 timeout']).text();
+
+    expect(body).not.toContain('internal-api');
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('internal-api'));
+    spy.mockRestore();
   });
 });

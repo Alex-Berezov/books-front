@@ -6,7 +6,14 @@ import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { isAuthorLinkable } from '@/lib/seo/author-linkable';
 import { buildIndexableAlternates, toAlternateCandidates } from '@/lib/seo/hreflang-alternates';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
-import { getBaseUrl, buildUrlSetXml, type SitemapItem } from '@/lib/sitemap/utils';
+import {
+  getBaseUrl,
+  buildUrlSetXml,
+  takeCompletePage,
+  fetchAllPages,
+  sitemapUnavailable,
+  type SitemapItem,
+} from '@/lib/sitemap/utils';
 import { toCountResult, type CountResult } from '@/lib/utils/seo-indexing';
 import type {
   BookOverview,
@@ -38,6 +45,26 @@ export async function GET(request: Request, { params }: { params: { filename: st
   const defaultLang = 'en';
 
   const sitemapItems: SitemapItem[] = [];
+
+  /**
+   * Причины, по которым секция не смогла собрать свои ссылки (`LEGACY-082`).
+   *
+   * 🔴 Пустой результат значит две **несовместимые** вещи, и раньше обе давали
+   * 404. «Такого файла нет» — честный 404. «Файл есть, но API не ответил» —
+   * 503: краулер читает 404 как исчезновение карты и снимает с индекса все
+   * адреса внутри неё разом, а 503 читает как «зайди позже».
+   *
+   * Сюда же попадает **усечение** (`LEGACY-098`): если API отдал меньше строк,
+   * чем обещает `meta.total`, короткий `<urlset>` с кодом 200 — тихая потеря
+   * URL, которую не заметит никто. Такой ответ обязан быть громким отказом.
+   */
+  const upstreamFailures: string[] = [];
+
+  const noteFailure = (section: string, error: unknown) => {
+    const reason = error instanceof Error ? error.message : String(error);
+    console.error(`Sitemap section "${section}" failed: ${reason}`);
+    upstreamFailures.push(`${section}: ${reason}`);
+  };
 
   const getAlternates = (languages: readonly string[], pathBuilder: (lang: string) => string) => {
     const alternates: Record<string, string> = {};
@@ -132,11 +159,14 @@ export async function GET(request: Request, { params }: { params: { filename: st
         page: pageNumber,
         limit: 1000,
       });
-      books = booksRes?.data || [];
+      books = takeCompletePage(booksRes, `books ${lang} p${pageNumber}`);
     } catch (error) {
-      console.error(`Error fetching books for sitemap (${lang}, page ${pageNumber}):`, error);
+      noteFailure(`books ${lang} p${pageNumber}`, error);
     }
     if (books.length === 0) {
+      // Пустая страница книг законна: номер за пределами каталога — это 404.
+      // Но если секция упала или пришла усечённой, ответ обязан быть 503.
+      if (upstreamFailures.length > 0) return sitemapUnavailable(upstreamFailures);
       return new NextResponse('Sitemap not found', { status: 404 });
     }
 
@@ -183,10 +213,14 @@ export async function GET(request: Request, { params }: { params: { filename: st
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
       let categories: Category[] = [];
       try {
-        const catRes = await getCategories({ type: 'genre', limit: 1000, lang });
-        categories = catRes?.data || [];
+        // Обход всех страниц, а не первая тысяча: `limit: 1000` без добора
+        // молча терял всё, что за неё не поместилось (`LEGACY-098`).
+        categories = await fetchAllPages(
+          (page) => getCategories({ type: 'genre', page, limit: 200, lang }),
+          `genres ${lang}`
+        );
       } catch (error) {
-        console.error(`Error fetching genres for sitemap (${lang}):`, error);
+        noteFailure(`genres ${lang}`, error);
       }
 
       categories.forEach((cat) => {
@@ -223,10 +257,14 @@ export async function GET(request: Request, { params }: { params: { filename: st
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
       let categories: Category[] = [];
       try {
-        const catRes = await getCategories({ type: 'category', limit: 1000, lang });
-        categories = catRes?.data || [];
+        // Обход всех страниц, а не первая тысяча: `limit: 1000` без добора
+        // молча терял всё, что за неё не поместилось (`LEGACY-098`).
+        categories = await fetchAllPages(
+          (page) => getCategories({ type: 'category', page, limit: 200, lang }),
+          `categories ${lang}`
+        );
       } catch (error) {
-        console.error(`Error fetching categories for sitemap (${lang}):`, error);
+        noteFailure(`categories ${lang}`, error);
       }
 
       categories.forEach((cat) => {
@@ -260,10 +298,14 @@ export async function GET(request: Request, { params }: { params: { filename: st
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
       let categories: Category[] = [];
       try {
-        const catRes = await getCategories({ type: 'collection', limit: 1000, lang });
-        categories = catRes?.data || [];
+        // Обход всех страниц, а не первая тысяча: `limit: 1000` без добора
+        // молча терял всё, что за неё не поместилось (`LEGACY-098`).
+        categories = await fetchAllPages(
+          (page) => getCategories({ type: 'collection', page, limit: 200, lang }),
+          `collections ${lang}`
+        );
       } catch (error) {
-        console.error(`Error fetching collections for sitemap (${lang}):`, error);
+        noteFailure(`collections ${lang}`, error);
       }
 
       categories.forEach((cat) => {
@@ -301,23 +343,18 @@ export async function GET(request: Request, { params }: { params: { filename: st
       const allAuthors: AuthorListItem[] = [];
       try {
         // Paginate through all authors using the public endpoint
-        const firstPage = await getPublicAuthors(lang as SupportedLang, { page: 1, limit: 100 });
-        const total = firstPage.meta.total;
-        allAuthors.push(...firstPage.data);
-        const totalPages = Math.ceil(total / 100);
-        if (totalPages > 1) {
-          const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-          const results = await Promise.all(
-            remainingPages.map((p) =>
-              getPublicAuthors(lang as SupportedLang, { page: p, limit: 100 }).catch(() => null)
-            )
-          );
-          results.forEach((res) => {
-            if (res) allAuthors.push(...res.data);
-          });
-        }
+        // ⚠️ Здесь стоял `.catch(() => null)` на каждой странице добора:
+        // не пришедшая страница молча выпадала из карты вместе со всеми своими
+        // авторами. Теперь обход общий — с одной повторной попыткой на
+        // страницу и громким отказом, если и она не удалась.
+        allAuthors.push(
+          ...(await fetchAllPages(
+            (page) => getPublicAuthors(lang as SupportedLang, { page, limit: 100 }),
+            `authors ${lang}`
+          ))
+        );
       } catch (error) {
-        console.error(`Error fetching authors for sitemap (${lang}):`, error);
+        noteFailure(`authors ${lang}`, error);
       }
 
       /**
@@ -409,10 +446,9 @@ export async function GET(request: Request, { params }: { params: { filename: st
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
       let tags: Tag[] = [];
       try {
-        const tagsRes = await getTags({ limit: 1000, lang });
-        tags = tagsRes?.data || [];
+        tags = await fetchAllPages((page) => getTags({ page, limit: 200, lang }), `tags ${lang}`);
       } catch (error) {
-        console.error(`Error fetching tags for sitemap (${lang}):`, error);
+        noteFailure(`tags ${lang}`, error);
       }
 
       tags.forEach((tag) => {
@@ -442,10 +478,21 @@ export async function GET(request: Request, { params }: { params: { filename: st
     }
   }
 
-  // If no items matched, return 404
-  if (sitemapItems.length === 0) {
-    return new NextResponse('Sitemap not found', { status: 404 });
+  // Отказ или неполнота — 503 (`LEGACY-082`).
+  if (sitemapItems.length === 0 && upstreamFailures.length > 0) {
+    return sitemapUnavailable(upstreamFailures);
   }
+
+  // 🔴 Пустая секция при живом API — **не** повод для 404. Индекс карты
+  // перечисляет языковые файлы безусловно, поэтому 404 здесь означал бы битую
+  // запись в самом индексе. Язык без единого тега — законное состояние, и
+  // честный ответ на него — валидный пустой `<urlset>`, а не «файла нет».
+  // 404 остаётся за именем файла, которого не существует (проверки выше).
+
+  // Непустой набор при частичном отказе — самое опасное: карта выглядит
+  // рабочей и при этом неполна. Отдать её значит попросить краулер забыть
+  // недостающие адреса.
+  if (upstreamFailures.length > 0) return sitemapUnavailable(upstreamFailures);
 
   const xml = buildUrlSetXml(sitemapItems);
 

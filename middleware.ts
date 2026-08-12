@@ -21,10 +21,28 @@ const isAdminRoute = (pathname: string): boolean => {
 /**
  * Check if path is private reader, player, or summary route
  */
-const isPrivateRoute = (pathname: string): boolean => {
-  // Matches /[lang]/read/... or /[lang]/listen/... or /[lang]/summary/...
-  return /\/(?:read|listen|summary)\//.test(pathname);
-};
+/**
+ * Личные маршруты — только `/{lang}/read|listen|summary`.
+ *
+ * 🔴 **Шаблон обязан быть заякорен на позицию сегмента.** Прежний
+ * `/\/(?:read|listen|summary)\//` искал эти слова **где угодно** в пути, и
+ * `/en/category/read/` попадал под авторизацию: публичная страница термина со
+ * слагом `read` закрылась бы для анонима. Пока контентные маршруты не проходили
+ * через middleware (`LEGACY-083`), это не проявлялось — расширение matcher
+ * делает такой шаблон опасным немедленно.
+ *
+ * `(?:\/|$)` вместо завершающего слэша: `/en/read` без хвоста — тоже личный
+ * маршрут, и пускать на него анонима нельзя.
+ *
+ * Флаг `i` — потому что теперь сюда доходит и `/EN/Read/...`. Нормализация
+ * регистра стоит раньше гейта и всё равно отправила бы такой адрес в 301,
+ * но предикат безопасности не должен зависеть от порядка шагов выше.
+ */
+// Экспортируется ради посадки: тест обязан проверять **этот** предикат, а не
+// свою копию шаблона рядом (`LEGACY-083`). Next.js трактует специально только
+// `middleware` и `config`, остальные экспорты ему безразличны.
+export const isPrivateRoute = (pathname: string): boolean =>
+  /^\/[a-z]{2}\/(?:read|listen|summary)(?:\/|$)/i.test(pathname);
 
 /**
  * Extract language from path (handles admin and public paths)
@@ -168,13 +186,26 @@ export async function middleware(request: NextRequest) {
  * Matcher configuration - which paths the middleware applies to
  */
 export const config = {
-  matcher: [
-    '/',
-    '/admin/:lang*/:path*',
-    '/:lang(ru|en|es|fr|pt)/profile/:path*',
-    '/:lang(ru|en|es|fr|pt)/bookshelf/:path*',
-    '/:lang(ru|en|es|fr|pt)/read/:path*',
-    '/:lang(ru|en|es|fr|pt)/listen/:path*',
-    '/:lang(ru|en|es|fr|pt)/summary/:path*',
-  ],
+  /**
+   * 🔴 **Один широкий шаблон, а не список маршрутов — и это не стиль, а
+   * необходимость.** Next компилирует `matcher` в регистро**зависимую**
+   * регулярку (`new RegExp(matcher.regexp)` без флага `i`), поэтому
+   * перечисление вида `/:lang(ru|en|es|fr|pt)/book/:path*` не ловит
+   * `/en/Book/Slug` — ровно тот адрес, ради нормализации которого запись
+   * `LEGACY-083` и заведена. Проверено на установленной версии Next:
+   * `/en/book/hamlet` совпадает, `/en/Book/Hamlet` и `/EN/book/hamlet` — нет.
+   *
+   * Перечисление вдобавок промахивалось мимо хабов таксономий
+   * (`/en/categories`, `/en/genres`, `/en/collections`, `/en/tags`) и мимо
+   * catch-all CMS-страниц, хотя их адреса карта сайта публикует.
+   *
+   * Исключения — статика и API: у первых есть расширение, вторые обслуживаются
+   * не страницами. Остальное отбирают предикаты в коде: `isPagePath`
+   * нормализует, `isAdminRoute` и `isPrivateRoute` гейтят.
+   *
+   * ⚠️ Побочный эффект: список языков больше нигде в этом файле не дублируется,
+   * так что добавление языка в `SUPPORTED_LANGS` не оставляет здесь протухших
+   * строк.
+   */
+  matcher: ['/((?!_next/|api/|.*\\.[a-zA-Z0-9]+$).*)'],
 };

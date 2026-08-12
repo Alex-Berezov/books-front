@@ -157,7 +157,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
               booksCount: countRes.pagination?.total,
             })
           : undefined,
-        slug
+        slug,
+        error
       ),
     };
   }

@@ -128,3 +128,147 @@ export function buildUrlSetXml(items: SitemapItem[]): string {
 ${xmlItems.join('\n')}
 </urlset>`;
 }
+
+/**
+ * Сколько строк обязана содержать **эта** страница выдачи.
+ *
+ * 🔴 `meta.total` — счётчик по **всей** выборке, а не по странице. Первая
+ * версия детектора сравнивала с ним длину одной страницы и потому объявляла
+ * усечением любую нормальную постраничную выдачу: 1000 книг на странице при
+ * `total = 1500` читались как потеря 500 строк. Карта книг ушла бы в 503
+ * навсегда в тот день, когда каталог перевалит за тысячу, — то есть детектор
+ * неполноты сам стал бы причиной полной потери (`LEGACY-098`).
+ *
+ * Ожидание считается из самой `meta`: сколько строк остаётся до конца выборки
+ * на этой странице, но не больше её размера.
+ */
+function expectedRowsOnPage(meta: PaginationLike): number | null {
+  const { total, page, limit } = meta;
+  if (typeof total !== 'number') return null;
+  if (typeof page !== 'number' || typeof limit !== 'number' || limit <= 0) {
+    // Постраничных признаков нет — считаем выдачу одностраничной.
+    return total;
+  }
+  const remaining = total - (page - 1) * limit;
+  return Math.max(0, Math.min(limit, remaining));
+}
+
+export interface PaginationLike {
+  total?: number;
+  page?: number;
+  limit?: number;
+  totalPages?: number;
+}
+
+export interface PagedResponse<T> {
+  data?: T[];
+  meta?: PaginationLike;
+}
+
+/**
+ * Отдаёт `data` страницы, если она пришла целиком, и падает, если усечена.
+ *
+ * Ограничение выдачи без детектора усечения — это тихая потеря данных
+ * (`LEGACY-098`): ветка карты сайта, получившая меньше строк, чем должна,
+ * построит более короткий `<urlset>` с кодом 200. XML валиден, ответ успешен,
+ * часть адресов просто исчезла — этого не увидит ни одна проверка.
+ *
+ * ⚠️ Проверяется полнота **страницы**, а не всей выборки. «Есть ещё страницы» —
+ * это не усечение, а пагинация; за полноту многостраничного обхода отвечает
+ * `fetchAllPages`.
+ */
+export function takeCompletePage<T>(
+  response: PagedResponse<T> | null | undefined,
+  where: string
+): T[] {
+  const data = response?.data ?? [];
+  const expected = response?.meta ? expectedRowsOnPage(response.meta) : null;
+
+  if (expected !== null && data.length < expected) {
+    throw new Error(
+      `${where}: получено ${data.length} из ${expected} на странице — выдача усечена`
+    );
+  }
+
+  return data;
+}
+
+/**
+ * Собирает **все** страницы выдачи и проверяет, что собрала их полностью.
+ *
+ * 🔴 Секции карты сайта ходили за терминами одним запросом с `limit: 1000` и
+ * молча теряли всё, что за тысячу не поместилось. Детектор страницы такую
+ * потерю не видит: страница-то полная. Единственный честный ответ — забрать
+ * остальные страницы, а не гадать (`LEGACY-098`).
+ *
+ * ⚠️ Одна повторная попытка на страницу. Без неё единичный 429 от лимитера
+ * (`LEGACY-064`: весь фронт ходит в API одним IP) ронял бы всю ветку карты в
+ * 503 — потеря, несоразмерная причине. Две подряд — уже не рябь, и тогда отказ
+ * честнее неполного списка.
+ */
+export async function fetchAllPages<T>(
+  fetchPage: (page: number) => Promise<PagedResponse<T>>,
+  where: string,
+  maxPages = 50
+): Promise<T[]> {
+  const withRetry = async (page: number): Promise<PagedResponse<T>> => {
+    try {
+      // `await` здесь обязателен: без него отказ не попал бы в `catch`.
+      return await fetchPage(page);
+    } catch {
+      // А здесь не нужен — оборачивающего `try` больше нет, и вторая неудача
+      // должна уйти наверх как есть.
+      return fetchPage(page);
+    }
+  };
+
+  const first = await withRetry(1);
+  const items = takeCompletePage(first, `${where} p1`);
+  const total = first?.meta?.total;
+  const limit = first?.meta?.limit ?? items.length;
+  const totalPages =
+    first?.meta?.totalPages ??
+    (typeof total === 'number' && limit > 0 ? Math.ceil(total / limit) : 1);
+
+  if (totalPages > maxPages) {
+    throw new Error(`${where}: страниц ${totalPages}, потолок обхода ${maxPages}`);
+  }
+
+  for (let page = 2; page <= totalPages; page += 1) {
+    items.push(...takeCompletePage(await withRetry(page), `${where} p${page}`));
+  }
+
+  if (typeof total === 'number' && items.length < total) {
+    throw new Error(`${where}: собрано ${items.length} из ${total} — обход неполон`);
+  }
+
+  return items;
+}
+
+/**
+ * Ответ «карта временно недоступна» (`LEGACY-082`).
+ *
+ * 503 вместо 404 — потому что краулер читает их противоположно: 404 на файле
+ * карты означает «такой карты не существует», и это снимает с индекса **все**
+ * перечисленные в ней адреса разом; 503 означает «зайди позже» и индекс не
+ * трогает. Цена ошибки в выборе кода умножается на число URL внутри файла.
+ *
+ * `Retry-After` даёт краулеру явный срок вместо угадывания, `no-store` не
+ * позволяет общему кэшу закрепить временный отказ.
+ */
+export function sitemapUnavailable(reasons: readonly string[]): Response {
+  // ⚠️ Причины — в лог, не в тело. Тело этого ответа получает кто угодно,
+  // включая краулера, а в тексте ошибки API попадаются внутренние хосты,
+  // фрагменты запросов и серверные сообщения. Диагностика нужна оператору,
+  // а не анониму.
+  console.error(`Sitemap unavailable:\n${reasons.join('\n')}`);
+
+  return new Response('Sitemap temporarily unavailable\n', {
+    status: 503,
+    headers: {
+      'Retry-After': '120',
+      'Cache-Control': 'no-store',
+      'Content-Type': 'text/plain; charset=utf-8',
+    },
+  });
+}
