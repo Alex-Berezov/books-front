@@ -1,76 +1,172 @@
-# Bibliaris — Frontend (`books-front`)
+# Bibliaris, фронт (books-front)
 
-Точка входа для Claude Code. Обязательные правила разработки лежат в `AGENTS.md` и подключены ниже — они являются частью этого файла.
+## Стек и структура
 
-@AGENTS.md
+Next.js 14.2 на App Router, React 18, TypeScript 5.9 в строгом режиме, SCSS-модули, react-query 5,
+next-auth v5 beta, antd 5 только в админке, vitest и playwright, yarn 1. Базовая ветка `main`.
+Бэкенд лежит в соседнем репозитории `books`, документация - в `books-app-docs`; работать в них
+через `git -C <путь>`, не через `cd`.
 
-@.claude/rules/ast-index.md
+Раскладка: `app/[lang]/` - публичный сайт, `app/admin/[lang]/` - админка, `app/api/` - роуты Next;
+`components/` делится на `common/` (дизайн-система), `public/` и `admin/`; `lib/` - http-клиент,
+i18n, auth, seo, sitemap, константы и утилиты; `api/endpoints/` - функции запросов, `api/hooks/` -
+хуки react-query; `types/api-schema/` написан руками; `__tests__/` зеркалит структуру кода.
 
----
+## Команды проверок
 
-## Карта проекта: три репозитория
+| Команда                     | Вес           | Когда                                                                                         |
+| --------------------------- | ------------- | --------------------------------------------------------------------------------------------- |
+| `yarn typecheck`            | средняя       | после каждой заметной правки                                                                  |
+| `yarn lint`                 | средняя       | перед сдачей; правит файлы сама                                                               |
+| `yarn check:env`            | быстрая       | при правках переменных окружения                                                              |
+| `yarn check:langs`          | быстрая       | при правках `lib/i18n/**`                                                                     |
+| `yarn check:reserved-slugs` | быстрая       | при правках `app/**`                                                                          |
+| `yarn test`                 | тяжёлая       | перед сдачей; точечно `npx vitest related --run <файл>`                                       |
+| `yarn build`                | тяжёлая       | при правках `app/`, `middleware.ts`, `next.config.js`, `providers/`                           |
+| `yarn ci`                   | тяжёлая       | итоговый прогон: check:env, check:langs, check:reserved-slugs, lint, typecheck, test:coverage |
+| `yarn e2e`                  | самая тяжёлая | только по прямой просьбе: нужен живой бэкенд, в CI не гоняется                                |
 
-Bibliaris состоит из трёх независимых git-репозиториев. Все три доступны в этой сессии на чтение и запись (см. `.claude/settings.json` → `additionalDirectories`).
+`yarn validate` проверкой не считается и запускать его нельзя: после падения линта скрипт не
+выходит с ошибкой и в конце безусловно рапортует успех.
 
-| Репозиторий      | Путь                       | Роль                                                          |
-| ---------------- | -------------------------- | ------------------------------------------------------------- |
-| `books-front`    | `D:\newDev\books-front`    | Next.js 14 (App Router), TS, AntD 5, React Query, NextAuth v5 |
-| `books`          | `D:\newDev\books`          | NestJS + Prisma + PostgreSQL, REST API                        |
-| `books-app-docs` | `D:\newDev\books-app-docs` | Документация — единый источник правды                         |
+`yarn lint` обходит только `app/`, `lib/` и `components/`. Каталоги `api/`, `providers/`, `types/`,
+`scripts/` и файл `middleware.ts` в CI линтером не проверяются вовсе - если правка там, зови
+`npx eslint <путь>` по конкретному файлу и не считай зелёный `yarn lint` доказательством.
 
-**Кросс-репозиторные правила:**
+`yarn build` обязателен при правках `app/`, `middleware.ts`, `next.config.js` и `providers/`:
+нарушение границы сервер-клиент проходит линт, типы и тесты зелёными, ловит его только сборка.
 
-- Каждый репозиторий — отдельный git. Для git-операций в другом репо используй `git -C D:\newDev\books ...`, не `cd`.
-- Изменил API-контракт на бэке → синхронизируй типы и вызовы на фронте **и** обнови документацию.
-- Изменил `SUPPORTED_LANGS` → синхронизируй `books-front/lib/i18n/lang.ts`, Prisma-enum `Language` в `books` и `books-app-docs/ai-context/translation-rules.md`.
+## Что читать под какую задачу
 
----
+| Задача                       | Файлы                                                                                                     |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Новый компонент              | `components/<область>/<Имя>/`, `styles/tokens.scss`, `CODE_STYLE.md`, `ai-context/ui-kit.md`              |
+| Вызов API                    | `api/endpoints/`, `api/hooks/`, `lib/http.ts`, `types/api-schema/`                                        |
+| Новая страница               | `app/[lang]/`, `lib/utils/fetch-page.ts`, `lib/seo/urls.ts`, `ai-context/seo-rules.md`                    |
+| SEO, canonical, hreflang     | `lib/seo/urls.ts`, `lib/seo/hreflang-alternates.ts`, `lib/utils/seo-indexing.ts`, `lib/seo/degraded.ts`   |
+| Карта сайта и robots         | `app/sitemap.xml/`, `app/sitemaps/[filename]/`, `lib/sitemap/utils.ts`, `lib/system-pages.ts`             |
+| Вход, роли, защита маршрутов | `middleware.ts`, `lib/middleware.constants.ts`, `lib/auth/`, `ai-context/auth-and-permissions.md`         |
+| Языки и словари              | `lib/i18n/lang.ts`, `lib/i18n/locales/*.json`, `lib/i18n/dictionaries.ts`, `scripts/check-langs-sync.mjs` |
+| Новый раздел сайта           | `app/[lang]/`, `lib/constants/reserved-slugs.ts`, `scripts/check-reserved-slugs.mjs`                      |
+| Кэш и react-query            | `providers/AppProviders.tsx`, `lib/queryClient.constants.ts`, `api/hooks/index.ts`                        |
+| Ошибки и деградация          | `lib/errors.ts`, `types/api.ts`, `lib/utils/content-failure.ts`, `lib/utils/log-error.ts`                 |
+| Стили и токены               | `styles/tokens.scss`, `styles/globals.css`, `CODE_STYLE.md`                                               |
+| Тесты                        | `__tests__/<зеркало пути>`, `__tests__/msw/handlers.ts`, `vitest.config.ts`, `setupTests.ts`              |
+| Переменные окружения         | `.env.example`, `scripts/check-env.mjs`, `scripts/check-site-url.mjs`                                     |
+| Перед рефакторингом          | `ai-context/legacy-warnings.md` (секцией), `ai-context/tech-debt-journal.md`                              |
+| Правила сдачи                | `ai-context/quality-gates.md`, `ai-context/definition-of-done.md`, `.claude/qa-lessons.md`                |
 
-## Документация: читать вместо анализа кодовой базы
+Документ больше десяти килобайт читай секцией: `grep -nE "^## " <файл>`, потом `Read` с `offset`
+и `limit`. Заголовки и даты в шапках документов систематически расходятся с реальностью - верь
+коду, а не шапке.
 
-**Перед задачей читай документацию, а не сканируй проект целиком.** Порядок:
+## Жёсткие запреты
 
-1. `D:\newDev\books-app-docs\ai-context\agent-rules.md` — правила для агента, читать первым.
-2. Полная таблица «какой документ под какую задачу» — `D:\newDev\books-app-docs\ai-context\README.md`.
-3. Из неё выбрать **только релевантные** документы. Не читать `ai-context/` целиком — это перерасход контекста.
-4. Документ больше ~10 КБ читать **секцией**: `grep -nE "^## " <файл>` → выбрать заголовок → `Read` с `offset`/`limit`. Протокол и таблица размеров — `ai-context/agent-rules.md` §«Как читать документацию».
-5. Структуру кода (где лежит символ, состав папки, список компонентов) искать через `ast-index`, а не в документации.
+1. Не коммитить и не пушить без явной просьбы. Исключение одно: работа в режиме автопилота по
+   `ai-context/tech-debt-autopilot.md`, где порядок коммитов задан самим протоколом.
+2. Не ходить в живой бэкенд на запись и не запускать выкат: `docker compose` с продовыми файлами,
+   скрипты деплоя, очистку кэша на боевом домене.
+3. Не менять `yarn.lock`, `.env*`, `next.config.js`, `Dockerfile`, `.github/workflows/**`,
+   `playwright.config.ts`, `vitest.config.ts`, `scripts/check-*.mjs`, `.claude/settings.json`.
+4. Не ставить, не обновлять и не удалять зависимости без разрешения: любая правка блоков
+   `dependencies` и `devDependencies` останавливает работу до ответа.
+5. Не запускать `npx openapi-typescript` с выводом в `types/api.ts`. Файл написан руками, в нём
+   живёт `ApiError`, на котором держится вся обработка ошибок; генерация затрёт его молча.
+6. Не пользоваться `yarn validate` и не ссылаться на него в отчёте как на пройденную проверку.
+7. Не отключать и не подгонять тесты: `.skip`, `.only`, снижение порогов покрытия, правка
+   ожиданий под текущий вывод вместо починки кода.
+8. Не сдавать работу при красных проверках и не называть пройденным то, что не запускалось.
+   Не запускал - так и пиши.
+9. Не выдумывать пути, документы, поля ответа и названия ключей. Не видел своими глазами - иди
+   и посмотри или скажи, что не проверял.
+10. Не выходить за рамки задачи: переименования, перестановка импортов, переформатирование файла
+    целиком и попутный рефакторинг прячут суть правки и мешают откату.
+11. Не оставлять в диффе артефакты: `.next/`, `coverage/`, `test-results/`, `playwright-report/`,
+    логи, `_build_output.txt`, содержимое `.claude/worktrees/`.
+12. Не выводить в логи почту, роли, токены и объект пользователя целиком - логи выката читает
+    кто угодно.
+13. Не заводить новые `any`, `@ts-ignore` и `@ts-expect-error`: правило линта здесь стоит
+    предупреждением и сборку не остановит.
 
-Быстрая навигация (полная таблица — в `ai-context/README.md`):
+## Специфика проекта
 
-| Задача                             | Документы в `books-app-docs`                                                                            |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Любая frontend-задача              | `ai-context/frontend.md`, `frontend/frontend-agents/architecture-and-routing.md`                        |
-| Работа с API                       | `ai-context/api-contracts.md`, `backend/api/endpoints.md`, `frontend/frontend-agents/api-cheatsheet.md` |
-| SEO, meta, sitemap                 | `ai-context/seo-rules.md`, `frontend/frontend-agents/seo.md`                                            |
-| Auth / роли / NextAuth             | `ai-context/auth-and-permissions.md`, `frontend/frontend-agents/nextauth-session-config.md`             |
-| i18n, языки                        | `ai-context/translation-rules.md`                                                                       |
-| UI-компоненты, токены              | `ai-context/ui-kit.md`                                                                                  |
-| Контент: книги, авторы, таксономии | `ai-context/content-model.md`, `ai-context/taxonomy-rules.md`, `ai-context/product-rules.md`            |
-| Данные, схема БД                   | `ai-context/database-schema.md`                                                                         |
-| Перед рефакторингом                | `ai-context/legacy-warnings.md`                                                                         |
-| Навигация по коду                  | `ai-context/folder-structure.md`                                                                        |
-| Что делается сейчас                | `ai-context/current-sprint.md`                                                                          |
+**Защита маршрутов.** `middleware.ts` закрывает `/admin` и разделы `/{lang}/(read|listen|summary)`,
+но настоящие читалка и плеер живут по `/{lang}/book/{slug}/read` и `/{lang}/book/{slug}/listen` и
+под этот предикат не попадают. Матчер вдобавок пропускает мимо любой путь с точкой. Новая страница
+с личными данными добавляется в предикат из `lib/middleware.constants.ts` по своему настоящему
+адресу, и проверять надо адрес, а не название раздела.
 
-**Важно:** документация читается напрямую из `D:\newDev\books-app-docs\` обычными Read/Grep/Glob — MCP-сервер `books-docs` для этого не нужен. Актуальный каталог эндпоинтов — `backend/api/endpoints.md`.
+**Редирект.** Адрес перехода не собирается из заголовка `Host` и других заголовков запроса: они
+целиком подконтрольны клиенту, и получается открытое перенаправление. Бери значение из настроек.
 
----
+**Счётчики и запрет индексации.** Неизвестное число - это не ноль. Связка `.catch(() => null)` и
+`?? 0` рядом с `total`, `count`, `pagination` превращает недоступный бэкенд в уверенное «на
+странице ноль книг», а дальше на живые разделы уезжает `noindex` и держится там неделями. Если
+число получить не удалось, решение об индексации не принимается: страница остаётся как была.
 
-## Обновление документации — обязательная часть задачи
+**Публичные адреса.** Только `buildLangUrl` и `buildPublicUrl` из `lib/seo/urls`. Склейка строкой
+и особенно `NEXT_PUBLIC_API_BASE_URL` в `canonical`, `alternates`, `openGraph`, JSON-LD и карте
+сайта запрещены: это адрес служебного поддомена, так в индекс уже уезжали десятки страниц.
 
-Документация — не побочный артефакт. После каждой нетривиальной задачи выполняй Docs Update Check (см. также `ai-context/agent-rules.md`):
+**hreflang.** Набор языков строится одним вызовом `buildIndexableAlternates(toAlternateCandidates(...))`.
+Ручное присваивание `alternates[язык] = url` в цикле и `alternates['x-default']` запрещено: ссылка
+на неиндексируемый язык обесценивает весь кластер, и ни один тест этого не покажет.
 
-- меняли API/DTO → `ai-context/api-contracts.md`, `backend/api/endpoints.md`;
-- меняли сущности → `ai-context/content-model.md`, `ai-context/database-schema.md`;
-- меняли SEO / таксономии / i18n / auth / зависимости → соответствующий документ в `ai-context/`;
-- архитектурное решение → `ai-context/architecture.md` + ADR в `ai-context/adr/`;
-- всегда → запись в `ai-context/changelog.md`;
-- найден техдолг вне scope → записать в `ai-context/legacy-warnings.md`, **не чинить**.
+**Словари.** Их пять: `en`, `es`, `fr`, `pt`, `ru`, и правятся они всегда вместе. Ключ только в
+`en.json` роняет `yarn typecheck` в чужом файле `lib/i18n/dictionaries.ts`, и сообщение указывает
+не туда; ключ только в `ru.json` не ловится ничем, а четыре языка печатают читателю сырой ключ.
+Каждый `t('...')` сверяй со словарём по строке: `home.viewALL` от `home.viewAll` не отличит ни
+линт, ни тест. Админка не переведена, английские строки в ней - принятая практика.
 
-Если правки не нужны — явно сказать: «документация не требует обновления».
+**Занятые слаги.** Новый каталог в `app/[lang]/` требует записи в `lib/constants/reserved-slugs.ts`:
+список алфавитный, без повторов, и та же строка есть в копии на бэкенде. Иначе CMS-страница с этим
+адресом становится недоступной, а `yarn check:reserved-slugs` краснеет. Из кода самой страницы эта
+связь не видна вовсе.
 
----
+**Стили.** Инлайн-стили в разметке запрещены: правила линта против них нет, сторож - один тест на
+один админский компонент. Класс заводится в соседнем `.module.scss`, файл начинается строкой
+`@import '@/styles/tokens.scss';` (без неё сборка падает на «Undefined variable»), значения берутся
+из `styles/tokens.scss`: `$color-*`, `$spacing-*`, `$font-size-*`, `$border-radius-*`, `$shadow-*`,
+`$breakpoint-*`. Хардкод `#1a1a1a` или `12px` в добавленных строках недопустим.
 
-## Quality gates, код-стиль, жёсткие ограничения
+**Граница сервер-клиент.** По умолчанию компонент серверный. Интерактивная часть выносится в
+файл-сосед (`BookshelfClient.tsx`, `ReaderClient.tsx`, `ListenClient.tsx`), а не `'use client'` на
+всю страницу. `window`, `localStorage`, `sessionStorage` и обработчики событий живут только в файле
+с директивой. Серверные переменные окружения в клиентские файлы не попадают: в браузер уходят
+только `NEXT_PUBLIC_*`, остальные там просто `undefined`, и отказ вылезет в рантайме у читателя.
 
-Все обязательные правила — команды проверок, запрет на `any`/`@ts-ignore`/inline-стили, запрет коммитить без разрешения, недоступность БД локально — описаны в `AGENTS.md` выше. Полная матрица проверок: `ai-context/quality-gates.md`.
+**HTTP-клиент.** В `lib/http.ts` опции разворачиваются после заголовков, поэтому свой `headers`
+внутри опций молча затирает `Authorization` и `Accept-Language`: запрос уходит и часто возвращает
+200 с данными на языке по умолчанию. Язык передаётся полем `language`. Методы с авторизацией на
+сервере всегда дают 401 до обращения к сети - серверные страницы зовут только публичные.
+
+**Кэш.** Настройки из `lib/queryClient.ts` в рантайме не участвуют: рабочий клиент создаётся в
+`providers/AppProviders.tsx`, менять `retry` и `staleTime` нужно там. Публичная выборка без
+`next: { revalidate: N }` застывает с данными времени сборки.
+
+**Отказы.** Серверные страницы деградируют по частям: `.catch(() => null)` на каждый запрос, блок
+без данных не рисуется, страница остаётся. Клиент показывает общий тост только на 5xx, остальное
+разбирает на месте.
+
+**Экспорты.** Только именованные. `export default` допустим лишь там, где его требует Next:
+`page.tsx`, `layout.tsx`, `error.tsx`, `not-found.tsx`, `loading.tsx`, `route.ts`. Типы
+импортируются через `import type`. Компонент дизайн-системы живёт своей папкой: `Component.tsx`,
+`Component.module.scss`, `Component.types.ts`, `index.ts`. Новый хук добавляется в
+`api/hooks/index.ts` поимённо.
+
+## Формат ответа
+
+```
+<что сделано по сути, до 3 строк, не по файлам>
+
+Проверки:
+<команда> - <результат одной строкой>
+
+<что осталось или что может сломаться - только если правда есть>
+```
+
+Проза до 2200 знаков. Не пересказывай дифф, не перечисляй изменённые файлы, не пиши вступлений и
+итогов, повторяющих сказанное выше, не оценивай собственную работу и не предлагай дополнительную.
+
+Перед лишним шагом или проверкой спроси себя, изменит ли её результат следующее действие. Если
+нет - не делай и не упоминай. Не выполняй работу ради того, чтобы потом назвать её необязательной.
