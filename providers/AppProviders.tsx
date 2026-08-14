@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClientProvider } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import { SessionProvider } from 'next-auth/react';
 import { SnackbarProvider } from 'notistack';
@@ -23,7 +23,7 @@ import { hasLoggedInMarker } from '@/lib/auth/sessionMarker';
 import { setSession } from '@/lib/http-client/auth';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getLangFromPath } from '@/lib/i18n/lang';
-import { QUERY_CACHE_TIME } from '@/lib/queryClient.constants';
+import { createQueryClient } from '@/lib/queryClient';
 import { toast } from '@/lib/utils/toast';
 import { ApiError } from '@/types/api';
 import type { Session } from 'next-auth';
@@ -79,37 +79,36 @@ export const AppProviders = (props: AppProvidersProps) => {
 
   /**
    * Create QueryClient once on mount
+   *
+   * ⚠️ Настройки кэша задаёт `lib/queryClient.ts`, а не этот файл: здесь стоял
+   * свой `new QueryClient`, и продуманная стратегия повторов из того файла в
+   * приложение не попадала вовсе (`LEGACY-141`). Отсюда приходят только кэши
+   * запросов и мутаций — им нужны словари и тост, а слою настроек про них
+   * знать незачем.
    */
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: QUERY_CACHE_TIME.STALE_TIME_MS,
-            refetchOnWindowFocus: false,
-          },
+  const [queryClient] = useState(() =>
+    createQueryClient({
+      queryCache: new QueryCache({
+        onError: (error) => {
+          // Global error handling for queries
+          // Only show toast for server errors (5xx)
+          if (error instanceof ApiError && error.statusCode >= 500) {
+            console.error('Server error:', error.message);
+            toast.error(getServerErrorMessage());
+          }
         },
-        queryCache: new QueryCache({
-          onError: (error) => {
-            // Global error handling for queries
-            // Only show toast for server errors (5xx)
-            if (error instanceof ApiError && error.statusCode >= 500) {
-              console.error('Server error:', error.message);
-              toast.error(getServerErrorMessage());
-            }
-          },
-        }),
-        mutationCache: new MutationCache({
-          onError: (error) => {
-            // Global error handling for mutations
-            // Show toast for server errors (5xx)
-            if (error instanceof ApiError && error.statusCode >= 500) {
-              console.error('Server error:', error.message);
-              toast.error(getServerErrorMessage());
-            }
-          },
-        }),
-      })
+      }),
+      mutationCache: new MutationCache({
+        onError: (error) => {
+          // Global error handling for mutations
+          // Show toast for server errors (5xx)
+          if (error instanceof ApiError && error.statusCode >= 500) {
+            console.error('Server error:', error.message);
+            toast.error(getServerErrorMessage());
+          }
+        },
+      }),
+    })
   );
 
   return (

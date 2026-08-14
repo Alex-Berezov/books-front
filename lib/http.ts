@@ -62,6 +62,57 @@ const createHeaders = (options?: HttpRequestOptions, isFormData = false): Header
 };
 
 /**
+ * Заголовки, которые собирает сам слой: вызывающий код их не заменяет.
+ * Имена в нижнем регистре — `Headers.forEach` отдаёт их только так.
+ */
+const PROTECTED_HEADERS: readonly string[] = [
+  HTTP_HEADER.AUTHORIZATION.toLowerCase(),
+  HTTP_HEADER.ACCEPT_LANGUAGE.toLowerCase(),
+];
+
+/**
+ * Дополняет собранные слоем заголовки теми, что пришли от вызывающего.
+ *
+ * ⚠️ Инвариант слоя: собранные заголовки вызывающий код может **дополнять, но не
+ * заменять**. Раньше объект для `fetch` выглядел как `{ method, headers, ...options }`,
+ * и один только `headers` внутри options стирал собранное целиком — запрос уходил
+ * без токена и без языка, возвращал 200 с данными на языке по умолчанию, и
+ * разбираться шли в бэкенд, а не во фронтовый клиент (LEGACY-139).
+ *
+ * `Authorization` и `Accept-Language` задаются **только** полями `accessToken`
+ * и `language`: из чужого `headers` они убираются до слияния — и когда слой
+ * поставил свои, и когда не поставил ничего. Иначе гарантия была бы
+ * односторонней: запрос без `accessToken` увозил бы чужой токен из options,
+ * хотя комментарий обещает обратное. Остальное (тот же `Content-Type`)
+ * вызывающий волен задать сам.
+ *
+ * Слияние идёт через `Headers`, а не спредом: `HttpRequestOptions` наследует
+ * `RequestInit`, поэтому `options.headers` — это `HeadersInit`, то есть законно
+ * может быть экземпляром `Headers` (спред дал бы пустоту) или массивом пар
+ * (спред дал бы `{ 0: [...] }`). Это тот же дефект, только тише.
+ *
+ * @param base - Заголовки, собранные createHeaders
+ * @param extra - Заголовки вызывающего кода
+ * @returns Объединённые заголовки
+ */
+const mergeHeaders = (base: HeadersInit, extra?: HeadersInit): HeadersInit => {
+  if (!extra) {
+    return base;
+  }
+
+  const merged = new Headers(extra);
+  PROTECTED_HEADERS.forEach((name) => merged.delete(name));
+
+  new Headers(base).forEach((value, name) => {
+    if (!merged.has(name)) {
+      merged.set(name, value);
+    }
+  });
+
+  return merged;
+};
+
+/**
  * Handles API response
  *
  * @param response - Response from fetch
@@ -134,9 +185,9 @@ export const httpGet = async <T>(endpoint: string, options?: HttpRequestOptions)
   const headers = createHeaders(options);
 
   const response = await fetch(url, {
-    method: HTTP_METHOD.GET,
-    headers,
     ...options,
+    method: HTTP_METHOD.GET,
+    headers: mergeHeaders(headers, options?.headers),
   });
 
   return handleResponse<T>(response);
@@ -168,10 +219,10 @@ export const httpPost = async <T>(
   const headers = createHeaders(options, isFormData);
 
   const response = await fetch(url, {
-    method: HTTP_METHOD.POST,
-    headers,
-    body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
     ...options,
+    method: HTTP_METHOD.POST,
+    headers: mergeHeaders(headers, options?.headers),
+    body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
   });
 
   return handleResponse<T>(response);
@@ -204,10 +255,10 @@ export const httpPatch = async <T>(
   const headers = createHeaders(options, isFormData);
 
   const response = await fetch(url, {
-    method: HTTP_METHOD.PATCH,
-    headers,
-    body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
     ...options,
+    method: HTTP_METHOD.PATCH,
+    headers: mergeHeaders(headers, options?.headers),
+    body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
   });
 
   return handleResponse<T>(response);
@@ -232,9 +283,9 @@ export const httpDelete = async <T>(endpoint: string, options?: HttpRequestOptio
   const headers = createHeaders(options);
 
   const response = await fetch(url, {
-    method: HTTP_METHOD.DELETE,
-    headers,
     ...options,
+    method: HTTP_METHOD.DELETE,
+    headers: mergeHeaders(headers, options?.headers),
   });
 
   return handleResponse<T>(response);
@@ -268,10 +319,10 @@ export const httpPut = async <T>(
   const headers = createHeaders(options, isFormData);
 
   const response = await fetch(url, {
-    method: HTTP_METHOD.PUT,
-    headers,
-    body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
     ...options,
+    method: HTTP_METHOD.PUT,
+    headers: mergeHeaders(headers, options?.headers),
+    body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
   });
 
   return handleResponse<T>(response);

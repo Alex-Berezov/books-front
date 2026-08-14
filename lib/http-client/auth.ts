@@ -66,6 +66,21 @@ export const getCurrentSession = async () => {
 };
 
 /**
+ * Текст ошибки авторизованного клиента, вызванного с сервера.
+ *
+ * Вынесен в константу, потому что на него смотрит посадка: общий 401 от этого
+ * места неотличим от честного ответа бэкенда неавторизованному запросу
+ * (`LEGACY-140`).
+ */
+export const SERVER_CONTEXT_AUTH_MESSAGE =
+  'Authorized HTTP client called from a server context: the NextAuth session is only readable in ' +
+  'the browser, so no token can be obtained here. Pass an explicit accessToken, or call the ' +
+  'endpoint with requireAuth: false / optionalAuth: true.';
+
+/** Код этой ошибки: она про неверный вызов, а не про неавторизованного посетителя. */
+export const SERVER_CONTEXT_AUTH_ERROR = 'ServerContextAuthUnavailable';
+
+/**
  * Get access token from current session
  *
  * @param requireAuth - Whether authorization is required
@@ -85,6 +100,20 @@ export const getAccessToken = async (
   // If authorization not required, return undefined
   if (!requireAuth) {
     return undefined;
+  }
+
+  // ⚠️ На сервере `getCurrentSession` всегда возвращает null, поэтому дальше по
+  // коду получался бы 401 ещё до похода в сеть — и выглядел бы как отказ
+  // бэкенда. В карте сайта такой 401 оседал в noteFailure и превращался в 503
+  // или в пропавшую секцию, а искать шли в бэкенд. Ошибка здесь называет
+  // причину вслух: серверная функция названа так же, как рабочая клиентская,
+  // и на ревью подмена контекста не видна (`LEGACY-140`).
+  if (typeof window === 'undefined') {
+    throw new ApiError({
+      message: SERVER_CONTEXT_AUTH_MESSAGE,
+      statusCode: 500,
+      error: SERVER_CONTEXT_AUTH_ERROR,
+    });
   }
 
   // Get token from session

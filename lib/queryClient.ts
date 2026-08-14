@@ -5,7 +5,8 @@
  * and retry strategies for different error types.
  */
 
-import { QueryClient, type DefaultOptions } from '@tanstack/react-query';
+import { QueryClient, type DefaultOptions, type QueryClientConfig } from '@tanstack/react-query';
+import { QUERY_CACHE_TIME } from '@/lib/queryClient.constants';
 import { ApiError } from '@/types/api';
 
 /**
@@ -15,7 +16,7 @@ import { ApiError } from '@/types/api';
  * @param error - Error
  * @returns true if retry should be attempted
  */
-const shouldRetry = (failureCount: number, error: unknown): boolean => {
+export const shouldRetry = (failureCount: number, error: unknown): boolean => {
   // Don't retry for ApiError
   if (error instanceof ApiError) {
     const status = error.statusCode;
@@ -46,10 +47,10 @@ const shouldRetry = (failureCount: number, error: unknown): boolean => {
 const defaultOptions: DefaultOptions = {
   queries: {
     // Time during which data is considered fresh
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: QUERY_CACHE_TIME.STALE_TIME_MS,
 
     // Time during which cache is stored in memory
-    gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+    gcTime: QUERY_CACHE_TIME.CACHE_TIME_MS,
 
     // Retry strategy
     retry: shouldRetry,
@@ -60,59 +61,51 @@ const defaultOptions: DefaultOptions = {
     // Refetch on mount only if data is stale
     refetchOnMount: true,
 
-    // Don't refetch on reconnect by default
-    refetchOnReconnect: false,
+    // ⚠️ До LEGACY-141 файл в рантайме не участвовал, и здесь стояло `false`,
+    // которое никогда не применялось: реальный клиент оставлял умолчание
+    // react-query. Значение приведено к тому, что работало, а не к тому, что
+    // было написано: с `false` читатель после разрыва связи остаётся на
+    // снимке данных до разрыва, а `refetchOnWindowFocus` уже выключен и вернуть
+    // данные больше нечем. Сведение источников не должно менять поведение
+    // заодно; захотим выключить — это отдельное решение.
+    refetchOnReconnect: true,
   },
   mutations: {
-    // For mutations, don't retry on 4xx errors
-    retry: (failureCount, error) => {
-      if (error instanceof ApiError) {
-        const status = error.statusCode;
-        // Don't retry for client errors
-        if (status >= 400 && status < 500) {
-          return false;
-        }
-      }
-      // For others, do 1 attempt
-      return failureCount < 1;
-    },
+    // ⚠️ Мутации не повторяются. До LEGACY-141 этот блок в рантайм не попадал,
+    // и умолчание react-query давало ноль попыток; здесь была написана одна
+    // попытка на всё, кроме 4xx. Одна попытка означает повтор того же POST
+    // после сетевого отказа или 503 — а отказ приходит и тогда, когда запись
+    // на сервере уже прошла: читатель получает второй отзыв, вторую книгу,
+    // вторую полку. Повтор мутации включается адресно на идемпотентной ручке,
+    // а не глобально.
+    retry: false,
   },
 };
 
 /**
- * Factory for creating QueryClient
+ * Фабрика рабочего QueryClient.
  *
+ * ⚠️ Это **единственный** источник настроек кэша (`LEGACY-141`). Раньше файл
+ * выглядел настройкой, но клиент приложения создавался отдельным
+ * `new QueryClient` в `providers/AppProviders.tsx` со своими опциями: правка
+ * `retry`, `gcTime` или `refetchOn*` здесь проходила все проверки зелёной и ни
+ * на что не влияла, а автор был уверен, что поменял поведение всего приложения.
+ * Заводить второй `new QueryClient` в приложении нельзя — сторож на это стоит
+ * в `__tests__/providers/appProviders.test.tsx`.
+ *
+ * Кэши запросов и мутаций (тосты на 5xx) приходят снаружи: они знают про
+ * словари и про тост, а этому файлу знать про них незачем.
+ *
+ * @param config - queryCache и mutationCache вызывающей стороны
  * @returns New QueryClient instance
  */
-export const createQueryClient = (): QueryClient => {
+export const createQueryClient = (
+  config?: Pick<QueryClientConfig, 'queryCache' | 'mutationCache'>
+): QueryClient => {
   return new QueryClient({
+    ...config,
     defaultOptions,
   });
-};
-
-/**
- * Global QueryClient for use in the application
- * Created once at application startup
- */
-let browserQueryClient: QueryClient | undefined = undefined;
-
-/**
- * Get QueryClient for use in the application
- *
- * @returns QueryClient instance
- */
-export const getQueryClient = (): QueryClient => {
-  // On server, always create a new client
-  if (typeof window === 'undefined') {
-    return createQueryClient();
-  }
-
-  // On client, use singleton
-  if (!browserQueryClient) {
-    browserQueryClient = createQueryClient();
-  }
-
-  return browserQueryClient;
 };
 
 /**
