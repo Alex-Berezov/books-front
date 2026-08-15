@@ -111,9 +111,12 @@ export interface UserActivityParentOrChildComment {
   id: UUID;
   text: string;
   createdAt: ISODate;
+  // Почты автора здесь нет и быть не должно: `parent.user` — автор чужого
+  // комментария, `replies[].user` — те, кто ответил, и то и другое третьи лица.
+  // Бэкенд перестал их отдавать в `LEGACY-191`; поле в этом типе жило само по
+  // себе — схема написана руками и из бэкенда не генерится.
   user: {
     id: UUID;
-    email: string;
     name: string | null;
     nickname: string | null;
     avatarUrl: string | null;
