@@ -20,10 +20,7 @@ const isAdminRoute = (pathname: string): boolean => {
 };
 
 /**
- * Check if path is private reader, player, or summary route
- */
-/**
- * Личные маршруты — только `/{lang}/read|listen|summary`.
+ * Раздельные секции `/{lang}/read|listen|summary`.
  *
  * 🔴 **Шаблон обязан быть заякорен на позицию сегмента.** Прежний
  * `/\/(?:read|listen|summary)\//` искал эти слова **где угодно** в пути, и
@@ -38,12 +35,40 @@ const isAdminRoute = (pathname: string): boolean => {
  * Флаг `i` — потому что теперь сюда доходит и `/EN/Read/...`. Нормализация
  * регистра стоит раньше гейта и всё равно отправила бы такой адрес в 301,
  * но предикат безопасности не должен зависеть от порядка шагов выше.
+ *
+ * ⚠️ Сегодня по `/{lang}/read|listen` лежат трёхстрочные `permanentRedirect` на
+ * `/{lang}/book/{slug}/read|listen` (`LEGACY-047`, `LEGACY-048`), содержательна
+ * из трёх секций только `summary`. Гейт со стуба не снят намеренно: аноним по
+ * старой ссылке всё равно должен прийти на вход, а не на редирект и оттуда на
+ * пустую читалку.
  */
+const PRIVATE_SECTION_PATTERN = /^\/[a-z]{2}\/(?:read|listen|summary)(?:\/|$)/i;
+
+/**
+ * Настоящие читалка и плеер: `/{lang}/book/{slug}/read|listen`.
+ *
+ * 🔴 `LEGACY-175`. Секционный шаблон выше ловил только редирект-заглушки, а
+ * страницы, которые действительно отдают текст и аудио, уходили в
+ * `NextResponse.next()`: аноним открывал `/en/book/hamlet/read` напрямую, минуя
+ * гейт. Предикат при этом был экспортирован, покрыт тестом и снабжён
+ * комментарием про личные маршруты — впечатление защиты держалось на том, что
+ * шаблон никто не сверял с адресами живых страниц.
+ *
+ * Решение владельца продукта от 15.08.2026: чтение, прослушивание и саммари
+ * доступны только после входа; аноним видит родительскую страницу книги.
+ * Бэкенд отдаёт `reader-bootstrap` и саммари по `OptionalJwtAuthGuard`, то есть
+ * своего рубежа у него здесь нет — этот и есть единственный.
+ *
+ * `[^/]+` на слаг и `(?:\/|$)` на хвост держат якорь: `/en/book/hamlet/read`
+ * закрыт, а `/en/book/how-to-read-books` и `/en/book/hamlet/readers` — нет.
+ */
+const PRIVATE_BOOK_PATTERN = /^\/[a-z]{2}\/book\/[^/]+\/(?:read|listen)(?:\/|$)/i;
+
 // Экспортируется ради посадки: тест обязан проверять **этот** предикат, а не
 // свою копию шаблона рядом (`LEGACY-083`). Next.js трактует специально только
 // `middleware` и `config`, остальные экспорты ему безразличны.
 export const isPrivateRoute = (pathname: string): boolean =>
-  /^\/[a-z]{2}\/(?:read|listen|summary)(?:\/|$)/i.test(pathname);
+  PRIVATE_SECTION_PATTERN.test(pathname) || PRIVATE_BOOK_PATTERN.test(pathname);
 
 /**
  * Extract language from path (handles admin and public paths)
@@ -244,7 +269,8 @@ export async function middleware(request: NextRequest) {
   // Персональные данные из токена и cookie в middleware не печатаются вовсе —
   // ни под флагом отладки, ни временно.
 
-  // Protect private routes (read/listen/summary)
+  // Protect private routes: /{lang}/read|listen|summary and the live reader and
+  // player at /{lang}/book/{slug}/read|listen — the full list is in isPrivateRoute.
   if (isPrivateRoute(pathname)) {
     if (!token) {
       const lang = extractLangFromPath(pathname);
