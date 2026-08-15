@@ -241,10 +241,7 @@
     "noChapters": "Este audiolivro ainda não tem capítulos.",
     "chaptersFail": "Falha ao carregar os capítulos de áudio. A versão pode ainda não estar publicada.",
     "goBack": "Voltar",
-    "speed": "Velocidade",
-    "loadingChapters": "Carregando capítulos de áudio…",
-    "audioUnsupported": "Seu navegador não suporta o elemento de áudio.",
-    "selectChapter": "Selecione um capítulo para começar a ouvir."
+    "speed": "Velocidade"
   },
   "rightsBlocked": {
     "title": "Indisponível na sua região",

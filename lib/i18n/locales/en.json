@@ -290,10 +290,7 @@
     "noChapters": "This audiobook has no chapters yet.",
     "chaptersFail": "Failed to load audio chapters. The version may not be published yet.",
     "goBack": "Go Back",
-    "speed": "Speed",
-    "loadingChapters": "Loading audio chapters…",
-    "audioUnsupported": "Your browser does not support the audio element.",
-    "selectChapter": "Select a chapter to start listening."
+    "speed": "Speed"
   },
   "rightsBlocked": {
     "title": "Not available in your region",
