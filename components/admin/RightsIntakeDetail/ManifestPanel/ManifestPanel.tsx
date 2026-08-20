@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, type FC } from 'react';
-import { Eye, Copy, FileDown, X } from 'lucide-react';
+import { Eye, Copy, FileDown, X, Send } from 'lucide-react';
 import { useRightsAgentManifest, useRightsIntakeReadiness } from '@/api/hooks/useRightsIntakes';
 import type { RightsAgentManifest } from '@/types/api-schema/rights-intake';
 import styles from './ManifestPanel.module.scss';
@@ -9,6 +9,15 @@ import styles from './ManifestPanel.module.scss';
 interface ManifestPanelProps {
   intakeId: string;
   workflowStatus: string;
+  /**
+   * WP-M.2: перевод интейка в `READY_FOR_AGENT` прямо отсюда. Кнопка была только в шапке
+   * страницы, а неактивные кнопки выгрузки — здесь, рядом со списком пробелов интейка.
+   * Редактор читал это как «заполни пробелы, тогда разблокируется», дозаполнял поля
+   * (в бою — строкой «null» во внешнем ID) и всё равно упирался в неактивные кнопки.
+   */
+  onMarkReady?: () => void;
+  isMarkingReady?: boolean;
+  markReadyError?: string | null;
 }
 
 /**
@@ -18,7 +27,13 @@ interface ManifestPanelProps {
  */
 const MANIFEST_EXPORTABLE_STATUSES: readonly string[] = ['READY_FOR_AGENT'];
 
-export const ManifestPanel: FC<ManifestPanelProps> = ({ intakeId, workflowStatus }) => {
+export const ManifestPanel: FC<ManifestPanelProps> = ({
+  intakeId,
+  workflowStatus,
+  onMarkReady,
+  isMarkingReady = false,
+  markReadyError = null,
+}) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [manifestData, setManifestData] = useState<RightsAgentManifest | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -88,9 +103,43 @@ export const ManifestPanel: FC<ManifestPanelProps> = ({ intakeId, workflowStatus
   const readiness = readinessQuery.data;
   const readinessGaps = [...(readiness?.missing ?? []), ...(readiness?.warnings ?? [])];
 
+  const isDraft = workflowStatus === 'DRAFT';
+
   return (
     <div className={styles.section}>
       <h2 className={styles.sectionTitle}>Agent Manifest</h2>
+      {/*
+        WP-M.2: причина, по которой кнопки неактивны, идёт первой — до списка пробелов.
+        В обратном порядке два независимых блока читались как один: сначала «чего не хватает»,
+        потом серые кнопки, и получалось «кнопки заблокированы пробелами». Пробелы выгрузку
+        не блокируют вовсе, блокирует только статус.
+      */}
+      {!canExport && (
+        <div className={styles.gate}>
+          <p className={styles.manifestHint}>
+            {isDraft ? (
+              <>
+                This intake is still a <strong>draft</strong>. The agent manifest is generated for
+                intakes marked <strong>Ready For Agent</strong> — the gaps listed below do not block
+                it.
+              </>
+            ) : (
+              'Manifest export is available only for intakes in Ready For Agent status.'
+            )}
+          </p>
+          {isDraft && onMarkReady && (
+            <button
+              className={styles.actionBtnPrimary}
+              onClick={onMarkReady}
+              disabled={isMarkingReady}
+            >
+              <Send size={16} />
+              {isMarkingReady ? 'Updating...' : 'Mark Ready For Agent'}
+            </button>
+          )}
+          {markReadyError && <p className={styles.manifestErrorText}>{markReadyError}</p>}
+        </div>
+      )}
       {readinessGaps.length > 0 && (
         <div className={styles.readiness}>
           <p className={styles.readinessTitle}>
@@ -107,16 +156,6 @@ export const ManifestPanel: FC<ManifestPanelProps> = ({ intakeId, workflowStatus
       )}
       {!canExport ? (
         <>
-          <p className={styles.manifestHint}>
-            {workflowStatus === 'DRAFT' ? (
-              <>
-                Mark this intake as <strong>Ready For Agent</strong> before exporting the agent
-                manifest.
-              </>
-            ) : (
-              'Manifest export is available only for intakes in Ready For Agent status.'
-            )}
-          </p>
           <div className={styles.manifestActions}>
             <button className={styles.actionBtnSecondary} disabled>
               <Eye size={16} />

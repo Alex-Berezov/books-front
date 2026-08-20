@@ -157,6 +157,8 @@ export interface RightsAgentManifest {
   };
   source: {
     provider: RightsSourceProvider;
+    /** WP-M.1: имя площадки, выведенное из ссылки: «Wikisource (ru)», «Internet Archive», хост. */
+    providerHint?: string | null;
     externalId: string | null;
     url: string | null;
     title: string | null;

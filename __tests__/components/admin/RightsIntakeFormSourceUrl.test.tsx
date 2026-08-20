@@ -24,7 +24,7 @@ const providerSelect = (): HTMLSelectElement =>
   screen.getAllByRole('combobox')[0] as HTMLSelectElement;
 
 const externalIdInput = (): HTMLInputElement =>
-  screen.getByPlaceholderText(/external-id-123|e\.g\. 1342/) as HTMLInputElement;
+  screen.getByPlaceholderText(/may stay empty|e\.g\. 1342/) as HTMLInputElement;
 
 describe('RightsIntakeForm: вывод источника по ссылке (WP-F.1)', () => {
   it('ссылка на Gutenberg заполняет провайдера и внешний ID', () => {
@@ -38,13 +38,32 @@ describe('RightsIntakeForm: вывод источника по ссылке (WP-
     expect(externalIdInput().value).toBe('932');
   });
 
-  it('чужой домен провайдера не выводит', () => {
+  /**
+   * WP-M.1: незнакомый домен теперь тоже опознаётся как источник — провайдер `OTHER`.
+   * Внешний ID при этом не выдумывается: у такого сайта каталога нет.
+   */
+  it('незнакомый домен даёт OTHER без внешнего ID', () => {
     render(<RightsIntakeForm lang="en" />);
 
     fireEvent.change(sourceUrlInput(), { target: { value: 'https://example.com/ebooks/932' } });
 
-    expect(providerSelect().value).toBe('UNKNOWN');
+    expect(providerSelect().value).toBe('OTHER');
     expect(externalIdInput().value).toBe('');
+  });
+
+  it('ссылка на Викитеку заполняет провайдера и заголовок страницы', () => {
+    render(<RightsIntakeForm lang="en" />);
+
+    fireEvent.change(sourceUrlInput(), {
+      target: {
+        value:
+          'https://ru.wikisource.org/wiki/%D0%9F%D1%80%D0%B5%D1%81%D1%82%D1%83%D0%BF%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5_%D0%B8_%D0%BD%D0%B0%D0%BA%D0%B0%D0%B7%D0%B0%D0%BD%D0%B8%D0%B5_(%D0%94%D0%BE%D1%81%D1%82%D0%BE%D0%B5%D0%B2%D1%81%D0%BA%D0%B8%D0%B9)',
+      },
+    });
+
+    expect(providerSelect().value).toBe('OTHER');
+    expect(externalIdInput().value).toBe('Преступление_и_наказание_(Достоевский)');
+    expect(screen.getByText(/Wikisource \(ru\)/)).toBeInTheDocument();
   });
 
   it('явный выбор редактора не переписывается', () => {

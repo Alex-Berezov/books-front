@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ManifestPanel } from '@/components/admin/RightsIntakeDetail/ManifestPanel/ManifestPanel';
 
@@ -44,8 +44,50 @@ describe('ManifestPanel status gate (WP-10.3 / R4-06)', () => {
   it('keeps the DRAFT hint from the phase 2 spec', () => {
     render(<ManifestPanel intakeId="intake-1" workflowStatus="DRAFT" />);
 
-    expect(screen.getByText(/Mark this intake as/)).toBeInTheDocument();
+    expect(screen.getByText(/This intake is still a/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Preview Manifest' })).toBeDisabled();
+  });
+
+  /**
+   * WP-M.2: сам переход в READY_FOR_AGENT доступен из этой же панели. Кнопка была только
+   * в шапке страницы, а неактивные кнопки выгрузки стояли под списком пробелов интейка —
+   * и читались как «разблокируются, когда пробелы закроешь».
+   */
+  it('offers the DRAFT → READY_FOR_AGENT transition right in the panel', () => {
+    const onMarkReady = vi.fn();
+    render(<ManifestPanel intakeId="intake-1" workflowStatus="DRAFT" onMarkReady={onMarkReady} />);
+
+    const button = screen.getByRole('button', { name: 'Mark Ready For Agent' });
+    fireEvent.click(button);
+
+    expect(onMarkReady).toHaveBeenCalledTimes(1);
+  });
+
+  it('says the intake gaps do not block the export', () => {
+    render(<ManifestPanel intakeId="intake-1" workflowStatus="DRAFT" />);
+
+    expect(screen.getByText(/the gaps listed below do not block it/)).toBeInTheDocument();
+  });
+
+  it('shows why the transition failed instead of leaving the button silent', () => {
+    render(
+      <ManifestPanel
+        intakeId="intake-1"
+        workflowStatus="DRAFT"
+        onMarkReady={vi.fn()}
+        markReadyError="Cannot transition from 'DRAFT' to 'READY_FOR_AGENT'."
+      />
+    );
+
+    expect(
+      screen.getByText("Cannot transition from 'DRAFT' to 'READY_FOR_AGENT'.")
+    ).toBeInTheDocument();
+  });
+
+  it('does not offer the transition for a status that is not DRAFT', () => {
+    render(<ManifestPanel intakeId="intake-1" workflowStatus="APPROVED" onMarkReady={vi.fn()} />);
+
+    expect(screen.queryByRole('button', { name: 'Mark Ready For Agent' })).toBeNull();
   });
 
   it('enables export for READY_FOR_AGENT', () => {

@@ -18,6 +18,8 @@ interface RightsIntakeHeaderProps {
   isPendingArchive?: boolean;
   /** WP-L.3: админу кнопка доступна из любого статуса, остальным — только из DRAFT/READY_FOR_AGENT. */
   canForceArchive?: boolean;
+  /** WP-M.2: отказ смены статуса или архивации. Без него кнопка молча возвращалась в исходный вид. */
+  errorMessage?: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -42,6 +44,7 @@ export const RightsIntakeHeader: FC<RightsIntakeHeaderProps> = ({
   isPendingStatusChange = false,
   isPendingArchive = false,
   canForceArchive = false,
+  errorMessage = null,
 }) => {
   const editableStatuses = ['DRAFT', 'READY_FOR_AGENT'];
   const canEdit = editableStatuses.includes(intake.workflowStatus);
@@ -128,6 +131,12 @@ export const RightsIntakeHeader: FC<RightsIntakeHeaderProps> = ({
           {STATUS_LABELS[intake.workflowStatus] || intake.workflowStatus}
         </span>
       </div>
+
+      {errorMessage && (
+        <p className={styles.errorText} role="alert">
+          {errorMessage}
+        </p>
+      )}
     </div>
   );
 };

@@ -21,6 +21,44 @@
   margin: 0 0 $spacing-md 0;
 }
 
+/* WP-M.2: причина, по которой выгрузка недоступна, и действие, которое её открывает. */
+.gate {
+  margin: 0 0 $spacing-md 0;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  background: $color-background-secondary;
+
+  .manifestHint {
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.actionBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  background: $color-primary;
+  color: $color-text-inverse;
+  border: 1px solid $color-primary;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-hover;
+    border-color: $color-primary-hover;
+  }
+
+  &:disabled {
+    background: $color-primary-disabled;
+    border-color: $color-primary-disabled;
+    cursor: not-allowed;
+  }
+}
+
 .readiness {
   margin: 0 0 $spacing-md 0;
   padding: $spacing-sm $spacing-md;

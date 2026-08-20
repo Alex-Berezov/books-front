@@ -185,3 +185,10 @@
     color: #6b7280;
   }
 }
+
+/* WP-M.2: отказ смены статуса виден на месте действия, а не только в консоли браузера. */
+.errorText {
+  margin: $spacing-xs 0 0 0;
+  font-size: $font-size-sm;
+  color: $color-error;
+}

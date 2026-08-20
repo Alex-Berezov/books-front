@@ -45,6 +45,12 @@ export default function RightsIntakeDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [bookCreatedResponse, setBookCreatedResponse] =
     useState<CreateBookFromClearanceResponse | null>(null);
+  /**
+   * WP-M.2: отказ смены статуса был не виден вовсе. `mutateAsync` без `catch` роняет
+   * необработанный промис в консоль, кнопка возвращается в исходный вид, и редактор видит
+   * ровно то же, что при бездействии, — «нажимаю, ничего не происходит».
+   */
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   const { data: intake, isLoading, error } = useRightsIntake(id);
   const changeStatusMutation = useChangeRightsIntakeStatus();
@@ -61,25 +67,43 @@ export default function RightsIntakeDetailPage() {
 
   const reviewImports = reviewImportsData?.items ?? [];
 
+  const describeFailure = (err: unknown, fallback: string): string =>
+    err instanceof Error && err.message ? err.message : fallback;
+
   const handleMarkReady = async () => {
     if (!intake) return;
-    await changeStatusMutation.mutateAsync({ id: intake.id, status: 'READY_FOR_AGENT' });
+    setStatusError(null);
+    try {
+      await changeStatusMutation.mutateAsync({ id: intake.id, status: 'READY_FOR_AGENT' });
+    } catch (err) {
+      setStatusError(describeFailure(err, 'Failed to mark the intake as Ready For Agent.'));
+    }
   };
 
   const handleReturnToDraft = async () => {
     if (!intake) return;
-    await changeStatusMutation.mutateAsync({ id: intake.id, status: 'DRAFT' });
+    setStatusError(null);
+    try {
+      await changeStatusMutation.mutateAsync({ id: intake.id, status: 'DRAFT' });
+    } catch (err) {
+      setStatusError(describeFailure(err, 'Failed to return the intake to draft.'));
+    }
   };
 
   const handleArchive = async () => {
     if (!intake) return;
+    setStatusError(null);
 
     // WP-L.3: из DRAFT/READY_FOR_AGENT архивирует любой сотрудник обычным эндпоинтом. Дальше по
     // воркфлоу — только админ и только через `force`, с подтверждением: по такой проверке уже
     // может быть создана книга, и запись уходит из работы навсегда (вернуть из ARCHIVED нельзя).
     const canArchiveByStatus = ['DRAFT', 'READY_FOR_AGENT'].includes(intake.workflowStatus);
     if (canArchiveByStatus) {
-      await archiveMutation.mutateAsync(intake.id);
+      try {
+        await archiveMutation.mutateAsync(intake.id);
+      } catch (err) {
+        setStatusError(describeFailure(err, 'Failed to archive the intake.'));
+      }
       return;
     }
 
@@ -87,7 +111,11 @@ export default function RightsIntakeDetailPage() {
       `Архивировать проверку в статусе ${intake.workflowStatus}? Запись останется в базе как юридический след, но вернуть её в работу будет нельзя.`
     );
     if (!confirmed) return;
-    await forceArchiveMutation.mutateAsync(intake.id);
+    try {
+      await forceArchiveMutation.mutateAsync(intake.id);
+    } catch (err) {
+      setStatusError(describeFailure(err, 'Failed to archive the intake.'));
+    }
   };
 
   if (isLoading) {
@@ -141,6 +169,7 @@ export default function RightsIntakeDetailPage() {
             isPendingStatusChange={changeStatusMutation.isPending}
             isPendingArchive={archiveMutation.isPending || forceArchiveMutation.isPending}
             canForceArchive={isAdmin}
+            errorMessage={statusError}
           />
 
           <WorkflowTimeline
@@ -151,7 +180,13 @@ export default function RightsIntakeDetailPage() {
 
           <IntakeOverview intake={intake} />
 
-          <ManifestPanel intakeId={id} workflowStatus={intake.workflowStatus} />
+          <ManifestPanel
+            intakeId={id}
+            workflowStatus={intake.workflowStatus}
+            onMarkReady={handleMarkReady}
+            isMarkingReady={changeStatusMutation.isPending}
+            markReadyError={statusError}
+          />
 
           <AgentAutomationPanel intakeId={id} workflowStatus={intake.workflowStatus} />
 
