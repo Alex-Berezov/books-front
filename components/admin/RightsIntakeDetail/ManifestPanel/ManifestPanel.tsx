@@ -155,22 +155,20 @@ export const ManifestPanel: FC<ManifestPanelProps> = ({
         </div>
       )}
       {!canExport ? (
-        <>
-          <div className={styles.manifestActions}>
-            <button className={styles.actionBtnSecondary} disabled>
-              <Eye size={16} />
-              Preview Manifest
-            </button>
-            <button className={styles.actionBtnSecondary} disabled>
-              <Copy size={16} />
-              Copy JSON
-            </button>
-            <button className={styles.actionBtnSecondary} disabled>
-              <FileDown size={16} />
-              Download JSON
-            </button>
-          </div>
-        </>
+        <div className={styles.manifestActions}>
+          <button className={styles.actionBtnSecondary} disabled>
+            <Eye size={16} />
+            Preview Manifest
+          </button>
+          <button className={styles.actionBtnSecondary} disabled>
+            <Copy size={16} />
+            Copy JSON
+          </button>
+          <button className={styles.actionBtnSecondary} disabled>
+            <FileDown size={16} />
+            Download JSON
+          </button>
+        </div>
       ) : (
         <>
           <p className={styles.manifestHint}>

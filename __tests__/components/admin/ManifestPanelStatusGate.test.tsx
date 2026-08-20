@@ -84,6 +84,21 @@ describe('ManifestPanel status gate (WP-10.3 / R4-06)', () => {
     ).toBeInTheDocument();
   });
 
+  it('locks the transition button while the request is in flight', () => {
+    render(
+      <ManifestPanel
+        intakeId="intake-1"
+        workflowStatus="DRAFT"
+        onMarkReady={vi.fn()}
+        isMarkingReady
+      />
+    );
+
+    // Иначе второй клик отправляет второй переход, и бэкенд отбивает его 400 —
+    // редактор видит отказ на действии, которое уже прошло.
+    expect(screen.getByRole('button', { name: 'Updating...' })).toBeDisabled();
+  });
+
   it('does not offer the transition for a status that is not DRAFT', () => {
     render(<ManifestPanel intakeId="intake-1" workflowStatus="APPROVED" onMarkReady={vi.fn()} />);
 

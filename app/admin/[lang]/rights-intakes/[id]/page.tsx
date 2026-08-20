@@ -36,6 +36,7 @@ import type {
   CreateBookFromClearanceResponse,
 } from '@/types/api-schema/rights-intake';
 import styles from './page.module.scss';
+import { describeStatusFailure, type StatusActionError } from './statusActionError';
 
 export default function RightsIntakeDetailPage() {
   const params = useParams();
@@ -49,8 +50,12 @@ export default function RightsIntakeDetailPage() {
    * WP-M.2: отказ смены статуса был не виден вовсе. `mutateAsync` без `catch` роняет
    * необработанный промис в консоль, кнопка возвращается в исходный вид, и редактор видит
    * ровно то же, что при бездействии, — «нажимаю, ничего не происходит».
+   *
+   * Отказ помнит, чьим он был: кнопка перехода в `READY_FOR_AGENT` есть и в шапке, и в панели
+   * манифеста, и без этого признака отказ архивации печатался ещё раз под кнопкой перехода —
+   * как её собственная ошибка.
    */
-  const [statusError, setStatusError] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<StatusActionError | null>(null);
 
   const { data: intake, isLoading, error } = useRightsIntake(id);
   const changeStatusMutation = useChangeRightsIntakeStatus();
@@ -67,16 +72,15 @@ export default function RightsIntakeDetailPage() {
 
   const reviewImports = reviewImportsData?.items ?? [];
 
-  const describeFailure = (err: unknown, fallback: string): string =>
-    err instanceof Error && err.message ? err.message : fallback;
-
   const handleMarkReady = async () => {
     if (!intake) return;
     setStatusError(null);
     try {
       await changeStatusMutation.mutateAsync({ id: intake.id, status: 'READY_FOR_AGENT' });
     } catch (err) {
-      setStatusError(describeFailure(err, 'Failed to mark the intake as Ready For Agent.'));
+      setStatusError(
+        describeStatusFailure('markReady', err, 'Failed to mark the intake as Ready For Agent.')
+      );
     }
   };
 
@@ -86,7 +90,9 @@ export default function RightsIntakeDetailPage() {
     try {
       await changeStatusMutation.mutateAsync({ id: intake.id, status: 'DRAFT' });
     } catch (err) {
-      setStatusError(describeFailure(err, 'Failed to return the intake to draft.'));
+      setStatusError(
+        describeStatusFailure('returnToDraft', err, 'Failed to return the intake to draft.')
+      );
     }
   };
 
@@ -102,7 +108,7 @@ export default function RightsIntakeDetailPage() {
       try {
         await archiveMutation.mutateAsync(intake.id);
       } catch (err) {
-        setStatusError(describeFailure(err, 'Failed to archive the intake.'));
+        setStatusError(describeStatusFailure('archive', err, 'Failed to archive the intake.'));
       }
       return;
     }
@@ -114,7 +120,7 @@ export default function RightsIntakeDetailPage() {
     try {
       await forceArchiveMutation.mutateAsync(intake.id);
     } catch (err) {
-      setStatusError(describeFailure(err, 'Failed to archive the intake.'));
+      setStatusError(describeStatusFailure('archive', err, 'Failed to archive the intake.'));
     }
   };
 
@@ -169,7 +175,7 @@ export default function RightsIntakeDetailPage() {
             isPendingStatusChange={changeStatusMutation.isPending}
             isPendingArchive={archiveMutation.isPending || forceArchiveMutation.isPending}
             canForceArchive={isAdmin}
-            errorMessage={statusError}
+            errorMessage={statusError?.message ?? null}
           />
 
           <WorkflowTimeline
@@ -185,7 +191,7 @@ export default function RightsIntakeDetailPage() {
             workflowStatus={intake.workflowStatus}
             onMarkReady={handleMarkReady}
             isMarkingReady={changeStatusMutation.isPending}
-            markReadyError={statusError}
+            markReadyError={statusError?.scope === 'markReady' ? statusError.message : null}
           />
 
           <AgentAutomationPanel intakeId={id} workflowStatus={intake.workflowStatus} />

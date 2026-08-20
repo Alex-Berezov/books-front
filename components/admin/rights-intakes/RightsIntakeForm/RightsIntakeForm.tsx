@@ -3,7 +3,7 @@
 import { useState, type FC, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCreateRightsIntake, useUpdateRightsIntake } from '@/api/hooks/useRightsIntakes';
-import { deriveRightsSourceFromUrl, mayInferTextTypeFrom } from '@/lib/utils/rights-source-url';
+import { canInferTextTypeFrom, deriveRightsSourceFromUrl } from '@/lib/utils/rights-source-url';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   CreateRightsIntakeRequest,
@@ -95,6 +95,20 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  /**
+   * WP-M.1: что именно форма подставила из ссылки сама.
+   *
+   * Без этой памяти вывод ломался на посимвольном вводе: `new URL('https://w')` разбирается
+   * успешно, поэтому уже на девятом символе провайдер переставал быть `UNKNOWN`, а внешний ID
+   * — пустым, и дописанный до конца адрес Gutenberg оставался с чужим провайдером и с ID из
+   * одной буквы. Своё прежнее значение форма вправе переписать, чужое — нет.
+   */
+  const [autoFilled, setAutoFilled] = useState<{
+    provider?: RightsSourceProvider;
+    externalId?: string;
+    textType?: RightsSourceTextType;
+  }>({});
+
   const updateField = (field: string, value: unknown) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: '' }));
@@ -103,28 +117,54 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
   /**
    * WP-F.1 / WP-M.1: ссылка на любую площадку заполняет только пустые поля источника. Явный
    * выбор редактора форма не переписывает — вывод из URL остаётся догадкой приложения.
+   *
+   * Поле считается свободным, если оно пусто **или** в нём стоит то, что форма подставила
+   * сама на прошлом нажатии клавиши: адрес набирается посимвольно, и каждый промежуточный
+   * огрызок разбирается как самостоятельная ссылка.
    */
   const handleSourceUrlChange = (value: string) => {
     const derived = deriveRightsSourceFromUrl(value);
+    const filled: {
+      provider?: RightsSourceProvider;
+      externalId?: string;
+      textType?: RightsSourceTextType;
+    } = {};
+
     setForm((prev) => {
       const next = { ...prev, sourceUrl: value };
-      if (!derived) return next;
-      if (next.sourceProvider === 'UNKNOWN') {
-        next.sourceProvider = derived.provider;
+
+      const providerIsFree =
+        next.sourceProvider === 'UNKNOWN' || next.sourceProvider === autoFilled.provider;
+      if (providerIsFree) {
+        // `derived.provider === null` — площадка не узнана: провайдер возвращается в `UNKNOWN`,
+        // а не остаётся тем, что вывелось из недописанного адреса.
+        next.sourceProvider = derived?.provider ?? 'UNKNOWN';
+        if (derived?.provider) filled.provider = derived.provider;
       }
-      if (derived.externalId && next.sourceExternalId.trim() === '') {
-        next.sourceExternalId = derived.externalId;
+
+      const externalIdIsFree =
+        next.sourceExternalId.trim() === '' || next.sourceExternalId === autoFilled.externalId;
+      if (externalIdIsFree) {
+        next.sourceExternalId = derived?.externalId ?? '';
+        if (derived?.externalId) filled.externalId = derived.externalId;
       }
-      if (
-        next.sourceTextType === 'UNKNOWN' &&
-        mayInferTextTypeFrom(derived) &&
+
+      const textTypeIsFree =
+        next.sourceTextType === 'UNKNOWN' || next.sourceTextType === autoFilled.textType;
+      const languagesMatch =
         next.sourceLanguage.trim() !== '' &&
-        next.sourceLanguage.trim().toLowerCase() === next.originalLanguage.trim().toLowerCase()
-      ) {
-        next.sourceTextType = 'ORIGINAL_TEXT';
+        next.sourceLanguage.trim().toLowerCase() === next.originalLanguage.trim().toLowerCase();
+      if (textTypeIsFree) {
+        const inferred =
+          canInferTextTypeFrom(derived) && languagesMatch ? 'ORIGINAL_TEXT' : 'UNKNOWN';
+        next.sourceTextType = inferred;
+        if (inferred !== 'UNKNOWN') filled.textType = inferred;
       }
+
       return next;
     });
+
+    setAutoFilled(filled);
     setErrors((prev) => ({ ...prev, sourceUrl: '' }));
   };
 
@@ -226,7 +266,16 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
   };
 
   const derivedSource = deriveRightsSourceFromUrl(form.sourceUrl);
-  const isDerivedFromUrl = derivedSource !== null && form.sourceProvider === derivedSource.provider;
+  /**
+   * Подсказка появляется только когда форма действительно что-то подставила. Условие
+   * «провайдер совпал с выведенным» после WP-M.1 выполнялось почти всегда, и в режиме
+   * правки подсказка утверждала, что приложение заполнило поля, которые заполнил человек.
+   */
+  const isDerivedFromUrl =
+    derivedSource !== null &&
+    (autoFilled.provider !== undefined ||
+      autoFilled.externalId !== undefined ||
+      autoFilled.textType !== undefined);
 
   const getSourceUrlPlaceholder = () => {
     if (form.sourceProvider === 'PROJECT_GUTENBERG') return 'https://www.gutenberg.org/ebooks/1342';
