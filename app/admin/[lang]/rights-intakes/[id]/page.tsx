@@ -35,6 +35,7 @@ import type {
   RightsReviewStatus,
   CreateBookFromClearanceResponse,
 } from '@/types/api-schema/rights-intake';
+import { resolveBookCreationAvailability } from './bookCreationAvailability';
 import styles from './page.module.scss';
 import { describeStatusFailure, type StatusActionError } from './statusActionError';
 
@@ -71,6 +72,9 @@ export default function RightsIntakeDetailPage() {
   });
 
   const reviewImports = reviewImportsData?.items ?? [];
+  const bookCreation = intake
+    ? resolveBookCreationAvailability(intake, currentProfile)
+    : { canCreate: false, isRecreationAfterDeletedBook: false };
 
   const handleMarkReady = async () => {
     if (!intake) return;
@@ -270,13 +274,16 @@ export default function RightsIntakeDetailPage() {
             </div>
           )}
 
-          {intake.workflowStatus === 'APPROVED' &&
-            !intake.createdBookId &&
-            currentProfile?.status === 'APPROVED' &&
-            currentProfile.reviews.some(
-              (review) =>
-                review.id === intake.approvedReviewId && review.status === 'HUMAN_APPROVED'
-            ) && (
+          {bookCreation.canCreate && currentProfile && (
+            <>
+              {bookCreation.isRecreationAfterDeletedBook && (
+                <div className={styles.section}>
+                  <p className={styles.recreationNote}>
+                    Книга по этой проверке уже создавалась и была удалена. Проверка прав остаётся
+                    утверждённой — повторно проверять её не нужно, книгу можно создать заново.
+                  </p>
+                </div>
+              )}
               <CreateBookFromClearanceForm
                 intakeId={id}
                 intake={intake}
@@ -285,7 +292,8 @@ export default function RightsIntakeDetailPage() {
                   setBookCreatedResponse(response);
                 }}
               />
-            )}
+            </>
+          )}
 
           {bookCreatedResponse && (
             <div className={styles.section}>

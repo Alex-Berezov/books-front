@@ -870,3 +870,10 @@
     text-decoration: underline;
   }
 }
+
+/* Пояснение о повторном создании книги по той же утверждённой проверке */
+.recreationNote {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
