@@ -17,6 +17,11 @@ import type {
 /**
  * Get list of chapters for book version
  *
+ * Uses `/admin/versions/:versionId/chapters` so the list works for drafts too:
+ * the public route answers only for published versions and returns
+ * `404 Book version not found` for a draft, which is the normal state of a
+ * version being prepared.
+ *
  * @param versionId - Book version ID
  * @returns Array of chapters
  *
@@ -26,7 +31,7 @@ import type {
  * ```
  */
 export const getChapters = async (versionId: string): Promise<ChapterDetail[]> => {
-  const endpoint = `/versions/${versionId}/chapters`;
+  const endpoint = `/admin/versions/${versionId}/chapters`;
   return httpGetAuth<ChapterDetail[]>(endpoint);
 };
 

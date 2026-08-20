@@ -14,10 +14,9 @@ import { usePublishPanel } from './usePublishPanel';
  * WP-A.5: три причины неактивной кнопки получают три разные подписи. Правовой запрет остаётся
  * запретом, но техническая ошибка и незавершённая загрузка больше на него не похожи.
  */
-const DISABLED_CAPTIONS: Record<'loading' | 'error' | 'blocked', string> = {
+const DISABLED_CAPTIONS: Record<'loading' | 'error', string> = {
   loading: 'Checking the rights gate — the button unlocks as soon as the answer arrives.',
   error: 'The gate check did not complete, so publishing stays disabled until it does.',
-  blocked: 'The rights gate answered: publication is not allowed yet.',
 };
 
 export const PublishPanel: FC<PublishPanelProps> = (props) => {
@@ -29,11 +28,11 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
     isDraft,
     isArchived,
     isLoading,
-    canPublish,
     gateState,
     blockingReasons,
     warnings,
     canPrepare,
+    gateDetailsShown,
     preparationBlockingCodes,
     handleOpenConfirmModal,
     handleCloseConfirmModal,
@@ -41,17 +40,21 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
   } = usePublishPanel(props);
 
   const hasLegacyBlockingReason = Boolean(publishBlockedReason);
-  const isPublishDisabled = isArchived || hasLegacyBlockingReason || (!isPublished && !canPublish);
+  // Запрет гейта кнопку больше не гасит: нажатие раскрывает причины отказа, а сам запрос
+  // на публикацию не уходит (см. `handleOpenConfirmModal`). Неизвестный ответ гейта —
+  // «ещё грузится» и «не ответил вовсе» — держит кнопку неактивной, как и раньше.
+  const isPublishDisabled =
+    isArchived ||
+    hasLegacyBlockingReason ||
+    (!isPublished && (gateState === 'loading' || gateState === 'error'));
   const disabledCaption =
-    isPublished || isArchived || hasLegacyBlockingReason || gateState === 'allowed'
+    isPublished || isArchived || hasLegacyBlockingReason
       ? null
       : gateState === 'loading'
         ? DISABLED_CAPTIONS.loading
         : gateState === 'error'
           ? DISABLED_CAPTIONS.error
-          : gateState === 'blocked'
-            ? DISABLED_CAPTIONS.blocked
-            : null;
+          : null;
 
   return (
     <>
@@ -83,23 +86,31 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
           </div>
         )}
 
-        {blockingReasons.length > 0 && !isPublished && (
+        {gateDetailsShown && !isPublished && gateState === 'blocked' && (
           <div className={styles.gateBlockedSection} role="alert">
             <div className={styles.gateHeader}>
               <ShieldAlert size={18} />
               <span className={styles.gateTitle}>Publication blocked by rights gate</span>
             </div>
-            <ul className={styles.reasonList}>
-              {blockingReasons.map((reason) => (
-                <li key={reason.code} className={styles.reasonItem}>
-                  <span className={styles.reasonCode}>{gateReasonLabel(reason.code)}</span>
-                  <span className={styles.reasonMessage}>{reason.messageRu}</span>
-                  {preparationBlockingCodes.has(reason.code) && (
-                    <span className={styles.preparationBlockedBadge}>Blocks preparation too</span>
-                  )}
-                </li>
-              ))}
-            </ul>
+            {blockingReasons.length > 0 ? (
+              <ul className={styles.reasonList}>
+                {blockingReasons.map((reason) => (
+                  <li key={reason.code} className={styles.reasonItem}>
+                    <span className={styles.reasonCode}>{gateReasonLabel(reason.code)}</span>
+                    <span className={styles.reasonMessage}>{reason.messageRu}</span>
+                    {preparationBlockingCodes.has(reason.code) && (
+                      <span className={styles.preparationBlockedBadge}>Blocks preparation too</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              /* Гейт запретил, но причин не прислал: нажатие всё равно получает ответ. */
+              <p className={styles.gateText}>
+                The gate did not allow publication and returned no reason. Reload the page or check
+                the rights profile of this version.
+              </p>
+            )}
             {/* WP-H: подготовка и публикация — разные вопросы. Пока ни один блокер не входит в
                 список запрещающих подготовку, редактору есть чем заняться, и молчание об этом
                 читалось как «работа остановлена». */}

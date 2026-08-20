@@ -27,6 +27,9 @@ export const usePublishPanel = (props: PublishPanelProps) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [actionType, setActionType] = useState<'publish' | 'unpublish'>('publish');
   const [gateError, setGateError] = useState<StructuredPublishError | null>(null);
+  // Запрет гейта — ответ на попытку опубликовать, а не постоянное состояние страницы.
+  // Пока попытки не было, красный блок не висит и не читается как «редактирование запрещено».
+  const [gateDetailsShown, setGateDetailsShown] = useState(false);
 
   const {
     data: gateData,
@@ -48,6 +51,7 @@ export const usePublishPanel = (props: PublishPanelProps) => {
       const structured = apiError?.data as StructuredPublishError | undefined;
       if (structured?.code === 'RIGHTS_PUBLICATION_BLOCKED') {
         setGateError(structured);
+        setGateDetailsShown(true);
       } else {
         enqueueSnackbar(`Failed to publish version: ${error.message}`, { variant: 'error' });
       }
@@ -94,6 +98,12 @@ export const usePublishPanel = (props: PublishPanelProps) => {
   const canPublish = isPublished ? true : gateState === 'allowed';
 
   const handleOpenConfirmModal = (action: 'publish' | 'unpublish') => {
+    // Публикация по-прежнему не уходит на сервер, пока гейт не разрешил: вместо подтверждения
+    // раскрываются причины отказа. Ослабления нет — есть ответ на нажатие.
+    if (action === 'publish' && !isPublished && !canPublish) {
+      setGateDetailsShown(true);
+      return;
+    }
     setActionType(action);
     setShowConfirmModal(true);
   };
@@ -119,6 +129,7 @@ export const usePublishPanel = (props: PublishPanelProps) => {
     isLoading: isLoading || isGateLoading,
     canPublish,
     gateState,
+    gateDetailsShown,
     isGateError,
     blockingReasons,
     warnings,

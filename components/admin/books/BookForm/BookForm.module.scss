@@ -332,3 +332,45 @@
     background: $color-background-secondary;
   }
 }
+
+/* Сводка по невалидным полям после неудачной отправки */
+.issueSummary {
+  background: $color-background-primary;
+  border: 1px solid $color-error;
+  border-radius: $border-radius-lg;
+  padding: $spacing-md $spacing-lg;
+}
+
+.issueSummaryHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: $color-error;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+}
+
+.issueList {
+  margin: $spacing-sm 0 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.issueItem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+}
+
+.issueField {
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.issueMessage {
+  color: $color-text-secondary;
+}

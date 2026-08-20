@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PublishPanel } from '@/components/admin/books/PublishPanel/PublishPanel';
 import type { PublicationGateResult } from '@/types/api-schema/rights-intake';
@@ -54,6 +54,12 @@ const renderPanel = () => render(<PublishPanel versionId="version-1" status="dra
 
 const publishButton = () => screen.getByRole('button', { name: /publish/i });
 
+/**
+ * Причины отказа гейта показываются в ответ на попытку опубликовать, поэтому в тестах,
+ * которые их проверяют, кнопка сначала нажимается.
+ */
+const attemptPublish = () => fireEvent.click(publishButton());
+
 describe('PublishPanel — WP-A.5 three reasons to be disabled', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -81,7 +87,7 @@ describe('PublishPanel — WP-A.5 three reasons to be disabled', () => {
     expect(screen.queryByText(/Publication blocked by rights gate/i)).not.toBeInTheDocument();
   });
 
-  it('shows a legal ban only when the gate itself answered with blockers', () => {
+  it('shows a legal ban only after the editor tries to publish', () => {
     arrangeGate({
       data: gateResult({
         canPublish: false,
@@ -96,9 +102,16 @@ describe('PublishPanel — WP-A.5 three reasons to be disabled', () => {
     });
     renderPanel();
 
-    expect(publishButton()).toBeDisabled();
+    // До попытки страница не выглядит запретом: редактор наполняет версию.
+    expect(screen.queryByText(/Publication blocked by rights gate/i)).not.toBeInTheDocument();
+
+    attemptPublish();
+
     expect(screen.getByText(/Publication blocked by rights gate/i)).toBeInTheDocument();
     expect(screen.getByText('Территории без решения')).toBeInTheDocument();
+    // Запрос на публикацию при этом не уходит и подтверждение не открывается.
+    expect(mocks.publish).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: /confirm/i })).not.toBeInTheDocument();
   });
 
   it('enables the button when the gate allows publication', () => {
@@ -128,6 +141,7 @@ describe('PublishPanel — WP-A.5 gate codes are never shown raw', () => {
       }),
     });
     renderPanel();
+    attemptPublish();
 
     expect(screen.getByText('Не созданы правила geo-block')).toBeInTheDocument();
     expect(screen.queryByText('GEO_BLOCK_RULES_MISSING')).not.toBeInTheDocument();
@@ -147,6 +161,7 @@ describe('PublishPanel — WP-A.5 gate codes are never shown raw', () => {
       }),
     });
     renderPanel();
+    attemptPublish();
 
     expect(screen.queryByText('SOME_FUTURE_BACKEND_CODE')).not.toBeInTheDocument();
     expect(screen.getByText('Другое требование гейта прав')).toBeInTheDocument();
@@ -196,8 +211,8 @@ describe('PublishPanel — WP-H preparation stage', () => {
       }),
     });
     renderPanel();
+    attemptPublish();
 
-    expect(publishButton()).toBeDisabled();
     expect(screen.getByText(/keep filling chapters and metadata/i)).toBeInTheDocument();
     expect(screen.queryByText('Blocks preparation too')).not.toBeInTheDocument();
   });
@@ -229,6 +244,7 @@ describe('PublishPanel — WP-H preparation stage', () => {
       }),
     });
     renderPanel();
+    attemptPublish();
 
     expect(screen.getByText('Blocks preparation too')).toBeInTheDocument();
     expect(screen.queryByText(/keep filling chapters and metadata/i)).not.toBeInTheDocument();
@@ -248,6 +264,7 @@ describe('PublishPanel — WP-H preparation stage', () => {
       }),
     });
     renderPanel();
+    attemptPublish();
 
     expect(screen.queryByText(/keep filling chapters and metadata/i)).not.toBeInTheDocument();
     expect(screen.queryByText('Blocks preparation too')).not.toBeInTheDocument();
