@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type Resolver } from 'react-hook-form';
+import type { BookFormData } from './BookForm.types';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookVersionDetail } from '@/types/api-schema';
-import { type BookFormData, bookVersionSchema } from './BookForm.types';
+import { buildBookVersionSchema, requiredContentFieldsFor } from './bookVersionSchema';
 
 interface UseBookFormProps {
   lang: SupportedLang;
@@ -15,8 +16,15 @@ interface UseBookFormProps {
 export const useBookForm = (props: UseBookFormProps) => {
   const { lang, initialData, initialTitle, initialAuthor } = props;
 
+  // Черновик сохраняется с любым наполнением; у версии, которая уже выходила наружу, нельзя
+  // стереть заполненные описание и обложку. Разбор случаев — в `requiredContentFieldsFor`.
+  const schema = useMemo(
+    () => buildBookVersionSchema(requiredContentFieldsFor(initialData)),
+    [initialData]
+  );
+
   const form = useForm<BookFormData>({
-    resolver: zodResolver(bookVersionSchema) as unknown as Resolver<BookFormData>,
+    resolver: zodResolver(schema) as unknown as Resolver<BookFormData>,
     defaultValues: initialData
       ? {
           bookSlug: initialData.bookSlug || '',

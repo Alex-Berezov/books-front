@@ -96,13 +96,105 @@ describe('BookForm — a rejected submit never stays silent', () => {
   it('names a required field the editor left empty', async () => {
     const onSubmit = vi.fn();
     withQueryClient(
-      <BookForm lang="ru" initialData={version({ coverImageUrl: '' })} onSubmit={onSubmit} />
+      <BookForm lang="ru" initialData={version({ title: '' })} onSubmit={onSubmit} />
     );
 
     fireEvent.click(submitButton());
 
     const summary = await screen.findByRole('alert');
     expect(summary).toHaveTextContent(/the form was not saved/i);
+    expect(within(summary).getByText('Title')).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Черновик наполняется по частям, и сохранение на каждом шаге - обычный ход работы.
+   * Раньше форма отказывала, пока не заполнены описание и обложка, и половина введённого
+   * терялась на первом же уходе со страницы.
+   */
+  it('saves a draft that has neither description nor cover image', async () => {
+    const onSubmit = vi.fn();
+    withQueryClient(
+      <BookForm
+        lang="ru"
+        initialData={version({ description: '', coverImageUrl: '', status: 'draft' })}
+        onSubmit={onSubmit}
+      />
+    );
+
+    fireEvent.click(submitButton());
+
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText(/the form was not saved/i)).not.toBeInTheDocument();
+  });
+
+  /** Тот же случай на создании версии: `initialData` нет вовсе, кнопка другая. */
+  it('creates a version with neither description nor cover image', async () => {
+    const onSubmit = vi.fn();
+    withQueryClient(<BookForm lang="ru" onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText(/^title/i), { target: { value: 'Новая книга' } });
+    fireEvent.change(screen.getByPlaceholderText(/enter author name manually/i), {
+      target: { value: 'Автор' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('harry-potter'), {
+      target: { value: 'novaya-kniga' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /create version/i }));
+
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText(/the form was not saved/i)).not.toBeInTheDocument();
+  });
+
+  /** Послабление касается только черновика: у живой карточки описание стереть нельзя. */
+  it('refuses to empty the description of a published version', async () => {
+    const onSubmit = vi.fn();
+    withQueryClient(
+      <BookForm lang="ru" initialData={version({ status: 'published' })} onSubmit={onSubmit} />
+    );
+
+    fireEvent.change(screen.getByTestId('rich-text'), { target: { value: '' } });
+    fireEvent.click(submitButton());
+
+    const summary = await screen.findByRole('alert');
+    expect(within(summary).getByText('Description')).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Запрет - про стирание, а не про наполненность вообще: опубликованные версии с пустым
+   * описанием в базе существуют, и правку остальных полей у них форма не запирает.
+   */
+  it('lets a published version with an empty description be saved', async () => {
+    const onSubmit = vi.fn();
+    withQueryClient(
+      <BookForm
+        lang="ru"
+        initialData={version({ description: '', coverImageUrl: '', status: 'published' })}
+        onSubmit={onSubmit}
+      />
+    );
+
+    fireEvent.click(submitButton());
+
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText(/the form was not saved/i)).not.toBeInTheDocument();
+  });
+
+  it('names the cover image in the summary when its URL is broken', async () => {
+    const onSubmit = vi.fn();
+    withQueryClient(
+      <BookForm
+        lang="ru"
+        initialData={version({ coverImageUrl: 'not-a-url' })}
+        onSubmit={onSubmit}
+      />
+    );
+
+    fireEvent.click(submitButton());
+
+    const summary = await screen.findByRole('alert');
     expect(within(summary).getByText('Cover image URL')).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });

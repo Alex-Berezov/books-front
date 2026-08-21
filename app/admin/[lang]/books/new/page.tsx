@@ -4,11 +4,14 @@ import type { FC } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useBook, useCreateBookVersion, useUpsertVersionSeo } from '@/api/hooks';
-import { BookForm } from '@/components/admin/books';
+import {
+  BookForm,
+  buildCreateVersionRequest,
+  buildVersionSeoPayload,
+} from '@/components/admin/books';
 import type { BookFormData } from '@/components/admin/books';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ApiError } from '@/types/api';
-import type { CreateBookVersionRequest } from '@/types/api-schema';
 import styles from './page.module.scss';
 
 interface NewBookVersionPageProps {
@@ -84,51 +87,8 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
       return;
     }
 
-    // Build SEO object only if at least one field is filled
-    const seoData: Record<string, string> = {};
-    if (formData.seoMetaTitle) seoData.metaTitle = formData.seoMetaTitle;
-    if (formData.seoMetaDescription) seoData.metaDescription = formData.seoMetaDescription;
-    if (formData.seoCanonicalUrl) seoData.canonicalUrl = formData.seoCanonicalUrl;
-    if (formData.seoRobots) seoData.robots = formData.seoRobots;
-    if (formData.seoOgTitle) seoData.ogTitle = formData.seoOgTitle;
-    if (formData.seoOgDescription) seoData.ogDescription = formData.seoOgDescription;
-    if (formData.seoOgImageUrl) seoData.ogImageUrl = formData.seoOgImageUrl;
-    if (formData.seoTwitterCard) seoData.twitterCard = formData.seoTwitterCard;
-    if (formData.seoOgImageAlt) seoData.ogImageAlt = formData.seoOgImageAlt;
-
-    // Convert form data to API format (without SEO)
-    const requestData: CreateBookVersionRequest = {
-      language: formData.language,
-      title: formData.title,
-      author: formData.author,
-      description: formData.description,
-      coverImageUrl: formData.coverImageUrl,
-      type: formData.type,
-      isFree: formData.isFree,
-      referralUrl: formData.referralUrl || undefined,
-      primaryCategoryId: formData.primaryCategoryId || null,
-      firstPublishedYear: formData.firstPublishedYear ? Number(formData.firstPublishedYear) : null,
-      editionPublishedYear: formData.editionPublishedYear
-        ? Number(formData.editionPublishedYear)
-        : null,
-      originalLanguage: formData.originalLanguage || null,
-      copyrightStatus: formData.copyrightStatus || null,
-      authorPageUrl: formData.authorPageUrl || null,
-      characters:
-        formData.characters && formData.characters.length > 0 ? formData.characters : null,
-      quotes: formData.quotes && formData.quotes.length > 0 ? formData.quotes : null,
-      faq: formData.faq && formData.faq.length > 0 ? formData.faq : null,
-      themes: formData.themes && formData.themes.length > 0 ? formData.themes : null,
-      originalTitle: formData.originalTitle || null,
-      alternativeTitles:
-        formData.alternativeTitles && formData.alternativeTitles.length > 0
-          ? formData.alternativeTitles
-          : null,
-      shortDescription: formData.shortDescription || null,
-      summaryShort: formData.summaryShort || null,
-      symbols: formData.symbols && formData.symbols.length > 0 ? formData.symbols : null,
-      coverAlt: formData.coverAlt || null,
-    };
+    const seoData = buildVersionSeoPayload(formData);
+    const requestData = buildCreateVersionRequest(formData);
 
     // Send creation request
     try {

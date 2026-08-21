@@ -12,6 +12,11 @@ import {
   useUpsertVersionSeo,
   useCreateBookVersion,
 } from '@/api/hooks';
+import {
+  buildImportVersionPayload,
+  buildUpdateVersionRequest,
+  buildVersionSeoPayload,
+} from '@/components/admin/books';
 import type { BookFormData, TabType } from '@/components/admin/books';
 import type { ApiError } from '@/types/api';
 import type { UpdateBookVersionRequest, CreateBookVersionRequest } from '@/types/api-schema';
@@ -143,23 +148,10 @@ export const useBookVersionLogic = (versionId: string) => {
         );
 
         const versionPayload = {
-          title: trans.localizedTitle || version.title,
-          author: trans.localizedAuthorName || version.author,
-          description: trans.description || trans.shortDescription || version.description || '',
-          coverImageUrl: trans.coverImageUrl || version.coverImageUrl || '',
+          ...buildImportVersionPayload(trans, version),
           type: version.type,
           isFree: version.isFree,
           primaryCategoryId: version.primaryCategoryId || null,
-          copyrightStatus: trans.copyrightStatusSuggestion || version.copyrightStatus || null,
-          alternativeTitles: trans.alternativeTitles || null,
-          shortDescription: trans.shortDescription || null,
-          summaryShort: trans.summaryShort || null,
-          symbols: trans.symbols || null,
-          coverAlt: trans.coverAlt || null,
-          characters: trans.characters || null,
-          quotes: trans.quotes || null,
-          faq: trans.faq || null,
-          themes: trans.themes || null,
           ...globalData,
         };
 
@@ -234,51 +226,8 @@ export const useBookVersionLogic = (versionId: string) => {
       }
     }
 
-    // Build SEO object only if at least one field is filled
-    const seoData: Record<string, string> = {};
-    if (formData.seoMetaTitle) seoData.metaTitle = formData.seoMetaTitle;
-    if (formData.seoMetaDescription) seoData.metaDescription = formData.seoMetaDescription;
-    if (formData.seoCanonicalUrl) seoData.canonicalUrl = formData.seoCanonicalUrl;
-    if (formData.seoRobots) seoData.robots = formData.seoRobots;
-    if (formData.seoOgTitle) seoData.ogTitle = formData.seoOgTitle;
-    if (formData.seoOgDescription) seoData.ogDescription = formData.seoOgDescription;
-    if (formData.seoOgImageUrl) seoData.ogImageUrl = formData.seoOgImageUrl;
-    if (formData.seoTwitterCard) seoData.twitterCard = formData.seoTwitterCard;
-    if (formData.seoOgImageAlt) seoData.ogImageAlt = formData.seoOgImageAlt;
-
-    // Convert form data to API format (without SEO)
-    const requestData: UpdateBookVersionRequest = {
-      slug: formData.bookSlug,
-      title: formData.title,
-      author: formData.author,
-      description: formData.description || undefined,
-      coverImageUrl: formData.coverImageUrl || undefined,
-      type: formData.type,
-      isFree: formData.isFree,
-      referralUrl: formData.referralUrl || undefined,
-      primaryCategoryId: formData.primaryCategoryId || null,
-      firstPublishedYear: formData.firstPublishedYear ? Number(formData.firstPublishedYear) : null,
-      editionPublishedYear: formData.editionPublishedYear
-        ? Number(formData.editionPublishedYear)
-        : null,
-      originalLanguage: formData.originalLanguage || null,
-      copyrightStatus: formData.copyrightStatus || null,
-      authorPageUrl: formData.authorPageUrl || null,
-      characters:
-        formData.characters && formData.characters.length > 0 ? formData.characters : null,
-      quotes: formData.quotes && formData.quotes.length > 0 ? formData.quotes : null,
-      faq: formData.faq && formData.faq.length > 0 ? formData.faq : null,
-      themes: formData.themes && formData.themes.length > 0 ? formData.themes : null,
-      originalTitle: formData.originalTitle || null,
-      alternativeTitles:
-        formData.alternativeTitles && formData.alternativeTitles.length > 0
-          ? formData.alternativeTitles
-          : null,
-      shortDescription: formData.shortDescription || null,
-      summaryShort: formData.summaryShort || null,
-      symbols: formData.symbols && formData.symbols.length > 0 ? formData.symbols : null,
-      coverAlt: formData.coverAlt || null,
-    };
+    const seoData = buildVersionSeoPayload(formData);
+    const requestData = buildUpdateVersionRequest(formData);
 
     // Send update request
     try {

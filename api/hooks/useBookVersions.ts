@@ -64,6 +64,12 @@ export const versionKeys = {
   rightsDashboard: (id: string) => [...versionKeys.detail(id), 'rights-dashboard'] as const,
   /** Generated runtime geo-block rules */
   geoBlockRules: (id: string) => [...versionKeys.detail(id), 'geo-block-rules'] as const,
+  /**
+   * Ответ гейта публикации. Ключ собирался строкой в четырёх местах: разойдись они хоть в одном,
+   * инвалидация промахнётся молча — редактор будет видеть устаревший запрет на публикацию.
+   */
+  publicationGate: (id: string | undefined) =>
+    [...versionKeys.all, 'publication-gate', id] as const,
 };
 
 /**
@@ -182,6 +188,12 @@ export const useUpdateBookVersion = (
       // Invalidate version details to refetch with latest data
       // (SEO might be updated separately, so we need fresh data)
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
+      // Ответ гейта публикации зависит от описания и обложки: без сброса редактор дописывает
+      // описание, жмёт Publish и до минуты видит блокер «Версия не наполнена» на заполненной
+      // версии — запрос при этом даже не уходит.
+      queryClient.invalidateQueries({
+        queryKey: versionKeys.publicationGate(variables.versionId),
+      });
       // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
@@ -221,6 +233,9 @@ export const usePublishVersion = (
     onSuccess: (data, versionId, context) => {
       // Invalidate version details to refetch with updated status
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(versionId) });
+      // Смена статуса меняет и ответ гейта: без сброса панель публикации до минуты показывает
+      // вердикт, снятый в прежнем статусе.
+      queryClient.invalidateQueries({ queryKey: versionKeys.publicationGate(versionId) });
       // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
@@ -260,6 +275,9 @@ export const useUnpublishVersion = (
     onSuccess: (data, versionId, context) => {
       // Invalidate version details to refetch with updated status
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(versionId) });
+      // Смена статуса меняет и ответ гейта: без сброса панель публикации до минуты показывает
+      // вердикт, снятый в прежнем статусе.
+      queryClient.invalidateQueries({ queryKey: versionKeys.publicationGate(versionId) });
       // Invalidate books list
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
@@ -323,7 +341,7 @@ export const usePublicationGate = (
   options?: Omit<UseQueryOptions<PublicationGateResult>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
-    queryKey: [...versionKeys.all, 'publication-gate', versionId],
+    queryKey: versionKeys.publicationGate(versionId),
     queryFn: () => getPublicationGate(versionId!),
     enabled: Boolean(versionId),
     retry: false,
@@ -345,6 +363,11 @@ export const useUpdateVersionRightsGeoBlock = (
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(variables.versionId) });
+      // Отметка «geo-block настроен» — вход одного из блокеров гейта: без сброса панель
+      // публикации до минуты продолжает показывать `GEO_BLOCK_NOT_CONFIGURED`.
+      queryClient.invalidateQueries({
+        queryKey: versionKeys.publicationGate(variables.versionId),
+      });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,
@@ -380,7 +403,7 @@ export const useCheckVersionRightsContentHash = (
       queryClient.invalidateQueries({ queryKey: versionKeys.detail(versionId) });
       queryClient.invalidateQueries({ queryKey: versionKeys.rightsDashboard(versionId) });
       queryClient.invalidateQueries({
-        queryKey: [...versionKeys.all, 'publication-gate', versionId],
+        queryKey: versionKeys.publicationGate(versionId),
       });
       queryClient.invalidateQueries({ queryKey: [...versionKeys.all, 'content-hash', versionId] });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
@@ -411,9 +434,7 @@ const invalidateGeoBlockState = (
   queryClient.invalidateQueries({ queryKey: versionKeys.detail(versionId) });
   queryClient.invalidateQueries({ queryKey: versionKeys.geoBlockRules(versionId) });
   queryClient.invalidateQueries({ queryKey: versionKeys.rightsDashboard(versionId) });
-  queryClient.invalidateQueries({
-    queryKey: [...versionKeys.all, 'publication-gate', versionId],
-  });
+  queryClient.invalidateQueries({ queryKey: versionKeys.publicationGate(versionId) });
 };
 
 export const useGeoBlockRules = (

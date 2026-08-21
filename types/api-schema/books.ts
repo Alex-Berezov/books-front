@@ -227,10 +227,10 @@ export interface CreateBookVersionRequest {
   title: string;
   /** Book author */
   author: string;
-  /** Book description (required) */
-  description: string;
-  /** Book cover URL (required) */
-  coverImageUrl: string;
+  /** Book description: optional at creation, required to publish */
+  description?: string;
+  /** Book cover URL: optional at creation, required to publish */
+  coverImageUrl?: string;
   /** Version type (text, audio, or referral) */
   type: VersionType;
   /** Whether version is free */
@@ -266,9 +266,9 @@ export interface UpdateBookVersionRequest {
   title?: string;
   /** Book author */
   author?: string;
-  /** Book description */
+  /** Book description: empty string clears it on a draft; a published version keeps its own */
   description?: string;
-  /** Book cover URL */
+  /** Book cover URL: empty string clears it on a draft; a published version keeps its own */
   coverImageUrl?: string;
   /** Version type (text or audio) */
   type?: VersionType;

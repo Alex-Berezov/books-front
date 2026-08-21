@@ -31,7 +31,7 @@ export const MediaSection: FC<MediaSectionProps> = ({ register, control, errors 
           control={control}
           render={({ field }) => (
             <MediaPicker
-              label="Cover Image"
+              label="Cover Image (required to publish)"
               value={field.value}
               onChange={field.onChange}
               error={errors.coverImageUrl?.message}

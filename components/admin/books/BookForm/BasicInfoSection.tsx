@@ -297,6 +297,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
           )}
         />
         {errors.description && <span className={styles.error}>{errors.description.message}</span>}
+        <span className={styles.hint}>Required to publish the version</span>
       </div>
     </div>
   );

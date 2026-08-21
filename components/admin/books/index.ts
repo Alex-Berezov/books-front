@@ -1,6 +1,15 @@
 export { BookListTable } from './BookListTable';
 export type { BookListTableProps } from './BookListTable';
 export { BookForm } from './BookForm';
+export {
+  buildBookVersionSchema,
+  buildCreateVersionRequest,
+  buildImportVersionPayload,
+  buildUpdateVersionRequest,
+  buildVersionSeoPayload,
+  requiredContentFieldsFor,
+} from './BookForm';
+export type { RequiredContentFields } from './BookForm';
 export type { BookFormData, BookFormProps } from './BookForm';
 export { BookVersionTabs } from './BookVersionTabs';
 export type { BookVersionTabsProps, TabType } from './BookVersionTabs';

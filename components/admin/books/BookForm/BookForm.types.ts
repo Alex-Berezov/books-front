@@ -1,113 +1,15 @@
-import { z } from 'zod';
+import type { bookVersionBaseSchema } from './bookVersionSchema';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookVersionDetail } from '@/types/api-schema';
-
-/**
- * Validation schema for book version form
- */
-export const bookVersionSchema = z.object({
-  /** Book slug (URL identifier) */
-  bookSlug: z
-    .string()
-    .min(1, 'Slug is required')
-    .max(100, 'Slug is too long')
-    .regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
-  /** Book version language */
-  language: z.enum(['en', 'es', 'fr', 'pt', 'ru']),
-  /** Book title */
-  title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
-  /** Book author */
-  author: z.string().min(1, 'Author is required').max(100, 'Author name is too long'),
-  /** Book description (required) */
-  description: z.string().min(1, 'Description is required'),
-  /** Cover image URL (required) */
-  coverImageUrl: z.url('Invalid URL'),
-  /** Version type */
-  type: z.enum(['text', 'audio', 'referral']),
-  /** Whether version is free */
-  isFree: z.boolean(),
-  /** URL for referral links */
-  referralUrl: z.url('Invalid URL').optional().or(z.literal('')),
-  /** ID основной категории книги для хлебных крошек */
-  primaryCategoryId: z.uuid('Invalid UUID').nullable().optional().or(z.literal('')),
-
-  // ========================================
-  // SEO Fields (matching PageForm structure)
-  // ========================================
-
-  // Basic Meta Tags
-  /** SEO meta title - will be sent as seo.metaTitle */
-  seoMetaTitle: z.string().max(60, 'Meta Title should be 50-60 characters'),
-  /** SEO meta description - will be sent as seo.metaDescription */
-  seoMetaDescription: z.string().max(160, 'Meta Description should be 120-160 characters'),
-
-  // Technical SEO
-  /** Canonical URL to avoid duplicate content */
-  seoCanonicalUrl: z.string(),
-  /** Robots meta tag for indexing control */
-  seoRobots: z.string(),
-
-  // Open Graph (Facebook, LinkedIn)
-  /** OG title for social media */
-  seoOgTitle: z.string().max(60, 'OG Title is too long'),
-  /** OG description for social media */
-  seoOgDescription: z.string().max(160, 'OG Description is too long'),
-  /** OG image URL (1200x630 recommended) */
-  seoOgImageUrl: z.string(),
-
-  // Twitter Card
-  /** Twitter card type */
-  seoTwitterCard: z.enum(['summary', 'summary_large_image', '']),
-
-  /** First published year */
-  firstPublishedYear: z
-    .preprocess(
-      (val) => {
-        if (val === '' || val === undefined || val === null) return '';
-        const num = Number(val);
-        return isNaN(num) ? '' : num;
-      },
-      z.union([z.number().int().min(1).max(2100), z.literal(''), z.null()])
-    )
-    .optional(),
-  /** Edition published year */
-  editionPublishedYear: z
-    .preprocess(
-      (val) => {
-        if (val === '' || val === undefined || val === null) return '';
-        const num = Number(val);
-        return isNaN(num) ? '' : num;
-      },
-      z.union([z.number().int().min(1).max(2100), z.literal(''), z.null()])
-    )
-    .optional(),
-  originalLanguage: z.string().optional().or(z.literal('')),
-  copyrightStatus: z.string().optional().or(z.literal('')),
-  authorPageUrl: z.string().optional().or(z.literal('')),
-  authorId: z.string().optional().or(z.literal('')),
-  characters: z.array(z.object({ name: z.string(), description: z.string() })).optional(),
-  quotes: z
-    .array(z.object({ text: z.string(), author: z.string().optional().or(z.literal('')) }))
-    .optional(),
-  faq: z.array(z.object({ question: z.string(), answer: z.string() })).optional(),
-  themes: z.array(z.string()).optional(),
-  originalTitle: z.string().optional().or(z.literal('')),
-  alternativeTitles: z.array(z.string()).optional(),
-  shortDescription: z
-    .string()
-    .max(300, 'Short description is too long')
-    .optional()
-    .or(z.literal('')),
-  summaryShort: z.string().max(2000, 'Summary is too long').optional().or(z.literal('')),
-  symbols: z.array(z.object({ title: z.string(), description: z.string() })).optional(),
-  coverAlt: z.string().max(200, 'Cover alt is too long').optional().or(z.literal('')),
-  seoOgImageAlt: z.string().max(200, 'OG image alt is too long').optional().or(z.literal('')),
-});
+import type { z } from 'zod';
 
 /**
  * Form data type
+ *
+ * Сама схема живёт в `bookVersionSchema.ts`: `vitest.config.ts` исключает `*.types.ts`
+ * из покрытия, и проверка, стоящая в таком файле, в отчёт не попадает никогда.
  */
-export type BookFormData = z.infer<typeof bookVersionSchema>;
+export type BookFormData = z.infer<typeof bookVersionBaseSchema>;
 
 /**
  * Book form component props
