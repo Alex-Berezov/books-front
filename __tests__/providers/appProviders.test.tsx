@@ -27,6 +27,9 @@ vi.mock('next-auth/react', () => ({
   SessionProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
   getSession: vi.fn(async () => null),
   signOut: vi.fn(async () => undefined),
+  // Сводник локального прогресса сидит внутри дерева провайдеров и спрашивает сессию.
+  // Здесь проверяется кэш, а не он: анониму сливать нечего, запросов он не делает.
+  useSession: () => ({ data: null, status: 'unauthenticated' }),
 }));
 
 let captured: QueryClient | undefined;

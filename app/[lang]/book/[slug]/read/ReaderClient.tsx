@@ -8,9 +8,14 @@ import { useUpdateTextProgress } from '@/api/hooks/useProgress';
 import { useReaderBootstrap } from '@/api/hooks/usePublic';
 import { RightsBlockedNotice } from '@/components/common/RightsBlockedNotice';
 import { useSmartBack } from '@/components/public/navigation';
-import { useCanSaveProgress } from '@/lib/auth/useCanSaveProgress';
 import { isRightsBlockedError } from '@/lib/errors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import {
+  readLocalProgress,
+  saveLocalProgress,
+  useProgressIdentity,
+  useProgressSync,
+} from '@/lib/reading-progress';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ChapterDetail } from '@/types/api-schema';
 import styles from './reader.module.scss';
@@ -69,19 +74,85 @@ export default function ReaderClient({ params }: Props) {
   const [showToc, setShowToc] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
+  const { target: progressTarget, userId: progressOwnerId } = useProgressIdentity();
+  const { isSettled } = useProgressSync();
+
+  /**
+   * Читатель уже сам выбрал, где находится.
+   *
+   * 🔴 У вошедшего `isSettled` приходит после слияния, а это до двадцати
+   * последовательных запросов. За эти секунды человек успевает перелистнуть
+   * главу или выбрать её в оглавлении — и восстановление увело бы его с той
+   * страницы, которую он только что открыл руками.
+   */
+  const hasUserNavigatedRef = useRef(false);
+
+  /**
+   * Глава, которая уже записана в хранилище или на сервере.
+   *
+   * 🔴 Защита от обратной записи того, что только что прочитано. Сценарий:
+   * слияние упало на сети, читалка восстановила серверную 5-ю главу, а через три
+   * секунды отложенное сохранение шлёт её же обратно. Серверный `updatedAt`
+   * становится свежее локального, и следующее слияние считает несведённую 12-ю
+   * главу устаревшей и удаляет её. Место читателя не просто не показано — оно стёрто.
+   * Заодно уходит бесполезный `PUT` при каждом открытии книги.
+   */
+  const persistedChapterRef = useRef<number | null>(null);
+
+  /**
+   * Восстановление позиции — ровно один раз за открытие книги.
+   *
+   * 🔴 Ждём `isSettled`. Пока идёт слияние локального прогресса с серверным,
+   * `lastProgress` в бутстрапе — значение, снятое до слияния; восстановиться по
+   * нему значит показать не ту главу и через три секунды записать её на сервер
+   * поверх правильной.
+   *
+   * 🔴 `hasRestoredProgress` выставляется во всех исходах, а не только когда
+   * прогресс нашёлся: этот же признак разрешает сохранение (см. `saveProgress`),
+   * и книга без прогресса иначе никогда бы его не начала копить.
+   *
+   * 🔴 У вошедшего локальная запись — запасной источник, а не мусор. Слияние
+   * могло не пройти (сеть, закрытая на середине очереди вкладка), и тогда на
+   * сервере пусто, а место в книге цело только здесь. Открыть такую книгу с
+   * первой главы — значит через три секунды закрепить её на сервере и потерять
+   * локальную при следующем слиянии.
+   */
   useEffect(() => {
-    if (chapters.length > 0 && bootstrapData?.lastProgress && !hasRestoredProgress) {
-      if (bootstrapData.lastProgress.chapterNumber) {
-        const idx = chapters.findIndex(
-          (c) => c.number === bootstrapData.lastProgress?.chapterNumber
-        );
-        if (idx !== -1) {
-          setCurrentChapterIndex(idx);
-        }
-      }
+    if (hasRestoredProgress || !isSettled || chapters.length === 0 || !versionId) return;
+
+    if (hasUserNavigatedRef.current) {
       setHasRestoredProgress(true);
+      return;
     }
-  }, [chapters, bootstrapData, hasRestoredProgress]);
+
+    const serverChapterNumber =
+      progressTarget === 'server' ? (bootstrapData?.lastProgress?.chapterNumber ?? null) : null;
+    // 🔴 Запасной источник фильтруется по владельцу тем же правилом, что
+    // и слияние. Без этого на общем компьютере вошедший попадает на главу чужого
+    // читателя и через три секунды записывает её в свой аккаунт.
+    const chapterNumber =
+      serverChapterNumber ??
+      readLocalProgress(versionId, progressOwnerId)?.text?.chapterNumber ??
+      null;
+
+    if (chapterNumber !== null) {
+      const idx = chapters.findIndex((c) => c.number === chapterNumber);
+      if (idx !== -1) {
+        setCurrentChapterIndex(idx);
+        persistedChapterRef.current = chapterNumber;
+      }
+    }
+
+    setHasRestoredProgress(true);
+  }, [
+    chapters,
+    versionId,
+    bootstrapData,
+    hasRestoredProgress,
+    isSettled,
+    progressTarget,
+    progressOwnerId,
+  ]);
 
   useEffect(() => {
     if (bootstrapData && bootstrapData.slug && bootstrapData.slug !== slug) {
@@ -95,17 +166,46 @@ export default function ReaderClient({ params }: Props) {
   const currentChapter = chapters[currentChapterIndex];
 
   const updateProgressMutation = useUpdateTextProgress(versionId);
-  const canSaveProgress = useCanSaveProgress();
 
+  /**
+   * 🔴 Сохранение закрыто до восстановления (`hasRestoredProgress`). Эффект
+   * ниже дёргает отложенное сохранение сразу при монтировании, и без этого
+   * условия открытие книги записывало бы первую главу поверх сохранённой
+   * двенадцатой — читатель терял бы место ровно тем действием, которым его
+   * пытался занять.
+   *
+   * Состояние `'unknown'` (сессия ещё грузится) не пишет никуда: положить главу
+   * в `localStorage` за вошедшего значит подсунуть слиянию заведомо свежую
+   * запись и откатить его назад по книге.
+   */
   const saveProgress = useCallback(
     (chapter: ChapterDetail) => {
-      if (!versionId || !canSaveProgress) return;
-      updateProgressMutation.mutate({
-        chapterNumber: chapter.number,
-        position: 0,
-      });
+      if (!versionId || !hasRestoredProgress) return;
+      // Глава уже записана — см. `persistedChapterRef`.
+      if (persistedChapterRef.current === chapter.number) return;
+
+      persistedChapterRef.current = chapter.number;
+
+      if (progressTarget === 'server') {
+        updateProgressMutation.mutate({
+          chapterNumber: chapter.number,
+          position: 0,
+        });
+        return;
+      }
+
+      if (progressTarget === 'local') {
+        saveLocalProgress({
+          versionId,
+          ownerId: progressOwnerId,
+          kind: 'text',
+          chapterNumber: chapter.number,
+          // Читалка не отслеживает место внутри главы, и серверу шлёт тот же ноль.
+          position: 0,
+        });
+      }
     },
-    [updateProgressMutation, versionId, canSaveProgress]
+    [updateProgressMutation, versionId, progressTarget, progressOwnerId, hasRestoredProgress]
   );
 
   const saveProgressRef = useRef(saveProgress);
@@ -127,21 +227,33 @@ export default function ReaderClient({ params }: Props) {
     window.scrollTo(0, 0);
   }, [currentChapterIndex]);
 
+  /**
+   * 🔴 `hasRestoredProgress` в зависимостях обязателен. Эффект срабатывает при
+   * монтировании, когда сохранение ещё закрыто; если слияние затянется дольше
+   * трёх секунд, а глава после восстановления окажется той же самой, без
+   * этой зависимости эффект больше не перезапустится и час чтения не запишется
+   * никуда.
+   */
   useEffect(() => {
-    if (currentChapter) {
+    if (currentChapter && hasRestoredProgress) {
       debouncedSave(currentChapter);
     }
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [currentChapterIndex, currentChapter, debouncedSave]);
+  }, [currentChapterIndex, currentChapter, debouncedSave, hasRestoredProgress]);
+
+  const goToChapter = (index: number) => {
+    hasUserNavigatedRef.current = true;
+    setCurrentChapterIndex(index);
+  };
 
   const goToPrevChapter = () => {
-    if (currentChapterIndex > 0) setCurrentChapterIndex((i) => i - 1);
+    if (currentChapterIndex > 0) goToChapter(currentChapterIndex - 1);
   };
 
   const goToNextChapter = () => {
-    if (currentChapterIndex < chapters.length - 1) setCurrentChapterIndex((i) => i + 1);
+    if (currentChapterIndex < chapters.length - 1) goToChapter(currentChapterIndex + 1);
   };
 
   // Rights blocking arrives as 451 from the reader-bootstrap request. The reader is never rendered
@@ -254,7 +366,7 @@ export default function ReaderClient({ params }: Props) {
                 <button
                   key={ch.id}
                   onClick={() => {
-                    setCurrentChapterIndex(idx);
+                    goToChapter(idx);
                     setShowToc(false);
                   }}
                   className={`${styles.tocItem} ${

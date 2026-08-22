@@ -15,17 +15,22 @@ import type { ApiError } from '@/types/api';
 import type { ReadingProgress, UpdateProgressRequest } from '@/types/api-schema';
 
 /**
- * Hook to get user reading progress for a specific version
+ * Hook to get user reading progress for a specific version.
+ *
+ * Данные могут быть `null` — это не отказ, а первое обращение к книге.
+ * Отличать его от `isError` обязательно: восстанавливать позицию «с нуля»
+ * после неудавшегося запроса значит затереть человеку реальное место.
  *
  * @param versionId - Book version ID
  * @param options - Query options
  */
 export const useProgress = (
   versionId: string,
-  options?: Omit<UseQueryOptions<ReadingProgress, ApiError>, 'queryKey' | 'queryFn'>
-): UseQueryResult<ReadingProgress, ApiError> => {
-  return useQuery<ReadingProgress, ApiError>({
-    queryKey: queryKeys.readingProgress(versionId),
+  userId?: string,
+  options?: Omit<UseQueryOptions<ReadingProgress | null, ApiError>, 'queryKey' | 'queryFn'>
+): UseQueryResult<ReadingProgress | null, ApiError> => {
+  return useQuery<ReadingProgress | null, ApiError>({
+    queryKey: queryKeys.readingProgress(versionId, userId),
     queryFn: () => getProgress(versionId),
     ...options,
   });
@@ -41,7 +46,8 @@ export const useUpdateTextProgress = (versionId: string) => {
   return useMutation({
     mutationFn: (data: UpdateProgressRequest) => updateTextProgress(versionId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.readingProgress(versionId) });
+      // По префиксу, без `userId`: гасит запись любого владельца по этой версии.
+      queryClient.invalidateQueries({ queryKey: ['readingProgress', versionId] });
       queryClient.invalidateQueries({ queryKey: ['bookshelf'] });
       queryClient.invalidateQueries({ queryKey: ['readerBootstrap'] });
     },

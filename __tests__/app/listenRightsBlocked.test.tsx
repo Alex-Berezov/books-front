@@ -22,6 +22,12 @@ vi.mock('next-auth/react', () => ({
   useSession: () => ({ data: null }),
 }));
 
+// Плеер спрашивает серверную позицию, чтобы вернуть слушателя на своё место.
+// Здесь она не нужна: до плеера дело не доходит, отвечает ветка отказа.
+vi.mock('@/api/hooks/useProgress', () => ({
+  useProgress: () => ({ data: undefined, isLoading: false }),
+}));
+
 vi.mock('@/api/hooks/usePublic', () => ({
   useBookOverview: () => ({
     // The book card itself stays available in a blocked market — only listening is refused.

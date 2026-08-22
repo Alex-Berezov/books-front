@@ -62,6 +62,16 @@ export const useUpdateAudioProgress = (versionId: string) => {
   return useMutation({
     mutationFn: (data: UpdateAudioProgressRequest) => updateAudioProgress(versionId, data),
     onSuccess: () => {
+      // 🔴 `readingProgress` — только пометить устаревшим, без перезапроса.
+      // Плеер держит этот запрос активным всё прослушивание, а сохранение идёт
+      // раз в пять секунд: с обычной инвалидацией (`refetchType: 'active'`) каждый `PUT`
+      // тянул бы за собой `GET` — около 720 лишних запросов за час на слушателя,
+      // и ни один из них не нужен: восстановление одноразовое. Снимок всё равно
+      // обновится на следующем монтировании через `refetchOnMount`.
+      queryClient.invalidateQueries({
+        queryKey: ['readingProgress', versionId],
+        refetchType: 'none',
+      });
       queryClient.invalidateQueries({ queryKey: ['bookshelf'] });
       queryClient.invalidateQueries({ queryKey: ['readerBootstrap'] });
     },

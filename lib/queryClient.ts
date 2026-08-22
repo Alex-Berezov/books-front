@@ -142,8 +142,17 @@ export const queryKeys = {
   /** Current user data: ['me'] */
   me: () => ['me'] as const,
 
-  /** User reading progress: ['readingProgress', versionId] */
-  readingProgress: (versionId: string) => ['readingProgress', versionId] as const,
+  /**
+   * User reading progress: ['readingProgress', versionId, userId]
+   *
+   * 🔴 `userId` в ключе обязателен, как и у соседнего `readerBootstrap`
+   * (`LEGACY-088`). Этот ответ теперь не просто показывается — из него
+   * восстанавливается позиция и через пять секунд записывается обратно. Без
+   * владельца в ключе на общем компьютере следующий вошедший получит
+   * чужую позицию из кэша и запишет её в свой аккаунт.
+   */
+  readingProgress: (versionId: string, userId?: string) =>
+    ['readingProgress', versionId, userId] as const,
 
   /** Public tags list: ['publicTags', lang, params] */
   publicTags: (lang: string, params?: { page?: number; limit?: number }) =>

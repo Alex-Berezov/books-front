@@ -18,6 +18,7 @@ import { useProgress } from '@/api/hooks/useProgress';
 import { Button } from '@/components/common/Button';
 import { PageBackButton } from '@/components/public/navigation';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { useProgressIdentity } from '@/lib/reading-progress';
 import type { BookshelfItemDto } from '@/api/endpoints/bookshelf';
 import styles from './bookshelf.module.scss';
 
@@ -33,9 +34,16 @@ const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
   const bookSlug = version.slug || version.book?.slug || version.bookId;
   const { t } = useTranslation();
 
-  // Query progress for this specific version
-  const { data: progress } = useProgress(version.id, {
-    enabled: !!version.id,
+  // Query progress for this specific version.
+  // Владелец в ключе кэша обязателен: на общем компьютере следующий
+  // вошедший иначе увидит чужой прогресс на своей полке.
+  // 🔴 Ждём пригодной сессии, а не просто наличия версии. Пока сессия
+  // грузится, `progressOwnerId` ещё `null` — запрос ушёл бы под ключом без
+  // владельца, а после ответа сессии ключ меняется и каждая карточка
+  // запрашивала бы прогресс дважды: на полке из двадцати книг — сорок запросов.
+  const { target: progressTarget, userId: progressOwnerId } = useProgressIdentity();
+  const { data: progress } = useProgress(version.id, progressOwnerId ?? undefined, {
+    enabled: !!version.id && progressTarget === 'server',
   });
 
   const isAudio = version.type === 'audio';

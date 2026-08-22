@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useProgress } from '@/api/hooks/useProgress';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import {
   usePublicAudioChapters,
@@ -24,9 +25,14 @@ import {
 } from '@/api/hooks/usePublicAudio';
 import { RightsBlockedNotice } from '@/components/common/RightsBlockedNotice';
 import { useSmartBack } from '@/components/public/navigation';
-import { useCanSaveProgress } from '@/lib/auth/useCanSaveProgress';
 import { isRightsBlockedError } from '@/lib/errors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import {
+  readLocalProgress,
+  saveLocalProgress,
+  useProgressIdentity,
+  useProgressSync,
+} from '@/lib/reading-progress';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './player.module.scss';
 
@@ -68,6 +74,12 @@ export default function ListenClient({ params }: Props) {
   const chapters = useMemo(() => chaptersData?.items ?? [], [chaptersData?.items]);
 
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
+  const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
+  /**
+   * Счётчик запрошенных перемоток. Нужен, чтобы эффект загрузки дорожки
+   * перезапустился даже тогда, когда восстановленная глава совпала с текущей.
+   */
+  const [seekEpoch, setSeekEpoch] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -79,19 +91,114 @@ export default function ListenClient({ params }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSaveRef = useRef(0);
   const hasRecordedViewRef = useRef(false);
+  /**
+   * Куда перемотать и на какой именно главе.
+   *
+   * 🔴 Номер главы хранится вместе с позицией намеренно. Перемотка
+   * применяется только к той дорожке, для которой была считана.
+   */
+  const pendingSeekRef = useRef<{ chapterIndex: number; position: number } | null>(null);
+  /**
+   * Слушатель уже сам выбрал место.
+   *
+   * 🔴 У вошедшего `isSettled` приходит после слияния, а это до двадцати
+   * последовательных запросов. За эти секунды человек успевает нажать play или
+   * выбрать главу — уводить его после этого нельзя.
+   */
+  const hasUserNavigatedRef = useRef(false);
 
   const currentChapter = chapters[currentChapterIndex];
 
   const recordViewMutation = useRecordView();
   const updateProgressMutation = useUpdateAudioProgress(versionId);
 
-  const canSaveProgress = useCanSaveProgress();
+  const { target: progressTarget, userId: progressOwnerId } = useProgressIdentity();
+  const { isSettled } = useProgressSync();
 
+  /**
+   * Серверная позиция для плеера. У читалки она приезжает в `reader-bootstrap`,
+   * у аудио такого бутстрапа нет — берём отдельным запросом.
+   *
+   * 🔴 Своего `retry` здесь нет намеренно. Отказ этого запроса закрывает
+   * сохранение на весь визит, а `refetchOnWindowFocus` выключен — с `retry: false`
+   * одного случайного 503 хватало, чтобы час прослушивания не записался никуда
+   * и без единого признака на экране. Общий `shouldRetry` даёт три попытки на 5xx
+   * и ни одной на 4xx; «прогресса ещё нет» приходит пустым телом и ошибкой
+   * не является вовсе.
+   */
+  const {
+    data: serverProgress,
+    isLoading: isServerProgressLoading,
+    isError: isServerProgressError,
+  } = useProgress(versionId, progressOwnerId ?? undefined, {
+    enabled: progressTarget === 'server' && !!versionId,
+  });
+
+  /**
+   * Восстановление главы и секунды — один раз за открытие книги, для всех
+   * одинаково: вошедшему из серверной записи, остальным из `localStorage`.
+   *
+   * 🔴 Отказ запроса не равен «прогресса нет». На 503 мы не знаем места
+   * читателя — и потому не только не восстанавливаем, но и не открываем
+   * сохранение: иначе через пять секунд прослушивания с первой главы
+   * throttle запишет её поверх настоящей двадцатой.
+   */
+  useEffect(() => {
+    if (hasRestoredProgress || !isSettled || chapters.length === 0 || !versionId) return;
+    if (progressTarget === 'unknown') return;
+    if (progressTarget === 'server' && (isServerProgressLoading || isServerProgressError)) return;
+
+    if (hasUserNavigatedRef.current) {
+      setHasRestoredProgress(true);
+      return;
+    }
+
+    const fromServer =
+      progressTarget === 'server' && serverProgress?.audioChapterNumber
+        ? { chapterNumber: serverProgress.audioChapterNumber, position: serverProgress.position }
+        : null;
+    // Слияние могло не пройти — тогда место в книге цело только локально.
+    const stored = fromServer ?? readLocalProgress(versionId, progressOwnerId)?.audio ?? null;
+
+    if (stored) {
+      const idx = chapters.findIndex((c) => c.number === stored.chapterNumber);
+      if (idx !== -1) {
+        setCurrentChapterIndex(idx);
+        if (stored.position > 0) {
+          pendingSeekRef.current = { chapterIndex: idx, position: stored.position };
+          setSeekEpoch((epoch) => epoch + 1);
+        }
+      }
+    }
+
+    setHasRestoredProgress(true);
+  }, [
+    hasRestoredProgress,
+    isSettled,
+    chapters,
+    versionId,
+    progressTarget,
+    progressOwnerId,
+    serverProgress,
+    isServerProgressLoading,
+    isServerProgressError,
+  ]);
+
+  /**
+   * Индекс главы всегда внутри списка.
+   *
+   * 🔴 Список укорачивается под открытым плеером: `refetchOnReconnect` тянет
+   * `usePublicAudioChapters` заново после восстановления связи, а переход между двумя
+   * книгами переиспользует тот же экземпляр компонента вместе с его состоянием.
+   * Индекс за концом списка даёт `currentChapter === undefined`: заголовок пропадает,
+   * дорожка не меняется, сохранение молча прекращается, а выбраться можно только
+   * через список глав.
+   */
   useEffect(() => {
     if (chapters.length > 0 && currentChapterIndex >= chapters.length) {
-      setCurrentChapterIndex(0);
+      setCurrentChapterIndex(chapters.length - 1);
     }
-  }, [chapters, currentChapterIndex]);
+  }, [chapters.length, currentChapterIndex]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -100,16 +207,31 @@ export default function ListenClient({ params }: Props) {
     const onTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
       const now = Date.now();
+      // 🔴 Пока позиция не восстановлена, не сохраняем: throttle сработал бы на
+      // первых же секундах воспроизведения с нуля и затёр бы сохранённое место.
       if (
-        canSaveProgress &&
+        hasRestoredProgress &&
+        progressTarget !== 'unknown' &&
         now - lastSaveRef.current >= PROGRESS_SAVE_THROTTLE_MS &&
         currentChapter
       ) {
         lastSaveRef.current = now;
-        updateProgressMutation.mutate({
-          audioChapterNumber: currentChapter.number,
-          position: Math.max(0, Math.floor(audio.currentTime)),
-        });
+        const position = Math.max(0, Math.floor(audio.currentTime));
+
+        if (progressTarget === 'server') {
+          updateProgressMutation.mutate({
+            audioChapterNumber: currentChapter.number,
+            position,
+          });
+        } else {
+          saveLocalProgress({
+            versionId,
+            ownerId: progressOwnerId,
+            kind: 'audio',
+            chapterNumber: currentChapter.number,
+            position,
+          });
+        }
       }
     };
 
@@ -136,7 +258,10 @@ export default function ListenClient({ params }: Props) {
     chapters.length,
     currentChapter,
     updateProgressMutation,
-    canSaveProgress,
+    progressTarget,
+    progressOwnerId,
+    hasRestoredProgress,
+    versionId,
   ]);
 
   useEffect(() => {
@@ -165,6 +290,18 @@ export default function ListenClient({ params }: Props) {
     audio.playbackRate = speed;
   }, [speed]);
 
+  /**
+   * Загрузка дорожки и перемотка на восстановленную позицию — одним эффектом.
+   *
+   * 🔴 Развести их нельзя. Отдельный эффект перемотки выполнился бы
+   * раньше смены `src` — и при уже загруженных метаданных первой главы
+   * (`preload="metadata"` успевает за время слияния) перемотал бы **её**, а не
+   * целевую: сохранённая 5-я глава на 12:30 открывалась бы с нуля, а через пять
+   * секунд этот ноль уехал бы на сервер поверх настоящей позиции.
+   *
+   * 🔴 Сама перемотка ждёт `loadedmetadata`: присвоение `currentTime` до
+   * загрузки метаданных браузер молча игнорирует.
+   */
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentChapter?.audioUrl) return;
@@ -174,15 +311,54 @@ export default function ListenClient({ params }: Props) {
     setCurrentTime(0);
     lastSaveRef.current = 0;
 
+    const pending = pendingSeekRef.current;
+    let detachSeek: (() => void) | undefined;
+
+    if (pending !== null && pending.chapterIndex === currentChapterIndex) {
+      const applySeek = () => {
+        // Дорожку могли перезалить короче — не уводим ползунок за её конец.
+        const limit = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : null;
+        const target = limit === null ? pending.position : Math.min(pending.position, limit);
+        audio.currentTime = target;
+        setCurrentTime(target);
+        pendingSeekRef.current = null;
+      };
+
+      audio.addEventListener('loadedmetadata', applySeek, { once: true });
+      detachSeek = () => audio.removeEventListener('loadedmetadata', applySeek);
+    }
+
     if (isPlaying) {
       audio.play().catch(() => setIsPlaying(false));
     }
+
+    return detachSeek;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentChapterIndex, currentChapter?.audioUrl]);
+  }, [currentChapterIndex, currentChapter?.audioUrl, seekEpoch]);
+
+  /**
+   * Любое действие слушателя отменяет отложенное восстановление: он уже выбрал
+   * место сам, и переставлять его посреди прослушивания нельзя.
+   */
+  const markUserNavigated = () => {
+    hasUserNavigatedRef.current = true;
+    pendingSeekRef.current = null;
+  };
+
+  const goToChapter = (index: number) => {
+    markUserNavigated();
+    setCurrentChapterIndex(index);
+  };
+
+  const togglePlay = () => {
+    markUserNavigated();
+    setIsPlaying((playing) => !playing);
+  };
 
   const handleSeek = (value: number) => {
     const audio = audioRef.current;
     if (!audio) return;
+    markUserNavigated();
     audio.currentTime = value;
     setCurrentTime(value);
   };
@@ -190,6 +366,7 @@ export default function ListenClient({ params }: Props) {
   const handleSkip = (seconds: number) => {
     const audio = audioRef.current;
     if (!audio) return;
+    markUserNavigated();
     audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + seconds));
   };
 
@@ -288,7 +465,7 @@ export default function ListenClient({ params }: Props) {
                 <button
                   key={ch.id}
                   onClick={() => {
-                    setCurrentChapterIndex(idx);
+                    goToChapter(idx);
                     setShowChapters(false);
                     setIsPlaying(true);
                   }}
@@ -349,7 +526,7 @@ export default function ListenClient({ params }: Props) {
         <div className={styles.controls}>
           <button
             type="button"
-            onClick={() => setCurrentChapterIndex((i) => Math.max(0, i - 1))}
+            onClick={() => goToChapter(Math.max(0, currentChapterIndex - 1))}
             disabled={currentChapterIndex === 0}
             className={styles.controlBtn}
             aria-label={t('a11y.prevChapter')}
@@ -368,7 +545,7 @@ export default function ListenClient({ params }: Props) {
 
           <button
             type="button"
-            onClick={() => setIsPlaying(!isPlaying)}
+            onClick={togglePlay}
             className={styles.playBtn}
             aria-label={isPlaying ? t('a11y.pause') : t('a11y.play')}
           >
@@ -390,7 +567,7 @@ export default function ListenClient({ params }: Props) {
 
           <button
             type="button"
-            onClick={() => setCurrentChapterIndex((i) => Math.min(chapters.length - 1, i + 1))}
+            onClick={() => goToChapter(Math.min(chapters.length - 1, currentChapterIndex + 1))}
             disabled={currentChapterIndex === chapters.length - 1}
             className={styles.controlBtn}
             aria-label={t('a11y.nextChapter')}

@@ -7,6 +7,7 @@
  * - SessionProvider (NextAuth for authentication)
  * - QueryClientProvider (React Query for API work)
  * - SnackbarProvider (Notistack for notifications)
+ * - ProgressSyncProvider (сведение локального прогресса чтения с аккаунтом)
  *
  * NOTE: antd ConfigProvider is NOT here — it's only in the admin layout
  *       to keep antd off the public page initial bundle.
@@ -24,6 +25,7 @@ import { setSession } from '@/lib/http-client/auth';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getLangFromPath } from '@/lib/i18n/lang';
 import { createQueryClient } from '@/lib/queryClient';
+import { ProgressSyncProvider } from '@/lib/reading-progress';
 import { toast } from '@/lib/utils/toast';
 import { ApiError } from '@/types/api';
 import type { Session } from 'next-auth';
@@ -130,7 +132,7 @@ export const AppProviders = (props: AppProvidersProps) => {
           autoHideDuration={4000}
         >
           <ToastConfigurator />
-          {children}
+          <ProgressSyncProvider>{children}</ProgressSyncProvider>
         </SnackbarProvider>
       </QueryClientProvider>
     </SessionProvider>
