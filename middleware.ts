@@ -20,55 +20,27 @@ const isAdminRoute = (pathname: string): boolean => {
 };
 
 /**
- * Раздельные секции `/{lang}/read|listen|summary`.
+ * Личных маршрутов среди контентных больше нет.
  *
- * 🔴 **Шаблон обязан быть заякорен на позицию сегмента.** Прежний
- * `/\/(?:read|listen|summary)\//` искал эти слова **где угодно** в пути, и
- * `/en/category/read/` попадал под авторизацию: публичная страница термина со
- * слагом `read` закрылась бы для анонима. Пока контентные маршруты не проходили
- * через middleware (`LEGACY-083`), это не проявлялось — расширение matcher
- * делает такой шаблон опасным немедленно.
+ * Решение владельца продукта от 22.08.2026 отменяет решение от 15.08.2026:
+ * чтение, прослушивание и саммари бесплатны и **не требуют входа**. Регистрация
+ * даёт дополнительное — комментарии, полку, прогресс между устройствами, — но не
+ * доступ к тексту. Прежний гейт (`PRIVATE_SECTION_PATTERN`, `PRIVATE_BOOK_PATTERN`,
+ * `isPrivateRoute`) снят здесь целиком вместе с посадками в
+ * `__tests__/middleware.test.ts`.
  *
- * `(?:\/|$)` вместо завершающего слэша: `/en/read` без хвоста — тоже личный
- * маршрут, и пускать на него анонима нельзя.
+ * ⚠️ Это не регрессия `LEGACY-175`. Та запись говорила, что гейт не покрывает живые
+ * читалку и плеер, — при отсутствии гейта покрывать нечего. Возвращать шаблоны
+ * «по реестру техдолга» нельзя: реестр помечен как отменённый по этому решению
+ * (`books-app-docs/ai-context/legacy-warnings.md`, `LEGACY-175`).
  *
- * Флаг `i` — потому что теперь сюда доходит и `/EN/Read/...`. Нормализация
- * регистра стоит раньше гейта и всё равно отправила бы такой адрес в 301,
- * но предикат безопасности не должен зависеть от порядка шагов выше.
+ * Бэкенд своего рубежа на этих маршрутах не имел и не имеет: `GET chapters/:id`,
+ * `GET versions/:id/audio-chapters` и `reader-bootstrap` публичны. Ограничения по
+ * стране и правам (`assertAccess`, скоупы `TEXT_READER`/`AUDIO`) действуют
+ * независимо от авторизации и этой правкой не затронуты.
  *
- * ⚠️ Сегодня по `/{lang}/read|listen` лежат трёхстрочные `permanentRedirect` на
- * `/{lang}/book/{slug}/read|listen` (`LEGACY-047`, `LEGACY-048`), содержательна
- * из трёх секций только `summary`. Гейт со стуба не снят намеренно: аноним по
- * старой ссылке всё равно должен прийти на вход, а не на редирект и оттуда на
- * пустую читалку.
+ * Личным остаётся только `/admin/**` — см. `isAdminRoute` выше.
  */
-const PRIVATE_SECTION_PATTERN = /^\/[a-z]{2}\/(?:read|listen|summary)(?:\/|$)/i;
-
-/**
- * Настоящие читалка и плеер: `/{lang}/book/{slug}/read|listen`.
- *
- * 🔴 `LEGACY-175`. Секционный шаблон выше ловил только редирект-заглушки, а
- * страницы, которые действительно отдают текст и аудио, уходили в
- * `NextResponse.next()`: аноним открывал `/en/book/hamlet/read` напрямую, минуя
- * гейт. Предикат при этом был экспортирован, покрыт тестом и снабжён
- * комментарием про личные маршруты — впечатление защиты держалось на том, что
- * шаблон никто не сверял с адресами живых страниц.
- *
- * Решение владельца продукта от 15.08.2026: чтение, прослушивание и саммари
- * доступны только после входа; аноним видит родительскую страницу книги.
- * Бэкенд отдаёт `reader-bootstrap` и саммари по `OptionalJwtAuthGuard`, то есть
- * своего рубежа у него здесь нет — этот и есть единственный.
- *
- * `[^/]+` на слаг и `(?:\/|$)` на хвост держат якорь: `/en/book/hamlet/read`
- * закрыт, а `/en/book/how-to-read-books` и `/en/book/hamlet/readers` — нет.
- */
-const PRIVATE_BOOK_PATTERN = /^\/[a-z]{2}\/book\/[^/]+\/(?:read|listen)(?:\/|$)/i;
-
-// Экспортируется ради посадки: тест обязан проверять **этот** предикат, а не
-// свою копию шаблона рядом (`LEGACY-083`). Next.js трактует специально только
-// `middleware` и `config`, остальные экспорты ему безразличны.
-export const isPrivateRoute = (pathname: string): boolean =>
-  PRIVATE_SECTION_PATTERN.test(pathname) || PRIVATE_BOOK_PATTERN.test(pathname);
 
 /**
  * Extract language from path (handles admin and public paths)
@@ -251,8 +223,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // For non-admin and non-private routes, skip auth checks
-  if (!isAdminRoute(pathname) && !isPrivateRoute(pathname)) {
+  // For non-admin routes, skip auth checks
+  if (!isAdminRoute(pathname)) {
     return NextResponse.next();
   }
 
@@ -268,17 +240,6 @@ export async function middleware(request: NextRequest) {
   // `user` из токена. Логи выката читает кто угодно, срока хранения у них нет.
   // Персональные данные из токена и cookie в middleware не печатаются вовсе —
   // ни под флагом отладки, ни временно.
-
-  // Protect private routes: /{lang}/read|listen|summary and the live reader and
-  // player at /{lang}/book/{slug}/read|listen — the full list is in isPrivateRoute.
-  if (isPrivateRoute(pathname)) {
-    if (!token) {
-      const lang = extractLangFromPath(pathname);
-      const signInUrl = buildRedirectUrl(`/${lang}/auth/sign-in`);
-      signInUrl.searchParams.set('callbackUrl', safePathname);
-      return NextResponse.redirect(signInUrl);
-    }
-  }
 
   // Check admin routes
   if (isAdminRoute(pathname)) {
@@ -325,12 +286,12 @@ export const config = {
    *
    * Исключения — статика и API: у первых есть расширение **из перечня**, вторые
    * обслуживаются не страницами. Остальное отбирают предикаты в коде:
-   * `isPagePath` нормализует, `isAdminRoute` и `isPrivateRoute` гейтят.
+   * `isPagePath` нормализует, `isAdminRoute` гейтит.
    *
    * 🔴 **Перечень расширений вместо общего хвоста `.*\.[a-zA-Z0-9]+$`**
    * (`LEGACY-135`). Общий шаблон выкидывал из middleware любой адрес с точкой в
    * последнем сегменте: `/admin/en/books/1.5` шёл в приложение без проверки
-   * роли, `/en/read/hamlet.v2` — без гейта и без 301. Перечень обязан совпадать
+   * роли, `/en/read/hamlet.v2` — без 301. Перечень обязан совпадать
    * по составу со списком `STATIC_ASSET_EXTENSIONS` выше (`STATIC_ASSET_PATTERN`
    * из него выводится); подставить переменную сюда нельзя — Next
    * разбирает matcher статически, — поэтому расхождение стережёт тест.

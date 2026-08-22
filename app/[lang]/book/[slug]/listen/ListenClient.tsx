@@ -24,6 +24,7 @@ import {
 } from '@/api/hooks/usePublicAudio';
 import { RightsBlockedNotice } from '@/components/common/RightsBlockedNotice';
 import { useSmartBack } from '@/components/public/navigation';
+import { useCanSaveProgress } from '@/lib/auth/useCanSaveProgress';
 import { isRightsBlockedError } from '@/lib/errors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -84,6 +85,8 @@ export default function ListenClient({ params }: Props) {
   const recordViewMutation = useRecordView();
   const updateProgressMutation = useUpdateAudioProgress(versionId);
 
+  const canSaveProgress = useCanSaveProgress();
+
   useEffect(() => {
     if (chapters.length > 0 && currentChapterIndex >= chapters.length) {
       setCurrentChapterIndex(0);
@@ -97,7 +100,11 @@ export default function ListenClient({ params }: Props) {
     const onTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
       const now = Date.now();
-      if (now - lastSaveRef.current >= PROGRESS_SAVE_THROTTLE_MS && currentChapter) {
+      if (
+        canSaveProgress &&
+        now - lastSaveRef.current >= PROGRESS_SAVE_THROTTLE_MS &&
+        currentChapter
+      ) {
         lastSaveRef.current = now;
         updateProgressMutation.mutate({
           audioChapterNumber: currentChapter.number,
@@ -124,7 +131,13 @@ export default function ListenClient({ params }: Props) {
       audio.removeEventListener('durationchange', onDurationChange);
       audio.removeEventListener('ended', onEnded);
     };
-  }, [currentChapterIndex, chapters.length, currentChapter, updateProgressMutation]);
+  }, [
+    currentChapterIndex,
+    chapters.length,
+    currentChapter,
+    updateProgressMutation,
+    canSaveProgress,
+  ]);
 
   useEffect(() => {
     const audio = audioRef.current;

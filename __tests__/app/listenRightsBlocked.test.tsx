@@ -14,6 +14,14 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ back: vi.fn(), replace: vi.fn(), push: vi.fn() }),
 }));
 
+// Плеер открыт анониму, а сессию спрашивает, чтобы не бить прогрессом в
+// `PUT /me/progress/:versionId` без токена. Без мока `useSession` требует
+// `<SessionProvider/>` и роняет рендер — тот же мок стоит в соседнем
+// `readerRightsBlocked.test.tsx`.
+vi.mock('next-auth/react', () => ({
+  useSession: () => ({ data: null }),
+}));
+
 vi.mock('@/api/hooks/usePublic', () => ({
   useBookOverview: () => ({
     // The book card itself stays available in a blocked market — only listening is refused.

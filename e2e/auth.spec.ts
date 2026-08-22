@@ -12,17 +12,18 @@ test.describe('Auth & Admin', () => {
     expect(url.searchParams.get('callbackUrl')).toBe('/admin/en/dashboard');
   });
 
-  test('should redirect to login when accessing private summary route without token', async ({
-    page,
-  }) => {
-    await page.goto('/en/summary/some-book/00000000-0000-0000-0000-000000000000');
+  // Решение владельца от 22.08.2026: чтение, прослушивание и саммари открыты без
+  // входа. Прежде этот тест ждал здесь редиректа на форму входа — теперь
+  // редирект на неё и есть отказ.
+  test('content routes stay open to anonymous visitors', async ({ page }) => {
+    for (const path of [
+      '/en/summary/some-book/00000000-0000-0000-0000-000000000000',
+      '/en/book/hamlet/read',
+      '/en/book/hamlet/listen',
+    ]) {
+      await page.goto(path);
 
-    // Should redirect to sign-in (edge middleware protects /:lang/summary/*)
-    await expect(page).toHaveURL(/\/en\/auth\/sign-in/);
-
-    const url = new URL(page.url());
-    expect(url.searchParams.get('callbackUrl')).toBe(
-      '/en/summary/some-book/00000000-0000-0000-0000-000000000000'
-    );
+      await expect(page).not.toHaveURL(/\/auth\/sign-in/);
+    }
   });
 });

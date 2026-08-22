@@ -1,12 +1,6 @@
 import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  config,
-  isPrivateRoute,
-  middleware,
-  STATIC_ASSET_EXTENSIONS,
-  STATIC_ASSET_PATTERN,
-} from '@/middleware';
+import { config, middleware, STATIC_ASSET_EXTENSIONS, STATIC_ASSET_PATTERN } from '@/middleware';
 
 vi.mock('next-auth/jwt', () => ({
   getToken: vi.fn(async () => null),
@@ -91,71 +85,44 @@ describe('middleware matcher: охват (LEGACY-083)', () => {
   );
 });
 
-describe('isPrivateRoute: якорь на позицию сегмента (LEGACY-083)', () => {
-  it.each([
-    ['/en/read/hamlet', true],
-    ['/ru/listen/voyna-i-mir', true],
-    ['/es/summary/quijote', true],
-    // Без хвоста — тоже личный: пускать анонима нельзя.
-    ['/en/read', true],
-    // Регистр не должен решать вопрос доступа, даже если нормализация идёт раньше.
-    ['/EN/Read/hamlet', true],
-  ])('%s → личный: %s', (path, expected) => {
-    expect(isPrivateRoute(path)).toBe(expected);
-  });
-
-  it.each([
-    // 🔴 Ловушка, о которой предупреждает запись: слово «read» внутри
-    // публичного адреса не делает его личным.
-    '/en/category/read/',
-    '/en/category/read',
-    '/ru/tag/listen/',
-    '/en/genre/summary',
-    '/en/book/how-to-read-books',
-    '/en/author/reader-digest',
-    '/en/catalog',
-  ])('публичный %s личным не считается', (path) => {
-    expect(isPrivateRoute(path)).toBe(false);
-  });
-});
-
 /**
- * `LEGACY-175`. Секционный шаблон закрывал редирект-заглушки, а живые читалка и
- * плеер лежат по `/{lang}/book/{slug}/read|listen` и уходили мимо гейта.
- * Возврат прежнего предиката краснит первую группу; снятие якоря на позицию
- * сегмента (`[^/]+` на слаг, `(?:\/|$)` на хвост) — вторую.
+ * Чтение, прослушивание и саммари бесплатны и открыты анониму — решение
+ * владельца от 22.08.2026, отменяющее решение от 15.08.2026 (`LEGACY-175`).
+ *
+ * Посадка сделана на самом `middleware`, а не на предикате: предиката больше
+ * нет, а вернуть гейт можно и мимо него — условием прямо в теле. Проверяется
+ * то, что важно продукту: аноним доходит до страницы, а не до формы входа.
  */
-describe('isPrivateRoute: живые читалка и плеер (LEGACY-175)', () => {
+describe('контентные маршруты открыты анониму', () => {
   it.each([
+    // Живые читалка и плеер.
     '/en/book/hamlet/read',
     '/en/book/hamlet/listen',
     '/ru/book/voyna-i-mir/read',
-    // Хвост со слэшем и регистр вопроса доступа не решают.
     '/en/book/hamlet/read/',
-    '/EN/Book/Hamlet/Read',
-  ])('живой маршрут %s закрыт', (path) => {
-    expect(isPrivateRoute(path)).toBe(true);
+    // Редирект-заглушки старых адресов: аноним должен получить свой 301 на
+    // новый адрес, а не форму входа перед ним.
+    '/en/read/hamlet',
+    '/ru/listen/voyna-i-mir',
+    '/en/read',
+    // Саммари.
+    '/es/summary/quijote',
+    '/en/summary/hamlet/v1',
+    // Родительская страница книги публична и была публичной раньше.
+    '/en/book/hamlet',
+  ])('аноним на %s не уходит на форму входа', async (path) => {
+    const response = await middleware(request(`${REQ}${path}`, { host: SITE_HOST }));
+
+    const location = response.headers.get('location');
+    expect(location === null || !location.includes('/auth/sign-in')).toBe(true);
   });
 
-  it.each([
-    // Родительская страница книги остаётся публичной — это и есть то, что
-    // аноним видит до входа.
-    '/en/book/hamlet',
-    '/en/book/hamlet/',
-    // Слово в хвосте слага личным маршрутом не делает.
-    '/en/book/hamlet/readers',
-    '/en/book/hamlet/listened',
-    // Книга со слагом `read`: сегментов на один меньше, это не читалка.
-    '/en/book/read',
-    // 🔴 Якорь на позицию сегмента, обе половины. `[^/]+` вместо `.+`: лишний
-    // сегмент в слаге — это уже не читалка, а catch-all CMS-страницы
-    // (`app/[lang]/[...slug]`), и закрывать её входом нельзя. `^` в начале:
-    // адрес, где `book/{slug}/read` лежит в середине пути, тоже CMS-страница.
-    // Обе мутации проходили мимо тестов, пока этих двух строк не было.
-    '/en/book/hamlet/chapter-1/read',
-    '/en/blog/de/book/hamlet/read',
-  ])('публичный %s личным не считается', (path) => {
-    expect(isPrivateRoute(path)).toBe(false);
+  it('токен сессии для контентного маршрута вовсе не читается', async () => {
+    getTokenMock.mockClear();
+
+    await middleware(request(`${REQ}/en/book/hamlet/read`, { host: SITE_HOST }));
+
+    expect(getTokenMock).not.toHaveBeenCalled();
   });
 });
 
@@ -348,24 +315,22 @@ describe('редирект: origin только из настроек (LEGACY-13
     expect(locationOf(response).host).toBe(SITE_HOST);
   });
 
-  it('отправка анонима на вход с личного маршрута не уводит на чужой хост', async () => {
-    const response = await middleware(request(`${REQ}/en/read/hamlet`, { host: 'evil.example' }));
+  // Открытый редирект на форме входа стережёт админский случай ниже: контентные
+  // маршруты анонима на вход больше не отправляют, и проверять там нечего.
+  it('нормализация контентного адреса не уводит на чужой хост', async () => {
+    const response = await middleware(
+      request(`${REQ}/EN/book/hamlet/read`, { host: 'evil.example' })
+    );
 
-    const location = locationOf(response);
-    expect(location.host).toBe(SITE_HOST);
-    expect(location.pathname).toBe('/en/auth/sign-in');
-    expect(location.searchParams.get('callbackUrl')).toBe('/en/read/hamlet');
+    expect(locationOf(response).host).toBe(SITE_HOST);
   });
 
-  // 🔴 `LEGACY-175`. Именно этот адрес открывал аноним, пока гейт ловил только
-  // редирект-заглушки. Возврат прежнего предиката даёт здесь 200 без Location.
-  it('аноним с живой читалки уходит на вход, а не в пустую страницу', async () => {
-    const response = await middleware(request(`${REQ}/en/book/hamlet/read`, { host: SITE_HOST }));
+  // Посадка на сам `callbackUrl`: без неё замена `safePathname` на сырой
+  // `pathname` или потеря строки `searchParams.set` проходят мимо всех тестов.
+  it('анониму из админки возвращают адрес, с которого он пришёл', async () => {
+    const response = await middleware(request(`${REQ}/admin/en/dashboard`, { host: SITE_HOST }));
 
-    const location = locationOf(response);
-    expect(location.host).toBe(SITE_HOST);
-    expect(location.pathname).toBe('/en/auth/sign-in');
-    expect(location.searchParams.get('callbackUrl')).toBe('/en/book/hamlet/read');
+    expect(locationOf(response).searchParams.get('callbackUrl')).toBe('/admin/en/dashboard');
   });
 
   it('отправка анонима на вход из админки не уводит на чужой хост', async () => {
@@ -391,8 +356,8 @@ describe('редирект: origin только из настроек (LEGACY-13
   });
 
   // Посадки на `callbackUrl` здесь нет намеренно: сегодня ни один путь с
-  // ведущей двойной косой не проходит ни `isPrivateRoute`, ни `isAdminRoute`,
-  // поэтому в `callbackUrl` такой путь не попадает вовсе. Нормализация в коде
+  // ведущей двойной косой не проходит `isAdminRoute`, поэтому в `callbackUrl`
+  // такой путь не попадает вовсе. Нормализация в коде
   // оставлена на случай, когда предикаты расширят, — проверять сейчас нечего.
 
   it('канонический адрес не редиректится', async () => {

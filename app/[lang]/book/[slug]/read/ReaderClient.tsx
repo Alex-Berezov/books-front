@@ -8,6 +8,7 @@ import { useUpdateTextProgress } from '@/api/hooks/useProgress';
 import { useReaderBootstrap } from '@/api/hooks/usePublic';
 import { RightsBlockedNotice } from '@/components/common/RightsBlockedNotice';
 import { useSmartBack } from '@/components/public/navigation';
+import { useCanSaveProgress } from '@/lib/auth/useCanSaveProgress';
 import { isRightsBlockedError } from '@/lib/errors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -41,16 +42,9 @@ export default function ReaderClient({ params }: Props) {
   const goBack = useSmartBack(`/${lang}/book/${slug}`);
   const { t } = useTranslation();
   const { data: session } = useSession();
+  const userId = session?.user ? (session.user as { id?: string }).id || undefined : undefined;
 
-  const {
-    data: bootstrapData,
-    isLoading,
-    error,
-  } = useReaderBootstrap(
-    supportedLang,
-    slug,
-    session?.user ? (session.user as { id?: string }).id || undefined : undefined
-  );
+  const { data: bootstrapData, isLoading, error } = useReaderBootstrap(supportedLang, slug, userId);
 
   const chapters = useMemo(() => bootstrapData?.chapters || [], [bootstrapData]);
   const versionId = bootstrapData?.versionId || '';
@@ -101,16 +95,17 @@ export default function ReaderClient({ params }: Props) {
   const currentChapter = chapters[currentChapterIndex];
 
   const updateProgressMutation = useUpdateTextProgress(versionId);
+  const canSaveProgress = useCanSaveProgress();
 
   const saveProgress = useCallback(
     (chapter: ChapterDetail) => {
-      if (!versionId) return;
+      if (!versionId || !canSaveProgress) return;
       updateProgressMutation.mutate({
         chapterNumber: chapter.number,
         position: 0,
       });
     },
-    [updateProgressMutation, versionId]
+    [updateProgressMutation, versionId, canSaveProgress]
   );
 
   const saveProgressRef = useRef(saveProgress);
