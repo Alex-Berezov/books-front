@@ -22,6 +22,7 @@ const ALL_NAV_ITEMS = [
   'audiobooks',
   'popular',
   'newReleases',
+  'authors',
 ] as const;
 
 const getNavLinks = (lang: SupportedLang, t: (key: string) => string) => {
@@ -34,6 +35,7 @@ const getNavLinks = (lang: SupportedLang, t: (key: string) => string) => {
     audiobooks: `/${lang}/audiobooks`,
     popular: `/${lang}/popular-books`,
     newReleases: `/${lang}/new-releases`,
+    authors: `/${lang}/authors`,
   };
 
   return ALL_NAV_ITEMS.map((key) => ({
@@ -65,6 +67,10 @@ const isActiveNav = (pathname: string, itemKey: string, lang: string): boolean =
       return path === '/popular-books';
     case 'newReleases':
       return path === '/new-releases';
+    // Пункт подсвечивается и на странице конкретного автора, и на буквенной —
+    // тем же правилом, что у категорий и жанров: раздел один, адресов много.
+    case 'authors':
+      return path === '/authors' || path.startsWith('/authors/') || path.startsWith('/author/');
     default:
       return false;
   }

@@ -94,6 +94,14 @@ export function CatalogContent({
                   {t('catalog.allBooks')}
                 </Link>
 
+                {/*
+                  Хаб авторов — не фильтр каталога, а соседний раздел, поэтому
+                  стоит отдельной ссылкой над рубриками, а не внутри них.
+                */}
+                <Link href={`/${lang}/authors`} className={styles.genreLink}>
+                  {t('authors.title')}
+                </Link>
+
                 {categories.length > 0 && (
                   <>
                     <h4 className={styles.sidebarSubtitle}>{t('categories.title')}</h4>
