@@ -47,6 +47,7 @@
     "browseCategories": "Explorar Categorías",
     "browseCollections": "Explorar Colecciones",
     "browseTags": "Explorar Etiquetas",
+    "browseAuthors": "Todos los autores",
     "browseCatalog": "Catálogo"
   },
   "home": {
@@ -184,6 +185,36 @@
     "quotes": "Citas",
     "similar": "Autores similares",
     "faq": "Preguntas frecuentes"
+  },
+  "authors": {
+    "title": "Autores",
+    "subtitle": "Escritores, poetas y pensadores cuyos libros están reunidos en la biblioteca",
+    "metaTitle": "Autores de libros | Bibliaris",
+    "metaDescription": "Catálogo de autores en Bibliaris: biografías de escritores, poetas y filósofos, sus libros y audiolibros.",
+    "searchLabel": "Buscar por nombre",
+    "searchPlaceholder": "Empieza a escribir el nombre del autor",
+    "sortByName": "Alfabético",
+    "sortByBooks": "Más libros",
+    "sortLabel": "Ordenar",
+    "allLetters": "Todos",
+    "alphabetLabel": "Índice alfabético",
+    "emptyTitle": "No encontramos a nadie",
+    "emptyHint": "Comprueba la ortografía del nombre o consulta todos los autores",
+    "emptyAction": "Mostrar todos",
+    "showMore": "Mostrar más",
+    "authorsCountOne": "autor",
+    "authorsCountMany": "autores",
+    "authorsCountFew": "autores",
+    "booksCountOne": "libro",
+    "booksCountMany": "libros",
+    "booksCountFew": "libros",
+    "audioCountOne": "audiolibro",
+    "audioCountMany": "audiolibros",
+    "audioCountFew": "audiolibros",
+    "audioBadge": "audio",
+    "bornPrefix": "n.",
+    "pagination": "Páginas",
+    "pageLabel": "Página"
   },
   "bookshelf": {
     "title": "Mi Estantería",
@@ -405,7 +436,8 @@
     "categories": "Categorías",
     "genres": "Géneros",
     "collections": "Colecciones",
-    "tags": "Etiquetas"
+    "tags": "Etiquetas",
+    "authors": "Autores"
   },
   "taxonomy": {
     "browse": "Explorar",

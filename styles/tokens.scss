@@ -68,6 +68,17 @@ $icon-size-lg: 24px;
 $icon-size-xl: 32px;
 $icon-size-xxl: 48px;
 
+// Author portrait - круг на карточке автора в хабе `/[lang]/authors`.
+// Значение дублируется числом в `AuthorCard.tsx`: `next/image` требует `width`
+// и `height` пропсами, и css-переменную он туда не примет. Меняешь здесь -
+// меняй и там, иначе оптимизатор отдаст картинку не того размера, что рамка.
+$author-portrait-size: 96px;
+$author-portrait-size-compact: 72px;
+
+// Минимальная ширина колонки в сетке карточек авторов. Ниже неё имя из двух
+// длинных слов начинает переноситься трижды и ряд теряет ровную высоту.
+$author-card-min-width: 232px;
+
 // Border Radius - Border radius
 $border-radius-sm: 2px;
 $border-radius-base: 4px;

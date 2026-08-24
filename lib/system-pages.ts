@@ -21,6 +21,14 @@ export const SYSTEM_PAGE_KEYS = [
   'taxonomy-genres',
   'taxonomy-collections',
   'taxonomy-tags',
+  // Не `taxonomy-authors`: автор не термин таксономии. `TaxonomyType` его
+  // не включает, и хаб авторов рисуется своей карточкой, а не `TaxonomyOverview`.
+  //
+  // ⚠️ Страницы с этим ключом в базе пока нет — её заводит редактор в админке.
+  // До тех пор `fetchPageBySystemKey` получает 404 и отдаёт `null`, а хаб
+  // собирается на словарных строках. Бэкенд при старте пишет об этом в лог
+  // (`SYSTEM PAGE UNRESOLVED: authors-hub`) — это ожидаемо, а не поломка.
+  'authors-hub',
 ] as const;
 
 export type SystemPageKey = (typeof SYSTEM_PAGE_KEYS)[number];

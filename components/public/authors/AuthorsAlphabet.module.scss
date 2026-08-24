@@ -1,0 +1,57 @@
+@import '@/styles/tokens.scss';
+
+.alphabet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin: $spacing-lg 0;
+  padding: $spacing-sm 0;
+  border-top: 1px solid var(--public-border);
+  border-bottom: 1px solid var(--public-border);
+}
+
+.letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: $icon-size-xl;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  line-height: $line-height-base;
+  text-decoration: none;
+  color: var(--public-primary);
+}
+
+.letter:hover {
+  background: var(--public-primary);
+  color: var(--public-primary-foreground);
+}
+
+.letter:focus-visible {
+  outline: 2px solid var(--public-primary);
+  outline-offset: 3px;
+}
+
+.active {
+  background: var(--public-primary);
+  color: var(--public-primary-foreground);
+  font-weight: $font-weight-semibold;
+}
+
+/**
+ * Погашенная буква — `<span>`, а не ссылка. Мёртвая ссылка на пустую страницу
+ * стоила бы обхода поисковику и разочарования читателю; здесь просто нет цели.
+ */
+.empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: $icon-size-xl;
+  padding: $spacing-xs $spacing-sm;
+  font-size: $font-size-sm;
+  line-height: $line-height-base;
+  color: var(--public-foreground);
+  opacity: 0.3;
+  cursor: default;
+}

@@ -34,6 +34,7 @@ export const RESERVED_SLUGS = [
   'audiobooks',
   'auth',
   'author',
+  'authors',
   'book',
   'bookshelf',
   'catalog',

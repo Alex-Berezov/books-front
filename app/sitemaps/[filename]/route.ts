@@ -1,7 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getCategories } from '@/api/endpoints/admin/categories';
 import { getTags } from '@/api/endpoints/admin/tags';
-import { getPublicBooks, getBookCards, getPublicAuthors } from '@/api/endpoints/public';
+import {
+  getPublicBooks,
+  getBookCards,
+  getPublicAuthors,
+  getAuthorLetters,
+} from '@/api/endpoints/public';
+import { authorsBasePath } from '@/components/public/authors/authors-href';
+import {
+  availabilityFor,
+  buildLetterAlternates,
+  loadLettersByLang,
+} from '@/components/public/authors/authors-letter-alternates';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { isAuthorLinkable } from '@/lib/seo/author-linkable';
 import { buildIndexableAlternates, toAlternateCandidates } from '@/lib/seo/hreflang-alternates';
@@ -16,6 +27,7 @@ import {
 } from '@/lib/sitemap/utils';
 import { toCountResult, type CountResult } from '@/lib/utils/seo-indexing';
 import type {
+  AuthorLetter,
   BookOverview,
   Category,
   CategoryTranslation,
@@ -38,6 +50,18 @@ export const dynamic = 'force-dynamic';
  * ran fresh (`lastmod` was current) while its data was hours old.
  */
 export const fetchCache = 'force-no-store';
+
+/**
+ * Потолок обхода списка авторов, страницами по сто.
+ *
+ * 🔴 Назван явно, а не оставлен на умолчании `fetchAllPages` (50 страниц).
+ * Ручка списка теперь жёстко режет `limit` сотней, то есть обойти потолок
+ * большим размером страницы больше нельзя: перерастёт каталог пять тысяч
+ * авторов — и ветка начнёт бросать «страниц 51, потолок обхода 50», а карта
+ * авторов уйдёт в 503 не разово, а навсегда. Число здесь на виду, чтобы рост
+ * каталога упирался в осознанную правку, а не в тихий отказ.
+ */
+const AUTHORS_TRAVERSAL_MAX_PAGES = 200;
 
 export async function GET(request: Request, { params }: { params: { filename: string } }) {
   const { filename } = params;
@@ -117,6 +141,10 @@ export async function GET(request: Request, { params }: { params: { filename: st
       { path: '/genres', include: () => true },
       { path: '/collections', include: () => true },
       { path: '/tags', include: () => true },
+      // Хаб авторов. Без условия по счётчику: авторы у сайта есть всегда, а
+      // страницы отдельных букв живут в своей карте (`sitemap-author-letters-*`),
+      // где каждая проверяется на непустоту.
+      { path: '/authors', include: () => true },
       { path: '/catalog', include: () => true },
       { path: '/audiobooks', include: (lang) => hasLanding(lang, 'audiobooks') },
       { path: '/popular-books', include: (lang) => hasLanding(lang, 'popular') },
@@ -350,7 +378,8 @@ export async function GET(request: Request, { params }: { params: { filename: st
         allAuthors.push(
           ...(await fetchAllPages(
             (page) => getPublicAuthors(lang as SupportedLang, { page, limit: 100 }),
-            `authors ${lang}`
+            `authors ${lang}`,
+            AUTHORS_TRAVERSAL_MAX_PAGES
           ))
         );
       } catch (error) {
@@ -376,11 +405,17 @@ export async function GET(request: Request, { params }: { params: { filename: st
         SUPPORTED_LANGS.map(async (other) => {
           if (other === lang) return;
           try {
-            const res = await getPublicAuthors(other as SupportedLang, { page: 1, limit: 1000 });
-            linkableByLang.set(
-              other,
-              new Set(res.data.filter((a) => isAuthorLinkable(a)).map((a) => a.id))
+            // Листаем, а не просим тысячу одним запросом. Список авторов теперь
+            // ограничен сотней на страницу, и `limit: 1000` вернул бы 400 —
+            // альтернативы при этом сохранились бы (отказ ниже читается как
+            // «язык неизвестен»), но собирались бы они с этого дня никогда.
+            // Сотня — тот же размер страницы, которым ходит обход выше.
+            const authors = await fetchAllPages(
+              (page) => getPublicAuthors(other as SupportedLang, { page, limit: 100 }),
+              `authors hreflang ${other}`,
+              AUTHORS_TRAVERSAL_MAX_PAGES
             );
+            linkableByLang.set(other, new Set(authors.filter(isAuthorLinkable).map((a) => a.id)));
           } catch (error) {
             console.error(`Error fetching authors for hreflang (${other}):`, error);
           }
@@ -435,6 +470,58 @@ export async function GET(request: Request, { params }: { params: { filename: st
           lastModified: new Date(),
           changeFrequency: 'weekly',
           priority: 0.6,
+          ...(alternates ? { alternates: { languages: alternates } } : {}),
+        });
+      });
+    }
+  }
+  // 4a. Author letter pages: sitemap-author-letters-[lang].xml
+  else if (/^sitemap-author-letters-[a-z]{2}\.xml$/.test(filename)) {
+    const lang = filename.replace(/^sitemap-author-letters-/, '').replace(/\.xml$/, '');
+    if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
+      /**
+       * Буквы своего языка — источник строк файла. Его отказ обязан стать 503:
+       * выдать пустую карту значило бы объявить, что страниц букв не существует.
+       */
+      let own: AuthorLetter[];
+      try {
+        own = await getAuthorLetters(lang as SupportedLang);
+      } catch (error) {
+        noteFailure(`author letters ${lang}`, error);
+        return sitemapUnavailable(upstreamFailures);
+      }
+
+      /**
+       * Доступность каждой буквы в остальных языках — для `<xhtml:link>`.
+       *
+       * ⚠️ Отказ по **чужому** языку 503 не даёт: свой язык получен полностью,
+       * и ронять из-за соседа готовый файл — обмен целого на часть. Раньше он
+       * шёл через `noteFailure`, а общая проверка в конце обработчика роняла
+       * весь ответ независимо от ветки.
+       *
+       * ⚠️ Пять запросов на весь файл, а не пять на каждую букву: указатели
+       * всех языков берутся одним проходом и переиспользуются. Кэшировать их
+       * здесь нельзя — у маршрута объявлен `fetchCache = 'force-no-store'`,
+       * и ровно поэтому: карта, собранная из устаревшего состояния, однажды
+       * часами рекламировала снятые с индексации адреса.
+       */
+      const lettersByLang = await loadLettersByLang();
+
+      own.forEach(({ letter, count }) => {
+        if (count <= 0) return;
+
+        const alternates = buildLetterAlternates(
+          letter,
+          lang as SupportedLang,
+          availabilityFor(letter, lettersByLang),
+          cleanBaseUrl
+        );
+
+        sitemapItems.push({
+          url: `${cleanBaseUrl}${authorsBasePath(lang as SupportedLang, letter)}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.5,
           ...(alternates ? { alternates: { languages: alternates } } : {}),
         });
       });

@@ -104,7 +104,12 @@ export default async function PublicLangPage({ params }: Props) {
       getPublicCategories(supportedLang, 'genre').catch(() => null),
       getPublicCategories(supportedLang, 'collection').catch(() => null),
       getPublicTags(supportedLang, { limit: 50 }).catch(() => null),
-      getPublicAuthors(supportedLang, { limit: 12 }).catch(() => ({
+      // 🔴 `sort` и `hasBooks` названы явно. По умолчанию список теперь
+      // алфавитный (раньше был `createdAt desc`), а блок ниже прогоняет выдачу
+      // через `linkableAuthorsSortedByBooksCount` и режет до двенадцати: молча
+      // взяв первые двенадцать по алфавиту, блок рисовался бы пустым каждый раз,
+      // когда у них нет опубликованных книг, — а не «иногда», как раньше.
+      getPublicAuthors(supportedLang, { limit: 12, sort: 'books', hasBooks: true }).catch(() => ({
         data: [] as AuthorListItem[],
         meta: { total: 0, page: 1, limit: 12, totalPages: 0 },
       })),

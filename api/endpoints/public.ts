@@ -10,6 +10,7 @@ import { httpGetAuth } from '@/lib/http-client';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { SystemPageKey } from '@/lib/system-pages';
 import type {
+  AuthorLetter,
   AuthorListItem,
   BookCardsResponse,
   BookOverview,
@@ -439,18 +440,86 @@ export const getPublicAuthorBySlug = async (
   return httpGet<PublicAuthorDetail>(endpoint, { language: lang });
 };
 
+/** Параметры публичного списка авторов. Совпадают с `PublicAuthorsQueryDto` на бэкенде. */
+export type PublicAuthorsParams = {
+  page?: number;
+  limit?: number;
+  /** Подстрока имени на языке пути, регистр не важен. */
+  search?: string;
+  /** Одна буква алфавита языка страницы либо `#`. */
+  letter?: string;
+  sort?: 'name' | 'books';
+  /**
+   * Отбросить авторов без опубликованных книг.
+   *
+   * ⚠️ Просит его тот, кому он нужен, — хаб. Главная и карта сайта ходят без него
+   * и фильтруют сами (`isAuthorLinkable`): у `booksCount` есть история, когда он
+   * был нулём у всех авторов разом, и фильтр по умолчанию опустошил бы три
+   * страницы одновременно.
+   */
+  hasBooks?: boolean;
+};
+
 /**
- * Get public list of authors
+ * Get public list of authors.
+ *
+ * ⚠️ У этой функции три читателя: хаб авторов, блок авторов на главной
+ * (`app/[lang]/page.tsx:107`) и две ветки карты сайта
+ * (`app/sitemaps/[filename]/route.ts`). Меняешь её — смотри на всех троих.
+ *
+ * Потолок `limit` на бэкенде — 100, и превышение отдаёт 400, а не усечение:
+ * молча урезанный список ломает hreflang авторских страниц, а отказ читается
+ * как «язык неизвестен» и альтернативы сохраняет. Кому нужен весь список,
+ * листает через `fetchAllPages`.
  */
 export const getPublicAuthors = async (
-  _lang: SupportedLang,
-  params: { page?: number; limit?: number } = {}
+  lang: SupportedLang,
+  params: PublicAuthorsParams = {}
 ): Promise<PaginatedResponse<AuthorListItem>> => {
-  const { page = 1, limit = 50 } = params;
+  const { page = 1, limit = 50, search, letter, sort, hasBooks } = params;
   const queryParams = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
-  const endpoint = buildLangPath(_lang, `/authors?${queryParams.toString()}`);
-  return httpGet<PaginatedResponse<AuthorListItem>>(endpoint);
+  // Пустые значения не отправляем: с `forbidNonWhitelisted` на бэкенде лишний
+  // параметр — это 400, а `?search=` без значения фильтровал бы по пустой строке.
+  if (search) queryParams.append('search', search);
+  if (letter) queryParams.append('letter', letter);
+  if (sort) queryParams.append('sort', sort);
+  if (hasBooks) queryParams.append('hasBooks', 'true');
+
+  const endpoint = buildLangPath(lang, `/authors?${queryParams.toString()}`);
+  // `language` и `revalidate` тут не было, в отличие от всех соседних выборок:
+  // без первого не уходит `Accept-Language`, без второго ответ застывает
+  // с данными времени сборки. Карту сайта это не задевает — у её маршрута
+  // объявлен `fetchCache = 'force-no-store'`.
+  // Поиск мимо кэша данных. Строка поиска — произвольный ввод до ста знаков,
+  // и каждая её вариация стала бы отдельным ключом и отдельным файлом в
+  // `.next/cache/fetch-cache`, у которого нет лимита по диску: обход по
+  // случайным `?search=` раздул бы кэш контейнера. Странице поиска кэш всё
+  // равно ничего не даёт — она `noindex`.
+  return httpGet<PaginatedResponse<AuthorListItem>>(endpoint, {
+    language: lang,
+    next: search ? { revalidate: 0 } : { revalidate: 300 },
+  });
+};
+
+/**
+ * Буквы алфавитного указателя авторов и число авторов под каждой.
+ *
+ * Алфавит приходит целиком, вместе с буквами, под которыми ноль: погашенную
+ * букву рисует указатель, а знать состав алфавита пяти языков ему для этого
+ * не нужно. Счётчики уже отфильтрованы «только с книгами» — тем же правилом,
+ * которым отфильтрована сетка, иначе буква говорила бы одно, а карточки другое.
+ */
+export const getAuthorLetters = async (
+  lang: SupportedLang,
+  search?: string
+): Promise<AuthorLetter[]> => {
+  const query = search ? `?search=${encodeURIComponent(search)}` : '';
+  const endpoint = buildLangPath(lang, `/authors/letters${query}`);
+  return httpGet<AuthorLetter[]>(endpoint, {
+    language: lang,
+    next: search ? { revalidate: 0 } : { revalidate: 300 },
+  });
 };

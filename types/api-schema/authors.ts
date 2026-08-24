@@ -35,16 +35,48 @@ export interface Author {
   booksCount?: number;
 }
 
+/**
+ * Языковая альтернатива автора в списочном ответе.
+ *
+ * 🔴 Не `AuthorTranslation`. Полный перевод — это биография, `quotes`, `faq`,
+ * `similarSlugs` и вложенный `Seo`, и раньше публичный список отдавал их
+ * анониму на каждого автора и на каждый язык (`LEGACY-214`). Отдельный тип
+ * держит состав честным: расширится ответ — расширять придётся и это.
+ *
+ * Три поля, и каждое кем-то читается. `slug` — потому что корневой слаг списка
+ * английский, и ссылка на `/ru/author/<корневой>` даёт 404. `name` — потому что
+ * подписи под портретами на главной берутся отсюда (`getAuthorDisplayName`),
+ * и без него они станут пустыми строками.
+ */
+export interface AuthorListTranslation {
+  language: SupportedLang;
+  slug: string;
+  name: string;
+}
+
 export interface AuthorListItem {
   id: UUID;
   slug: string;
+  /**
+   * Имя на языке пути. Бэкенд отдаёт его с 09.08.2026, а в этом типе поля
+   * не было — рукописная схема проверяла сама себя (урок `L-011`).
+   */
+  name: string;
   birthDate?: string | null;
   deathDate?: string | null;
-  wikidataUrl?: string | null;
-  wikipediaUrl?: string | null;
   photoUrl?: string | null;
-  translations?: AuthorTranslation[];
+  /** Первые ~160 знаков биографии без разметки. Считает сервер, не браузер. */
+  shortBio?: string | null;
+  translations?: AuthorListTranslation[];
   booksCount: number;
+  /** Опубликованные аудиокниги на языке пути. */
+  audioCount?: number;
+}
+
+/** Буква алфавитного указателя и число авторов под ней. */
+export interface AuthorLetter {
+  letter: string;
+  count: number;
 }
 
 export interface PublicAuthorDetail {

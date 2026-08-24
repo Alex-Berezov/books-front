@@ -33,6 +33,10 @@ export async function GET() {
       `${cleanBaseUrl}/sitemaps/sitemap-genres-${lang}.xml`,
       `${cleanBaseUrl}/sitemaps/sitemap-collections-${lang}.xml`,
       `${cleanBaseUrl}/sitemaps/sitemap-authors-${lang}.xml`,
+      // Страницы букв хаба авторов. Отдельным файлом, а не строками в
+      // `sitemap-static.xml`: их до тридцати на язык, и каждая проверяется
+      // на непустоту — пустая буква в карту не попадает.
+      `${cleanBaseUrl}/sitemaps/sitemap-author-letters-${lang}.xml`,
       `${cleanBaseUrl}/sitemaps/sitemap-tags-${lang}.xml`,
     ]),
   ];

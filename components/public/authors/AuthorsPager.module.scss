@@ -1,0 +1,73 @@
+@import '@/styles/tokens.scss';
+
+.pager {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+  margin: $spacing-xl 0;
+}
+
+.showMore {
+  padding: $spacing-sm $spacing-xl;
+  border: 1px solid var(--public-primary);
+  border-radius: $border-radius-full;
+  color: var(--public-primary);
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  text-decoration: none;
+}
+
+.showMore:hover {
+  background: var(--public-primary);
+  color: var(--public-primary-foreground);
+}
+
+.showMore:focus-visible {
+  outline: 2px solid var(--public-primary);
+  outline-offset: 3px;
+}
+
+.pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-xs;
+}
+
+.page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: $icon-size-xl;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  line-height: $line-height-base;
+  color: var(--public-primary);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.page:hover {
+  background: var(--public-primary);
+  color: var(--public-primary-foreground);
+}
+
+.page:focus-visible {
+  outline: 2px solid var(--public-primary);
+  outline-offset: 3px;
+}
+
+.current {
+  background: var(--public-primary);
+  color: var(--public-primary-foreground);
+  font-weight: $font-weight-semibold;
+}
+
+.gap {
+  padding: $spacing-xs $spacing-xs;
+  color: var(--public-foreground);
+  opacity: 0.4;
+}

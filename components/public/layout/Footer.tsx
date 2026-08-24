@@ -75,6 +75,11 @@ export function Footer({ hasAudiobooks = true }: FooterProps) {
                     {t('footer.browseTags')}
                   </Link>
                 </li>
+                <li>
+                  <Link href={`/${lang}/authors`} className={styles.link}>
+                    {t('footer.browseAuthors')}
+                  </Link>
+                </li>
               </ul>
             </div>
 

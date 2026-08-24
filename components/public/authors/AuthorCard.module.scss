@@ -1,0 +1,156 @@
+@import '@/styles/tokens.scss';
+
+/**
+ * Карточка автора, вариант A макета: портрет кружком, имя, годы, две строки
+ * биографии, счётчики под разделителем.
+ *
+ * Карточка целиком — ссылка, а не div с обработчиком: так она открывается
+ * средней кнопкой, копируется адресом и видна в серверном HTML как ссылка
+ * на автора. Правило «ссылка на индексируемый URL рендерится на сервере»
+ * (`seo-rules.md`) именно про это.
+ */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-lg $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-lg;
+  background: var(--public-background);
+  color: var(--public-foreground);
+  text-decoration: none;
+  text-align: center;
+  /* Карточки в ряду одной высоты, даже когда имя переносится на две строки. */
+  height: 100%;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: $shadow-md;
+}
+
+.card:hover .name {
+  color: var(--public-primary);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--public-primary);
+  outline-offset: 3px;
+}
+
+/* Ни подъёма, ни плавности тем, кто просил их не показывать. */
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+}
+
+.portrait {
+  position: relative;
+  width: $author-portrait-size;
+  height: $author-portrait-size;
+  flex-shrink: 0;
+  border-radius: $border-radius-round;
+  overflow: hidden;
+  background: var(--cover-placeholder-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portraitIcon {
+  color: var(--public-primary-foreground);
+  opacity: 0.75;
+}
+
+.name {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-tight;
+  color: var(--public-foreground);
+  /* Длинное неразрывное имя не должно распирать колонку сетки. */
+  overflow-wrap: anywhere;
+}
+
+.years {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: var(--public-foreground);
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.bio {
+  margin: 0;
+  font-size: $font-size-sm;
+  line-height: $line-height-base;
+  color: var(--public-foreground);
+  opacity: 0.75;
+  /* Ровно две строки: третья строка ломала бы одинаковую высоту ряда. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Прижимает счётчики к низу карточки, чтобы они стояли в одну линию по ряду. */
+.spacer {
+  flex-grow: 1;
+}
+
+.counters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  width: 100%;
+  padding-top: $spacing-sm;
+  border-top: 1px solid var(--public-border);
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Золото рамкой и текстом, не заливкой: заливка спорит с терракотовой ссылкой. */
+.audioBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: 0 $spacing-sm;
+  border: 1px solid var(--gold);
+  border-radius: $border-radius-full;
+  color: var(--gold);
+  font-size: $font-size-xs;
+  line-height: 1.6;
+}
+
+@media (max-width: $breakpoint-xs) {
+  .card {
+    padding: $spacing-md $spacing-sm;
+  }
+
+  .portrait {
+    width: $author-portrait-size-compact;
+    height: $author-portrait-size-compact;
+  }
+
+  .name {
+    font-size: $font-size-base;
+  }
+}

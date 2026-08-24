@@ -47,6 +47,7 @@
     "browseCategories": "Категории",
     "browseCollections": "Коллекции",
     "browseTags": "Теги",
+    "browseAuthors": "Все авторы",
     "browseCatalog": "Каталог"
   },
   "home": {
@@ -184,6 +185,36 @@
     "quotes": "Цитаты",
     "similar": "Похожие авторы",
     "faq": "Часто задаваемые вопросы"
+  },
+  "authors": {
+    "title": "Авторы",
+    "subtitle": "Писатели, поэты и мыслители, чьи книги собраны в библиотеке",
+    "metaTitle": "Авторы книг | Bibliaris",
+    "metaDescription": "Каталог авторов на Bibliaris: биографии писателей, поэтов и философов, их книги и аудиокниги.",
+    "searchLabel": "Поиск по имени",
+    "searchPlaceholder": "Начните вводить имя автора",
+    "sortByName": "По алфавиту",
+    "sortByBooks": "Больше книг",
+    "sortLabel": "Сортировка",
+    "allLetters": "Все",
+    "alphabetLabel": "Алфавитный указатель",
+    "emptyTitle": "Никого не нашли",
+    "emptyHint": "Проверьте написание имени или посмотрите всех авторов",
+    "emptyAction": "Показать всех",
+    "showMore": "Показать ещё",
+    "authorsCountOne": "автор",
+    "authorsCountMany": "авторов",
+    "authorsCountFew": "автора",
+    "booksCountOne": "книга",
+    "booksCountMany": "книг",
+    "booksCountFew": "книги",
+    "audioCountOne": "аудиокнига",
+    "audioCountMany": "аудиокниг",
+    "audioCountFew": "аудиокниги",
+    "audioBadge": "аудио",
+    "bornPrefix": "род.",
+    "pagination": "Страницы",
+    "pageLabel": "Страница"
   },
   "bookshelf": {
     "title": "Моя книжная полка",
@@ -405,7 +436,8 @@
     "categories": "Категории",
     "genres": "Жанры",
     "collections": "Коллекции",
-    "tags": "Теги"
+    "tags": "Теги",
+    "authors": "Авторы"
   },
   "taxonomy": {
     "browse": "Обзор",

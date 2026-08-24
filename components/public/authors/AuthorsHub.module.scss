@@ -1,0 +1,141 @@
+@import '@/styles/tokens.scss';
+
+.page {
+  min-height: 60vh;
+  padding: $spacing-lg 0;
+  background: var(--public-background);
+}
+
+.container {
+  max-width: $layout-max-width-xl;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+.counters {
+  margin: $spacing-sm 0 0 0;
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax($author-card-min-width, 1fr));
+  gap: $spacing-lg;
+  margin: $spacing-lg 0;
+}
+
+@media (max-width: $breakpoint-xs) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-md;
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xxl $spacing-md;
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: var(--public-foreground);
+}
+
+.emptyHint {
+  margin: 0;
+  font-size: $font-size-base;
+  color: var(--public-foreground);
+  opacity: 0.7;
+}
+
+.emptyAction {
+  margin-top: $spacing-sm;
+  padding: $spacing-sm $spacing-xl;
+  border: 1px solid var(--public-primary);
+  border-radius: $border-radius-full;
+  color: var(--public-primary);
+  font-size: $font-size-base;
+  text-decoration: none;
+}
+
+.emptyAction:hover {
+  background: var(--public-primary);
+  color: var(--public-primary-foreground);
+}
+
+.emptyAction:focus-visible {
+  outline: 2px solid var(--public-primary);
+  outline-offset: 3px;
+}
+
+/**
+ * Скелетон карточки: круг и две полосы. Пульсация выключается тем, кто просил
+ * не показывать движение, — но сам скелетон остаётся, он несёт смысл.
+ */
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-lg $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-lg;
+}
+
+.skeletonPortrait {
+  width: $author-portrait-size;
+  height: $author-portrait-size;
+  border-radius: $border-radius-round;
+  background: var(--skeleton-bg);
+}
+
+.skeletonLine {
+  width: 70%;
+  height: $spacing-md;
+  border-radius: $border-radius-base;
+  background: var(--skeleton-bg);
+}
+
+.skeletonLineShort {
+  width: 40%;
+}
+
+.skeletonPortrait,
+.skeletonLine {
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes skeletonPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonPortrait,
+  .skeletonLine {
+    animation: none;
+  }
+}
+
+@media (max-width: $breakpoint-xs) {
+  .skeletonPortrait {
+    width: $author-portrait-size-compact;
+    height: $author-portrait-size-compact;
+  }
+}

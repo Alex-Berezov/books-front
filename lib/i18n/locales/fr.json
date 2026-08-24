@@ -47,6 +47,7 @@
     "browseCategories": "Parcourir les Catégories",
     "browseCollections": "Parcourir les Collections",
     "browseTags": "Parcourir les Étiquettes",
+    "browseAuthors": "Tous les auteurs",
     "browseCatalog": "Catalogue"
   },
   "home": {
@@ -184,6 +185,36 @@
     "quotes": "Citations",
     "similar": "Auteurs similaires",
     "faq": "FAQ"
+  },
+  "authors": {
+    "title": "Auteurs",
+    "subtitle": "Écrivains, poètes et penseurs dont les livres sont réunis dans la bibliothèque",
+    "metaTitle": "Auteurs de livres | Bibliaris",
+    "metaDescription": "Catalogue des auteurs sur Bibliaris : biographies d'écrivains, de poètes et de philosophes, leurs livres et livres audio.",
+    "searchLabel": "Rechercher par nom",
+    "searchPlaceholder": "Commencez à saisir le nom de l'auteur",
+    "sortByName": "Alphabétique",
+    "sortByBooks": "Plus de livres",
+    "sortLabel": "Trier",
+    "allLetters": "Tous",
+    "alphabetLabel": "Index alphabétique",
+    "emptyTitle": "Aucun auteur trouvé",
+    "emptyHint": "Vérifiez l'orthographe du nom ou parcourez tous les auteurs",
+    "emptyAction": "Afficher tous",
+    "showMore": "Afficher plus",
+    "authorsCountOne": "auteur",
+    "authorsCountMany": "auteurs",
+    "authorsCountFew": "auteurs",
+    "booksCountOne": "livre",
+    "booksCountMany": "livres",
+    "booksCountFew": "livres",
+    "audioCountOne": "livre audio",
+    "audioCountMany": "livres audio",
+    "audioCountFew": "livres audio",
+    "audioBadge": "audio",
+    "bornPrefix": "n.",
+    "pagination": "Pages",
+    "pageLabel": "Page"
   },
   "bookshelf": {
     "title": "Ma Bibliothèque",
@@ -405,7 +436,8 @@
     "categories": "Catégories",
     "genres": "Genres",
     "collections": "Collections",
-    "tags": "Étiquettes"
+    "tags": "Étiquettes",
+    "authors": "Auteurs"
   },
   "taxonomy": {
     "browse": "Parcourir",
