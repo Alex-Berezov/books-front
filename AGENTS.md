@@ -89,7 +89,11 @@ Every modified or newly created file MUST strictly satisfy ESLint `import/order`
 
 `D:\newDev\books` (NestJS + Prisma + PostgreSQL). **The production backend runs only in Docker on a VPS.** Locally there is only a throwaway PostgreSQL + Redis pair for e2e tests (added 31.07.2026) — not a dev environment, no production data.
 
-**NEVER run locally:** `prisma migrate`, `prisma seed`, `prisma studio`, `psql`, or the backend server itself. These are blocked in `.claude/settings.json`. Migrations reach a database only through the e2e harness (which builds a fresh throwaway DB per run) or through the user on the VPS.
+**Что изменилось 25.08.2026** (ТЗ `tasks/2026-08-25-avtonomnyy-harness.md`, раздел 8): локальная база открыта. `prisma migrate`, `prisma seed`, `prisma studio` и `psql` к `localhost` больше не заблокированы в `.claude/settings.json` — их место занял хук `D:/newDev/.claude/hooks/db-guard.js`, различающий локальную базу и боевую по строке подключения.
+
+⚠️ **Адресата называй прямо в команде.** Страж `db-guard.js` — белый список: команду, у которой базы не видно, он отвергает, потому что адрес пришёл бы из `.env`, а туда он не смотрит. Голый `yarn prisma:migrate` не пройдёт; пройдёт `DATABASE_URL="postgresql://...@localhost:5432/..." yarn prisma:migrate`. «Не вижу, куда идёт» — это не «идёт локально». Для фронта это меняет мало: своей базы у него нет, а трогать чужую из этого репозитория незачем.
+
+**NEVER:** боевая база и боевая машина руками — `ssh`, `docker` и `psql` на VPS, `prisma migrate deploy` в обход конвейера, любые вызовы с `docker-compose.prod.yml` и `docker-compose.monitoring.yml`. Плюс `docker run`, `docker exec`, `docker cp`, `docker container`, `docker create`, `docker start` и голый `docker-compose`: они остались в `deny`, потому что смонтированный том читает `.env` в обход `Read(./.env)`, а страж внутрь образа не заглядывает.
 
 **Исключение — `yarn prisma:generate`** (разрешён 08.08.2026): это кодогенерация типов из `schema.prisma`, к базе не обращается. Без неё после правки схемы падают typecheck и lint, потому что новая модель для TypeScript не существует.
 
@@ -131,16 +135,26 @@ cd D:\newDev\books && yarn lint && yarn typecheck && yarn test
 
 ## Git Workflow
 
-**CRITICAL: NEVER run `git commit` or `git push` without explicit user permission** — in any of the three repositories.
+**Коммит и пуш разрешены в порядке, который задаёт `/auto`.** Изменено 25.08.2026 (ТЗ
+`tasks/2026-08-25-avtonomnyy-harness.md`); это закрывает `LEGACY-185` — расхождение, при котором
+правила агента запрещали коммит, а настройки его разрешали. Прежний текст объявлял исключением
+режим автопилота и делил записи на классы `АВТО` / `ПОЛУ` / `РУЧНОЙ`; ни классов, ни команды
+`/tech-debt` больше нет.
 
-Correct flow: implement → `yarn validate` → show the user a diff summary → **wait for review** → commit only if explicitly asked.
+Порядок: правка → посадка тестом → `/qa` полным набором ревьюеров → `node .claude/hooks/gates.js`
+без `--repo` → документы → коммит в каждый затронутый репозиторий отдельно, conventional commits,
+с идентификаторами записей → пуш в `main` → `gh run list --limit 3`.
 
-**Единственное исключение — режим автопилота по техдолгу.** Пользователь 11.08.2026 выдал постоянное
-разрешение коммитить и пушить без подтверждения для записей `legacy-warnings.md`, помеченных классом
-**АВТО** в `books-app-docs/ai-context/tech-debt-autopilot.md`. Исключение действует только внутри
-этого протокола и только в его границах: классы ПОЛУ и РУЧНОЙ, как и любая работа вне реестра
-техдолга, по-прежнему требуют явного разрешения на каждый коммит. Режим включается командой
-`/tech-debt`. 🔴 Помни: push в `main` запускает выкат на прод в обоих репозиториях.
+**Держит порядок `D:/newDev/.claude/hooks/commit-gate.js`, а не обещание.** Он отказывает, если
+по текущему диффу нет отметки `/qa` или зелёных гейтов, если в команде `--no-verify` или `--force`,
+если в диффе артефакты сборки или впервые добавленный секрет, если в добавленных строках есть
+ослабление проверки, если сообщение не по conventional commits. Отказ чинится причиной, а не обходом.
+
+Останавливаешься и зовёшь человека только на четырёх темах владельца: секреты;
+прод-инфраструктура и живая база руками, включая разрушительные миграции; публичные адреса;
+правовая семантика прав на книги. Остальное решаешь сам или через подагента `arbiter`.
+
+🔴 Помни: push в `main` запускает выкат на прод в обоих репозиториях.
 
 Each repository is a separate git. For git operations in another repo use `git -C D:\newDev\books ...`, never `cd`.
 
