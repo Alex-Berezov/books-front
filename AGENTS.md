@@ -30,7 +30,7 @@ The full task → document map is in `CLAUDE.md`. **Do not read `ai-context/` wh
 | Component catalog + what NOT to rebuild | `ai-context/ui-kit.md`                 |
 | Folder/file map of all three repos      | `ai-context/folder-structure.md`       |
 | Full quality-gate matrix, CI guards     | `ai-context/quality-gates.md`          |
-| Project status, current focus           | `ai-context/current-sprint.md`         |
+| Work queue (tech debt)                  | `ai-context/work-queue.md`             |
 | API endpoint catalog                    | `backend/api/endpoints.md`             |
 | VPS deploy commands (user runs them)    | `backend/deployment/quick-commands.md` |
 
@@ -154,4 +154,4 @@ Each repository is a separate git. For git operations in another repo use `git -
 
 ---
 
-**Project status, current focus and completed phases:** `books-app-docs/ai-context/current-sprint.md` (do not track status here — it goes stale).
+**Work queue and completed phases:** `books-app-docs/ai-context/work-queue.md` and `books-app-docs/ai-context/changelog.md` (do not track status here — it goes stale).

@@ -14,7 +14,7 @@ Bibliaris is a modern web platform for discovering, reading, and listening to cl
 
 **Status:** ✅ Implemented and published; development proceeds iteratively.
 
-The formal milestone scheme (M0–M10) is **no longer tracked**. Public site and admin panel are live; features are refined iteratively. See [books-app-docs](https://github.com/Alex-Berezov/books-app-docs) → `ai-context/current-sprint.md` for current focus.
+The formal milestone scheme (M0–M10) is **no longer tracked**. Public site and admin panel are live; features are refined iteratively. See [books-app-docs](https://github.com/Alex-Berezov/books-app-docs) → `ai-context/work-queue.md` for the current work queue.
 
 ## ⭐ Code Style - REQUIRED READING
 
