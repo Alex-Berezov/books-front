@@ -123,6 +123,9 @@ if (backendPath) {
   );
 } else {
   console.log(
-    `✓ ${routes.length} route segments reserved (${front.length} slugs). Backend repo not present — cross-check skipped.`,
+    `SKIPPED: backend repo not found at a sibling path — the cross-repo check did NOT run.`,
+  );
+  console.log(
+    `⚠ ${routes.length} route segments reserved (${front.length} slugs) — frontend list ONLY, see above.`,
   );
 }

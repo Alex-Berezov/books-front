@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { ADMIN_PANEL_ROLES, UserRole } from '@/lib/auth/constants';
 import { config, middleware, STATIC_ASSET_EXTENSIONS, STATIC_ASSET_PATTERN } from '@/middleware';
 
 vi.mock('next-auth/jwt', () => ({
@@ -365,6 +366,66 @@ describe('редирект: origin только из настроек (LEGACY-13
 
     expect(response.status).toBe(200);
     expect(response.headers.get('location')).toBeNull();
+  });
+});
+
+/**
+ * 🔴 `LEGACY-157`. Отрицательные ветки гейта админки посадками закрыты (аноним уходит
+ * на форму входа, чужая роль — на `/403`), а положительная — нет: замена
+ * `ADMIN_PANEL_ROLES` на пустой список или инверсия условия роняли бы только вход
+ * тех, кому он положен, и ни один тест этого не видел. Сотрудник в админке — то,
+ * ради чего гейт и написан, поэтому проверяется каждая роль из списка.
+ */
+describe('гейт админки пропускает сотрудника (LEGACY-157)', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', SITE_URL);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  // ⚠️ Состав списка закрепляется отдельно, а не только перебирается. `it.each` по
+  // пустому массиву регистрирует ноль случаев и молчит: опустошение
+  // `ADMIN_PANEL_ROLES` закрыло бы админку всем сотрудникам сразу, а набор остался
+  // бы зелёным — отрицательные случаи этого тоже не видят.
+  it('в список ролей админки входят администратор, контент-менеджер и юрист', () => {
+    expect([...ADMIN_PANEL_ROLES]).toEqual([
+      UserRole.ADMIN,
+      UserRole.CONTENT_MANAGER,
+      UserRole.LAWYER,
+    ]);
+  });
+
+  it.each([...ADMIN_PANEL_ROLES])('роль %s проходит в админку без редиректа', async (role) => {
+    getTokenMock.mockResolvedValue({ roles: [role] } as never);
+
+    const response = await middleware(
+      request(`${SITE_URL}/admin/en/dashboard`, { host: SITE_HOST })
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('location')).toBeNull();
+  });
+
+  it('роль вне списка в админку не проходит', async () => {
+    getTokenMock.mockResolvedValue({ roles: ['user'] } as never);
+
+    const response = await middleware(
+      request(`${SITE_URL}/admin/en/dashboard`, { host: SITE_HOST })
+    );
+
+    expect(locationOf(response).pathname).toBe('/en/403');
+  });
+
+  it('токен без ролей вовсе в админку не проходит', async () => {
+    getTokenMock.mockResolvedValue({} as never);
+
+    const response = await middleware(
+      request(`${SITE_URL}/admin/en/dashboard`, { host: SITE_HOST })
+    );
+
+    expect(locationOf(response).pathname).toBe('/en/403');
   });
 });
 

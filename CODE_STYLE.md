@@ -1260,19 +1260,34 @@ The project is configured with the following ESLint rules:
 - Automatically checks correct import order
 - Groups: React/libraries → internal → types → styles
 - Sorts alphabetically within each group
-- Level: `warn` (warning)
+- Level: `error` (error)
 
 **2. Type imports (`@typescript-eslint/consistent-type-imports`)**
 
 - Requires using `import type` for types
 - Helps with tree-shaking and readability
-- Level: `warn` (warning)
+- Level: `error` (error)
 
 **3. Unused variables (`@typescript-eslint/no-unused-vars`)**
 
 - Forbids unused variables
 - Allows variables with `_` prefix (e.g., `_error`)
 - Level: `error` (error)
+
+**4. Inline styles (`react/forbid-dom-props` on `style`)**
+
+- Forbids `style={{ ... }}` on DOM elements: a class in the neighbouring
+  `.module.scss`, values from `styles/tokens.scss`
+- Level: `error` (error) — the ban stopped being documentation-only on 26.08.2026
+  (`LEGACY-158`)
+- The files that already carried inline styles when the rule was introduced are listed
+  in the `overrides` block of `.eslintrc.json` and lowered to `warn`. That list **only
+  shrinks**: `__tests__/eslintInlineStyles.test.ts` fails on an entry added to the config,
+  on an entry that does not actually apply, and on an entry whose file no longer violates
+  the rule. It does **not** catch an entry added to the config and to the test's own
+  reference list in one go — that is `LEGACY-284`, and the rule against it is a rule, not
+  a machine. Clearing the
+  backlog itself is `LEGACY-050`, not a side task of whatever you are doing
 
 ### Code check before commit
 

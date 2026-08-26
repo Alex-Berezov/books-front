@@ -59,6 +59,22 @@
         "caughtErrorsIgnorePattern": "^_"
       }
     ],
+    // 🔴 LEGACY-158. Запрет инлайн-стилей объявлен в AGENTS.md и CODE_STYLE.md, а
+    // стерёг его один тест на один компонент. Уровень `error` глобальный: любой новый
+    // или тронутый файл вне списка должников ниже роняет `yarn lint`. Понижать
+    // глобальный уровень до `warn` бессмысленно — `yarn lint` идёт без
+    // `--max-warnings`, предупреждение конвейер не красит (это LEGACY-182).
+    "react/forbid-dom-props": [
+      "error",
+      {
+        "forbid": [
+          {
+            "propName": "style",
+            "message": "Инлайн-стили запрещены: класс в соседнем .module.scss, значения из styles/tokens.scss. Накопленное — LEGACY-050."
+          }
+        ]
+      }
+    ],
     // Accessibility rule custom overrides
     "jsx-a11y/media-has-caption": "off",
     "jsx-a11y/no-autofocus": "warn",
@@ -101,6 +117,46 @@
     "/next-env.d.ts"
   ],
   "overrides": [
+    {
+      // 🔴 LEGACY-158, долг на момент введения правила: файлы, в которых инлайн-стили
+      // уже накоплены. Понижение до `warn` — не поблажка, а зафиксированная граница:
+      // всё, чего в этом списке нет, роняет `yarn lint` жёстко. Разбор самих
+      // нарушений идёт по LEGACY-050 и здесь не делается.
+      //
+      // ⚠️ Список **только сокращается**. Дописать сюда файл — значит расширить долг
+      // молча; сторож `__tests__/eslintInlineStyles.test.ts` держит и это, и обратное:
+      // запись, под которой нарушения больше нет, обязана быть удалена.
+      "files": [
+        "app/*/auth/register/RegisterClient.tsx",
+        "app/*/auth/sign-in/SignInClient.tsx",
+        "app/*/book/*/listen/ListenClient.tsx",
+        "app/*/book/*/page.tsx",
+        "app/*/book/*/read/ReaderClient.tsx",
+        "app/*/bookshelf/BookshelfClient.tsx",
+        "app/*/deletion/page.tsx",
+        "app/*/privacy/page.tsx",
+        "app/*/profile/ProfileClient.tsx",
+        "app/*/terms/page.tsx",
+        "app/admin/*/error.tsx",
+        "app/admin/*/media/page.tsx",
+        "components/admin/AdminShell/AdminTopBar/AdminTopBar.tsx",
+        "components/admin/AdminShell/PurgeCacheButton/PurgeCacheButton.tsx",
+        "components/admin/authors/AuthorList/AuthorList.tsx",
+        "components/admin/books/BookForm/DetailInfoSection.tsx",
+        "components/admin/books/ListenContentTab/AudioPicker.tsx",
+        "components/admin/categories/CategoryTranslationsModal/TranslationForm.tsx",
+        "components/admin/categories/CategoryTree/CategoryTree.tsx",
+        "components/admin/categories/CategoryTree/CategoryTreeNode.tsx",
+        "components/admin/comments/CommentsList.tsx",
+        "components/admin/media/MediaList.tsx",
+        "components/admin/media/UploadProgress.tsx",
+        "components/admin/shared/Skeleton/Skeleton.tsx",
+        "components/admin/tags/TagTranslationsModal/TranslationForm.tsx",
+        "components/public/layout/Footer.tsx",
+        "components/public/layout/Header.tsx"
+      ],
+      "rules": { "react/forbid-dom-props": "warn" }
+    },
     {
       // `return somePromise` inside `try` does not put the rejection anywhere the
       // `catch` can see it — the caller receives the rejected promise instead. Two

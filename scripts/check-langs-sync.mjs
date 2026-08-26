@@ -100,7 +100,9 @@ if (schemaPath) {
     errors.push(`Failed to parse ${schemaPath}: ${error.message}`);
   }
 } else {
-  console.log('ℹ Backend schema not found at sibling path; cross-repo sync check skipped.');
+  console.log(
+    'SKIPPED: backend schema not found at a sibling path — the cross-repo check did NOT run.'
+  );
 }
 
 if (errors.length > 0) {
@@ -111,4 +113,8 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log('✓ Language sync OK.');
+console.log(
+  schemaPath
+    ? '✓ Language sync OK: frontend list verified against the backend Prisma enum.'
+    : '⚠ Language sync OK for the frontend list ONLY — cross-repo check SKIPPED, see above.'
+);
