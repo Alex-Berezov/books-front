@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
+import { isOptimizableHost } from '@/components/public/authors/AuthorCard';
 import { BookSectionServer } from '@/components/public/books/BookSectionServer/BookSectionServer';
 import type { AuthorListItem, BookCardModel, BookCollectionData } from '@/types/api-schema';
 import pageStyles from '../../../../app/page.module.scss';
@@ -450,6 +451,7 @@ export function HomePageContent({
                           fill
                           sizes="70px"
                           className={pageStyles.authorAvatarImg}
+                          unoptimized={!isOptimizableHost(author.photoUrl)}
                         />
                       ) : (
                         <span className={pageStyles.authorAvatarPlaceholder}>

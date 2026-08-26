@@ -38,12 +38,23 @@ export interface AuthorCardProps {
  * хост идёт через оптимизатор (в кружок 96px незачем отдавать оригинал —
  * их на странице двадцать четыре), остальные рендерятся `unoptimized`, ровно
  * как это делает страница автора. Заглушка — только когда фото нет вовсе.
+ *
+ * ⚠️ Список обязан совпадать со статическими хостами `remotePatterns` в `next.config.js`.
+ * Раньше здесь стояло `hostname.endsWith('.com')` — копия шаблона `**.com`, снятого
+ * по LEGACY-137. Расхождение молчаливое: предикат отправит в оптимизатор хост, которого
+ * в конфиге нет, оптимизатор ответит 400, и фото не появится. Поэтому список экспортируется:
+ * `__tests__/next.config.test.ts` сверяет его со статическими записями конфига в обе стороны —
+ * ни добавить хост сюда мимо конфига, ни убрать оттуда мимо этого списка нельзя.
  */
+export const OPTIMIZABLE_HTTPS_HOSTS = ['api.bibliaris.com', 'media.bibliaris.com'] as const;
+
 export const isOptimizableHost = (url: string): boolean => {
   try {
     const { hostname, protocol } = new URL(url);
     if (protocol === 'http:') return hostname === 'localhost';
-    return protocol === 'https:' && hostname.endsWith('.com');
+    return (
+      protocol === 'https:' && (OPTIMIZABLE_HTTPS_HOSTS as readonly string[]).includes(hostname)
+    );
   } catch {
     // Относительный путь — это наш же домен, он оптимизируется.
     return url.startsWith('/');

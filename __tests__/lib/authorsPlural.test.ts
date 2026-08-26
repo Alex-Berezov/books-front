@@ -51,7 +51,7 @@ describe('pluralize', () => {
  * не поставить — то есть портрет просто не появится.
  */
 describe('isOptimizableHost', () => {
-  it('accepts the project CDN and other https .com hosts', () => {
+  it('accepts exactly the two static hosts of remotePatterns', () => {
     expect(isOptimizableHost('https://media.bibliaris.com/a.jpg')).toBe(true);
     expect(isOptimizableHost('https://api.bibliaris.com/a.jpg')).toBe(true);
   });
@@ -61,6 +61,17 @@ describe('isOptimizableHost', () => {
     // как есть, а не подменяется заглушкой.
     expect(isOptimizableHost('https://upload.wikimedia.org/a.jpg')).toBe(false);
     expect(isOptimizableHost('https://example.net/a.jpg')).toBe(false);
+  });
+
+  /**
+   * 🔴 LEGACY-137. До 26.08.2026 предикат гласил `hostname.endsWith('.com')` — копию
+   * шаблона `**.com` из `next.config.js`. Шаблон снят как открытый прокси;
+   * возврат любой из двух форм роняет эту проверку.
+   */
+  it('does not accept a whole top-level zone', () => {
+    expect(isOptimizableHost('https://example.com/a.jpg')).toBe(false);
+    expect(isOptimizableHost('https://evil.com/a.jpg')).toBe(false);
+    expect(isOptimizableHost('https://bibliaris.com.attacker.com/a.jpg')).toBe(false);
   });
 
   it('accepts http only on localhost', () => {
