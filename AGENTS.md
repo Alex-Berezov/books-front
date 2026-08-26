@@ -118,9 +118,12 @@ All backend changes must be reviewed by the user before deployment.
 **MANDATORY before reporting a task complete:**
 
 ```bash
-yarn validate     # lint + typecheck — основная проверка
-yarn test         # vitest run
+yarn ci           # check:env, check:langs, check:reserved-slugs, lint, typecheck, test:coverage
 ```
+
+Команды `yarn validate` больше нет: скрипт брал код возврата только у typecheck, падение линта
+терял и в конце безусловно рапортовал успех (`LEGACY-155`). Единственная точка входа — `yarn ci`,
+тот же набор, что гоняет конвейер.
 
 If backend code was modified as well:
 

@@ -23,5 +23,15 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    ".claude/worktrees",
+    ".yarn-cache",
+    "coverage",
+    "playwright-report",
+    "test-results",
+    "dist",
+    "build",
+    "out"
+  ]
 }

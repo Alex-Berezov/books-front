@@ -1,63 +1,74 @@
 import { test, expect } from '@playwright/test';
 
+/**
+ * 🔴 LEGACY-153. Прежняя версия спека была написана под заготовку главной страницы,
+ * исчезнувшую задолго до 26.02.2026: она ждала заголовок «Welcome to Bibliaris»
+ * (эта строка есть только в админке, `app/admin/[lang]/page.tsx`), текст
+ * «Current language: EN» (его нет нигде), триггер переключателя языка селектором
+ * `div[aria-label="Select language"]` (реальный триггер — `<button>`, и его метка
+ * переведена на пять языков) и адрес `/en/books/{slug}`, которого в `app/[lang]/`
+ * не существует. Четвёртый тест не проверял вообще ничего: все ожидания были
+ * закомментированы, остался `console.log`.
+ *
+ * Незаметно это было потому, что набор не запускался ни в одном конвейере
+ * (`LEGACY-154`): два дефекта прикрывали друг друга.
+ *
+ * ⚠️ Переводимых строк здесь нет намеренно — ни одной. Ожидания опираются только
+ * на структуру: код ответа, роли и адреса ссылок. Словари проверяются юнитами,
+ * а спек, привязанный к тексту, краснеет от правки перевода, а не от поломки
+ * страницы.
+ */
 test.describe('Public Area', () => {
   test('should redirect from root to default language', async ({ page }) => {
-    await page.goto('/');
-    await expect(page).toHaveURL(/\/en/); // Assuming 'en' is default
+    const response = await page.goto('/');
+
+    expect(response?.status()).toBe(200);
+    await expect(page).toHaveURL(/\/en(\/|$)/);
   });
 
-  test('should display home page content', async ({ page }) => {
+  test('home page answers 200 and renders its own navigation', async ({ page }) => {
+    const response = await page.goto('/en');
+
+    expect(response?.status()).toBe(200);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+    // ⚠️ Проверяются ссылки, которые страница рисует **всегда**, а не карточки книг.
+    // Соблазн потребовать `a[href^="/en/book/"]` велик — казалось бы, дешёвая посадка
+    // для LEGACY-103, — но она бы не работала: главная статическая
+    // (`app/[lang]/page.tsx:25`, `revalidate = 300`), содержимое печётся на шаге
+    // `yarn build` того же прогона, и все семь запросов там закрыты `.catch(() => null)`.
+    // То есть тест перепроверял бы снимок, который уже сделала сборка, зато краснел бы
+    // на каждом чужом PR, если апстрим моргнул или редактор снял с публикации
+    // последнюю английскую книгу. Отличить это от поломки кода по отчёту невозможно.
+    // ⚠️ Ссылка на каталог — единственная на главной, которая рисуется безусловно
+    // (`HomePageContent.tsx:178`, кнопка героя). Соседняя на аудиокниги висит на
+    // `audiobooksCount > 0` (строка 181), разделы категорий, жанров и авторов — на
+    // непустых списках. Любая из них в ассерте вернула бы зависимость от каталога,
+    // ради снятия которой этот тест и переписан.
+    await expect(page.locator('a[href="/en/catalog"]').first()).toBeVisible();
+  });
+
+  test('language switcher takes the visitor to another language', async ({ page }) => {
     await page.goto('/en');
-    // Be more specific to avoid ambiguity with header logo
-    await expect(page.getByRole('heading', { name: 'Welcome to Bibliaris' })).toBeVisible();
-    await expect(page.getByText('Current language: EN')).toBeVisible();
+
+    const trigger = page.locator('button[aria-haspopup="listbox"]');
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+
+    // Пункт выбирается по адресу назначения, а не по подписи: подписи локализованы
+    // и меняются вместе со словарём.
+    const spanish = page.getByRole('option').filter({ hasText: /es/i }).first();
+    await spanish.click();
+
+    await expect(page).toHaveURL(/\/es(\/|$)/);
   });
 
-  test('should switch language', async ({ page }) => {
+  test('the catalog link from the home page opens the catalog', async ({ page }) => {
     await page.goto('/en');
 
-    // Find language switcher
-    // AntD Select structure can be complex. We target the div that acts as the trigger.
-    // Using class selector combined with aria-label to be specific and avoid the input
-    const langSwitcher = page.locator('div[aria-label="Select language"]');
-    await expect(langSwitcher).toBeVisible();
+    await page.locator('a[href="/en/catalog"]').first().click();
 
-    // Click to open
-    await langSwitcher.click();
-
-    // Wait for dropdown to appear
-    // AntD dropdowns are usually attached to body
-    // We can check for the option text directly
-    const option = page.getByText('Español');
-    await expect(option).toBeVisible();
-    await option.click();
-
-    // URL should change to /es
-    await expect(page).toHaveURL(/\/es/);
-
-    // Content should update
-    await expect(page.getByText('Current language: ES')).toBeVisible();
-  });
-
-  test('should navigate to book page', async ({ page }) => {
-    // Since home page is a placeholder and has no links, we navigate directly
-    // to a hypothetical book page to check if it loads or 404s.
-    // If the feature is not implemented, this test might fail or show 404.
-    // We'll assume we want to check if the page exists.
-
-    const bookSlug = '1984';
-    await page.goto(`/en/books/${bookSlug}`);
-
-    // If the page is not implemented, we might get a 404.
-    // For now, let's check if we don't get a 404 if it's supposed to be there.
-    // Or if it IS a 404, we assert that.
-    // Given the current state (missing files), it will likely be 404.
-    // I'll comment this out or make it expect 404 for now to pass the test,
-    // but add a TODO.
-
-    // await expect(page.getByRole('heading', { name: '1984' })).toBeVisible();
-
-    // For now, let's just log that we attempted it.
-    console.log('Book page navigation test is placeholder until feature is implemented');
+    await expect(page).toHaveURL(/\/en\/catalog(\?|$)/);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
 });

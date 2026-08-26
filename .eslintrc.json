@@ -3,7 +3,7 @@
   "rules": {
     // Import order according to CODE_STYLE.md
     "import/order": [
-      "warn",
+      "error",
       {
         "groups": [
           ["builtin", "external"], // 1. React and libraries
@@ -43,7 +43,7 @@
     ],
     // Require type for type imports
     "@typescript-eslint/consistent-type-imports": [
-      "warn",
+      "error",
       {
         "prefer": "type-imports",
         "disallowTypeAnnotations": false,
@@ -67,6 +67,39 @@
     "jsx-a11y/label-has-associated-control": "warn",
     "jsx-a11y/img-redundant-alt": "warn"
   },
+  // Каталоги, которых линт не касается. `next lint` фильтровал охват своим списком
+  // `eslint.dirs`, и половина кода оставалась непроверенной (LEGACY-151); прямой вызов
+  // `eslint .` идёт по всему дереву, поэтому исключения нужны здесь и явно.
+  //
+  // ⚠️ Три записи на точку (`.next/`, `.claude/`, `.yarn-cache/`) сами по себе инертны:
+  // ESLint 8 в каталоги, имя которых начинается с точки, не спускается и без них.
+  // Они оставлены как явная запись того, что внутри репозитория лежат вторые копии кода
+  // — `.yarn-cache` (около 25 000 файлов `.ts`) и `.claude/worktrees` (рабочая копия чужой
+  // ветки), — и чтобы список читался рядом со списком `exclude` из `tsconfig.json`.
+  // Полагаться на них как на действующее исключение нельзя.
+  //
+  // 🔴 Каждый путь заякорен ведущей косой, и это не стиль. ESLint читает эти шаблоны
+  // по правилам `.gitignore`: запись без ведущей косой совпадает с каталогом такого
+  // имени **на любой глубине**. Первая версия этого списка содержала `public/` — и
+  // выключала из линта весь `components/public`, то есть 31 компонент публичного сайта
+  // и 17 тестов к ним. Правка, расширяющая охват, молча закрывала самый крупный кусок
+  // продукта; поймало это ревью, а не проверка. Сторож на такой возврат — в
+  // `__tests__/lint-coverage.test.ts`: он спрашивает `isPathIgnored` по каждому файлу
+  // дерева, а не по одному образцу из каталога.
+  "ignorePatterns": [
+    "/node_modules/",
+    "/.next/",
+    "/.claude/",
+    "/.yarn-cache/",
+    "/coverage/",
+    "/playwright-report/",
+    "/test-results/",
+    "/dist/",
+    "/build/",
+    "/out/",
+    "/public/",
+    "/next-env.d.ts"
+  ],
   "overrides": [
     {
       // `return somePromise` inside `try` does not put the rejection anywhere the

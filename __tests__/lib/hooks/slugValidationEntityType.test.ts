@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { checkTagSlugUniqueness } from '@/api/endpoints/slug-validation';
 
 const mocks = vi.hoisted(() => ({ httpGetAuth: vi.fn() }));
 
@@ -6,8 +7,6 @@ vi.mock('@/lib/http-client', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('@/lib/http-client');
   return { ...actual, httpGetAuth: mocks.httpGetAuth };
 });
-
-import { checkTagSlugUniqueness } from '@/api/endpoints/slug-validation';
 
 /**
  * LEGACY-061. `TagModal` передавал `entityType="book" // Fallback` — то есть проверял

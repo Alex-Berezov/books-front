@@ -54,7 +54,10 @@ async function request(endpoint: string, options: RequestInit = {}) {
       return null;
     }
 
-    return response.json();
+    // `await` here is load-bearing, not decoration: `return response.json()` hands the
+    // pending promise to the caller and its rejection never reaches the `catch` below,
+    // so a malformed body was reported as an unrelated crash with no endpoint name.
+    return await response.json();
   } catch (error) {
     console.error(`❌ Request failed: ${endpoint}`, error);
     throw error;

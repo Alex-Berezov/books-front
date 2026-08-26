@@ -70,4 +70,44 @@ describe('seed-content script (WP-10.7 / R2-05)', () => {
     expect(reported).toContain('direct book creation is disabled since phase 6');
     expect(reported).toContain('/admin/rights/intakes/:id/create-book');
   });
+
+  /**
+   * 🔴 LEGACY-151. `request` возвращала `response.json()` из `try` без `await`, поэтому
+   * отказ разбора тела уходил мимо соседнего `catch`: имя ручки в лог не попадало,
+   * и падение выглядело как безымянный отказ где-то в скрипте. Правило
+   * `@typescript-eslint/return-await` этот класс ловит, но `yarn lint` каталог
+   * `scripts/` не обходил вовсе — дефект прожил в репозитории непроверенным.
+   *
+   * Возврат `return response.json()` красит именно этот случай: `catch` не сработает,
+   * и в выводе не будет ни имени ручки, ни текста ошибки разбора.
+   */
+  it('names the endpoint when the response body cannot be parsed', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        if (url.endsWith('/auth/login')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => {
+              throw new Error('Unexpected token < in JSON at position 0');
+            },
+            text: async () => '<html>502 Bad Gateway</html>',
+          } as unknown as Response;
+        }
+        return jsonResponse({ id: 'entity-1' });
+      })
+    );
+
+    await runScript();
+
+    await vi.waitFor(
+      () => {
+        const reported = errorSpy.mock.calls.flat().map(String).join('\n');
+        expect(reported).toContain('Request failed: /auth/login');
+        expect(reported).toContain('Unexpected token');
+      },
+      { timeout: 10000 }
+    );
+  });
 });

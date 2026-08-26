@@ -61,10 +61,19 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
+  /**
+   * 🔴 `yarn start`, а не `yarn dev` (LEGACY-154). Набор впервые запускается
+   * в конвейере, и запускается он после шага `yarn build` — то есть против той
+   * самой сборки, которая поедет на прод. Dev-сервер собирает страницы на лету
+   * и ходит в API на каждый переход: он и медленнее, и проверяет не то,
+   * что выкатывается.
+   */
   webServer: {
-    command: 'yarn dev',
+    command: 'yarn start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
+    // Холодный старт standalone-сборки на раннере медленнее локального:
+    // умолчание в 60 секунд на CI не выдерживалось.
+    timeout: 120 * 1000,
   },
 });

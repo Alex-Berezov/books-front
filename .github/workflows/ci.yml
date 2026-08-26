@@ -46,3 +46,37 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://bibliaris.com
           NEXT_PUBLIC_DEFAULT_LANG: en
           NEXT_PUBLIC_MEDIA_CDN_URL: https://media.bibliaris.com
+
+      # 🔴 Набор e2e существовал в репозитории с февраля и не запускался нигде
+      # (`LEGACY-154`): ни `ci.yml`, ни `deploy.yml` его не звали, поэтому
+      # единственная проверка гейта админки и единственное покрытие хаба авторов
+      # были зелёными по факту неисполнения, а второй спек больше полугода стоял
+      # заведомо красным и никто этого не видел.
+      #
+      # Прогон идёт против `yarn start`, то есть против собранного выше приложения —
+      # того самого, что поедет на прод, — а не против dev-сервера. Только chromium:
+      # три браузера втрое дороже, а ловят они одно и то же.
+      # Апстрим проверяется до прогона, а не по симптому. Иначе недоступный API виден
+      # как «локатор не найден» в спеке, и автор чинит фронт вместо того, чтобы
+      # дождаться бэкенда.
+      - name: Upstream API is reachable
+        run: curl -fsS --retry 3 --retry-delay 5 https://api.bibliaris.com/api/health -o /dev/null
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E (chromium, against the app built above)
+        run: yarn e2e --project=chromium
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://api.bibliaris.com/api
+          NEXT_PUBLIC_SITE_URL: https://bibliaris.com
+          NEXT_PUBLIC_DEFAULT_LANG: en
+          NEXT_PUBLIC_MEDIA_CDN_URL: https://media.bibliaris.com
+
+      - name: Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

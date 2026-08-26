@@ -38,6 +38,11 @@ Thumbs.db
 # Testing
 coverage
 .nyc_output
+# Артефакты Playwright. До 26.08.2026 их здесь не было, потому что e2e не запускались
+# нигде (LEGACY-154); теперь шаг стоит в ci.yml, и первый же локальный `yarn e2e`
+# оставлял бы в дереве неигнорируемый мусор.
+playwright-report/
+test-results/
 
 # Misc
 *.log

@@ -42,7 +42,14 @@ const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   eslint: {
-    dirs: ['app', 'src', 'lib', 'components'],
+    // Список каталогов, которые линтует сама сборка. Здесь стоял несуществующий `src`,
+    // а `api`, `providers` и `types` не стояли вовсе (LEGACY-151). Состав сверяет
+    // `__tests__/lint-coverage.test.ts`, чтобы каталог не выпал снова молча.
+    //
+    // ⚠️ Полный охват даёт не этот список, а `yarn lint` — он зовёт `eslint` по всему
+    // дереву и потому видит и корневые файлы, и тесты. Здесь только исходники продукта:
+    // тесты и спеки сборке линтовать незачем.
+    dirs: ['app', 'lib', 'components', 'api', 'providers', 'types'],
   },
   images: {
     formats: ['image/avif', 'image/webp'],

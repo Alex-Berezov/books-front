@@ -668,7 +668,20 @@ $breakpoint-xl: 1536px;
 
 ---
 
-## 📝 Comments - in English
+## 📝 Comments — English for routine, Russian for incidents
+
+Routine comments — what a component does, what a parameter means, why a value is
+computed here — are written in English, as in the example below.
+
+🔴 **Explanations of incidents are written in Russian and that is deliberate.**
+Blocks that say what broke, when, and why the code may not be changed back live in
+`lib/http.ts`, `middleware.ts`, `app/[lang]/page.tsx`, `next.config.js` and dozens of
+test files. They are addressed to whoever comes next with a plausible idea of
+"simplifying" the very line that cost an outage, and they must be read without effort
+by the people who work on this project. Until 26.08.2026 this document demanded English
+everywhere while the code did the opposite (`LEGACY-152`): a requirement no check
+enforced and no author followed. The text is brought to the code, not the other way
+round — translating those blocks would cost the project its incident history.
 
 ```typescript
 /**
@@ -1136,7 +1149,7 @@ const staffRoles = ['admin', 'content_manager']; // Can make typos
 - [ ] ✅ No inline styles
 - [ ] ✅ All colors from tokens
 - [ ] ✅ No `any` types
-- [ ] ✅ Comments in English
+- [ ] ✅ Routine comments in English, incident explanations in Russian
 - [ ] ✅ Imports properly organized
 - [ ] ✅ `import type` for types
 - [ ] ✅ Destructuring for 3+ props

@@ -24,14 +24,22 @@ i18n, auth, seo, sitemap, константы и утилиты; `api/endpoints/`
 | `yarn test`                 | тяжёлая       | перед сдачей; точечно `npx vitest related --run <файл>`                                       |
 | `yarn build`                | тяжёлая       | при правках `app/`, `middleware.ts`, `next.config.js`, `providers/`                           |
 | `yarn ci`                   | тяжёлая       | итоговый прогон: check:env, check:langs, check:reserved-slugs, lint, typecheck, test:coverage |
-| `yarn e2e`                  | самая тяжёлая | только по прямой просьбе: нужен живой бэкенд, в CI не гоняется                                |
+| `yarn e2e`                  | самая тяжёлая | в CI после `yarn build`; локально - только `--project=chromium`                               |
 
-`yarn validate` проверкой не считается и запускать его нельзя: после падения линта скрипт не
-выходит с ошибкой и в конце безусловно рапортует успех.
+Команды `yarn validate` больше нет (`LEGACY-155`): она возвращала успех при красном линте
+и дублировала часть `yarn ci`. Единственная точка входа — `yarn ci`, тот же набор, что в конвейере.
 
-`yarn lint` обходит только `app/`, `lib/` и `components/`. Каталоги `api/`, `providers/`, `types/`,
-`scripts/` и файл `middleware.ts` в CI линтером не проверяются вовсе - если правка там, зови
-`npx eslint <путь>` по конкретному файлу и не считай зелёный `yarn lint` доказательством.
+`yarn e2e` с 26.08.2026 гоняется в `ci.yml` — chromium, после `yarn build`, против `yarn start`
+(`LEGACY-154`). ⚠️ Локально голый `yarn e2e` поднимет **три** браузера: `playwright.config.ts`
+объявляет chromium, firefox и webkit, а конвейер ставит только первый. Локальный прогон:
+`yarn build`, затем `npx playwright install chromium` и `npx playwright test --project=chromium`.
+⚠️ Красный e2e **выкат не остановит**: шаг стоит в `ci.yml`, а выкат идёт из `deploy.yml`,
+и эти два запуска не связаны — см. `LEGACY-283`.
+
+`yarn lint` с 26.08.2026 зовёт `eslint` по всему дереву (`LEGACY-151`): под проверкой теперь и `api/`,
+`providers/`, `types/`, `scripts/`, тесты и корневой `middleware.ts`. Звать `npx eslint <путь>`
+отдельно больше не нужно. `import/order` и `consistent-type-imports` стоят уровнем `error`
+(`LEGACY-152`), оставшиеся 86 предупреждений — все по jsx-a11y в админке.
 
 `yarn build` обязателен при правках `app/`, `middleware.ts`, `next.config.js` и `providers/`:
 нарушение границы сервер-клиент проходит линт, типы и тесты зелёными, ловит его только сборка.
@@ -78,7 +86,8 @@ i18n, auth, seo, sitemap, константы и утилиты; `api/endpoints/`
    `dependencies` и `devDependencies` останавливает работу до ответа.
 5. Не запускать `npx openapi-typescript` с выводом в `types/api.ts`. Файл написан руками, в нём
    живёт `ApiError`, на котором держится вся обработка ошибок; генерация затрёт его молча.
-6. Не пользоваться `yarn validate` и не ссылаться на него в отчёте как на пройденную проверку.
+6. Не заводить заново команду-агрегат вроде `yarn validate`: точка входа одна — `yarn ci`, тот же
+   набор, что гоняет конвейер. Сторож — `__tests__/lint-coverage.test.ts`.
 7. Не отключать и не подгонять тесты: `.skip`, `.only`, снижение порогов покрытия, правка
    ожиданий под текущий вывод вместо починки кода.
 8. Не сдавать работу при красных проверках и не называть пройденным то, что не запускалось.
