@@ -17,11 +17,16 @@ ARG NEXT_PUBLIC_API_BASE_URL
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_DEFAULT_LANG=en
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
+# Хост медиа-CDN нужен именно на сборке: из него `next.config.js` строит запись
+# в `images.remotePatterns`, а тот вычисляется один раз, когда собирается образ.
+# Не передашь сюда — в образе останется только статическая запись (LEGACY-279).
+ARG NEXT_PUBLIC_MEDIA_CDN_URL
 
 ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL} \
     NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL} \
     NEXT_PUBLIC_DEFAULT_LANG=${NEXT_PUBLIC_DEFAULT_LANG} \
     NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID} \
+    NEXT_PUBLIC_MEDIA_CDN_URL=${NEXT_PUBLIC_MEDIA_CDN_URL} \
     NEXT_TELEMETRY_DISABLED=1
 
 RUN yarn build

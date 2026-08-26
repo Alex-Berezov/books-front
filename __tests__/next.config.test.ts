@@ -34,9 +34,13 @@ async function loadRemotePatterns(): Promise<RemotePattern[]> {
  * разбирается предикатом отдельной веткой.
  */
 async function staticHttpsHosts(): Promise<string[]> {
-  return (await loadRemotePatterns())
+  const hostnames = (await loadRemotePatterns())
     .filter((p) => p.protocol === 'https' && !p.hostname.includes('*'))
     .map((p) => p.hostname);
+  // Повтор — законное состояние: `media.bibliaris.com` стоит и статической записью,
+  // и приезжает из `NEXT_PUBLIC_MEDIA_CDN_URL`. Дубль безвреден (`hasRemoteMatch`
+  // идёт `.some()`), но сверку множеств он ронял бы на ровном месте.
+  return [...new Set(hostnames)];
 }
 
 const OWN_DOMAIN = 'bibliaris.com';
@@ -132,6 +136,55 @@ describe('next.config.js: images.remotePatterns', () => {
     const hostnames = (await loadRemotePatterns()).map((p) => p.hostname);
     expect(hostnames).toContain('cdn.example.org');
   });
+
+  it('survives the CDN host arriving twice — statically and from the env var', async () => {
+    // Ровно то, что происходит в продовой сборке с 26.08.2026 (LEGACY-279):
+    // переменная заведена тем же адресом, что стоит статической записью, и хост
+    // попадает в `remotePatterns` дважды.
+    // Хост назван строкой, а не взят индексом из чужого массива: переставят там
+    // элементы — дубль возникнет на другом хосте, тест останется зелёным и будет
+    // проверять уже не тот сценарий, что описан выше.
+    const cdnHost = 'media.bibliaris.com';
+    vi.stubEnv('NEXT_PUBLIC_MEDIA_CDN_URL', `https://${cdnHost}`);
+
+    const hostnames = (await loadRemotePatterns()).map((p) => p.hostname);
+    expect(hostnames.filter((h) => h === cdnHost)).toHaveLength(2);
+
+    // Дубль безвреден для Next (`hasRemoteMatch` идёт `.some()`) и не должен ронять
+    // сверку двух списков — иначе она краснела бы в продовой сборке на ровном месте.
+    expect([...(await staticHttpsHosts())].sort()).toEqual([...OPTIMIZABLE_HTTPS_HOSTS].sort());
+  });
+
+  /**
+   * 🔴 LEGACY-279. Протаскивание переменной через сборку само открыло возврат
+   * LEGACY-137: значение живёт в настройках репозитория, а не в коде, — его не видит
+   * ни ревьюер, ни замок перед коммитом. Остальные проверки этого файла его тоже
+   * не поймают: они читают конфиг при СНЯТЫХ переменных, чтобы не зависеть
+   * от машины прогона. Значит подстановку надо ловить там, где она появляется, —
+   * при чтении переменной, отказом сборки.
+   *
+   * Зависимости от машины здесь нет: значение задаёт сам тест.
+   */
+  for (const envName of ['NEXT_PUBLIC_MEDIA_CDN_URL', 'NEXT_PUBLIC_UPLOADS_BASE_URL'] as const) {
+    it(`refuses to build when ${envName} carries a wildcard host`, async () => {
+      vi.stubEnv(envName, 'https://**.example.test');
+
+      // Сообщение обязано назвать ИМЕННО ту переменную, откуда пришло значение:
+      // иначе оператор при красной сборке идёт проверять обе, а проверка регуляркой
+      // проходит при любой и потому ничего не значит.
+      const other =
+        envName === 'NEXT_PUBLIC_MEDIA_CDN_URL'
+          ? 'NEXT_PUBLIC_UPLOADS_BASE_URL'
+          : 'NEXT_PUBLIC_MEDIA_CDN_URL';
+      await expect(loadRemotePatterns()).rejects.toThrow(new RegExp(envName));
+      await expect(loadRemotePatterns()).rejects.not.toThrow(new RegExp(other));
+    });
+
+    it(`refuses the exact pattern LEGACY-137 removed, via ${envName}`, async () => {
+      vi.stubEnv(envName, 'https://**.com');
+      await expect(loadRemotePatterns()).rejects.toThrow(/LEGACY-137/);
+    });
+  }
 
   it('takes the protocol of the env var instead of assuming https', async () => {
     // `.env.example` предлагает для этой переменной `http://...`; запись с жёстким

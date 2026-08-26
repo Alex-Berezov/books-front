@@ -1,4 +1,9 @@
 /** @type {import('next').NextConfig} */
+// Имя переменной запоминается вместе со значением: в игре всегда ровно одна из двух,
+// и сообщение об отказе ниже обязано назвать именно ту, куда смотреть.
+const mediaCdnVar = process.env.NEXT_PUBLIC_MEDIA_CDN_URL
+  ? 'NEXT_PUBLIC_MEDIA_CDN_URL'
+  : 'NEXT_PUBLIC_UPLOADS_BASE_URL';
 const mediaCdnUrl =
   process.env.NEXT_PUBLIC_MEDIA_CDN_URL || process.env.NEXT_PUBLIC_UPLOADS_BASE_URL;
 // Негодное значение переменной (без схемы, с пробелом, пустая строка) роняло бы загрузку
@@ -9,12 +14,28 @@ const mediaCdnUrl =
 // `http://localhost:8787` из `.env.example` давало запись, не совпадающую ни с чем, и молча.
 const mediaCdn = (() => {
   if (!mediaCdnUrl) return undefined;
+  let parsed;
   try {
-    const { hostname, protocol } = new URL(mediaCdnUrl);
-    return { hostname, protocol: protocol.replace(':', '') };
+    parsed = new URL(mediaCdnUrl);
   } catch {
     return undefined;
   }
+  // 🔴 Подстановка отсюда воссоздала бы LEGACY-137 в обход всего: значение живёт
+  // в настройках репозитория, а не в коде, — его не видит ни ревьюер, ни замок
+  // перед коммитом, ни сторож `__tests__/next.config.test.ts` (тот читает конфиг
+  // при снятых переменных, чтобы не зависеть от машины прогона). Поэтому здесь
+  // отказ, а не отбрасывание: строку в логе сборки при зелёном CI никто не прочтёт.
+  // Опечатка в схеме — случайность, она по-прежнему отбрасывается молча, выше.
+  if (parsed.hostname.includes('*')) {
+    throw new Error(
+      mediaCdnVar +
+        ': подстановка в имени хоста запрещена (получено "' +
+        parsed.hostname +
+        '"). Она превращает /_next/image в открытый прокси картинок — LEGACY-137. ' +
+        'Укажи точное имя хоста.'
+    );
+  }
+  return { hostname: parsed.hostname, protocol: parsed.protocol.replace(':', '') };
 })();
 
 const nextConfig = {
@@ -32,9 +53,12 @@ const nextConfig = {
      * она превращает `/_next/image` в открытый прокси картинок — чужой трафик и чужой
      * контент отдаются с нашего домена (LEGACY-137). Сторож — `__tests__/next.config.test.ts`.
      *
-     * `media.bibliaris.com` стоит статической записью, а не только через переменную выше:
-     * `NEXT_PUBLIC_MEDIA_CDN_URL` не передаётся в продовую сборку (`Dockerfile`, `deploy.yml`),
-     * поэтому в проде условная запись не собирается вовсе. Разобрано в `LEGACY-279`.
+     * ⚠️ `media.bibliaris.com` стоит статической записью, и **снимать её нельзя**, хотя
+     * с 26.08.2026 тот же хост приезжает и из `NEXT_PUBLIC_MEDIA_CDN_URL` (`Dockerfile`,
+     * `deploy.yml`, `LEGACY-279`). Она не дубль, а запасной рубеж: незаданное или пустое
+     * значение переменной даёт `undefined` молча, и без этой записи в проде не осталось бы
+     * ни одной записи на медиа-хост — `/_next/image` ответил бы 400 на каждую обложку.
+     * Повтор при заданной переменной безвреден: сопоставление идёт `.some()`.
      */
     remotePatterns: [
       {
