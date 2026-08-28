@@ -11,6 +11,26 @@ jobs:
     name: Quality Check
     runs-on: ubuntu-latest
 
+    # 🔴 База для бэкенда, поднимаемого ниже. До 26.08.2026 её здесь не было, потому что
+    # e2e ходили на боевой API — и выбирали его рейт-лимит: пять спек подряд с одного
+    # адреса, дальше `429` на каждый серверный рендер, страница ошибки вместо контента
+    # и красный `main` при исправном коде (`LEGACY-288`). Своя база живёт один прогон,
+    # лимита не имеет и никем, кроме этого job, не видна.
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: e2e_user
+          POSTGRES_PASSWORD: e2e_pass
+          POSTGRES_DB: books_e2e
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -33,16 +53,96 @@ jobs:
       - name: Quality gates (same command the deploy runs)
         run: yarn ci
 
+      # Бэкенд, против которого идут и сборка, и e2e. Образ — тот же, что стоит на проде:
+      # `books/.github/workflows/deploy.yml` вешает `latest` только на релизный тег `v*`
+      # без дефиса, поэтому `latest` тождественен боевому бэкенду и проверяется настоящая
+      # связка фронта с настоящим ответом API. Пакет анонимный — логин в ghcr не нужен,
+      # секрет в этот конвейер не вносится.
+      #
+      # `--network host`: контейнер ходит в базу на `127.0.0.1:5432`, опубликованный
+      # сервисом выше, и сам слушает `5000` прямо на раннере. Фронт в e2e занимает `3000`,
+      # так что портам не тесно.
+      #
+      # Секреты генерируются на месте и живут один прогон. Записывать их literal'ом в файл
+      # нечего: база пустая, пользователей в ней нет, а строка в репозитории читалась бы
+      # как настоящий ключ. Плейсхолдеры вроде `secret` и `changeme` бэкенд отвергает сам
+      # (`books/src/common/config/jwt-secrets.ts`).
+      #
+      # Схему накатывает энтрипойнт образа. Он же глушит свои отказы и продолжает старт
+      # при недоступной базе — поэтому готовность проверяется снаружи, следующим шагом.
+      - name: Start the backend the e2e run against
+        id: start-backend
+        run: |
+          docker run -d --name books-api --network host \
+            -e NODE_ENV=production \
+            -e DATABASE_URL='postgresql://e2e_user:e2e_pass@127.0.0.1:5432/books_e2e?schema=public' \
+            -e JWT_ACCESS_SECRET="$(openssl rand -hex 32)" \
+            -e JWT_REFRESH_SECRET="$(openssl rand -hex 32)" \
+            -e CORS_ORIGIN='*' \
+            ghcr.io/alex-berezov/books:latest
+          docker inspect --format '{{index .RepoDigests 0}}' ghcr.io/alex-berezov/books:latest
+
+      # Апстрим проверяется до прогона, а не по симптому. Иначе недоступный API виден
+      # как «локатор не найден» в спеке, и автор чинит фронт вместо того, чтобы
+      # дождаться бэкенда.
+      #
+      # 🔴 Смотреть надо ТЕЛО, а не код ответа: `/api/health/readiness` отдаёт `200`
+      # всегда, а состояние кладёт внутрь — `{"status":"up"|"down"}`
+      # (`books/src/modules/health/health.controller.ts`). Проба по коду ответа зелёная
+      # у мёртвой базы, то есть не способна покраснеть.
+      #
+      # 🔴 Одного `readiness` мало: он проверяет соединение запросом `SELECT 1`, а тот
+      # проходит и на пустой схеме. Энтрипойнт образа при этом глушит отказ
+      # `prisma migrate deploy` и стартует всё равно — то есть бэкенд без единой таблицы
+      # отрапортует `"status":"up"`, а отказ вылезет позже, на пререндере в `yarn build`,
+      # ошибкой Prisma внутри 500 от API. Поэтому следом дёргается настоящая списочная
+      # ручка: `200` означает, что таблица существует и читается, `500` — что миграции
+      # не накатились, и сказано это будет здесь, а не через два шага.
+      #
+      # Не поднялся бэкенд — прогон красный: шаг падает, логи печатает шаг `Backend log`.
+      - name: Wait until the backend is ready
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:5000/api/health/readiness -o "$RUNNER_TEMP/readiness.json"; then
+              if grep -q '"status":"up"' "$RUNNER_TEMP/readiness.json"; then
+                echo "backend reports ready after ${attempt} attempt(s):"
+                cat "$RUNNER_TEMP/readiness.json"
+                echo
+                if curl -fsS http://127.0.0.1:5000/api/en/authors -o "$RUNNER_TEMP/schema-probe.json"; then
+                  echo "schema is present: /api/en/authors answered 200"
+                  exit 0
+                fi
+                echo "backend is up but /api/en/authors did not answer 200 — migrations are not applied"
+                exit 1
+              fi
+            fi
+            sleep 2
+          done
+          echo "backend did not report status=up within 120s"
+          exit 1
+
       # Сборка здесь потому, что lint, typecheck и тесты её не заменяют.
       # 08.08.2026 импорт `next/headers` в файл, общий для сервера и клиента,
       # прошёл все три проверки зелёными и упал только в деплое: запрет на такой
       # импорт действует на этапе сборки, а сборка выполнялась лишь при выкате.
-      # Значения NEXT_PUBLIC_* — те же, что подставляет деплой; секретов среди них
-      # нет, они и так попадают в клиентский бандл.
+      #
+      # 🔴 Адрес API задаётся ИМЕННО ЗДЕСЬ и нигде больше. `NEXT_PUBLIC_*` подставляются
+      # литералами на `next build` — и в клиентский бандл, и в серверный, — поэтому
+      # `next start` окружением их уже не переопределяет. Раньше те же четыре строки
+      # дублировались на шаге e2e и не значили там ничего (`LEGACY-291`).
+      #
+      # ⚠️ Отсюда следует, что собранное здесь приложение одноразовое и для выката
+      # непригодно: его клиентский бандл стучится в `127.0.0.1:5000`. Выкат собирает
+      # свой образ сам, из `vars.*` (`deploy.yml`); переиспользовать эту сборку нельзя.
+      #
+      # Локален только адрес API: сайт, язык и CDN остаются прод-значениями.
+      # ⚠️ Сторож `scripts/check-site-url.mjs` при локальном API проходит заведомо —
+      # он сверяет хосты сайта и API, а они теперь различны при любом значении.
+      # Настоящая проверка прод-значений живёт на пути выката, а не здесь.
       - name: Build (catches server/client boundary errors)
         run: yarn build
         env:
-          NEXT_PUBLIC_API_BASE_URL: https://api.bibliaris.com/api
+          NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:5000/api
           NEXT_PUBLIC_SITE_URL: https://bibliaris.com
           NEXT_PUBLIC_DEFAULT_LANG: en
           NEXT_PUBLIC_MEDIA_CDN_URL: https://media.bibliaris.com
@@ -56,22 +156,17 @@ jobs:
       # Прогон идёт против `yarn start`, то есть против собранного выше приложения —
       # того самого, что поедет на прод, — а не против dev-сервера. Только chromium:
       # три браузера втрое дороже, а ловят они одно и то же.
-      # Апстрим проверяется до прогона, а не по симптому. Иначе недоступный API виден
-      # как «локатор не найден» в спеке, и автор чинит фронт вместо того, чтобы
-      # дождаться бэкенда.
-      - name: Upstream API is reachable
-        run: curl -fsS --retry 3 --retry-delay 5 https://api.bibliaris.com/api/health -o /dev/null
-
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
+      # Блока `env:` здесь нет намеренно: адрес API уже впечён сборкой выше, и строки,
+      # выглядящие как настройка прогона, ею не являются.
+      # ⚠️ Оговорка: «после сборки не задаёт ничего» верно про адрес API, но не про всё
+      # семейство. `next.config.js` перечитывается при `next start` и берёт из окружения
+      # `NEXT_PUBLIC_MEDIA_CDN_URL` для `images.remotePatterns` — такая переменная здесь
+      # работала бы. Сегодня она не нужна: тот же хост стоит в конфиге статической записью.
       - name: E2E (chromium, against the app built above)
         run: yarn e2e --project=chromium
-        env:
-          NEXT_PUBLIC_API_BASE_URL: https://api.bibliaris.com/api
-          NEXT_PUBLIC_SITE_URL: https://bibliaris.com
-          NEXT_PUBLIC_DEFAULT_LANG: en
-          NEXT_PUBLIC_MEDIA_CDN_URL: https://media.bibliaris.com
 
       - name: Playwright report
         if: failure()
@@ -80,3 +175,10 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+      # Условие не голое `failure()`: самый частый красный - `yarn ci` до старта
+      # контейнера. Тогда голый шаг печатал бы `No such container` и падал сам,
+      # добавляя в отчёт красную строку про бэкенд, которого не было.
+      - name: Backend log
+        if: failure() && steps.start-backend.outcome == 'success'
+        run: docker logs books-api
