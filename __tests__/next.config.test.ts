@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { isOptimizableHost, OPTIMIZABLE_HTTPS_HOSTS } from '@/components/public/authors/AuthorCard';
+import { isOptimizableHost, OPTIMIZABLE_HTTPS_HOSTS } from '@/lib/utils/image-host';
 
 /**
  * 🔴 LEGACY-137. В `images.remotePatterns` лежала запись `{ protocol: 'https',
@@ -199,7 +199,7 @@ describe('next.config.js: images.remotePatterns', () => {
   });
 
   /**
-   * `isOptimizableHost` (`components/public/authors/AuthorCard.tsx`) — второй,
+   * `isOptimizableHost` (`lib/utils/image-host.ts`) — второй,
    * написанный руками список тех же хостов: он решает, ставить ли `unoptimized`
    * там, где `onError` не поставить. Разъедутся молча — оптимизатор ответит 400,
    * и фото не появится вовсе. Поэтому списки сверяются, а не сопровождаются

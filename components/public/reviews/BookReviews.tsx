@@ -18,6 +18,7 @@ import { StarRating } from '@/components/public/books/StarRating';
 import { getLocaleTag } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { queryKeys } from '@/lib/queryClient';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import { toast } from '@/lib/utils/toast';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ClientComment } from '@/types/api-schema';
@@ -399,7 +400,7 @@ function ReviewItem({
               width={40}
               height={40}
               className={styles.avatar}
-              unoptimized
+              unoptimized={!isOptimizableHost(comment.user.avatarUrl)}
             />
           ) : (
             <div className={styles.avatarPlaceholder}>{initialLetter}</div>

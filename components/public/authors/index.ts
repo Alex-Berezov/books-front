@@ -1,9 +1,4 @@
-export {
-  AuthorCard,
-  isOptimizableHost,
-  resolveAuthorSlug,
-  type AuthorCardLabels,
-} from './AuthorCard';
+export { AuthorCard, resolveAuthorSlug, type AuthorCardLabels } from './AuthorCard';
 export { pluralize, type PluralForms } from './authors-plural';
 export { AuthorsAlphabet } from './AuthorsAlphabet';
 export { AuthorsHub } from './AuthorsHub';

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getLangFromPath } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { BookCardModel } from '@/types/api-schema';
 import styles from './BookCard.module.scss';
 import { StarRating } from './StarRating';
@@ -62,6 +63,7 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
                 sizes={size === 'sm' ? '112px' : size === 'lg' ? '176px' : '144px'}
                 quality={70}
                 priority={priority}
+                unoptimized={!isOptimizableHost(coverUrl)}
               />
             ) : (
               <div className={styles.coverPlaceholder}>

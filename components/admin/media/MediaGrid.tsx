@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import { FileText, Image as ImageIcon, Music, Video, Copy, Trash2, Eye } from 'lucide-react';
 import Image from 'next/image';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { MediaFile, MediaType } from '@/types/api-schema/media';
 import styles from './MediaPage.module.scss';
 
@@ -72,6 +73,7 @@ export const MediaGrid: FC<MediaGridProps> = ({
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 style={{ objectFit: 'cover' }}
+                unoptimized={!isOptimizableHost(file.url)}
                 onError={() => handleImageError(file.id)}
               />
             ) : (

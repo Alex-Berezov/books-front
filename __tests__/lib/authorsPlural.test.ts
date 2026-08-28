@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { isOptimizableHost } from '@/components/public/authors/AuthorCard';
 import { pluralize } from '@/components/public/authors/authors-plural';
 
 const books = { one: 'книга', few: 'книги', many: 'книг' };
@@ -42,49 +41,5 @@ describe('pluralize', () => {
         expect(pluralize(count, lang, enBooks)).toBe(enBooks.many);
       }
     }
-  });
-});
-
-/**
- * Предикат решает, пойдёт ли фото через оптимизатор Next. На неразрешённом
- * хосте оптимизатор отвечает 400, а карточка серверная и `onError` в неё
- * не поставить — то есть портрет просто не появится.
- */
-describe('isOptimizableHost', () => {
-  it('accepts exactly the two static hosts of remotePatterns', () => {
-    expect(isOptimizableHost('https://media.bibliaris.com/a.jpg')).toBe(true);
-    expect(isOptimizableHost('https://api.bibliaris.com/a.jpg')).toBe(true);
-  });
-
-  it('rejects hosts the optimizer is not configured for', () => {
-    // Викисклад — `.org`, и в `remotePatterns` его нет: такое фото рендерится
-    // как есть, а не подменяется заглушкой.
-    expect(isOptimizableHost('https://upload.wikimedia.org/a.jpg')).toBe(false);
-    expect(isOptimizableHost('https://example.net/a.jpg')).toBe(false);
-  });
-
-  /**
-   * 🔴 LEGACY-137. До 26.08.2026 предикат гласил `hostname.endsWith('.com')` — копию
-   * шаблона `**.com` из `next.config.js`. Шаблон снят как открытый прокси;
-   * возврат любой из двух форм роняет эту проверку.
-   */
-  it('does not accept a whole top-level zone', () => {
-    expect(isOptimizableHost('https://example.com/a.jpg')).toBe(false);
-    expect(isOptimizableHost('https://evil.com/a.jpg')).toBe(false);
-    expect(isOptimizableHost('https://bibliaris.com.attacker.com/a.jpg')).toBe(false);
-  });
-
-  it('accepts http only on localhost', () => {
-    expect(isOptimizableHost('http://localhost:3000/a.jpg')).toBe(true);
-    expect(isOptimizableHost('http://media.bibliaris.com/a.jpg')).toBe(false);
-  });
-
-  it('treats a site-relative path as our own domain', () => {
-    expect(isOptimizableHost('/uploads/a.jpg')).toBe(true);
-  });
-
-  it('rejects a string that is not a URL at all', () => {
-    expect(isOptimizableHost('not a url')).toBe(false);
-    expect(isOptimizableHost('')).toBe(false);
   });
 });

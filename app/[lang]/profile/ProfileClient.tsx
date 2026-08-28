@@ -12,6 +12,7 @@ import { Button } from '@/components/common/Button';
 import { PageBackButton } from '@/components/public/navigation';
 import { getLocaleTag } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import { toast } from '@/lib/utils/toast';
 import styles from './profile.module.scss';
 
@@ -167,7 +168,7 @@ export default function ProfileClient() {
                       width={110}
                       height={110}
                       className={styles.avatarImage}
-                      unoptimized
+                      unoptimized={!isOptimizableHost(avatarUrl)}
                     />
                   ) : (
                     <div className={styles.avatarPlaceholder}>
@@ -281,7 +282,7 @@ export default function ProfileClient() {
                             width={32}
                             height={46}
                             className={styles.bookCover}
-                            unoptimized
+                            unoptimized={!isOptimizableHost(activity.bookVersion.coverImageUrl)}
                           />
                         ) : (
                           <div className={styles.bookCoverPlaceholder}>

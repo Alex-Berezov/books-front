@@ -2,6 +2,7 @@ import { BookOpen, Headphones } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { isSupportedLang } from '@/lib/i18n/lang';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { BookCardModel } from '@/types/api-schema';
 import styles from '../BookCard.module.scss';
 import { StarRatingServer } from '../StarRatingServer';
@@ -70,6 +71,7 @@ export function BookCardServer({
                 sizes={size === 'sm' ? '112px' : size === 'lg' ? '176px' : '144px'}
                 quality={70}
                 priority={priority}
+                unoptimized={!isOptimizableHost(coverUrl)}
               />
             ) : (
               <div className={styles.coverPlaceholder}>

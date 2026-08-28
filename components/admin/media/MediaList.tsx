@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import { FileText, Image as ImageIcon, Music, Video, Copy, Trash2 } from 'lucide-react';
 import Image from 'next/image';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { MediaFile, MediaType } from '@/types/api-schema/media';
 import styles from './MediaPage.module.scss';
 
@@ -69,6 +70,7 @@ export const MediaList: FC<MediaListProps> = ({ files, onSelect, onDelete, onCop
                     fill
                     sizes="40px"
                     style={{ objectFit: 'cover', borderRadius: '4px' }}
+                    unoptimized={!isOptimizableHost(file.url)}
                     onError={() => handleImageError(file.id)}
                   />
                 ) : (

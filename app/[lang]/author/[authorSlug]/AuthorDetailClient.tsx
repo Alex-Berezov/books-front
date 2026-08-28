@@ -21,6 +21,7 @@ import { BookCard } from '@/components/public/books/BookCard';
 import { useSmartBack } from '@/components/public/navigation';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { toBookCardModel } from '@/lib/mappers/book';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   BookCardModel,
@@ -132,7 +133,7 @@ export default function AuthorDetailClient({
                 fill
                 sizes="150px"
                 priority
-                unoptimized
+                unoptimized={!isOptimizableHost(photoUrl)}
               />
             ) : (
               <User size={40} className={styles.avatarIcon} />

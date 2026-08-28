@@ -3,8 +3,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
-import { isOptimizableHost } from '@/components/public/authors/AuthorCard';
 import { BookSectionServer } from '@/components/public/books/BookSectionServer/BookSectionServer';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { AuthorListItem, BookCardModel, BookCollectionData } from '@/types/api-schema';
 import pageStyles from '../../../../app/page.module.scss';
 
@@ -214,6 +214,7 @@ export function HomePageContent({
                       className={pageStyles.stackCover}
                       quality={70}
                       priority={i === 0}
+                      unoptimized={!isOptimizableHost(coverUrl)}
                     />
                   ) : (
                     <div className={pageStyles.stackCoverPlaceholder}>

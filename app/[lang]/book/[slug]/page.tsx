@@ -12,6 +12,7 @@ import { noteDegraded } from '@/lib/seo/degraded';
 import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import { logError } from '@/lib/utils/log-error';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -312,6 +313,7 @@ export default async function BookDetailPage({ params }: Props) {
                   priority
                   sizes="200px"
                   quality={80}
+                  unoptimized={!isOptimizableHost(book.coverUrl)}
                 />
               ) : (
                 <div className={styles.coverPlaceholder}>

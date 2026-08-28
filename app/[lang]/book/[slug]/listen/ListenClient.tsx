@@ -33,6 +33,7 @@ import {
   useProgressIdentity,
   useProgressSync,
 } from '@/lib/reading-progress';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './player.module.scss';
 
@@ -494,6 +495,7 @@ export default function ListenClient({ params }: Props) {
               width={200}
               height={200}
               priority
+              unoptimized={!isOptimizableHost(book.coverUrl)}
             />
           ) : (
             <span className={styles.coverLetter}>{book?.title?.[0] || '?'}</span>
