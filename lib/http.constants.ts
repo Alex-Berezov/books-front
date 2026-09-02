@@ -3,6 +3,23 @@
  */
 
 /**
+ * Наибольший `limit`, который принимает бэкенд у списков на общем `PaginationDto`:
+ * `GET /admin/authors`, `GET /tags`, админский `GET /books`, `GET /me/bookshelf`,
+ * `GET /admin/pages`, аудио-главы. Больше - 400 от `ValidationPipe`, а не усечённая
+ * страница (`PAGINATION_MAX_LIMIT` в `books/src/shared/dto/pagination.dto.ts`,
+ * заведён `LEGACY-217` 02.09.2026).
+ *
+ * Держится числом здесь, а не литералом по месту вызова: потолок - подвижная
+ * величина с несимметричным выкатом (фронт уезжает раньше бэкенда), и её сдвиг
+ * не должен означать поиск разрозненных сотен по `app/**` и `components/**`.
+ *
+ * ⚠️ Списки, читающие `page`/`limit` мимо этого DTO - публичный `GET /:lang/books`,
+ * `GET /:lang/tags`, `GET /categories`, - потолка не имеют вовсе и этой константе
+ * не подчиняются (`LEGACY-353`).
+ */
+export const API_MAX_PAGE_SIZE = 100;
+
+/**
  * HTTP status codes
  */
 export const HTTP_STATUS = {

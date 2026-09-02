@@ -4,11 +4,13 @@ import { useState } from 'react';
 import type { ChangeEvent, FC } from 'react';
 import { FileJson, Globe, Tags } from 'lucide-react';
 import { useSnackbar } from 'notistack';
+import { useDebounce } from 'use-debounce';
 import { useDeleteTag, useImportTags, useTags } from '@/api/hooks/useTags';
 import { EditButton, DeleteButton } from '@/components/admin/common/ActionButtons';
 import { EmptyState, ImportJsonModal, Skeleton } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { type SupportedLang } from '@/lib/i18n/lang';
 import type { TagListProps } from './TagList.types';
@@ -18,7 +20,19 @@ import { TagModal } from '../TagModal';
 import { TagTranslationsModal } from '../TagTranslationsModal';
 import styles from './TagList.module.scss';
 
-const PAGE_SIZE = 1000;
+/**
+ * Размер страницы списка тегов.
+ *
+ * Потолок общего `PaginationDto` на бэкенде (`LEGACY-217`): `GET /tags` ходит
+ * через него, и прежняя тысяча с 02.09.2026 отвечает 400, то есть раздел тегов
+ * админки пропадал бы целиком. Постраничная навигация внизу уже есть и работает.
+ *
+ * ⚠️ Вместе с сужением страницы поиск переведён на серверный. Клиентский фильтр
+ * по загруженной странице при тысяче записей накрывал весь каталог, а при сотне
+ * начал бы отвечать «No tags found» на существующий тег с другой страницы. Ручка
+ * приём строки поиска уже умеет (`q`), и хук её уже передаёт.
+ */
+const PAGE_SIZE = API_MAX_PAGE_SIZE;
 
 /**
  * Tags list component for admin panel
@@ -64,10 +78,15 @@ export const TagList: FC<TagListProps> = (props) => {
     await importMutation.mutateAsync(items);
   };
 
+  // Полсекунды - как в списке комментариев (`CommentsList.tsx`): без задержки
+  // запрос уходил бы на каждую букву.
+  const [debouncedSearch] = useDebounce(searchValue, 500);
+
   // Fetch tags
   const { data, isLoading, error } = useTags({
     page,
     limit: PAGE_SIZE,
+    search: debouncedSearch || undefined,
   });
 
   const deleteMutation = useDeleteTag();
@@ -76,14 +95,8 @@ export const TagList: FC<TagListProps> = (props) => {
   const rawTags = Array.isArray(data) ? data : data?.data || [];
   const meta = !Array.isArray(data) ? data?.meta : undefined;
 
-  // Client-side filtering
-  const tags = rawTags.filter((tag) => {
-    if (!searchValue) return true;
-    const searchLower = searchValue.toLowerCase();
-    return (
-      tag.name.toLowerCase().includes(searchLower) || tag.slug.toLowerCase().includes(searchLower)
-    );
-  });
+  // Отбор идёт на сервере: клиентский фильтр видел бы только текущую страницу.
+  const tags = rawTags;
 
   // Handlers
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {

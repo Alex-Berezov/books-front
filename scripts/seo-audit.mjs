@@ -280,6 +280,39 @@ async function fetchJson(url) {
 }
 
 /**
+ * Page size for taxonomy list calls, and the ceiling on how many pages we walk.
+ *
+ * `GET /tags` reads its query through the shared `PaginationDto`, which caps
+ * `limit` at 100 (`LEGACY-217`). Asking for a thousand answers 400, and the
+ * caller below reads that as "endpoint did not answer" — the cross-check would
+ * quietly disappear from the report with a misleading reason. So we page.
+ *
+ * The ceiling is named rather than left open so a runaway catalogue fails loudly
+ * instead of walking forever inside a nightly job.
+ */
+const TERM_PAGE_SIZE = 100;
+const TERM_MAX_PAGES = 100;
+
+/**
+ * All rows of a paginated list endpoint, walked page by page.
+ *
+ * Returns `null` on the first failed page — the caller distinguishes "did not
+ * answer" from "answered with nothing", and a partial walk must not pass for
+ * the latter.
+ */
+async function fetchAllRows(buildUrl) {
+  const rows = [];
+  for (let page = 1; page <= TERM_MAX_PAGES; page += 1) {
+    const payload = await fetchJson(buildUrl(page));
+    if (!payload?.data) return null;
+    rows.push(...payload.data);
+    const totalPages = payload.meta?.totalPages ?? 1;
+    if (page >= totalPages) return rows;
+  }
+  return rows;
+}
+
+/**
  * Every term with the fields the predicate needs, per rendered language.
  *
  * `lang` is passed on purpose: without it `booksCount` comes back summed across
@@ -290,16 +323,16 @@ async function collectTaxonomyTerms() {
   const terms = [];
   for (const lang of LANGS) {
     for (const type of ['category', 'genre', 'collection', 'tag']) {
-      const url =
+      const buildUrl = (page) =>
         type === 'tag'
-          ? `${API_BASE}/tags?limit=1000&lang=${lang}`
-          : `${API_BASE}/categories?type=${type}&limit=1000&lang=${lang}`;
-      const payload = await fetchJson(url);
-      if (!payload?.data) {
-        note('7.7', url, 'taxonomy list endpoint did not answer — cross-check incomplete');
+          ? `${API_BASE}/tags?page=${page}&limit=${TERM_PAGE_SIZE}&lang=${lang}`
+          : `${API_BASE}/categories?type=${type}&page=${page}&limit=${TERM_PAGE_SIZE}&lang=${lang}`;
+      const rows = await fetchAllRows(buildUrl);
+      if (!rows) {
+        note('7.7', buildUrl(1), 'taxonomy list endpoint did not answer — cross-check incomplete');
         continue;
       }
-      for (const term of payload.data) {
+      for (const term of rows) {
         const slug = term.translations?.find((t) => t.language === lang && t.slug)?.slug;
         if (!slug) continue;
         const fields = {

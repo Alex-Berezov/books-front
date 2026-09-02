@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { useAuthors } from '@/api/hooks/useAuthors';
 import { AuthorForm } from '@/components/admin/authors/AuthorForm/AuthorForm';
 import { Skeleton } from '@/components/admin/shared';
+import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 interface EditAuthorPageProps {
@@ -17,8 +18,10 @@ const EditAuthorPage: FC<EditAuthorPageProps> = (props) => {
   const { params } = props;
   const { lang, id } = params;
 
-  // Fetch authors list to find the matching author
-  const { data, isLoading } = useAuthors({ page: 1, limit: 1000 });
+  // Ручки `GET /admin/authors/:id` в бэкенде нет, поэтому автор ищется в списке.
+  // Потолок общего `PaginationDto` (`LEGACY-217`); за сотым автором страница
+  // правки перестанет находить свою запись (`LEGACY-352`).
+  const { data, isLoading } = useAuthors({ page: 1, limit: API_MAX_PAGE_SIZE });
   const author = data?.data.find((a) => a.id === id);
 
   if (isLoading) {

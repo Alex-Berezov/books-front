@@ -7,6 +7,7 @@ import { Input } from '@/components/common/Input';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
+import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { BookFormData } from './BookForm.types';
 import type {
@@ -50,7 +51,9 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
   }));
 
   const { data: categoriesData } = useCategories({ limit: 100 });
-  const { data: authorsData } = useAuthors({ limit: 1000 });
+  // Потолок общего `PaginationDto` (`LEGACY-217`); за сотым автором выпадающий
+  // список перестанет его показывать (`LEGACY-352`).
+  const { data: authorsData } = useAuthors({ limit: API_MAX_PAGE_SIZE });
   const authorsList = authorsData?.data || [];
   const currentLang = watch('language');
   const categoryOptions = [

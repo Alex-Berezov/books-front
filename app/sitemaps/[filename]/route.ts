@@ -63,6 +63,19 @@ export const fetchCache = 'force-no-store';
  */
 const AUTHORS_TRAVERSAL_MAX_PAGES = 200;
 
+/**
+ * Потолок обхода списка тегов, страницами по сто.
+ *
+ * Назван по той же причине, что и потолок авторов, но появился иначе: раньше
+ * теги ходили страницами по двести, и при умолчании `fetchAllPages` в пятьдесят
+ * страниц ветка выдерживала десять тысяч терминов. Размер страницы упал до ста
+ * (`LEGACY-217`: `PaginationDto` теперь режет `limit` сотней, а публичный
+ * `GET /tags` ходит через него), и на умолчании тот же каталог упёрся бы
+ * в потолок вдвое раньше - на пяти тысячах. Сотня страниц возвращает прежние
+ * десять тысяч.
+ */
+const TAGS_TRAVERSAL_MAX_PAGES = 100;
+
 export async function GET(request: Request, { params }: { params: { filename: string } }) {
   const { filename } = params;
   const cleanBaseUrl = getBaseUrl();
@@ -533,7 +546,11 @@ export async function GET(request: Request, { params }: { params: { filename: st
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
       let tags: Tag[] = [];
       try {
-        tags = await fetchAllPages((page) => getTags({ page, limit: 200, lang }), `tags ${lang}`);
+        tags = await fetchAllPages(
+          (page) => getTags({ page, limit: 100, lang }),
+          `tags ${lang}`,
+          TAGS_TRAVERSAL_MAX_PAGES
+        );
       } catch (error) {
         noteFailure(`tags ${lang}`, error);
       }
