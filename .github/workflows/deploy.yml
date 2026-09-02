@@ -73,10 +73,111 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # 🔴 LEGACY-283. `ci.yml` и этот файл срабатывают на один и тот же push в `main`
+  # двумя независимыми запусками. До 02.09.2026 связи между ними не было никакой:
+  # job `test` ниже гоняет `yarn ci`, а шага e2e в нём нет — набор playwright стоит
+  # только в `ci.yml` и притом последним, после сборки и установки браузера. То есть
+  # к моменту его вердикта выкат был заведомо завершён, и в логе GitHub зелёный
+  # `Deploy Frontend` соседствовал с красным `CI` по одному SHA. Отказ, который ловит
+  # только e2e — редирект `/admin/**` на страницу входа, — уезжал на bibliaris.com
+  # и жил там до следующего пуша.
+  #
+  # Образец — `books/.github/workflows/deploy.yml`, job `ci_gate`. Отличий от него два.
+  #
+  # Первое — в устройстве: у бэкенда выкат идёт по тегу, а `ci.yml` по тегу не запускается
+  # вовсе, поэтому там ждут долго и «прогонов нет» считается ожиданием. Здесь оба запуска
+  # заводятся одним и тем же событием, но ждать всё равно приходится: `ci.yml` кончается
+  # позже сборки образа.
+  #
+  # Второе — почин, которого у образца нет: там присваивание `runs=$(gh api ...)` идёт голым
+  # под `set -euo pipefail`, и одна пятисотка GitHub API роняет весь гейт, отменяя выкат
+  # с текстом про красный CI, которого не было. Здесь отказ запроса считается ожиданием
+  # и печатается отдельной причиной. ⚠️ На бэкенде этот дефект остаётся живым — парная
+  # работа, названная отдельной строкой в отчёте по пачке `H1`.
+  #
+  # ⚠️ Прогон ищется по ПУТИ файла, а не по имени workflow: имя правится одной строкой
+  # и молча разводит гейт с тем, что он сторожит.
+  #
+  # ⚠️ На `workflow_dispatch` job пропускается: ручной запуск делают на коммите, чей
+  # `ci.yml` мог отгореть когда угодно, а требование свежего прогона превратило бы
+  # ручной выкат в тупик. Условие job `deploy` поэтому принимает и `skipped`.
+  ci_gate:
+    name: 🔒 CI Green For This Commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    if: ${{ github.event_name == 'push' }}
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: 🔎 Wait for a successful ci.yml run on ${{ github.sha }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          # Оба запуска заводит одно событие, но заводятся они не мгновенно:
+          # отсутствие прогона вовсе — это ещё ожидание, а не отказ.
+          deadline=$(( $(date +%s) + 30 * 60 ))
+          api_failed=0
+          while :; do
+            # ⚠️ Отказ самого запроса - это продолжение ожидания, а не вердикт.
+            # Под `set -euo pipefail` голое присваивание уронило бы весь гейт от одной
+            # пятисотки GitHub API, и выкат отменился бы с текстом про красный CI,
+            # которого не было. Закрытая сторона при этом сохраняется: если API так
+            # и не ответит, сработает ветка дедлайна и выкат всё равно не пройдёт.
+            #
+            # 🔴 Отказ обязан быть слышен и запомнен. Молча подставленный пустой список
+            # неотличим от «прогон ещё не завёлся»: на выходе гейт сказал бы «прогона
+            # не появилось», автор пошёл бы искать пропавший запуск и нашёл в Actions
+            # зелёный `ci.yml`. Проверка, которая не умеет сказать «я не проверила»,
+            # врёт о причине.
+            if ! runs=$(gh api "repos/$REPO/actions/runs?head_sha=$SHA&per_page=100" \
+              --jq '[.workflow_runs[] | select(.path == ".github/workflows/ci.yml")]'); then
+              echo "⚠️ gh api не ответил - считаю это ожиданием, а не отказом CI"
+              api_failed=1
+              runs='[]'
+            fi
+            total=$(echo "$runs" | jq 'length')
+            done_ok=$(echo "$runs" | jq '[.[] | select(.conclusion == "success")] | length')
+            pending=$(echo "$runs" | jq '[.[] | select(.status != "completed")] | length')
+
+            if [ "$done_ok" -gt 0 ]; then
+              echo "✅ ci.yml прошёл на $SHA."
+              exit 0
+            fi
+
+            if [ "$total" -gt 0 ] && [ "$pending" -eq 0 ]; then
+              echo "::error::Прогон ci.yml на коммите $SHA завершился неуспешно. Выкат отменён."
+              echo "$runs" | jq -r '.[] | "  \(.name): \(.status) \(.conclusion) \(.html_url)"'
+              exit 1
+            fi
+
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              # Два разных текста, а не один: «прогона не появилось» и «GitHub API
+              # не отвечал» - это разные причины, и искать их надо в разных местах.
+              if [ "$api_failed" -eq 1 ]; then
+                echo "::error::За 30 минут GitHub API так и не отдал список прогонов коммита $SHA. Исход ci.yml неизвестен, выкат отменён - посмотри вкладку Actions вручную."
+              else
+                echo "::error::За 30 минут у коммита $SHA так и не появилось успешного прогона ci.yml (найдено прогонов: $total). Выкат отменён."
+              fi
+              exit 1
+            fi
+
+            echo "⏳ Жду ci.yml на $SHA (прогонов: $total, из них незавершённых: $pending)..."
+            sleep 30
+          done
+
   deploy:
     name: Deploy to Server
-    needs: build
-    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    needs: [build, ci_gate]
+    # ⚠️ `skipped` принимается только на `main`. `on: workflow_dispatch` веткой
+    # не ограничен, поэтому без этой проверки ручной запуск с любой ветки пропускал бы
+    # гейт по `github.event_name == 'push'` и выкатывал непроверенную сборку в один клик -
+    # то есть у требования «красный CI останавливает выкат» оставался бы штатный обход.
+    if: ${{ !cancelled() && needs.build.result == 'success' && (needs.ci_gate.result == 'success' || (needs.ci_gate.result == 'skipped' && github.ref == 'refs/heads/main')) }}
     runs-on: ubuntu-latest
     environment: production
     steps:
