@@ -1,13 +1,12 @@
 import type { FC } from 'react';
 import { Select as AntdSelect } from 'antd';
 import { Controller } from 'react-hook-form';
-import { useAuthors } from '@/api/hooks/useAuthors';
 import { useCategories } from '@/api/hooks/useCategories';
+import { AuthorSearchSelect } from '@/components/admin/authors/AuthorSearchSelect';
 import { Input } from '@/components/common/Input';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
-import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { BookFormData } from './BookForm.types';
 import type {
@@ -51,10 +50,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
   }));
 
   const { data: categoriesData } = useCategories({ limit: 100 });
-  // Потолок общего `PaginationDto` (`LEGACY-217`); за сотым автором выпадающий
-  // список перестанет его показывать (`LEGACY-352`).
-  const { data: authorsData } = useAuthors({ limit: API_MAX_PAGE_SIZE });
-  const authorsList = authorsData?.data || [];
+
   const currentLang = watch('language');
   const categoryOptions = [
     { label: 'None', value: '' },
@@ -130,51 +126,31 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
         <label className={styles.label} htmlFor="author">
           Author *
         </label>
-        <AntdSelect
-          showSearch
+        <AuthorSearchSelect
           id="author-select"
-          style={{
-            width: '100%',
-            marginBottom: '0.5rem',
-          }}
-          size="large"
+          lang={currentLang}
           placeholder="-- Select Existing Author --"
-          optionFilterProp="label"
-          onChange={(val) => {
+          value={watch('authorId') || undefined}
+          extraOptions={[
+            { label: '-- Select Existing Author --', value: '' },
+            { label: 'Custom / New Author (Enter manually below)', value: 'custom' },
+          ]}
+          onChange={(val, selected) => {
             if (val === 'custom') {
               setValue('authorId', '');
             } else if (val === '') {
               setValue('authorId', '');
               setValue('author', '');
               setValue('authorPageUrl', '');
-            } else {
-              const selected = authorsList.find((a) => a.id === val);
-              if (selected) {
-                const trans =
-                  selected.translations?.find((t) => t.language === currentLang) ||
-                  selected.translations?.[0];
-                setValue('author', trans?.name || '');
-                setValue('authorId', selected.id);
-                setValue('authorPageUrl', `/${currentLang}/author/${trans?.slug || ''}`);
-              }
+            } else if (selected) {
+              const trans =
+                selected.translations?.find((t) => t.language === currentLang) ||
+                selected.translations?.[0];
+              setValue('author', trans?.name || '');
+              setValue('authorId', selected.id);
+              setValue('authorPageUrl', `/${currentLang}/author/${trans?.slug || ''}`);
             }
           }}
-          value={watch('authorId') || undefined}
-          options={[
-            { label: '-- Select Existing Author --', value: '' },
-            ...authorsList.map((a) => {
-              const trans =
-                a.translations?.find((t) => t.language === currentLang) || a.translations?.[0];
-              return {
-                label: trans?.name || a.slug,
-                value: a.id,
-              };
-            }),
-            { label: 'Custom / New Author (Enter manually below)', value: 'custom' },
-          ]}
-          filterOption={(input, option) =>
-            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-          }
         />
 
         {(!watch('authorId') || watch('authorId') === '') && (

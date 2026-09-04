@@ -120,6 +120,7 @@ export { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from './useBo
 export {
   authorKeys,
   useAuthors,
+  useAuthor,
   usePublicAuthor,
   useCreateAuthor,
   useUpdateAuthor,

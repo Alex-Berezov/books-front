@@ -11,6 +11,7 @@ import {
 } from '@tanstack/react-query';
 import {
   getAuthors,
+  getAuthorById,
   createAuthor,
   updateAuthor,
   deleteAuthor,
@@ -33,6 +34,14 @@ export const authorKeys = {
   details: () => [...authorKeys.all, 'detail'] as const,
   detail: (slug: string, lang?: string) =>
     [...authorKeys.details(), slug, lang].filter(Boolean) as string[],
+  /**
+   * Отдельный ключ для админского чтения по `id` (`LEGACY-352`). Через `detail`
+   * его строить нельзя: у того `lang` необязателен, и `detail(slug)` без языка
+   * дал бы ключ той же формы, что `detail(id)`, — публичный `PublicAuthorDetail`
+   * и админский `Author` полезли бы в одну ячейку кэша. Плюс `detail('')`
+   * схлопывался бы в префикс `details()` целиком.
+   */
+  detailById: (id: string) => [...authorKeys.details(), 'by-id', id] as string[],
 };
 
 export const useAuthors = (
@@ -42,6 +51,18 @@ export const useAuthors = (
   return useQuery<PaginatedResponse<Author>, Error>({
     queryKey: authorKeys.list(params),
     queryFn: () => getAuthors(params),
+    ...options,
+  });
+};
+
+export const useAuthor = (
+  id: string,
+  options?: Omit<UseQueryOptions<Author, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<Author, Error>({
+    queryKey: authorKeys.detailById(id),
+    queryFn: () => getAuthorById(id),
+    enabled: Boolean(id),
     ...options,
   });
 };

@@ -13,6 +13,7 @@ import type { BookVersionDetail } from '@/types/api-schema';
 
 vi.mock('@/api/hooks/useAuthors', () => ({
   useAuthors: () => ({ data: { data: [] } }),
+  useAuthor: () => ({ data: undefined }),
 }));
 
 vi.mock('@/api/hooks/useCategories', () => ({

@@ -26,7 +26,11 @@ export const bookVersionBaseSchema = z.object({
   /** Book title */
   title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
   /** Book author */
-  author: z.string().min(1, 'Author is required').max(100, 'Author name is too long'),
+  // 500 — тот же потолок, что у `@MaxLength(500)` в `create/update-book-version.dto.ts`
+  // на бэкенде (`LEGACY-354`). Прежняя сотня была строже контракта: имя длиной
+  // 150 знаков ручка принимала, а форма отбивала, и дотянуться до настоящей
+  // границы из админки было нельзя.
+  author: z.string().min(1, 'Author is required').max(500, 'Author name is too long'),
   /** Book description: required only for a published version */
   description: z.string(),
   /** Cover image URL: required only for a published version */

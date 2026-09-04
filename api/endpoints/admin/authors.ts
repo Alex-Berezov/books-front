@@ -16,20 +16,30 @@ import type {
 export interface GetAuthorsParams {
   page?: number;
   limit?: number;
+  /** LEGACY-352: серверный поиск по имени, отдаётся `q` бэкенду. */
+  search?: string;
 }
 
 export const getAuthors = async (
   params: GetAuthorsParams = {}
 ): Promise<PaginatedResponse<Author>> => {
-  const { page = 1, limit = 50 } = params;
+  const { page = 1, limit = 50, search } = params;
 
   const queryParams = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
+  if (search) {
+    queryParams.append('q', search);
+  }
 
   const endpoint = `/admin/authors?${queryParams.toString()}`;
   return httpGetAuth<PaginatedResponse<Author>>(endpoint, { requireAuth: true });
+};
+
+export const getAuthorById = async (id: string): Promise<Author> => {
+  const endpoint = `/admin/authors/${id}`;
+  return httpGetAuth<Author>(endpoint, { requireAuth: true });
 };
 
 export const createAuthor = async (data: CreateAuthorRequest): Promise<Author> => {
