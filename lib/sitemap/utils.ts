@@ -18,7 +18,16 @@ export function buildUrl(path: string): string {
   return buildPublicUrl(path);
 }
 
-const BOOKS_SITEMAP_PAGE_SIZE = 1000;
+/**
+ * Сколько книг обязан покрывать один файл `sitemap-books-{lang}-{n}.xml`.
+ *
+ * Это размер URL-пространства файла, а не размер одного запроса к бэкенду:
+ * с 04.09.2026 (`LEGACY-298`) `GET /:lang/books` зажат `API_MAX_PAGE_SIZE`,
+ * и файл набирается несколькими бэкенд-страницами через `fetchPageWindow`.
+ * Экспортирована, чтобы номер файла и окно бэкенд-страниц считались от одного
+ * числа, а не от двух литералов, которые молча разойдутся при следующей правке.
+ */
+export const BOOKS_SITEMAP_PAGE_SIZE = 1000;
 
 /** `null` means the count could not be established — never "zero books". */
 export type GetTotalBooksFn = (lang: string) => Promise<number | null>;
@@ -194,33 +203,42 @@ export function takeCompletePage<T>(
 }
 
 /**
+ * Одна повторная попытка на страницу. Без неё единичный 429 от лимитера
+ * (`LEGACY-064`: весь фронт ходит в API одним IP) ронял бы всю секцию карты в
+ * 503 — потеря, несоразмерная причине. Две подряд — уже не рябь, и тогда отказ
+ * честнее неполного списка. Общая для `fetchAllPages` и `fetchPageWindow`:
+ * `fetchPageWindow` изначально её не унаследовал, и число запросов на файл
+ * карты книг выросло с одного до десяти — та же рябь стала стоить в десять
+ * раз больше шансов (найдено ревью, `LEGACY-298`).
+ */
+async function fetchPageWithRetry<T>(
+  fetchPage: (page: number) => Promise<PagedResponse<T>>,
+  page: number
+): Promise<PagedResponse<T>> {
+  try {
+    // `await` здесь обязателен: без него отказ не попал бы в `catch`.
+    return await fetchPage(page);
+  } catch {
+    // А здесь не нужен — оборачивающего `try` больше нет, и вторая неудача
+    // должна уйти наверх как есть.
+    return fetchPage(page);
+  }
+}
+
+/**
  * Собирает **все** страницы выдачи и проверяет, что собрала их полностью.
  *
  * 🔴 Секции карты сайта ходили за терминами одним запросом с `limit: 1000` и
  * молча теряли всё, что за тысячу не поместилось. Детектор страницы такую
  * потерю не видит: страница-то полная. Единственный честный ответ — забрать
  * остальные страницы, а не гадать (`LEGACY-098`).
- *
- * ⚠️ Одна повторная попытка на страницу. Без неё единичный 429 от лимитера
- * (`LEGACY-064`: весь фронт ходит в API одним IP) ронял бы всю ветку карты в
- * 503 — потеря, несоразмерная причине. Две подряд — уже не рябь, и тогда отказ
- * честнее неполного списка.
  */
 export async function fetchAllPages<T>(
   fetchPage: (page: number) => Promise<PagedResponse<T>>,
   where: string,
   maxPages = 50
 ): Promise<T[]> {
-  const withRetry = async (page: number): Promise<PagedResponse<T>> => {
-    try {
-      // `await` здесь обязателен: без него отказ не попал бы в `catch`.
-      return await fetchPage(page);
-    } catch {
-      // А здесь не нужен — оборачивающего `try` больше нет, и вторая неудача
-      // должна уйти наверх как есть.
-      return fetchPage(page);
-    }
-  };
+  const withRetry = (page: number) => fetchPageWithRetry(fetchPage, page);
 
   const first = await withRetry(1);
   const items = takeCompletePage(first, `${where} p1`);
@@ -242,6 +260,45 @@ export async function fetchAllPages<T>(
     throw new Error(`${where}: собрано ${items.length} из ${total} — обход неполон`);
   }
 
+  return items;
+}
+
+/**
+ * Собирает фиксированное окно из `pageCount` бэкенд-страниц подряд, начиная
+ * с `firstPage`, и требует, чтобы окно оказалось цельным (`LEGACY-298`).
+ *
+ * От `fetchAllPages` отличается тем, где останавливается: `fetchAllPages` идёт
+ * от первой страницы до конца **всей** выборки, а здесь диапазон страниц
+ * фиксирован заранее — нужен там, где окно привязано к номеру файла в адресе
+ * (карта книг: файл `n` обязан покрывать книги `[(n-1)*1000, n*1000)`), а не
+ * к границе самой выборки. Страница короче `pageSize` останавливает обход
+ * раньше срока — дальше пусто, а не молчаливый лишний запрос за пределы
+ * выборки.
+ *
+ * Отказ или усечение любой из страниц окна бросает исключение — вызывающий
+ * код (сборка файла карты) обязан считать всё окно негодным, а не отдавать
+ * файл с частью URL и кодом 200. Одна повторная попытка на страницу — та же,
+ * что у `fetchAllPages`: окно теперь стоит нескольких запросов вместо одного,
+ * и та же рябь лимитера (`LEGACY-064`) без неё роняла бы файл во столько же
+ * раз чаще.
+ */
+export async function fetchPageWindow<T>(
+  fetchPage: (page: number) => Promise<PagedResponse<T>>,
+  firstPage: number,
+  pageCount: number,
+  pageSize: number,
+  where: string
+): Promise<T[]> {
+  const items: T[] = [];
+  for (let i = 0; i < pageCount; i += 1) {
+    const page = firstPage + i;
+    const pageItems = takeCompletePage(
+      await fetchPageWithRetry(fetchPage, page),
+      `${where} p${page}`
+    );
+    items.push(...pageItems);
+    if (pageItems.length < pageSize) break;
+  }
   return items;
 }
 

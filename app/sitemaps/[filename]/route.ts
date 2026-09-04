@@ -13,6 +13,7 @@ import {
   buildLetterAlternates,
   loadLettersByLang,
 } from '@/components/public/authors/authors-letter-alternates';
+import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { isAuthorLinkable } from '@/lib/seo/author-linkable';
 import { buildIndexableAlternates, toAlternateCandidates } from '@/lib/seo/hreflang-alternates';
@@ -20,8 +21,9 @@ import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import {
   getBaseUrl,
   buildUrlSetXml,
-  takeCompletePage,
   fetchAllPages,
+  fetchPageWindow,
+  BOOKS_SITEMAP_PAGE_SIZE,
   sitemapUnavailable,
   type SitemapItem,
 } from '@/lib/sitemap/utils';
@@ -75,6 +77,16 @@ const AUTHORS_TRAVERSAL_MAX_PAGES = 200;
  * десять тысяч.
  */
 const TAGS_TRAVERSAL_MAX_PAGES = 100;
+
+/**
+ * Потолок обхода секций genres/categories/collections, страницами по сто.
+ *
+ * Та же арифметика, что у тегов выше: размер страницы `GET /categories` упал
+ * с двухсот до ста (`LEGACY-298`/`LEGACY-353`), и на умолчании `fetchAllPages`
+ * в пятьдесят страниц запас обхода тихо упал бы вдвое — с десяти тысяч
+ * терминов на тип до пяти. Явный потолок возвращает прежний запас.
+ */
+const TAXONOMY_TRAVERSAL_MAX_PAGES = 100;
 
 export async function GET(request: Request, { params }: { params: { filename: string } }) {
   const { filename } = params;
@@ -196,13 +208,32 @@ export async function GET(request: Request, { params }: { params: { filename: st
     }
     let books: BookOverview[] = [];
     try {
-      const booksRes = await getPublicBooks(lang as SupportedLang, {
-        page: pageNumber,
-        limit: 1000,
-      });
-      books = takeCompletePage(booksRes, `books ${lang} p${pageNumber}`);
+      // `GET /:lang/books` зажат `API_MAX_PAGE_SIZE` (`LEGACY-298`), а файл карты
+      // по-прежнему обязан покрывать `BOOKS_SITEMAP_PAGE_SIZE` книг — окно из
+      // нескольких бэкенд-страниц вместо одного `limit: 1000`. Отказ или
+      // усечение любой из них бросает исключение и оставляет `books` пустым:
+      // `fetchPageWindow` не присваивает результат до полного успеха окна.
+      //
+      // ⚠️ Деление ничем не защищено само по себе — если потолок бэкенда сдвинут
+      // на число, не делящее `BOOKS_SITEMAP_PAGE_SIZE` нацело, окна файлов начнут
+      // перекрываться, а номер страницы уйдёт дробным и получит 400 от бэкенда.
+      // Явная проверка превращает это в громкий отказ секции, а не в тихий сдвиг
+      // границ (найдено ревью).
+      const pagesPerFile = BOOKS_SITEMAP_PAGE_SIZE / API_MAX_PAGE_SIZE;
+      if (!Number.isInteger(pagesPerFile)) {
+        throw new Error(
+          `BOOKS_SITEMAP_PAGE_SIZE (${BOOKS_SITEMAP_PAGE_SIZE}) не делится нацело на API_MAX_PAGE_SIZE (${API_MAX_PAGE_SIZE})`
+        );
+      }
+      books = await fetchPageWindow<BookOverview>(
+        (page) => getPublicBooks(lang as SupportedLang, { page, limit: API_MAX_PAGE_SIZE }),
+        (pageNumber - 1) * pagesPerFile + 1,
+        pagesPerFile,
+        API_MAX_PAGE_SIZE,
+        `books ${lang} file${pageNumber}`
+      );
     } catch (error) {
-      noteFailure(`books ${lang} p${pageNumber}`, error);
+      noteFailure(`books ${lang} file${pageNumber}`, error);
     }
     if (books.length === 0) {
       // Пустая страница книг законна: номер за пределами каталога — это 404.
@@ -257,8 +288,9 @@ export async function GET(request: Request, { params }: { params: { filename: st
         // Обход всех страниц, а не первая тысяча: `limit: 1000` без добора
         // молча терял всё, что за неё не поместилось (`LEGACY-098`).
         categories = await fetchAllPages(
-          (page) => getCategories({ type: 'genre', page, limit: 200, lang }),
-          `genres ${lang}`
+          (page) => getCategories({ type: 'genre', page, limit: API_MAX_PAGE_SIZE, lang }),
+          `genres ${lang}`,
+          TAXONOMY_TRAVERSAL_MAX_PAGES
         );
       } catch (error) {
         noteFailure(`genres ${lang}`, error);
@@ -301,8 +333,9 @@ export async function GET(request: Request, { params }: { params: { filename: st
         // Обход всех страниц, а не первая тысяча: `limit: 1000` без добора
         // молча терял всё, что за неё не поместилось (`LEGACY-098`).
         categories = await fetchAllPages(
-          (page) => getCategories({ type: 'category', page, limit: 200, lang }),
-          `categories ${lang}`
+          (page) => getCategories({ type: 'category', page, limit: API_MAX_PAGE_SIZE, lang }),
+          `categories ${lang}`,
+          TAXONOMY_TRAVERSAL_MAX_PAGES
         );
       } catch (error) {
         noteFailure(`categories ${lang}`, error);
@@ -342,8 +375,9 @@ export async function GET(request: Request, { params }: { params: { filename: st
         // Обход всех страниц, а не первая тысяча: `limit: 1000` без добора
         // молча терял всё, что за неё не поместилось (`LEGACY-098`).
         categories = await fetchAllPages(
-          (page) => getCategories({ type: 'collection', page, limit: 200, lang }),
-          `collections ${lang}`
+          (page) => getCategories({ type: 'collection', page, limit: API_MAX_PAGE_SIZE, lang }),
+          `collections ${lang}`,
+          TAXONOMY_TRAVERSAL_MAX_PAGES
         );
       } catch (error) {
         noteFailure(`collections ${lang}`, error);

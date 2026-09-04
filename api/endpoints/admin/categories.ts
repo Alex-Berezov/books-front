@@ -28,8 +28,6 @@ export interface GetCategoriesParams {
   page?: number;
   /** Number of items per page */
   limit?: number;
-  /** Search by name */
-  search?: string;
   /** Filter by category type (category|genre|collection) */
   type?: string;
   /** Filter by language */
@@ -50,16 +48,18 @@ export interface GetCategoriesParams {
 export const getCategories = async (
   params: GetCategoriesParams = {}
 ): Promise<PaginatedResponse<Category>> => {
-  const { page = 1, limit = 50, search, type, lang } = params;
+  const { page = 1, limit = 50, type, lang } = params;
 
   const queryParams = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
 
-  if (search) {
-    queryParams.append('search', search);
-  }
+  // Поиска по категориям на бэкенде нет вовсе (`ListCategoriesQueryDto`, docstring
+  // в `books/src/modules/category/dto/list-categories-query.dto.ts`); поле `search`
+  // раньше молча игнорировалось на `@Query()`-параметрах без DTO, а с переходом
+  // маршрута на DTO и `forbidNonWhitelisted: true` дало бы 400 (`LEGACY-298`).
+  // Живых вызовов с `search` не было — параметр убран, а не подключён к бэкенду.
 
   if (type) {
     queryParams.append('type', type);

@@ -8,6 +8,7 @@ import {
   buildUrlSetXml,
   takeCompletePage,
   fetchAllPages,
+  fetchPageWindow,
   sitemapUnavailable,
   type SitemapItem,
 } from '@/lib/sitemap/utils';
@@ -362,6 +363,67 @@ describe('fetchAllPages: обход всех страниц (LEGACY-098)', () =>
     const fetchPage = vi.fn(async (page: number) => pageOf([1], page, 1, 10_000));
 
     await expect(fetchAllPages(fetchPage, 'books en', 50)).rejects.toThrow(/потолок обхода/);
+  });
+});
+
+/**
+ * `LEGACY-298` — карта книг больше не может забрать файл одним `limit: 1000`
+ * (`GET /:lang/books` теперь зажат), поэтому файл собирается фиксированным
+ * окном бэкенд-страниц. В отличие от `fetchAllPages`, окно не обходит выборку
+ * до конца — оно должно остановиться на границе файла, а не залезть в
+ * следующий.
+ */
+describe('fetchPageWindow: фиксированное окно страниц (LEGACY-298)', () => {
+  const pageOf = (items: number[], page: number, limit: number, total: number) => ({
+    data: items,
+    meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+  });
+
+  it('складывает несколько бэкенд-страниц в одно окно', async () => {
+    const fetchPage = vi.fn(async (page: number) => pageOf([page * 10, page * 10 + 1], page, 2, 6));
+
+    const items = await fetchPageWindow(fetchPage, 1, 3, 2, 'books en p1');
+
+    expect(items).toEqual([10, 11, 20, 21, 30, 31]);
+    expect(fetchPage).toHaveBeenCalledTimes(3);
+  });
+
+  it('начинает не с первой бэкенд-страницы, а с заданной', async () => {
+    const fetchPage = vi.fn(async (page: number) => pageOf([page], page, 1, 100));
+
+    const items = await fetchPageWindow(fetchPage, 11, 2, 1, 'books en p2');
+
+    expect(items).toEqual([11, 12]);
+    expect(fetchPage).toHaveBeenNthCalledWith(1, 11);
+    expect(fetchPage).toHaveBeenNthCalledWith(2, 12);
+  });
+
+  it('останавливается раньше окна, когда страница короче размера', async () => {
+    const fetchPage = vi.fn(async (page: number) =>
+      page === 1 ? pageOf([1, 2], 1, 2, 3) : pageOf([3], 2, 2, 3)
+    );
+
+    const items = await fetchPageWindow(fetchPage, 1, 5, 2, 'books en p1');
+
+    expect(items).toEqual([1, 2, 3]);
+    expect(fetchPage).toHaveBeenCalledTimes(2);
+  });
+
+  it('усечение внутри одной страницы окна валит весь обход', async () => {
+    const fetchPage = vi.fn(async (page: number) =>
+      page === 1 ? pageOf([1, 2], 1, 2, 10) : pageOf([3], 2, 2, 10)
+    );
+
+    await expect(fetchPageWindow(fetchPage, 1, 3, 2, 'books en p1')).rejects.toThrow(/усечена/);
+  });
+
+  it('сбой одной страницы окна не отдаёт собранную ранее часть', async () => {
+    const fetchPage = vi.fn(async (page: number) => {
+      if (page === 2) throw new Error('502');
+      return pageOf([page], page, 1, 100);
+    });
+
+    await expect(fetchPageWindow(fetchPage, 1, 3, 1, 'books en p1')).rejects.toThrow('502');
   });
 });
 
