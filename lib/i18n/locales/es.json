@@ -349,6 +349,7 @@
     "activitiesDesc": "Historial de sus reseñas y comentarios sobre libros",
     "repliedTo": "Respondió a",
     "replies": "Respuestas",
+    "hiddenByModerator": "Ocultado por un moderador: este comentario y sus respuestas no son visibles para otros lectores.",
     "noActivities": "Aún no ha dejado ninguna reseña o comentario.",
     "exploreCatalog": "Explorar catálogo",
     "invalidNickname": "El apodo debe contener solo letras, números y guiones bajos.",

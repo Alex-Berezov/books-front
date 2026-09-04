@@ -2,7 +2,17 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Skeleton } from 'antd';
-import { User, Mail, Tag, Save, Upload, MessageSquare, Loader2, ArrowRight } from 'lucide-react';
+import {
+  User,
+  Mail,
+  Tag,
+  Save,
+  Upload,
+  MessageSquare,
+  Loader2,
+  ArrowRight,
+  EyeOff,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
@@ -313,6 +323,16 @@ export default function ProfileClient() {
                           :
                         </span>
                         <p className={styles.parentText}>&ldquo;{activity.parent.text}&rdquo;</p>
+                      </div>
+                    )}
+
+                    {/* Скрытая модератором запись остаётся на странице автора,
+                        но помечена явно: молчаливое исчезновение ветки ответов
+                        неотличимо от пропажи данных (`LEGACY-212`). */}
+                    {activity.isHidden && (
+                      <div className={styles.hiddenNotice}>
+                        <EyeOff size={12} />
+                        <span>{t('profile.hiddenByModerator')}</span>
                       </div>
                     )}
 

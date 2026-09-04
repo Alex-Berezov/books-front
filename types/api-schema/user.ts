@@ -126,6 +126,11 @@ export interface UserActivityParentOrChildComment {
 export interface UserActivity {
   id: UUID;
   text: string;
+  // Собственный комментарий, скрытый модератором. Запись остаётся в активности
+  // автора — иначе модерация неотличима от пропажи данных, — но `replies` под
+  // ней сервер отдаёт пустым: публично скрытый корень прячет всю ветку, и
+  // ответы третьих лиц автору не показываются (`LEGACY-212`).
+  isHidden: boolean;
   createdAt: ISODate;
   parentId: UUID | null;
   bookVersion: UserActivityBookVersion | null;

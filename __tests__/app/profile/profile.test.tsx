@@ -60,6 +60,8 @@ vi.mock('@/lib/i18n/useTranslation', () => ({
         'profile.activitiesDesc': 'History of your reviews and comments on books',
         'profile.repliedTo': 'Replied to',
         'profile.replies': 'Replies',
+        'profile.hiddenByModerator':
+          'Hidden by a moderator: this comment and its replies are not visible to other readers.',
         'profile.noActivities': 'You have not left any reviews or comments yet.',
         'profile.exploreCatalog': 'Explore Catalog',
         'profile.invalidNickname': 'Nickname must contain only letters, numbers and underscores.',
@@ -195,6 +197,73 @@ describe('ProfilePage', () => {
     expect(screen.getByText(/My Activities/i)).toBeInTheDocument();
     expect(screen.getByText('Test Book')).toBeInTheDocument();
     expect(screen.getByText('This is my review of the book')).toBeInTheDocument();
+  });
+
+  // Посадка LEGACY-212 на стороне фронта. Метка обязательна: без неё запись
+  // с обнулёнными сервером `replies` выглядит как обычная, и автор не узнаёт,
+  // что его комментарий скрыт модератором, — то есть модерация становится
+  // неотличима от пропажи данных.
+  it('помечает собственную запись, скрытую модератором (LEGACY-212)', () => {
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { email: 'john@example.com' } },
+      status: 'authenticated',
+    } as unknown as ReturnType<typeof useSession>);
+
+    const mockActivities = [
+      {
+        id: 'act-hidden',
+        text: 'My hidden comment',
+        isHidden: true,
+        createdAt: '2026-06-12T00:00:00.000Z',
+        parentId: null,
+        parent: null,
+        bookVersion: null,
+        replies: [],
+      },
+      {
+        id: 'act-visible',
+        text: 'My visible comment',
+        isHidden: false,
+        createdAt: '2026-06-12T00:00:00.000Z',
+        parentId: null,
+        parent: null,
+        bookVersion: null,
+        replies: [],
+      },
+    ];
+
+    vi.mocked(useAuthHooks.useMe).mockReturnValue({
+      data: {
+        email: 'john@example.com',
+        displayName: 'John Doe',
+        nickname: 'john_doe',
+        avatarUrl: '',
+        roles: ['USER'],
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useMe>);
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue({
+      data: mockActivities,
+      isLoading: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUserActivities>);
+    vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUpdateProfile>);
+    vi.mocked(useAuthHooks.useUploadAvatar).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUploadAvatar>);
+
+    render(<ProfilePage />);
+
+    // Оба текста на месте: скрытая запись со страницы автора не исчезает.
+    expect(screen.getByText('My hidden comment')).toBeInTheDocument();
+    expect(screen.getByText('My visible comment')).toBeInTheDocument();
+
+    // 🔴 Ровно одна метка на две записи: метка на каждой означала бы, что
+    // компонент не читает флаг вовсе.
+    expect(screen.getAllByText(/Hidden by a moderator/i)).toHaveLength(1);
   });
 
   it('triggers validation error on invalid nickname characters', async () => {

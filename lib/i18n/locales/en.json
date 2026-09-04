@@ -399,6 +399,7 @@
     "activitiesDesc": "History of your reviews and comments on books",
     "repliedTo": "Replied to",
     "replies": "Replies",
+    "hiddenByModerator": "Hidden by a moderator: this comment and its replies are not visible to other readers.",
     "noActivities": "You have not left any reviews or comments yet.",
     "exploreCatalog": "Explore Catalog",
     "invalidNickname": "Nickname must contain only letters, numbers and underscores.",

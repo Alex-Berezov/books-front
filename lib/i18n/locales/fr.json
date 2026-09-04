@@ -349,6 +349,7 @@
     "activitiesDesc": "Historique de vos critiques et commentaires sur les livres",
     "repliedTo": "A répondu à",
     "replies": "Réponses",
+    "hiddenByModerator": "Masqué par un modérateur : ce commentaire et ses réponses ne sont pas visibles par les autres lecteurs.",
     "noActivities": "Vous n'avez pas encore laissé de critiques ou de commentaires.",
     "exploreCatalog": "Explorer le catalogue",
     "invalidNickname": "Le pseudonyme ne doit contenir que des lettres, des chiffres et des traits de soulignement.",

@@ -349,6 +349,7 @@
     "activitiesDesc": "Histórico de suas avaliações e comentários sobre livros",
     "repliedTo": "Respondeu a",
     "replies": "Respostas",
+    "hiddenByModerator": "Ocultado por um moderador: este comentário e as suas respostas não são visíveis para outros leitores.",
     "noActivities": "Você ainda não deixou nenhuma avaliação ou comentário.",
     "exploreCatalog": "Explorar catálogo",
     "invalidNickname": "O apelido deve conter apenas letras, números e sublinhados.",
