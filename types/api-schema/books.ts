@@ -128,13 +128,6 @@ export interface BookOverview {
 }
 
 /**
- * Request to create a new book (container)
- */
-export interface CreateBookRequest {
-  slug: string;
-}
-
-/**
  * Response on book creation
  */
 export interface CreateBookResponse {

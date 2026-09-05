@@ -47,7 +47,6 @@ export type {
   BookSummaryDetail,
   BookVersion,
   BookVersionDetail,
-  CreateBookRequest,
   CreateBookResponse,
   CreateBookVersionRequest,
   RelatedBooksResponse,
