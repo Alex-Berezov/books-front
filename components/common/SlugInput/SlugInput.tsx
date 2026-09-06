@@ -17,11 +17,13 @@ import { isReservedSlug } from '@/lib/constants/reserved-slugs';
 import { useSlugValidation } from '@/lib/hooks/useSlugValidation';
 import { generateSlug, isValidSlug } from '@/lib/utils/slug';
 import type { SlugInputProps } from './SlugInput.types';
+import type { SlugValidationStatus } from '@/lib/hooks/useSlugValidation';
 import styles from './SlugInput.module.scss';
 import { DuplicateWarning } from './ui/DuplicateWarning';
 import { GenerateButton } from './ui/GenerateButton';
 import { ReservedWarning } from './ui/ReservedWarning';
 import { StatusIcon } from './ui/StatusIcon';
+import { UnknownCheckNotice } from './ui/UnknownCheckNotice';
 import { ValidationHint } from './ui/ValidationHint';
 
 /**
@@ -169,14 +171,24 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
   };
 
   /**
+   * The hook is only ever asked about a slug that passes `isValidSlug`, and it
+   * returns to `idle` only on an empty slug. So a verdict - including a failed
+   * check - outlives the value it was about: the editor types `my-slug-`, no
+   * request goes out, and the previous answer keeps being shown for a value
+   * nobody checked. Everything on screen therefore reads this, not `status`.
+   */
+  const effectiveStatus: SlugValidationStatus = value && isValidSlug(value) ? status : 'idle';
+
+  /**
    * Determine CSS class for status
    */
   const getStatusClass = (): string => {
     if (error) return styles.invalid;
     if (!value) return '';
-    if (status === 'checking') return styles.checking;
-    if (status === 'valid') return styles.valid;
-    if (status === 'invalid') return styles.invalid;
+    if (effectiveStatus === 'checking') return styles.checking;
+    if (effectiveStatus === 'valid') return styles.valid;
+    if (effectiveStatus === 'invalid') return styles.invalid;
+    if (effectiveStatus === 'unknown') return styles.unknown;
     return '';
   };
 
@@ -186,10 +198,11 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
    * the backend refuses the slug for pages only. Warning more widely than it
    * enforces would block a legitimate name for no reason.
    *
-   * The local half exists because the API client fails open on error
-   * (`isUnique: true`) so as not to block the form: right for a uniqueness
-   * question, which only the database can answer, but reservation is answerable
-   * here, and staying silent would leave the editor to find out from a 400.
+   * The local half exists because a failed check answers nothing at all
+   * (`checkFailed: true`, status `unknown`) and never blocks the form: right
+   * for a uniqueness question, which only the database can answer, but
+   * reservation is answerable here, and staying silent would leave the editor
+   * to find out from a 400.
    *
    * It runs in create mode only. A page that already sits on a reserved slug is
    * grandfathered by the backend — it may be saved as-is, and it is reachable
@@ -203,6 +216,13 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
 
   // Determine whether to show duplication
   const showDuplicateWarning = !error && !isReserved && isUnique === false && existingItem;
+
+  /**
+   * Not shown next to `ReservedWarning`: that one already says the slug cannot
+   * be used at all, and "you can still save" would contradict it - the server
+   * refuses a reserved slug as a route collision, not as a duplicate.
+   */
+  const showUnknownNotice = !error && !isReserved && effectiveStatus === 'unknown';
 
   return (
     <div className={`${styles.container} ${className || ''}`}>
@@ -220,7 +240,7 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
         />
 
         {/* Status icon */}
-        {!disabled && value && <StatusIcon status={status} />}
+        {!disabled && value && <StatusIcon status={effectiveStatus} />}
 
         {/* Slug generation button */}
         {showGenerateButton && !disabled && (
@@ -229,7 +249,12 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
       </div>
 
       {/* Hint: URL-friendly format */}
-      {!error && !existingItem && !isReserved && <ValidationHint placeholder={placeholder} />}
+      {!error && !existingItem && !isReserved && !showUnknownNotice && (
+        <ValidationHint placeholder={placeholder} />
+      )}
+
+      {/* Uniqueness check could not be answered - saving is not blocked on it */}
+      {showUnknownNotice && <UnknownCheckNotice />}
 
       {/* Validation error from react-hook-form */}
       {error && <span className={styles.error}>{error}</span>}

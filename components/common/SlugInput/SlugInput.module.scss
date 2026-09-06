@@ -4,6 +4,9 @@
 
 @import '@/styles/tokens.scss';
 
+// Width reserved for the status icon inside the input (see .statusIcon below).
+$icon-inset: 2.5rem;
+
 .container {
   display: flex;
   flex-direction: column;
@@ -46,14 +49,25 @@
     border-color: $color-info;
   }
 
+  // Все три состояния показывают значок, поэтому отступ под него один на всех:
+  // разъехавшись, они наедут значком на текст в одном состоянии из трёх.
+  &.valid,
+  &.invalid,
+  &.unknown {
+    padding-right: $icon-inset;
+  }
+
   &.valid {
     border-color: $color-success;
-    padding-right: 40px; // Space for icon
   }
 
   &.invalid {
     border-color: $color-error;
-    padding-right: 40px; // Space for icon
+  }
+
+  // Check itself failed - neither confirmed nor rejected, so no color verdict.
+  &.unknown {
+    border-style: dashed;
   }
 }
 
@@ -83,16 +97,29 @@
   }
 }
 
-.checkmark {
-  color: $color-success;
+// Значки статуса набраны одинаково и отличаются только цветом: кегль и
+// насыщенность живут в одном месте, иначе третий значок отстанет от первых двух.
+%status-mark {
   font-size: $font-size-lg;
   font-weight: $font-weight-bold;
 }
 
+.checkmark {
+  @extend %status-mark;
+
+  color: $color-success;
+}
+
 .cross {
+  @extend %status-mark;
+
   color: $color-error;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
+}
+
+.unknownMark {
+  @extend %status-mark;
+
+  color: $color-text-secondary;
 }
 
 .generateButton {

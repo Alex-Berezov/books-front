@@ -49,7 +49,7 @@ export interface SlugInputProps {
  */
 export interface StatusIconProps {
   /** Validation status */
-  status: 'idle' | 'checking' | 'valid' | 'invalid';
+  status: 'idle' | 'checking' | 'valid' | 'invalid' | 'unknown';
 }
 
 /**

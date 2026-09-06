@@ -58,7 +58,9 @@ export const useCreateBookModal = (props: CreateBookModalProps) => {
       try {
         const result = await checkBookSlugUniqueness(generatedSlug);
 
-        if (!result.isUnique && result.suggestedSlug) {
+        // LEGACY-142: a failed check reports `isUnique: undefined`, not `false` -
+        // only a confirmed duplicate blocks the generated slug.
+        if (result.isUnique === false && result.suggestedSlug) {
           setSlugError(`Slug "${generatedSlug}" is already taken`);
           setFinalSlug(result.suggestedSlug);
         } else {

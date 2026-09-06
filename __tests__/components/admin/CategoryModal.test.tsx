@@ -105,3 +105,41 @@ describe('CategoryModal — editorial visibility switches', () => {
     expect(screen.getByText(/auto: closed/)).toBeInTheDocument();
   });
 });
+
+/**
+ * 🔴 LEGACY-142. Отказ проверки слага (401/403/сеть) отвечает «не знаю»
+ * (`checkFailed`, `isUnique` не выставлен), а не «занят». Предикат сохранения
+ * обязан сравнивать строго с `false`: `!slugCheck.isUnique` на неизвестности
+ * отбил бы сохранение и превратил недоступную проверку в отказ формы.
+ */
+describe('CategoryModal — slug check that could not answer', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.checkSlug.mockResolvedValue({ isUnique: true });
+    mocks.update.mockResolvedValue({});
+  });
+
+  it('saves when the slug check could not answer at all', async () => {
+    mocks.checkSlug.mockResolvedValue({ slug: 'victorian-literature', checkFailed: true });
+    renderModal();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(() => expect(mocks.update).toHaveBeenCalled());
+    expect(screen.queryByText(/already taken/i)).not.toBeInTheDocument();
+  });
+
+  it('still refuses to save a slug the check confirms as taken', async () => {
+    mocks.checkSlug.mockResolvedValue({
+      slug: 'victorian-literature',
+      isUnique: false,
+      suggestedSlug: 'victorian-literature-2',
+    });
+    renderModal();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(() => expect(screen.getByText(/already taken/i)).toBeInTheDocument());
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
+});

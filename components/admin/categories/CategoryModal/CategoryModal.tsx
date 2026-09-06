@@ -105,7 +105,9 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
     try {
       // Validate slug uniqueness
       const slugCheck = await checkCategorySlugUniqueness(data.slug, category?.id);
-      if (!slugCheck.isUnique) {
+      // LEGACY-142: a failed check reports `isUnique: undefined`, not `false` -
+      // only a confirmed duplicate blocks the save.
+      if (slugCheck.isUnique === false) {
         setError('slug', {
           type: 'manual',
           message: `Slug is already taken. Suggested: ${slugCheck.suggestedSlug}`,

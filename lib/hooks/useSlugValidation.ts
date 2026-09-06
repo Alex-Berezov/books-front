@@ -25,7 +25,7 @@ export type SlugEntityType = 'page' | 'book' | 'category' | 'tag';
 /**
  * Slug validation status
  */
-export type SlugValidationStatus = 'idle' | 'checking' | 'valid' | 'invalid';
+export type SlugValidationStatus = 'idle' | 'checking' | 'valid' | 'invalid' | 'unknown';
 
 /**
  * useSlugValidation hook result
@@ -134,12 +134,16 @@ export const useSlugValidation = (params: UseSlugValidationParams): UseSlugValid
         }
 
         setResult(validationResult);
-        setStatus(validationResult.isUnique ? 'valid' : 'invalid');
+        setStatus(
+          validationResult.checkFailed ? 'unknown' : validationResult.isUnique ? 'valid' : 'invalid'
+        );
       } catch (error) {
+        // Synchronous failure before the endpoint call (e.g. missing `lang`).
+        // Same rule as the endpoint's own catch (LEGACY-142): unknown, not
+        // valid - a check that failed is not a check that passed.
         console.error('[useSlugValidation] Error checking slug:', error);
-        // In case of error, consider slug valid (to not block the form)
-        setStatus('valid');
-        setResult({ slug, isUnique: true });
+        setStatus('unknown');
+        setResult({ slug, checkFailed: true });
       }
     },
     [entityType, lang, excludeId, enabled]

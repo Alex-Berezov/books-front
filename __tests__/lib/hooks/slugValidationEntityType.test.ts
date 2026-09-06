@@ -51,11 +51,7 @@ describe('checkTagSlugUniqueness', () => {
     expect(result.suggestedSlug).toBe('aestheticism-2');
   });
 
-  it('does not block the form when the check itself fails', async () => {
-    // Настоящую уникальность стережёт уникальный индекс в базе; отказ проверки не
-    // должен мешать редактору сохранить запись.
-    mocks.httpGetAuth.mockRejectedValue(new Error('network'));
-
-    await expect(checkTagSlugUniqueness('any')).resolves.toMatchObject({ isUnique: true });
-  });
+  // Поведение при отказе самой проверки (LEGACY-142) закреплено вместе с тремя
+  // остальными функциями того же модуля - `__tests__/api/endpoints/slugValidationCheckFailed.test.ts`.
+  // Здесь только маршрутизация по типу сущности, ради которой файл и заведён.
 });

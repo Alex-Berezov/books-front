@@ -14,8 +14,18 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 export interface SlugValidationResult {
   /** Validated slug */
   slug: string;
-  /** Is the slug unique */
-  isUnique: boolean;
+  /**
+   * Is the slug unique. Absent (not `true`) when the check itself failed
+   * (`checkFailed`) - the caller must not read a missing check as uniqueness.
+   */
+  isUnique?: boolean;
+  /**
+   * The uniqueness check could not be answered (network/auth failure). Distinct
+   * from `isUnique: false`: this means "unknown", not "taken" (LEGACY-142). A
+   * consumer must not block on this alone - only a real `isUnique === false`
+   * blocks saving.
+   */
+  checkFailed?: boolean;
   /** Suggested unique slug (if current is taken) */
   suggestedSlug?: string;
   /** Existing page with this slug (if found) */
@@ -77,7 +87,9 @@ interface CheckBookSlugResponse {
  * @example
  * // When creating new page
  * const result = await checkPageSlugUniqueness('about-us', 'en');
- * if (!result.isUnique) {
+ * // `=== false` on purpose: a failed check leaves `isUnique` undefined, and
+ * // `!undefined` would read "not checked" as "taken" (LEGACY-142).
+ * if (result.isUnique === false) {
  *   console.log(`Slug taken! Use: ${result.suggestedSlug}`);
  * }
  *
@@ -110,12 +122,12 @@ export const checkPageSlugUniqueness = async (
       reserved: response.reserved,
     };
   } catch (error) {
-    // In case of error (e.g., no authorization) consider slug unique
-    // to not block the form
+    // The check itself failed (e.g., no authorization) - report unknown, not
+    // unique. Saving is still not blocked: the caller reads `checkFailed`.
     console.error('[checkPageSlugUniqueness] Error checking slug:', error);
     return {
       slug,
-      isUnique: true,
+      checkFailed: true,
     };
   }
 };
@@ -133,7 +145,9 @@ export const checkPageSlugUniqueness = async (
  * @example
  * // When creating new book
  * const result = await checkBookSlugUniqueness('harry-potter');
- * if (!result.isUnique) {
+ * // `=== false` on purpose: a failed check leaves `isUnique` undefined, and
+ * // `!undefined` would read "not checked" as "taken" (LEGACY-142).
+ * if (result.isUnique === false) {
  *   console.log(`Slug taken! Use: ${result.suggestedSlug}`);
  * }
  *
@@ -161,11 +175,12 @@ export const checkBookSlugUniqueness = async (
       existingBook: response.existingBook,
     };
   } catch (error) {
-    // In case of error consider slug unique to not block the form
+    // The check itself failed - report unknown, not unique. Saving is still
+    // not blocked: the caller reads `checkFailed`.
     console.error('[checkBookSlugUniqueness] Error checking slug:', error);
     return {
       slug,
-      isUnique: true,
+      checkFailed: true,
     };
   }
 };
@@ -199,10 +214,12 @@ export const checkCategorySlugUniqueness = async (
       suggestedSlug: response.suggestedSlug,
     };
   } catch (error) {
+    // The check itself failed - report unknown, not unique. Saving is still
+    // not blocked: the caller reads `checkFailed`.
     console.error('[checkCategorySlugUniqueness] Error checking slug:', error);
     return {
       slug,
-      isUnique: true,
+      checkFailed: true,
     };
   }
 };
@@ -234,12 +251,13 @@ export const checkTagSlugUniqueness = async (
       suggestedSlug: response.suggestedSlug,
     };
   } catch (error) {
-    // Отказ проверки не должен блокировать форму: считаем слаг свободным, а
-    // настоящую уникальность всё равно стережёт уникальный индекс в базе.
+    // Отказ проверки не должен блокировать форму, но и не должен выдаваться за
+    // подтверждённую уникальность (LEGACY-142): настоящую уникальность всё
+    // равно стережёт уникальный индекс в базе.
     console.error('[checkTagSlugUniqueness] Error checking slug:', error);
     return {
       slug,
-      isUnique: true,
+      checkFailed: true,
     };
   }
 };

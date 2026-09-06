@@ -19,6 +19,7 @@ export const StatusIcon: FC<StatusIconProps> = (props) => {
       {status === 'checking' && <span className={styles.spinner}>⏳</span>}
       {status === 'valid' && <span className={styles.checkmark}>✓</span>}
       {status === 'invalid' && <span className={styles.cross}>✗</span>}
+      {status === 'unknown' && <span className={styles.unknownMark}>?</span>}
     </div>
   );
 };
