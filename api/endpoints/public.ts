@@ -3,6 +3,15 @@
  *
  * Contains typed functions for working with public data:
  * books, pages, categories, tags, etc.
+ *
+ * LEGACY-145: every `httpGet`/`httpGetAuth` call here sets an explicit cache mode —
+ * `next: { revalidate: N }` or `cache: 'no-store'` — never the Next.js default, which
+ * is "cache forever" (`revalidate = false`) and is not undone by a consumer page's
+ * `dynamic = 'force-dynamic'` — see the write-up in `app/sitemaps/[filename]/route.ts`.
+ *
+ * Functions whose only callers today are client hooks state their mode too: in the
+ * browser the option is inert (react-query's `staleTime` decides), but the policy is
+ * then already chosen for the first server caller instead of being picked by default.
  */
 
 import { httpGet, buildLangPath } from '@/lib/http';
@@ -28,6 +37,16 @@ import type {
 } from '@/types/api-schema';
 
 /**
+ * Data-cache lifetime of a public read, in seconds.
+ *
+ * One name, not one policy: a function whose data changes at a different rate passes
+ * its own number here. The constant exists because today eleven reads share the same
+ * cadence, and a TTL change was eleven identical literals nothing checked against
+ * each other.
+ */
+const PUBLIC_REVALIDATE_SECONDS = 300;
+
+/**
  * Get public chapters list for a book version
  *
  * @param versionId - Book version ID
@@ -35,7 +54,7 @@ import type {
  */
 export const getPublicChapters = async (versionId: string): Promise<ChapterDetail[]> => {
   const endpoint = `/versions/${versionId}/chapters`;
-  return httpGet<ChapterDetail[]>(endpoint);
+  return httpGet<ChapterDetail[]>(endpoint, { next: { revalidate: PUBLIC_REVALIDATE_SECONDS } });
 };
 
 /**
@@ -52,7 +71,10 @@ export const getPublicChapters = async (versionId: string): Promise<ChapterDetai
  */
 export const getBookOverview = async (lang: SupportedLang, slug: string): Promise<BookOverview> => {
   const endpoint = buildLangPath(lang, `/books/${slug}/overview`);
-  return httpGet<BookOverview>(endpoint, { language: lang, next: { revalidate: 300 } });
+  return httpGet<BookOverview>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /**
@@ -67,7 +89,10 @@ export const getRelatedBooks = async (
   limit = 8
 ): Promise<RelatedBooksResponse> => {
   const endpoint = buildLangPath(lang, `/books/${slug}/related?limit=${limit}`);
-  return httpGet<RelatedBooksResponse>(endpoint, { language: lang, next: { revalidate: 300 } });
+  return httpGet<RelatedBooksResponse>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 export interface BookCardsQueryOptions {
@@ -96,7 +121,10 @@ export const getBookCards = async (
   if (options?.type) params.append('type', options.type);
   if (options?.q) params.append('q', options.q);
   const endpoint = buildLangPath(lang, `/books/cards?${params.toString()}`);
-  return httpGet<BookCardsResponse>(endpoint, { language: lang, next: { revalidate: 300 } });
+  return httpGet<BookCardsResponse>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /**
@@ -114,7 +142,10 @@ export const getAuthorBookCards = async (
     lang,
     `/authors/${authorSlug}/books/cards?page=${page}&limit=${limit}`
   );
-  return httpGet<BookCardsResponse>(endpoint, { language: lang });
+  return httpGet<BookCardsResponse>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 export interface ReaderBootstrapResponse {
@@ -138,17 +169,33 @@ export interface ReaderBootstrapResponse {
  * such a parameter is trivially swapped: substituting someone else's id
  * returned their reading progress to an anonymous caller (`LEGACY-088`). The
  * reader now arrives only as a token, and the server takes them from there.
+ *
+ * `cache: 'no-store'`: the response carries this specific reader's `lastProgress`.
+ * Caching it by URL would serve one reader's progress to the next anonymous or
+ * authenticated caller of the same book.
  */
 export const getReaderBootstrap = async (
   lang: SupportedLang,
   slug: string
 ): Promise<ReaderBootstrapResponse> => {
   const endpoint = buildLangPath(lang, `/books/${slug}/reader-bootstrap`);
-  return httpGetAuth<ReaderBootstrapResponse>(endpoint, { language: lang, optionalAuth: true });
+  return httpGetAuth<ReaderBootstrapResponse>(endpoint, {
+    language: lang,
+    optionalAuth: true,
+    cache: 'no-store',
+  });
 };
 
 /**
  * Get public list of all books with pagination (without auth requirement)
+ *
+ * `cache: 'no-store'`: the two server callers are the sitemap routes, whose segment
+ * already forces `fetchCache = 'force-no-store'` (see the note there) — this makes
+ * that explicit here too. The third caller is `usePublicBooks`, a client hook, where
+ * the option is inert and react-query's `staleTime` decides instead.
+ *
+ * ⚠️ Calling this from a server `page.tsx` would opt that page out of static
+ * rendering entirely; a page that needs a cached list should call `getBookCards`.
  */
 export const getPublicBooks = async (
   lang: SupportedLang,
@@ -160,7 +207,7 @@ export const getPublicBooks = async (
     limit: String(limit),
   });
   const endpoint = buildLangPath(lang, `/books?${queryParams.toString()}`);
-  return httpGet<PaginatedResponse<BookOverview>>(endpoint, { language: lang });
+  return httpGet<PaginatedResponse<BookOverview>>(endpoint, { language: lang, cache: 'no-store' });
 };
 
 /**
@@ -177,7 +224,10 @@ export const getPublicBooks = async (
  */
 export const getPage = async (lang: SupportedLang, slug: string): Promise<PageResponse> => {
   const endpoint = buildLangPath(lang, `/pages/${slug}`);
-  return httpGet<PageResponse>(endpoint, { language: lang });
+  return httpGet<PageResponse>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /**
@@ -197,7 +247,10 @@ export const getPageBySystemKey = async (
   systemKey: SystemPageKey
 ): Promise<PageResponse> => {
   const endpoint = buildLangPath(lang, `/pages/by-key/${systemKey}`);
-  return httpGet<PageResponse>(endpoint, { language: lang });
+  return httpGet<PageResponse>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /**
@@ -230,7 +283,10 @@ export const getCategoryBooks = async (
     `/categories/${slug}/books${queryString ? `?${queryString}` : ''}`
   );
 
-  return httpGet<CategoryBooksResponse>(endpoint, { language: lang });
+  return httpGet<CategoryBooksResponse>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /**
@@ -263,7 +319,10 @@ export const getTagBooks = async (
     `/tags/${slug}/books${queryString ? `?${queryString}` : ''}`
   );
 
-  return httpGet<TagBooksResponse>(endpoint, { language: lang });
+  return httpGet<TagBooksResponse>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /**
@@ -282,7 +341,10 @@ export const getCategoryBookCards = async (
     lang,
     `/categories/${slug}/books/cards?page=${page}&limit=${limit}`
   );
-  return httpGet<CategoryBookCardsResponse>(endpoint, { language: lang });
+  return httpGet<CategoryBookCardsResponse>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 export interface CategoryListItem {
@@ -350,7 +412,10 @@ export const getPublicCategories = async (
   const params = new URLSearchParams();
   if (type) params.append('type', type);
   const endpoint = buildLangPath(lang, `/categories?${params.toString()}`);
-  return httpGet<PaginatedCategoriesResponse>(endpoint, { language: lang });
+  return httpGet<PaginatedCategoriesResponse>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /**
@@ -366,7 +431,10 @@ export const getTagBookCards = async (
   limit = 24
 ): Promise<TagBookCardsResponse> => {
   const endpoint = buildLangPath(lang, `/tags/${slug}/books/cards?page=${page}&limit=${limit}`);
-  return httpGet<TagBookCardsResponse>(endpoint, { language: lang });
+  return httpGet<TagBookCardsResponse>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /**
@@ -385,7 +453,7 @@ export const getPublicCategoriesTree = async (
   if (type) params.append('type', type);
   return httpGet<CategoryTree[]>(`/categories/tree?${params.toString()}`, {
     language: lang,
-    next: { revalidate: 300 },
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
   });
 };
 
@@ -399,7 +467,10 @@ export const getPublicTags = async (
   const { page = 1, limit = 50 } = params;
   const queryParams = new URLSearchParams({ page: String(page), limit: String(limit) });
   const endpoint = buildLangPath(lang, `/tags?${queryParams.toString()}`);
-  return httpGet<PaginatedTagsResponse>(endpoint, { language: lang });
+  return httpGet<PaginatedTagsResponse>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /**
@@ -425,7 +496,7 @@ export const resolveSeo = async (
 
   return httpGet<SeoResolveResponse>(`${endpoint}?${params.toString()}`, {
     language: lang,
-    next: { revalidate: 300 },
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
   });
 };
 
@@ -437,7 +508,10 @@ export const getPublicAuthorBySlug = async (
   slug: string
 ): Promise<PublicAuthorDetail> => {
   const endpoint = buildLangPath(lang, `/authors/${slug}`);
-  return httpGet<PublicAuthorDetail>(endpoint, { language: lang });
+  return httpGet<PublicAuthorDetail>(endpoint, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /** Параметры публичного списка авторов. Совпадают с `PublicAuthorsQueryDto` на бэкенде. */
@@ -500,7 +574,7 @@ export const getPublicAuthors = async (
   // равно ничего не даёт — она `noindex`.
   return httpGet<PaginatedResponse<AuthorListItem>>(endpoint, {
     language: lang,
-    next: search ? { revalidate: 0 } : { revalidate: 300 },
+    next: search ? { revalidate: 0 } : { revalidate: PUBLIC_REVALIDATE_SECONDS },
   });
 };
 
@@ -520,6 +594,6 @@ export const getAuthorLetters = async (
   const endpoint = buildLangPath(lang, `/authors/letters${query}`);
   return httpGet<AuthorLetter[]>(endpoint, {
     language: lang,
-    next: search ? { revalidate: 0 } : { revalidate: 300 },
+    next: search ? { revalidate: 0 } : { revalidate: PUBLIC_REVALIDATE_SECONDS },
   });
 };
