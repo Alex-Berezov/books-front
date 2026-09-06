@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FC } from 'react';
+import { useState, useEffect, useRef, type FC } from 'react';
 import { X, Copy, Download } from 'lucide-react';
 import type { RightsReviewImportDetail } from '@/types/api-schema/rights-intake';
 import styles from './ReviewImportDetailModal.module.scss';
@@ -15,6 +15,17 @@ export const ReviewImportDetailModal: FC<ReviewImportDetailModalProps> = ({
   onClose,
 }) => {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Фокус переносится в окно при открытии — иначе Escape не срабатывает вовсе:
+  // окно открывают строкой истории импорта, и фокус остаётся на ней (`LEGACY-041`).
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    modalRef.current?.focus();
+
+    // Фокус возвращается на строку списка, с которой окно открыли.
+    return () => opener?.focus?.();
+  }, []);
 
   const handleCopyJson = (json: unknown) => {
     try {
@@ -42,14 +53,17 @@ export const ReviewImportDetailModal: FC<ReviewImportDetailModalProps> = ({
   return (
     <div
       className={styles.overlay}
-      onClick={onClose}
+      // Закрывает только клик по самой подложке — см. `ManifestPanel` и `LEGACY-041`.
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Escape') onClose();
       }}
       role="button"
       tabIndex={0}
     >
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.modal} ref={modalRef} tabIndex={-1}>
         <div className={styles.modalHeader}>
           <h3 className={styles.modalTitle}>
             Review Import Detail

@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { PageBackButton } from '@/components/public/navigation';
+import { pluralFormsOf } from '@/lib/i18n/plural';
 import { createTranslator } from '@/lib/i18n/translate';
 import type { TagListItem } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -63,8 +64,7 @@ export const TaxonomyOverview: FC<TaxonomyOverviewProps> = ({ lang, configKey, p
         <div className={styles.taxonomySection}>
           <h2 className={styles.sectionTitle}>{t(SECTION_TITLE_KEY[configKey])}</h2>
           <TaxonomyCardGrid
-            bookPlural={t('common.bookPlural')}
-            bookSingular={t('common.bookSingular')}
+            bookForms={pluralFormsOf(t, 'common.bookCount')}
             emptyText={t('taxonomy.noItems')}
             itemKind={configKey === 'tag' ? 'tag' : 'category'}
             items={items}

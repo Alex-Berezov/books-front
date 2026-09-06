@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { BookSectionServer } from '@/components/public/books/BookSectionServer/BookSectionServer';
+import { pluralize, type PluralForms } from '@/lib/i18n/plural';
 import { isOptimizableHost } from '@/lib/utils/image-host';
+import type { SupportedLang } from '@/lib/i18n/lang';
 import type { AuthorListItem, BookCardModel, BookCollectionData } from '@/types/api-schema';
 import pageStyles from '../../../../app/page.module.scss';
 
@@ -24,7 +26,7 @@ interface HomePageContentLabels {
   topPopular: string;
   browseByCategory: string;
   viewAll: string;
-  booksCount: string;
+  bookForms: PluralForms;
   genres: string;
   curatedCollections: string;
   newReleases: string;
@@ -44,7 +46,7 @@ interface HomePageContentLabels {
 }
 
 interface HomePageContentProps {
-  lang: string;
+  lang: SupportedLang;
   labels: HomePageContentLabels;
   featuredBooks: BookCardModel[];
   newReleases: BookCardModel[];
@@ -262,7 +264,8 @@ export function HomePageContent({
                     <div className={pageStyles.genreInfo}>
                       <p className={pageStyles.genreName}>{name}</p>
                       <p className={pageStyles.genreCount}>
-                        {cat.booksCount || 0} {labels.booksCount}
+                        {cat.booksCount || 0}{' '}
+                        {pluralize(cat.booksCount || 0, lang, labels.bookForms)}
                       </p>
                     </div>
                   </Link>
@@ -297,7 +300,8 @@ export function HomePageContent({
                     <div className={pageStyles.genreInfo}>
                       <p className={pageStyles.genreName}>{name}</p>
                       <p className={pageStyles.genreCount}>
-                        {genre.booksCount || 0} {labels.booksCount}
+                        {genre.booksCount || 0}{' '}
+                        {pluralize(genre.booksCount || 0, lang, labels.bookForms)}
                       </p>
                     </div>
                   </Link>
@@ -332,7 +336,8 @@ export function HomePageContent({
                     <div className={pageStyles.genreInfo}>
                       <p className={pageStyles.genreName}>{name}</p>
                       <p className={pageStyles.genreCount}>
-                        {col.booksCount || 0} {labels.booksCount}
+                        {col.booksCount || 0}{' '}
+                        {pluralize(col.booksCount || 0, lang, labels.bookForms)}
                       </p>
                     </div>
                   </Link>

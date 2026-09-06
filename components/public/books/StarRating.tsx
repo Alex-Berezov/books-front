@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Star } from 'lucide-react';
 import { getLocaleTag } from '@/lib/i18n/lang';
+import { pluralize, pluralFormsOf } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './StarRating.module.scss';
 
@@ -61,7 +62,7 @@ export function StarRating({
                     className="sr-only"
                   />
                   <span className="sr-only">
-                    {star === 1 ? t('a11y.starOne') : t('a11y.starsCount', { count: star })}
+                    {pluralize(star, lang, pluralFormsOf(t, 'a11y.starCount', { count: star }))}
                   </span>
                   <Star
                     size={size === 'sm' ? 12 : 16}

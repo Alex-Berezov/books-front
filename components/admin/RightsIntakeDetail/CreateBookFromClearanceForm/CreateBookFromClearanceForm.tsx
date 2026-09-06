@@ -254,10 +254,11 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
 
         <div className={styles.form}>
           <div className={styles.field}>
-            <label className={styles.fieldLabel}>
+            <label className={styles.fieldLabel} htmlFor="book-slug">
               Book Slug<span className={styles.required}>*</span>
             </label>
             <Input
+              id="book-slug"
               value={slug}
               onChange={(event) => handleSlugChange(event.target.value)}
               placeholder="book-slug"
@@ -304,10 +305,11 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
 
                 <div className={styles.fieldRow}>
                   <div className={styles.field}>
-                    <label className={styles.fieldLabel}>
+                    <label className={styles.fieldLabel} htmlFor={`version-${index}-language`}>
                       Language<span className={styles.required}>*</span>
                     </label>
                     <Select
+                      id={`version-${index}-language`}
                       value={version.language}
                       onChange={(value) => handleVersionFieldChange(index, 'language', value)}
                       options={getLanguageOptions(index)}
@@ -315,10 +317,11 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                     />
                   </div>
                   <div className={styles.field}>
-                    <label className={styles.fieldLabel}>
+                    <label className={styles.fieldLabel} htmlFor={`version-${index}-type`}>
                       Type<span className={styles.required}>*</span>
                     </label>
                     <Select
+                      id={`version-${index}-type`}
                       value={version.type}
                       onChange={(value) => handleVersionFieldChange(index, 'type', value)}
                       options={VERSION_TYPES}
@@ -329,10 +332,11 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
 
                 <div className={styles.fieldRow}>
                   <div className={styles.field}>
-                    <label className={styles.fieldLabel}>
+                    <label className={styles.fieldLabel} htmlFor={`version-${index}-title`}>
                       Title<span className={styles.required}>*</span>
                     </label>
                     <Input
+                      id={`version-${index}-title`}
                       value={version.title}
                       onChange={(event) =>
                         handleVersionFieldChange(index, 'title', event.target.value)
@@ -341,10 +345,11 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                     />
                   </div>
                   <div className={styles.field}>
-                    <label className={styles.fieldLabel}>
+                    <label className={styles.fieldLabel} htmlFor={`version-${index}-author`}>
                       Author<span className={styles.required}>*</span>
                     </label>
                     <Input
+                      id={`version-${index}-author`}
                       value={version.author}
                       onChange={(event) =>
                         handleVersionFieldChange(index, 'author', event.target.value)
@@ -370,8 +375,14 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                   <Space direction="vertical" size="middle" className={styles.optionalFieldsSpace}>
                     <div className={styles.fieldRow}>
                       <div className={styles.field}>
-                        <label className={styles.fieldLabel}>Referral URL</label>
+                        <label
+                          className={styles.fieldLabel}
+                          htmlFor={`version-${index}-referral-url`}
+                        >
+                          Referral URL
+                        </label>
                         <Input
+                          id={`version-${index}-referral-url`}
                           value={version.referralUrl}
                           onChange={(event) =>
                             handleVersionFieldChange(index, 'referralUrl', event.target.value)
@@ -380,8 +391,14 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                         />
                       </div>
                       <div className={styles.field}>
-                        <label className={styles.fieldLabel}>Primary Category ID</label>
+                        <label
+                          className={styles.fieldLabel}
+                          htmlFor={`version-${index}-primary-category-id`}
+                        >
+                          Primary Category ID
+                        </label>
                         <Input
+                          id={`version-${index}-primary-category-id`}
                           value={version.primaryCategoryId}
                           onChange={(event) =>
                             handleVersionFieldChange(index, 'primaryCategoryId', event.target.value)
@@ -392,8 +409,14 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                     </div>
                     <div className={styles.fieldRow}>
                       <div className={styles.field}>
-                        <label className={styles.fieldLabel}>First Published Year</label>
+                        <label
+                          className={styles.fieldLabel}
+                          htmlFor={`version-${index}-first-published-year`}
+                        >
+                          First Published Year
+                        </label>
                         <Input
+                          id={`version-${index}-first-published-year`}
                           type="number"
                           value={version.firstPublishedYear}
                           onChange={(event) =>
@@ -407,8 +430,14 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                         />
                       </div>
                       <div className={styles.field}>
-                        <label className={styles.fieldLabel}>Edition Published Year</label>
+                        <label
+                          className={styles.fieldLabel}
+                          htmlFor={`version-${index}-edition-published-year`}
+                        >
+                          Edition Published Year
+                        </label>
                         <Input
+                          id={`version-${index}-edition-published-year`}
                           type="number"
                           value={version.editionPublishedYear}
                           onChange={(event) =>
@@ -424,8 +453,14 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                     </div>
                     <div className={styles.fieldRow}>
                       <div className={styles.field}>
-                        <label className={styles.fieldLabel}>Original Language</label>
+                        <label
+                          className={styles.fieldLabel}
+                          htmlFor={`version-${index}-original-language`}
+                        >
+                          Original Language
+                        </label>
                         <Input
+                          id={`version-${index}-original-language`}
                           value={version.originalLanguage}
                           onChange={(event) =>
                             handleVersionFieldChange(index, 'originalLanguage', event.target.value)
@@ -434,8 +469,14 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                         />
                       </div>
                       <div className={styles.field}>
-                        <label className={styles.fieldLabel}>Original Title</label>
+                        <label
+                          className={styles.fieldLabel}
+                          htmlFor={`version-${index}-original-title`}
+                        >
+                          Original Title
+                        </label>
                         <Input
+                          id={`version-${index}-original-title`}
                           value={version.originalTitle}
                           onChange={(event) =>
                             handleVersionFieldChange(index, 'originalTitle', event.target.value)
@@ -446,8 +487,14 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                     </div>
                     <div className={styles.fieldRow}>
                       <div className={styles.field}>
-                        <label className={styles.fieldLabel}>Copyright Status</label>
+                        <label
+                          className={styles.fieldLabel}
+                          htmlFor={`version-${index}-copyright-status`}
+                        >
+                          Copyright Status
+                        </label>
                         <Input
+                          id={`version-${index}-copyright-status`}
                           value={version.copyrightStatus}
                           onChange={(event) =>
                             handleVersionFieldChange(index, 'copyrightStatus', event.target.value)
@@ -456,8 +503,14 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                         />
                       </div>
                       <div className={styles.field}>
-                        <label className={styles.fieldLabel}>Author Page URL</label>
+                        <label
+                          className={styles.fieldLabel}
+                          htmlFor={`version-${index}-author-page-url`}
+                        >
+                          Author Page URL
+                        </label>
                         <Input
+                          id={`version-${index}-author-page-url`}
                           value={version.authorPageUrl}
                           onChange={(event) =>
                             handleVersionFieldChange(index, 'authorPageUrl', event.target.value)
@@ -468,8 +521,11 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                     </div>
                     <div className={styles.fieldRow}>
                       <div className={styles.field}>
-                        <label className={styles.fieldLabel}>Author ID</label>
+                        <label className={styles.fieldLabel} htmlFor={`version-${index}-author-id`}>
+                          Author ID
+                        </label>
                         <Input
+                          id={`version-${index}-author-id`}
                           value={version.authorId}
                           onChange={(event) =>
                             handleVersionFieldChange(index, 'authorId', event.target.value)
@@ -478,8 +534,11 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                         />
                       </div>
                       <div className={styles.field}>
-                        <label className={styles.fieldLabel}>Cover Alt Text</label>
+                        <label className={styles.fieldLabel} htmlFor={`version-${index}-cover-alt`}>
+                          Cover Alt Text
+                        </label>
                         <Input
+                          id={`version-${index}-cover-alt`}
                           value={version.coverAlt}
                           onChange={(event) =>
                             handleVersionFieldChange(index, 'coverAlt', event.target.value)
@@ -489,8 +548,14 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                       </div>
                     </div>
                     <div className={styles.field}>
-                      <label className={styles.fieldLabel}>Short Description</label>
+                      <label
+                        className={styles.fieldLabel}
+                        htmlFor={`version-${index}-short-description`}
+                      >
+                        Short Description
+                      </label>
                       <TextArea
+                        id={`version-${index}-short-description`}
                         rows={2}
                         value={version.shortDescription}
                         onChange={(event) =>
@@ -500,8 +565,14 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                       />
                     </div>
                     <div className={styles.field}>
-                      <label className={styles.fieldLabel}>Summary Short</label>
+                      <label
+                        className={styles.fieldLabel}
+                        htmlFor={`version-${index}-summary-short`}
+                      >
+                        Summary Short
+                      </label>
                       <TextArea
+                        id={`version-${index}-summary-short`}
                         rows={2}
                         value={version.summaryShort}
                         onChange={(event) =>

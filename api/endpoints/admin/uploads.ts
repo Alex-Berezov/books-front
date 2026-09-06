@@ -17,7 +17,6 @@
  */
 
 import { getAccessToken, httpGetAuth, httpPostAuth } from '@/lib/http-client';
-import { HTTP_STATUS } from '@/lib/http.constants';
 import { ApiError } from '@/types/api';
 import type {
   ConfirmUploadRequest,
@@ -194,14 +193,9 @@ export const uploadMediaMultipart = async (
   file: File,
   options: UploadProgressOptions = {}
 ): Promise<MediaAsset> => {
+  // Вторая копия отказа «нет токена» здесь не нужна и была недостижима:
+  // `getAccessToken(true)` без токена бросает сам (`lib/http-client/auth.ts`).
   const token = await getAccessToken(true);
-  if (!token) {
-    throw new ApiError({
-      message: 'Authentication required',
-      statusCode: HTTP_STATUS.UNAUTHORIZED,
-      error: 'Unauthorized',
-    });
-  }
 
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
   const url = `${apiBaseUrl}/media/upload`;

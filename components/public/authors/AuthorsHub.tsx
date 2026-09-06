@@ -5,12 +5,12 @@ import { PageBackButton } from '@/components/public/navigation';
 import { FaqBlock } from '@/components/public/taxonomy-overview/FaqBlock';
 import { OverviewHero } from '@/components/public/taxonomy-overview/OverviewHero';
 import { SeoDescription } from '@/components/public/taxonomy-overview/SeoDescription';
+import { pluralize, pluralFormsOf } from '@/lib/i18n/plural';
 import { createTranslator } from '@/lib/i18n/translate';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { AuthorLetter, AuthorListItem, PageResponse } from '@/types/api-schema';
 import { AuthorCard } from './AuthorCard';
 import { authorsBasePath, authorsHref, type AuthorsQuery } from './authors-href';
-import { pluralize } from './authors-plural';
 import { AuthorsAlphabet } from './AuthorsAlphabet';
 import styles from './AuthorsHub.module.scss';
 import { AuthorsPager } from './AuthorsPager';
@@ -65,23 +65,11 @@ export const AuthorsHub: FC<AuthorsHubProps> = ({ lang, page, authors, meta, let
       : [{ label: t('breadcrumb.authors') }]),
   ];
 
-  const authorsLabel = pluralize(meta.total, lang, {
-    one: t('authors.authorsCountOne'),
-    few: t('authors.authorsCountFew'),
-    many: t('authors.authorsCountMany'),
-  });
+  const authorsLabel = pluralize(meta.total, lang, pluralFormsOf(t, 'authors.authorsCount'));
 
   const cardLabels = {
-    books: {
-      one: t('authors.booksCountOne'),
-      few: t('authors.booksCountFew'),
-      many: t('authors.booksCountMany'),
-    },
-    audio: {
-      one: t('authors.audioCountOne'),
-      few: t('authors.audioCountFew'),
-      many: t('authors.audioCountMany'),
-    },
+    books: pluralFormsOf(t, 'authors.booksCount'),
+    audio: pluralFormsOf(t, 'authors.audioCount'),
     audioBadge: t('authors.audioBadge'),
     bornPrefix: t('authors.bornPrefix'),
   };

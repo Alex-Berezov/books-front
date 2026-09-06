@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pluralize } from '@/components/public/authors/authors-plural';
+import { pluralize } from '@/lib/i18n/plural';
 
 const books = { one: 'книга', few: 'книги', many: 'книг' };
 const enBooks = { one: 'book', few: 'books', many: 'books' };
@@ -37,9 +37,19 @@ describe('pluralize', () => {
   it('keeps the two-form rule for the four other languages', () => {
     for (const lang of ['en', 'es', 'fr', 'pt'] as const) {
       expect(pluralize(1, lang, enBooks)).toBe(enBooks.one);
-      for (const count of [0, 2, 5, 11, 21]) {
+      for (const count of [2, 5, 11, 21]) {
         expect(pluralize(count, lang, enBooks)).toBe(enBooks.many);
       }
+    }
+  });
+
+  // Ноль языки делят: `0 books` и `0 libros`, но `0 livre` и `0 livro`.
+  it('takes the singular at zero for fr and pt, the plural for en and es', () => {
+    for (const lang of ['fr', 'pt'] as const) {
+      expect(pluralize(0, lang, enBooks)).toBe(enBooks.one);
+    }
+    for (const lang of ['en', 'es'] as const) {
+      expect(pluralize(0, lang, enBooks)).toBe(enBooks.many);
     }
   });
 });

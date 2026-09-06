@@ -3,6 +3,7 @@ import { TaxonomyDetailPage } from '@/components/public/taxonomy/TaxonomyDetailP
 import { buildLangPath, httpGet } from '@/lib/http';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
+import { pluralFormsOf } from '@/lib/i18n/plural';
 import { noteDegraded } from '@/lib/seo/degraded';
 import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
@@ -317,7 +318,7 @@ export default async function CategoryDetailPage({ params, searchParams }: Props
     allBooksLink: t('taxonomy.allBooksLink'),
     tagsLink: t('taxonomy.tagsLink'),
     linkLabel: t(LINK_KEYS[TAXONOMY_TYPE]),
-    booksCount: t('taxonomy.booksCount'),
+    bookForms: pluralFormsOf(t, 'taxonomy.booksCount'),
     relatedGenres: t('taxonomy.relatedGenres'),
     relatedCategories: t('taxonomy.relatedCategories'),
     relatedCollections: t('taxonomy.relatedCollections'),

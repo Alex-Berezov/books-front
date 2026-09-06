@@ -42,17 +42,52 @@ export enum AuthErrorType {
 
   /** Email and password are required */
   MISSING_CREDENTIALS = 'MissingCredentials',
+
+  /** Backend refused the login for a reason of its own */
+  AUTHENTICATION_FAILED = 'AuthenticationFailed',
 }
 
 /**
- * Authorization error messages
+ * Ключ словаря на каждый код отказа входа (`LEGACY-053`).
+ *
+ * 🔴 До 06.09.2026 рядом лежала карта `AUTH_ERROR_MESSAGES` с английскими фразами,
+ * и `authorize` кидал именно фразу, а страница входа сравнивала её со строкой.
+ * Константа выполняла двойную роль — код и текст для пользователя, — то есть любое
+ * место, отрендерившее `error.message`, показывало русскому читателю английский текст.
+ * Теперь наружу уходит **код** (полем `code`, см. `authErrorDictKey`), а текст
+ * живёт только в словарях.
+ *
+ * Код, которого здесь нет (и `REFRESH_TOKEN_ERROR`, у которого своего экрана нет),
+ * сводится к общему `auth.signin.genericError` — см. `AUTH_ERROR_FALLBACK_KEY`.
  */
-export const AUTH_ERROR_MESSAGES = {
-  [AuthErrorType.INVALID_CREDENTIALS]: 'Invalid credentials',
-  [AuthErrorType.RATE_LIMIT_EXCEEDED]: 'Too many requests. Please try again later.',
-  [AuthErrorType.MISSING_CREDENTIALS]: 'Email and password are required',
-  [AuthErrorType.REFRESH_TOKEN_ERROR]: 'Failed to refresh access token',
-} as const;
+export const AUTH_ERROR_DICT_KEY: Record<AuthErrorType, string> = {
+  [AuthErrorType.INVALID_CREDENTIALS]: 'auth.signin.invalidCredentials',
+  [AuthErrorType.RATE_LIMIT_EXCEEDED]: 'auth.signin.rateLimit',
+  [AuthErrorType.MISSING_CREDENTIALS]: 'auth.signin.missingCredentials',
+  [AuthErrorType.REFRESH_TOKEN_ERROR]: 'auth.signin.genericError',
+  [AuthErrorType.AUTHENTICATION_FAILED]: 'auth.signin.genericError',
+};
+
+/** Ключ словаря для отказа, код которого не опознан. */
+export const AUTH_ERROR_FALLBACK_KEY = 'auth.signin.genericError';
+
+/**
+ * Ключ словаря по коду, который вернул `signIn`.
+ *
+ * ⚠️ 🔴 Код доезжает до клиента **только** в поле `result.code` и **только** если
+ * `authorize` бросил наследника `CredentialsSignin`: обычный `Error` `@auth/core`
+ * заворачивает в `CallbackRouteError`, тот не входит в белый список клиентски
+ * безопасных типов, и наружу уходит `error=Configuration` — то есть код теряется,
+ * а посетитель получает общий текст на любую причину. Отсюда `SignInCodeError`
+ * в `lib/auth/config.ts`; читать надо `result.code`, а не `result.error`.
+ *
+ * Поиск идёт по собственным ключам: значение приходит из адресной строки, и
+ * `AUTH_ERROR_DICT_KEY['toString']` вернул бы функцию прототипа, а она уронила бы `t()`.
+ */
+export const authErrorDictKey = (code: string | null | undefined): string =>
+  (code && Object.prototype.hasOwnProperty.call(AUTH_ERROR_DICT_KEY, code)
+    ? AUTH_ERROR_DICT_KEY[code as AuthErrorType]
+    : AUTH_ERROR_FALLBACK_KEY) || AUTH_ERROR_FALLBACK_KEY;
 
 /**
  * User roles in the system

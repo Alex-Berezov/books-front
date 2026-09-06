@@ -287,8 +287,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Work Details</h2>
         <div className={styles.field}>
-          <label className={styles.label}>Candidate Title *</label>
+          <label className={styles.label} htmlFor="candidateTitle">
+            Candidate Title *
+          </label>
           <input
+            id="candidateTitle"
             className={styles.input}
             value={form.candidateTitle}
             onChange={(e) => updateField('candidateTitle', e.target.value)}
@@ -297,8 +300,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
           {errors.candidateTitle && <span className={styles.error}>{errors.candidateTitle}</span>}
         </div>
         <div className={styles.field}>
-          <label className={styles.label}>Candidate Author *</label>
+          <label className={styles.label} htmlFor="candidateAuthor">
+            Candidate Author *
+          </label>
           <input
+            id="candidateAuthor"
             className={styles.input}
             value={form.candidateAuthor}
             onChange={(e) => updateField('candidateAuthor', e.target.value)}
@@ -308,8 +314,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
         </div>
         <div className={styles.fieldRow}>
           <div className={styles.field}>
-            <label className={styles.label}>Original Title</label>
+            <label className={styles.label} htmlFor="originalTitle">
+              Original Title
+            </label>
             <input
+              id="originalTitle"
               className={styles.input}
               value={form.originalTitle}
               onChange={(e) => updateField('originalTitle', e.target.value)}
@@ -317,8 +326,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Original Language</label>
+            <label className={styles.label} htmlFor="originalLanguage">
+              Original Language
+            </label>
             <input
+              id="originalLanguage"
               className={styles.input}
               value={form.originalLanguage}
               onChange={(e) => updateField('originalLanguage', e.target.value)}
@@ -328,8 +340,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
         </div>
         <div className={styles.fieldRow}>
           <div className={styles.field}>
-            <label className={styles.label}>Author Birth Year</label>
+            <label className={styles.label} htmlFor="authorBirthYear">
+              Author Birth Year
+            </label>
             <input
+              id="authorBirthYear"
               className={styles.input}
               type="number"
               value={form.authorBirthYear}
@@ -338,8 +353,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Author Death Year</label>
+            <label className={styles.label} htmlFor="authorDeathYear">
+              Author Death Year
+            </label>
             <input
+              id="authorDeathYear"
               className={styles.input}
               type="number"
               value={form.authorDeathYear}
@@ -357,8 +375,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
         <h2 className={styles.sectionTitle}>Source Details</h2>
         <div className={styles.fieldRow}>
           <div className={styles.field}>
-            <label className={styles.label}>Source Provider</label>
+            <label className={styles.label} htmlFor="sourceProvider">
+              Source Provider
+            </label>
             <select
+              id="sourceProvider"
               className={styles.select}
               value={form.sourceProvider}
               onChange={(e) => updateField('sourceProvider', e.target.value)}
@@ -369,8 +390,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
             </select>
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Source External ID (optional)</label>
+            <label className={styles.label} htmlFor="sourceExternalId">
+              Source External ID (optional)
+            </label>
             <input
+              id="sourceExternalId"
               className={styles.input}
               value={form.sourceExternalId}
               onChange={(e) => updateField('sourceExternalId', e.target.value)}
@@ -379,8 +403,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
           </div>
         </div>
         <div className={styles.field}>
-          <label className={styles.label}>Source URL</label>
+          <label className={styles.label} htmlFor="sourceUrl">
+            Source URL
+          </label>
           <input
+            id="sourceUrl"
             className={styles.input}
             value={form.sourceUrl}
             onChange={(e) => handleSourceUrlChange(e.target.value)}
@@ -396,8 +423,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
           )}
         </div>
         <div className={styles.field}>
-          <label className={styles.label}>Source Title</label>
+          <label className={styles.label} htmlFor="sourceTitle">
+            Source Title
+          </label>
           <input
+            id="sourceTitle"
             className={styles.input}
             value={form.sourceTitle}
             onChange={(e) => updateField('sourceTitle', e.target.value)}
@@ -406,8 +436,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
         </div>
         <div className={styles.fieldRow}>
           <div className={styles.field}>
-            <label className={styles.label}>Source Language</label>
+            <label className={styles.label} htmlFor="sourceLanguage">
+              Source Language
+            </label>
             <input
+              id="sourceLanguage"
               className={styles.input}
               value={form.sourceLanguage}
               onChange={(e) => updateField('sourceLanguage', e.target.value)}
@@ -415,8 +448,11 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Source Text Type</label>
+            <label className={styles.label} htmlFor="sourceTextType">
+              Source Text Type
+            </label>
             <select
+              id="sourceTextType"
               className={styles.select}
               value={form.sourceTextType}
               onChange={(e) => updateField('sourceTextType', e.target.value)}
@@ -434,8 +470,8 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
 
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Publication Plan</h2>
-        <div className={styles.field}>
-          <label className={styles.label}>Target Languages *</label>
+        <fieldset className={styles.field}>
+          <legend className={styles.label}>Target Languages *</legend>
           <div className={styles.checkboxGroup}>
             {LANGUAGES.map((l) => (
               <label key={l} className={styles.checkboxLabel}>
@@ -449,12 +485,13 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
             ))}
           </div>
           {errors.targetLanguages && <span className={styles.error}>{errors.targetLanguages}</span>}
-        </div>
+        </fieldset>
         <div className={styles.field}>
-          <label className={styles.label}>
+          <label className={styles.label} htmlFor="targetCountryCodes">
             Target Country Codes (ISO Alpha-2, comma separated) *
           </label>
           <input
+            id="targetCountryCodes"
             className={styles.input}
             value={form.targetCountryCodes}
             onChange={(e) => updateField('targetCountryCodes', e.target.value)}
@@ -464,8 +501,8 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
             <span className={styles.error}>{errors.targetCountryCodes}</span>
           )}
         </div>
-        <div className={styles.field}>
-          <label className={styles.label}>Planned Content Types *</label>
+        <fieldset className={styles.field}>
+          <legend className={styles.label}>Planned Content Types *</legend>
           <div className={styles.checkboxGroup}>
             {CONTENT_TYPES.map((ct) => (
               <label key={ct} className={styles.checkboxLabel}>
@@ -481,9 +518,9 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
           {errors.plannedContentTypes && (
             <span className={styles.error}>{errors.plannedContentTypes}</span>
           )}
-        </div>
-        <div className={styles.field}>
-          <label className={styles.label}>Planned Components</label>
+        </fieldset>
+        <fieldset className={styles.field}>
+          <legend className={styles.label}>Planned Components</legend>
           <div className={styles.checkboxGroup}>
             {COMPONENTS.map((comp) => (
               <label key={comp} className={styles.checkboxLabel}>
@@ -499,14 +536,17 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
       </div>
 
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Notes</h2>
         <div className={styles.field}>
-          <label className={styles.label}>Notes (Russian)</label>
+          <label className={styles.label} htmlFor="notesRu">
+            Notes (Russian)
+          </label>
           <textarea
+            id="notesRu"
             className={styles.textarea}
             value={form.notesRu}
             onChange={(e) => updateField('notesRu', e.target.value)}

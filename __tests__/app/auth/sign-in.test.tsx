@@ -93,4 +93,32 @@ describe('SignInPage', () => {
       expect(pushMock).toHaveBeenCalledWith('/en');
     });
   });
+
+  /**
+   * 🔴 `LEGACY-053`: причина отказа приходит полем `code`, а `error` несёт только тип
+   * ошибки самого `next-auth` («CredentialsSignin» на любой отказ входа). Читать `error`
+   * значит показывать один общий текст и на неверный пароль, и на рейт-лимит.
+   *
+   * Сторож краснеет на возврате `translateAuthError(result.error)`.
+   */
+  it('показывает причину отказа по коду, а не по типу ошибки next-auth', async () => {
+    vi.spyOn(nextAuth, 'signIn').mockResolvedValue({
+      ok: false,
+      error: 'CredentialsSignin',
+      status: 401,
+      url: null,
+      code: 'RateLimitExceeded',
+    } as unknown as Awaited<ReturnType<typeof nextAuth.signIn>>);
+
+    render(<SignInPage />);
+
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/too many requests/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/authentication failed/i)).toBeNull();
+  });
 });

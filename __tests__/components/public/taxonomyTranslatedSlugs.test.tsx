@@ -33,8 +33,7 @@ const renderGrid = (lang: 'en' | 'ru', items: CategoryTree[]) =>
       routeBase="genre"
       emptyText="Nothing here"
       itemKind="category"
-      bookSingular="book"
-      bookPlural="books"
+      bookForms={{ one: 'book', few: 'books', many: 'books' }}
     />
   );
 

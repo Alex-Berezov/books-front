@@ -9,18 +9,35 @@
  * @see https://next-auth.js.org/configuration/options
  */
 
+import { CredentialsSignin } from '@auth/core/errors';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import { visitorIpHeaderFrom } from '@/lib/visitor-ip';
 import type { User, Session, Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
-import {
-  AUTH_TOKEN_EXPIRY,
-  SESSION_SETTINGS,
-  AuthErrorType,
-  AUTH_ERROR_MESSAGES,
-  AUTH_ROUTES,
-} from './constants';
+import { AUTH_TOKEN_EXPIRY, SESSION_SETTINGS, AuthErrorType, AUTH_ROUTES } from './constants';
+
+/**
+ * Отказ входа, чей код доезжает до страницы входа.
+ *
+ * 🔴 Обычный `Error` до клиента не доходит: `@auth/core` заворачивает его
+ * в `CallbackRouteError`, тот не входит в белый список клиентски безопасных типов,
+ * и в адрес уходит `error=Configuration`. У наследника `CredentialsSignin` наружу
+ * отдельным параметром уезжает `code` — единственное поле, которое переживает
+ * дорогу (`@auth/core/index.js`, ветка `params.set('code', error.code)`).
+ * Без этого класса карта `AUTH_ERROR_DICT_KEY` была бы мертва целиком (`LEGACY-053`).
+ *
+ * ⚠️ Импорт идёт из `@auth/core/errors`, а не из корня `next-auth`: корень тянет
+ * `next/server`, который под vitest не разрешается, и от одного такого импорта
+ * перестают запускаться все спеки, читающие `authOptions`. Копия `@auth/core`
+ * в дереве одна, поэтому `instanceof` внутри библиотеки видит тот же класс.
+ */
+class SignInCodeError extends CredentialsSignin {
+  constructor(code: AuthErrorType) {
+    super(code);
+    this.code = code;
+  }
+}
 
 /**
  * JWT callback parameters
@@ -129,7 +146,7 @@ export const authOptions = {
       async authorize(credentials, request) {
         // Validate required fields
         if (!credentials?.email || !credentials?.password) {
-          throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.MISSING_CREDENTIALS]);
+          throw new SignInCodeError(AuthErrorType.MISSING_CREDENTIALS);
         }
 
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
@@ -156,16 +173,16 @@ export const authOptions = {
           if (!response.ok) {
             // Rate limiting
             if (response.status === 429) {
-              throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.RATE_LIMIT_EXCEEDED]);
+              throw new SignInCodeError(AuthErrorType.RATE_LIMIT_EXCEEDED);
             }
 
             // Invalid credentials
             if (response.status === 400 || response.status === 401) {
-              throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.INVALID_CREDENTIALS]);
+              throw new SignInCodeError(AuthErrorType.INVALID_CREDENTIALS);
             }
 
             // Other errors
-            throw new Error('Authentication failed');
+            throw new SignInCodeError(AuthErrorType.AUTHENTICATION_FAILED);
           }
 
           const data = await response.json();

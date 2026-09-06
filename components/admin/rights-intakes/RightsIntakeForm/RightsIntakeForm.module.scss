@@ -20,17 +20,32 @@
   color: $color-text-primary;
 }
 
+// Групповые подписи («Target Languages», «Planned Content Types», «Planned Components») —
+// это `fieldset` с `legend`: у группы чекбоксов нет единственного контрола, на который мог бы
+// указать `htmlFor`. У `fieldset` есть свои умолчания (рамка `2px groove`, внутренние отступы
+// и `margin: 0 2px`), которых у `div` не было, поэтому здесь они сняты. Нижний отступ поля
+// задаётся тем же значением, что и раньше.
 .field {
   display: flex;
   flex-direction: column;
   gap: $spacing-xs;
-  margin-bottom: $spacing-md;
+  border: 0;
+  padding: 0;
+  margin: 0 0 $spacing-md;
 }
 
 .label {
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
   color: $color-text-primary;
+}
+
+// `legend` не становится flex-элементом своего `fieldset` — браузер выносит его наружу
+// контентного бокса, и `gap` до группы чекбоксов на него не действует. Отступ до группы
+// возвращается тем же значением, что даёт `gap` обычному полю.
+legend.label {
+  padding: 0;
+  margin-bottom: $spacing-xs;
 }
 
 .input,

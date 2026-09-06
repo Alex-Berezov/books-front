@@ -1,0 +1,98 @@
+@import '@/styles/tokens.scss';
+
+// Общие стили трёх юридических страниц: `privacy`, `terms`, `deletion`.
+// Файл один на три страницы потому, что разметка у них совпадает блок в блок;
+// три копии одного набора классов разошлись бы при первой же правке одной из них.
+// Место — `styles/`, как у других общих на несколько маршрутов модулей
+// (`styles/layouts.module.scss`), а не рядом с одной из страниц.
+//
+// Перевод с инлайн-стилей — `LEGACY-050`, решение арбитра от 06.09.2026:
+// вид страниц не меняется, поэтому промежуточные отступы собираются сложением
+// токенов, а четыре значения, которым токена нет вовсе, оставлены литералами
+// с пометкой в месте объявления.
+
+.page {
+  max-width: $layout-max-width-md;
+  margin: ($spacing-xl + $spacing-sm) auto; // 40px
+  padding: 0 ($spacing-md + $spacing-xs); // 20px
+  // Стек намеренно свой, а не `$font-family-base`: он был задан на этих страницах
+  // и отличается от общего, а задачи менять их вид у правки нет.
+  font-family: system-ui, sans-serif;
+  line-height: 1.6; // между $line-height-base (1.5) и $line-height-relaxed (1.75)
+  color: var(--public-foreground, #{$color-text-primary});
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xl;
+}
+
+// 🔴 Марка здесь тёмно-янтарная, а не золотая: `var(--gold)` из шапки заметно
+// светлее, и подстановка сменила бы оттенок на трёх страницах. Токен заведён
+// решением арбитра от 06.09.2026 — цвет живёт ещё и в `public/sitemap.xsl`.
+.logoIcon {
+  font-size: $icon-size-lg;
+  color: $color-gold-ink;
+}
+
+.logoText {
+  font-size: 20px; // в шапке марка 18px ($font-size-lg); здесь вид не меняем
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.05em;
+  color: $color-gold-ink;
+}
+
+.title {
+  margin-bottom: $spacing-lg;
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+}
+
+// 🔴 Здесь взят токен, а не `var(--public-foreground)` с прозрачностью 0.6.
+// Арифметика «та же краска под 0.6» верна только для чистого чёрного:
+// `--public-foreground` — `oklch(0.2 0.02 60)`, и под 0.6 над белым он даёт
+// заметно более светлый и тёплый серый, чем прежний инлайновый цвет, а контраст
+// падает с ~5.74:1 до ~4.65:1. `$color-text-secondary` (`#00000099`) — ровно
+// прежний вид, а требование правки было именно «вид не меняется».
+.lastUpdated {
+  margin-bottom: $spacing-lg;
+  color: $color-text-secondary;
+}
+
+.section {
+  margin-bottom: $spacing-xl;
+}
+
+.sectionTitle {
+  margin-bottom: $spacing-sm + $spacing-xs; // 12px
+  font-size: 22px; // между $font-size-lg (18px) и $font-size-xl (24px)
+  font-weight: $font-weight-semibold;
+}
+
+.paragraph {
+  margin-bottom: $spacing-sm + $spacing-xs; // 12px
+}
+
+.list {
+  margin-bottom: $spacing-sm + $spacing-xs; // 12px
+  padding-left: $spacing-md + $spacing-xs; // 20px
+}
+
+.intro {
+  margin-bottom: $spacing-md + $spacing-xs; // 20px
+}
+
+.stepsLead {
+  margin-bottom: $spacing-lg;
+}
+
+.steps {
+  margin-bottom: $spacing-xl;
+  padding-left: $spacing-md + $spacing-xs; // 20px
+}
+
+.step {
+  margin-bottom: $spacing-sm + $spacing-xs; // 12px
+}

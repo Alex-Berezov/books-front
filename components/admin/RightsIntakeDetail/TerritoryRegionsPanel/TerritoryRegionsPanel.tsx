@@ -88,7 +88,23 @@ export const TerritoryRegionsPanel: FC<TerritoryRegionsPanelProps> = ({
               className={styles.regionCard}
               data-open={isOpen ? 'true' : 'false'}
             >
-              <div className={styles.regionHeader} onClick={() => toggleRegion(region.regionCode)}>
+              {/* Шапка региона — раскрывающая кнопка. `<button>` здесь не годится:
+                  внутри два блочных `div`, а кнопка принимает только фразовое
+                  содержимое. Приём тот же, что у списка импортов
+                  (`ReviewImportHistory.tsx`): роль, фокус и клавиши руками. */}
+              <div
+                className={styles.regionHeader}
+                onClick={() => toggleRegion(region.regionCode)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleRegion(region.regionCode);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-expanded={isOpen}
+              >
                 <div className={styles.regionTitleGroup}>
                   {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                   <span className={styles.regionLabel}>{region.label}</span>

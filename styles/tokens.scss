@@ -134,6 +134,9 @@ $color-bibliaris-green: oklch(0.28 0.04 140); // Dark Green #263f2e
 $color-bibliaris-green-foreground: oklch(0.95 0.01 80);
 $color-gold: oklch(0.72 0.16 80); // Gold #c89f55
 $color-gold-foreground: oklch(0.2 0.04 65);
+// Тёмный янтарь марки: юридические страницы и `public/sitemap.xsl`.
+// Не путать с `$color-gold` (#c89f55) — тот заметно светлее и стоит в шапке.
+$color-gold-ink: #8c5300;
 $color-public-background: oklch(0.98 0.008 75);
 $color-public-foreground: oklch(0.2 0.02 60);
 

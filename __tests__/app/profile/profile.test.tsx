@@ -5,6 +5,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import * as useAuthHooks from '@/api/hooks/useAuth';
 import ProfilePage from '@/app/[lang]/profile/page';
 import { toast } from '@/lib/utils/toast';
+import { ApiError } from '@/types/api';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -56,6 +57,8 @@ vi.mock('@/lib/i18n/useTranslation', () => ({
         'profile.avatarUploaded': 'Avatar uploaded',
         'profile.updateSuccess': 'Profile updated successfully!',
         'profile.updateError': 'Failed to update profile',
+        'profile.nicknameTaken': 'This nickname is already taken',
+        'profile.checkFields': 'Check the name and nickname and try again',
         'profile.myActivities': 'My Activities',
         'profile.activitiesDesc': 'History of your reviews and comments on books',
         'profile.repliedTo': 'Replied to',
@@ -359,6 +362,76 @@ describe('ProfilePage', () => {
         avatarUrl: undefined,
       });
       expect(toast.success).toHaveBeenCalledWith('Profile updated successfully!');
+    });
+  });
+
+  /**
+   * 🔴 `LEGACY-053`: страница печатала посетителю `err.message` — английский текст
+   * бэкенда или запасную фразу транспорта. Сторож краснеет на возврате: в тосте
+   * не должно быть ни одной строки из ошибки, только текст словаря.
+   */
+  describe('отказ сохранения', () => {
+    const renderWithFailure = async (error: unknown) => {
+      vi.mocked(useSession).mockReturnValue({
+        data: { user: { email: 'john@example.com' } },
+        status: 'authenticated',
+      } as unknown as ReturnType<typeof useSession>);
+      vi.mocked(useAuthHooks.useMe).mockReturnValue({
+        data: { email: 'john@example.com', displayName: 'John', nickname: 'john', roles: ['USER'] },
+        isLoading: false,
+      } as unknown as ReturnType<typeof useAuthHooks.useMe>);
+      vi.mocked(useAuthHooks.useUserActivities).mockReturnValue({
+        data: [],
+        isLoading: false,
+      } as unknown as ReturnType<typeof useAuthHooks.useUserActivities>);
+      vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
+        mutateAsync: vi.fn().mockRejectedValue(error),
+        isPending: false,
+      } as unknown as ReturnType<typeof useAuthHooks.useUpdateProfile>);
+
+      render(<ProfilePage />);
+      fireEvent.change(screen.getByLabelText(/Unique Nickname/i), {
+        target: { value: 'taken_nick' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
+    };
+
+    it('занятый никнейм показывается своим текстом, а не английским сообщением сервера', async () => {
+      await renderWithFailure(
+        new ApiError({
+          message: 'Nickname is already in use',
+          statusCode: 409,
+          error: 'Conflict',
+        })
+      );
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('This nickname is already taken');
+      });
+      expect(toast.error).not.toHaveBeenCalledWith('Nickname is already in use');
+    });
+
+    it('валидационный отказ называет, что проверить', async () => {
+      // Правила длины у сторон расходятся: форма проверяет только шаблон никнейма,
+      // бэкенд требует трёх знаков. Общий текст не оставлял подсказки вовсе.
+      await renderWithFailure(
+        new ApiError({
+          message: 'nickname must be longer than or equal to 3 characters',
+          statusCode: 400,
+        })
+      );
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Check the name and nickname and try again');
+      });
+    });
+
+    it('неизвестный отказ сводится к общему тексту словаря', async () => {
+      await renderWithFailure(new ApiError({ message: 'Teapot', statusCode: 418 }));
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Failed to update profile');
+      });
     });
   });
 });

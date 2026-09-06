@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, type FC } from 'react';
+import { useState, useCallback, useEffect, useRef, type FC } from 'react';
 import { Eye, Copy, FileDown, X, Send } from 'lucide-react';
 import { useRightsAgentManifest, useRightsIntakeReadiness } from '@/api/hooks/useRightsIntakes';
 import type { RightsAgentManifest } from '@/types/api-schema/rights-intake';
@@ -37,6 +37,20 @@ export const ManifestPanel: FC<ManifestPanelProps> = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [manifestData, setManifestData] = useState<RightsAgentManifest | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Фокус переносится в окно при открытии: без этого Escape не работал вовсе —
+  // фокус оставался на кнопке «Preview», и событие до подложки не всплывало
+  // (`LEGACY-041`, тот же приём в `components/common/Modal`).
+  useEffect(() => {
+    if (!modalOpen) return;
+
+    const opener = document.activeElement as HTMLElement | null;
+    modalRef.current?.focus();
+
+    // Фокус возвращается на кнопку, с которой окно открыли.
+    return () => opener?.focus?.();
+  }, [modalOpen]);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
 
   const manifestQuery = useRightsAgentManifest(intakeId);
@@ -207,14 +221,20 @@ export const ManifestPanel: FC<ManifestPanelProps> = ({
       {modalOpen && manifestData && (
         <div
           className={styles.overlay}
-          onClick={() => setModalOpen(false)}
+          // Закрывает только клик по самой подложке. Прежде тем же занималась
+          // `stopPropagation` на теле модалки — но тело интерактивным элементом
+          // не является, и обработчик на нём требовал клавиатуры там, где нажимать
+          // нечего (`LEGACY-041`).
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setModalOpen(false);
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Escape') setModalOpen(false);
           }}
           role="button"
           tabIndex={0}
         >
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modal} ref={modalRef} tabIndex={-1}>
             <div className={styles.modalHeader}>
               <h3 className={styles.modalTitle}>Agent Manifest Preview</h3>
               <button className={styles.modalClose} onClick={() => setModalOpen(false)}>

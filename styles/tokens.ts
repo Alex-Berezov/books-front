@@ -45,6 +45,8 @@ export const colors = {
   bibliarisGreenForeground: 'oklch(0.95 0.01 80)',
   gold: 'oklch(0.72 0.16 80)',
   goldForeground: 'oklch(0.2 0.04 65)',
+  /** Тёмный янтарь марки: юридические страницы и `public/sitemap.xsl`. Не `gold` — тот светлее. */
+  goldInk: '#8c5300',
   publicBackground: 'oklch(0.98 0.008 75)',
   publicForeground: 'oklch(0.2 0.02 60)',
 

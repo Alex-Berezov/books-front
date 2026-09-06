@@ -45,7 +45,11 @@ export const HTTP_STATUS = {
   /** 500 - Internal server error */
   INTERNAL_SERVER_ERROR: 500,
   /** 503 - Service unavailable */
+  /** 502 - Прокси не дождался ответа приложения */
+  BAD_GATEWAY: 502,
   SERVICE_UNAVAILABLE: 503,
+  /** 504 - Прокси не дождался ответа вовсе */
+  GATEWAY_TIMEOUT: 504,
 } as const;
 
 /**
@@ -66,18 +70,6 @@ export const API_ERROR_TYPE = {
   RATE_LIMIT_EXCEEDED: 'RateLimitExceeded',
   /** Unknown error */
   UNKNOWN_ERROR: 'UnknownError',
-} as const;
-
-/**
- * Default error messages
- */
-export const DEFAULT_ERROR_MESSAGES = {
-  /** Invalid JSON response */
-  INVALID_JSON: 'Invalid JSON response from server',
-  /** Unknown error */
-  UNKNOWN: 'An error occurred',
-  /** Network error */
-  NETWORK_ERROR: 'Network error occurred',
 } as const;
 
 /**

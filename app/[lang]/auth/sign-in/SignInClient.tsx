@@ -22,7 +22,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/common/Button';
 import { PageBackButton } from '@/components/public/navigation';
-import { AUTH_ERROR_MESSAGES, AuthErrorType } from '@/lib/auth/constants';
+import { authErrorDictKey } from '@/lib/auth/constants';
 import { markLoggedIn } from '@/lib/auth/sessionMarker';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './sign-in.module.scss';
@@ -52,20 +52,12 @@ const SignInClient: FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Map the English messages thrown by the NextAuth authorize callback onto dictionary keys.
+   * Текст отказа по коду, который вернул `signIn`.
+   *
+   * Раньше здесь сравнивались английские фразы из `AUTH_ERROR_MESSAGES` — те же
+   * строки, что `authorize` бросал наружу (`LEGACY-053`). Теперь наружу идёт код.
    */
-  const translateAuthError = (message: string): string => {
-    switch (message) {
-      case AUTH_ERROR_MESSAGES[AuthErrorType.INVALID_CREDENTIALS]:
-        return t('auth.signin.invalidCredentials');
-      case AUTH_ERROR_MESSAGES[AuthErrorType.RATE_LIMIT_EXCEEDED]:
-        return t('auth.signin.rateLimit');
-      case AUTH_ERROR_MESSAGES[AuthErrorType.MISSING_CREDENTIALS]:
-        return t('auth.signin.missingCredentials');
-      default:
-        return t('auth.signin.genericError');
-    }
-  };
+  const translateAuthError = (code: string | undefined): string => t(authErrorDictKey(code));
 
   /**
    * Form submission handler
@@ -83,8 +75,9 @@ const SignInClient: FC = () => {
       });
 
       if (result?.error) {
-        // NextAuth surfaces the raw English message thrown by the authorize callback
-        setError(translateAuthError(result.error));
+        // Код отказа приходит полем `code` — `error` несёт только тип ошибки
+        // самого `next-auth` и причину входа не различает (`LEGACY-053`).
+        setError(translateAuthError(result.code));
       } else if (result?.ok) {
         // Successful authentication - set marker and redirect
         markLoggedIn();

@@ -22,7 +22,7 @@ import type { UserMeResponse, UpdateProfileRequest, UserActivity } from '@/types
  *   const { data: user, isLoading, error } = useMe();
  *
  *   if (isLoading) return <Spinner />;
- *   if (error) return <Error message={error.message} />;
+ *   if (error) return <Error message={toUserMessage(error)} />;
  *   if (!user) return null;
  *
  *   return (

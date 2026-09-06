@@ -2,11 +2,11 @@ import type { FC } from 'react';
 import { User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { pluralize, type PluralForms } from '@/lib/i18n/plural';
 import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { AuthorListItem } from '@/types/api-schema';
 import styles from './AuthorCard.module.scss';
-import { pluralize, type PluralForms } from './authors-plural';
 
 /**
  * Размер круга портрета. Дублирует `$author-portrait-size` из `styles/tokens.scss`:

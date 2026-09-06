@@ -6,6 +6,8 @@
 
 import { getSession, signOut } from 'next-auth/react';
 import { clearLoggedInMarker } from '@/lib/auth/sessionMarker';
+import { describeApiFailure } from '@/lib/errors';
+import { API_ERROR_TYPE, HTTP_STATUS } from '@/lib/http.constants';
 import { ApiError } from '@/types/api';
 import type { Session } from 'next-auth';
 
@@ -136,9 +138,9 @@ export const getAccessToken = async (
 
   if (!accessToken) {
     throw new ApiError({
-      message: 'Authentication required',
-      statusCode: 401,
-      error: 'Unauthorized',
+      message: describeApiFailure(HTTP_STATUS.UNAUTHORIZED, API_ERROR_TYPE.UNAUTHORIZED),
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
+      error: API_ERROR_TYPE.UNAUTHORIZED,
     });
   }
 

@@ -23,7 +23,9 @@ export { markLoggedIn, clearLoggedInMarker, hasLoggedInMarker } from './sessionM
 export {
   AUTH_TOKEN_EXPIRY,
   AuthErrorType,
-  AUTH_ERROR_MESSAGES,
+  AUTH_ERROR_DICT_KEY,
+  AUTH_ERROR_FALLBACK_KEY,
+  authErrorDictKey,
   UserRole,
   STAFF_ROLES,
   AUTH_ROUTES,

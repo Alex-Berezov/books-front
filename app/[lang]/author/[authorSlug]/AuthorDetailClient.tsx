@@ -19,6 +19,7 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { useSmartBack } from '@/components/public/navigation';
+import { pluralize, pluralFormsOf } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { toBookCardModel } from '@/lib/mappers/book';
 import { isOptimizableHost } from '@/lib/utils/image-host';
@@ -146,7 +147,8 @@ export default function AuthorDetailClient({
                 <>
                   <span className={styles.statItem}>
                     <BookOpen size={16} />
-                    {totalBooks} {t(totalBooks === 1 ? 'common.bookSingular' : 'common.bookPlural')}{' '}
+                    {totalBooks}{' '}
+                    {pluralize(totalBooks, supportedLang, pluralFormsOf(t, 'common.bookCount'))}{' '}
                     {t('author.booksInLibrary')}
                   </span>
                   {hasAudiobooks && (

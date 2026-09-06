@@ -1,6 +1,6 @@
 'use client';
 
-import type { FC } from 'react';
+import { useEffect, useId, useRef, type FC } from 'react';
 import { Button } from '@/components/common/Button';
 import type { ModalProps } from './Modal.types';
 import styles from './Modal.module.scss';
@@ -55,25 +55,59 @@ export const Modal: FC<ModalProps> = (props) => {
     onCancel,
   } = props;
 
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Фокус переносится в окно при открытии.
+   *
+   * 🔴 Без этого Escape не работал вовсе: обработчик висел на подложке, а окно
+   * открывают кнопкой на странице — фокус оставался на ней, и событие до подложки
+   * не всплывало (`LEGACY-041`).
+   *
+   * ⚠️ Слушатель при этом **синтетический**, на теле окна, а не на документе.
+   * В App Router корнем React служит сам `document`, поэтому `stopPropagation`
+   * вложенного виджета (выпадающий список antd гасит им свой Escape) соседний
+   * слушатель на документе не остановил бы: посетитель закрывал бы Escape'ом
+   * список, а закрывалось бы всё окно вместе с введённым.
+   */
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Кто открыл окно, тому фокус и возвращается: иначе после Escape он падает
+    // на `body`, и следующий Tab начинает обход страницы с начала.
+    const opener = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+
+    return () => opener?.focus?.();
+  }, [isOpen]);
+
+  /**
+   * Escape закрывает окно.
+   */
+  const handleDialogKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape' && !isLoading) {
+      onCancel();
+    }
+  };
+
   // If modal is closed, don't render anything
   if (!isOpen) {
     return null;
   }
 
   /**
-   * Overlay click handler (close modal)
+   * Overlay click handler (close modal).
+   *
+   * Закрывает только клик по самой подложке. Раньше клик внутри модалки гасился
+   * `stopPropagation` на её теле — обработчик на неинтерактивном элементе, который
+   * требовал клавиатурного близнеца там, где нажимать нечего (`LEGACY-041`).
    */
-  const handleOverlayClick = () => {
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target !== e.currentTarget) return;
     if (!isLoading) {
       onCancel();
     }
-  };
-
-  /**
-   * Prevent modal click propagation to overlay
-   */
-  const handleModalClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
   };
 
   /**
@@ -95,11 +129,28 @@ export const Modal: FC<ModalProps> = (props) => {
   };
 
   return (
-    <div className={styles.overlay} onClick={handleOverlayClick}>
-      <div className={`${styles.modal} ${styles[size]}`} onClick={handleModalClick}>
+    // Подложка — не кнопка: `role="presentation"` снимает с неё и роль, и остановку
+    // табуляции. Роль `button` на элементе во весь экран давала скринридеру безымянную
+    // кнопку со склеенным содержимым окна и лишний таб-стоп перед ним.
+    <div
+      className={styles.overlay}
+      onClick={handleOverlayClick}
+      onKeyDown={handleDialogKeyDown}
+      role="presentation"
+    >
+      <div
+        className={`${styles.modal} ${styles[size]}`}
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+      >
         {/* Header with title and close button */}
         <div className={styles.header}>
-          <h3 className={styles.title}>{title}</h3>
+          <h3 className={styles.title} id={titleId}>
+            {title}
+          </h3>
           <Button
             className={styles.closeButton}
             disabled={isLoading}

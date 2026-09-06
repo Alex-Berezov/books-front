@@ -17,6 +17,7 @@ import { useBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
 import { useProgress } from '@/api/hooks/useProgress';
 import { Button } from '@/components/common/Button';
 import { PageBackButton } from '@/components/public/navigation';
+import { pluralize, pluralFormsOf } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useProgressIdentity } from '@/lib/reading-progress';
 import type { BookshelfItemDto } from '@/api/endpoints/bookshelf';
@@ -193,7 +194,7 @@ export default function BookshelfClient() {
   const { data: session, status } = useSession();
   const params = useParams();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, lang: dictLang } = useTranslation();
   const lang = (params?.lang as string) || 'en';
 
   const page = 1;
@@ -338,7 +339,8 @@ export default function BookshelfClient() {
           <div>
             <h1 className={styles.headerTitle}>{t('bookshelf.title')}</h1>
             <p className={styles.headerSubtitle}>
-              {items.length} {t(items.length === 1 ? 'common.bookSingular' : 'common.bookPlural')}{' '}
+              {items.length}{' '}
+              {pluralize(items.length, dictLang, pluralFormsOf(t, 'common.bookCount'))}{' '}
               {t('bookshelf.booksSaved')}
             </p>
           </div>

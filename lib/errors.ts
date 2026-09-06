@@ -5,7 +5,7 @@
  * to user-friendly messages and handling different error types.
  */
 
-import { HTTP_STATUS } from '@/lib/http.constants';
+import { API_ERROR_TYPE, HTTP_STATUS } from '@/lib/http.constants';
 import { ApiError } from '@/types/api';
 
 /**
@@ -52,7 +52,18 @@ export const STATUS_MESSAGES: Record<number, string> = {
   [HTTP_STATUS.UNPROCESSABLE_ENTITY]: 'Unable to process the request. Please check your data',
   [HTTP_STATUS.TOO_MANY_REQUESTS]: 'Too many requests. Please slow down',
   [HTTP_STATUS.INTERNAL_SERVER_ERROR]: 'Internal server error. Please try again later',
+  [HTTP_STATUS.BAD_GATEWAY]: 'Service temporarily unavailable. Please try again later',
+  [HTTP_STATUS.GATEWAY_TIMEOUT]: 'Service temporarily unavailable. Please try again later',
   [HTTP_STATUS.SERVICE_UNAVAILABLE]: 'Service temporarily unavailable. Please try again later',
+};
+
+/**
+ * Messages for failures the status code alone does not describe.
+ *
+ * A malformed body arrives with an OK status, so `STATUS_MESSAGES` has nothing to say about it.
+ */
+export const CODE_MESSAGES: Record<string, string> = {
+  [API_ERROR_TYPE.PARSE_ERROR]: 'The server returned a malformed response',
 };
 
 /**
@@ -102,6 +113,89 @@ export const getErrorType = (statusCode: number): ErrorType => {
 };
 
 /**
+ * Карта человекочитаемых текстов отказа для всего, что бросает транспорт (`LEGACY-053`).
+ *
+ * 🔴 Заведена потому, что тексты жили в трёх местах и подменяли собой коды:
+ * `DEFAULT_ERROR_MESSAGES` в `lib/http.constants.ts`, `AUTH_ERROR_MESSAGES`
+ * в `lib/auth/constants.ts` и литерал `'Authentication required'` в двух копиях.
+ * Внутренняя константа, выполняющая двойную роль «код и текст для пользователя»,
+ * рано или поздно уезжает на экран как есть.
+ *
+ * Транспорт (`lib/http.ts`, `lib/http-client/auth.ts`) своего текста больше
+ * не подставляет: он кладёт **код** в `ApiError.error`, а фразу берёт отсюда —
+ * и только когда бэкенд собственного `message` не прислал.
+ *
+ * ⚠️ Тексты здесь английские намеренно: они видны в админке, которая не переведена
+ * (`books-front/CLAUDE.md`). Публичному посетителю показывается словарь, а не они.
+ *
+ * ⚠️ Вторая карта в проекте всё же есть и этой правкой не тронута:
+ * `components/admin/RightsIntakeDetail/rightsFileErrors.ts` держит свои тексты
+ * по кодам отказа загрузки юридических файлов. Правка текста здесь панели прав
+ * не меняет.
+ *
+ * @param statusCode - HTTP status code
+ * @param code - Machine code from `ApiError.error`, when there is one
+ */
+export const describeApiFailure = (statusCode: number, code?: string): string => {
+  // 🔴 Статус идёт первым. Неуспешный ответ часто приходит без разбираемого тела —
+  // 401 пустым, 502/503 HTML-страницей от прокси, — и транспорт в этом случае ставит
+  // код `ParseError`. Проверь код раньше статуса, и читатель получит «битый ответ»
+  // вместо «сервис недоступен», то есть пойдёт искать поломку не там.
+  const statusMessage = STATUS_MESSAGES[statusCode];
+  if (statusMessage) {
+    return statusMessage;
+  }
+
+  // Сюда доходит то, о чём статус ничего не говорит: успешный ответ с битым телом.
+  if (code && CODE_MESSAGES[code]) {
+    return CODE_MESSAGES[code];
+  }
+
+  return ERROR_MESSAGES[getErrorType(statusCode)];
+};
+
+/**
+ * Ключ словаря для отказа на **публичной** странице (`LEGACY-053`).
+ *
+ * 🔴 Тексты в этом файле английские и предназначены админке. Публичный посетитель
+ * не должен видеть ни их, ни `message` бэкенда: рендер `error.message` на странице
+ * регистрации и в профиле показывал русскому читателю английскую фразу.
+ * Известное разводим по словарю, всё остальное сводим к переданному общему ключу.
+ *
+ * ⚠️ Имена ключей приходят от страницы: у регистрации и у профиля они разные, а этот
+ * модуль про транспорт и раздел словаря `auth.signin` знать не должен.
+ *
+ * @param error - Any error
+ * @param keys - Ключи словаря: общий и, если есть, отдельные под 409 и 429
+ */
+export const publicErrorKey = (
+  error: unknown,
+  keys: { fallback: string; conflict?: string; rateLimit?: string; validation?: string }
+): string => {
+  if (!(error instanceof ApiError)) return keys.fallback;
+
+  // 400/422 — форма пропустила то, что бэкенд не принял (правила длины у сторон
+  // расходятся). Без своей ветки посетитель видит «не удалось» и жмёт кнопку
+  // с теми же данными: прежний английский текст хотя бы называл поле.
+  if (
+    (error.statusCode === HTTP_STATUS.BAD_REQUEST ||
+      error.statusCode === HTTP_STATUS.UNPROCESSABLE_ENTITY) &&
+    keys.validation
+  ) {
+    return keys.validation;
+  }
+
+  // 409 — самый частый отказ обеих форм: занятая почта при регистрации и занятый
+  // никнейм в профиле. Без своей ветки посетитель видит общий текст и жмёт кнопку
+  // снова, не понимая, что менять.
+  if (error.statusCode === HTTP_STATUS.CONFLICT && keys.conflict) return keys.conflict;
+  if (error.statusCode === HTTP_STATUS.TOO_MANY_REQUESTS && keys.rateLimit) return keys.rateLimit;
+  if (error.statusCode >= 500) return 'common.serverError';
+
+  return keys.fallback;
+};
+
+/**
  * Convert ApiError to user-friendly message
  *
  * @param error - ApiError or any other error
@@ -121,19 +215,11 @@ export const toUserMessage = (error: unknown): string => {
   // If this is ApiError with custom message
   if (error instanceof ApiError) {
     // If there's a specific message from server, use it
-    if (error.message && error.message !== 'Unknown error') {
+    if (error.message) {
       return error.message;
     }
 
-    // Otherwise use message by status
-    const statusMessage = STATUS_MESSAGES[error.statusCode];
-    if (statusMessage) {
-      return statusMessage;
-    }
-
-    // Or generic message by error type
-    const errorType = getErrorType(error.statusCode);
-    return ERROR_MESSAGES[errorType];
+    return describeApiFailure(error.statusCode, error.error);
   }
 
   // If this is standard Error

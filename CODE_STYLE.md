@@ -1094,15 +1094,33 @@ redirect('/en/auth/error'); // Easy to make typos
 **✅ CORRECT:**
 
 ```typescript
-// constants/messages.ts
-export const AUTH_ERROR_MESSAGES = {
-  [AuthErrorType.INVALID_CREDENTIALS]: 'Invalid credentials',
-  [AuthErrorType.RATE_LIMIT_EXCEEDED]: 'Too many requests. Please try again later.',
-  [AuthErrorType.MISSING_CREDENTIALS]: 'Email and password are required',
-} as const;
+// lib/auth/constants.ts — наружу уходит код, а не текст
+export enum AuthErrorType {
+  INVALID_CREDENTIALS = 'InvalidCredentials',
+  RATE_LIMIT_EXCEEDED = 'RateLimitExceeded',
+  MISSING_CREDENTIALS = 'MissingCredentials',
+}
 
-// Usage
-throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.INVALID_CREDENTIALS]);
+export const AUTH_ERROR_DICT_KEY: Record<AuthErrorType, string> = {
+  [AuthErrorType.INVALID_CREDENTIALS]: 'auth.signin.invalidCredentials',
+  [AuthErrorType.RATE_LIMIT_EXCEEDED]: 'auth.signin.rateLimit',
+  [AuthErrorType.MISSING_CREDENTIALS]: 'auth.signin.missingCredentials',
+};
+
+// Бросаем код — наследником `CredentialsSignin`, иначе `@auth/core` завернёт
+// обычный `Error` в `CallbackRouteError`, и наружу уйдёт `error=Configuration`
+// без кода: все причины отказа схлопнутся в один общий текст (LEGACY-053).
+class SignInCodeError extends CredentialsSignin {
+  constructor(code: AuthErrorType) {
+    super(code);
+    this.code = code;
+  }
+}
+
+throw new SignInCodeError(AuthErrorType.INVALID_CREDENTIALS);
+
+// Показываем текст из словаря — по `code`, а не по `error`
+setError(t(authErrorDictKey(result.code)));
 ```
 
 **❌ INCORRECT:**
@@ -1111,7 +1129,15 @@ throw new Error(AUTH_ERROR_MESSAGES[AuthErrorType.INVALID_CREDENTIALS]);
 // NO! Hardcoded messages
 throw new Error('Invalid credentials'); // Can make typos
 throw new Error('invalid credentials'); // Different casing
-throw new Error('Invalid creds'); // Different wording
+
+// NO! Константа с английской фразой: она и код, и текст для пользователя сразу,
+// а значит рано или поздно попадёт на экран как есть (LEGACY-053).
+export const AUTH_ERROR_MESSAGES = {
+  [AuthErrorType.INVALID_CREDENTIALS]: 'Invalid credentials',
+} as const;
+
+// NO! Текст отказа прямо в UI: сообщения бэкенда тоже английские.
+<Error message={error.message} />;
 ```
 
 ### 5. Constant arrays with `as const`

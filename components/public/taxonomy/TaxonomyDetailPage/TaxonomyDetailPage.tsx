@@ -4,6 +4,7 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { BookCard } from '@/components/public/books/BookCard';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { PageBackButton } from '@/components/public/navigation';
+import { pluralize, type PluralForms } from '@/lib/i18n/plural';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Category, CategoryBookCardsResponse, CategoryTranslation } from '@/types/api-schema';
@@ -36,7 +37,7 @@ interface TaxonomyDetailPageProps {
     allBooksLink: string;
     tagsLink: string;
     linkLabel: string;
-    booksCount: string;
+    bookForms: PluralForms;
     relatedGenres: string;
     relatedCategories: string;
     relatedCollections: string;
@@ -373,7 +374,10 @@ export function TaxonomyDetailPage({
               <h1 className={styles.title}>{categoryName}</h1>
               {shortDescription && <p className={styles.shortDescription}>{shortDescription}</p>}
               <p className={styles.count}>
-                {translations.booksCount.replace('{count}', String(booksCount))}
+                {pluralize(booksCount, lang, translations.bookForms).replace(
+                  '{count}',
+                  String(booksCount)
+                )}
               </p>
               {parentCategory && parentName && parentSlug && (
                 <Link href={`/${lang}/${path}/${parentSlug}`} className={styles.parentLink}>

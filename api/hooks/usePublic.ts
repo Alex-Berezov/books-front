@@ -35,7 +35,7 @@ import type {
  *   const { data: book, isLoading, error } = useBookOverview(lang, slug);
  *
  *   if (isLoading) return <Spinner />;
- *   if (error) return <Error message={error.message} />;
+ *   if (error) return <Error message={toUserMessage(error)} />;
  *   if (!book) return null;
  *
  *   return <BookDetails book={book} />;
@@ -69,7 +69,7 @@ export const useBookOverview = (
  *   const { data: page, isLoading, error } = usePage(lang, slug);
  *
  *   if (isLoading) return <Spinner />;
- *   if (error) return <Error message={error.message} />;
+ *   if (error) return <Error message={toUserMessage(error)} />;
  *   if (!page) return null;
  *
  *   return <PageContent page={page} />;

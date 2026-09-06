@@ -9,6 +9,7 @@
  * - JSON by default
  */
 
+import { describeApiFailure } from '@/lib/errors';
 import { ApiError } from '@/types/api';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { HttpRequestOptions } from '@/types/api';
@@ -18,7 +19,6 @@ import {
   HEADER_VALUE,
   AUTH_PREFIX,
   API_ERROR_TYPE,
-  DEFAULT_ERROR_MESSAGES,
 } from './http.constants';
 
 /**
@@ -178,14 +178,14 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     } catch (_error) {
       // If failed to parse error JSON
       throw new ApiError({
-        message: DEFAULT_ERROR_MESSAGES.UNKNOWN,
+        message: describeApiFailure(response.status, API_ERROR_TYPE.PARSE_ERROR),
         statusCode: response.status,
         error: API_ERROR_TYPE.PARSE_ERROR,
       });
     }
 
     throw new ApiError({
-      message: errorData.message || DEFAULT_ERROR_MESSAGES.UNKNOWN,
+      message: errorData.message || describeApiFailure(response.status, errorData.error),
       statusCode: response.status,
       error: errorData.error,
       details: errorData.details,
@@ -205,7 +205,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   } catch (_error) {
     // If failed to parse JSON, but status is OK
     throw new ApiError({
-      message: DEFAULT_ERROR_MESSAGES.INVALID_JSON,
+      message: describeApiFailure(response.status, API_ERROR_TYPE.PARSE_ERROR),
       statusCode: response.status,
       error: API_ERROR_TYPE.PARSE_ERROR,
     });

@@ -179,13 +179,17 @@ export function Header() {
             <button
               type="button"
               className={styles.drawerOverlay}
-              onClick={() => setMobileOpen(false)}
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setMobileOpen(false);
+              }}
               aria-label={t('a11y.closeMenu')}
             >
-              {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
+              {/* Меню закрывает только клик по самой подложке. Прежде клик внутри
+                  панели гасился `stopPropagation` — обработчик на элементе, нажимать
+                  который не предполагается, и оттого требовавший клавиатурной ветки
+                  там, где её быть не может (`LEGACY-041`). */}
               <section
                 className={styles.drawerPanel}
-                onClick={(e) => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
                 aria-label={t('header.menu')}

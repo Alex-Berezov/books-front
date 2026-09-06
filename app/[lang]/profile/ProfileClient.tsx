@@ -20,9 +20,11 @@ import { useSession } from 'next-auth/react';
 import { useMe, useUpdateProfile, useUserActivities, useUploadAvatar } from '@/api/hooks/useAuth';
 import { Button } from '@/components/common/Button';
 import { PageBackButton } from '@/components/public/navigation';
+import { publicErrorKey } from '@/lib/errors';
 import { getLocaleTag } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { isOptimizableHost } from '@/lib/utils/image-host';
+import { logError } from '@/lib/utils/log-error';
 import { toast } from '@/lib/utils/toast';
 import styles from './profile.module.scss';
 
@@ -103,8 +105,18 @@ export default function ProfileClient() {
       });
       toast.success(t('profile.updateSuccess'));
     } catch (err: unknown) {
-      const msg = (err as Error)?.message || t('profile.updateError');
-      toast.error(msg);
+      // Английский текст отказа посетителю не показываем (`LEGACY-053`), но занятый
+      // никнейм — самый частый отказ этой формы, и он обязан быть различим.
+      logError('profile.update', err);
+      toast.error(
+        t(
+          publicErrorKey(err, {
+            fallback: 'profile.updateError',
+            conflict: 'profile.nicknameTaken',
+            validation: 'profile.checkFields',
+          })
+        )
+      );
     }
   };
 

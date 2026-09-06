@@ -34,8 +34,7 @@ const renderCardGrid = (term: TermShape) =>
       routeBase="category"
       emptyText="Nothing here"
       itemKind="category"
-      bookSingular="book"
-      bookPlural="books"
+      bookForms={{ one: 'book', few: 'books', many: 'books' }}
     />
   );
 
@@ -105,8 +104,7 @@ describe('TaxonomyCardGrid child terms', () => {
         routeBase="category"
         emptyText="Nothing here"
         itemKind="category"
-        bookSingular="book"
-        bookPlural="books"
+        bookForms={{ one: 'book', few: 'books', many: 'books' }}
       />
     );
 

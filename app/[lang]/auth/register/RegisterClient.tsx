@@ -23,8 +23,10 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/common/Button';
 import { PageBackButton } from '@/components/public/navigation';
 import { markLoggedIn } from '@/lib/auth/sessionMarker';
+import { publicErrorKey } from '@/lib/errors';
 import { httpPost } from '@/lib/http';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { logError } from '@/lib/utils/log-error';
 import styles from './register.module.scss';
 
 const { Title, Text } = Typography;
@@ -66,8 +68,20 @@ const RegisterClient: FC = () => {
 
       setIsSuccess(true);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('auth.register.genericError');
-      setError(errorMessage);
+      // 🔴 `err.message` посетителю не показываем: и текст бэкенда, и запасная фраза
+      // транспорта — английские, а страница публичная (`LEGACY-053`). Известные коды
+      // разводим по словарю, остальное — общий текст; подробности уходят в консоль.
+      logError('auth.register', err);
+      setError(
+        t(
+          publicErrorKey(err, {
+            fallback: 'auth.register.genericError',
+            conflict: 'auth.register.emailTaken',
+            rateLimit: 'auth.register.rateLimit',
+            validation: 'auth.register.checkFields',
+          })
+        )
+      );
     } finally {
       setIsLoading(false);
     }
@@ -189,7 +203,9 @@ const RegisterClient: FC = () => {
                         label={t('auth.register.passwordLabel')}
                         rules={[
                           { required: true, message: t('auth.register.passwordRequired') },
-                          { min: 6, message: t('auth.register.passwordLength') },
+                          // Восемь, как требует бэкенд (`@MinLength(8)` на `password`):
+                          // при шести форма пропускала пароль, который сервер отбивал 400.
+                          { min: 8, message: t('auth.register.passwordLength') },
                         ]}
                       >
                         <Input.Password

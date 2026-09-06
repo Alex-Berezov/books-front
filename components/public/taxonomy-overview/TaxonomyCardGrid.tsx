@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import Link from 'next/link';
+import { pluralize, type PluralForms } from '@/lib/i18n/plural';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import type { TagListItem } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -18,8 +19,7 @@ export interface TaxonomyCardGridProps {
   emptyText: string;
   isLoading?: boolean;
   itemKind: TaxonomyCardItemKind;
-  bookSingular: string;
-  bookPlural: string;
+  bookForms: PluralForms;
 }
 
 const findTranslation = (item: CategoryTree | TagListItem, lang: SupportedLang) =>
@@ -52,8 +52,7 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
   emptyText,
   isLoading,
   itemKind,
-  bookSingular,
-  bookPlural,
+  bookForms,
 }) => {
   const isTagKind = itemKind === 'tag';
 
@@ -117,7 +116,7 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
                 {name}
               </Link>
               <span className={styles.bookCount}>
-                {booksCount} {booksCount === 1 ? bookSingular : bookPlural}
+                {booksCount} {pluralize(booksCount, lang, bookForms)}
               </span>
             </div>
             {children.length > 0 && (

@@ -24,7 +24,7 @@ const labels = {
   topPopular: '',
   browseByCategory: '',
   viewAll: '',
-  booksCount: '',
+  bookForms: { one: '', few: '', many: '' },
   genres: '',
   curatedCollections: '',
   newReleases: '',

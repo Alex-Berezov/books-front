@@ -10,6 +10,7 @@ import {
 import { HomePageContent } from '@/components/public/home/HomePageContent/HomePageContent';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { pluralFormsOf } from '@/lib/i18n/plural';
 import { isAuthorLinkable } from '@/lib/seo/author-linkable';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { getPageMetadata } from '@/lib/utils/seo';
@@ -235,7 +236,7 @@ export default async function PublicLangPage({ params }: Props) {
         topPopular: t('home.topPopular'),
         browseByCategory: t('home.browseByCategory'),
         viewAll: t('home.viewAll'),
-        booksCount: t('home.booksCount'),
+        bookForms: pluralFormsOf(t, 'home.booksCount'),
         genres: t('home.genres'),
         curatedCollections: t('home.curatedCollections'),
         newReleases: t('home.newReleases'),
