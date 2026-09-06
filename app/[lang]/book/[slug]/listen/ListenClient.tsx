@@ -15,7 +15,6 @@ import {
   X,
 } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useProgress } from '@/api/hooks/useProgress';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import {
@@ -35,6 +34,7 @@ import {
 } from '@/lib/reading-progress';
 import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { BookOverview } from '@/types/api-schema';
 import styles from './player.module.scss';
 
 function formatTime(seconds: number): string {
@@ -49,12 +49,16 @@ const PROGRESS_SAVE_THROTTLE_MS = 5000;
 
 type Props = {
   params: { lang: string; slug: string };
+  // Серверный `page.tsx` уже разрешил эту книгу, чтобы отдать честный 404 на
+  // переименованный или несуществующий слаг (LEGACY-084). Тот же ответ уезжает
+  // сюда как `initialData`: второго запроса той же книги не нужно, и скелет
+  // не мигает.
+  initialBook?: BookOverview;
 };
 
-export default function ListenClient({ params }: Props) {
+export default function ListenClient({ params, initialBook }: Props) {
   const { lang, slug } = params;
   const supportedLang = lang as SupportedLang;
-  const router = useRouter();
   const goBack = useSmartBack(`/${lang}/book/${slug}`);
   const { t } = useTranslation();
 
@@ -62,14 +66,17 @@ export default function ListenClient({ params }: Props) {
     data: book,
     isLoading: loadingBook,
     error: bookError,
-  } = useBookOverview(supportedLang, slug);
+    // 🔴 `initialDataUpdatedAt: 0` — снимок не выдаётся за только что полученный.
+    // Он приезжает со страницы под ISR поверх кэша данных, то есть его возраст
+    // при монтировании — до десяти минут, а `staleTime` здесь 30 с. Без этой
+    // отметки react-query счёл бы снимок свежим и не пошёл бы за новым, хотя до
+    // правки клиент ходил всегда: заменили аудиоверсию — запрос глав уехал бы
+    // на снятый `versionIds.audio` и дал «нет глав» у книги, где аудио есть.
+  } = useBookOverview(supportedLang, slug, {
+    initialData: initialBook,
+    initialDataUpdatedAt: 0,
+  });
   const versionId = book?.versionIds?.audio || '';
-
-  useEffect(() => {
-    if (book && book.slug && book.slug !== slug) {
-      router.replace(`/${lang}/book/${book.slug}/listen`);
-    }
-  }, [book, slug, lang, router]);
 
   const {
     data: chaptersData,

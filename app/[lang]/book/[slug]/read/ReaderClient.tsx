@@ -38,9 +38,13 @@ const themeMap: Record<Theme, { bg: string; text: string; label: string; class: 
 
 type Props = {
   params: { lang: string; slug: string };
+  // Есть ли у книги текстовая версия. Знает это серверный `page.tsx` — он и так
+  // читает обзор книги, чтобы отдать честный 404 (LEGACY-084), — а `reader-bootstrap`
+  // на такой книге отвечает 404 и от настоящего отказа неотличим.
+  hasTextVersion?: boolean;
 };
 
-export default function ReaderClient({ params }: Props) {
+export default function ReaderClient({ params, hasTextVersion }: Props) {
   const { lang, slug } = params;
   const supportedLang = lang as SupportedLang;
   const router = useRouter();
@@ -154,6 +158,16 @@ export default function ReaderClient({ params }: Props) {
     progressOwnerId,
   ]);
 
+  /**
+   * Канонизация слага на клиенте — вторая половина серверной, а не её дубль.
+   *
+   * 🔴 Страница проверяет слаг по `getBookOverview` (`revalidate: 300`), а этот
+   * компонент читает `reader-bootstrap` (`cache: 'no-store'`). В окне ISR сервер
+   * ещё видит старый слаг и потому не редиректит, а свежий бутстрап уже отдаёт
+   * новый — без этого эффекта читалка до пяти минут висела бы на устаревшем
+   * адресе. У плеера и саммари такого зазора нет: им тот же серверный ответ
+   * уезжает в `initialData`, и второго источника правды не появляется.
+   */
   useEffect(() => {
     if (bootstrapData && bootstrapData.slug && bootstrapData.slug !== slug) {
       router.replace(`/${lang}/book/${bootstrapData.slug}/read`);
@@ -297,7 +311,14 @@ export default function ReaderClient({ params }: Props) {
   // обесценивает `readerBootstrap` после каждого сохранения. Голое `if (error)`
   // выбрасывало бы читателя из открытой книги на экран отказа при живом тексте
   // в руках.
-  if (error && chapters.length === 0) {
+  // 🔴 …но у книги без текстовой версии отказ бутстрапа — это ответ, а не поломка.
+  // `reader-bootstrap` отдаёт на неё 404, а страница уже поручилась, что книга
+  // существует (LEGACY-084), поэтому единственное, чего тут нет, — текста. До
+  // разведения этих двух случаев открытая аудиокнига по адресу `/read` показывала
+  // «не удалось загрузить, попробуйте позже» — поломку там, где ничего не
+  // сломано, — а мягкое `reader.noChapters` было недостижимо вовсе. У плеера тот
+  // же случай разведён с самого начала (`player.noChapters` против `chaptersFail`).
+  if (error && chapters.length === 0 && hasTextVersion !== false) {
     return (
       <div className={styles.errorContainer}>
         <p className={styles.errorText}>{t('reader.loadError')}</p>

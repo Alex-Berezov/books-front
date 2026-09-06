@@ -67,3 +67,37 @@ describe('ReaderClient — отказ бутстрапа отличим от ч�
     ).not.toBeInTheDocument();
   });
 });
+
+/**
+ * LEGACY-084, вторая половина постановки. Серверный `page.tsx` теперь ручается,
+ * что книга существует, поэтому 404 от `reader-bootstrap` означает ровно одно:
+ * текстовой версии у неё нет. Показывать на это «не удалось загрузить, попробуйте
+ * позже» — значит объявлять поломкой то, что не сломано, а мягкое состояние
+ * `reader.noChapters` делать недостижимым вовсе.
+ */
+describe('ReaderClient — «текста нет» отличимо от отказа загрузки', () => {
+  beforeEach(() => {
+    readerBootstrapResult.data = undefined;
+    readerBootstrapResult.isLoading = false;
+    readerBootstrapResult.error = null;
+  });
+
+  it('у книги без текстовой версии показывает «нет глав», а не отказ', () => {
+    readerBootstrapResult.error = new ApiError({ message: 'Not found', statusCode: 404 });
+
+    render(<ReaderClient params={{ lang: 'ru', slug: 'audio-only' }} hasTextVersion={false} />);
+
+    expect(screen.getByText('Для этой версии книги нет доступных глав.')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Не удалось загрузить книгу. Попробуйте позже.')
+    ).not.toBeInTheDocument();
+  });
+
+  it('у книги с текстовой версией отказ остаётся отказом', () => {
+    readerBootstrapResult.error = new ApiError({ message: 'boom', statusCode: 500 });
+
+    render(<ReaderClient params={{ lang: 'ru', slug: 'hamlet' }} hasTextVersion={true} />);
+
+    expect(screen.getByText('Не удалось загрузить книгу. Попробуйте позже.')).toBeInTheDocument();
+  });
+});
