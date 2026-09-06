@@ -118,7 +118,7 @@ All backend changes must be reviewed by the user before deployment.
 **MANDATORY before reporting a task complete:**
 
 ```bash
-yarn ci           # check:env, check:langs, check:reserved-slugs, lint, typecheck, test:coverage
+yarn ci           # check:env, check:langs, check:reserved-slugs, check:dead-modules, lint, typecheck, test:coverage
 ```
 
 Команды `yarn validate` больше нет: скрипт брал код возврата только у typecheck, падение линта

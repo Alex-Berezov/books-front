@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
 import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
 import { ApiError } from '@/types/api';

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { deleteErrorMessage } from '@/app/admin/[lang]/media/deleteErrorMessage';
 import { ApiError } from '@/types/api';

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { getRightsFileErrorMessage } from '@/components/admin/RightsIntakeDetail/rightsFileErrors';
 import { ApiError } from '@/types/api';

@@ -68,14 +68,6 @@ export interface PageTableProps {
 }
 
 /**
- * Пропсы для компонента LoadingState
- */
-export interface LoadingStateProps {
-  /** Текущий язык для формирования ссылок */
-  lang: SupportedLang;
-}
-
-/**
  * Пропсы для компонента ErrorState
  */
 export interface ErrorStateProps {

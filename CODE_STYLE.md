@@ -323,17 +323,28 @@ components/admin/pages/PageForm/
   ├── index.tsx              (~100 lines - main component)
   ├── PageForm.types.ts      (~50 lines - schemas and types)
   ├── PageForm.module.scss   (styles)
-  ├── sections/
-  │   ├── BasicInfoSection.tsx      (~80 lines)
-  │   ├── SeoBasicSection.tsx       (~60 lines)
-  │   ├── SeoTechnicalSection.tsx   (~70 lines)
-  │   ├── SeoOpenGraphSection.tsx   (~90 lines)
-  │   └── SeoTwitterSection.tsx     (~50 lines)
+  └── sections/
+      ├── BasicInfoSection.tsx        (~80 lines - fields of this form only)
+      ├── HomepageSectionsSection.tsx (~90 lines)
+      └── TranslationsSection.tsx     (~70 lines)
+
+components/admin/common/SeoSections/          (shared: used by more than one form)
+  ├── SeoBasicSection.tsx    (~60 lines)
+  ├── SeoTechnicalSection.tsx(~70 lines)
+  ├── SeoOpenGraphSection.tsx(~90 lines)
+  ├── SeoTwitterSection.tsx  (~50 lines)
   └── ui/
-      ├── FormField.tsx         (~40 lines - reusable wrapper)
-      ├── CharCounter.tsx       (~20 lines - character counter)
-      └── SeoCollapsible.tsx    (~30 lines - details/summary)
+      ├── FormField.tsx      (~40 lines - reusable wrapper)
+      ├── CharCounter.tsx    (~20 lines - character counter)
+      └── SeoCollapsible.tsx (~30 lines - details/summary)
 ```
+
+⚠️ Секции и `ui/`, которыми пользуется больше одной формы, живут в `components/admin/common/`,
+а не внутри папки формы. Копия в `PageForm/{sections,ui}/` уже заводилась и умерла: файлы
+с теми же именами лежали двумя путями, живые тянулись из `common/SeoSections/**`, а копию
+никто не импортировал — она удалена 06.09.2026 по `LEGACY-106` вместе с ещё 21 мёртвым файлом.
+Мёртвый двойник неотличим от живого в поиске по имени, и правка уходит не туда; теперь такие
+файлы ловит `yarn check:dead-modules`.
 
 **Why this matters:**
 
@@ -744,6 +755,12 @@ export interface BookCardProps {
 export { BookCard } from './BookCard';
 export type { BookCardProps } from './BookCard.types';
 ```
+
+⚠️ **Барель заводится тогда, когда он и есть путь импорта.** `index.ts`, через который никто
+не ходит, — мёртвый файл: потребители пишут глубокий путь (`BookCard/BookCard`), барель лежит
+рядом и не участвует ни в чём. С 06.09.2026 такие файлы краснит `yarn check:dead-modules`
+(`LEGACY-106`) — при его заведении три барели пришлось удалить именно по этой причине.
+Правило простое: завёл барель — импортируй через него, а не мимо.
 
 ---
 

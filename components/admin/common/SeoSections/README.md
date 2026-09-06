@@ -12,7 +12,6 @@ components/admin/common/SeoSections/
 ├── SeoOpenGraphSection.tsx       # Open Graph (Facebook, LinkedIn)
 ├── SeoTwitterSection.tsx         # Twitter Card
 └── ui/
-    ├── index.ts                  # Re-exports UI components
     ├── CharCounter.tsx           # Character counter for fields
     ├── FormField.tsx             # Reusable form field wrapper
     ├── SeoCollapsible.tsx        # Collapsible section for SEO

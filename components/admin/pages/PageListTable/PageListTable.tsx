@@ -13,7 +13,6 @@ import type { PageListTableProps } from './PageListTable.types';
 import type { PublicationStatus } from '@/types/api-schema';
 import styles from './PageListTable.module.scss';
 import { ErrorState } from './sections/ErrorState';
-// import { LoadingState } from './sections/LoadingState';
 import { PageTable } from './ui/PageTable';
 import { PaginationControls } from './ui/PaginationControls';
 import { SearchForm } from './ui/SearchForm';

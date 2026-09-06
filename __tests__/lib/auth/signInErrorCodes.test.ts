@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { CredentialsSignin } from '@auth/core/errors';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { authOptions } from '@/lib/auth/config';

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { authOptions } from '@/lib/auth/config';
 import { AuthErrorType } from '@/lib/auth/constants';

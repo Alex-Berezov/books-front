@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { metadata as listenMetadata } from '@/app/[lang]/book/[slug]/listen/page';
 import { metadata as readMetadata } from '@/app/[lang]/book/[slug]/read/page';

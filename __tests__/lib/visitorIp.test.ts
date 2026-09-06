@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { VISITOR_IP_HEADER, visitorIpHeaderFrom } from '@/lib/visitor-ip';
 

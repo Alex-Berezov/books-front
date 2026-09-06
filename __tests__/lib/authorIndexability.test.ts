@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { isAuthorLinkable } from '@/lib/seo/author-linkable';
 import { buildRobotsByCount, toCountResult } from '@/lib/utils/seo-indexing';

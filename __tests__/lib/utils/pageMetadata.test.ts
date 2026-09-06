@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { logError } from '@/lib/utils/log-error';
 import { appendPageParam, getPageMetadata } from '@/lib/utils/seo';

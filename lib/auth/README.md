@@ -10,9 +10,7 @@
 lib/auth/
 ├── auth.ts              # NextAuth v5 instance (auth, signIn, signOut, handlers)
 ├── config.ts            # NextAuth configuration with providers and callbacks
-├── SessionProvider.tsx  # Client-side session provider
 ├── helpers.ts           # Utilities for working with session on server
-├── index.ts             # Public API of the module
 └── README.md            # This documentation
 
 app/api/auth/[...nextauth]/
@@ -42,7 +40,7 @@ types/
 ### Server Components
 
 ```typescript
-import { getCurrentUser, isStaff } from '@/lib/auth';
+import { getCurrentUser, isStaff } from '@/lib/auth/helpers';
 
 export default async function AdminPage() {
   const session = await getCurrentUser();
@@ -200,7 +198,7 @@ interface JWT {
 **File:** `providers/AppProviders.tsx`
 
 ```typescript
-import { SessionProvider } from '@/lib/auth';
+import { SessionProvider } from 'next-auth/react';
 
 export function AppProviders({ children }) {
   return (
@@ -219,7 +217,7 @@ export function AppProviders({ children }) {
 
 ```typescript
 // middleware.ts
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/auth/auth';
 import { NextResponse } from 'next/server';
 
 export default auth((req) => {
@@ -235,7 +233,7 @@ export default auth((req) => {
 
 ```typescript
 // app/admin/[lang]/layout.tsx
-import { getCurrentUser, isStaff } from '@/lib/auth';
+import { getCurrentUser, isStaff } from '@/lib/auth/helpers';
 import { redirect } from 'next/navigation';
 
 export default async function AdminLayout({ children, params }) {

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { isOptimizableHost, OPTIMIZABLE_HTTPS_HOSTS } from '@/lib/utils/image-host';
 

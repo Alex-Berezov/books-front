@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
@@ -248,6 +249,7 @@ describe('единственная точка входа проверок (LEGAC
     'check:env',
     'check:langs',
     'check:reserved-slugs',
+    'check:dead-modules',
     'lint',
     'typecheck',
     'test:coverage',

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { resolveBookCreationAvailability } from '@/app/admin/[lang]/rights-intakes/[id]/bookCreationAvailability';
 import type { RightsProfileDetail } from '@/types/api-schema/rights-intake';

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { describeStatusFailure } from '@/app/admin/[lang]/rights-intakes/[id]/statusActionError';
 

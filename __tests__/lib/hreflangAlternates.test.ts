@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { buildIndexableAlternates, toAlternateCandidates } from '@/lib/seo/hreflang-alternates';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';

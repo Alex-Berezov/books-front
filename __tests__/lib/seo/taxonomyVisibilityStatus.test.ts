@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { getTaxonomyVisibilityStatus } from '@/lib/seo/taxonomy-visibility-status';
 

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';

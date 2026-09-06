@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  // Детектор недостижимых модулей (LEGACY-106). Точки входа Next определяются
+  // встроенным плагином, перечислять их здесь не требуется.
+  "ignore": [
+    // Заготовка getServerAccessToken(): не подключена намеренно, задача не сделана —
+    // см. books-front/CLAUDE.md и LEGACY-198. Удалять нельзя, это отложенный код.
+    "lib/auth/session-utils.ts",
+    // Файл-пример с шапкой «DO NOT import in production code»: живёт как образец
+    // работы с http-клиентом и по замыслу не импортируется ниоткуда.
+    "lib/http.examples.ts"
+  ]
+}

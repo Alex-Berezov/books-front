@@ -1,1 +1,0 @@
-export { RightsClaimsList } from './RightsClaimsList';

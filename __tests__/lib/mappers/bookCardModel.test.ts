@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { toBookCardModel, toBookCardModels } from '@/lib/mappers/book';
 import type { BookOverview, VersionPreview } from '@/types/api-schema';
