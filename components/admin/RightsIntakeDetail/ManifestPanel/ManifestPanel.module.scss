@@ -138,6 +138,11 @@
   width: 90%;
   max-width: 800px;
   max-height: 85vh;
+  // Прокручивается само окно, а не его тело: фокус при открытии встаёт на окно
+  // (`lib/hooks/useDialogFocus.ts`), и стрелки листают именно тот элемент,
+  // на котором стоит фокус. Прокрутка на теле требовала бы своей остановки
+  // табуляции — лишней и вредной внутри замкнутого Tab (`LEGACY-041`).
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -170,7 +175,6 @@
 
 .modalBody {
   padding: $spacing-lg;
-  overflow-y: auto;
   font-family: monospace;
   font-size: 12px;
   background: $color-background-tertiary;

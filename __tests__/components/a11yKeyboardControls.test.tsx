@@ -91,6 +91,33 @@ describe('клавиатура в панелях прав и общей мода
     expect(document.activeElement).toBe(opener);
   });
 
+  it('Tab замкнут внутри окна и не уходит на страницу под подложкой', () => {
+    const onCancel = vi.fn();
+    const { container } = render(
+      <>
+        <button type="button">Ссылка страницы</button>
+        <Modal isOpen title="Заголовок" onCancel={onCancel} onConfirm={vi.fn()}>
+          <p>Тело</p>
+        </Modal>
+      </>
+    );
+
+    const dialog = container.querySelector('[role="dialog"]') as HTMLElement;
+    const inside = Array.from(dialog.querySelectorAll('button'));
+    const first = inside[0];
+    const last = inside[inside.length - 1];
+
+    // 🔴 Окно рисуется в общем потоке: без замыкания Tab из последней кнопки уходит
+    // на страницу под подложкой, и посетитель «выпадает» из диалога, не закрыв его.
+    last.focus();
+    fireEvent.keyDown(dialog, { key: 'Tab' });
+    expect(document.activeElement).toBe(first);
+
+    first.focus();
+    fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(last);
+  });
+
   it('клик по телу модалки её не закрывает, а клик по подложке — закрывает', () => {
     const onCancel = vi.fn();
     const { container } = render(

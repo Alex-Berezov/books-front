@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef, type FC } from 'react';
+import { useState, useCallback, useRef, type FC } from 'react';
 import { Eye, Copy, FileDown, X, Send } from 'lucide-react';
 import { useRightsAgentManifest, useRightsIntakeReadiness } from '@/api/hooks/useRightsIntakes';
+import { useDialogFocus } from '@/lib/hooks/useDialogFocus';
 import type { RightsAgentManifest } from '@/types/api-schema/rights-intake';
 import styles from './ManifestPanel.module.scss';
 
@@ -39,18 +40,8 @@ export const ManifestPanel: FC<ManifestPanelProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Фокус переносится в окно при открытии: без этого Escape не работал вовсе —
-  // фокус оставался на кнопке «Preview», и событие до подложки не всплывало
-  // (`LEGACY-041`, тот же приём в `components/common/Modal`).
-  useEffect(() => {
-    if (!modalOpen) return;
-
-    const opener = document.activeElement as HTMLElement | null;
-    modalRef.current?.focus();
-
-    // Фокус возвращается на кнопку, с которой окно открыли.
-    return () => opener?.focus?.();
-  }, [modalOpen]);
+  // Фокус окна — тем же приёмом, что в `components/common/Modal` (`LEGACY-041`).
+  useDialogFocus(modalRef, modalOpen);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
 
   const manifestQuery = useRightsAgentManifest(intakeId);
@@ -231,8 +222,7 @@ export const ManifestPanel: FC<ManifestPanelProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Escape') setModalOpen(false);
           }}
-          role="button"
-          tabIndex={0}
+          role="presentation"
         >
           <div className={styles.modal} ref={modalRef} tabIndex={-1}>
             <div className={styles.modalHeader}>

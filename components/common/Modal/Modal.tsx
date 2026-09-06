@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useId, useRef, type FC } from 'react';
+import { useId, useRef, type FC } from 'react';
 import { Button } from '@/components/common/Button';
+import { useDialogFocus } from '@/lib/hooks/useDialogFocus';
 import type { ModalProps } from './Modal.types';
 import styles from './Modal.module.scss';
 
@@ -58,29 +59,9 @@ export const Modal: FC<ModalProps> = (props) => {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  /**
-   * Фокус переносится в окно при открытии.
-   *
-   * 🔴 Без этого Escape не работал вовсе: обработчик висел на подложке, а окно
-   * открывают кнопкой на странице — фокус оставался на ней, и событие до подложки
-   * не всплывало (`LEGACY-041`).
-   *
-   * ⚠️ Слушатель при этом **синтетический**, на теле окна, а не на документе.
-   * В App Router корнем React служит сам `document`, поэтому `stopPropagation`
-   * вложенного виджета (выпадающий список antd гасит им свой Escape) соседний
-   * слушатель на документе не остановил бы: посетитель закрывал бы Escape'ом
-   * список, а закрывалось бы всё окно вместе с введённым.
-   */
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Кто открыл окно, тому фокус и возвращается: иначе после Escape он падает
-    // на `body`, и следующий Tab начинает обход страницы с начала.
-    const opener = document.activeElement as HTMLElement | null;
-    dialogRef.current?.focus();
-
-    return () => opener?.focus?.();
-  }, [isOpen]);
+  // Фокус окна целиком — забрать, замкнуть Tab внутри, вернуть при закрытии
+  // (`lib/hooks/useDialogFocus.ts`, `LEGACY-041`).
+  useDialogFocus(dialogRef, isOpen);
 
   /**
    * Escape закрывает окно.

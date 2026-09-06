@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, type FC } from 'react';
+import { useState, useRef, type FC } from 'react';
 import { X, Copy, Download } from 'lucide-react';
+import { useDialogFocus } from '@/lib/hooks/useDialogFocus';
 import type { RightsReviewImportDetail } from '@/types/api-schema/rights-intake';
 import styles from './ReviewImportDetailModal.module.scss';
 
@@ -17,15 +18,8 @@ export const ReviewImportDetailModal: FC<ReviewImportDetailModalProps> = ({
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Фокус переносится в окно при открытии — иначе Escape не срабатывает вовсе:
-  // окно открывают строкой истории импорта, и фокус остаётся на ней (`LEGACY-041`).
-  useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null;
-    modalRef.current?.focus();
-
-    // Фокус возвращается на строку списка, с которой окно открыли.
-    return () => opener?.focus?.();
-  }, []);
+  // Фокус окна — тем же приёмом, что в `components/common/Modal` (`LEGACY-041`).
+  useDialogFocus(modalRef);
 
   const handleCopyJson = (json: unknown) => {
     try {
@@ -60,8 +54,7 @@ export const ReviewImportDetailModal: FC<ReviewImportDetailModalProps> = ({
       onKeyDown={(e) => {
         if (e.key === 'Escape') onClose();
       }}
-      role="button"
-      tabIndex={0}
+      role="presentation"
     >
       <div className={styles.modal} ref={modalRef} tabIndex={-1}>
         <div className={styles.modalHeader}>
