@@ -135,6 +135,50 @@ const isPagePath = (pathname: string): boolean => {
 const LOCAL_HOST_PATTERN = /^(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i;
 
 /**
+ * `LEGACY-186`. Октет процентного кодирования (`%D1`, `%3F`...) состоит из
+ * hex-цифр, среди которых есть `A`-`F` — не отличить от заглавной буквы пути
+ * без разбора. Нелатинский слаг приходит сюда именно в этой форме: кодирует его
+ * клиент или краулер при запросе, `request.nextUrl.pathname` в Next 14 путь
+ * не декодирует, а карта сайта отдаёт тот же адрес в сыром виде
+ * (`lib/sitemap/utils.ts` → `buildPublicUrl`, склейка строк без кодирования).
+ * Голая `/[A-Z]/.test` ловила совпадение внутри `%D1` и редиректила рабочий
+ * адрес на самого себя в другом регистре кодирования.
+ *
+ * ⚠️ Шаблон октета объявлен **один раз** и подставляется в обе функции через
+ * `.source`: разойдись эти два определения — детектор и сборка целевого пути
+ * начали бы считать октетом разное, и правка вернулась бы наполовину.
+ */
+const PERCENT_ENCODED_OCTET = /%[0-9A-Fa-f]{2}/g;
+
+/**
+ * Есть ли заглавная буква вне последовательностей `%XX`.
+ *
+ * ⚠️ Условие срабатывания и переписывание намеренно **разной ширины**, и свести
+ * их к одному проходу (`собрать целевой путь и сравнить с исходным`) нельзя:
+ * редирект и раньше запускала только латинская заглавная, а понижался при этом
+ * весь путь. Сравнение «целевой не равен исходному» завело бы 301 сырому
+ * `/ru/tag/Фэнтези`, которого до этой правки не было, — это уже другая правка
+ * с другой ценой (`LEGACY-186` ограничена процентным кодированием).
+ */
+const hasUppercaseOutsidePercentEncoding = (pathname: string): boolean =>
+  /[A-Z]/.test(pathname.replace(PERCENT_ENCODED_OCTET, ''));
+
+/**
+ * Понижает регистр только вне `%XX` — сами октеты остаются как есть.
+ *
+ * ⚠️ Понижается **всё**, что не октет, а не только `[A-Z]`: прежний
+ * `pathname.toLowerCase()` понижал любую заглавную, и сужение до латиницы было бы
+ * второй правкой поведения под видом первой. Практической разницы сегодня нет —
+ * не-ASCII доезжает сюда уже в форме `%XX` (`URL` кодирует его сам), — но правка
+ * `LEGACY-186` про регистр **кодирования**, и трогать регистр текста она не должна
+ * ни в одну сторону.
+ */
+const OCTET_OR_TEXT = new RegExp(`${PERCENT_ENCODED_OCTET.source}|[^%]+`, 'g');
+
+const toLowerCaseOutsidePercentEncoding = (pathname: string): string =>
+  pathname.replace(OCTET_OR_TEXT, (match) => (match.startsWith('%') ? match : match.toLowerCase()));
+
+/**
  * Middleware function
  */
 export async function middleware(request: NextRequest) {
@@ -200,8 +244,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // 3. uppercase -> lowercase path
-  if (isPagePath(pathname) && /[A-Z]/.test(pathname)) {
-    targetPathname = pathname.toLowerCase();
+  if (isPagePath(pathname) && hasUppercaseOutsidePercentEncoding(pathname)) {
+    targetPathname = toLowerCaseOutsidePercentEncoding(pathname);
     shouldRedirect = true;
   }
 

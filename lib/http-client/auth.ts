@@ -73,9 +73,12 @@ export const getCurrentSession = async () => {
  * (`LEGACY-140`).
  */
 export const SERVER_CONTEXT_AUTH_MESSAGE =
-  'Authorized HTTP client called from a server context: the NextAuth session is only readable in ' +
-  'the browser, so no token can be obtained here. Pass an explicit accessToken, or call the ' +
-  'endpoint with requireAuth: false / optionalAuth: true.';
+  'Authorized HTTP client called from a server context: this client reads the NextAuth session ' +
+  'through the browser-only path, so it has no token here. A server-side token is obtainable — ' +
+  'lib/auth/session-utils.ts getServerAccessToken() reads it through auth() — but wiring it into ' +
+  'this client is a separate task (LEGACY-140), so do not read this as "impossible". Pass that ' +
+  'token explicitly as accessToken; call the endpoint with requireAuth: false / optionalAuth: ' +
+  'true only when the route is genuinely open to anonymous callers.';
 
 /** Код этой ошибки: она про неверный вызов, а не про неавторизованного посетителя. */
 export const SERVER_CONTEXT_AUTH_ERROR = 'ServerContextAuthUnavailable';

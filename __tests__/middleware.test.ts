@@ -370,6 +370,65 @@ describe('редирект: origin только из настроек (LEGACY-13
 });
 
 /**
+ * `LEGACY-186`. Октет `%D1` содержит hex-цифру `D` — голая `/[A-Z]/.test`
+ * принимала её за заглавную букву пути и редиректила рабочий нелатинский адрес
+ * на самого себя в другом регистре кодирования.
+ *
+ * ⚠️ Кодирует адрес не карта сайта: она отдаёт слаг сырым
+ * (`app/sitemaps/[filename]/route.ts` → `buildPublicUrl`, склейка строк).
+ * В `%XX` путь превращают клиент и краулер при запросе, а
+ * `request.nextUrl.pathname` в Next 14 его не декодирует — оттого совпадение
+ * и доезжало до правила 3.
+ *
+ * Посадка лежит своим `describe`, а не внутри блока `LEGACY-134`: разбор чужого
+ * блока целиком унёс бы её вместе с собой, а по имени записи она бы не нашлась.
+ */
+describe('нормализация регистра не трогает процентное кодирование (LEGACY-186)', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', SITE_URL);
+    getTokenMock.mockResolvedValue(null);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('нелатинский адрес в форме %XX не получает лишний 301', async () => {
+    const response = await middleware(
+      request(`${SITE_URL}/ru/tag/%D1%81%D1%82%D1%80%D0%B0%D1%85`, { host: SITE_HOST })
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('location')).toBeNull();
+  });
+
+  it('заглавная буква пути рядом с %XX получает 301, октет сохраняется', async () => {
+    const response = await middleware(
+      request(`${SITE_URL}/ru/Tag/%D1%81%D1%82%D1%80%D0%B0%D1%85`, { host: SITE_HOST })
+    );
+
+    expect(response.status).toBe(301);
+    expect(response.headers.get('location')).toBe(
+      `${SITE_URL}/ru/tag/%D1%81%D1%82%D1%80%D0%B0%D1%85`
+    );
+  });
+
+  // 🔴 Смешанный случай: латинская заглавная в языке — причина 301, а сам слаг
+  // нелатинский. Путь доезжает до middleware уже закодированным (`URL`
+  // кодирует не-ASCII сам), поэтому проверяется главное: язык понижен, а октеты
+  // слага дошли байт в байт. Прежний `pathname.toLowerCase()` понижал и hex,
+  // отдавая `%d0%a4` вместо `%D0%A4`, — на этом кейс и краснеет.
+  it('заглавный язык понижается, октеты нелатинского слага сохраняются', async () => {
+    const response = await middleware(request(`${SITE_URL}/RU/tag/Фэнтези`, { host: SITE_HOST }));
+
+    expect(response.status).toBe(301);
+    expect(new URL(response.headers.get('location') as string).pathname).toBe(
+      `/ru/tag/${encodeURIComponent('Фэнтези')}`
+    );
+  });
+});
+
+/**
  * 🔴 `LEGACY-157`. Отрицательные ветки гейта админки посадками закрыты (аноним уходит
  * на форму входа, чужая роль — на `/403`), а положительная — нет: замена
  * `ADMIN_PANEL_ROLES` на пустой список или инверсия условия роняли бы только вход
