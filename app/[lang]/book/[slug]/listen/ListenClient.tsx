@@ -58,7 +58,11 @@ export default function ListenClient({ params }: Props) {
   const goBack = useSmartBack(`/${lang}/book/${slug}`);
   const { t } = useTranslation();
 
-  const { data: book, isLoading: loadingBook } = useBookOverview(supportedLang, slug);
+  const {
+    data: book,
+    isLoading: loadingBook,
+    error: bookError,
+  } = useBookOverview(supportedLang, slug);
   const versionId = book?.versionIds?.audio || '';
 
   useEffect(() => {
@@ -70,9 +74,21 @@ export default function ListenClient({ params }: Props) {
   const {
     data: chaptersData,
     isLoading: loadingChapters,
-    error,
+    error: chaptersError,
   } = usePublicAudioChapters(versionId, undefined, { enabled: !!versionId });
   const chapters = useMemo(() => chaptersData?.items ?? [], [chaptersData?.items]);
+
+  /**
+   * Отказ любой из двух ручек — это отказ загрузки плеера (`LEGACY-268`).
+   *
+   * 🔴 Отказ обзора книги учитывается наравне с отказом глав. При 500 или 404 на
+   * обзоре `versionId` остаётся пустым, запрос глав вообще не уходит
+   * (`enabled: !!versionId`), и без этой связки посетитель видел «нет глав» —
+   * ровно тот дефект, который запись закрывает на второй ручке. Тем же путём
+   * терялась и правовая блокировка: 451 на обзоре уезжал в «нет глав» вместо
+   * `RightsBlockedNotice`.
+   */
+  const error = chaptersError ?? bookError;
 
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
@@ -392,11 +408,18 @@ export default function ListenClient({ params }: Props) {
     return <RightsBlockedNotice lang={lang} bookSlug={slug} />;
   }
 
-  if (error || chapters.length === 0) {
+  // 🔴 Экран отказа — только когда показывать нечего. React Query при отказе
+  // **пере**запроса сохраняет прежний `data` и одновременно ставит `error`, а
+  // `refetchOnReconnect` включён: голое `if (error)` выбрасывало бы слушателя из
+  // играющей книги на экран отказа при живом списке глав в руках.
+  if (chapters.length === 0) {
     return (
       <div className={styles.errorContainer}>
         <p className={styles.errorText}>
-          {chapters.length === 0 ? t('player.noChapters') : t('player.chaptersFail')}
+          {/* Проверка отказа стоит первой (`LEGACY-268`): при отказе `chapters` тоже
+              пуст, и обратный порядок делал `player.chaptersFail` практически
+              недостижимым — читатель всегда видел «нет глав», даже на 500. */}
+          {error ? t('player.chaptersFail') : t('player.noChapters')}
         </p>
         <button type="button" onClick={goBack} className={styles.secondaryBtn}>
           {t('player.goBack')}

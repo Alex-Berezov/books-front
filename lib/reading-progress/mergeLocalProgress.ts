@@ -1,6 +1,7 @@
 'use client';
 
 import { getProgress, updateTextProgress } from '@/api/endpoints/progress';
+import { getClockSkewMs } from '@/lib/http';
 import { logError } from '@/lib/utils/log-error';
 import { ApiError } from '@/types/api';
 import type { LocalProgressRecord, LocalProgressSide, ProgressSideKind } from './types';
@@ -48,17 +49,28 @@ const toUpdateRequest = ({ kind, side }: PendingSide): UpdateProgressRequest =>
  * обе локальные стороны сравниваются с ней же. Возвращаются от старой к свежей:
  * `position` на сервере одно поле на обе стороны, и последним должен уехать тот
  * запрос, чья позиция и должна остаться.
+ *
+ * 🔴 LEGACY-270: локальная `updatedAt` — часы браузера, серверная — часы базы.
+ * Сравнение поправлено на `getClockSkewMs()` (снят с заголовка `Date` последнего
+ * ответа, включая тот же `getProgress` чуть выше по вызову): без поправки
+ * телефон с часами на десять минут вперёд выигрывал бы каждое слияние
+ * устаревшими данными, а отстающий — проигрывал бы даже самой свежей записью.
  */
 const collectFresherSides = (
   record: LocalProgressRecord,
   serverUpdatedAt: number | null
 ): PendingSide[] => {
+  const skewMs = getClockSkewMs();
+  const asServerTime = (side: LocalProgressSide) => side.updatedAt + skewMs;
+  const isFresher = (side: LocalProgressSide) =>
+    serverUpdatedAt === null || asServerTime(side) > serverUpdatedAt;
+
   const sides: PendingSide[] = [];
 
-  if (record.text && (serverUpdatedAt === null || record.text.updatedAt > serverUpdatedAt)) {
+  if (record.text && isFresher(record.text)) {
     sides.push({ kind: 'text', side: record.text });
   }
-  if (record.audio && (serverUpdatedAt === null || record.audio.updatedAt > serverUpdatedAt)) {
+  if (record.audio && isFresher(record.audio)) {
     sides.push({ kind: 'audio', side: record.audio });
   }
 

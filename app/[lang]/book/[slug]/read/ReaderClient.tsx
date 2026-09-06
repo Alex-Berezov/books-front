@@ -286,6 +286,28 @@ export default function ReaderClient({ params }: Props) {
     );
   }
 
+  // Отказ загрузки, не являющийся правовой блокировкой (404 на опечатку в слаге,
+  // 500 от `reader-bootstrap`), не должен доезжать до ветки пустой книги ниже:
+  // для неё оба случая выглядят как `chapters.length === 0`, и читатель не может
+  // отличить сломанную загрузку от честно пустой книги (`LEGACY-268`).
+  //
+  // 🔴 Условие смотрит и на данные. React Query при отказе **пере**запроса
+  // сохраняет прежний `data` и одновременно ставит `error`, а перезапрос здесь
+  // штатный: `refetchOnReconnect` включён, и `useUpdateTextProgress`
+  // обесценивает `readerBootstrap` после каждого сохранения. Голое `if (error)`
+  // выбрасывало бы читателя из открытой книги на экран отказа при живом тексте
+  // в руках.
+  if (error && chapters.length === 0) {
+    return (
+      <div className={styles.errorContainer}>
+        <p className={styles.errorText}>{t('reader.loadError')}</p>
+        <button type="button" onClick={goBack} className={styles.secondaryBtn}>
+          {t('book.back')}
+        </button>
+      </div>
+    );
+  }
+
   const themeStyles = themeMap[theme];
 
   return (

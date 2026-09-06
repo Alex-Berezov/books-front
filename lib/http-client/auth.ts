@@ -15,15 +15,27 @@ const SESSION_CACHE_TIME = 60 * 1000; // 1 minute
 // Cache state
 let cachedSession: Session | null = null;
 let lastSessionFetchTime = 0;
+/**
+ * Отличает «сессию ещё не спрашивали» от «спросили — сессии нет» (`LEGACY-267`).
+ * Кэш ниже раньше проверялся истинностью `cachedSession`, а она у анонима всегда
+ * `null` — то есть кэш отрицательного ответа не срабатывал никогда, и каждый вызов
+ * уходил в `getSession()` заново.
+ */
+let sessionKnown = false;
 let sessionFetchPromise: Promise<Session | null> | null = null;
+
+const applySession = (session: Session | null) => {
+  cachedSession = session;
+  lastSessionFetchTime = Date.now();
+  sessionKnown = true;
+};
 
 /**
  * Manually set session (e.g. from AppProviders)
  * to avoid initial network request
  */
 export const setSession = (session: Session | null) => {
-  cachedSession = session;
-  lastSessionFetchTime = Date.now();
+  applySession(session);
 };
 
 /**
@@ -39,8 +51,8 @@ export const getCurrentSession = async () => {
 
   const now = Date.now();
 
-  // Return cached session if valid
-  if (cachedSession && now - lastSessionFetchTime < SESSION_CACHE_TIME) {
+  // Return cached session (including a cached "no session") if still valid
+  if (sessionKnown && now - lastSessionFetchTime < SESSION_CACHE_TIME) {
     return cachedSession;
   }
 
@@ -53,8 +65,7 @@ export const getCurrentSession = async () => {
     sessionFetchPromise = getSession();
     const session = await sessionFetchPromise;
 
-    cachedSession = session;
-    lastSessionFetchTime = Date.now();
+    applySession(session);
 
     return session;
   } catch (error) {

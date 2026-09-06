@@ -256,6 +256,7 @@
     "fontSize": "Taille de police",
     "lineHeight": "Hauteur de ligne",
     "noChapters": "Aucun chapitre disponible pour cette version du livre.",
+    "loadError": "Échec du chargement du livre. Veuillez réessayer plus tard.",
     "prev": "Précédent",
     "next": "Suivant",
     "chapterProgress": "Chapitre",

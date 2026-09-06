@@ -256,6 +256,7 @@
     "fontSize": "Tamanho da fonte",
     "lineHeight": "Espaçamento",
     "noChapters": "Nenhum capítulo disponível para esta versão do livro.",
+    "loadError": "Falha ao carregar o livro. Tente novamente mais tarde.",
     "prev": "Anterior",
     "next": "Próximo",
     "chapterProgress": "Capítulo",

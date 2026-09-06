@@ -256,6 +256,7 @@
     "fontSize": "Tamaño de fuente",
     "lineHeight": "Interlineado",
     "noChapters": "No hay capítulos disponibles para esta versión del libro.",
+    "loadError": "No se pudo cargar el libro. Inténtalo de nuevo más tarde.",
     "prev": "Anterior",
     "next": "Siguiente",
     "chapterProgress": "Capítulo",

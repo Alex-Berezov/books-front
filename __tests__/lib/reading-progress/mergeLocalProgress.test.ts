@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getProgress, updateTextProgress } from '@/api/endpoints/progress';
+import { getClockSkewMs } from '@/lib/http';
 import {
   clearLocalProgress,
   mergeLocalProgressIntoAccount,
@@ -33,8 +34,16 @@ vi.mock('@/api/endpoints/progress', () => ({
   updateTextProgress: vi.fn(),
 }));
 
+// `getClockSkewMs` в проде снимается с заголовка `Date` реального ответа
+// (`lib/http.ts`); здесь `getProgress`/`updateTextProgress` замоканы целиком и
+// до него не доходят, поэтому для тестов LEGACY-270 значение задаётся явно.
+vi.mock('@/lib/http', () => ({
+  getClockSkewMs: vi.fn(() => 0),
+}));
+
 const getProgressMock = vi.mocked(getProgress);
 const updateTextProgressMock = vi.mocked(updateTextProgress);
+const getClockSkewMsMock = vi.mocked(getClockSkewMs);
 
 const USER = 'user-1';
 
@@ -56,6 +65,8 @@ describe('mergeLocalProgressIntoAccount', () => {
     getProgressMock.mockReset();
     updateTextProgressMock.mockReset();
     updateTextProgressMock.mockResolvedValue(undefined);
+    getClockSkewMsMock.mockReset();
+    getClockSkewMsMock.mockReturnValue(0);
     vi.useFakeTimers();
   });
 
@@ -290,5 +301,39 @@ describe('mergeLocalProgressIntoAccount', () => {
     await expect(mergeLocalProgressIntoAccount(USER)).resolves.toBe(0);
 
     expect(readLocalProgress('v1')?.text).toMatchObject({ chapterNumber: 12 });
+  });
+
+  /**
+   * LEGACY-270. Локальная `updatedAt` — часы браузера, серверная — часы базы;
+   * сырое сравнение ломается на неточных часах устройства. `collectFresherSides`
+   * поправляет локальную сторону на `getClockSkewMs()` перед сравнением.
+   */
+  describe('расхождение часов клиента и сервера', () => {
+    it('клиент спешит на час — по-настоящему более свежая серверная запись всё равно побеждает', async () => {
+      // Часы сервера отстают от клиентских на час: skew = server - client < 0.
+      getClockSkewMsMock.mockReturnValue(-60 * 60 * 1000);
+      // По часам клиента 13:00 выглядит позже, чем серверные 12:30, но в
+      // реальном времени сервер записал позже (клиент спешит на час).
+      writeText('v1', '2026-08-22T13:00:00.000Z', 12);
+      getProgressMock.mockResolvedValue(serverProgress('2026-08-22T12:30:00.000Z'));
+
+      await expect(mergeLocalProgressIntoAccount(USER)).resolves.toBe(0);
+
+      expect(updateTextProgressMock).not.toHaveBeenCalled();
+      expect(readLocalProgress('v1')).toBeNull();
+    });
+
+    it('клиент отстаёт на час — по-настоящему более свежая локальная запись всё равно побеждает', async () => {
+      // Часы сервера спешат относительно клиентских на час: skew > 0.
+      getClockSkewMsMock.mockReturnValue(60 * 60 * 1000);
+      // По часам клиента 11:00 выглядит раньше серверных 11:30, но в реальном
+      // времени локальная запись случилась позже (клиент отстаёт на час).
+      writeText('v1', '2026-08-22T11:00:00.000Z', 12);
+      getProgressMock.mockResolvedValue(serverProgress('2026-08-22T11:30:00.000Z'));
+
+      await expect(mergeLocalProgressIntoAccount(USER)).resolves.toBe(1);
+
+      expect(updateTextProgressMock).toHaveBeenCalledWith('v1', { chapterNumber: 12, position: 0 });
+    });
   });
 });

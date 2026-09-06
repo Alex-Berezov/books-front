@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { describe, it, expect } from 'vitest';
-import { buildUrlWithParams } from '@/lib/http';
+import { buildUrlWithParams, getClockSkewMs } from '@/lib/http';
 import { httpGet, httpPost, httpPatch, httpPut, httpDelete } from '@/lib/http';
 import { ApiError } from '@/types/api';
 import { server } from '../msw/server';
@@ -44,6 +44,85 @@ describe('HTTP Utils', () => {
       );
 
       await expect(httpGet('/not-found')).rejects.toThrow(ApiError);
+    });
+  });
+
+  /**
+   * LEGACY-270: слияние прогресса чтения сравнивает часы клиента и сервера без
+   * поправки. `recordClockSkew` снимает расхождение с заголовка `Date` любого
+   * ответа, включая отказ — иначе поправка не работала бы на 502 от `getProgress`.
+   */
+  describe('getClockSkewMs', () => {
+    it('снимает расхождение с заголовка Date успешного ответа', async () => {
+      server.use(
+        http.get('http://localhost:5000/api/clock-skew', () => {
+          return HttpResponse.json(
+            { ok: true },
+            { headers: { Date: new Date(Date.now() + 60 * 60 * 1000).toUTCString() } }
+          );
+        })
+      );
+
+      await httpGet('/clock-skew');
+
+      expect(getClockSkewMs()).toBeGreaterThan(50 * 60 * 1000);
+    });
+
+    it('снимает расхождение и с ответа-отказа', async () => {
+      server.use(
+        http.get('http://localhost:5000/api/clock-skew-error', () => {
+          return HttpResponse.json(
+            { message: 'nope' },
+            { status: 500, headers: { Date: new Date(Date.now() - 60 * 60 * 1000).toUTCString() } }
+          );
+        })
+      );
+
+      await httpGet('/clock-skew-error').catch(() => undefined);
+
+      expect(getClockSkewMs()).toBeLessThan(-50 * 60 * 1000);
+    });
+
+    /**
+     * 🔴 Перед API стоит Cloudflare, публичные ручки помечены `public, s-maxage`.
+     * У кэшированного ответа `Date` — момент первичного ответа, и без этой ветки
+     * возраст кэша уехал бы в сравнение времён слияния как расхождение часов.
+     */
+    it('ответ из кэша (есть Age) расхождение не двигает', async () => {
+      server.use(
+        http.get('http://localhost:5000/api/clock-skew-cached', () => {
+          return HttpResponse.json(
+            { ok: true },
+            {
+              headers: {
+                Date: new Date(Date.now() - 6 * 60 * 60 * 1000).toUTCString(),
+                Age: '21600',
+              },
+            }
+          );
+        })
+      );
+
+      const before = getClockSkewMs();
+      await httpGet('/clock-skew-cached');
+
+      expect(getClockSkewMs()).toBe(before);
+    });
+
+    it('расхождение больше суток отбрасывается как мусор', async () => {
+      server.use(
+        http.get('http://localhost:5000/api/clock-skew-absurd', () => {
+          return HttpResponse.json(
+            { ok: true },
+            { headers: { Date: new Date(Date.now() + 40 * 24 * 60 * 60 * 1000).toUTCString() } }
+          );
+        })
+      );
+
+      const before = getClockSkewMs();
+      await httpGet('/clock-skew-absurd');
+
+      expect(getClockSkewMs()).toBe(before);
     });
   });
 

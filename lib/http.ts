@@ -29,6 +29,53 @@ import {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
 /**
+ * Расхождение часов сервера и клиента, мс (`serverTime - Date.now()`), снятое по
+ * заголовку `Date` последнего ответа. `0`, пока ни один ответ ещё не пришёл.
+ *
+ * Нужно слиянию прогресса чтения без аккаунта (`LEGACY-270`): локальные отметки
+ * времени ставит `Date.now()` браузера, серверные — часы базы, и «побеждает более
+ * поздняя сторона» ломается на любом устройстве с неточными часами.
+ *
+ * 🔴 Читается заголовок только потому, что бэкенд отдаёт его наружу явно:
+ * `Date` не входит в CORS-safelisted response headers, API кросс-доменный
+ * (`api.bibliaris.com` против `bibliaris.com`), и без `Date` в `exposedHeaders`
+ * (`books/src/config/cors.config.ts`, `CORS_EXPOSED_HEADERS`) здесь всегда был бы
+ * `null`, а поправка — нулевой при зелёных тестах. Парная правка, снимут ту
+ * сторону — эта умрёт молча.
+ */
+const MAX_PLAUSIBLE_CLOCK_SKEW_MS = 24 * 60 * 60 * 1000;
+
+let clockSkewMs = 0;
+
+export const getClockSkewMs = (): number => clockSkewMs;
+
+const recordClockSkew = (response: Response): void => {
+  // На сервере эта переменная одна на процесс и общая для всех посетителей:
+  // расхождение, снятое чужим запросом, применилось бы к чужому же слиянию.
+  // Читателю оно нужно только в браузере — там и снимаем.
+  if (typeof window === 'undefined') return;
+
+  const dateHeader = response.headers.get('date');
+  if (!dateHeader) return;
+
+  // Ответ из кэша несёт `Date` момента первичного ответа, а не текущего: перед
+  // ним стоит Cloudflare, а публичные ручки помечены `public, s-maxage`. Такой
+  // заголовок дал бы скачок в минуты прямо в сравнение времён слияния, где цена
+  // ошибки — удаление локальной стороны.
+  if (response.headers.get('age')) return;
+
+  const serverTime = Date.parse(dateHeader);
+  if (!Number.isFinite(serverTime)) return;
+
+  const skew = serverTime - Date.now();
+  // Расхождение больше суток — это не сбитые часы, а мусорное значение:
+  // подставленный прокси-заголовок, застрявший ответ, часы, сброшенные в эпоху.
+  if (Math.abs(skew) > MAX_PLAUSIBLE_CLOCK_SKEW_MS) return;
+
+  clockSkewMs = skew;
+};
+
+/**
  * Creates headers for HTTP request
  *
  * @param options - Request options with token and language
@@ -120,6 +167,8 @@ const mergeHeaders = (base: HeadersInit, extra?: HeadersInit): HeadersInit => {
  * @throws {ApiError} On API or network error
  */
 const handleResponse = async <T>(response: Response): Promise<T> => {
+  recordClockSkew(response);
+
   // Check status before parsing JSON
   if (!response.ok) {
     // Try to parse error JSON

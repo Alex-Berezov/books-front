@@ -16,7 +16,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { MutationCache, QueryCache, QueryClientProvider } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
-import { SessionProvider } from 'next-auth/react';
+import { SessionProvider, useSession } from 'next-auth/react';
 import { SnackbarProvider } from 'notistack';
 import { ToastConfigurator } from '@/components/common/ToastConfigurator';
 import { SESSION_SETTINGS } from '@/lib/auth/constants';
@@ -34,6 +34,31 @@ interface AppProvidersProps {
   children: ReactNode;
   session?: Session | null;
 }
+
+/**
+ * Держит кэш сессии в http-клиенте равным тому, что знает `SessionProvider`.
+ *
+ * 🔴 Живёт **внутри** провайдера и слушает `useSession`, а не локальное состояние
+ * снаружи, и это не стилистика. Кэш `lib/http-client/auth.ts` с `LEGACY-267`
+ * помнит и отрицательный ответ («сессии нет») — минуту. Отметка, поставленная
+ * один раз на монтировании, за эту минуту протухает молча: вход по паролю идёт
+ * через `signIn(..., { redirect: false })` + `router.push`, без перезагрузки
+ * страницы, а `session` пропом сюда не приходит вовсе (`app/layout.tsx` рендерит
+ * провайдеры без него). Вошедший в первую минуту получал бы 401 ещё до сети — и
+ * слияние локального прогресса, идущее ровно в этот момент, пропускало бы все
+ * книги разом.
+ */
+const SessionCacheSync = () => {
+  const { data, status } = useSession();
+
+  useEffect(() => {
+    // `loading` — это «ещё не знаем»; кэшировать его как «сессии нет» нельзя.
+    if (status === 'loading') return;
+    setSession(data ?? null);
+  }, [data, status]);
+
+  return null;
+};
 
 const getServerErrorMessage = (): string => {
   const pathname = typeof window === 'undefined' ? '' : window.location.pathname;
@@ -65,13 +90,6 @@ export const AppProviders = (props: AppProvidersProps) => {
     if (typeof window !== 'undefined' && !hasLoggedInMarker()) return null;
     return undefined;
   });
-
-  // Initialize session cache in http-client to prevent initial API call
-  useEffect(() => {
-    if (activeSession) {
-      setSession(activeSession);
-    }
-  }, [activeSession]);
 
   useEffect(() => {
     if (session !== undefined) {
@@ -122,6 +140,7 @@ export const AppProviders = (props: AppProvidersProps) => {
       refetchOnWindowFocus={false} // Don't refetch on window focus
       refetchWhenOffline={false} // Don't refetch when offline
     >
+      <SessionCacheSync />
       <QueryClientProvider client={queryClient}>
         <SnackbarProvider
           maxSnack={3}

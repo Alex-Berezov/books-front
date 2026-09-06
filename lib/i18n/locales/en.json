@@ -306,6 +306,7 @@
     "fontSize": "Font Size",
     "lineHeight": "Line Height",
     "noChapters": "No chapters available for this book version.",
+    "loadError": "Failed to load the book. Please try again later.",
     "prev": "Prev",
     "next": "Next",
     "chapterProgress": "Chapter",
