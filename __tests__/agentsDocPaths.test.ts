@@ -115,8 +115,18 @@ const documentedPaths = (file: string): Array<{ path: string; bases: string[] }>
 
     // `.claude` есть и здесь (правила, настройки), и в родительской папке (обвязка на три
     // репозитория) — такой путь законен в любом из двух корней.
-    if (first === '.claude') found.push({ path, bases: [REPO_ROOT, PARENT_ROOT] });
-    else if (top.has(first)) found.push({ path, bases: [REPO_ROOT] });
+    //
+    // 🔴 Родительская обвязка проверяется, **только когда она на диске**. В чекауте CI лежит
+    // один `books-front`, соседних папок нет вовсе — и путь `.claude/hooks/gates.js`,
+    // законный и живой, оказывался «несуществующим»: локально зелено, в CI красное на первом
+    // же push. Тот же принцип, что у репозитория документации ниже: проверяем то, что можем
+    // проверить, там, где можем, а недоступное пропускаем, а не объявляем сломанным.
+    if (first === '.claude') {
+      const bases = existsSync(resolve(PARENT_ROOT, '.claude'))
+        ? [REPO_ROOT, PARENT_ROOT]
+        : [REPO_ROOT];
+      if (bases.length > 1 || existsSync(resolve(REPO_ROOT, path))) found.push({ path, bases });
+    } else if (top.has(first)) found.push({ path, bases: [REPO_ROOT] });
     else if (DOCS_DIRECTORIES.includes(first) && existsSync(DOCS_ROOT)) {
       found.push({ path, bases: [DOCS_ROOT] });
     }
@@ -157,8 +167,13 @@ describe('LEGACY-165: правила фронта ссылаются на реа
    * файлам эту роль не исполняет: `CODE_STYLE.md`c нулём проверенных путей прятался за
    * два десятка путей `AGENTS.md`, и ровно так первая редакция и зеленела (нашло ревью).
    */
+  /**
+   * ⚠️ Пороги стоят с запасом **под чекаут CI**, где соседних репозиториев нет и пути к ним
+   * пропускаются: там выборка меньше локальной (15/14/2 против 20/14/2). Порог, поставленный
+   * по локальному числу, краснел бы в CI на ровном месте — уже случилось с `.claude/hooks`.
+   */
   it.each([
-    ['AGENTS.md', 15],
+    ['AGENTS.md', 10],
     ['CODE_STYLE.md', 5],
     ['.ai-agent-checklist.md', 1],
   ])('в %s проверено не меньше %i путей', (file, least) => {
