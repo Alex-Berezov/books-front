@@ -2,8 +2,8 @@
 
 > Coding standards for production-ready project
 
-**Version:** 1.6  
-**Last Updated:** November 15, 2025
+**Version:** 1.7  
+**Last Updated:** September 7, 2026
 
 ---
 
@@ -499,17 +499,15 @@ export const Component = () => {
 
 ### 2. Use SCSS features
 
-### 2. Use SCSS features
-
 ```scss
-// variables.scss - tokens and mixins
+// styles/tokens.scss - design tokens
 $spacing-xs: 0.25rem;
 $spacing-sm: 0.5rem;
 $spacing-md: 1rem;
 $spacing-lg: 1.5rem;
 $spacing-xl: 2rem;
 
-// Mixins for reuse
+// styles/mixins.scss - mixins for reuse
 @mixin flex-center {
   display: flex;
   align-items: center;
@@ -521,7 +519,8 @@ $spacing-xl: 2rem;
 }
 
 // Component.module.scss
-@import '@/styles/variables';
+@import '@/styles/tokens.scss';
+@import '@/styles/mixins.scss';
 
 .container {
   @include flex-center;
@@ -544,14 +543,22 @@ $spacing-xl: 2rem;
 
 ### 1. Colors always from tokens
 
-```scss
-// styles/tokens/colors.scss
-// Project color palette
+All SCSS tokens live in **one** file — `styles/tokens.scss`. A second file, `styles/tokens.ts`,
+carries the same palette for TypeScript (antd theme via `providers/LazyConfigProvider.tsx`).
 
-// Primary Colors
-$color-primary: #1890ff;
-$color-primary-hover: #40a9ff;
-$color-primary-active: #096dd9;
+⚠️ The two are **not** kept in sync by any check, and they have already drifted:
+`$color-text-secondary` is `#00000099` in the SCSS (darkened for WCAG AA) against
+`rgba(0, 0, 0, 0.45)` in the TS. Change a colour and you change **both** by hand. The blocks
+below are excerpts; the files are the source of truth, so read them rather than copying values
+from here.
+
+```scss
+// styles/tokens.scss (excerpt)
+
+// Primary Colors (Terracotta — brand)
+$color-primary: #b05b35;
+$color-primary-hover: #c07a55;
+$color-primary-active: #8d4529;
 $color-primary-disabled: #d9d9d9;
 
 // Semantic Colors
@@ -566,9 +573,9 @@ $color-background-secondary: #f0f0f0;
 $color-background-dark: #001529;
 
 // Text Colors
-$color-text-primary: #000000;
-$color-text-secondary: #666666;
-$color-text-disabled: #999999;
+$color-text-primary: #000000d9; // rgba(0, 0, 0, 0.85)
+$color-text-secondary: #00000099; // Darkened for WCAG AA contrast compliance
+$color-text-disabled: #00000040;
 $color-text-inverse: #ffffff;
 
 // Border Colors
@@ -583,11 +590,11 @@ $shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
 ```
 
 ```typescript
-// styles/tokens/colors.ts - for use in TypeScript
+// styles/tokens.ts (excerpt) - for use in TypeScript
 export const colors = {
-  primary: '#1890ff',
-  primaryHover: '#40a9ff',
-  primaryActive: '#096dd9',
+  primary: '#b05b35',
+  primaryHover: '#c07a55',
+  primaryActive: '#8d4529',
 
   success: '#52c41a',
   warning: '#faad14',
@@ -598,9 +605,9 @@ export const colors = {
   backgroundSecondary: '#f0f0f0',
   backgroundDark: '#001529',
 
-  textPrimary: '#000000',
-  textSecondary: '#666666',
-  textDisabled: '#999999',
+  textPrimary: 'rgba(0, 0, 0, 0.85)',
+  textSecondary: 'rgba(0, 0, 0, 0.45)',
+  textDisabled: 'rgba(0, 0, 0, 0.25)',
   textInverse: '#ffffff',
 } as const;
 
@@ -610,7 +617,7 @@ export type ColorToken = keyof typeof colors;
 ### 2. Spacing tokens
 
 ```scss
-// styles/tokens/spacing.scss
+// styles/tokens.scss (excerpt)
 $spacing-xs: 0.25rem; // 4px
 $spacing-sm: 0.5rem; // 8px
 $spacing-md: 1rem; // 16px
@@ -622,7 +629,7 @@ $spacing-xxl: 3rem; // 48px
 ### 3. Typography tokens
 
 ```scss
-// styles/tokens/typography.scss
+// styles/tokens.scss (excerpt)
 // Font Families
 $font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 $font-family-mono: 'SF Mono', Monaco, monospace;
@@ -630,10 +637,11 @@ $font-family-mono: 'SF Mono', Monaco, monospace;
 // Font Sizes
 $font-size-xs: 0.75rem; // 12px
 $font-size-sm: 0.875rem; // 14px
-$font-size-md: 1rem; // 16px
+$font-size-base: 1rem; // 16px
 $font-size-lg: 1.125rem; // 18px
 $font-size-xl: 1.5rem; // 24px
 $font-size-xxl: 2rem; // 32px
+$font-size-xxxl: 2.5rem; // 40px
 
 // Font Weights
 $font-weight-regular: 400;
@@ -643,21 +651,21 @@ $font-weight-bold: 700;
 
 // Line Heights
 $line-height-tight: 1.2;
-$line-height-normal: 1.5;
+$line-height-base: 1.5;
 $line-height-relaxed: 1.75;
 ```
 
 ### 4. Breakpoints for responsive design
 
 ```scss
-// styles/tokens/breakpoints.scss
+// styles/tokens.scss (excerpt)
 $breakpoint-xs: 480px;
 $breakpoint-sm: 768px;
 $breakpoint-md: 1024px;
 $breakpoint-lg: 1280px;
 $breakpoint-xl: 1536px;
 
-// Mixins for media queries
+// styles/mixins.scss (excerpt) - mixins for media queries
 @mixin mobile {
   @media (max-width: $breakpoint-sm - 1) {
     @content;

@@ -80,7 +80,12 @@ Every modified or newly created file MUST strictly satisfy ESLint `import/order`
 - Base URL `https://api.bibliaris.com/api`; endpoints live under `/api/*`.
 - Swagger UI is `/docs`, OpenAPI spec is `/docs-json` — **not** `/api/docs-json`. There is a CI lint enforcing this in the docs repo.
 - Public endpoints need no token. Protected ones need `Authorization: Bearer {token}` (accessToken 12h, refreshToken 7d).
-- Use the typed client from `lib/api/`, send `Accept-Language` from the current `:lang`, handle 401 / 403 / 404 / 429.
+- Server pages call functions from `api/endpoints/`; client components use react-query hooks from `api/hooks/`. Transport is `lib/http.ts` and `lib/http-client/`; the `ApiError` class itself is declared in `types/api.ts`.
+- **All API calls go through that layer.** A direct `fetch` bypassing it is forbidden (the one exception is `lib/utils/fetch-page.ts`): it skips `withAuthRetry`, so a stale token is never refreshed, and skips `ApiError`, so the 451 branch never fires.
+- Language and token go through the `language` / `accessToken` options, **never** through your own `headers` — `mergeHeaders` strips `Accept-Language` and `Authorization` from it always (`LEGACY-139`).
+- Server pages call **public** functions only, or pass `accessToken` explicitly: `http*Auth` with `requireAuth` on the server fails before the network with `ServerContextAuthUnavailable` / 500, not 401 (`LEGACY-140`).
+- Handle 401 / 403 / 404 / 429 and 451 — rights blocking is its own branch (`isRightsBlockedError` in `lib/errors.ts` → `RightsBlockedNotice`), not a generic error message.
+- Every new function in `api/endpoints/` sets `next: { revalidate: N }` (public ones — `PUBLIC_REVALIDATE_SECONDS`) or `cache: 'no-store'`. The Next 14 default is "cache forever" and a page's own `revalidate` does not undo it (`LEGACY-145`).
 - Endpoint catalog: `books-app-docs/backend/api/endpoints.md`.
 
 ---
@@ -109,7 +114,7 @@ All backend changes must be reviewed by the user before deployment.
 
 **New page** — `app/[lang]/` (public) or `app/admin/[lang]/`. Add `generateMetadata()`; public pages need canonical + hreflang (`ai-context/seo-rules.md`). Prefer server components for initial data fetching.
 
-**Type errors after API changes** — regenerate from OpenAPI: `npx openapi-typescript https://api.bibliaris.com/docs-json -o types/api.ts`. Details: `frontend/FRONTEND_TYPE_SYNC_GUIDE.md`.
+**Type errors after API changes** — response types live in `types/api-schema/`, split by domain and maintained **by hand** against `https://api.bibliaris.com/docs-json`. This repo has no generation script: `yarn openapi:types:prod` in `books` writes `books/libs/api-client/src/types.ts`, which the front does not import. `types/api.ts` is hand-written too (`ApiError`, error-handling types) — **never** regenerate it. Details: `frontend/FRONTEND_TYPE_SYNC_GUIDE.md` — but only its «Метод 2» (manual update) is current practice; the «Метод 1 (Рекомендуется)» generation flow described there does not exist in this repo.
 
 ---
 
