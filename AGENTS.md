@@ -92,19 +92,17 @@ Every modified or newly created file MUST strictly satisfy ESLint `import/order`
 
 ## Backend Repository Constraints
 
-`D:\newDev\books` (NestJS + Prisma + PostgreSQL). **The production backend runs only in Docker on a VPS.** Locally there is only a throwaway PostgreSQL + Redis pair for e2e tests (added 31.07.2026) — not a dev environment, no production data.
+`D:/newDev/books` (NestJS + Prisma + PostgreSQL) живёт по своим правилам, и копии их здесь больше нет.
+До 07.09.2026 в этом разделе лежал пересказ запретов бэкенда — `db-guard`, белый список адресата, список `NEVER`,
+исключение для `prisma:generate`. Это была третья копия одних и тех же правил, и она уже расходилась с двумя
+другими (`LEGACY-168`): оговорка о том, что шаблоны `deny` префиксные, дошла только до `books/CLAUDE.md`.
 
-**Что изменилось 25.08.2026** (ТЗ `tasks/2026-08-25-avtonomnyy-harness.md`, раздел 8): локальная база открыта. `prisma migrate`, `prisma seed`, `prisma studio` и `psql` к `localhost` больше не заблокированы в `.claude/settings.json` — их место занял хук `D:/newDev/.claude/hooks/db-guard.js`, различающий локальную базу и боевую по строке подключения.
+Читать правила бэкенда там, где они живут: `books/CLAUDE.md` §«Жёсткие запреты» — граница локальной
+и боевой базы, разрушительные миграции, список `deny`; `books/AGENTS.md` — окружение и локальные e2e.
 
-⚠️ **Адресата называй прямо в команде.** Страж `db-guard.js` — белый список: команду, у которой базы не видно, он отвергает, потому что адрес пришёл бы из `.env`, а туда он не смотрит. Голый `yarn prisma:migrate` не пройдёт; пройдёт `DATABASE_URL="postgresql://...@localhost:5432/..." yarn prisma:migrate`. «Не вижу, куда идёт» — это не «идёт локально». Для фронта это меняет мало: своей базы у него нет, а трогать чужую из этого репозитория незачем.
-
-**NEVER:** боевая база и боевая машина руками — `ssh`, `docker` и `psql` на VPS, `prisma migrate deploy` в обход конвейера, любые вызовы с `docker-compose.prod.yml` и `docker-compose.monitoring.yml`. Плюс `docker run`, `docker exec`, `docker cp`, `docker container`, `docker create`, `docker start` и голый `docker-compose`: они остались в `deny`, потому что смонтированный том читает `.env` в обход `Read(./.env)`, а страж внутрь образа не заглядывает.
-
-**Исключение — `yarn prisma:generate`** (разрешён 08.08.2026): это кодогенерация типов из `schema.prisma`, к базе не обращается. Без неё после правки схемы падают typecheck и lint, потому что новая модель для TypeScript не существует.
-
-**You may:** read and modify schema, DTOs, services, controllers; write migration SQL into `prisma/migrations/` for the user to apply on the VPS; run `yarn test:e2e` and `yarn drift-check` in `books`. Details: `books/AGENTS.md` §Backend Execution Environment.
-
-All backend changes must be reviewed by the user before deployment.
+Что важно знать фронту и чего нет в тех файлах: своей базы у фронта нет, трогать чужую из этого
+репозитория незачем вовсе. Схема, DTO и контракты читаются свободно; правка в `books` из задачи про фронт
+требует отдельного слова в ответе (`D:/newDev/CLAUDE.md`, запрет №3).
 
 ---
 
@@ -118,61 +116,24 @@ All backend changes must be reviewed by the user before deployment.
 
 ---
 
-## Quality Gates
+## Executable rules live in `CLAUDE.md`
 
-**MANDATORY before reporting a task complete:**
+This file describes the environment: stack, layout, conventions, where things are. **The rules
+an agent must execute — quality gates, commit and push order, the hard prohibitions — live in
+`books-front/CLAUDE.md`.** That file is what the harness loads automatically; this one is not.
+The four owner topics (secrets; production infrastructure and the live database by hand; public
+addresses; the legal semantics of book rights) live one level up, in `D:/newDev/CLAUDE.md`
+§«Что остаётся за владельцем» — they are the same for all three repositories, so no repository
+keeps its own copy. Keeping a second copy here is how the two drifted apart until
+07.09.2026, when the copy still prescribed a manual command run and the phrases to say about it,
+while the real gate had long been the actual output of `D:/newDev/.claude/hooks/gates.js` under
+`hooks/report-honesty.js` (`LEGACY-168`).
 
-```bash
-yarn ci           # check:env, check:langs, check:reserved-slugs, check:dead-modules, lint, typecheck, test:coverage
-```
+What survives here, because it is environment and not rule: each repository is a separate git —
+for git operations in another repo use `git -C D:\newDev\books ...`, never `cd`.
 
-Команды `yarn validate` больше нет: скрипт брал код возврата только у typecheck, падение линта
-терял и в конце безусловно рапортовал успех (`LEGACY-155`). Единственная точка входа — `yarn ci`,
-тот же набор, что гоняет конвейер.
-
-If backend code was modified as well:
-
-```bash
-cd D:\newDev\books && yarn lint && yarn typecheck && yarn test
-```
-
-- **NEVER ignore lint warnings or errors** in files you created or modified — resolve them all before declaring completion.
-- Full matrix (e2e, coverage thresholds, CI guards): `ai-context/quality-gates.md`.
-
----
-
-## Git Workflow
-
-**Коммит и пуш разрешены в порядке, который задаёт `/auto`.** Изменено 25.08.2026 (ТЗ
-`tasks/2026-08-25-avtonomnyy-harness.md`); это закрывает `LEGACY-185` — расхождение, при котором
-правила агента запрещали коммит, а настройки его разрешали. Прежний текст объявлял исключением
-режим автопилота и делил записи на классы `АВТО` / `ПОЛУ` / `РУЧНОЙ`; ни классов, ни команды
-`/tech-debt` больше нет.
-
-Порядок: правка → посадка тестом → `/qa` полным набором ревьюеров → `node .claude/hooks/gates.js`
-без `--repo` → документы → коммит в каждый затронутый репозиторий отдельно, conventional commits,
-с идентификаторами записей → пуш в `main` → `gh run list --limit 3`.
-
-**Держит порядок `D:/newDev/.claude/hooks/commit-gate.js`, а не обещание.** Он отказывает, если
-по текущему диффу нет отметки `/qa` или зелёных гейтов, если в команде `--no-verify` или `--force`,
-если в диффе артефакты сборки или впервые добавленный секрет, если в добавленных строках есть
-ослабление проверки, если сообщение не по conventional commits. Отказ чинится причиной, а не обходом.
-
-Останавливаешься и зовёшь человека только на четырёх темах владельца: секреты;
-прод-инфраструктура и живая база руками, включая разрушительные миграции; публичные адреса;
-правовая семантика прав на книги. Остальное решаешь сам или через подагента `arbiter`.
-
-🔴 Помни: push в `main` запускает выкат на прод в обоих репозиториях.
-
-Each repository is a separate git. For git operations in another repo use `git -C D:\newDev\books ...`, never `cd`.
-
----
-
-## Post-Task Checklist
-
-1. **Code style** — compare the diff against `CODE_STYLE.md` (frontend) / `STYLE_GUIDE.md` (backend). If nothing is violated, say so explicitly.
-2. **Docs update** — run the Docs Update Check from `CLAUDE.md`; always add an entry to `ai-context/changelog.md`. If no doc changes are needed, say so explicitly. Tech debt found outside the task scope goes to `ai-context/legacy-warnings.md` — record it, do not fix it.
-3. **Quality gates** — the commands above.
+Tech debt found outside the task scope goes to `books-app-docs/ai-context/legacy-warnings.md` —
+record it, do not fix it. Every doc change also gets an entry in `books-app-docs/ai-context/changelog.md`.
 
 ---
 

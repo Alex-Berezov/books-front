@@ -23,10 +23,15 @@ import { describe, expect, it } from 'vitest';
 const REPO_ROOT = resolve(__dirname, '..');
 
 /**
- * Файлы правил, которые агент читает наравне друг с другом. Третий — `.ai-agent-checklist.md` —
- * назван в LEGACY-164 поимённо: без него команда вернулась бы через него при зелёном `yarn ci`.
+ * Файлы правил, которые агент читает наравне друг с другом.
+ *
+ * `.ai-agent-checklist.md` был четвёртым и удалён 07.09.2026 (`LEGACY-168`): он повторял раздел
+ * CRITICAL RULES из `CODE_STYLE.md` и отстал от него — перечислял четыре цветовых токена при
+ * десятках в `styles/tokens.scss` (точное число здесь не пишется - оно протухает). Возврат файла закрыт строкой в `protected`
+ * (`D:/newDev/.claude/hooks/rules.books-front.json`), а не строкой здесь: сторож в тесте
+ * краснел бы уже после записи файла, а `protect-files.js` отказывает в момент записи.
  */
-const RULE_FILES = ['AGENTS.md', 'CLAUDE.md', 'CODE_STYLE.md', '.ai-agent-checklist.md'];
+const RULE_FILES = ['AGENTS.md', 'CLAUDE.md', 'CODE_STYLE.md'];
 
 const read = (file: string): string => readFileSync(resolve(REPO_ROOT, file), 'utf8');
 
@@ -146,7 +151,7 @@ describe('LEGACY-164: правила фронта не предписывают 
 });
 
 describe('LEGACY-165: правила фронта ссылаются на реальные пути', () => {
-  it.each(['AGENTS.md', 'CODE_STYLE.md', '.ai-agent-checklist.md'])(
+  it.each(['AGENTS.md', 'CODE_STYLE.md'])(
     'каждый путь, названный в %s, существует на диске',
     (file) => {
       const missing = documentedPaths(file)
@@ -175,7 +180,6 @@ describe('LEGACY-165: правила фронта ссылаются на реа
   it.each([
     ['AGENTS.md', 10],
     ['CODE_STYLE.md', 5],
-    ['.ai-agent-checklist.md', 1],
   ])('в %s проверено не меньше %i путей', (file, least) => {
     expect(documentedPaths(file).length).toBeGreaterThanOrEqual(least);
   });
