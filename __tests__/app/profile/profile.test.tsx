@@ -7,6 +7,39 @@ import ProfilePage from '@/app/[lang]/profile/page';
 import { toast } from '@/lib/utils/toast';
 import { ApiError } from '@/types/api';
 
+/**
+ * Ответ `GET /users/me/activities` — обёртка `{items,total,page,limit,hasNext}`,
+ * а не голый массив (`LEGACY-218`). Хелпер собирает страницу мока, чтобы
+ * каждый вызов `useUserActivities` в тестах не повторял форму руками.
+ */
+const activitiesPage = (items: unknown[] = [], hasNext = false, page = 1) => ({
+  items,
+  total: items.length,
+  page,
+  limit: 10,
+  hasNext,
+});
+
+/**
+ * `useUserActivities` — `useInfiniteQuery`, поэтому компонент читает
+ * `data.pages`, а не одну страницу. Хелпер собирает результат хука из списка
+ * страниц; `overrides` задают состояние загрузки, отказа и наличия следующей.
+ */
+const activitiesQuery = (
+  pages: ReturnType<typeof activitiesPage>[],
+  overrides: Record<string, unknown> = {}
+) =>
+  ({
+    data: { pages, pageParams: pages.map((p) => p.page) },
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: pages.length > 0 ? pages[pages.length - 1].hasNext : false,
+    fetchNextPage: vi.fn(),
+    isError: false,
+    refetch: vi.fn(),
+    ...overrides,
+  }) as unknown as ReturnType<typeof useAuthHooks.useUserActivities>;
+
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(() => ({
@@ -72,6 +105,9 @@ vi.mock('@/lib/i18n/useTranslation', () => ({
         'profile.unauthText':
           'Sign in to manage your profile, customize your unique nickname, and view your reviews.',
         'profile.signIn': 'Sign In',
+        'profile.loadMore': 'Show More',
+        'common.retry': 'Try again',
+        'common.serverError': 'Server error. Please try again later.',
       };
       return translations[key] || key;
     },
@@ -109,10 +145,9 @@ describe('ProfilePage', () => {
       data: null,
       isLoading: true,
     } as unknown as ReturnType<typeof useAuthHooks.useMe>);
-    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue({
-      data: [],
-      isLoading: true,
-    } as unknown as ReturnType<typeof useAuthHooks.useUserActivities>);
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(
+      activitiesQuery([activitiesPage()], { isLoading: true })
+    );
 
     const { container } = render(<ProfilePage />);
     // Verify that the skeleton is rendered
@@ -128,10 +163,7 @@ describe('ProfilePage', () => {
       data: null,
       isLoading: false,
     } as unknown as ReturnType<typeof useAuthHooks.useMe>);
-    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useAuthHooks.useUserActivities>);
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(activitiesQuery([activitiesPage()]));
 
     render(<ProfilePage />);
     expect(screen.getByText(/Personal Profile/i)).toBeInTheDocument();
@@ -173,10 +205,9 @@ describe('ProfilePage', () => {
       data: mockUser,
       isLoading: false,
     } as unknown as ReturnType<typeof useAuthHooks.useMe>);
-    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue({
-      data: mockActivities,
-      isLoading: false,
-    } as unknown as ReturnType<typeof useAuthHooks.useUserActivities>);
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(
+      activitiesQuery([activitiesPage(mockActivities)])
+    );
     vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
       mutateAsync: vi.fn(),
       isPending: false,
@@ -200,6 +231,180 @@ describe('ProfilePage', () => {
     expect(screen.getByText(/My Activities/i)).toBeInTheDocument();
     expect(screen.getByText('Test Book')).toBeInTheDocument();
     expect(screen.getByText('This is my review of the book')).toBeInTheDocument();
+  });
+
+  // Посадка LEGACY-218 на стороне фронта: страница режется бэкендом, а «Load more»
+  // обязан ДОПОЛНЯТЬ список, а не подменять его — иначе первая страница пропадает
+  // из виду в момент клика.
+  it('«Load more» подгружает вторую страницу активности и не теряет первую (LEGACY-218)', async () => {
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { email: 'john@example.com' } },
+      status: 'authenticated',
+    } as unknown as ReturnType<typeof useSession>);
+    vi.mocked(useAuthHooks.useMe).mockReturnValue({
+      data: {
+        email: 'john@example.com',
+        displayName: 'John Doe',
+        nickname: 'john_doe',
+        avatarUrl: '',
+        roles: ['USER'],
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useMe>);
+    vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUpdateProfile>);
+    vi.mocked(useAuthHooks.useUploadAvatar).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUploadAvatar>);
+
+    const pageOneItem = {
+      id: 'act-1',
+      text: 'First page activity',
+      createdAt: '2026-06-12T00:00:00.000Z',
+      bookVersion: null,
+      replies: [],
+    };
+    const pageTwoItem = {
+      id: 'act-2',
+      text: 'Second page activity',
+      createdAt: '2026-06-11T00:00:00.000Z',
+      bookVersion: null,
+      replies: [],
+    };
+    // Накопление ведёт сам `useInfiniteQuery`: клик зовёт `fetchNextPage`,
+    // после чего в `data.pages` лежат обе страницы. Мок повторяет это —
+    // сначала одна страница, после клика две, — а не подменяет одну другой.
+    const fetchNextPage = vi.fn();
+    const onePage = activitiesQuery([activitiesPage([pageOneItem], true)], { fetchNextPage });
+    const twoPages = activitiesQuery(
+      [activitiesPage([pageOneItem], true), activitiesPage([pageTwoItem], false, 2)],
+      { fetchNextPage }
+    );
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(onePage);
+
+    const { rerender } = render(<ProfilePage />);
+
+    expect(screen.getByText('First page activity')).toBeInTheDocument();
+    expect(screen.queryByText('Second page activity')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Show More/i }));
+    // Кнопка обязана звать дозагрузку, а не крутить счётчик страницы сама:
+    // накопление и разбор `hasNext` живут в хуке.
+    expect(fetchNextPage).toHaveBeenCalledTimes(1);
+
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(twoPages);
+    rerender(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Second page activity')).toBeInTheDocument();
+    });
+    // Первая страница остаётся видна — «Load more» дополняет список.
+    expect(screen.getByText('First page activity')).toBeInTheDocument();
+  });
+
+  // Отказ дозагрузки не выдаётся за конец списка: уже показанное остаётся,
+  // а кнопка переключается на повтор. Без этого кейса ветка `isError`
+  // недостижима ни одним тестом, а читатель видит «активности больше нет».
+  it('отказ дозагрузки показывает повтор, а не конец списка (LEGACY-218)', () => {
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { email: 'john@example.com' } },
+      status: 'authenticated',
+    } as unknown as ReturnType<typeof useSession>);
+    vi.mocked(useAuthHooks.useMe).mockReturnValue({
+      data: {
+        email: 'john@example.com',
+        displayName: 'John Doe',
+        nickname: 'john_doe',
+        avatarUrl: '',
+        roles: ['USER'],
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useMe>);
+    vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUpdateProfile>);
+    vi.mocked(useAuthHooks.useUploadAvatar).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUploadAvatar>);
+
+    const loadedItem = {
+      id: 'act-1',
+      text: 'First page activity',
+      createdAt: '2026-06-12T00:00:00.000Z',
+      bookVersion: null,
+      replies: [],
+    };
+    const refetch = vi.fn();
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(
+      activitiesQuery([activitiesPage([loadedItem], true)], { isError: true, refetch })
+    );
+
+    render(<ProfilePage />);
+
+    // Уже загруженное с экрана не исчезает.
+    expect(screen.getByText('First page activity')).toBeInTheDocument();
+    const retry = screen.getByRole('button', { name: /Try again/i });
+    fireEvent.click(retry);
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  // Вторая половина того же поведения: пока страница летит, кнопка заблокирована.
+  // Без этого кейса снятие `disabled` не покраснило бы ни один тест, и повторные
+  // клики множили бы запросы за одну подгрузку.
+  it('кнопка подгрузки заблокирована, пока идёт запрос (LEGACY-218)', () => {
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { email: 'john@example.com' } },
+      status: 'authenticated',
+    } as unknown as ReturnType<typeof useSession>);
+    vi.mocked(useAuthHooks.useMe).mockReturnValue({
+      data: {
+        email: 'john@example.com',
+        displayName: 'John Doe',
+        nickname: 'john_doe',
+        avatarUrl: '',
+        roles: ['USER'],
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useMe>);
+    vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUpdateProfile>);
+    vi.mocked(useAuthHooks.useUploadAvatar).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUploadAvatar>);
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(
+      activitiesQuery(
+        [
+          activitiesPage(
+            [
+              {
+                id: 'act-1',
+                text: 'Fetching page activity',
+                createdAt: '2026-06-12T00:00:00.000Z',
+                bookVersion: null,
+                replies: [],
+              },
+            ],
+            true
+          ),
+        ],
+        { isFetchingNextPage: true }
+      )
+    );
+
+    render(<ProfilePage />);
+
+    // Список уже показан — спиннер на всю секцию при дозагрузке не поднимается.
+    expect(screen.getByText('Fetching page activity')).toBeInTheDocument();
+    const loadMore = screen.getByRole('button', { name: /Show More|Loading/i });
+    expect(loadMore).toBeDisabled();
   });
 
   // Посадка LEGACY-212 на стороне фронта. Метка обязательна: без неё запись
@@ -245,10 +450,9 @@ describe('ProfilePage', () => {
       },
       isLoading: false,
     } as unknown as ReturnType<typeof useAuthHooks.useMe>);
-    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue({
-      data: mockActivities,
-      isLoading: false,
-    } as unknown as ReturnType<typeof useAuthHooks.useUserActivities>);
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(
+      activitiesQuery([activitiesPage(mockActivities)])
+    );
     vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
       mutateAsync: vi.fn(),
       isPending: false,
@@ -287,10 +491,7 @@ describe('ProfilePage', () => {
       data: mockUser,
       isLoading: false,
     } as unknown as ReturnType<typeof useAuthHooks.useMe>);
-    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useAuthHooks.useUserActivities>);
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(activitiesQuery([activitiesPage()]));
 
     const mutateAsyncMock = vi.fn();
     vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
@@ -333,10 +534,7 @@ describe('ProfilePage', () => {
       data: mockUser,
       isLoading: false,
     } as unknown as ReturnType<typeof useAuthHooks.useMe>);
-    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useAuthHooks.useUserActivities>);
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(activitiesQuery([activitiesPage()]));
 
     const mutateAsyncMock = vi.fn().mockResolvedValue({});
     vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
@@ -380,10 +578,9 @@ describe('ProfilePage', () => {
         data: { email: 'john@example.com', displayName: 'John', nickname: 'john', roles: ['USER'] },
         isLoading: false,
       } as unknown as ReturnType<typeof useAuthHooks.useMe>);
-      vi.mocked(useAuthHooks.useUserActivities).mockReturnValue({
-        data: [],
-        isLoading: false,
-      } as unknown as ReturnType<typeof useAuthHooks.useUserActivities>);
+      vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(
+        activitiesQuery([activitiesPage()])
+      );
       vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
         mutateAsync: vi.fn().mockRejectedValue(error),
         isPending: false,

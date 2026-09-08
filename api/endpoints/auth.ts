@@ -1,5 +1,12 @@
+import { USER_ACTIVITIES_PAGE_SIZE } from '@/lib/constants/pagination';
 import { httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
-import type { UserMeResponse, UpdateProfileRequest, UserActivity } from '@/types/api-schema';
+import type {
+  UserMeResponse,
+  UpdateProfileRequest,
+  GetUserActivitiesParams,
+  UserActivitiesResponse,
+  UserActivity,
+} from '@/types/api-schema';
 
 /**
  * Get current user data
@@ -33,12 +40,33 @@ export const updateProfile = async (data: UpdateProfileRequest): Promise<UserMeR
 /**
  * Get current user activities (comments, parents, and replies)
  *
- * @returns Array of user activities
+ * @param params - Pagination (page, limit) — `LEGACY-218`: список больше не отдаётся
+ * одним неограниченным куском
+ * @returns Paginated user activities list
+ *
+ * ⚠️ Ответ разбирается в двух формах, и это не перестраховка. Смена формы —
+ * ломающее изменение контракта (`LEGACY-177`), а выкатываются стороны врозь:
+ * бэкенд уезжает тегом, фронт — пушем в `main`. Безопасного порядка у этой пары
+ * нет: старый фронт на новом бэкенде читает `length` у объекта и показывает пустую
+ * активность, новый фронт на старом бэкенде разворачивает `undefined` и роняет
+ * страницу профиля целиком. Ветку со старым массивом снимать вместе с окном
+ * выката, а не раньше (найдено ревью при закрытии `LEGACY-218`).
  */
-export const getUserActivities = async (): Promise<UserActivity[]> => {
-  return httpGetAuth<UserActivity[]>('/users/me/activities', {
-    requireAuth: true,
-  });
+export const getUserActivities = async (
+  params: GetUserActivitiesParams = {}
+): Promise<UserActivitiesResponse> => {
+  const page = params.page ?? 1;
+  const limit = params.limit ?? USER_ACTIVITIES_PAGE_SIZE;
+  const query = new URLSearchParams({ page: String(page), limit: String(limit) });
+  const body = await httpGetAuth<UserActivitiesResponse | UserActivity[]>(
+    `/users/me/activities?${query.toString()}`,
+    { requireAuth: true }
+  );
+
+  if (Array.isArray(body)) {
+    return { items: body, total: body.length, page: 1, limit, hasNext: false };
+  }
+  return body;
 };
 
 /**

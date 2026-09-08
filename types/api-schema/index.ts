@@ -37,6 +37,8 @@ export type {
   UserActivityBookVersion,
   UserActivityParentOrChildComment,
   UserActivity,
+  GetUserActivitiesParams,
+  UserActivitiesResponse,
 } from './user';
 
 // Books

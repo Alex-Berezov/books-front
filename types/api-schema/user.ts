@@ -140,3 +140,17 @@ export interface UserActivity {
   parent: UserActivityParentOrChildComment | null;
   replies: UserActivityParentOrChildComment[];
 }
+
+export interface GetUserActivitiesParams {
+  page?: number;
+  limit?: number;
+}
+
+/** Ответ `GET /users/me/activities` — та же обёртка, что у `BookCommentsResponse` (`LEGACY-218`). */
+export interface UserActivitiesResponse {
+  items: UserActivity[];
+  total: number;
+  page: number;
+  limit: number;
+  hasNext: boolean;
+}

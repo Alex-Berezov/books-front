@@ -1,14 +1,22 @@
 import {
   useQuery,
+  useInfiniteQuery,
   useMutation,
   useQueryClient,
+  type InfiniteData,
+  type UseInfiniteQueryOptions,
   type UseQueryOptions,
   type UseQueryResult,
 } from '@tanstack/react-query';
 import * as authApi from '@/api/endpoints/auth';
+import { USER_ACTIVITIES_PAGE_SIZE } from '@/lib/constants/pagination';
 import { queryKeys, staleTimeConfig } from '@/lib/queryClient';
 import type { ApiError } from '@/types/api';
-import type { UserMeResponse, UpdateProfileRequest, UserActivity } from '@/types/api-schema';
+import type {
+  UserMeResponse,
+  UpdateProfileRequest,
+  UserActivitiesResponse,
+} from '@/types/api-schema';
 
 /**
  * Hook for getting current user data
@@ -61,14 +69,37 @@ export const useUpdateProfile = () => {
 };
 
 /**
- * Hook to fetch user's comment activities list
+ * Hook to fetch user's comment activities page by page (`LEGACY-218`).
+ *
+ * ⚠️ Именно `useInfiniteQuery`, а не `useQuery` со счётчиком страницы снаружи.
+ * Ручное накопление страниц в состоянии компонента давало три отказа сразу
+ * (найдено ревью в этом заходе): на время дозагрузки данные текущего ключа
+ * пропадали и кнопка «показать ещё» исчезала вместе со своим спиннером;
+ * повторная выборка той же страницы (`refetchOnReconnect`) дописывала её
+ * элементы вторым разом, ломая `key` в списке; отказ второй страницы был
+ * неотличим от «активности больше нет». Здесь все три закрыты самим хуком:
+ * `hasNextPage` и накопленные `pages` переживают дозагрузку, страница
+ * не может попасть в список дважды, а `isError`/`refetch` доступны вызывающему.
  */
 export const useUserActivities = (
-  options?: Omit<UseQueryOptions<UserActivity[], ApiError>, 'queryKey' | 'queryFn'>
+  limit: number = USER_ACTIVITIES_PAGE_SIZE,
+  options?: Omit<
+    UseInfiniteQueryOptions<
+      UserActivitiesResponse,
+      ApiError,
+      InfiniteData<UserActivitiesResponse>,
+      readonly unknown[],
+      number
+    >,
+    'queryKey' | 'queryFn' | 'initialPageParam' | 'getNextPageParam'
+  >
 ) => {
-  return useQuery<UserActivity[], ApiError>({
-    queryKey: ['userActivities'] as const,
-    queryFn: () => authApi.getUserActivities(),
+  return useInfiniteQuery({
+    queryKey: ['userActivities', { limit }] as const,
+    queryFn: ({ pageParam }) => authApi.getUserActivities({ page: pageParam, limit }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: UserActivitiesResponse) =>
+      lastPage.hasNext ? lastPage.page + 1 : undefined,
     staleTime: staleTimeConfig.user,
     ...options,
   });

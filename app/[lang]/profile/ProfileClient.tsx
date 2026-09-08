@@ -20,12 +20,14 @@ import { useSession } from 'next-auth/react';
 import { useMe, useUpdateProfile, useUserActivities, useUploadAvatar } from '@/api/hooks/useAuth';
 import { Button } from '@/components/common/Button';
 import { PageBackButton } from '@/components/public/navigation';
+import { USER_ACTIVITIES_PAGE_SIZE } from '@/lib/constants/pagination';
 import { publicErrorKey } from '@/lib/errors';
 import { getLocaleTag } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { isOptimizableHost } from '@/lib/utils/image-host';
 import { logError } from '@/lib/utils/log-error';
 import { toast } from '@/lib/utils/toast';
+import type { UserActivity } from '@/types/api-schema';
 import styles from './profile.module.scss';
 
 export default function ProfileClient() {
@@ -41,9 +43,21 @@ export default function ProfileClient() {
   const { data: user, isLoading: isUserLoading } = useMe({
     enabled: status === 'authenticated',
   });
-  const { data: activities, isLoading: isActivitiesLoading } = useUserActivities({
-    enabled: status === 'authenticated',
-  });
+  // Пагинация активности (`LEGACY-218`). Накопление страниц ведёт сам
+  // `useInfiniteQuery`, а не состояние компонента: страницы не пропадают
+  // на время дозагрузки, повторный приход страницы её заменяет, а не дублирует,
+  // и отказ дозагрузки отличим от «активности больше нет».
+  const {
+    data: activitiesData,
+    isLoading: isActivitiesLoading,
+    isFetchingNextPage: isFetchingMoreActivities,
+    hasNextPage: hasMoreActivities,
+    fetchNextPage: fetchMoreActivities,
+    isError: isActivitiesError,
+    refetch: refetchActivities,
+  } = useUserActivities(USER_ACTIVITIES_PAGE_SIZE, { enabled: status === 'authenticated' });
+
+  const activities: UserActivity[] = activitiesData?.pages.flatMap((page) => page.items) ?? [];
 
   const updateProfileMutation = useUpdateProfile();
   const uploadAvatarMutation = useUploadAvatar();
@@ -287,11 +301,20 @@ export default function ProfileClient() {
             <h2 className={styles.sectionTitle}>{t('profile.myActivities')}</h2>
             <p className={styles.sectionDesc}>{t('profile.activitiesDesc')}</p>
 
-            {isActivitiesLoading ? (
+            {isActivitiesLoading && activities.length === 0 ? (
               <div className={styles.loadingSpinner}>
                 <Loader2 className={styles.spinner} size={28} />
               </div>
-            ) : activities && activities.length > 0 ? (
+            ) : isActivitiesError && activities.length === 0 ? (
+              // Отказ первой страницы — это отказ, а не пустая активность:
+              // «вы ещё ничего не писали» на месте 500 читается как пропажа данных.
+              <div className={styles.emptyActivities}>
+                <p>{t('common.serverError')}</p>
+                <Button variant="secondary" onClick={() => void refetchActivities()}>
+                  {t('common.retry')}
+                </Button>
+              </div>
+            ) : activities.length > 0 ? (
               <div className={styles.activitiesList}>
                 {activities.map((activity) => (
                   <div key={activity.id} className={styles.activityItem}>
@@ -380,6 +403,33 @@ export default function ProfileClient() {
                     )}
                   </div>
                 ))}
+
+                {/* Отказ дозагрузки не выдаётся за конец списка: уже показанное
+                    остаётся на экране, а кнопка переключается на повтор.
+                    Кнопка — из дизайн-системы: своя полоса во всю ширину рядом
+                    с `Button` в той же секции разъезжается при первой же правке
+                    вторичной кнопки (найдено ревью в этом заходе). */}
+                {isActivitiesError ? (
+                  <Button variant="ghost" fullWidth onClick={() => void refetchActivities()}>
+                    {t('common.retry')}
+                  </Button>
+                ) : (
+                  hasMoreActivities && (
+                    <Button
+                      variant="ghost"
+                      fullWidth
+                      loading={isFetchingMoreActivities}
+                      // `loading` у `Button` рисует индикатор, но атрибут
+                      // `disabled` не ставит: без явного запрета повторные клики
+                      // по кнопке уходят в дозагрузку второй и третий раз
+                      // (поймано посадкой ниже).
+                      disabled={isFetchingMoreActivities}
+                      onClick={() => void fetchMoreActivities()}
+                    >
+                      {t('profile.loadMore')}
+                    </Button>
+                  )
+                )}
               </div>
             ) : (
               <div className={styles.emptyActivities}>
