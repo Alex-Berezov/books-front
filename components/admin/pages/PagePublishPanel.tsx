@@ -60,7 +60,6 @@ export const PagePublishPanel: FC<PagePublishPanelProps> = (props) => {
   const status: PublicationStatus = page.status;
   const isPublished = status === 'published';
   const isDraft = status === 'draft';
-  const isArchived = status === 'archived';
   const isLoading = publishMutation.isPending || unpublishMutation.isPending;
 
   /**
@@ -101,7 +100,6 @@ export const PagePublishPanel: FC<PagePublishPanelProps> = (props) => {
           <div className={`${styles.statusBadge} ${styles[status]}`}>
             {isPublished && '✓ Published'}
             {isDraft && '○ Draft'}
-            {isArchived && '📦 Archived'}
           </div>
         </div>
 
@@ -120,7 +118,6 @@ export const PagePublishPanel: FC<PagePublishPanelProps> = (props) => {
               variant="success"
               fullWidth
               loading={isLoading}
-              disabled={isArchived}
               onClick={() => handleOpenConfirmModal('publish')}
             >
               Publish
@@ -132,8 +129,6 @@ export const PagePublishPanel: FC<PagePublishPanelProps> = (props) => {
           <p className={styles.infoText}>
             {isPublished && 'This page is publicly visible to all users.'}
             {isDraft && 'This page is not visible to users. Publish it to make it public.'}
-            {isArchived &&
-              'This page is archived and cannot be published. Contact an administrator if you need to restore it.'}
           </p>
         </div>
 

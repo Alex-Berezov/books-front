@@ -283,15 +283,6 @@
     }
   }
 
-  &.archived {
-    background: rgba($color-text-secondary, 0.1);
-    color: $color-text-secondary;
-    border-color: rgba($color-text-secondary, 0.2);
-
-    &:hover {
-      background: rgba($color-text-secondary, 0.2);
-    }
-  }
 }
 
 .langBadgeCreate {
@@ -334,11 +325,6 @@
   &.published {
     background: rgba($color-success, 0.1);
     color: $color-success;
-  }
-
-  &.archived {
-    background: rgba($color-text-secondary, 0.1);
-    color: $color-text-secondary;
   }
 }
 

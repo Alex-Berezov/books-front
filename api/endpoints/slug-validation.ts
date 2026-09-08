@@ -7,6 +7,7 @@
 
 import { httpGetAuth } from '@/lib/http-client';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { PublicationStatus } from '@/types/api-schema';
 
 /**
  * Slug uniqueness validation result
@@ -32,7 +33,7 @@ export interface SlugValidationResult {
   existingPage?: {
     id: string;
     title: string;
-    status: 'draft' | 'published' | 'archived';
+    status: PublicationStatus;
   };
   /** Existing book with this slug (if found) */
   existingBook?: {
@@ -56,7 +57,7 @@ interface CheckPageSlugResponse {
   existingPage?: {
     id: string;
     title: string;
-    status: 'draft' | 'published' | 'archived';
+    status: PublicationStatus;
   };
   reserved?: boolean;
 }

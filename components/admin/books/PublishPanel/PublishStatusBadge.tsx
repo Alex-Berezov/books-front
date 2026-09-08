@@ -6,14 +6,12 @@ interface PublishStatusBadgeProps {
   status: PublicationStatus;
   isPublished: boolean;
   isDraft: boolean;
-  isArchived: boolean;
 }
 
 export const PublishStatusBadge: FC<PublishStatusBadgeProps> = ({
   status,
   isPublished,
   isDraft,
-  isArchived,
 }) => {
   return (
     <div className={styles.statusSection}>
@@ -21,7 +19,6 @@ export const PublishStatusBadge: FC<PublishStatusBadgeProps> = ({
       <div className={`${styles.statusBadge} ${styles[status]}`}>
         {isPublished && '✓ Published'}
         {isDraft && '○ Draft'}
-        {isArchived && '📦 Archived'}
       </div>
     </div>
   );

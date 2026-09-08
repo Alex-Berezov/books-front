@@ -65,12 +65,6 @@
     color: $color-success;
     border: 1px solid rgba($color-success, 0.3);
   }
-
-  &.archived {
-    background: rgba($color-warning, 0.1);
-    color: darken($color-warning, 10%);
-    border: 1px solid rgba($color-warning, 0.3);
-  }
 }
 
 .actions {

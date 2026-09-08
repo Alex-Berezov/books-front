@@ -26,7 +26,6 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
     actionType,
     isPublished,
     isDraft,
-    isArchived,
     isLoading,
     gateState,
     blockingReasons,
@@ -44,11 +43,9 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
   // на публикацию не уходит (см. `handleOpenConfirmModal`). Неизвестный ответ гейта —
   // «ещё грузится» и «не ответил вовсе» — держит кнопку неактивной, как и раньше.
   const isPublishDisabled =
-    isArchived ||
-    hasLegacyBlockingReason ||
-    (!isPublished && (gateState === 'loading' || gateState === 'error'));
+    hasLegacyBlockingReason || (!isPublished && (gateState === 'loading' || gateState === 'error'));
   const disabledCaption =
-    isPublished || isArchived || hasLegacyBlockingReason
+    isPublished || hasLegacyBlockingReason
       ? null
       : gateState === 'loading'
         ? DISABLED_CAPTIONS.loading
@@ -64,12 +61,7 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
           <h3 className={styles.title}>Publish</h3>
         </div>
 
-        <PublishStatusBadge
-          isArchived={isArchived}
-          isDraft={isDraft}
-          isPublished={isPublished}
-          status={status}
-        />
+        <PublishStatusBadge isDraft={isDraft} isPublished={isPublished} status={status} />
 
         {hasLegacyBlockingReason && !isPublished && (
           <div className={styles.warning} role="alert">
@@ -181,8 +173,6 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
           <p className={styles.infoText}>
             {isPublished && 'This version is publicly visible to all users.'}
             {isDraft && 'This version is not visible to users. Publish it to make it public.'}
-            {isArchived &&
-              'This version is archived and cannot be published. Contact an administrator if you need to restore it.'}
           </p>
         </div>
       </div>

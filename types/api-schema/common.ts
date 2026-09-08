@@ -29,7 +29,7 @@ export type VersionType = 'text' | 'audio' | 'referral';
 /**
  * Publication statuses
  */
-export type PublicationStatus = 'draft' | 'published' | 'archived';
+export type PublicationStatus = 'draft' | 'published';
 
 /**
  * Page type (according to backend DTO)

@@ -12,6 +12,7 @@ import type {
   PageGroup,
   PageResponse,
   PaginatedResponse,
+  PublicationStatus,
   UpdatePageRequest,
 } from '@/types/api-schema';
 
@@ -26,7 +27,7 @@ export interface GetPagesParams {
   /** Search by title or slug */
   search?: string;
   /** Filter by publication status */
-  status?: 'draft' | 'published' | 'archived';
+  status?: PublicationStatus;
 }
 
 /**

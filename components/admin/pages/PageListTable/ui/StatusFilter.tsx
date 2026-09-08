@@ -7,7 +7,7 @@ import styles from '../PageListTable.module.scss';
 /**
  * Фильтр по статусу публикации
  *
- * Позволяет отфильтровать страницы по статусу: все, черновики, опубликованные, архивные
+ * Позволяет отфильтровать страницы по статусу: все, черновики, опубликованные
  */
 export const StatusFilter: FC<StatusFilterProps> = (props) => {
   const { statusFilter, onStatusFilterChange } = props;
@@ -16,7 +16,6 @@ export const StatusFilter: FC<StatusFilterProps> = (props) => {
     { value: 'all', label: 'All' },
     { value: 'draft', label: 'Draft' },
     { value: 'published', label: 'Published' },
-    { value: 'archived', label: 'Archived' },
   ];
 
   return (

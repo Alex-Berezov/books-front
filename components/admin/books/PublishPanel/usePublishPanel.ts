@@ -70,7 +70,6 @@ export const usePublishPanel = (props: PublishPanelProps) => {
 
   const isPublished = status === 'published';
   const isDraft = status === 'draft';
-  const isArchived = status === 'archived';
   const isLoading = publishMutation.isPending || unpublishMutation.isPending;
 
   const blockingReasons = gateData?.blockingReasons ?? gateError?.blockingReasons ?? [];
@@ -125,7 +124,6 @@ export const usePublishPanel = (props: PublishPanelProps) => {
     actionType,
     isPublished,
     isDraft,
-    isArchived,
     isLoading: isLoading || isGateLoading,
     canPublish,
     gateState,
