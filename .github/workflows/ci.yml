@@ -208,6 +208,83 @@ jobs:
           fi
           echo "указатель наполнен: буквенных ссылок $filled"
 
+          # 🔴 Вторая половина пробы - таксономия, и она такая же обязательная, как первая.
+          # Шаг SEO ниже требует живой ссылки на каждом из четырёх хабов, а хаб рисует
+          # только линкуемый термин: видимый, индексируемый, с переводом на язык страницы,
+          # непустым счётчиком книг и `autoIndexable`. Пока образ старше релиза, добавившего
+          # каталог в `books/prisma/seed.ts` (`Q1`, `LEGACY-016`), аудит покраснеет строкой
+          # «на хабе нет ссылок», и причину пришлось бы искать во фронте вместо чужого сида.
+          #
+          # 🔴 Здесь читается ЧУЖОЙ контракт, и парным правилом он не покрыт — ровно как
+          # у пробы авторов выше. Источники формы: `books/src/modules/category/category.controller.ts`
+          # (маршрут `categories/tree`), `books/src/modules/category/category.service.ts:989-1005`
+          # и `books/src/modules/tags/tags.service.ts` (поля `booksCount`, `autoIndexable`,
+          # `isVisible`, `indexable`, `translations[].language`). Правило `XR08` сюда не
+          # расширено по той же причине, что и для авторов: эти файлы правятся десятками
+          # коммитов в квартал. Расплата — вот этот комментарий: правишь маршрут или имена
+          # полей в `books`, правь и шаг ниже.
+          #
+          # ⚠️ Перебираются все четыре вида и все пять языков, а не одна пара. Смоук берёт
+          # `en/categories`, `ru/genres`, `es/collections`, `fr/tags`, `pt/categories`
+          # (`scripts/seo-audit.mjs:553,573`), и проба на одной паре зеленела бы при просевшем
+          # `pt`-переводе - то есть ровно в том случае, ради которого она и написана.
+          #
+          # Условие повторяет `lib/seo/taxonomy-linkable.ts:55-74` целиком, включая
+          # `isVisible` и `indexable` (оба правятся из админки, и скрытый там термин прошёл бы
+          # пробу с непустым счётчиком, а хаб ссылку не нарисовал бы) и трактовку пропущенного
+          # `autoIndexable`: фронт читает его как `?? true`, поэтому здесь `!= false`, а не
+          # `== true`. Со строгим равенством проба краснела бы текстом «образ старше релиза»
+          # ровно тогда, когда бэкенд перестал проецировать поле, а хабы работают.
+          linkable_filter() {
+            jq -e --arg lang "$1" '[.. | objects
+              | select(.isVisible != false and .indexable != false and .booksCount > 0
+                       and .autoIndexable != false
+                       and ([.translations[]? | select(.language == $lang)] | length > 0))
+              ] | length' "$2"
+          }
+
+          for lang in en ru es fr pt; do
+            for type in category genre collection; do
+              if ! curl -fsS "http://127.0.0.1:5000/api/categories/tree?lang=$lang&type=$type" -o "$RUNNER_TEMP/terms.json"; then
+                echo "::error::Ручка /api/categories/tree не ответила 200 ($lang/$type)."
+                echo "Проверь маршрут categories/tree в books/src/modules/category/category.controller.ts."
+                exit 1
+              fi
+              if ! linkable=$(linkable_filter "$lang" "$RUNNER_TEMP/terms.json"); then
+                echo "::error::Ответ /api/categories/tree не разбирается: ожидались узлы с booksCount, autoIndexable и translations."
+                echo "Похоже, форма ответа изменилась в books/src/modules/category/category.service.ts."
+                cat "$RUNNER_TEMP/terms.json"
+                exit 1
+              fi
+              if [ "$linkable" -eq 0 ]; then
+                echo "::error::Хаб $type на /$lang пуст: ни один термин не линкуем."
+                echo "Похоже, образ ghcr.io/alex-berezov/books:latest старше релиза, добавившего каталог таксономии в prisma/seed.ts (LEGACY-016, пачка Q1)."
+                cat "$RUNNER_TEMP/terms.json"
+                exit 1
+              fi
+            done
+
+            # Теги живут своей ручкой: у них нет дерева, и список языковой.
+            if ! curl -fsS "http://127.0.0.1:5000/api/$lang/tags?limit=100" -o "$RUNNER_TEMP/tags.json"; then
+              echo "::error::Ручка /api/$lang/tags не ответила 200."
+              echo "Проверь маршрут tags в books/src/modules/public/public.controller.ts."
+              exit 1
+            fi
+            if ! linkable=$(linkable_filter "$lang" "$RUNNER_TEMP/tags.json"); then
+              echo "::error::Ответ /api/$lang/tags не разбирается: ожидались записи с booksCount, autoIndexable и translations."
+              echo "Похоже, форма ответа изменилась в books/src/modules/tags/tags.service.ts."
+              cat "$RUNNER_TEMP/tags.json"
+              exit 1
+            fi
+            if [ "$linkable" -eq 0 ]; then
+              echo "::error::Хаб тегов на /$lang пуст: ни один тег не линкуем."
+              echo "Похоже, образ ghcr.io/alex-berezov/books:latest старше релиза, добавившего каталог таксономии в prisma/seed.ts (LEGACY-016, пачка Q1)."
+              cat "$RUNNER_TEMP/tags.json"
+              exit 1
+            fi
+          done
+          echo "таксономия наполнена: четыре вида хабов на пяти языках"
+
       # Сборка здесь потому, что lint, typecheck и тесты её не заменяют.
       # 08.08.2026 импорт `next/headers` в файл, общий для сервера и клиента,
       # прошёл все три проверки зелёными и упал только в деплое: запрет на такой
@@ -222,17 +299,27 @@ jobs:
       # непригодно: его клиентский бандл стучится в `127.0.0.1:5000`. Выкат собирает
       # свой образ сам, из `vars.*` (`deploy.yml`); переиспользовать эту сборку нельзя.
       #
-      # Локален только адрес API: сайт, язык и CDN остаются прод-значениями.
+      # Локальны два адреса: API и сам сайт; язык и CDN остаются прод-значениями.
+      #
+      # 🔴 `NEXT_PUBLIC_SITE_URL` стал локальным 08.09.2026 (`Q1`, `LEGACY-016`, решение
+      # арбитра в `books-app-docs/ai-context/decisions-log.md`) и это не косметика.
+      # Карта сайта строит **абсолютные** адреса из этого значения на этапе сборки
+      # (`lib/sitemap/utils.ts:13-15`). С прод-значением локальный инстанс отдавал бы карту
+      # с адресами `https://bibliaris.com/...`, и SEO-аудит ниже, запущенный против
+      # `127.0.0.1:3000`, пошёл бы краулить **боевой сайт** с раннера на каждом PR —
+      # проверяя не тот код, который в этом PR лежит.
+      #
       # ⚠️ У сторожа `scripts/check-site-url.mjs` беззубой стала ровно одна проверка из пяти —
-      # сверка хостов сайта и API: они теперь различны при любом значении. Остальные четыре
-      # живы и краснеют здесь по-настоящему: незаданный `NEXT_PUBLIC_SITE_URL`, неабсолютный
-      # адрес, не-http-схема и служебный хост (`api.`, `media.`, `cdn.`…) в самом адресе сайта —
-      # то есть защита от утечки служебного поддомена в разметку на этом шаге работает.
+      # сверка хостов сайта и API. Она сравнивает `URL.host`, то есть хост **с портом**
+      # (`check-site-url.mjs:107-120`): `127.0.0.1:3000` и `127.0.0.1:5000` различны, шаг
+      # проходит. Остальные четыре живы и краснеют здесь по-настоящему: незаданный
+      # `NEXT_PUBLIC_SITE_URL`, неабсолютный адрес, не-http-схема и служебный хост
+      # (`api.`, `media.`, `cdn.`…) в самом адресе сайта.
       - name: Build (catches server/client boundary errors)
         run: yarn build
         env:
           NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:5000/api
-          NEXT_PUBLIC_SITE_URL: https://bibliaris.com
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
           NEXT_PUBLIC_DEFAULT_LANG: en
           NEXT_PUBLIC_MEDIA_CDN_URL: https://media.bibliaris.com
 
@@ -256,6 +343,108 @@ jobs:
       # работала бы. Сегодня она не нужна: тот же хост стоит в конфиге статической записью.
       - name: E2E (chromium, against the app built above)
         run: yarn e2e --project=chromium
+
+      # 🔴 SEO-аудит на пути PR (`Q1`, `LEGACY-016`). До 08.09.2026 `scripts/seo-audit.mjs`
+      # гонялся только после деплоя и по ночному расписанию против живого домена: контракт
+      # «ссылка = карта сайта = robots» на пути PR не проверял никто, и регрессия уезжала
+      # на прод, чтобы быть найденной уже там.
+      #
+      # Сервер поднимается своим `yarn start`, а не переиспользуется от e2e: тот запускает
+      # и **гасит** его сам (`playwright.config.ts:71-77`, `reuseExistingServer` на CI ложно),
+      # и поднять свой раньше нельзя — playwright упрётся в занятый порт.
+      #
+      # `APP_COMMIT_SHA` обязателен: `app/api/version/route.ts` читает его в рантайме, а без
+      # непустого `sha` аудит отказывается судить и выходит кодом 2 (`seo-audit.mjs:446-473`).
+      # Он же и есть смысл переменной — отчёт обязан называть сборку, которую судил.
+      #
+      # `--mode=smoke`, а не `full`: полный обход всей карты идёт с шагом 1400 мс на запрос
+      # (`seo-audit.mjs:55-72`, темп задан рейт-лимитом бэкенда) и занял бы десятки минут
+      # при потолке job'а в 20. Полный контракт проверяет ночной прогон `seo-audit.yml`,
+      # который эта правка не трогает.
+      - name: SEO audit (against the app built above)
+        run: |
+          # 🔴 `npx next start`, а не `yarn start`: `$!` обёртки — pid самого yarn, и SIGTERM
+          # в него не обязан дойти до дочернего `next`. Порт остался бы занятым до конца job'а,
+          # а «проверка живости» проверяла бы живость обёртки.
+          npx next start > "$RUNNER_TEMP/next-start.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/next.pid"
+
+          # Готовность ждём по коду ответа: `next start` печатает "Ready" раньше, чем
+          # начинает отвечать на первый запрос standalone-сборкой.
+          for i in $(seq 1 60); do
+            if curl -fsS -o /dev/null http://127.0.0.1:3000/api/version; then break; fi
+            sleep 2
+          done
+          if ! curl -fsS http://127.0.0.1:3000/api/version -o "$RUNNER_TEMP/version.json"; then
+            echo "::error::Фронт не поднялся за 120 секунд."
+            cat "$RUNNER_TEMP/next-start.log"
+            exit 1
+          fi
+
+          # `--api` не передаётся намеренно: `API_BASE` читает только
+          # `collectTaxonomyTerms`, а её зовёт один `runFullContract`
+          # (`scripts/seo-audit.mjs:261-265`, `:479`, `:707-709`). В `smoke` аргумент
+          # был бы строкой, выглядящей настройкой прогона и ею не являющейся
+          # (`LEGACY-291`). Правило 7.7 на пути PR поэтому не проверяется — его
+          # держит ночной `seo-audit.yml`.
+          node scripts/seo-audit.mjs \
+            --base=http://127.0.0.1:3000 \
+            --mode=smoke
+        env:
+          APP_COMMIT_SHA: ${{ github.sha }}
+
+      # 🔴 Отдельной строкой, а не внутри аудита: кластер `hreflang` строится **не** из того
+      # счётчика, который читают хабы. Хабы берут живой счёт сырым SQL, а карта сайта —
+      # кэш `CategoryTranslation.bookCount` (`lib/seo/hreflang-alternates.ts:83-104`
+      # через `app/sitemaps/[filename]/route.ts:313`). Нулевой кэш в засеянной базе оставляет
+      # все адреса терминов вовсе без `xhtml:link`, включая self-ссылку, — при зелёном аудите
+      # и зелёных хабах. Решение арбитра 08.09.2026, `books-app-docs/ai-context/decisions-log.md`.
+      - name: Sitemap terms carry their hreflang cluster
+        # Шаг заведён отдельно от аудита ради независимости — значит и краснеть обязан
+        # независимо: без этого условия первая же находка аудита прячет вердикт по кластеру.
+        if: success() || failure()
+        run: |
+          # Кэш `bookCount` сид заполняет двумя разными кусками — переводами категорий
+          # и переводами тегов, — поэтому файлы проверяются обоих родов. Языка два:
+          # кластер собирается из всех переводов термина, и просевший язык виден с любой
+          # стороны, а перебор всех пяти стоил бы двадцати запросов ради того же ответа.
+          for file in sitemap-categories-en sitemap-genres-ru sitemap-collections-es sitemap-tags-fr; do
+            if ! curl -fsS "http://127.0.0.1:3000/sitemaps/$file.xml" -o "$RUNNER_TEMP/$file.xml"; then
+              echo "::error::Файл карты сайта /sitemaps/$file.xml не ответил 200."
+              exit 1
+            fi
+            if ! grep -q '<url>' "$RUNNER_TEMP/$file.xml"; then
+              echo "::error::Карта $file пуста: ни одного <url>."
+              echo "Сид не дал ни одного линкуемого термина этого вида — та же причина, что и в пробе данных выше."
+              cat "$RUNNER_TEMP/$file.xml"
+              exit 1
+            fi
+            if ! grep -q 'xhtml:link' "$RUNNER_TEMP/$file.xml"; then
+              echo "::error::В карте $file нет ни одной ссылки xhtml:link: кластер hreflang пуст."
+              echo "Самая вероятная причина - bookCount перевода остался нулём в базе:"
+              echo "хабы читают живой счёт и зеленеют, а кластер строится из кэша (LEGACY-016, пачка Q1)."
+              cat "$RUNNER_TEMP/$file.xml"
+              exit 1
+            fi
+          done
+          echo "кластер hreflang на месте во всех четырёх видах карты"
+
+      # Условие не голое `always()`: сервер поднимается шагом выше, и при падении до него
+      # (сборка, e2e) файла с pid не существует вовсе.
+      - name: Stop the front-end server
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/next.pid" ]; then
+            pid=$(cat "$RUNNER_TEMP/next.pid")
+            # Явная проверка живости, а не глушение кода возврата: уже завершившийся
+            # сервер - штатный случай уборки, а не отказ, и различать их обязан шаг.
+            if kill -0 "$pid" 2>/dev/null; then kill "$pid"; fi
+          fi
+
+      - name: Front-end log
+        if: failure()
+        run: |
+          if [ -f "$RUNNER_TEMP/next-start.log" ]; then tail -n 100 "$RUNNER_TEMP/next-start.log"; fi
 
       - name: Playwright report
         if: failure()
