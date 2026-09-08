@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getAuthorById, getAuthors } from '@/api/endpoints/admin/authors';
+import { checkAuthorSlug, getAuthorById, getAuthors } from '@/api/endpoints/admin/authors';
 import { server } from '../../../msw/server';
 
 // Provide a token so httpXxxAuth doesn't try to fetch a real session.
@@ -79,5 +79,28 @@ describe('admin authors endpoints', () => {
     expect(result.id).toBe('a-1');
     expect(seenUrl).toContain('/admin/authors/a-1');
     expect(seenAuth).toBe('Bearer test-token');
+  });
+
+  /**
+   * `LEGACY-215`. Слаг автора уникален в паре `(language, slug)`, и бэкенд с 08.09.2026
+   * требует `lang` обязательным — без него 400. Проверяется именно построение запроса:
+   * пропадёт параметр — проверка слага начнёт отвечать отказом на каждый ввод, а `catch`
+   * в форме выдаст непроверенный слаг за свободный.
+   */
+  it('шлёт язык обязательным параметром lang', async () => {
+    let seenUrl = '';
+    server.use(
+      http.get(`${API_BASE}/admin/authors/check-slug`, ({ request }) => {
+        seenUrl = request.url;
+        return HttpResponse.json({ exists: false });
+      })
+    );
+
+    await checkAuthorSlug('leo-tolstoy', 'ru', 'author-1');
+
+    const params = new URL(seenUrl).searchParams;
+    expect(params.get('slug')).toBe('leo-tolstoy');
+    expect(params.get('lang')).toBe('ru');
+    expect(params.get('excludeId')).toBe('author-1');
   });
 });

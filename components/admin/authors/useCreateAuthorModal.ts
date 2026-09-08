@@ -5,6 +5,14 @@ import { checkAuthorSlug, createAuthor } from '@/api/endpoints/admin/authors';
 import { generateSlug } from '@/lib/utils/slug';
 import type { CreateAuthorModalProps, CreateAuthorFormData } from './CreateAuthorModal.types';
 
+/**
+ * LEGACY-215: язык, на котором эта форма создаёт перевод. Один литерал на два места —
+ * проверку слага и само создание: слаг автора уникален в пределах языка, и проверять его
+ * надо ровно на том языке, на котором форма пишет. `props.lang` сюда не подходит вовсе —
+ * это язык админ-интерфейса, он уходит только в редирект после создания.
+ */
+const CREATED_TRANSLATION_LANGUAGE = 'en';
+
 export const useCreateAuthorModal = (props: CreateAuthorModalProps) => {
   const { onClose, lang } = props;
   const router = useRouter();
@@ -42,7 +50,7 @@ export const useCreateAuthorModal = (props: CreateAuthorModalProps) => {
       setSlugError(null);
 
       try {
-        const result = await checkAuthorSlug(generatedSlug);
+        const result = await checkAuthorSlug(generatedSlug, CREATED_TRANSLATION_LANGUAGE);
 
         if (result.exists && result.suggestedSlug) {
           setSlugError(`Slug "${generatedSlug}" is already taken`);
@@ -103,7 +111,7 @@ export const useCreateAuthorModal = (props: CreateAuthorModalProps) => {
       const newAuthor = await createAuthor({
         translations: [
           {
-            language: 'en',
+            language: CREATED_TRANSLATION_LANGUAGE,
             slug: finalSlug,
             name: formData.name.trim(),
             biography: '',

@@ -5,6 +5,7 @@
  */
 
 import { httpDeleteAuth, httpGetAuth, httpPostAuth, httpPutAuth } from '@/lib/http-client';
+import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   Author,
   CreateAuthorRequest,
@@ -59,9 +60,10 @@ export const deleteAuthor = async (id: string): Promise<void> => {
 
 export const checkAuthorSlug = async (
   slug: string,
+  lang: SupportedLang,
   excludeId?: string
 ): Promise<CheckAuthorSlugResponse> => {
-  const queryParams = new URLSearchParams({ slug });
+  const queryParams = new URLSearchParams({ slug, lang });
   if (excludeId) {
     queryParams.append('excludeId', excludeId);
   }
