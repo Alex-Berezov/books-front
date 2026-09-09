@@ -65,6 +65,10 @@ export interface PageTableProps {
   isDeletingPage: boolean;
   /** Обработчик удаления страницы */
   onDelete: (pageId: string, pageTitle: string) => void;
+  /** Активный поисковый запрос - строка показывает совпавший перевод, а не языковой */
+  search?: string;
+  /** Активный фильтр статуса - та же причина */
+  statusFilter?: PublicationStatus | 'all';
 }
 
 /**

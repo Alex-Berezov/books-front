@@ -102,6 +102,15 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
     setPage(1);
   };
 
+  const isFiltered = Boolean(search) || statusFilter !== 'all';
+
+  const handleResetFilters = () => {
+    setSearchValue('');
+    setSearch('');
+    setStatusFilter('all');
+    setPage(1);
+  };
+
   // Pagination handlers
   const handlePreviousPage = () => {
     setPage((p) => Math.max(1, p - 1));
@@ -186,12 +195,22 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
           isLoading={true}
         />
       ) : groups.length === 0 ? (
+        // Пустая выдача под фильтром — это не пустая база. Пока фильтр отвечал
+        // 400 (`LEGACY-371`), сюда попадал только по-настоящему пустой список,
+        // и «создайте первую страницу» было верно; теперь тот же экран
+        // достижим при полном списке опубликованных страниц.
         <EmptyState
           title="No pages found"
-          description={search ? 'Try a different search term' : 'Create your first page'}
+          description={
+            isFiltered ? 'No pages match the current search and filter' : 'Create your first page'
+          }
           icon={<FileText />}
           action={
-            !search && (
+            isFiltered ? (
+              <Button variant="secondary" onClick={handleResetFilters}>
+                Reset filters
+              </Button>
+            ) : (
               <Link href={`/admin/${lang}/pages/new`}>
                 <Button>Create Page</Button>
               </Link>
@@ -205,6 +224,8 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
           isDeletingPage={deleteMutation.isPending}
           onDelete={handleDelete}
           isLoading={false}
+          search={search}
+          statusFilter={statusFilter}
         />
       )}
 

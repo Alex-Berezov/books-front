@@ -23,14 +23,46 @@ interface PageTableRowProps {
   lang: PageTableProps['lang'];
   isDeletingPage: boolean;
   onDelete: PageTableProps['onDelete'];
+  search?: string;
+  statusFilter?: PageTableProps['statusFilter'];
 }
 
-const PageTableRow: FC<PageTableRowProps> = ({ group, lang, isDeletingPage, onDelete }) => {
-  // Determine main page to display (priority: current lang -> en -> first)
+/**
+ * Совпал ли перевод с активным фильтром - теми же условиями, что применил
+ * бэкенд: подстрока в заголовке или слаге плюс статус, оба через И.
+ */
+const matchesFilter = (
+  page: PageGroup['pages'][number],
+  search: string | undefined,
+  statusFilter: PageTableProps['statusFilter']
+): boolean => {
+  const term = search?.trim().toLowerCase();
+  if (term && !page.title.toLowerCase().includes(term) && !page.slug.toLowerCase().includes(term)) {
+    return false;
+  }
+  return !(statusFilter && statusFilter !== 'all' && page.status !== statusFilter);
+};
+
+const PageTableRow: FC<PageTableRowProps> = ({
+  group,
+  lang,
+  isDeletingPage,
+  onDelete,
+  search,
+  statusFilter,
+}) => {
+  // Строку представляет тот перевод, из-за которого группа вообще попала
+  // в выдачу: бэкенд отбирает группу по любому совпавшему переводу и состав
+  // группы не сужает. Иначе поиск «Политика» показывал бы строку
+  // «Privacy Policy», а фильтр «Draft» - заголовок и дату опубликованной
+  // версии, и экран читался бы как несработавший фильтр (`LEGACY-371`).
+  const matched = group.pages.filter((p) => matchesFilter(p, search, statusFilter));
+  const candidates = matched.length > 0 ? matched : group.pages;
+
   const mainPage =
-    group.pages.find((p) => p.language === lang) ||
-    group.pages.find((p) => p.language === 'en') ||
-    group.pages[0];
+    candidates.find((p) => p.language === lang) ||
+    candidates.find((p) => p.language === 'en') ||
+    candidates[0];
 
   if (!mainPage) {
     return null;
@@ -103,6 +135,8 @@ export const PageTable: FC<PageTableProps & { isLoading?: boolean }> = ({
   isDeletingPage,
   onDelete,
   isLoading,
+  search,
+  statusFilter,
 }) => {
   if (isLoading) {
     return (
@@ -167,6 +201,8 @@ export const PageTable: FC<PageTableProps & { isLoading?: boolean }> = ({
               lang={lang}
               isDeletingPage={isDeletingPage}
               onDelete={onDelete}
+              search={search}
+              statusFilter={statusFilter}
             />
           ))}
         </tbody>

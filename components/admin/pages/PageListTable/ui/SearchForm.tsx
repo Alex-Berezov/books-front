@@ -19,6 +19,10 @@ export const SearchForm: FC<SearchFormProps> = (props) => {
         placeholder="Search by title or slug..."
         value={searchValue}
         onChange={(e) => onSearchValueChange(e.target.value)}
+        // тот же потолок, что у `search` в DTO бэкенда
+        // (`books/src/modules/pages/dto/list-pages-query.dto.ts`): без него
+        // вставленный длинный заголовок уходит в запрос и возвращается 400-м
+        maxLength={100}
         fullWidth
       />
       <Button type="submit">Search</Button>

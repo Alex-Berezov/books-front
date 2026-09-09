@@ -24,9 +24,9 @@
     "type-sync:snapshot": "node scripts/check-type-sync.mjs --update",
     "check:reserved-slugs": "node scripts/check-reserved-slugs.mjs",
     "check:dead-modules": "knip --include files",
-    "test": "vitest run",
+    "test": "vitest run --maxWorkers=4",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage --maxWorkers=4",
     "e2e": "playwright test",
     "prepare": "husky"
   },
