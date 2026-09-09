@@ -201,6 +201,9 @@ describe('check-type-sync.mjs: пропуск кросс-репо сверки �
     execFileSync(process.execPath, [join(dir, 'scripts/check-type-sync.mjs'), '--update'], {
       cwd: dir,
       encoding: 'utf8',
+      // Под `CI=true` гейт игнорирует `--update` намеренно, и посев снимка не состоялся бы:
+      // спека зеленела бы на машине разработчика и краснела в конвейере.
+      env: { ...process.env, CI: '' },
     });
 
     if (!withNeighbour) rmSync(join(dir, '..', 'books'), { recursive: true, force: true });
