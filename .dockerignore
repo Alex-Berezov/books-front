@@ -59,6 +59,7 @@ scripts
 !scripts/check-site-url.mjs
 !scripts/bundle-budget.mjs
 !scripts/lib/bundle-budget.mjs
+!scripts/lib/snapshot-update.mjs
 !scripts/bundle-baseline.json
 *.log
 .cache
