@@ -49,8 +49,16 @@ LICENSE
 Thumbs.db
 
 # Misc
-# scripts/ is excluded, but check-site-url.mjs runs as `prebuild` inside the image
+# scripts/ is excluded, but four files run inside the image as part of `yarn build`:
+# check-site-url.mjs as `prebuild`, and the bundle budget chained after `next build`.
+# 🔴 Every re-included path needs its own `!` line — `!scripts/lib/bundle-budget.mjs`
+# is not covered by the entry above it, and a missing line does not fail the build
+# context: the file is simply absent, and `RUN yarn build` dies on ERR_MODULE_NOT_FOUND
+# only inside the image, where neither `yarn ci` nor `ci.yml` would ever see it.
 scripts
 !scripts/check-site-url.mjs
+!scripts/bundle-budget.mjs
+!scripts/lib/bundle-budget.mjs
+!scripts/bundle-baseline.json
 *.log
 .cache

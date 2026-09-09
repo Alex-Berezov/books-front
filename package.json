@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "next dev",
     "prebuild": "node scripts/check-site-url.mjs",
-    "build": "next build",
+    "build": "next build && node scripts/bundle-budget.mjs",
+    "bundle:snapshot": "yarn build --update",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx,.mjs,.cjs",
     "seed": "tsx scripts/seed-taxonomy.ts",
