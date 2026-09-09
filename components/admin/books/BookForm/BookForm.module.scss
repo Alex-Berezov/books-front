@@ -322,11 +322,19 @@
 }
 
 .dropdownItem {
+  // Элемент списка — <button>: с `div` подсказки были недостижимы с клавиатуры
+  // (LEGACY-016). Сброс ниже держит прежний вид строки, а не кнопки браузера.
+  display: block;
+  width: 100%;
   padding: $spacing-sm $spacing-md;
+  font-family: inherit;
   font-size: $font-size-sm;
   color: $color-text-primary;
+  text-align: left;
   cursor: pointer;
   background: $color-background-primary;
+  border: none;
+  appearance: none;
 
   &:hover {
     background: $color-background-secondary;

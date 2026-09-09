@@ -114,7 +114,9 @@ export const TranslationForm = (props: TranslationFormProps) => {
       <div className={styles.formTitle}>{isEditing ? 'Edit Translation' : 'New Translation'}</div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Language</label>
+        <label className={styles.label} htmlFor="language">
+          Language
+        </label>
         <Controller
           name="language"
           control={control}
@@ -133,19 +135,23 @@ export const TranslationForm = (props: TranslationFormProps) => {
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Name</label>
+        <label className={styles.label} htmlFor="name">
+          Name
+        </label>
         <Input error={!!errors.name} {...register('name')} />
         {errors.name?.message && <span className={styles.errorText}>{errors.name.message}</span>}
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Slug</label>
+        <label className={styles.label} htmlFor="slug">
+          Slug
+        </label>
         <Input error={!!errors.slug} {...register('slug')} />
         {errors.slug?.message && <span className={styles.errorText}>{errors.slug.message}</span>}
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Description</label>
+        <span className={styles.label}>Description</span>
         <span className={styles.hint}>
           Long-form text displayed on the public tag page for this language.
         </span>
@@ -170,20 +176,25 @@ export const TranslationForm = (props: TranslationFormProps) => {
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>H1 Heading</label>
+        <label className={styles.label} htmlFor="h1">
+          H1 Heading
+        </label>
         <span className={styles.hint}>Main heading displayed on the tag page.</span>
         <Input error={!!errors.h1} {...register('h1')} />
         {errors.h1?.message && <span className={styles.errorText}>{errors.h1.message}</span>}
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Short Description</label>
+        <label className={styles.label} htmlFor="shortDescription">
+          Short Description
+        </label>
         <span className={styles.hint}>Brief summary shown in cards and lists.</span>
         <Controller
           name="shortDescription"
           control={control}
           render={({ field }) => (
             <textarea
+              id="shortDescription"
               className={styles.textarea}
               {...field}
               rows={3}
@@ -197,9 +208,11 @@ export const TranslationForm = (props: TranslationFormProps) => {
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>FAQ</label>
+        <span className={styles.label} id="tag-faq-label">
+          FAQ
+        </span>
         <span className={styles.hint}>Frequently asked questions about this tag.</span>
-        <div className={styles.translationsList}>
+        <div className={styles.translationsList} role="group" aria-labelledby="tag-faq-label">
           {faqFields.map((field, index) => (
             <div
               key={field.id}
@@ -260,11 +273,14 @@ export const TranslationForm = (props: TranslationFormProps) => {
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Related Category Slugs</label>
+        <label className={styles.label} htmlFor="relatedCategorySlugs">
+          Related Category Slugs
+        </label>
         <span className={styles.hint}>
           One slug per line. These link to /:lang/category/:slug pages.
         </span>
         <textarea
+          id="relatedCategorySlugs"
           className={styles.textarea}
           {...register('relatedCategorySlugs')}
           rows={3}
@@ -276,11 +292,14 @@ export const TranslationForm = (props: TranslationFormProps) => {
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Related Collection Slugs</label>
+        <label className={styles.label} htmlFor="relatedCollectionSlugs">
+          Related Collection Slugs
+        </label>
         <span className={styles.hint}>
           One slug per line. These link to /:lang/collection/:slug pages.
         </span>
         <textarea
+          id="relatedCollectionSlugs"
           className={styles.textarea}
           {...register('relatedCollectionSlugs')}
           rows={3}

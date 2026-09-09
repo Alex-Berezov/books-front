@@ -79,7 +79,6 @@ export const Select = forwardRef<RefSelectProps, SelectProps>((props, ref) => {
     ariaLabel,
     className,
     name,
-    autoFocus = false,
     popupRender,
     filterOption,
     maxTagCount,
@@ -152,7 +151,6 @@ export const Select = forwardRef<RefSelectProps, SelectProps>((props, ref) => {
       className={classNames}
       aria-label={ariaLabel}
       id={name}
-      autoFocus={autoFocus}
       popupRender={popupRender}
       filterOption={filterOption ?? (showSearch ? defaultFilterOption : undefined)}
       maxTagCount={maxTagCount}

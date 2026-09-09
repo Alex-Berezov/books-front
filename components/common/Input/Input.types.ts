@@ -127,12 +127,6 @@ export interface InputProps {
   id?: string;
 
   /**
-   * Auto focus on mount
-   * @default false
-   */
-  autoFocus?: boolean;
-
-  /**
    * HTML autocomplete attribute
    */
   autoComplete?: string;

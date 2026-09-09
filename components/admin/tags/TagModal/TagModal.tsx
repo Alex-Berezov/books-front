@@ -123,7 +123,9 @@ export const TagModal: FC<TagModalProps> = (props) => {
     >
       <form onSubmit={handleSubmit(onSubmit, onInvalid)} className={styles.form}>
         <div className={styles.field}>
-          <label className={styles.label}>Name</label>
+          <label className={styles.label} htmlFor="name">
+            Name
+          </label>
           <Input
             {...register('name')}
             error={!!errors.name}
@@ -133,12 +135,15 @@ export const TagModal: FC<TagModalProps> = (props) => {
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Slug</label>
+          <label className={styles.label} htmlFor="slug">
+            Slug
+          </label>
           <Controller
             name="slug"
             control={control}
             render={({ field }) => (
               <SlugInput
+                id="slug"
                 value={field.value}
                 onChange={field.onChange}
                 error={errors.slug?.message}
@@ -173,18 +178,23 @@ export const TagModal: FC<TagModalProps> = (props) => {
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Key</label>
+          <label className={styles.label} htmlFor="key">
+            Key
+          </label>
           <Input {...register('key')} error={!!errors.key} placeholder="e.g. aestheticism" />
           {errors.key?.message && <span className={styles.error}>{errors.key.message}</span>}
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Indexable</label>
+          <label className={styles.label} htmlFor="indexable">
+            Indexable
+          </label>
           <Controller
             name="indexable"
             control={control}
             render={({ field }) => (
               <Checkbox
+                id="indexable"
                 checked={field.value ?? true}
                 onChange={(e) => field.onChange(e.target.checked)}
               />
@@ -194,12 +204,15 @@ export const TagModal: FC<TagModalProps> = (props) => {
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Visible</label>
+          <label className={styles.label} htmlFor="isVisible">
+            Visible
+          </label>
           <Controller
             name="isVisible"
             control={control}
             render={({ field }) => (
               <Checkbox
+                id="isVisible"
                 checked={field.value ?? true}
                 onChange={(e) => field.onChange(e.target.checked)}
               />
@@ -209,7 +222,9 @@ export const TagModal: FC<TagModalProps> = (props) => {
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Sort Order</label>
+          <label className={styles.label} htmlFor="sortOrder">
+            Sort Order
+          </label>
           <Input
             type="number"
             min={0}

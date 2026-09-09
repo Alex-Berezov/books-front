@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FC } from 'react';
+import { useRef, useState, type FC } from 'react';
 import { useFieldArray } from 'react-hook-form';
 import { useThemes } from '@/api/hooks/useBooks';
 import { Button } from '@/components/common/Button';
@@ -94,6 +94,21 @@ export const DetailInfoSection: FC<DetailInfoSectionProps> = (props) => {
 
   // Manage themes (array of strings) manually with watch & setValue
   const currentThemes: string[] = watch('themes') || [];
+
+  const themeContainerRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * 🔴 Список подсказок закрывался таймером на 200 мс от `onBlur` поля ввода. Таймер
+   * срабатывал от **любого** ухода фокуса, поэтому список исчезал и под клавиатурой
+   * (Tab на подсказку — это тот же блюр), и под долгим кликом мышью. Теперь закрытие
+   * привязано к фокусу: он ушёл за пределы контейнера — список гаснет, остался внутри
+   * (подсказка, кнопка «Add») — список стоит.
+   */
+  const handleThemeContainerBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    const next = e.relatedTarget as Node | null;
+    if (next && themeContainerRef.current?.contains(next)) return;
+    setShowThemeDropdown(false);
+  };
 
   const handleAddTheme = (theme: string) => {
     const trimmed = theme.trim();
@@ -285,7 +300,11 @@ export const DetailInfoSection: FC<DetailInfoSectionProps> = (props) => {
         </div>
 
         {/* Theme Input & Dropdown */}
-        <div className={styles.dropdownContainer}>
+        <div
+          className={styles.dropdownContainer}
+          ref={themeContainerRef}
+          onBlur={handleThemeContainerBlur}
+        >
           <div className={styles.addItemRow}>
             <div style={{ flex: 1 }}>
               <input
@@ -297,10 +316,6 @@ export const DetailInfoSection: FC<DetailInfoSectionProps> = (props) => {
                   setShowThemeDropdown(true);
                 }}
                 onFocus={() => setShowThemeDropdown(true)}
-                onBlur={() => {
-                  // Delay closing to allow clicks to register
-                  setTimeout(() => setShowThemeDropdown(false), 200);
-                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -329,17 +344,24 @@ export const DetailInfoSection: FC<DetailInfoSectionProps> = (props) => {
           {showThemeDropdown && themeInput.trim().length > 0 && themeSuggestions.length > 0 && (
             <div className={styles.dropdownMenu}>
               {themeSuggestions.map((suggestion) => (
-                <div
+                // Подсказка — настоящая кнопка, а не `div` с обработчиком: с клавиатуры
+                // список тем был недостижим вовсе (`LEGACY-016`). `onMouseDown` гасит
+                // перевод фокуса, поэтому поле ввода его не теряет и клик доходит до
+                // кнопки независимо от длительности нажатия; выбор идёт через `onClick`,
+                // который дают и мышь, и Enter с Пробелом на кнопке.
+                <button
                   key={suggestion}
+                  type="button"
                   className={styles.dropdownItem}
-                  onMouseDown={() => {
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
                     handleAddTheme(suggestion);
                     setThemeInput('');
                     setShowThemeDropdown(false);
                   }}
                 >
                   {suggestion}
-                </div>
+                </button>
               ))}
             </div>
           )}

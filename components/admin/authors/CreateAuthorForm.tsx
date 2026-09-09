@@ -33,7 +33,6 @@ export const CreateAuthorForm: FC<CreateAuthorFormProps> = ({
           <span className={styles.required}>*</span>
         </label>
         <Input
-          autoFocus
           error={!!errors.name}
           disabled={isPending}
           id="author-name"

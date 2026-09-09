@@ -130,12 +130,6 @@ export interface SelectProps<T = string> {
   name?: string;
 
   /**
-   * Auto focus on mount
-   * @default false
-   */
-  autoFocus?: boolean;
-
-  /**
    * Custom popup render (replaces deprecated dropdownRender)
    */
   popupRender?: (menu: React.ReactElement) => React.ReactElement;

@@ -65,7 +65,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     className,
     name,
     id,
-    autoFocus = false,
     autoComplete,
     leftIcon,
   } = props;
@@ -132,7 +131,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
         aria-label={ariaLabel}
         id={id ?? name}
         name={name}
-        autoFocus={autoFocus}
         autoComplete={autoComplete}
         aria-invalid={error}
       />

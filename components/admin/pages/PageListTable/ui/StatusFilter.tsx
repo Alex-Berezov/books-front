@@ -20,8 +20,10 @@ export const StatusFilter: FC<StatusFilterProps> = (props) => {
 
   return (
     <div className={styles.filters}>
-      <label className={styles.filterLabel}>Status:</label>
-      <div className={styles.filterButtons}>
+      <span className={styles.filterLabel} id="page-status-filter-label">
+        Status:
+      </span>
+      <div className={styles.filterButtons} role="group" aria-labelledby="page-status-filter-label">
         {filters.map((filter) => (
           <Button
             key={filter.value}

@@ -75,13 +75,26 @@
         ]
       }
     ],
-    // Accessibility rule custom overrides
+    // 🔴 LEGACY-016, пункт a11y. Пять правил ниже стояли уровнем `warn`, а `yarn lint`
+    // идёт без `--max-warnings` — 39 живых нарушений не меняли кода возврата, и правила
+    // не стерегли ничего. Уровень `error` без списка исключений: долг разобран тем же
+    // заходом 09.09.2026, поэтому понижать больше нечего. Решение арбитра от 09.09.2026,
+    // строка в `books-app-docs/ai-context/decisions-log.md`.
+    //
+    // ⚠️ `--max-warnings` здесь по-прежнему нет намеренно: живые предупреждения
+    // дерева — это накопленный долг инлайн-стилей (LEGACY-050), он разбирается своей
+    // записью и к a11y отношения не имеет. Число не пишется: оно протухает с первой
+    // же снятой строкой долга (LEGACY-167), считать листингом —
+    // `yarn lint 2>&1 | grep -c "react/forbid-dom-props"`.
+    //
+    // `media-has-caption` остаётся выключенным: субтитры к аудиокнигам продукт
+    // не производит, включённое правило краснело бы на каждом плеере.
     "jsx-a11y/media-has-caption": "off",
-    "jsx-a11y/no-autofocus": "warn",
-    "jsx-a11y/click-events-have-key-events": "warn",
-    "jsx-a11y/no-static-element-interactions": "warn",
-    "jsx-a11y/label-has-associated-control": "warn",
-    "jsx-a11y/img-redundant-alt": "warn"
+    "jsx-a11y/no-autofocus": "error",
+    "jsx-a11y/click-events-have-key-events": "error",
+    "jsx-a11y/no-static-element-interactions": "error",
+    "jsx-a11y/label-has-associated-control": "error",
+    "jsx-a11y/img-redundant-alt": "error"
   },
   // Каталоги, которых линт не касается. `next lint` фильтровал охват своим списком
   // `eslint.dirs`, и половина кода оставалась непроверенной (LEGACY-151); прямой вызов

@@ -150,7 +150,6 @@ import { MailOutlined } from '@ant-design/icons';
 | `ariaLabel`    | `string`                                               | -        | Accessible label            |
 | `className`    | `string`                                               | -        | Additional CSS class        |
 | `name`         | `string`                                               | -        | Field name for forms        |
-| `autoFocus`    | `boolean`                                              | `false`  | Auto focus on mount         |
 | `autoComplete` | `string`                                               | -        | HTML autocomplete attribute |
 
 ## Styling

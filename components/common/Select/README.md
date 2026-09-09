@@ -134,7 +134,6 @@ const options: SelectOption[] = [
 | `ariaLabel`         | `string`                           | -          | Accessible label           |
 | `className`         | `string`                           | -          | Additional CSS class       |
 | `name`              | `string`                           | -          | Field name                 |
-| `autoFocus`         | `boolean`                          | `false`    | Auto focus on mount        |
 | `filterOption`      | `function \| boolean`              | -          | Custom filter function     |
 | `maxTagCount`       | `number \| 'responsive'`           | -          | Max tags to show           |
 | `getPopupContainer` | `function`                         | -          | Custom popup container     |

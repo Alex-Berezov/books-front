@@ -215,9 +215,11 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
         </FormField>
 
         {/* FAQ section */}
-        <div className={styles.field}>
+        <div className={styles.field} role="group" aria-labelledby="page-faq-label">
           <div className={styles.fieldHeader}>
-            <label className={styles.label}>FAQ</label>
+            <span className={styles.label} id="page-faq-label">
+              FAQ
+            </span>
             <Button
               type="button"
               variant="ghost"

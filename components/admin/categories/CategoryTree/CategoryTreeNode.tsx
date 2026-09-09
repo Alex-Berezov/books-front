@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type CSSProperties, type FC, type MouseEvent } from 'react';
+import { useState, type CSSProperties, type FC, type KeyboardEvent, type MouseEvent } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useCategoryTranslations } from '@/api/hooks/useCategories';
 import {
@@ -79,6 +79,13 @@ export const CategoryTreeNode: FC<CategoryTreeNodeProps> = (props) => {
     onDelete(node);
   };
 
+  const handleExpandKeyDown = (e: KeyboardEvent) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
+
   const handleAddSubcategoryClick = (e: MouseEvent) => {
     e.stopPropagation();
     onAddSubcategory(node);
@@ -90,6 +97,13 @@ export const CategoryTreeNode: FC<CategoryTreeNodeProps> = (props) => {
         <div
           className={`${styles.expandButton} ${isExpanded ? styles.expanded : ''} ${!hasChildren ? styles.placeholder : ''}`}
           onClick={hasChildren ? handleExpandClick : undefined}
+          onKeyDown={hasChildren ? handleExpandKeyDown : undefined}
+          role={hasChildren ? 'button' : undefined}
+          tabIndex={hasChildren ? 0 : undefined}
+          aria-expanded={hasChildren ? isExpanded : undefined}
+          aria-label={
+            hasChildren ? `${isExpanded ? 'Collapse' : 'Expand'} ${node.name}` : undefined
+          }
         >
           {hasChildren && <ChevronRight size={16} />}
         </div>

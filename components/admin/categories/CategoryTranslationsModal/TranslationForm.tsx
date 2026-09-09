@@ -120,7 +120,9 @@ export const TranslationForm = ({
       <div className={styles.formTitle}>{editingLang ? 'Edit Translation' : 'New Translation'}</div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Language</label>
+        <label className={styles.label} htmlFor="language">
+          Language
+        </label>
         <Controller
           name="language"
           control={control}
@@ -139,19 +141,23 @@ export const TranslationForm = ({
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Name</label>
+        <label className={styles.label} htmlFor="name">
+          Name
+        </label>
         <Input error={!!errors.name} {...register('name')} />
         {errors.name?.message && <span className={styles.errorText}>{errors.name.message}</span>}
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Slug</label>
+        <label className={styles.label} htmlFor="slug">
+          Slug
+        </label>
         <Input error={!!errors.slug} {...register('slug')} />
         {errors.slug?.message && <span className={styles.errorText}>{errors.slug.message}</span>}
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Description</label>
+        <span className={styles.label}>Description</span>
         <span className={styles.hint}>
           Long-form text displayed on the public category page for this language.
         </span>
@@ -176,20 +182,25 @@ export const TranslationForm = ({
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>H1 Heading</label>
+        <label className={styles.label} htmlFor="h1">
+          H1 Heading
+        </label>
         <span className={styles.hint}>Main heading displayed on the category page.</span>
         <Input error={!!errors.h1} {...register('h1')} />
         {errors.h1?.message && <span className={styles.errorText}>{errors.h1.message}</span>}
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Short Description</label>
+        <label className={styles.label} htmlFor="shortDescription">
+          Short Description
+        </label>
         <span className={styles.hint}>Brief summary shown in cards and lists.</span>
         <Controller
           name="shortDescription"
           control={control}
           render={({ field }) => (
             <textarea
+              id="shortDescription"
               className={styles.textarea}
               {...field}
               rows={3}
@@ -203,9 +214,11 @@ export const TranslationForm = ({
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>FAQ</label>
+        <span className={styles.label} id="category-faq-label">
+          FAQ
+        </span>
         <span className={styles.hint}>Frequently asked questions about this category.</span>
-        <div className={styles.translationsList}>
+        <div className={styles.translationsList} role="group" aria-labelledby="category-faq-label">
           {faqFields.map((field, index) => (
             <div
               key={field.id}

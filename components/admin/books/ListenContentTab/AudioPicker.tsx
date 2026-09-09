@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import type { ChangeEvent, DragEvent, FC } from 'react';
+import type { ChangeEvent, DragEvent, FC, KeyboardEvent } from 'react';
 import { useSnackbar } from 'notistack';
 import { uploadAudioFile } from '@/api/endpoints/admin/uploads';
 import { useUploadsLimits } from '@/api/hooks';
@@ -140,6 +140,11 @@ export const AudioPicker: FC<AudioPickerProps> = (props) => {
         <div
           className={dropzoneClassName}
           onClick={handleBrowseClick}
+          onKeyDown={(e: KeyboardEvent) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault();
+            handleBrowseClick();
+          }}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
