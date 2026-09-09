@@ -58,11 +58,3 @@ export interface UpdateChapterRequest {
   /** Chapter content (markdown) */
   content?: string;
 }
-
-/**
- * Request to reorder chapters
- */
-export interface ReorderChaptersRequest {
-  /** Array of chapter IDs in new order */
-  chapterIds: UUID[];
-}

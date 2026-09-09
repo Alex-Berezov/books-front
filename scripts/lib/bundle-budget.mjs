@@ -15,12 +15,7 @@ export const formatKb = (bytes) => `${(bytes / 1000).toFixed(1)} kB`;
  * with `/page`, while `/layout`, `/error`, `/loading` and `/not-found` describe
  * pieces of a page rather than a first load of their own.
  */
-/**
- * Обновление снимка — единственная дверь, через которую бюджет может перестать краснеть:
- * ожидание, переписанное под изменившийся код, проверкой быть перестаёт. Поэтому решение
- * вынесено отдельной функцией и посажено тестом, а не оставлено условием внутри CLI.
- */
-export const shouldAcceptUpdate = (updateRequested, inCi) => updateRequested && !inCi;
+export { shouldAcceptUpdate } from './snapshot-update.mjs';
 
 export const routeNameFromManifestKey = (key) => {
   if (key === '/page') return '/';

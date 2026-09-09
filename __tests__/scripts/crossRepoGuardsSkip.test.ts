@@ -155,3 +155,99 @@ describe('кросс-репозиторные гварды: пропуск ви�
     }
   );
 });
+
+/**
+ * Третий гвард того же класса - `check-type-sync.mjs` (пачка Q4). Он сверяет копию
+ * схемы OpenAPI с оригиналом в соседнем `books`, то есть отключается по тому же
+ * условию среды, что и два выше, и обязан так же говорить об этом вслух.
+ *
+ * Фикстура своя и синтетическая: гварду нужны каталог вызовов, копия схемы и снимок
+ * поверхности, а не списки языков и слагов. Боевые каталоги сюда не копируются -
+ * под полным прогоном это десятки секунд на случай.
+ */
+describe('check-type-sync.mjs: пропуск кросс-репо сверки виден в выводе (LEGACY-156)', () => {
+  const SAMPLE = "export const list = () => httpGetAuth<Thing[]>('/thing');\n";
+  const SCHEMA = JSON.stringify({
+    openapi: '3.0.0',
+    paths: {
+      '/thing': {
+        get: {
+          responses: {
+            200: {
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/Thing' } } },
+            },
+          },
+        },
+      },
+    },
+    components: { schemas: { Thing: { properties: { id: { type: 'string' } } } } },
+  });
+
+  /** Песочница со снятым снимком; сосед создаётся только если он нужен случаю. */
+  const buildFixture = (dir: string, withNeighbour: boolean) => {
+    mkdirSync(join(dir, 'scripts/type-sync'), { recursive: true });
+    mkdirSync(join(dir, 'api/endpoints'), { recursive: true });
+    cpSync(join(REPO_ROOT, 'scripts/lib'), join(dir, 'scripts/lib'), { recursive: true });
+    cpSync(
+      join(REPO_ROOT, 'scripts/check-type-sync.mjs'),
+      join(dir, 'scripts/check-type-sync.mjs')
+    );
+    writeFileSync(join(dir, 'api/endpoints/sample.ts'), SAMPLE);
+
+    const neighbour = join(dir, '..', 'books', 'libs', 'api-client');
+    mkdirSync(neighbour, { recursive: true });
+    writeFileSync(join(neighbour, 'api-schema.json'), SCHEMA);
+
+    execFileSync(process.execPath, [join(dir, 'scripts/check-type-sync.mjs'), '--update'], {
+      cwd: dir,
+      encoding: 'utf8',
+    });
+
+    if (!withNeighbour) rmSync(join(dir, '..', 'books'), { recursive: true, force: true });
+  };
+
+  const runGate = (dir: string) =>
+    execFileSync(process.execPath, [join(dir, 'scripts/check-type-sync.mjs')], {
+      cwd: dir,
+      encoding: 'utf8',
+    });
+
+  it('без соседнего репозитория печатает признак пропуска', () => {
+    const dir = join(sandbox, 'no-neighbour', 'books-front');
+    buildFixture(dir, false);
+
+    const output = runGate(dir);
+
+    expect(output).toContain('SKIPPED');
+    expect(output).toContain('did NOT run');
+  });
+
+  it('с соседним репозиторием о пропуске не пишет', () => {
+    const dir = join(sandbox, 'with-neighbour', 'books-front');
+    buildFixture(dir, true);
+
+    expect(runGate(dir)).not.toContain('SKIPPED');
+  });
+
+  it('расхождение копии с соседом роняет прогон, а не печатает успех', () => {
+    const dir = join(sandbox, 'drifted', 'books-front');
+    buildFixture(dir, true);
+    writeFileSync(
+      join(dir, '..', 'books', 'libs', 'api-client', 'api-schema.json'),
+      JSON.stringify({ openapi: '3.0.0', paths: { '/only-here': { get: {} } } })
+    );
+
+    let status = 0;
+    let output = '';
+    try {
+      runGate(dir);
+    } catch (error) {
+      const failure = error as { status: number; stdout: string; stderr: string };
+      status = failure.status;
+      output = `${failure.stdout}${failure.stderr}`;
+    }
+
+    expect(status).not.toBe(0);
+    expect(output).toContain('копия схемы разошлась');
+  });
+});

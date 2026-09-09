@@ -62,7 +62,6 @@ export type {
   Chapter,
   ChapterDetail,
   CreateChapterRequest,
-  ReorderChaptersRequest,
   UpdateChapterRequest,
 } from './chapters';
 

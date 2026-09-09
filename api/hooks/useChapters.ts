@@ -16,15 +16,9 @@ import {
   createChapter,
   deleteChapter,
   getChapters,
-  reorderChapters,
   updateChapter,
 } from '@/api/endpoints/admin/chapters';
-import type {
-  ChapterDetail,
-  CreateChapterRequest,
-  ReorderChaptersRequest,
-  UpdateChapterRequest,
-} from '@/types/api-schema';
+import type { ChapterDetail, CreateChapterRequest, UpdateChapterRequest } from '@/types/api-schema';
 
 /**
  * Query keys for chapters
@@ -202,52 +196,6 @@ export const useDeleteChapter = (
       queryClient.invalidateQueries({ queryKey: chapterKeys.list(variables.versionId) });
       // Remove chapter from cache
       queryClient.removeQueries({ queryKey: chapterKeys.detail(variables.chapterId) });
-      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
-        data,
-        variables,
-        context
-      );
-    },
-  });
-};
-
-/**
- * Hook for reordering chapters
- *
- * @param options - React Query mutation options
- * @returns React Query mutation for reordering
- *
- * @example
- * ```tsx
- * const reorderMutation = useReorderChapters({
- *   onSuccess: () => {
- *     toast.success('Chapters reordered');
- *   }
- * });
- *
- * reorderMutation.mutate({
- *   versionId: 'version-uuid',
- *   data: {
- *     chapterIds: ['chapter-3', 'chapter-1', 'chapter-2']
- *   }
- * });
- * ```
- */
-export const useReorderChapters = (
-  options?: UseMutationOptions<
-    ChapterDetail[],
-    Error,
-    { versionId: string; data: ReorderChaptersRequest }
-  >
-) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ versionId, data }) => reorderChapters(versionId, data),
-    ...options,
-    onSuccess: (data, variables, context) => {
-      // Invalidate chapters list for update
-      queryClient.invalidateQueries({ queryKey: chapterKeys.list(variables.versionId) });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,

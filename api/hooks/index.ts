@@ -77,7 +77,6 @@ export {
   useCreateChapter,
   useUpdateChapter,
   useDeleteChapter,
-  useReorderChapters,
 } from './useChapters';
 
 // Audio Chapters

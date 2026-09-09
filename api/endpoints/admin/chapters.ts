@@ -7,12 +7,7 @@
  */
 
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
-import type {
-  ChapterDetail,
-  CreateChapterRequest,
-  ReorderChaptersRequest,
-  UpdateChapterRequest,
-} from '@/types/api-schema';
+import type { ChapterDetail, CreateChapterRequest, UpdateChapterRequest } from '@/types/api-schema';
 
 /**
  * Get list of chapters for book version
@@ -96,26 +91,4 @@ export const updateChapter = async (
 export const deleteChapter = async (chapterId: string): Promise<void> => {
   const endpoint = `/chapters/${chapterId}`;
   return httpDeleteAuth<void>(endpoint);
-};
-
-/**
- * Reorder chapters
- *
- * @param versionId - Book version ID
- * @param data - New chapters order
- * @returns Array of chapters in new order
- *
- * @example
- * ```ts
- * const chapters = await reorderChapters('version-uuid', {
- *   chapterIds: ['chapter-3', 'chapter-1', 'chapter-2']
- * });
- * ```
- */
-export const reorderChapters = async (
-  versionId: string,
-  data: ReorderChaptersRequest
-): Promise<ChapterDetail[]> => {
-  const endpoint = `/versions/${versionId}/chapters/reorder`;
-  return httpPostAuth<ChapterDetail[]>(endpoint, data);
 };

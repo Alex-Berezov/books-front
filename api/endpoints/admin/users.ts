@@ -116,5 +116,8 @@ export const revokeRole = async (id: UUID, role: string): Promise<void> => {
  * @param password - New password
  */
 export const resetPassword = async (id: UUID, password: string): Promise<void> => {
-  return httpPostAuth(`/users/${id}/password-reset`, { password });
+  // Отдельной ручки сброса пароля у бэкенда нет: пароль принимает `PATCH /users/:id`
+  // (`UpdateUserDto.password`, хэшируется в `users.service.ts`). Прежний адрес
+  // `/users/:id/password-reset` не существовал никогда - админ получал 404.
+  return httpPatchAuth(`/users/${id}`, { password });
 };

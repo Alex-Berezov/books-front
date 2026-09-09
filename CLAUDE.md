@@ -14,19 +14,19 @@ i18n, auth, seo, sitemap, константы и утилиты; `api/endpoints/`
 
 ## Команды проверок
 
-| Команда                     | Вес           | Когда                                                                                                             |
-| --------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `yarn typecheck`            | средняя       | после каждой заметной правки                                                                                      |
-| `yarn lint`                 | средняя       | перед сдачей; правит файлы сама                                                                                   |
-| `yarn check:env`            | быстрая       | при правках переменных окружения                                                                                  |
-| `yarn check:langs`          | быстрая       | при правках `lib/i18n/**`                                                                                         |
-| `yarn check:reserved-slugs` | быстрая       | при правках `app/**`                                                                                              |
-| `yarn test`                 | тяжёлая       | перед сдачей; точечно `npx vitest related --run <файл>`                                                           |
-| `yarn build`                | тяжёлая       | при правках `app/`, `middleware.ts`, `next.config.js`, `providers/`; с 09.09.2026 сюда же прицеплен бюджет бандла |
-| `yarn bundle:snapshot`      | тяжёлая       | когда рост First Load JS объясним новой функциональностью: пересобирает `scripts/bundle-baseline.json`            |
-| `yarn check:dead-modules`   | средняя       | при удалении файлов и переносе модулей; ловит недостижимые (`LEGACY-106`)                                         |
-| `yarn ci`                   | тяжёлая       | итоговый прогон: check:env, check:langs, check:reserved-slugs, check:dead-modules, lint, typecheck, test:coverage |
-| `yarn e2e`                  | самая тяжёлая | в CI после `yarn build`; локально - только `--project=chromium`                                                   |
+| Команда                     | Вес           | Когда                                                                                                                              |
+| --------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `yarn typecheck`            | средняя       | после каждой заметной правки                                                                                                       |
+| `yarn lint`                 | средняя       | перед сдачей; правит файлы сама                                                                                                    |
+| `yarn check:env`            | быстрая       | при правках переменных окружения                                                                                                   |
+| `yarn check:langs`          | быстрая       | при правках `lib/i18n/**`                                                                                                          |
+| `yarn check:reserved-slugs` | быстрая       | при правках `app/**`                                                                                                               |
+| `yarn test`                 | тяжёлая       | перед сдачей; точечно `npx vitest related --run <файл>`                                                                            |
+| `yarn build`                | тяжёлая       | при правках `app/`, `middleware.ts`, `next.config.js`, `providers/`; с 09.09.2026 сюда же прицеплен бюджет бандла                  |
+| `yarn bundle:snapshot`      | тяжёлая       | когда рост First Load JS объясним новой функциональностью: пересобирает `scripts/bundle-baseline.json`                             |
+| `yarn check:dead-modules`   | средняя       | при удалении файлов и переносе модулей; ловит недостижимые (`LEGACY-106`)                                                          |
+| `yarn ci`                   | тяжёлая       | итоговый прогон: check:env, check:langs, check:type-sync, check:reserved-slugs, check:dead-modules, lint, typecheck, test:coverage |
+| `yarn e2e`                  | самая тяжёлая | в CI после `yarn build`; локально - только `--project=chromium`                                                                    |
 
 Команды `yarn validate` больше нет (`LEGACY-155`): она возвращала успех при красном линте
 и дублировала часть `yarn ci`. Единственная точка входа — `yarn ci`, тот же набор, что в конвейере.
