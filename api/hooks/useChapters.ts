@@ -150,7 +150,7 @@ export const useUpdateChapter = (
       // Update chapter data in cache
       queryClient.setQueryData(chapterKeys.detail(variables.chapterId), data);
       // Invalidate version chapters list
-      const versionId = variables.versionId || data.versionId;
+      const versionId = variables.versionId || data.bookVersionId;
       if (versionId) {
         queryClient.invalidateQueries({ queryKey: chapterKeys.list(versionId) });
       }

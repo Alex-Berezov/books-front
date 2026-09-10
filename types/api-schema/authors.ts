@@ -1,5 +1,4 @@
-import type { BookOverview } from './books';
-import type { SupportedLang, UUID } from './common';
+import type { PublicationStatus, SupportedLang, UUID } from './common';
 import type { SeoData } from './pages';
 
 export interface AuthorQuote {
@@ -28,7 +27,12 @@ export interface AuthorTranslation {
 
 export interface Author {
   id: UUID;
-  slug: string; // Keep at root for compatibility with general routing or fallback
+  /**
+   * Корневой слаг подставляет только `AuthorService.toAuthorItem` (список и карточка):
+   * у модели `Author` такой колонки нет, слаг живёт на переводе. `POST /admin/authors`
+   * и `PUT /admin/authors/{id}` возвращают строку модели и слага не отдают.
+   */
+  slug?: string;
   birthDate?: string | null;
   deathDate?: string | null;
   translations?: AuthorTranslation[];
@@ -93,7 +97,34 @@ export interface PublicAuthorDetail {
   faq?: AuthorFaq[] | null;
   seo?: SeoData | null;
   similarAuthors: { name: string; slug: string }[];
-  books: BookOverview[];
+  /**
+   * Узкая форма: ручка собирает книгу автора поимённо из одиннадцати полей
+   * (`books/src/modules/author/author.service.ts`, `getPublicBySlug`), а не отдаёт
+   * общий обзор книги. До 10.09.2026 здесь стоял `BookOverview`, обещавший язык,
+   * категории, теги и даты, которых в ответе нет.
+   */
+  books: PublicAuthorBook[];
+}
+
+/** Книга на странице автора (`PublicAuthorBookDto`). */
+export interface PublicAuthorBook {
+  id: UUID;
+  bookId: UUID;
+  slug: string;
+  title: string;
+  author: string;
+  coverImageUrl: string;
+  coverUrl?: string | null;
+  type: string;
+  isFree: boolean;
+  rating?: number | null;
+  versions: {
+    language: SupportedLang;
+    status: PublicationStatus;
+    type: string;
+    coverImageUrl: string;
+    coverUrl: string;
+  }[];
 }
 
 export interface CreateAuthorRequest {

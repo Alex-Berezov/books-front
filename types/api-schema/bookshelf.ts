@@ -4,19 +4,7 @@
  * User library, reading progress
  */
 
-import type { VersionPreview } from './books';
 import type { ISODate, UUID } from './common';
-
-/**
- * User bookshelf item
- */
-export interface BookshelfItem {
-  id: UUID;
-  userId: UUID;
-  versionId: UUID;
-  version: VersionPreview;
-  addedAt: ISODate;
-}
 
 /**
  * Тело ответа `POST /me/bookshelf/:versionId` (`BookshelfEntryDto` на бэкенде).
@@ -95,4 +83,45 @@ export interface UpdateAudioProgressRequest {
   audioChapterNumber?: number;
   /** Playback position in seconds (float >= 0), в пределах длительности дорожки. */
   position: number;
+}
+
+/**
+ * Полка: элемент списка и его версия книги.
+ *
+ * Переехали из `api/endpoints/bookshelf.ts` 10.09.2026: форму ответа слой 2 гейта
+ * `check:type-sync` достаёт только через барель, и объявленная в модуле вызовов
+ * под утверждения не попадает вовсе.
+ */
+export interface BookVersionPreview {
+  id: UUID;
+  bookId: UUID;
+  language: string;
+  slug?: string;
+  title: string;
+  author: string;
+  description: string;
+  coverImageUrl: string;
+  type: string;
+  isFree: boolean;
+  chaptersCount?: number;
+  createdAt: ISODate;
+  updatedAt: ISODate;
+  book?: {
+    id: UUID;
+    slug: string;
+  };
+}
+
+export interface BookshelfItemDto {
+  id: UUID;
+  addedAt: ISODate;
+  bookVersion: BookVersionPreview;
+}
+
+export interface BookshelfListResponse {
+  items: BookshelfItemDto[];
+  page: number;
+  limit: number;
+  total: number;
+  hasNext: boolean;
 }

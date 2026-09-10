@@ -14,6 +14,7 @@ import { queryKeys, staleTimeConfig } from '@/lib/queryClient';
 import type { ApiError } from '@/types/api';
 import type {
   UserMeResponse,
+  UserProfileResponse,
   UpdateProfileRequest,
   UserActivitiesResponse,
 } from '@/types/api-schema';
@@ -59,10 +60,12 @@ export const useMe = (
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<UserMeResponse, ApiError, UpdateProfileRequest>({
+  return useMutation<UserProfileResponse, ApiError, UpdateProfileRequest>({
     mutationFn: (data: UpdateProfileRequest) => authApi.updateProfile(data),
-    onSuccess: (updatedUser) => {
-      queryClient.setQueryData(queryKeys.me(), updatedUser);
+    onSuccess: () => {
+      // 🔴 Ответ сохранения профиля НЕ кладётся в кэш `me`: ролей в нём нет
+      // (`UsersService.updateMe` их не выбирает), и запись затёрла бы роли
+      // пользователя пустотой до следующей перезагрузки. Только инвалидация.
       queryClient.invalidateQueries({ queryKey: queryKeys.me() });
     },
   });

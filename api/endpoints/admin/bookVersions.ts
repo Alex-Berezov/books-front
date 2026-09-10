@@ -154,12 +154,18 @@ export const getPublicationGate = async (versionId: string): Promise<Publication
   return httpGetAuth<PublicationGateResult>(endpoint);
 };
 
+/**
+ * Ручка отдаёт правила гео-блокировки версии, а НЕ саму версию
+ * (`books/src/modules/book-version/book-version.controller.ts` зовёт
+ * `geoBlockRuleService.verifyRulesForVersion`). До 10.09.2026 вызов был типизован
+ * `BookVersionDetail`, и любое чтение полей версии из ответа давало `undefined`.
+ */
 export const updateVersionRightsGeoBlock = async (
   versionId: string,
   data: UpdateRightsGeoBlockRequest
-): Promise<BookVersionDetail> => {
+): Promise<GeoBlockRulesResponse> => {
   const endpoint = `/admin/versions/${versionId}/rights-geo-block`;
-  return httpPatchAuth<BookVersionDetail>(endpoint, data);
+  return httpPatchAuth<GeoBlockRulesResponse>(endpoint, data);
 };
 
 export const upsertVersionSeo = async (versionId: string, data: SeoInput): Promise<SeoData> => {

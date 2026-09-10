@@ -351,7 +351,7 @@ export const usePublicationGate = (
 
 export const useUpdateVersionRightsGeoBlock = (
   options?: UseMutationOptions<
-    BookVersionDetail,
+    GeoBlockRulesResponse,
     Error,
     { versionId: string; data: UpdateRightsGeoBlockRequest }
   >

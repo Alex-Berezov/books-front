@@ -1,6 +1,7 @@
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
-  Comment,
+  ClientComment,
+  ClientCommentBare,
   CommentsResponse,
   CreateReplyRequest,
   GetCommentsParams,
@@ -37,7 +38,11 @@ export const commentsApi = {
    * отдельного «status» у комментария нет ни в схеме, ни в API.
    */
   moderateComment: (id: UUID, data: ModerateCommentRequest) => {
-    return httpPatchAuth<Comment>(`/comments/${id}`, data);
+    // Ответ у `PATCH /comments/:id` — форма `CommentDetailDto` (на фронте `ClientComment`),
+    // а не строка админского списка: `author`, `bookTitle`, `bookId` и `repliesCount`
+    // собирает только маппер `GET /admin/comments`.
+    // Союз двух форм: пустое тело возвращает запись без `user` и `children`.
+    return httpPatchAuth<ClientComment | ClientCommentBare>(`/comments/${id}`, data);
   },
 
   deleteComment: (id: UUID) => {
@@ -50,6 +55,6 @@ export const commentsApi = {
    * `parentId` серверу мало.
    */
   replyToComment: (data: CreateReplyRequest) => {
-    return httpPostAuth<Comment>('/comments', data);
+    return httpPostAuth<ClientComment>('/comments', data);
   },
 };

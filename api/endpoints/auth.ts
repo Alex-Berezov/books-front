@@ -3,6 +3,7 @@ import { USER_ACTIVITIES_PAGE_SIZE } from '@/lib/constants/pagination';
 import { httpGetAuth, httpPatchAuth } from '@/lib/http-client';
 import type {
   UserMeResponse,
+  UserProfileResponse,
   UpdateProfileRequest,
   GetUserActivitiesParams,
   UserActivitiesResponse,
@@ -32,8 +33,8 @@ export const getMe = async (): Promise<UserMeResponse> => {
  * @param data - Profile update payload
  * @returns Updated user profile data
  */
-export const updateProfile = async (data: UpdateProfileRequest): Promise<UserMeResponse> => {
-  return httpPatchAuth<UserMeResponse>('/users/profile', data, {
+export const updateProfile = async (data: UpdateProfileRequest): Promise<UserProfileResponse> => {
+  return httpPatchAuth<UserProfileResponse>('/users/profile', data, {
     requireAuth: true,
   });
 };

@@ -3,20 +3,7 @@
  */
 
 import { httpPostAuth, httpGetAuth } from '@/lib/http-client';
-import type { UUID } from '@/types/api-schema/common';
-
-export interface RateBookResponse {
-  id: UUID;
-  userId: UUID;
-  bookId: UUID;
-  score: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface UserRatingResponse {
-  score: number | null;
-}
+import type { RateBookResponse, UserRatingResponse } from '@/types/api-schema';
 
 /**
  * Submit rating for a book

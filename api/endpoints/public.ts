@@ -22,11 +22,12 @@ import type {
   AuthorLetter,
   AuthorListItem,
   BookCardsResponse,
+  BookListItem,
   BookOverview,
   CategoryBookCardsResponse,
   CategoryBooksResponse,
-  CategoryListItem,
   CategoryTree,
+  PaginatedCategoriesResponse,
   PaginatedTagsResponse,
   ReaderBootstrapResponse,
   PageResponse,
@@ -190,14 +191,14 @@ export const getReaderBootstrap = async (
 export const getPublicBooks = async (
   lang: SupportedLang,
   params: { page?: number; limit?: number } = {}
-): Promise<PaginatedResponse<BookOverview>> => {
+): Promise<PaginatedResponse<BookListItem>> => {
   const { page = 1, limit = 20 } = params;
   const queryParams = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
   const endpoint = buildLangPath(lang, `/books?${queryParams.toString()}`);
-  return httpGet<PaginatedResponse<BookOverview>>(endpoint, { language: lang, cache: 'no-store' });
+  return httpGet<PaginatedResponse<BookListItem>>(endpoint, { language: lang, cache: 'no-store' });
 };
 
 /**
@@ -336,16 +337,6 @@ export const getCategoryBookCards = async (
     next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
   });
 };
-
-export interface PaginatedCategoriesResponse {
-  data: CategoryListItem[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
 
 /**
  * Get public category/genre/collection listing for catalog sidebar / homepage.

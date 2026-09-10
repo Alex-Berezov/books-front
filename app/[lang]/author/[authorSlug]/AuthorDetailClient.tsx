@@ -21,16 +21,10 @@ import { BookCard } from '@/components/public/books/BookCard';
 import { useSmartBack } from '@/components/public/navigation';
 import { pluralize, pluralFormsOf } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { toBookCardModel } from '@/lib/mappers/book';
+import { toBookCardModelFromAuthorBook } from '@/lib/mappers/book';
 import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type {
-  BookCardModel,
-  BookOverview,
-  PublicAuthorDetail,
-  AuthorQuote,
-  AuthorFaq,
-} from '@/types/api-schema';
+import type { BookCardModel, PublicAuthorDetail, AuthorQuote, AuthorFaq } from '@/types/api-schema';
 import styles from './author.module.scss';
 
 type Props = {
@@ -81,11 +75,7 @@ export default function AuthorDetailClient({
 
   if (dbAuthor) {
     finalDisplayName = dbAuthor.name;
-    // TODO(R-future): author detail endpoint still returns BookOverview[]; map to BookCardModel.
-    // When a compact author-books-cards response is embedded, switch to it.
-    authorBooks = (dbAuthor.books || []).map((b: BookOverview) =>
-      toBookCardModel(b, supportedLang)
-    );
+    authorBooks = (dbAuthor.books || []).map(toBookCardModelFromAuthorBook);
     biography = dbAuthor.biography || '';
     quotes = (dbAuthor.quotes as AuthorQuote[]) || [];
     faq = (dbAuthor.faq as AuthorFaq[]) || [];

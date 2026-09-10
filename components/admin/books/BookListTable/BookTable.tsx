@@ -5,11 +5,11 @@ import { EditButton, DeleteButton } from '@/components/admin/common/ActionButton
 import { Skeleton } from '@/components/admin/shared';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { type SupportedLang } from '@/lib/i18n/lang';
-import type { BookOverview } from '@/types/api-schema';
+import type { BookListItem } from '@/types/api-schema';
 import styles from './BookListTable.module.scss';
 
 interface BookTableProps {
-  books: BookOverview[];
+  books: BookListItem[];
   lang: SupportedLang;
   isAdmin: boolean;
   onDeleteClick: (id: string, title: string) => void;
@@ -94,7 +94,10 @@ export const BookTable: FC<BookTableProps> = (props) => {
             // const status = displayVersion?.status || 'draft';
 
             // Determine title
-            const displayTitle = displayVersion?.title || book.title || book.slug;
+            // Заголовок живёт только на версии: контейнер отдаёт id, slug и даты
+            // (`books/src/common/selects/public-book.select.ts`). Прежняя ветка `book.title`
+            // была мёртвой — поле всегда `undefined`.
+            const displayTitle = displayVersion?.title || book.slug;
 
             // Format date
             const updatedDate = new Date(book.updatedAt).toISOString().split('T')[0];

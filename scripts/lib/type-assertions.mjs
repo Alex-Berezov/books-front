@@ -117,6 +117,16 @@ export function qualifyType(typeText, exported, ns = 'T') {
 }
 
 /**
+ * Классы вызовов, до сверки не доходящих. Ключ машинный - он уезжает в снимок бюджета;
+ * подпись человеческая - она уезжает в сообщение об отказе.
+ */
+export const OUTSIDE_KINDS = {
+  noResponseSchema: 'нет схемы ответа',
+  unnamedCallType: 'тип вызова не назван',
+  namesOutsideBarrel: 'имена вне бареля',
+};
+
+/**
  * Пригодные для утверждения вызовы: маршрут разобран, у ответа есть схема, тип вызова
  * назван и все его имена достижимы через барель.
  *
@@ -130,24 +140,101 @@ export function selectCandidates(callSites, routeOf, exported) {
     const route = routeOf(site);
     if (!route) continue;
     if (!route.hasResponseSchema) {
-      skipped.push({ site, route: route.key, reason: 'нет схемы ответа' });
+      skipped.push({ site, route: route.key, kind: 'noResponseSchema', reason: OUTSIDE_KINDS.noResponseSchema });
       continue;
     }
     const type = (site.type ?? '').trim();
     // `any`, `unknown` и `object` утверждению присваиваются всегда: маршрут попал бы
     // в покрытые, не проверив ничего, а подмена точного типа на `any` осталась бы зелёной.
     if (!type || BLIND.has(type)) {
-      skipped.push({ site, route: route.key, reason: 'тип вызова не назван' });
+      skipped.push({ site, route: route.key, kind: 'unnamedCallType', reason: OUTSIDE_KINDS.unnamedCallType });
       continue;
     }
     const unknown = [...new Set(typeIdentifiers(type))].filter((n) => !exported.has(n) && !BUILTIN.has(n));
     if (unknown.length) {
-      skipped.push({ site, route: route.key, reason: 'имена вне бареля: ' + unknown.join(', ') });
+      skipped.push({
+        site,
+        route: route.key,
+        kind: 'namesOutsideBarrel',
+        reason: OUTSIDE_KINDS.namesOutsideBarrel + ': ' + unknown.join(', '),
+      });
       continue;
     }
     candidates.push({ site, route, type });
   }
   return { candidates, skipped };
+}
+
+/** Подписи всех строк снимка бюджета, включая два общих счёта. */
+export const BUDGET_LABELS = {
+  ...OUTSIDE_KINDS,
+  callSites: 'разобранных вызовов',
+  assertions: 'собранных утверждений',
+};
+
+/**
+ * Бюджет пропусков: сколько вызовов не дошло до утверждения, по классам.
+ *
+ * 🔴 Зачем счёт, а не список: список непокрытых - это baseline, запрещённый пачкой `C19`.
+ * Зачем вообще: сверку проходят только вызовы с именованным типом бареля, поэтому вызов
+ * с типом мимо бареля добавляется молча и гейт остаётся зелёным - «проверенных единиц ноль»
+ * напечатано как успех (класс `L-015`).
+ */
+export function outsideBudget(skipped) {
+  const budget = { noResponseSchema: 0, unnamedCallType: 0, namesOutsideBarrel: 0 };
+  for (const item of skipped) {
+    // Класс берётся полем, а не разбором текста причины: свободный текст, переформулированный
+    // в `selectCandidates`, уехал бы в чужой счётчик, гейт покраснел бы на двух классах, которых
+    // никто не трогал, а пересчёт снимка по его же подсказке запёк бы неверную разбивку.
+    if (!(item.kind in budget)) throw new Error('неизвестный класс пропуска: ' + item.kind);
+    budget[item.kind] += 1;
+  }
+  return budget;
+}
+
+/**
+ * Полный снимок бюджета: классы пропусков плюс два общих счёта.
+ *
+ * 🔴 Общие счёта здесь не для отчёта. Без них размен внутри класса проходит молча: довёл один
+ * вызов до бареля и тем же коммитом добавил другой мимо бареля - счёт класса не изменился,
+ * снимок в дифф не попал, новый несверяемый вызов следа не оставил. Число разобранных вызовов
+ * двигается от любого добавления, число утверждений - от любой потери сверки.
+ */
+export function budgetSnapshot(callSites, assertionCount, skipped) {
+  return {
+    callSites: callSites.length,
+    assertions: assertionCount,
+    ...outsideBudget(skipped),
+  };
+}
+
+/**
+ * Сверка бюджета со снимком. Допуск двусторонний: снижение без пересъёмки тоже красное,
+ * иначе односторонний допуск копит люфт ровно там, где пропуски чинили, - тот же довод,
+ * что у бюджета бандла (`scripts/bundle-budget.mjs`).
+ */
+export function compareBudget(committed, current) {
+  const problems = [];
+  for (const [key, now] of Object.entries(current)) {
+    const was = committed?.[key];
+    if (typeof was !== 'number') {
+      problems.push({ kind: key, detail: `класса нет в снимке бюджета (сейчас ${now})` });
+      continue;
+    }
+    if (was === now) continue;
+    problems.push({
+      kind: key,
+      detail:
+        now > was
+          ? `${BUDGET_LABELS[key] ?? key}: было ${was}, стало ${now} - вызов, до сверки не дошедший, добавлять молча нельзя`
+          : `${BUDGET_LABELS[key] ?? key}: было ${was}, стало ${now} - пересчитать снимок тем же коммитом`,
+    });
+  }
+  for (const key of Object.keys(committed ?? {})) {
+    if (key in current) continue;
+    problems.push({ kind: key, detail: 'класс из снимка бюджета пропал из расчёта' });
+  }
+  return problems;
 }
 
 /**

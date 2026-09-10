@@ -30,12 +30,12 @@ import {
 import { toCountResult, type CountResult } from '@/lib/utils/seo-indexing';
 import type {
   AuthorLetter,
-  BookOverview,
+  BookListItem,
   Category,
   CategoryTranslation,
   Tag,
   TagTranslation,
-  VersionPreview,
+  BookListVersion,
   AuthorListItem,
 } from '@/types/api-schema';
 
@@ -206,7 +206,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
     if (!(SUPPORTED_LANGS as readonly string[]).includes(lang) || pageNumber < 1) {
       return new NextResponse('Sitemap not found', { status: 404 });
     }
-    let books: BookOverview[] = [];
+    let books: BookListItem[] = [];
     try {
       // `GET /:lang/books` зажат `API_MAX_PAGE_SIZE` (`LEGACY-298`), а файл карты
       // по-прежнему обязан покрывать `BOOKS_SITEMAP_PAGE_SIZE` книг — окно из
@@ -225,7 +225,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
           `BOOKS_SITEMAP_PAGE_SIZE (${BOOKS_SITEMAP_PAGE_SIZE}) не делится нацело на API_MAX_PAGE_SIZE (${API_MAX_PAGE_SIZE})`
         );
       }
-      books = await fetchPageWindow<BookOverview>(
+      books = await fetchPageWindow<BookListItem>(
         (page) => getPublicBooks(lang as SupportedLang, { page, limit: API_MAX_PAGE_SIZE }),
         (pageNumber - 1) * pagesPerFile + 1,
         pagesPerFile,
@@ -244,21 +244,21 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
     books.forEach((book) => {
       const currentVersion = book.versions?.find(
-        (v: VersionPreview) => v.language === lang && v.status === 'published' && v.slug
+        (v: BookListVersion) => v.language === lang && v.status === 'published' && v.slug
       );
       if (!currentVersion?.slug) return;
 
       const alternates: Record<string, string> = {};
       const publishedVersions =
-        book.versions?.filter((v: VersionPreview) => v.status === 'published' && v.slug) || [];
+        book.versions?.filter((v: BookListVersion) => v.status === 'published' && v.slug) || [];
 
-      publishedVersions.forEach((v: VersionPreview) => {
+      publishedVersions.forEach((v: BookListVersion) => {
         if (v.language && v.slug) {
           alternates[v.language] = `${cleanBaseUrl}/${v.language}/book/${v.slug}`;
         }
       });
 
-      const enVersion = publishedVersions.find((v: VersionPreview) => v.language === 'en');
+      const enVersion = publishedVersions.find((v: BookListVersion) => v.language === 'en');
       const fallbackVersion = publishedVersions[0];
       const defaultVersion = enVersion || fallbackVersion;
       if (defaultVersion) {

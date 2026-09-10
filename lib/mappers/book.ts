@@ -1,68 +1,27 @@
-import type { BookCardModel, BookOverview, SupportedLang } from '@/types/api-schema';
+import type { BookCardModel, PublicAuthorBook } from '@/types/api-schema';
 
 /**
- * Map a full BookOverview to a compact BookCardModel.
+ * Книга авторской страницы в карточку.
  *
- * Temporary compatibility mapper used in R1 by pages that still fetch the legacy
- * `getPublicBooks` endpoint (homepage, author, tag, taxonomy, catalog). These pages
- * will switch to compact `/cards` endpoints in R2, after which this mapper is removed.
- *
- * TODO(R2): remove this mapper after all consumers use BookCardModel from /cards endpoints.
+ * Ручка автора собирает книгу своей узкой формой (`PublicAuthorBookDto` — одиннадцать полей,
+ * заголовок и обложка уже на верхнем уровне). До 10.09.2026 здесь работал общий маппер
+ * из `BookOverview`, и половина его цепочек фолбэков читала поля, которых в ответе нет.
  */
-export const toBookCardModel = (book: BookOverview, lang: SupportedLang): BookCardModel => {
-  const currentLangVersion = book.versions?.find(
-    (v) => v.language === lang && v.status === 'published'
-  );
-  const displayVersion =
-    currentLangVersion ||
-    book.versions?.find((v) => v.status === 'published') ||
-    book.versions?.[0];
-
-  const title = displayVersion?.title || book.title || '';
-  const author = displayVersion?.author || book.author || '';
-  const coverImageUrl =
-    displayVersion?.coverImageUrl ||
-    displayVersion?.coverUrl ||
-    book.coverImageUrl ||
-    book.coverUrl ||
-    null;
-
-  const hasText =
-    book.versions?.some(
-      (v) => v.language === lang && v.status === 'published' && v.type === 'text'
-    ) ??
-    book.hasText ??
-    false;
-  const hasAudio =
-    book.versions?.some(
-      (v) => v.language === lang && v.status === 'published' && v.type === 'audio'
-    ) ??
-    book.hasAudio ??
-    false;
-
-  // BookOverview (legacy) does not expose BookVersion.publishedAt on the version preview,
-  // so for the compatibility mapper we fall back to the book's createdAt honestly.
-  // The compact /related and /cards endpoints return the real BookVersion.publishedAt.
-  const publishedAt: string | null = book.createdAt ?? null;
-
-  return {
-    id: book.id,
-    slug: displayVersion?.slug || book.slug || book.id,
-    title,
-    author,
-    authorSlug: author ? author.trim().toLowerCase().replace(/\s+/g, '-') : null,
-    coverImageUrl,
-    rating: book.rating ?? null,
-    ratingsCount: 0,
-    hasText,
-    hasAudio,
-    publishedAt,
-    categoryIds: (book.categories ?? []).map((c) => c.id),
-  };
-};
-
-/**
- * Map an array of BookOverview to BookCardModel[].
- */
-export const toBookCardModels = (books: BookOverview[], lang: SupportedLang): BookCardModel[] =>
-  books.map((b) => toBookCardModel(b, lang));
+export const toBookCardModelFromAuthorBook = (book: PublicAuthorBook): BookCardModel => ({
+  id: book.id,
+  slug: book.slug,
+  title: book.title,
+  author: book.author,
+  authorSlug: book.author ? book.author.trim().toLowerCase().replace(/\s+/g, '-') : null,
+  coverImageUrl: book.coverImageUrl || book.coverUrl || null,
+  rating: book.rating ?? null,
+  ratingsCount: 0,
+  // Статус проверяется, хотя ручка сейчас отдаёт только опубликованное
+  // (`books/src/modules/author/author.service.ts:819` — `status: 'published'` в самом запросе):
+  // поле `status` в ответе есть, и молчаливая опора на фильтр чужого запроса — это то,
+  // как карточка однажды показывает «есть аудио» для черновика.
+  hasText: book.versions?.some((v) => v.type === 'text' && v.status === 'published') ?? false,
+  hasAudio: book.versions?.some((v) => v.type === 'audio' && v.status === 'published') ?? false,
+  publishedAt: null,
+  categoryIds: [],
+});

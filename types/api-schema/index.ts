@@ -33,6 +33,7 @@ export type {
 // User
 export type {
   UserMeResponse,
+  UserProfileResponse,
   UpdateProfileRequest,
   UserActivityBookVersion,
   UserActivityParentOrChildComment,
@@ -45,7 +46,13 @@ export type {
 export type {
   BookCardModel,
   BookCardsResponse,
+  BookContainerVersion,
+  BookDetailResponse,
+  BookDetailVersion,
+  BookListItem,
+  BookListVersion,
   BookOverview,
+  BookOverviewSeoEntry,
   BookSummaryDetail,
   BookVersion,
   BookVersionDetail,
@@ -88,6 +95,7 @@ export type {
   CategoryTranslation,
   CategoryTree,
   CategoryType,
+  PaginatedCategoriesResponse,
   CreateCategoryRequest,
   CreateCategoryTranslationRequest,
   DetachCategoryRequest,
@@ -155,11 +163,19 @@ export type {
 export type {
   AddToBookshelfRequest,
   BookshelfEntry,
-  BookshelfItem,
+  BookshelfItemDto,
+  BookshelfListResponse,
+  BookVersionPreview,
   ReadingProgress,
   UpdateAudioProgressRequest,
   UpdateProgressRequest,
 } from './bookshelf';
+
+// Ratings
+export type { RateBookResponse, UserRatingResponse } from './rating';
+
+// Persons (contributors)
+export type { PersonListResponse } from './persons';
 
 // Views
 export type { RecordViewRequest, ViewSource } from './views';
@@ -175,6 +191,8 @@ export type {
   CommentAuthor,
   CommentUser,
   ClientComment,
+  ClientCommentBare,
+  ClientCommentChild,
   CreateCommentRequest,
   GetBookCommentsParams,
   BookCommentsResponse,
@@ -192,6 +210,7 @@ export type {
   AuthorListTranslation,
   AuthorQuote,
   AuthorTranslation,
+  PublicAuthorBook,
   PublicAuthorDetail,
   CreateAuthorRequest,
   UpdateAuthorRequest,

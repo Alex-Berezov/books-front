@@ -20,8 +20,14 @@ import {
   getThemes,
   type GetBooksParams,
 } from '@/api/endpoints/admin/books';
-import { getUserBookRating, type UserRatingResponse } from '@/api/endpoints/rating';
-import type { BookOverview, CreateBookResponse, PaginatedResponse } from '@/types/api-schema';
+import { getUserBookRating } from '@/api/endpoints/rating';
+import type {
+  BookDetailResponse,
+  BookListItem,
+  CreateBookResponse,
+  PaginatedResponse,
+  UserRatingResponse,
+} from '@/types/api-schema';
 
 /**
  * Query keys for books
@@ -59,7 +65,7 @@ export const bookKeys = {
  */
 export const useBooks = (
   params: GetBooksParams = {},
-  options?: Omit<UseQueryOptions<PaginatedResponse<BookOverview>>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginatedResponse<BookListItem>>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: bookKeys.list(params),
@@ -169,7 +175,7 @@ export const useUpdateBook = (
  */
 export const useBook = (
   bookId: string,
-  options?: Omit<UseQueryOptions<BookOverview>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<BookDetailResponse>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: bookKeys.detail(bookId),

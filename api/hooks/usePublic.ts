@@ -11,6 +11,7 @@ import { queryKeys, staleTimeConfig } from '@/lib/queryClient';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ApiError } from '@/types/api';
 import type {
+  BookListItem,
   BookOverview,
   PageResponse,
   CategoryBooksResponse,
@@ -259,9 +260,9 @@ export const useReaderBootstrap = (
 export const usePublicBooks = (
   lang: SupportedLang,
   params: { page?: number; limit?: number } = {},
-  options?: Omit<UseQueryOptions<PaginatedResponse<BookOverview>, ApiError>, 'queryKey' | 'queryFn'>
-): UseQueryResult<PaginatedResponse<BookOverview>, ApiError> => {
-  return useQuery<PaginatedResponse<BookOverview>, ApiError>({
+  options?: Omit<UseQueryOptions<PaginatedResponse<BookListItem>, ApiError>, 'queryKey' | 'queryFn'>
+): UseQueryResult<PaginatedResponse<BookListItem>, ApiError> => {
+  return useQuery<PaginatedResponse<BookListItem>, ApiError>({
     queryKey: queryKeys.publicBooks(lang, params),
     queryFn: () => publicApi.getPublicBooks(lang, params),
     staleTime: staleTimeConfig.public,

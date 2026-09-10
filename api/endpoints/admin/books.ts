@@ -7,7 +7,12 @@
  */
 
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth } from '@/lib/http-client';
-import type { BookOverview, CreateBookResponse, PaginatedResponse } from '@/types/api-schema';
+import type {
+  BookDetailResponse,
+  BookListItem,
+  CreateBookResponse,
+  PaginatedResponse,
+} from '@/types/api-schema';
 
 /**
  * Parameters for fetching books list
@@ -32,7 +37,7 @@ export interface GetBooksParams {
  */
 export const getBooks = async (
   params: GetBooksParams = {}
-): Promise<PaginatedResponse<BookOverview>> => {
+): Promise<PaginatedResponse<BookListItem>> => {
   const { page = 1, limit = 20 } = params;
 
   const queryParams = new URLSearchParams({
@@ -43,7 +48,7 @@ export const getBooks = async (
   const endpoint = `/books?${queryParams.toString()}`;
   // ⚠️ Токен обязателен с 10.08.2026: маршрут админский и показывает черновики
   // (`LEGACY-093`). Публичной витрине нужен `getPublicBooks` — `/:lang/books`.
-  return httpGetAuth<PaginatedResponse<BookOverview>>(endpoint);
+  return httpGetAuth<PaginatedResponse<BookListItem>>(endpoint);
 };
 
 /**
@@ -100,9 +105,9 @@ export const updateBook = async (
  * увидел бы книгу без своего неопубликованного перевода — и решил бы, что тот
  * пропал.
  */
-export const getBook = async (bookId: string): Promise<BookOverview> => {
+export const getBook = async (bookId: string): Promise<BookDetailResponse> => {
   const endpoint = `/books/${bookId}`;
-  return httpGetAuth<BookOverview>(endpoint, { optionalAuth: true });
+  return httpGetAuth<BookDetailResponse>(endpoint, { optionalAuth: true });
 };
 
 /**

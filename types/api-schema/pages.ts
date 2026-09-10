@@ -82,7 +82,8 @@ export interface PageResponse {
   /** Homepage sections configuration (JSON object with block data) */
   sections?: Record<string, unknown> | null;
   seoId?: number | null;
-  seo?: SeoData;
+  /** Приходит ключом; `null`, когда записи SEO у страницы нет. */
+  seo?: SeoData | null;
   translationGroupId?: string | null;
   translations?: PageTranslation[];
   createdAt: ISODate;

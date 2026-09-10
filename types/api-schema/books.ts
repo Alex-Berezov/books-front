@@ -16,7 +16,7 @@ import type { Tag } from './tags';
 export interface VersionPreview {
   id: UUID;
   type: VersionType;
-  slug?: string;
+  slug?: string | null;
   title?: string;
   author?: string;
   language?: SupportedLang;
@@ -24,12 +24,12 @@ export interface VersionPreview {
   coverUrl?: string; // Alias for backward compatibility
   isFree: boolean;
   status?: PublicationStatus;
-  chaptersCount: number;
+  chaptersCount?: number;
   duration?: number; // In seconds for audio
   originalLanguage?: string | null;
   copyrightStatus?: string | null;
   authorPageUrl?: string | null;
-  characters?: { name: string; description: string }[] | null;
+  characters?: { name: string; description?: string }[] | null;
   quotes?: { text: string; author?: string }[] | null;
   faq?: { question: string; answer: string }[] | null;
   themes?: string[] | null;
@@ -92,6 +92,12 @@ export interface BookCardsResponse {
 /**
  * Book overview information
  */
+/** Заголовок и описание одной ветки обзора (`BookOverviewSeoEntryDto`). */
+export interface BookOverviewSeoEntry {
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
 export interface BookOverview {
   id: UUID;
   slug: string;
@@ -100,11 +106,12 @@ export interface BookOverview {
   description?: string;
   coverUrl?: string;
   coverImageUrl?: string;
-  rating?: number;
-  publicationYear?: number;
-  firstPublishedYear?: number;
-  editionPublishedYear?: number;
-  language: SupportedLang;
+  /** `null`, когда оценок нет: сервис отдаёт `ratings.get(bookId) ?? null`. */
+  rating?: number | null;
+  publicationYear?: number | null;
+  firstPublishedYear?: number | null;
+  editionPublishedYear?: number | null;
+  language?: SupportedLang;
   categories: Category[];
   tags: Tag[];
   primaryCategoryId?: string | null;
@@ -113,17 +120,21 @@ export interface BookOverview {
   createdAt: ISODate;
   updatedAt: ISODate;
   versionIds?: {
-    text: string | null;
-    audio: string | null;
+    text?: string | null;
+    audio?: string | null;
   };
   hasText?: boolean;
   hasAudio?: boolean;
   hasSummary?: boolean;
+  /**
+   * Только заголовок и описание на каждую ветку: ручка обзора отдаёт
+   * `BookOverviewSeoEntryDto` (`metaTitle`, `metaDescription`), а не запись SEO целиком.
+   */
   seo?: {
-    main?: SeoData | null;
-    read?: SeoData | null;
-    listen?: SeoData | null;
-    summary?: SeoData | null;
+    main?: BookOverviewSeoEntry | null;
+    read?: BookOverviewSeoEntry | null;
+    listen?: BookOverviewSeoEntry | null;
+    summary?: BookOverviewSeoEntry | null;
   } | null;
 }
 
@@ -161,7 +172,8 @@ export interface BookVersion {
 export interface BookVersionDetail {
   id: UUID;
   bookId: UUID;
-  bookSlug: string;
+  /** Только `GET /admin/versions/{id}`: остальные маршруты версии слаг книги не собирают. */
+  bookSlug?: string;
   language: SupportedLang;
   title: string;
   author: string;
@@ -170,8 +182,9 @@ export interface BookVersionDetail {
   type: VersionType;
   isFree: boolean;
   status: PublicationStatus;
-  publishedAt?: ISODate;
-  referralUrl?: string;
+  /** Приходит всегда; `null` у неопубликованной версии (колонка `DateTime?`). */
+  publishedAt?: ISODate | null;
+  referralUrl?: string | null;
   /** Optional preview audio MediaAsset id (audio versions). See contract §5. */
   previewMediaId?: UUID | null;
   /** ID основной категории книги для хлебных крошек */
@@ -193,7 +206,7 @@ export interface BookVersionDetail {
   symbols?: { title: string; description: string }[] | null;
   coverAlt?: string | null;
   /** SEO metadata (full SEO entity) */
-  seo?: SeoData;
+  seo?: SeoData | null;
   /** Attached categories */
   categories?: Category[];
   /** Attached tags */
@@ -298,9 +311,10 @@ export interface BookSummaryDetail {
   /** Brief overview / summary text */
   summary: string;
   /** Analysis / key takeaways */
-  analysis?: string;
+  /** Колонка `String?`: приходит `null`, а не отсутствие ключа. */
+  analysis?: string | null;
   /** Major themes */
-  themes?: string;
+  themes?: string | null;
 }
 
 /**
@@ -310,6 +324,7 @@ export interface UpsertBookSummaryRequest {
   /** Brief overview / summary text */
   summary: string;
   /** Analysis / key takeaways */
+  /** Колонка `String?`: приходит `null`, а не отсутствие ключа. */
   analysis?: string;
   /** Major themes */
   themes?: string;
@@ -340,8 +355,79 @@ export interface ReaderBootstrapResponse {
    * в ответе нет вовсе.
    */
   chapters: ReaderBootstrapChapter[];
-  lastProgress: {
-    chapterNumber: number | null;
+  /** Только у владельца токена: анониму ключа нет вовсе. */
+  lastProgress?: {
+    chapterNumber?: number | null;
     position: number;
   } | null;
+}
+
+/**
+ * Книга-контейнер в админских и публичных списках.
+ *
+ * 🔴 Это **не** `BookOverview`. Контейнер выбирается белым списком
+ * `PUBLIC_BOOK_SELECT` = `id, slug, createdAt, updatedAt`
+ * (`books/src/common/selects/public-book.select.ts`), а `title`, `author`, `language`,
+ * `categories` и `tags` живут на `versions[]`. До 10.09.2026 `GET /books`,
+ * `GET /books/{id}` и `GET /{lang}/books` были типизованы `BookOverview`, то есть обещали
+ * пять полей, которых в ответе нет вовсе.
+ */
+export interface BookContainerVersion {
+  id: UUID;
+  bookId: UUID;
+  language: SupportedLang;
+  status: PublicationStatus;
+  type: VersionType;
+  title: string;
+  author: string;
+  authorId?: UUID | null;
+  coverImageUrl: string;
+  coverAlt?: string | null;
+  description: string;
+  shortDescription?: string | null;
+  slug?: string | null;
+  isFree: boolean;
+  publishedAt?: ISODate | null;
+  createdAt: ISODate;
+  updatedAt: ISODate;
+}
+
+/** Версия в списке книг: там же приезжают счётчики содержимого и связи тегов. */
+export interface BookListVersion extends BookContainerVersion {
+  _count: {
+    chapters: number;
+    audioChapters: number;
+    summaries: number;
+  };
+  tags: { tag: Tag }[];
+}
+
+/** Версия в карточке книги: вместо счётчиков приезжают связи категорий и тегов. */
+export interface BookDetailVersion extends BookContainerVersion {
+  /** Плоский список: ручка карточки разворачивает связь сама. */
+  categories: Category[];
+  tags: Tag[];
+}
+
+/** Элемент ответа `GET /books` и `GET /{lang}/books`. */
+export interface BookListItem {
+  id: UUID;
+  slug: string;
+  createdAt: ISODate;
+  updatedAt: ISODate;
+  rating?: number | null;
+  hasText: boolean;
+  hasAudio: boolean;
+  hasSummary: boolean;
+  versions: BookListVersion[];
+}
+
+/** Тело ответа `GET /books/{id}`. */
+export interface BookDetailResponse {
+  id: UUID;
+  slug: string;
+  createdAt: ISODate;
+  updatedAt: ISODate;
+  rating?: number | null;
+  versions: BookDetailVersion[];
 }

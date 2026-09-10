@@ -33,7 +33,9 @@ export const AuthorList: FC<AuthorListProps> = ({ lang }) => {
   const authors = rawAuthors.filter((author) => {
     if (!searchValue) return true;
     const searchLower = searchValue.toLowerCase();
-    const matchesSlug = author.slug.toLowerCase().includes(searchLower);
+    // Корневой слаг есть только в списке и карточке (см. `Author.slug`), поэтому проверка
+    // с оглядкой: у ответа создания и правки его нет.
+    const matchesSlug = (author.slug ?? '').toLowerCase().includes(searchLower);
     const matchesName = author.translations?.some((t) =>
       t.name.toLowerCase().includes(searchLower)
     );

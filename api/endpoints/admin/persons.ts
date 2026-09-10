@@ -1,17 +1,11 @@
 import { httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
+import type { PersonListResponse } from '@/types/api-schema';
 import type {
   CreatePersonPayload,
   Person,
   QueryPersonsParams,
   UpdatePersonPayload,
 } from '@/types/contributors';
-
-export interface PersonListResponse {
-  items: Person[];
-  total: number;
-  limit: number;
-  offset: number;
-}
 
 export const personsApi = {
   async list(params?: QueryPersonsParams): Promise<PersonListResponse> {

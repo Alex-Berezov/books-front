@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { FC } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/common/Button';
+import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { BookFormData, BookFormProps } from './BookForm.types';
 import type { FieldErrors } from 'react-hook-form';
 import { BasicInfoSection } from './BasicInfoSection';
@@ -34,6 +35,18 @@ export const BookForm: FC<BookFormProps> = (props) => {
     id,
   } = props;
 
+  // 🔴 Язык по умолчанию - первый свободный, а не язык админки.
+  //
+  // Кнопка «+» стоит в переключателе версий, то есть форма открывается ровно там, где версия
+  // текущего языка уже есть. `BasicInfoSection` вычёркивает занятые языки из списка, а antd
+  // рисует значение, которого в списке нет, сырой строкой: поле выглядело заполненным,
+  // а сохранение уходило в 400 «Version for this language already exists for this book».
+  // При правке версии умолчание берётся из `initialData`, поэтому там ничего не считается.
+  const defaultLanguage =
+    initialData || !existingLanguages.includes(lang)
+      ? lang
+      : (SUPPORTED_LANGS.find((code) => !existingLanguages.includes(code)) ?? lang);
+
   const {
     control,
     formState: { errors },
@@ -42,7 +55,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
     setValue,
     watch,
   } = useBookForm({
-    lang,
+    lang: defaultLanguage,
     initialData,
     initialTitle,
     initialAuthor,

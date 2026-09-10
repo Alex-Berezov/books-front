@@ -9,8 +9,8 @@ import {
   buildCreateVersionRequest,
   buildVersionSeoPayload,
 } from '@/components/admin/books';
+import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { BookFormData } from '@/components/admin/books';
-import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ApiError } from '@/types/api';
 import styles from './page.module.scss';
 
@@ -41,19 +41,24 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
   const authorFromUrl = searchParams.get('author');
 
   // Fetch book details to check existing versions
-  const { data: book } = useBook(bookId || '', {
+  const { data: book, isError: isBookError } = useBook(bookId || '', {
     enabled: !!bookId,
   });
 
   const existingLanguages =
     book?.versions?.map((v) => v.language).filter((l): l is SupportedLang => !!l) || [];
+  const freeLanguages = SUPPORTED_LANGS.filter((code) => !existingLanguages.includes(code));
   const englishVersion = book?.versions?.find((v) => v.language === 'en');
 
-  // Only pre-fill if it's the first version (no versions exist yet)
-  const shouldPreFill = !book?.versions || book.versions.length === 0;
-
-  const initialTitle = shouldPreFill ? titleFromUrl || undefined : undefined;
-  const initialAuthor = shouldPreFill ? authorFromUrl || undefined : undefined;
+  // 🔴 Подставляем то, что пришло в адресе, независимо от числа версий.
+  //
+  // Прежнее условие «только если версий ещё нет» делало подстановку недостижимой: кнопка «+»
+  // стоит в переключателе версий, то есть ровно там, где версии есть, и параметры адреса
+  // отбрасывались. Заодно `useBook` отдаёт данные из кэша синхронно — тот же ключ только что
+  // грел сам переключатель, — поэтому условие было ложным уже на первом рендере, а
+  // `useBookForm` читает значения по умолчанию один раз при монтировании.
+  const initialTitle = titleFromUrl || undefined;
+  const initialAuthor = authorFromUrl || undefined;
 
   // Mutation for creating version
   const createMutation = useCreateBookVersion({
@@ -108,6 +113,36 @@ const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
       // Errors are handled by mutation callbacks
     }
   };
+
+  // 🔴 Отказ запроса книги и «у книги нет версий» - разные вещи, и разводятся они здесь.
+  //
+  // При 401 или 500 `book` остаётся `undefined`, `existingLanguages` выходит пустым, и форма
+  // предлагает все пять языков, включая занятые: недоступная проверка читалась бы как
+  // «свободно», а сохранение упиралось бы в 400 от бэкенда.
+  if (bookId && isBookError) {
+    return (
+      <div className={styles.errorContainer}>
+        <h1 className={styles.errorTitle}>Error: book is unavailable</h1>
+        <p className={styles.errorMessage}>
+          Could not load the book, so the list of languages that are already taken is unknown.
+          Reload the page or open the book again.
+        </p>
+      </div>
+    );
+  }
+
+  // Свободных языков не осталось - список в форме был бы пуст, и почему, она бы не сказала.
+  if (bookId && !isBookError && book && freeLanguages.length === 0) {
+    return (
+      <div className={styles.errorContainer}>
+        <h1 className={styles.errorTitle}>All languages are taken</h1>
+        <p className={styles.errorMessage}>
+          This book already has a version in every supported language. Edit an existing version
+          instead of creating a new one.
+        </p>
+      </div>
+    );
+  }
 
   // If no bookId, show error
   if (!bookId) {

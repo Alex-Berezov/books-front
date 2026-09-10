@@ -40,10 +40,16 @@ export const BookVersionSwitcher: FC<BookVersionSwitcherProps> = (props) => {
   });
 
   const handleAddVersion = () => {
+    // 🔴 Заголовок и автор живут на версии, а не на книге-контейнере: `GET /books/{id}`
+    // отдаёт `id, slug, createdAt, updatedAt, rating, versions[]` и ничего больше
+    // (`books/src/common/selects/public-book.select.ts`). До 10.09.2026 здесь читались
+    // `book.title` и `book.author` — оба `undefined`, и форма новой версии открывалась
+    // с пустыми полями. Берём версию текущего языка, а если её нет — первую.
+    const source = sortedVersions.find((version) => version.language === lang) ?? sortedVersions[0];
     const params = new URLSearchParams({
       bookId,
-      title: book.title,
-      author: book.author,
+      title: source?.title ?? '',
+      author: source?.author ?? '',
     });
     router.push(`/admin/${lang}/books/new?${params.toString()}`);
   };

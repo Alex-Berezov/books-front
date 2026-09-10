@@ -355,6 +355,7 @@ describe('гейт целиком на испорченном входе', () =>
     '',
     "export const list = () => httpGetAuth<Thing[]>('/thing');",
     'export const drop = (id: string) => httpDeleteAuth(`/thing/${id}`);',
+    "export const other = () => httpGetAuth<Other>('/other');",
   ].join('\n');
 
   /**
@@ -368,7 +369,25 @@ describe('гейт целиком на испорченном входе', () =>
     '  name?: string;',
     '}',
     '',
+    'export interface Other {',
+    '  id?: string;',
+    '}',
+    '',
   ].join('\n');
+
+  /**
+   * Снимок бюджета песочницы: три вызова (`list`, `drop`, `other`), два утверждения,
+   * один законный пропуск - `drop` зовёт DELETE без схемы ответа. Общие счёта здесь не для
+   * отчёта: без них размен внутри класса (один вызов довели до бареля, другой добавили мимо
+   * него) не сдвинул бы ни одного числа и прошёл бы молча.
+   */
+  const SANDBOX_BUDGET = {
+    callSites: 3,
+    assertions: 2,
+    noResponseSchema: 1,
+    unnamedCallType: 0,
+    namesOutsideBarrel: 0,
+  };
 
   const sampleSchema = () => ({
     openapi: '3.0.0',
@@ -390,9 +409,23 @@ describe('гейт целиком на испорченном входе', () =>
         },
       },
       '/thing/{id}': { delete: { responses: { 200: { description: '' } } } },
+      '/other': {
+        get: {
+          responses: {
+            200: {
+              content: {
+                'application/json': { schema: { $ref: '#/components/schemas/Other' } },
+              },
+            },
+          },
+        },
+      },
     },
     components: {
-      schemas: { Thing: { properties: { id: { type: 'string' }, name: { type: 'string' } } } },
+      schemas: {
+        Thing: { properties: { id: { type: 'string' }, name: { type: 'string' } } },
+        Other: { properties: { id: { type: 'string' } } },
+      },
     },
   });
 
@@ -410,11 +443,13 @@ describe('гейт целиком на испорченном входе', () =>
     schema: string;
     surface: string;
     coverage: string;
+    outside: string;
     barrel: string;
   };
   let pristineSchema: string;
   let pristineSurface: string;
   let pristineCoverage: string;
+  let pristineOutside: string;
   let pristineBarrel: string;
 
   beforeAll(() => {
@@ -433,6 +468,7 @@ describe('гейт целиком на испорченном входе', () =>
       schema: join(dir, 'scripts/type-sync/api-schema.json'),
       surface: join(dir, 'scripts/type-sync/surface.json'),
       coverage: join(dir, 'scripts/type-sync/covered-types.json'),
+      outside: join(dir, 'scripts/type-sync/outside-assertions.json'),
       barrel: join(dir, 'types/api-schema/index.ts'),
     };
     writeFileSync(box.schema, JSON.stringify(sampleSchema(), null, 2));
@@ -440,7 +476,14 @@ describe('гейт целиком на испорченном входе', () =>
     // здесь не декорация, а вход утверждений присваиваемости - без любого из них гейт обязан
     // отказать, и он отказывает.
     writeFileSync(box.barrel, SAMPLE_BARREL, 'utf8');
-    writeFileSync(box.coverage, `${JSON.stringify(['GET /thing'], null, 2)}\n`, 'utf8');
+    writeFileSync(
+      box.coverage,
+      `${JSON.stringify(['GET /other', 'GET /thing'], null, 2)}\n`,
+      'utf8'
+    );
+    // Бюджет пропусков: `drop` зовёт DELETE без схемы ответа, поэтому один пропуск здесь
+    // законен и лежит в снимке. Отсутствие снимка - отдельный случай ниже.
+    writeFileSync(box.outside, `${JSON.stringify(SANDBOX_BUDGET, null, 2)}\n`, 'utf8');
     writeFileSync(
       join(dir, 'tsconfig.json'),
       `${JSON.stringify(
@@ -476,6 +519,7 @@ describe('гейт целиком на испорченном входе', () =>
     pristineSchema = readFileSync(box.schema, 'utf8');
     pristineSurface = readFileSync(box.surface, 'utf8');
     pristineCoverage = readFileSync(box.coverage, 'utf8');
+    pristineOutside = readFileSync(box.outside, 'utf8');
     pristineBarrel = readFileSync(box.barrel, 'utf8');
   });
 
@@ -483,6 +527,7 @@ describe('гейт целиком на испорченном входе', () =>
     writeFileSync(box.schema, pristineSchema);
     writeFileSync(box.surface, pristineSurface);
     writeFileSync(box.coverage, pristineCoverage);
+    writeFileSync(box.outside, pristineOutside);
     writeFileSync(box.barrel, pristineBarrel);
     writeFileSync(join(box.dir, 'api/endpoints/sample.ts'), SAMPLE_SOURCE);
     rmSync(box.neighbourDir, { recursive: true, force: true });
@@ -535,11 +580,14 @@ describe('гейт целиком на испорченном входе', () =>
     expect(run.output).toContain('SKIPPED');
   });
 
+  /** Барель песочницы с дописанным в названный тип полем, которого в схеме нет. */
+  function barrelWithExtraField(type: 'Thing' | 'Other', field: string) {
+    const opening = `export interface ${type} {`;
+    return SAMPLE_BARREL.replace(opening, `${opening}\n  ${field}: string;`);
+  }
+
   it('слой 2: рукописный тип обещает поле, которого в схеме нет - красное с маршрутом', () => {
-    writeFileSync(
-      box.barrel,
-      'export interface Thing {\n  id?: string;\n  name?: string;\n  missing: string;\n}\n'
-    );
+    writeFileSync(box.barrel, barrelWithExtraField('Thing', 'missing'));
 
     const run = runGate();
 
@@ -547,6 +595,79 @@ describe('гейт целиком на испорченном входе', () =>
     expect(run.output).toContain('рукописные типы разошлись со схемой');
     expect(run.output).toContain('GET /thing');
     expect(run.output).toContain('missing');
+  });
+
+  it('слой 2: расхождение красное и у маршрута, которого нет в снимке покрытия', () => {
+    // Планка, поднятая 10.09.2026. До неё этот случай проходил зелёным: храповик смотрит
+    // только на маршруты снимка, а этого там нет - ни одна из двух его веток не срабатывает
+    // (`compareCoverage`, `scripts/lib/type-assertions.mjs:251,282`). Проверяется именно
+    // разделение: отказ обязан прийти от новой планки, а не от храповика, поэтому его
+    // формулировки в выводе быть не должно.
+    writeFileSync(box.coverage, `${JSON.stringify(['GET /thing'], null, 2)}\n`, 'utf8');
+    writeFileSync(box.barrel, barrelWithExtraField('Other', 'missingOnOther'));
+
+    const run = runGate();
+
+    expect(run.code).toBe(1);
+    expect(run.output).toContain('рукописные типы разошлись со схемой');
+    expect(run.output).toContain('GET /other');
+    expect(run.output).toContain('missingOnOther');
+    expect(run.output).not.toContain('выпал из-под утверждений');
+    expect(run.output).not.toContain('в снимке покрытия его нет');
+  });
+
+  it('бюджет: новый вызов с типом мимо бареля роняет прогон, а не проходит молча', () => {
+    // Планка выше считает только собравшиеся утверждения. Вызов, чей тип не назван в бареле,
+    // до утверждения не доходит вовсе - без бюджета он добавлялся бы молча при зелёном гейте
+    // (решение арбитра 10.09.2026, вариант A).
+    writeFileSync(
+      join(box.dir, 'api/endpoints/sample.ts'),
+      `${SAMPLE_SOURCE}\nexport const fresh = () => httpGetAuth<NotInBarrel>('/other');`
+    );
+
+    const run = runGate();
+
+    expect(run.code).toBe(1);
+    expect(run.output).toContain('вызовы вне утверждений разошлись со снимком');
+    expect(run.output).toContain('имена вне бареля: было 0, стало 1');
+  });
+
+  it('бюджет: общий счёт ловит вызов, которого классы пропусков не двигают', () => {
+    // Размен внутри класса (один вызов довели до бареля, другой добавили мимо него) оставляет
+    // все три класса на месте. Двигаются только общие счёта - ради этого они и лежат в снимке.
+    writeFileSync(
+      join(box.dir, 'api/endpoints/sample.ts'),
+      `${SAMPLE_SOURCE}\nexport const more = () => httpGetAuth<Other>('/other');`
+    );
+
+    const run = runGate();
+
+    expect(run.code).toBe(1);
+    expect(run.output).toContain('разобранных вызовов: было 3, стало 4');
+    expect(run.output).toContain('собранных утверждений: было 2, стало 3');
+  });
+
+  it('бюджет: снижение без пересъёмки тоже красное - односторонний допуск копит люфт', () => {
+    writeFileSync(
+      box.outside,
+      `${JSON.stringify({ ...SANDBOX_BUDGET, noResponseSchema: 2 }, null, 2)}\n`,
+      'utf8'
+    );
+
+    const run = runGate();
+
+    expect(run.code).toBe(1);
+    expect(run.output).toContain('было 2, стало 1');
+    expect(run.output).toContain('пересчитать снимок');
+  });
+
+  it('бюджет: без снимка прогон отказывает, а не считает пропуски нормой', () => {
+    rmSync(box.outside, { force: true });
+
+    const run = runGate();
+
+    expect(run.code).toBe(1);
+    expect(run.output).toContain('нет снимка бюджета');
   });
 
   it('слой 2: без снимка покрытия прогон отказывает, а не считает, что сверять нечего', () => {

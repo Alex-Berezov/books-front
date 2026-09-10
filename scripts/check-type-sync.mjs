@@ -34,6 +34,8 @@ import { fileURLToPath } from 'node:url';
 import {
   barrelExports,
   buildAssertionSource,
+  budgetSnapshot,
+  compareBudget,
   compareCoverage,
   coveredRoutes,
   parseDiagnostics,
@@ -58,6 +60,9 @@ const SCAN_DIRS = ['api', 'app', 'lib', 'components', 'providers'];
 const SCHEMA_COPY = join(HERE, 'type-sync/api-schema.json');
 const SURFACE_FILE = join(HERE, 'type-sync/surface.json');
 const COVERAGE_FILE = join(HERE, 'type-sync/covered-types.json');
+// Бюджет вызовов, до сверки не доходящих: без него новый вызов с типом мимо бареля
+// добавляется молча и гейт остаётся зелёным (решение арбитра 10.09.2026, вариант A).
+const OUTSIDE_FILE = join(HERE, 'type-sync/outside-assertions.json');
 const BARREL_FILE = join(FRONT_ROOT, 'types/api-schema/index.ts');
 // Каталог вывода - под node_modules намеренно: он вне git по своей природе, и правило
 // в .gitignore на путь, которого при выключенном слое не существует, заводить не пришлось
@@ -395,6 +400,11 @@ if (acceptUpdate) {
   writeFileSync(SCHEMA_COPY, schemaText, 'utf8');
   writeFileSync(SURFACE_FILE, `${JSON.stringify(surface.routes, null, 2)}\n`, 'utf8');
   writeFileSync(COVERAGE_FILE, `${JSON.stringify(assertions.covered, null, 2)}\n`, 'utf8');
+  writeFileSync(
+    OUTSIDE_FILE,
+    `${JSON.stringify(budgetSnapshot(callSites, assertions.assertions, assertions.skipped), null, 2)}\n`,
+    'utf8',
+  );
   const described = surface.routes.filter((r) => r.hasResponseSchema).length;
   console.log(
     `check-type-sync: снимок обновлён - ${surface.routes.length} зовомых маршрутов, ` +
@@ -451,6 +461,49 @@ if (coverageProblems.length) {
     ...coverageProblems.map((p) => `${p.route} - ${p.detail}`),
     'починка - правка типа под схему; гасить утверждение приведением, подавлением ошибки компилятора или сужением типа нельзя',
     'если расхождение законно (маршрут снят с фронта) - пересчитать снимок: yarn type-sync:snapshot',
+  ]);
+}
+
+// 🔴 С 10.09.2026 непокрытых нет вовсе, и планка поднята: расхождение рукописного типа
+// со схемой красное **всегда**, даже если маршрут ещё не внесён в снимок покрытия.
+// Храповик по покрытым парам остаётся вторым рубежом - он ловит пропажу маршрута
+// из-под утверждений, чего одна эта проверка не видит.
+if (assertions.failed.size) {
+  fail(`рукописные типы разошлись со схемой: ${assertions.failed.size}`, [
+    ...[...assertions.failed.entries()]
+      .slice(0, 20)
+      // Сообщение целиком: у массивов и вложенных объектов первая строка говорит лишь
+      // «не присваивается», а имя разошедшегося поля лежит в отступной части.
+      .map(([route, items]) => `${route} - ${items[0].message.split('\n').join('\n      ')}`),
+    'починка - правка типа под схему; гасить утверждение приведением, подавлением ошибки',
+    'компилятора или сужением типа нельзя',
+  ]);
+}
+
+// 🔴 Планка выше считает только утверждения, которые собрались. Вызов, чей тип не проходит
+// через барель, до утверждения не доходит вовсе, и без этого рубежа он добавляется молча:
+// «проверенных единиц ноль» печаталось бы как успех (класс `L-015`, решение арбитра
+// 10.09.2026, вариант A). Коммитится счёт по классам, а не список - список был бы baseline,
+// запрещённый пачкой `C19`.
+if (!existsSync(OUTSIDE_FILE)) {
+  fail(`нет снимка бюджета ${relative(FRONT_ROOT, OUTSIDE_FILE)}`, ['снять заново: yarn type-sync:snapshot']);
+}
+
+let committedBudget;
+try {
+  committedBudget = JSON.parse(readFileSync(OUTSIDE_FILE, 'utf8'));
+} catch (error) {
+  fail(`снимок бюджета не разбирается: ${error.message}`);
+}
+
+const currentBudget = budgetSnapshot(callSites, assertions.assertions, assertions.skipped);
+const budgetProblems = compareBudget(committedBudget, currentBudget);
+if (budgetProblems.length) {
+  fail(`вызовы вне утверждений разошлись со снимком: ${budgetProblems.length}`, [
+    ...budgetProblems.map((p) => p.detail),
+    'вызов доводится до сверки так: тип ответа объявляется именованным типом бареля',
+    'types/api-schema; класс «нет схемы ответа» чинится в books, а не здесь',
+    'если изменение законно - пересчитать снимок: yarn type-sync:snapshot',
   ]);
 }
 

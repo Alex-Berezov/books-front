@@ -20,7 +20,7 @@ import { PageBackButton } from '@/components/public/navigation';
 import { pluralize, pluralFormsOf } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useProgressIdentity } from '@/lib/reading-progress';
-import type { BookshelfItemDto } from '@/api/endpoints/bookshelf';
+import type { BookshelfItemDto } from '@/types/api-schema';
 import styles from './bookshelf.module.scss';
 
 // Single item card on the bookshelf

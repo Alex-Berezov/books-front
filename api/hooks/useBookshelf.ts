@@ -7,9 +7,8 @@ import {
 } from '@tanstack/react-query';
 import * as bookshelfApi from '@/api/endpoints/bookshelf';
 import { queryKeys } from '@/lib/queryClient';
-import type { BookshelfListResponse } from '@/api/endpoints/bookshelf';
 import type { ApiError } from '@/types/api';
-import type { BookshelfEntry } from '@/types/api-schema';
+import type { BookshelfEntry, BookshelfListResponse } from '@/types/api-schema';
 
 /**
  * Hook for listing user's bookshelf

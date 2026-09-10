@@ -7,6 +7,7 @@ import { httpPostAuth, httpPatchAuth, httpDeleteAuth } from '@/lib/http-client';
 import type {
   BookCommentsResponse,
   ClientComment,
+  ClientCommentBare,
   CreateCommentRequest,
   GetBookCommentsParams,
   ToggleLikeRequest,
@@ -50,8 +51,11 @@ export const createComment = async (data: CreateCommentRequest): Promise<ClientC
  * @param text - New comment text
  * @returns Updated comment data
  */
-export const updateComment = async (id: string, text: string): Promise<ClientComment> => {
-  return httpPatchAuth<ClientComment>(
+export const updateComment = async (
+  id: string,
+  text: string
+): Promise<ClientComment | ClientCommentBare> => {
+  return httpPatchAuth<ClientComment | ClientCommentBare>(
     `/comments/${id}`,
     { text },
     {

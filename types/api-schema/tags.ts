@@ -5,7 +5,7 @@
  */
 
 import type { BookCardModel } from './books';
-import type { ISODate, PaginatedResponse, SupportedLang, UUID } from './common';
+import type { PaginatedResponse, SupportedLang, UUID } from './common';
 import type { SeoData, SeoInput } from './pages';
 
 /**
@@ -50,8 +50,6 @@ export interface Tag {
   translations?: TagTranslation[];
   /** Присутствует только в ответе публичной страницы тега (`includeTag=true`). */
   relatedTerms?: RelatedTerms;
-  createdAt: ISODate;
-  updatedAt: ISODate;
 }
 
 /**
@@ -68,25 +66,26 @@ export interface TagTranslation {
   /** Long description/content (HTML) displayed on the public tag page */
   description?: string | null;
   /** H1 heading for the tag page */
-  h1?: string;
+  /** Колонка `h1 String?`: приходит `null`, а не отсутствие ключа. */
+  h1?: string | null;
   /** Short description for cards/lists */
   shortDescription?: string | null;
   /** Meta title for SEO */
-  metaTitle?: string;
+  metaTitle?: string | null;
   /** Meta description for SEO */
   metaDescription?: string | null;
   /** Open Graph title */
-  ogTitle?: string;
+  ogTitle?: string | null;
   /** Open Graph description */
   ogDescription?: string | null;
   /** Open Graph image URL */
   ogImageUrl?: string | null;
   /** Open Graph image alt text */
-  ogImageAlt?: string;
+  ogImageAlt?: string | null;
   /** Canonical URL */
-  canonicalUrl?: string;
+  canonicalUrl?: string | null;
   /** Robots directive (index, follow / noindex, follow) */
-  robots?: string;
+  robots?: string | null;
   /** Whether this tag should be indexed by search engines (editorial switch) */
   indexable?: boolean;
   /** Published books attached to this term in this language (cached by the backend) */
@@ -94,15 +93,15 @@ export interface TagTranslation {
   /** Automatic indexability derived from bookCount with hysteresis (close <=2, open >=5) */
   autoIndexable?: boolean;
   /** FAQ items as JSON array */
-  faq?: Array<{ question: string; answer: string }>;
+  faq?: Array<{ question: string; answer: string }> | null;
   /** Related tag slugs */
-  relatedTagSlugs?: string[];
+  relatedTagSlugs?: string[] | null;
   /** Related genre/category slugs */
-  relatedGenreSlugs?: string[];
+  relatedGenreSlugs?: string[] | null;
   /** Related category slugs */
-  relatedCategorySlugs?: string[];
+  relatedCategorySlugs?: string[] | null;
   /** Related collection slugs */
-  relatedCollectionSlugs?: string[];
+  relatedCollectionSlugs?: string[] | null;
   /** SEO metadata for the localized tag page */
   seoId?: number | null;
   seo?: SeoData | null;
@@ -116,6 +115,7 @@ export interface CreateTagTranslationRequest {
   name: string;
   slug: string;
   description?: string | null;
+  /** Колонка `h1 String?`: приходит `null`, а не отсутствие ключа. */
   h1?: string;
   shortDescription?: string | null;
   metaTitle?: string;
@@ -142,6 +142,7 @@ export interface UpdateTagTranslationRequest {
   name?: string;
   slug?: string;
   description?: string | null;
+  /** Колонка `h1 String?`: приходит `null`, а не отсутствие ключа. */
   h1?: string;
   shortDescription?: string | null;
   metaTitle?: string;
@@ -213,7 +214,7 @@ export interface DetachTagRequest {
  * Includes tag metadata in addition to items/pagination.
  */
 export interface TagBookCardsResponse {
-  tag: Tag | null;
+  tag?: Tag | null;
   items: BookCardModel[];
   pagination: {
     page: number;

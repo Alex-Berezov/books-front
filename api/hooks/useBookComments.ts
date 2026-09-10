@@ -4,6 +4,7 @@ import type { ApiError } from '@/types/api';
 import type {
   BookCommentsResponse,
   ClientComment,
+  ClientCommentBare,
   CreateCommentRequest,
   GetBookCommentsParams,
   ToggleLikeRequest,
@@ -54,7 +55,7 @@ export const useCreateBookComment = () => {
 export const useUpdateBookComment = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<ClientComment, ApiError, { id: string; text: string }>({
+  return useMutation<ClientComment | ClientCommentBare, ApiError, { id: string; text: string }>({
     mutationFn: ({ id, text }) => commentsApi.updateComment(id, text),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookCommentsKeys.lists() });

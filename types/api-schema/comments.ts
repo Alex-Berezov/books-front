@@ -4,11 +4,11 @@ export type CommentStatus = 'visible' | 'hidden';
 
 export interface CommentAuthor {
   id: UUID;
-  name: string | null;
-  nickname: string | null;
+  name?: string | null;
+  nickname?: string | null;
   /** Почта под гвардом: модератору нужно отличать однофамильцев (LEGACY-089). */
   email: string;
-  avatarUrl: string | null;
+  avatarUrl?: string | null;
 }
 
 /**
@@ -25,11 +25,11 @@ export interface Comment {
   isHidden: boolean;
   createdAt: ISODate;
   author: CommentAuthor;
-  bookTitle: string | null;
-  bookId: UUID | null;
+  bookTitle?: string | null;
+  bookId?: UUID | null;
   /** Нужен, чтобы ответить: создание комментария требует цель, а не только parentId. */
-  bookVersionId: UUID | null;
-  parentId: UUID | null;
+  bookVersionId?: UUID | null;
+  parentId?: UUID | null;
   repliesCount: number;
 }
 
@@ -65,9 +65,9 @@ export interface CreateReplyRequest {
  */
 export interface CommentUser {
   id: UUID;
-  name: string | null;
-  nickname: string | null;
-  avatarUrl: string | null;
+  name?: string | null;
+  nickname?: string | null;
+  avatarUrl?: string | null;
 }
 
 export interface ClientComment {
@@ -84,8 +84,24 @@ export interface ClientComment {
   createdAt: ISODate;
   updatedAt: ISODate;
   user: CommentUser;
-  children: ClientComment[];
+  /**
+   * У ответов связь `rating` не выбирается (`commentChildren` берёт только `user`),
+   * поэтому оценки в них нет по устройству запроса.
+   */
+  children: ClientCommentChild[];
 }
+
+/**
+ * Форма без связей: пустой `PATCH /comments/:id` (тело без единого поля) не трогает запись
+ * и возвращает её как есть - без `user` и `children`
+ * (`books/src/modules/comments/comments.controller.ts`, союз двух форм в схеме).
+ */
+export type ClientCommentBare = Omit<ClientComment, 'user' | 'children'>;
+
+/** Ответ на комментарий: то же, но без полей оценки. */
+export type ClientCommentChild = Omit<ClientComment, 'ratingScore' | 'children'> & {
+  children: ClientCommentChild[];
+};
 
 export interface CreateCommentRequest {
   parentId?: UUID | null;

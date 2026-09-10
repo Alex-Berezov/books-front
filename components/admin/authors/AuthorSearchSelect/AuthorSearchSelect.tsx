@@ -28,7 +28,7 @@ const STATUS_OPTION_VALUE = '__status';
 const authorName = (author: Author, lang: SupportedLang): string => {
   const translation =
     author.translations?.find((t) => t.language === lang) || author.translations?.[0];
-  return translation?.name || author.slug;
+  return translation?.name || author.slug || author.id;
 };
 
 /**

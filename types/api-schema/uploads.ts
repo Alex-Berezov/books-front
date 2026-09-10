@@ -23,7 +23,8 @@ export interface MediaAsset {
   /** Duration in seconds (ffprobe, audio/video only). May be null right after confirm. */
   duration: number | null;
   createdAt: ISODate;
-  createdById: UUID;
+  /** `null` у ассетов, заведённых не через личный путь загрузки (колонка `String?`). */
+  createdById: UUID | null;
   isDeleted: boolean;
   deletedAt: ISODate | null;
 }

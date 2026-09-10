@@ -7,19 +7,37 @@
 import type { ISODate, RoleName, SupportedLang, UUID } from './common';
 
 /**
- * Response with current user information
+ * Ответ сохранения профиля (`PATCH /users/profile`).
+ *
+ * 🔴 Ролей здесь нет намеренно: `UsersService.updateMe` их не выбирает
+ * (`books/src/modules/users/users.service.ts`), и это защита - экран, переписывающий
+ * состояние пользователя ответом на сохранение имени, обнулил бы себе роли.
+ */
+export interface UserProfileResponse {
+  id: UUID;
+  email: string;
+  name?: string | null;
+  displayName?: string;
+  nickname?: string | null;
+  avatarUrl?: string | null;
+  languagePreference?: SupportedLang;
+  createdAt: ISODate;
+}
+
+/**
+ * Ответ `GET /users/me` — тот же пользователь, но **с ролями**: на них держится вся
+ * разметка прав в интерфейсе.
  */
 export interface UserMeResponse {
   id: UUID;
   email: string;
-  name?: string;
+  name?: string | null;
   displayName?: string;
-  nickname?: string;
-  avatarUrl?: string;
+  nickname?: string | null;
+  avatarUrl?: string | null;
   languagePreference?: SupportedLang;
   roles: RoleName[];
   createdAt: ISODate;
-  updatedAt: ISODate;
 }
 
 /**
@@ -31,7 +49,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   displayName?: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   roles: RoleName[];
   isActive: boolean;
   lastLoginAt?: ISODate;
@@ -117,9 +135,9 @@ export interface UserActivityParentOrChildComment {
   // себе — схема написана руками и из бэкенда не генерится.
   user: {
     id: UUID;
-    name: string | null;
-    nickname: string | null;
-    avatarUrl: string | null;
+    name?: string | null;
+    nickname?: string | null;
+    avatarUrl?: string | null;
   };
 }
 

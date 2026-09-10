@@ -5,42 +5,7 @@
  */
 
 import { httpGetAuth, httpPostAuth, httpDeleteAuth } from '@/lib/http-client';
-import type { BookshelfEntry } from '@/types/api-schema';
-import type { UUID, ISODate } from '@/types/api-schema/common';
-
-export interface BookVersionPreview {
-  id: UUID;
-  bookId: UUID;
-  language: string;
-  slug?: string;
-  title: string;
-  author: string;
-  description: string;
-  coverImageUrl: string;
-  type: string;
-  isFree: boolean;
-  chaptersCount: number;
-  createdAt: ISODate;
-  updatedAt: ISODate;
-  book?: {
-    id: UUID;
-    slug: string;
-  };
-}
-
-export interface BookshelfItemDto {
-  id: UUID;
-  addedAt: ISODate;
-  bookVersion: BookVersionPreview;
-}
-
-export interface BookshelfListResponse {
-  items: BookshelfItemDto[];
-  page: number;
-  limit: number;
-  total: number;
-  hasNext: boolean;
-}
+import type { BookshelfEntry, BookshelfListResponse } from '@/types/api-schema';
 
 /**
  * List user's bookshelf

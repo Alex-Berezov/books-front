@@ -662,7 +662,7 @@ export interface RightsApprovalDecision {
   decision: 'APPROVED' | 'REJECTED';
   decidedByUser: {
     id: string;
-    name?: string;
+    name?: string | null;
     email: string;
   } | null;
   notesRu?: string;
@@ -670,14 +670,14 @@ export interface RightsApprovalDecision {
 }
 
 export interface RightsReviewApprovalFields {
-  approvedByUserId?: string;
+  approvedByUserId?: string | null;
   approvedByUser?: { id: string; name?: string; email: string } | null;
-  approvedAt?: string;
-  approvalNotesRu?: string;
-  rejectedByUserId?: string;
+  approvedAt?: string | null;
+  approvalNotesRu?: string | null;
+  rejectedByUserId?: string | null;
   rejectedByUser?: { id: string; name?: string; email: string } | null;
-  rejectedAt?: string;
-  rejectionReasonRu?: string;
+  rejectedAt?: string | null;
+  rejectionReasonRu?: string | null;
   approvals?: RightsApprovalDecision[];
 }
 

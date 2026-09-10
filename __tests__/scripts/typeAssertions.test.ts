@@ -11,8 +11,10 @@ import { describe, expect, it } from 'vitest';
 import {
   barrelExports,
   buildAssertionSource,
+  compareBudget,
   compareCoverage,
   coveredRoutes,
+  outsideBudget,
   parseDiagnostics,
   qualifyType,
   selectCandidates,
@@ -274,5 +276,77 @@ describe('coveredRoutes и compareCoverage', () => {
   it('снимок сошёлся с прогоном - расхождений нет', () => {
     const covered = ['GET /books', 'POST /uploads/presign'];
     expect(compareCoverage(covered, covered, new Map(), byId)).toEqual([]);
+  });
+});
+
+/**
+ * Бюджет вызовов, до утверждения не дошедших (решение арбитра 10.09.2026, вариант A).
+ * Через CLI задеваются не все ветки: класс «тип вызова не назван» в песочнице не возникает,
+ * а структурные случаи снимка - тем более. Здесь они проверяются напрямую.
+ */
+describe('outsideBudget', () => {
+  it('разносит пропуски по трём классам, беря класс полем, а не разбором текста', () => {
+    const budget = outsideBudget([
+      { kind: 'noResponseSchema' },
+      { kind: 'noResponseSchema' },
+      { kind: 'unnamedCallType' },
+      { kind: 'namesOutsideBarrel' },
+      { kind: 'namesOutsideBarrel' },
+    ]);
+
+    expect(budget).toEqual({ noResponseSchema: 2, unnamedCallType: 1, namesOutsideBarrel: 2 });
+  });
+
+  it('неизвестный класс - отказ, а не тихий счёт в соседнюю графу', () => {
+    expect(() => outsideBudget([{ kind: 'somethingNew' }])).toThrow(/неизвестный класс/);
+  });
+
+  it('на пустом списке даёт нули по всем классам, а не пустой объект', () => {
+    // Пустой объект уехал бы в снимок и сделал бы `compareBudget` слепым к появлению класса.
+    expect(outsideBudget([])).toEqual({
+      noResponseSchema: 0,
+      unnamedCallType: 0,
+      namesOutsideBarrel: 0,
+    });
+  });
+});
+
+describe('compareBudget', () => {
+  const same = { noResponseSchema: 1, unnamedCallType: 0, namesOutsideBarrel: 2 };
+
+  it('совпадение молчит', () => {
+    expect(compareBudget(same, { ...same })).toEqual([]);
+  });
+
+  it('рост называет класс и обе цифры', () => {
+    const problems = compareBudget(same, { ...same, namesOutsideBarrel: 3 });
+
+    expect(problems).toHaveLength(1);
+    expect(problems[0].kind).toBe('namesOutsideBarrel');
+    expect(problems[0].detail).toContain('было 2, стало 3');
+    expect(problems[0].detail).toContain('добавлять молча нельзя');
+  });
+
+  it('снижение тоже красное и зовёт пересчитать снимок', () => {
+    const problems = compareBudget(same, { ...same, namesOutsideBarrel: 1 });
+
+    expect(problems).toHaveLength(1);
+    expect(problems[0].detail).toContain('было 2, стало 1');
+    expect(problems[0].detail).toContain('пересчитать снимок');
+  });
+
+  it('класса нет в снимке - красное: иначе новый класс пропусков появился бы молча', () => {
+    const problems = compareBudget({ noResponseSchema: 1 }, same);
+
+    expect(problems.map((p) => p.kind).sort()).toEqual(['namesOutsideBarrel', 'unnamedCallType']);
+    expect(problems[0].detail).toContain('нет в снимке бюджета');
+  });
+
+  it('класс из снимка пропал из расчёта - тоже красное', () => {
+    const problems = compareBudget(same, { noResponseSchema: 1, unnamedCallType: 0 });
+
+    expect(problems).toHaveLength(1);
+    expect(problems[0].kind).toBe('namesOutsideBarrel');
+    expect(problems[0].detail).toContain('пропал из расчёта');
   });
 });

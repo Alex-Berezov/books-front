@@ -5,7 +5,7 @@
  */
 
 import type { BookCardModel } from './books';
-import type { ISODate, PaginatedResponse, SupportedLang, UUID } from './common';
+import type { PaginatedResponse, SupportedLang, UUID } from './common';
 import type { SeoData, SeoInput } from './pages';
 
 /**
@@ -22,8 +22,13 @@ export interface Category {
   slug: string;
   name: string;
   type: CategoryType;
-  description?: string;
-  language: SupportedLang;
+  description?: string | null;
+  /**
+   * Есть только там, где ручка его синтезирует: `GET /{lang}/categories/{slug}/books`
+   * и `.../books/cards`. У модели `Category` такой колонки нет, списки и запись
+   * категории язык не отдают.
+   */
+  language?: SupportedLang;
   parentId?: UUID | null;
   booksCount?: number;
   /** Cached per-language book count for the requested `?lang` (undefined without it) */
@@ -42,8 +47,6 @@ export interface Category {
   sortOrder?: number;
   translations?: CategoryTranslation[];
   translation?: CategoryTranslation | null;
-  createdAt: ISODate;
-  updatedAt: ISODate;
 }
 
 /**
@@ -67,7 +70,7 @@ export interface CategoryBooksResponse<T = unknown> extends PaginatedResponse<T>
  * Includes category metadata in addition to items/pagination.
  */
 export interface CategoryBookCardsResponse {
-  category: Category | null;
+  category?: Category | null;
   items: BookCardModel[];
   pagination: {
     page: number;
@@ -105,23 +108,24 @@ export interface CategoryTranslation {
   /** Long description/content (HTML) displayed on the public category page */
   description?: string | null;
   /** H1 heading for the page */
-  h1?: string;
+  /** Колонка `h1 String?`: приходит `null`, а не отсутствие ключа. */
+  h1?: string | null;
   /** Short description for cards/lists */
   shortDescription?: string | null;
   /** Meta title for SEO */
-  metaTitle?: string;
+  metaTitle?: string | null;
   /** Meta description for SEO */
   metaDescription?: string | null;
   /** Open Graph title */
-  ogTitle?: string;
+  ogTitle?: string | null;
   /** Open Graph description */
   ogDescription?: string | null;
   /** Open Graph image URL */
   ogImageUrl?: string | null;
   /** Open Graph image alt text */
-  ogImageAlt?: string;
+  ogImageAlt?: string | null;
   /** FAQ items */
-  faq?: Array<{ question: string; answer: string }>;
+  faq?: Array<{ question: string; answer: string }> | null;
   /** Published books attached to this term in this language (cached by the backend) */
   bookCount?: number;
   /** Automatic indexability derived from bookCount with hysteresis (close <=2, open >=5) */
@@ -139,6 +143,7 @@ export interface CreateCategoryTranslationRequest {
   name: string;
   slug: string;
   description?: string | null;
+  /** Колонка `h1 String?`: приходит `null`, а не отсутствие ключа. */
   h1?: string;
   shortDescription?: string | null;
   metaTitle?: string;
@@ -158,6 +163,7 @@ export interface UpdateCategoryTranslationRequest {
   name?: string;
   slug?: string;
   description?: string | null;
+  /** Колонка `h1 String?`: приходит `null`, а не отсутствие ключа. */
   h1?: string;
   shortDescription?: string | null;
   metaTitle?: string;
@@ -215,4 +221,20 @@ export interface CategoryListItem {
   type: string;
   booksCount: number;
   translations: Array<{ language: string; name: string; slug: string }>;
+}
+
+/**
+ * Страница публичного списка категорий (`GET /{lang}/categories`).
+ *
+ * Переехала из `api/endpoints/public.ts` 10.09.2026 вслед за `CategoryListItem`:
+ * близнец `PaginatedTagsResponse` уже лежал в `types/api-schema/tags.ts`.
+ */
+export interface PaginatedCategoriesResponse {
+  data: CategoryListItem[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }

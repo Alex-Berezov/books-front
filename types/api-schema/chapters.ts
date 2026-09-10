@@ -12,13 +12,17 @@ import type { ISODate, UUID } from './common';
  */
 export interface Chapter {
   id: UUID;
-  versionId: UUID;
+  /**
+   * Именно `bookVersionId`: так называется колонка модели `Chapter`
+   * (`books/prisma/schema.prisma`), и так её отдаёт `ChapterResponseDto`.
+   * До 10.09.2026 здесь стоял выдуманный `versionId`.
+   */
+  bookVersionId: UUID;
   number: number;
   title?: string;
   /** Chapter content (markdown) */
   content?: string;
   createdAt: ISODate;
-  updatedAt: ISODate;
 }
 
 /**
@@ -26,13 +30,17 @@ export interface Chapter {
  */
 export interface ChapterDetail {
   id: UUID;
-  versionId: UUID;
+  /**
+   * Именно `bookVersionId`: так называется колонка модели `Chapter`
+   * (`books/prisma/schema.prisma`), и так её отдаёт `ChapterResponseDto`.
+   * До 10.09.2026 здесь стоял выдуманный `versionId`.
+   */
+  bookVersionId: UUID;
   number: number;
   title?: string;
   /** Chapter content (markdown) */
   content?: string;
   createdAt: ISODate;
-  updatedAt: ISODate;
 }
 
 /**

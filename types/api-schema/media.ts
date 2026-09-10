@@ -1,4 +1,5 @@
 import type { UUID, ISODate, PaginationMeta } from './common';
+import type { MediaAsset } from './uploads';
 
 export type MediaType = 'image' | 'video' | 'audio' | 'document';
 
@@ -25,6 +26,11 @@ export interface MediaResponse {
   meta: PaginationMeta;
 }
 
-export interface UploadMediaResponse {
-  data: MediaFile;
-}
+/**
+ * Тело ответа `POST /media/upload`.
+ *
+ * 🔴 Обёртки `{ data }` здесь нет: обработчик отдаёт сам ассет
+ * (`books/src/modules/media/media.controller.ts`). Прежнее объявление описывало
+ * несуществующую форму, и чтение `response.data` дало бы `undefined`.
+ */
+export type UploadMediaResponse = MediaAsset;
