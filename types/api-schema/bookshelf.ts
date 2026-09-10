@@ -19,6 +19,21 @@ export interface BookshelfItem {
 }
 
 /**
+ * Тело ответа `POST /me/bookshelf/:versionId` (`BookshelfEntryDto` на бэкенде).
+ *
+ * Это **не** элемент списка полки: `bookVersion` здесь нет вовсе, сервер отдаёт саму строку
+ * связи (`books/src/modules/bookshelf/bookshelf.service.ts:53-70`). До 10.09.2026 добавление
+ * было типизовано формой элемента списка, то есть обещало версию книги, которой в ответе
+ * никогда не было.
+ */
+export interface BookshelfEntry {
+  id: UUID;
+  userId: UUID;
+  bookVersionId: UUID;
+  addedAt: ISODate;
+}
+
+/**
  * Request to add book to bookshelf
  */
 export interface AddToBookshelfRequest {

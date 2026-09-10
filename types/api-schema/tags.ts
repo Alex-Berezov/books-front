@@ -222,3 +222,45 @@ export interface TagBookCardsResponse {
     totalPages: number;
   };
 }
+
+/**
+ * Элемент публичного списка тегов (`GET /{lang}/tags`) и его страница.
+ *
+ * Переехали из `api/endpoints/public.ts` 10.09.2026 по той же причине, что и
+ * `CategoryListItem`: форма ответа обязана лежать в `types/api-schema/**`.
+ */
+export interface TagListItem {
+  id: string;
+  name: string;
+  slug: string;
+  booksCount: number;
+  /** Cached per-language book count for the requested `?lang` (undefined without it) */
+  langBookCount?: number;
+  /**
+   * Automatic indexability (hysteresis) for the requested `?lang`; undefined without it
+   * or when the tag has no translation into that language. Decide linkability with
+   * `isTaxonomyLinkable`, never with `booksCount` directly.
+   */
+  autoIndexable?: boolean;
+  /** Editorial switch: tag excluded from indexing */
+  indexable?: boolean;
+  /** Editorial switch: tag hidden from public lists */
+  isVisible?: boolean;
+  translations: Array<{
+    language: string;
+    name: string;
+    slug: string;
+    bookCount?: number;
+    autoIndexable?: boolean;
+  }>;
+}
+
+export interface PaginatedTagsResponse {
+  data: TagListItem[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}

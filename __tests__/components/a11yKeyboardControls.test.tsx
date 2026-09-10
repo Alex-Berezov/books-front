@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { AudioPicker } from '@/components/admin/books/ListenContentTab/AudioPicker';
@@ -318,7 +319,14 @@ describe('клавиатура в панелях прав и общей мода
   });
 
   it('зона загрузки аудио открывает выбор файла с клавиатуры', () => {
-    const { container } = render(<AudioPicker value={null} onChange={vi.fn()} />);
+    // AudioPicker сбрасывает список медиатеки после загрузки, поэтому ему нужен клиент запросов.
+    const { container } = render(
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      >
+        <AudioPicker value={null} onChange={vi.fn()} />
+      </QueryClientProvider>
+    );
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     const click = vi.spyOn(input, 'click');

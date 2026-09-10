@@ -357,6 +357,19 @@ describe('гейт целиком на испорченном входе', () =>
     'export const drop = (id: string) => httpDeleteAuth(`/thing/${id}`);',
   ].join('\n');
 
+  /**
+   * Барель песочницы: слой 2 достаёт имена типов вызова только через него, поэтому
+   * форма `Thing` здесь обязана совпадать со схемой ниже. Расхождение - это и есть
+   * то, что слой 2 должен ловить.
+   */
+  const SAMPLE_BARREL = [
+    'export interface Thing {',
+    '  id?: string;',
+    '  name?: string;',
+    '}',
+    '',
+  ].join('\n');
+
   const sampleSchema = () => ({
     openapi: '3.0.0',
     paths: {
@@ -364,7 +377,14 @@ describe('гейт целиком на испорченном входе', () =>
         get: {
           responses: {
             200: {
-              content: { 'application/json': { schema: { $ref: '#/components/schemas/Thing' } } },
+              // Массив, а не одиночный объект: вызов в `SAMPLE_SOURCE` объявлен как `Thing[]`,
+              // и слой 2 сверяет форму целиком - расхождение «объект против массива» он ловит
+              // первым же прогоном (проверено: до этой правки песочница краснела именно так).
+              content: {
+                'application/json': {
+                  schema: { type: 'array', items: { $ref: '#/components/schemas/Thing' } },
+                },
+              },
             },
           },
         },
@@ -389,15 +409,20 @@ describe('гейт целиком на испорченном входе', () =>
     neighbourDir: string;
     schema: string;
     surface: string;
+    coverage: string;
+    barrel: string;
   };
   let pristineSchema: string;
   let pristineSurface: string;
+  let pristineCoverage: string;
+  let pristineBarrel: string;
 
   beforeAll(() => {
     const base = mkdtempSync(join(tmpdir(), 'type-sync-'));
     const dir = join(base, 'books-front');
     mkdirSync(join(dir, 'scripts/type-sync'), { recursive: true });
     mkdirSync(join(dir, 'api/endpoints'), { recursive: true });
+    mkdirSync(join(dir, 'types/api-schema'), { recursive: true });
     cpSync(join(REPO_ROOT, 'scripts/lib'), join(dir, 'scripts/lib'), { recursive: true });
     cpSync(CLI, join(dir, 'scripts/check-type-sync.mjs'));
     writeFileSync(join(dir, 'api/endpoints/sample.ts'), SAMPLE_SOURCE);
@@ -407,8 +432,34 @@ describe('гейт целиком на испорченном входе', () =>
       neighbourDir: join(base, 'books'),
       schema: join(dir, 'scripts/type-sync/api-schema.json'),
       surface: join(dir, 'scripts/type-sync/surface.json'),
+      coverage: join(dir, 'scripts/type-sync/covered-types.json'),
+      barrel: join(dir, 'types/api-schema/index.ts'),
     };
     writeFileSync(box.schema, JSON.stringify(sampleSchema(), null, 2));
+    // Слой 2 в песочнице работает по-настоящему: барель, снимок покрытия и корневой tsconfig
+    // здесь не декорация, а вход утверждений присваиваемости - без любого из них гейт обязан
+    // отказать, и он отказывает.
+    writeFileSync(box.barrel, SAMPLE_BARREL, 'utf8');
+    writeFileSync(box.coverage, `${JSON.stringify(['GET /thing'], null, 2)}\n`, 'utf8');
+    writeFileSync(
+      join(dir, 'tsconfig.json'),
+      `${JSON.stringify(
+        {
+          compilerOptions: {
+            target: 'ES2020',
+            lib: ['esnext'],
+            strict: true,
+            noEmit: true,
+            module: 'esnext',
+            moduleResolution: 'bundler',
+            skipLibCheck: true,
+          },
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
 
     // Снимок кладётся той же чистой логикой, что и в бою, но без запуска процесса.
     const src = readFileSync(join(box.dir, 'api/endpoints/sample.ts'), 'utf8');
@@ -424,11 +475,15 @@ describe('гейт целиком на испорченном входе', () =>
 
     pristineSchema = readFileSync(box.schema, 'utf8');
     pristineSurface = readFileSync(box.surface, 'utf8');
+    pristineCoverage = readFileSync(box.coverage, 'utf8');
+    pristineBarrel = readFileSync(box.barrel, 'utf8');
   });
 
   afterEach(() => {
     writeFileSync(box.schema, pristineSchema);
     writeFileSync(box.surface, pristineSurface);
+    writeFileSync(box.coverage, pristineCoverage);
+    writeFileSync(box.barrel, pristineBarrel);
     writeFileSync(join(box.dir, 'api/endpoints/sample.ts'), SAMPLE_SOURCE);
     rmSync(box.neighbourDir, { recursive: true, force: true });
   });
@@ -478,6 +533,38 @@ describe('гейт целиком на испорченном входе', () =>
     expect(run.output).toContain('сходятся со снимком');
     // Соседа рядом с песочницей нет - пропуск кросс-репо сверки обязан быть назван.
     expect(run.output).toContain('SKIPPED');
+  });
+
+  it('слой 2: рукописный тип обещает поле, которого в схеме нет - красное с маршрутом', () => {
+    writeFileSync(
+      box.barrel,
+      'export interface Thing {\n  id?: string;\n  name?: string;\n  missing: string;\n}\n'
+    );
+
+    const run = runGate();
+
+    expect(run.code).toBe(1);
+    expect(run.output).toContain('рукописные типы разошлись со схемой');
+    expect(run.output).toContain('GET /thing');
+    expect(run.output).toContain('missing');
+  });
+
+  it('слой 2: без снимка покрытия прогон отказывает, а не считает, что сверять нечего', () => {
+    rmSync(box.coverage, { force: true });
+
+    const run = runGate();
+
+    expect(run.code).toBe(1);
+    expect(run.output).toContain('нет снимка покрытия');
+  });
+
+  it('слой 2: пустой снимок покрытия - отказ: это выключенный слой при живом шаге', () => {
+    writeFileSync(box.coverage, '[]\n');
+
+    const run = runGate();
+
+    expect(run.code).toBe(1);
+    expect(run.output).toContain('снимок покрытия пуст');
   });
 
   it('пропажа поля из схемы роняет прогон и называет поле', () => {

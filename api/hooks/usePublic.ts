@@ -8,7 +8,6 @@
 import { useQuery, type UseQueryOptions, type UseQueryResult } from '@tanstack/react-query';
 import * as publicApi from '@/api/endpoints/public';
 import { queryKeys, staleTimeConfig } from '@/lib/queryClient';
-import type { PaginatedTagsResponse } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ApiError } from '@/types/api';
 import type {
@@ -19,6 +18,8 @@ import type {
   SeoResolveResponse,
   ChapterDetail,
   PaginatedResponse,
+  PaginatedTagsResponse,
+  ReaderBootstrapResponse,
 } from '@/types/api-schema';
 
 /**
@@ -237,12 +238,9 @@ export const useReaderBootstrap = (
   lang: SupportedLang,
   slug: string,
   userId?: string,
-  options?: Omit<
-    UseQueryOptions<publicApi.ReaderBootstrapResponse, ApiError>,
-    'queryKey' | 'queryFn'
-  >
-): UseQueryResult<publicApi.ReaderBootstrapResponse, ApiError> => {
-  return useQuery<publicApi.ReaderBootstrapResponse, ApiError>({
+  options?: Omit<UseQueryOptions<ReaderBootstrapResponse, ApiError>, 'queryKey' | 'queryFn'>
+): UseQueryResult<ReaderBootstrapResponse, ApiError> => {
+  return useQuery<ReaderBootstrapResponse, ApiError>({
     // `userId` stays part of the key but not of the request: the server takes
     // the reader from the token (`LEGACY-088`), while the key must still tell
     // sessions apart — otherwise one user's progress would outlive the next

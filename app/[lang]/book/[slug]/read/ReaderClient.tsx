@@ -17,7 +17,7 @@ import {
   useProgressSync,
 } from '@/lib/reading-progress';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { ChapterDetail } from '@/types/api-schema';
+import type { ReaderBootstrapChapter } from '@/types/api-schema';
 import styles from './reader.module.scss';
 
 type FontSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -193,7 +193,7 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
    * запись и откатить его назад по книге.
    */
   const saveProgress = useCallback(
-    (chapter: ChapterDetail) => {
+    (chapter: ReaderBootstrapChapter) => {
       if (!versionId || !hasRestoredProgress) return;
       // Глава уже записана — см. `persistedChapterRef`.
       if (persistedChapterRef.current === chapter.number) return;
@@ -227,7 +227,7 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
     saveProgressRef.current = saveProgress;
   }, [saveProgress]);
 
-  const debouncedSave = useCallback((chapter: ChapterDetail) => {
+  const debouncedSave = useCallback((chapter: ReaderBootstrapChapter) => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
       saveProgressRef.current(chapter);

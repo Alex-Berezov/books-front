@@ -7,8 +7,9 @@ import {
 } from '@tanstack/react-query';
 import * as bookshelfApi from '@/api/endpoints/bookshelf';
 import { queryKeys } from '@/lib/queryClient';
-import type { BookshelfListResponse, BookshelfItemDto } from '@/api/endpoints/bookshelf';
+import type { BookshelfListResponse } from '@/api/endpoints/bookshelf';
 import type { ApiError } from '@/types/api';
+import type { BookshelfEntry } from '@/types/api-schema';
 
 /**
  * Hook for listing user's bookshelf
@@ -38,7 +39,7 @@ export const useBookshelf = (
 export const useAddToBookshelf = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<BookshelfItemDto, ApiError, string>({
+  return useMutation<BookshelfEntry, ApiError, string>({
     mutationFn: (versionId: string) => bookshelfApi.addToBookshelf(versionId),
     onSuccess: () => {
       // Invalidate all bookshelf queries

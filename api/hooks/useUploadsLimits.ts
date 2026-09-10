@@ -5,7 +5,7 @@
  */
 
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
-import { getUploadsLimits } from '@/api/endpoints/admin/uploads';
+import { getUploadsLimits } from '@/api/endpoints/uploads';
 import type { UploadLimits } from '@/types/api-schema';
 
 export const uploadsKeys = {

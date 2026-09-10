@@ -1,4 +1,4 @@
-import { getPublicTags, type TagListItem } from '@/api/endpoints/public';
+import { getPublicTags } from '@/api/endpoints/public';
 import { TaxonomyOverview } from '@/components/public/taxonomy-overview/TaxonomyOverview';
 import { TAXONOMY_OVERVIEW_CONFIGS } from '@/components/public/taxonomy-overview/TaxonomyOverviewConfig';
 import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
@@ -8,6 +8,7 @@ import { fetchPageBySystemKey } from '@/lib/utils/fetch-page';
 import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { TagListItem } from '@/types/api-schema';
 import type { Metadata } from 'next';
 
 type Props = {

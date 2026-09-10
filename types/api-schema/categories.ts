@@ -201,3 +201,18 @@ export interface UpdateCategoryRequest {
   isVisible?: boolean;
   sortOrder?: number;
 }
+
+/**
+ * Элемент публичного списка категорий (`GET /{lang}/categories`).
+ *
+ * Жил в `api/endpoints/public.ts` до 10.09.2026: рукописные формы ответа собраны здесь,
+ * чтобы гейт `check:type-sync` видел их через барель, а не только внутри модуля вызовов.
+ */
+export interface CategoryListItem {
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+  booksCount: number;
+  translations: Array<{ language: string; name: string; slug: string }>;
+}

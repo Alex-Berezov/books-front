@@ -314,3 +314,34 @@ export interface UpsertBookSummaryRequest {
   /** Major themes */
   themes?: string;
 }
+
+/**
+ * Ответ `GET /{lang}/books/{slug}/reader-bootstrap` - всё, что нужно читалке одним запросом.
+ *
+ * Переехал из `api/endpoints/public.ts` 10.09.2026.
+ */
+export interface ReaderBootstrapChapter {
+  id: UUID;
+  number: number;
+  title: string;
+  content: string;
+}
+
+export interface ReaderBootstrapResponse {
+  bookId: string;
+  versionId: string;
+  slug: string;
+  title: string;
+  author: string;
+  /**
+   * Ровно четыре поля: ручка отдаёт `select: { id, number, title, content }`
+   * (`books/src/modules/book/dto/reader-bootstrap-response.dto.ts:11-23`). До 10.09.2026 здесь
+   * стоял `ChapterDetail`, обещавший вдобавок `versionId`, `createdAt` и `updatedAt`, которых
+   * в ответе нет вовсе.
+   */
+  chapters: ReaderBootstrapChapter[];
+  lastProgress: {
+    chapterNumber: number | null;
+    position: number;
+  } | null;
+}

@@ -212,11 +212,17 @@ export interface SeoOpenGraph {
   image?: SeoOpenGraphImage;
 }
 
+/**
+ * Карточка Twitter из `SeoResolveTwitterDto`.
+ *
+ * Полей `title` и `description` здесь нет намеренно: их не собирает
+ * `books/src/modules/seo/metadata/buildSocialCards.ts`, и пять `generateMetadata`
+ * читали их впустую (`LEGACY-372`). Заголовок карточки наследуется от `title` страницы.
+ */
 export interface SeoTwitter {
   card: string;
   site?: string;
-  title?: string;
-  description?: string;
+  creator?: string;
   image?: string;
 }
 
@@ -233,7 +239,7 @@ export interface SeoResolveResponse {
   meta: SeoMeta;
   openGraph: SeoOpenGraph;
   twitter: SeoTwitter;
-  hreflang?: SeoHreflang[];
+  /** Сервер отдаёт поле в множественном числе; `hreflang` был мёртвым (`LEGACY-372`). */
   hreflangs?: SeoHreflang[];
   schema?: Record<string, unknown>;
   breadcrumbPath?: Array<{

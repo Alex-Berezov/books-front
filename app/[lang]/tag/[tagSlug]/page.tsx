@@ -76,7 +76,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       ? shouldNoindexPaginatedPage(currentPage, count.total, TAXONOMY_PAGE_SIZE)
       : false;
 
-    const alternatesLanguages = toPublicAlternates(seo.hreflangs || seo.hreflang);
+    const alternatesLanguages = toPublicAlternates(seo.hreflangs);
 
     const publicCanonical = toPublicUrl(seo.meta.canonicalUrl);
     const canonicalUrl = publicCanonical
@@ -121,8 +121,6 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       twitter: {
         card: (seo.twitter.card as 'summary' | 'summary_large_image') || 'summary',
         site: seo.twitter.site || undefined,
-        title: seo.twitter.title || undefined,
-        description: seo.twitter.description || undefined,
         images: seo.twitter.image ? [seo.twitter.image] : undefined,
       },
     };

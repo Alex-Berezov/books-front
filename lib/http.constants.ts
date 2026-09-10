@@ -110,3 +110,11 @@ export const AUTH_PREFIX = {
   /** Bearer token */
   BEARER: 'Bearer',
 } as const;
+
+/**
+ * Адрес API. Одно место на дерево намеренно: на этом значении стоит решение
+ * `isOwnApiUrl` (`api/endpoints/uploads.ts`) - отдавать ли жетон пользователя тому хосту,
+ * куда уходит тело файла. Копия, отставшая от `lib/http.ts`, сделала бы это решение
+ * неверным молча: адрес остался бы правильным, а заголовок авторизации не поставился бы.
+ */
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';

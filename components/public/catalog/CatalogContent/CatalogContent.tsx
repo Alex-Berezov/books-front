@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { BookCard } from '@/components/public/books/BookCard';
 import { PageBackButton } from '@/components/public/navigation';
 import { getDictionary } from '@/lib/i18n/dictionaries';
-import type { CategoryListItem } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { CategoryListItem } from '@/types/api-schema';
 import type { BookCardModel } from '@/types/api-schema';
 import styles from './CatalogContent.module.scss';
 

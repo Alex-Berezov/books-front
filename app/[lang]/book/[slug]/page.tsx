@@ -86,7 +86,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
     const seo = await getCachedBookSeo(supportedLang, slug);
-    const alternatesLanguages = toPublicAlternates(seo.hreflangs || seo.hreflang);
+    const alternatesLanguages = toPublicAlternates(seo.hreflangs);
 
     return {
       title: seo.meta.title,
@@ -108,8 +108,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       twitter: {
         card: (seo.twitter.card as 'summary' | 'summary_large_image') || 'summary',
         site: seo.twitter.site || undefined,
-        title: seo.twitter.title || undefined,
-        description: seo.twitter.description || undefined,
         images: seo.twitter.image ? [seo.twitter.image] : undefined,
       },
     };

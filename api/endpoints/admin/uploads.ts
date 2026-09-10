@@ -1,147 +1,29 @@
 /**
- * Upload Endpoints
- *
- * Implements the upload flow described in `books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md` §4:
+ * Admin upload endpoints: сборка `MediaAsset` поверх общих примитивов из
+ * `api/endpoints/uploads.ts`.
  *
  *   Variant A (one-step, small files):
  *     POST /media/upload (multipart)          → MediaAsset
  *
  *   Variant B (presigned, recommended for audio):
- *     POST /uploads/presign        { type, contentType, size }            → { token, uploadUrl, key }
- *     POST /uploads/direct         (binary + X-Upload-Token header)       → 201
- *     POST /uploads/confirm?key=…                                          → { url }
- *     POST /media/confirm          { key, url, contentType, size }        → MediaAsset
+ *     presign → direct → confirm (общие функции) → POST /media/confirm → MediaAsset
  *
  * `uploadAudioFile` orchestrates Variant B with an `onProgress` callback so
  * callers can drive a progress bar.
  */
 
-import { getAccessToken, httpGetAuth, httpPostAuth } from '@/lib/http-client';
+import { presignUpload, resolveUploadedUrl, sendPresignedBody } from '@/api/endpoints/uploads';
+import { getAccessToken, httpPostAuth } from '@/lib/http-client';
+import { API_BASE_URL } from '@/lib/http.constants';
 import { ApiError } from '@/types/api';
-import type {
-  ConfirmUploadRequest,
-  MediaAsset,
-  PresignUploadRequest,
-  PresignUploadResponse,
-  UploadLimits,
-  UploadsConfirmResponse,
-} from '@/types/api-schema';
-
-/**
- * Fetch the server-side upload limits (public, cacheable per session).
- */
-export const getUploadsLimits = async (): Promise<UploadLimits> => {
-  return httpGetAuth<UploadLimits>('/uploads/limits', { requireAuth: false });
-};
-
-/**
- * Request a presigned upload URL + token.
- */
-export const presignUpload = async (data: PresignUploadRequest): Promise<PresignUploadResponse> => {
-  return httpPostAuth<PresignUploadResponse>('/uploads/presign', data);
-};
+import type { UploadProgressOptions } from '@/api/endpoints/uploads';
+import type { ConfirmUploadRequest, MediaAsset } from '@/types/api-schema';
 
 /**
  * Confirm a completed presigned upload — triggers ffprobe on the backend.
  */
 export const confirmUpload = async (data: ConfirmUploadRequest): Promise<MediaAsset> => {
   return httpPostAuth<MediaAsset>('/media/confirm', data);
-};
-
-/**
- * Resolve the public URL for a key after a successful presigned upload.
- *
- * This must be called between `/uploads/direct` and `/media/confirm`: the
- * backend validator on `/media/confirm` requires a well-formed `url`.
- */
-export const resolveUploadedUrl = async (key: string): Promise<UploadsConfirmResponse> => {
-  const search = new URLSearchParams({ key }).toString();
-  return httpPostAuth<UploadsConfirmResponse>(`/uploads/confirm?${search}`, undefined);
-};
-
-/**
- * Options accepted by `uploadBinaryWithProgress` and `uploadAudioFile`.
- */
-export interface UploadProgressOptions {
-  /** Called with an integer 0..100 whenever the browser reports progress. */
-  onProgress?: (percent: number) => void;
-  /** AbortSignal — aborts the underlying XHR. */
-  signal?: AbortSignal;
-}
-
-/**
- * POST the binary body to a presigned URL using XHR to get upload progress.
- *
- * Auth is conveyed via `X-Upload-Token` (scoped, short-lived).
- * Resolves on HTTP 2xx. Rejects with `ApiError` on non-2xx or transport error.
- */
-const uploadBinaryWithProgress = (
-  url: string,
-  token: string,
-  file: File,
-  options: UploadProgressOptions = {}
-): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader('X-Upload-Token', token);
-    if (file.type) {
-      xhr.setRequestHeader('Content-Type', file.type);
-    }
-
-    if (options.onProgress && xhr.upload) {
-      xhr.upload.addEventListener('progress', (event) => {
-        if (!event.lengthComputable) return;
-        const percent = Math.round((event.loaded / event.total) * 100);
-        options.onProgress?.(percent);
-      });
-    }
-
-    xhr.addEventListener('load', () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        options.onProgress?.(100);
-        resolve();
-        return;
-      }
-      reject(
-        new ApiError({
-          message: `Upload failed with status ${xhr.status}`,
-          statusCode: xhr.status,
-          error: 'UploadError',
-        })
-      );
-    });
-
-    xhr.addEventListener('error', () => {
-      reject(
-        new ApiError({
-          message: 'Network error during upload',
-          statusCode: 0,
-          error: 'UploadError',
-        })
-      );
-    });
-
-    xhr.addEventListener('abort', () => {
-      reject(
-        new ApiError({
-          message: 'Upload aborted',
-          statusCode: 0,
-          error: 'UploadAborted',
-        })
-      );
-    });
-
-    if (options.signal) {
-      if (options.signal.aborted) {
-        xhr.abort();
-        return;
-      }
-      options.signal.addEventListener('abort', () => xhr.abort(), { once: true });
-    }
-
-    xhr.send(file);
-  });
 };
 
 /**
@@ -171,7 +53,7 @@ export const uploadAudioFile = async (
     size: file.size,
   });
 
-  await uploadBinaryWithProgress(presign.uploadUrl, presign.token, file, options);
+  await sendPresignedBody(presign, contentType, file, options);
 
   const { publicUrl } = await resolveUploadedUrl(presign.key);
 
@@ -197,8 +79,7 @@ export const uploadMediaMultipart = async (
   // `getAccessToken(true)` без токена бросает сам (`lib/http-client/auth.ts`).
   const token = await getAccessToken(true);
 
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
-  const url = `${apiBaseUrl}/media/upload`;
+  const url = `${API_BASE_URL}/media/upload`;
 
   return new Promise<MediaAsset>((resolve, reject) => {
     const xhr = new XMLHttpRequest();

@@ -25,7 +25,10 @@ import type {
   BookOverview,
   CategoryBookCardsResponse,
   CategoryBooksResponse,
+  CategoryListItem,
   CategoryTree,
+  PaginatedTagsResponse,
+  ReaderBootstrapResponse,
   PageResponse,
   TagBookCardsResponse,
   TagBooksResponse,
@@ -147,19 +150,6 @@ export const getAuthorBookCards = async (
     next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
   });
 };
-
-export interface ReaderBootstrapResponse {
-  bookId: string;
-  versionId: string;
-  slug: string;
-  title: string;
-  author: string;
-  chapters: ChapterDetail[];
-  lastProgress: {
-    chapterNumber: number | null;
-    position: number;
-  } | null;
-}
 
 /**
  * Get Reader bootstrap data in a single request.
@@ -347,53 +337,8 @@ export const getCategoryBookCards = async (
   });
 };
 
-export interface CategoryListItem {
-  id: string;
-  name: string;
-  slug: string;
-  type: string;
-  booksCount: number;
-  translations: Array<{ language: string; name: string; slug: string }>;
-}
-
 export interface PaginatedCategoriesResponse {
   data: CategoryListItem[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
-
-export interface TagListItem {
-  id: string;
-  name: string;
-  slug: string;
-  booksCount: number;
-  /** Cached per-language book count for the requested `?lang` (undefined without it) */
-  langBookCount?: number;
-  /**
-   * Automatic indexability (hysteresis) for the requested `?lang`; undefined without it
-   * or when the tag has no translation into that language. Decide linkability with
-   * `isTaxonomyLinkable`, never with `booksCount` directly.
-   */
-  autoIndexable?: boolean;
-  /** Editorial switch: tag excluded from indexing */
-  indexable?: boolean;
-  /** Editorial switch: tag hidden from public lists */
-  isVisible?: boolean;
-  translations: Array<{
-    language: string;
-    name: string;
-    slug: string;
-    bookCount?: number;
-    autoIndexable?: boolean;
-  }>;
-}
-
-export interface PaginatedTagsResponse {
-  data: TagListItem[];
   meta: {
     total: number;
     page: number;

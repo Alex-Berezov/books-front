@@ -5,6 +5,7 @@
  */
 
 import { httpGetAuth, httpPostAuth, httpDeleteAuth } from '@/lib/http-client';
+import type { BookshelfEntry } from '@/types/api-schema';
 import type { UUID, ISODate } from '@/types/api-schema/common';
 
 export interface BookVersionPreview {
@@ -57,11 +58,11 @@ export const getBookshelf = async (page = 1, limit = 10): Promise<BookshelfListR
  * Add a book version to the user's bookshelf
  *
  * @param versionId - Book version ID
- * @returns The created bookshelf item
+ * @returns The created bookshelf row — связь, а не элемент списка полки
  */
-export const addToBookshelf = async (versionId: string): Promise<BookshelfItemDto> => {
+export const addToBookshelf = async (versionId: string): Promise<BookshelfEntry> => {
   const endpoint = `/me/bookshelf/${versionId}`;
-  return httpPostAuth<BookshelfItemDto>(endpoint);
+  return httpPostAuth<BookshelfEntry>(endpoint);
 };
 
 /**

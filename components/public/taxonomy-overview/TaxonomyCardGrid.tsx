@@ -2,8 +2,8 @@ import type { FC } from 'react';
 import Link from 'next/link';
 import { pluralize, type PluralForms } from '@/lib/i18n/plural';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
-import type { TagListItem } from '@/api/endpoints/public';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { TagListItem } from '@/types/api-schema';
 import type { CategoryTree } from '@/types/api-schema';
 import styles from './TaxonomyCardGrid.module.scss';
 

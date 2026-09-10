@@ -174,7 +174,11 @@ describe('check-type-sync.mjs: пропуск кросс-репо сверки �
         get: {
           responses: {
             200: {
-              content: { 'application/json': { schema: { $ref: '#/components/schemas/Thing' } } },
+              content: {
+                'application/json': {
+                  schema: { type: 'array', items: { $ref: '#/components/schemas/Thing' } },
+                },
+              },
             },
           },
         },
@@ -183,23 +187,48 @@ describe('check-type-sync.mjs: пропуск кросс-репо сверки �
     components: { schemas: { Thing: { properties: { id: { type: 'string' } } } } },
   });
 
+  const BARREL = 'export interface Thing {\n  id?: string;\n}\n';
+  const TSCONFIG = `${JSON.stringify(
+    {
+      compilerOptions: {
+        target: 'ES2020',
+        lib: ['esnext'],
+        strict: true,
+        noEmit: true,
+        module: 'esnext',
+        moduleResolution: 'bundler',
+        skipLibCheck: true,
+      },
+    },
+    null,
+    2
+  )}\n`;
+
   /** Песочница со снятым снимком; сосед создаётся только если он нужен случаю. */
   const buildFixture = (dir: string, withNeighbour: boolean) => {
     mkdirSync(join(dir, 'scripts/type-sync'), { recursive: true });
     mkdirSync(join(dir, 'api/endpoints'), { recursive: true });
+    mkdirSync(join(dir, 'types/api-schema'), { recursive: true });
     cpSync(join(REPO_ROOT, 'scripts/lib'), join(dir, 'scripts/lib'), { recursive: true });
     cpSync(
       join(REPO_ROOT, 'scripts/check-type-sync.mjs'),
       join(dir, 'scripts/check-type-sync.mjs')
     );
     writeFileSync(join(dir, 'api/endpoints/sample.ts'), SAMPLE);
+    // Слой 2 (пачка Q6) сверяет рукописные типы со схемой, поэтому фикстуре нужны барель,
+    // снимок покрытия и корневой tsconfig - без любого из них гейт отказывает по своей
+    // раскладке, а спека здесь про другое: про пропуск кросс-репо сверки.
+    writeFileSync(join(dir, 'types/api-schema/index.ts'), BARREL);
+    writeFileSync(join(dir, 'tsconfig.json'), TSCONFIG);
 
     const neighbour = join(dir, '..', 'books', 'libs', 'api-client');
     mkdirSync(neighbour, { recursive: true });
     writeFileSync(join(neighbour, 'api-schema.json'), SCHEMA);
 
     execFileSync(process.execPath, [join(dir, 'scripts/check-type-sync.mjs'), '--update'], {
-      cwd: dir,
+      // Инструменты слоя 2 (openapi-typescript, tsc) ищутся от каталога запуска: в фикстуре
+      // своего node_modules нет, а в конвейере гейт всегда зовут из корня репозитория.
+      cwd: REPO_ROOT,
       encoding: 'utf8',
       // Под `CI=true` гейт игнорирует `--update` намеренно, и посев снимка не состоялся бы:
       // спека зеленела бы на машине разработчика и краснела в конвейере.
@@ -211,7 +240,9 @@ describe('check-type-sync.mjs: пропуск кросс-репо сверки �
 
   const runGate = (dir: string) =>
     execFileSync(process.execPath, [join(dir, 'scripts/check-type-sync.mjs')], {
-      cwd: dir,
+      // Инструменты слоя 2 (openapi-typescript, tsc) ищутся от каталога запуска: в фикстуре
+      // своего node_modules нет, а в конвейере гейт всегда зовут из корня репозитория.
+      cwd: REPO_ROOT,
       encoding: 'utf8',
     });
 

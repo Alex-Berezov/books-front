@@ -10,13 +10,10 @@
 
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  presignUpload,
-  resolveUploadedUrl,
-  uploadAudioFile,
-  uploadMediaMultipart,
-} from '@/api/endpoints/admin/uploads';
+import { uploadAudioFile, uploadMediaMultipart } from '@/api/endpoints/admin/uploads';
+import { presignUpload, resolveUploadedUrl } from '@/api/endpoints/uploads';
 import { ApiError } from '@/types/api';
+import { installXhrStub } from '../../../helpers/xhrStub';
 import { server } from '../../../msw/server';
 
 vi.mock('next-auth/react', () => ({
@@ -31,109 +28,25 @@ const API_BASE = 'http://localhost:5000/api';
 
 // ---- XHR stub ----------------------------------------------------------
 
-interface XhrListenerMap {
-  load: Array<() => void>;
-  error: Array<() => void>;
-  abort: Array<() => void>;
-}
-
-type UploadListenerMap = { progress: Array<(e: ProgressEvent) => void> };
-
-interface MockXhrInstance {
-  method: string;
-  url: string;
-  headers: Record<string, string>;
-  body: unknown;
-  status: number;
-  response: unknown;
-  upload: { addEventListener: (t: string, cb: (e: ProgressEvent) => void) => void };
-  open: (m: string, u: string) => void;
-  setRequestHeader: (k: string, v: string) => void;
-  addEventListener: (t: keyof XhrListenerMap, cb: () => void) => void;
-  send: (body: unknown) => void;
-  abort: () => void;
-  responseType: string;
-  aborted: boolean;
-  _listeners: XhrListenerMap;
-  _upload: UploadListenerMap;
-}
-
-const xhrInstances: MockXhrInstance[] = [];
+let stub: ReturnType<typeof installXhrStub>;
+const xhrInstances = () => stub.instances;
 let xhrAutoRespond = true;
 let xhrRespondStatus = 201;
 let xhrRespondBody: unknown = null;
 
-const createMockXhr = (): MockXhrInstance => {
-  const instance: MockXhrInstance = {
-    method: '',
-    url: '',
-    headers: {},
-    body: undefined,
-    status: 0,
-    response: null,
-    responseType: '',
-    aborted: false,
-    _listeners: { load: [], error: [], abort: [] },
-    _upload: { progress: [] },
-    upload: {
-      addEventListener(type, cb) {
-        if (type === 'progress') instance._upload.progress.push(cb);
-      },
-    },
-    open(method, url) {
-      this.method = method;
-      this.url = url;
-    },
-    setRequestHeader(k, v) {
-      this.headers[k] = v;
-    },
-    addEventListener(type, cb) {
-      this._listeners[type].push(cb);
-    },
-    send(body) {
-      this.body = body;
-      if (!xhrAutoRespond) return;
-      // Synchronously fire progress + load.
-      queueMicrotask(() => {
-        if (this.aborted) return;
-        this._upload.progress.forEach((cb) =>
-          cb({ lengthComputable: true, loaded: 50, total: 100 } as ProgressEvent)
-        );
-        this._upload.progress.forEach((cb) =>
-          cb({ lengthComputable: true, loaded: 100, total: 100 } as ProgressEvent)
-        );
-        this.status = xhrRespondStatus;
-        this.response = xhrRespondBody;
-        this._listeners.load.forEach((cb) => cb());
-      });
-    },
-    abort() {
-      this.aborted = true;
-      queueMicrotask(() => {
-        this._listeners.abort.forEach((cb) => cb());
-      });
-    },
-  };
-  return instance;
-};
-
-let originalXhr: typeof XMLHttpRequest;
-
 beforeEach(() => {
-  xhrInstances.length = 0;
   xhrAutoRespond = true;
   xhrRespondStatus = 201;
   xhrRespondBody = null;
-  originalXhr = globalThis.XMLHttpRequest;
-  (globalThis as unknown as { XMLHttpRequest: unknown }).XMLHttpRequest = function () {
-    const inst = createMockXhr();
-    xhrInstances.push(inst);
-    return inst;
-  } as unknown as typeof XMLHttpRequest;
+  stub = installXhrStub({
+    autoRespond: () => xhrAutoRespond,
+    status: () => xhrRespondStatus,
+    body: () => xhrRespondBody,
+  });
 });
 
 afterEach(() => {
-  globalThis.XMLHttpRequest = originalXhr;
+  stub.restore();
 });
 
 // ---- tests -------------------------------------------------------------
@@ -144,10 +57,16 @@ describe('presignUpload', () => {
     server.use(
       http.post(`${API_BASE}/uploads/presign`, async ({ request }) => {
         seenBody = await request.json();
+        // Форма ответа - как у боевого `PresignResponseDto` (`books`,
+        // `uploads.service.ts:51-57`): адрес называется `url`. Мок с `uploadUrl` подтверждал
+        // поле, которого сервер не отдаёт, и держал зелёным сломанный вызов (LEGACY-372).
         return HttpResponse.json({
-          token: 'upload-token',
-          uploadUrl: 'https://storage.example.com/put/abc',
           key: 'audio/abc.mp3',
+          url: '/uploads/direct',
+          method: 'POST',
+          headers: { 'x-upload-token': 'upload-token', 'content-type': 'audio/mpeg' },
+          token: 'upload-token',
+          ttlSec: 900,
         });
       })
     );
@@ -161,6 +80,9 @@ describe('presignUpload', () => {
     expect(seenBody).toEqual({ type: 'audio', contentType: 'audio/mpeg', size: 1234 });
     expect(res.token).toBe('upload-token');
     expect(res.key).toBe('audio/abc.mp3');
+    expect(res.url).toBe('/uploads/direct');
+    expect(res.method).toBe('POST');
+    expect(res.ttlSec).toBe(900);
   });
 });
 
@@ -186,9 +108,12 @@ describe('uploadAudioFile (presigned flow)', () => {
     server.use(
       http.post(`${API_BASE}/uploads/presign`, () =>
         HttpResponse.json({
-          token: 'upload-token',
-          uploadUrl: 'https://storage.example.com/put/abc',
           key: 'audio/abc.mp3',
+          url: '/uploads/direct',
+          method: 'POST',
+          headers: { 'x-upload-token': 'upload-token', 'content-type': 'audio/mpeg' },
+          token: 'upload-token',
+          ttlSec: 900,
         })
       ),
       http.post(`${API_BASE}/uploads/confirm`, () =>
@@ -259,12 +184,165 @@ describe('uploadAudioFile (presigned flow)', () => {
     expect(progress[progress.length - 1]).toBe(100);
     expect(progress).toContain(50);
 
-    // XHR used X-Upload-Token (not Authorization).
-    const directXhr = xhrInstances[0];
-    expect(directXhr.url).toBe('https://storage.example.com/put/abc');
-    expect(directXhr.headers['X-Upload-Token']).toBe('upload-token');
-    expect(directXhr.headers['Authorization']).toBeUndefined();
-    expect(directXhr.headers['Content-Type']).toBe('audio/mpeg');
+    const directXhr = xhrInstances()[0];
+    // Адрес из presign относительный, и XHR разрешил бы его от origin фронта - поэтому
+    // база API дописывается явно (LEGACY-372: до починки адрес был вообще `undefined`).
+    expect(directXhr.url).toBe(`${API_BASE}/uploads/direct`);
+    expect(directXhr.method).toBe('POST');
+    // 🔴 `X-Upload-Token` авторизацией не является: ручка закрыта `JwtAuthGuard` и берёт
+    // пользователя из `Authorization`. Без этого заголовка живой ответ - 401.
+    expect(directXhr.headers['authorization']).toBe('Bearer test-token');
+    expect(directXhr.headers['x-upload-token']).toBe('upload-token');
+    expect(directXhr.headers['content-type']).toBe('audio/mpeg');
+  });
+
+  it('файл без распознанного MIME шлёт тот же Content-Type, что ушёл в presign', async () => {
+    let presignBody: { contentType?: string } = {};
+    server.use(
+      http.post(`${API_BASE}/uploads/presign`, async ({ request }) => {
+        presignBody = (await request.json()) as { contentType?: string };
+        return HttpResponse.json({
+          key: 'audio/abc.mp3',
+          url: '/uploads/direct',
+          method: 'POST',
+          headers: { 'x-upload-token': 'upload-token', 'content-type': 'audio/mpeg' },
+          token: 'upload-token',
+          ttlSec: 900,
+        });
+      }),
+      http.post(`${API_BASE}/uploads/confirm`, () =>
+        HttpResponse.json({ key: 'audio/abc.mp3', publicUrl: 'https://cdn/abc.mp3' })
+      ),
+      http.post(`${API_BASE}/media/confirm`, async ({ request }) => {
+        const body = (await request.json()) as { url: string; key: string };
+        return HttpResponse.json({
+          id: 'm-3',
+          key: body.key,
+          url: body.url,
+          contentType: 'audio/mpeg',
+          size: 1,
+          width: null,
+          height: null,
+          duration: null,
+          createdAt: '2026-01-01T00:00:00Z',
+          createdById: 'u-1',
+          isDeleted: false,
+          deletedAt: null,
+        });
+      })
+    );
+
+    // Браузер не распознал тип: `file.type` пуст. В presign уходит `audio/mpeg`, и сервер
+    // сверяет заголовок загрузки именно с ним - расхождение даёт 400 «Content-Type mismatch».
+    const file = new File([new Uint8Array(1)], 'track', { type: '' });
+    await uploadAudioFile(file);
+
+    expect(presignBody.contentType).toBe('audio/mpeg');
+    expect(xhrInstances()[0].headers['content-type']).toBe('audio/mpeg');
+  });
+
+  it('метод и заголовки берутся из ответа presign, а не прошиты', async () => {
+    server.use(
+      http.post(`${API_BASE}/uploads/presign`, () =>
+        HttpResponse.json({
+          key: 'audio/abc.mp3',
+          url: 'https://storage.example.com/put/abc',
+          method: 'PUT',
+          headers: { 'x-amz-acl': 'private' },
+          token: 'upload-token',
+          ttlSec: 900,
+        })
+      ),
+      http.post(`${API_BASE}/uploads/confirm`, () =>
+        HttpResponse.json({ key: 'audio/abc.mp3', publicUrl: 'https://cdn/abc.mp3' })
+      ),
+      http.post(`${API_BASE}/media/confirm`, async ({ request }) => {
+        const body = (await request.json()) as { url: string; key: string };
+        return HttpResponse.json({
+          id: 'm-4',
+          key: body.key,
+          url: body.url,
+          contentType: 'audio/mpeg',
+          size: 1,
+          width: null,
+          height: null,
+          duration: null,
+          createdAt: '2026-01-01T00:00:00Z',
+          createdById: 'u-1',
+          isDeleted: false,
+          deletedAt: null,
+        });
+      })
+    );
+
+    const file = new File([new Uint8Array(1)], 'track.mp3', { type: 'audio/mpeg' });
+    await uploadAudioFile(file);
+
+    expect(xhrInstances()[0].method).toBe('PUT');
+    expect(xhrInstances()[0].headers['x-amz-acl']).toBe('private');
+    // Жетон сайта чужому хосту не отдаётся: адрес presign ведёт во внешнее хранилище.
+    expect(xhrInstances()[0].headers['authorization']).toBeUndefined();
+    expect(xhrInstances()[0].headers['x-upload-token']).toBeUndefined();
+  });
+
+  it('пустой адрес в ответе presign - отказ на месте, а не запрос по базе API', async () => {
+    server.use(
+      http.post(`${API_BASE}/uploads/presign`, () =>
+        HttpResponse.json({
+          key: 'audio/abc.mp3',
+          url: '',
+          method: 'POST',
+          headers: {},
+          token: 'upload-token',
+          ttlSec: 900,
+        })
+      )
+    );
+
+    const file = new File([new Uint8Array(1)], 'track.mp3', { type: 'audio/mpeg' });
+    await expect(uploadAudioFile(file)).rejects.toMatchObject({ error: 'UploadError' });
+    expect(xhrInstances()).toHaveLength(0);
+  });
+
+  it('абсолютный адрес из presign уходит в XHR как есть, без базы API', async () => {
+    server.use(
+      http.post(`${API_BASE}/uploads/presign`, () =>
+        HttpResponse.json({
+          key: 'audio/abc.mp3',
+          url: 'https://storage.example.com/put/abc',
+          method: 'PUT',
+          headers: {},
+          token: 'upload-token',
+          ttlSec: 900,
+        })
+      ),
+      http.post(`${API_BASE}/uploads/confirm`, () =>
+        HttpResponse.json({ key: 'audio/abc.mp3', publicUrl: 'https://cdn/abc.mp3' })
+      ),
+      http.post(`${API_BASE}/media/confirm`, async ({ request }) => {
+        const body = (await request.json()) as { url: string; key: string };
+        return HttpResponse.json({
+          id: 'm-2',
+          key: body.key,
+          url: body.url,
+          contentType: 'audio/mpeg',
+          size: 1,
+          width: null,
+          height: null,
+          duration: null,
+          createdAt: '2026-01-01T00:00:00Z',
+          createdById: 'u-1',
+          isDeleted: false,
+          deletedAt: null,
+        });
+      })
+    );
+
+    const file = new File([new Uint8Array(1)], 'track.mp3', { type: 'audio/mpeg' });
+    await uploadAudioFile(file);
+
+    expect(xhrInstances()[0].url).toBe('https://storage.example.com/put/abc');
+    expect(xhrInstances()[0].headers['authorization']).toBeUndefined();
   });
 
   it('propagates ApiError with statusCode when /uploads/direct returns 4xx', async () => {
@@ -338,8 +416,8 @@ describe('uploadMediaMultipart (one-step)', () => {
     expect(result.id).toBe('m-2');
     expect(progress[progress.length - 1]).toBe(100);
 
-    const xhr = xhrInstances[0];
-    expect(xhr.headers['Authorization']).toBe('Bearer test-token');
+    const xhr = xhrInstances()[0];
+    expect(xhr.headers['authorization']).toBe('Bearer test-token');
     expect(xhr.url).toContain('/media/upload');
     expect(xhr.body).toBeInstanceOf(FormData);
   });
