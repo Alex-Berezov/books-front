@@ -49,8 +49,10 @@ LICENSE
 Thumbs.db
 
 # Misc
-# scripts/ is excluded, but four files run inside the image as part of `yarn build`:
-# check-site-url.mjs as `prebuild`, and the bundle budget chained after `next build`.
+# scripts/ is excluded, but a handful of files run inside the image as part of `yarn build`:
+# check-site-url.mjs as `prebuild`, plus the homepage content guard (LEGACY-103) and the
+# bundle budget chained after `next build`. The count is deliberately not spelled out —
+# it goes stale the moment a step is added (LEGACY-167); the `!` lines below are the list.
 # 🔴 Every re-included path needs its own `!` line — `!scripts/lib/bundle-budget.mjs`
 # is not covered by the entry above it, and a missing line does not fail the build
 # context: the file is simply absent, and `RUN yarn build` dies on ERR_MODULE_NOT_FOUND
@@ -61,5 +63,7 @@ scripts
 !scripts/lib/bundle-budget.mjs
 !scripts/lib/snapshot-update.mjs
 !scripts/bundle-baseline.json
+!scripts/homepage-content-guard.mjs
+!scripts/lib/homepage-content.mjs
 *.log
 .cache

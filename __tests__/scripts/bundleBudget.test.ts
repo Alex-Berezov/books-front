@@ -198,7 +198,27 @@ describe('шаг заведён в сборке и не ослаблен', () =>
    * никто не читает, — тем самым состоянием, ради выхода из которого шаг и заведён.
    */
   it('строка build ровно та, что задумана', () => {
-    expect(scripts.build).toBe('next build && node scripts/bundle-budget.mjs');
+    expect(scripts.build).toBe(
+      'next build && node scripts/homepage-content-guard.mjs && node scripts/bundle-budget.mjs'
+    );
+  });
+
+  /**
+   * Порядок звеньев значим дважды. Содержательная проверка главной (`LEGACY-103`) читает
+   * артефакты `.next/server/app/<lang>.html`, поэтому идёт после сборки. И она же обязана
+   * идти **до** бюджета: yarn 1 приклеивает лишние аргументы к концу всей строки скрипта,
+   * то есть `yarn bundle:snapshot` (`yarn build --update`) отдаёт `--update` последнему звену.
+   * Окажись последним сторож главной — он проглотит флаг молча, снимок не перепишется,
+   * а бюджет упадёт с советом запустить ровно ту команду, которая только что не сработала.
+   */
+  it('гейт содержательности главной стоит между сборкой и бюджетом', () => {
+    const steps = scripts.build.split('&&').map((step) => step.trim());
+    const guard = steps.indexOf('node scripts/homepage-content-guard.mjs');
+    const budget = steps.indexOf('node scripts/bundle-budget.mjs');
+
+    expect(guard).toBeGreaterThan(steps.indexOf('next build'));
+    expect(budget).toBeGreaterThan(guard);
+    expect(budget).toBe(steps.length - 1);
   });
 
   it('обновление снимка — отдельная команда, а не часть сборки', () => {
