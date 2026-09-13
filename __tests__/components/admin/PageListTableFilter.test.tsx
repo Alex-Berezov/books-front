@@ -112,7 +112,13 @@ describe('SearchForm — потолок длины совпадает с DTO б�
 describe('PageListTable — пустая выдача под фильтром не выдаётся за пустую базу (LEGACY-371)', () => {
   it('под фильтром предлагает сбросить его, а не создать первую страницу', async () => {
     vi.doMock('@/api/hooks', () => ({
-      usePages: () => ({ data: { data: [], meta: { total: 0, totalPages: 0 } }, isLoading: false }),
+      // `{items, pagination}` — обёртка `GET /admin/pages` после `LEGACY-177`.
+      // Со старой `{data, meta}` экран уходит в ветку «Invalid API response format»,
+      // и проверка про фильтр не доходит до своего утверждения.
+      usePages: () => ({
+        data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },
+        isLoading: false,
+      }),
       useDeletePage: () => ({ mutate: vi.fn(), isPending: false }),
     }));
 

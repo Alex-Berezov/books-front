@@ -60,7 +60,15 @@ const makeClaim = (overrides: Partial<RightsClaimSummary> = {}): RightsClaimSumm
 
 const mockClaims = (items: RightsClaimSummary[]) => {
   mockUseVersionRightsClaims.mockReturnValue({
-    data: { items, total: items.length, page: 1, limit: items.length },
+    data: {
+      items,
+      pagination: {
+        page: 1,
+        limit: items.length,
+        total: items.length,
+        totalPages: items.length > 0 ? 1 : 0,
+      },
+    },
     isLoading: false,
   });
 };

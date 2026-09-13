@@ -52,7 +52,7 @@ const makeClaim = (overrides: Partial<RightsClaimSummary> = {}): RightsClaimSumm
 describe('RightsClaimsList', () => {
   it('renders the claims table with totals', () => {
     mockUseRightsClaims.mockReturnValue({
-      data: { items: [makeClaim()], total: 1, page: 1, limit: 20 },
+      data: { items: [makeClaim()], pagination: { page: 1, limit: 20, total: 1, totalPages: 1 } },
       isLoading: false,
       error: null,
     });
@@ -68,7 +68,7 @@ describe('RightsClaimsList', () => {
 
   it('passes openOnly to the query when the filter is toggled', () => {
     mockUseRightsClaims.mockReturnValue({
-      data: { items: [makeClaim()], total: 1, page: 1, limit: 20 },
+      data: { items: [makeClaim()], pagination: { page: 1, limit: 20, total: 1, totalPages: 1 } },
       isLoading: false,
       error: null,
     });
@@ -85,7 +85,7 @@ describe('RightsClaimsList', () => {
 
   it('renders the empty state when nothing matches', () => {
     mockUseRightsClaims.mockReturnValue({
-      data: { items: [], total: 0, page: 1, limit: 20 },
+      data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },
       isLoading: false,
       error: null,
     });

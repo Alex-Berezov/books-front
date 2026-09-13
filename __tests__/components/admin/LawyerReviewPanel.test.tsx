@@ -16,7 +16,9 @@ vi.mock('next-auth/react', () => ({
 vi.mock('@/api/hooks/useRightsLawyer', () => ({
   useProfileRiskAssessment: () => mockUseProfileRiskAssessment(),
   useIntakeLawyerReviews: () => mockUseIntakeLawyerReviews(),
-  useLawyers: () => ({ data: { items: [], total: 0, page: 1, limit: 20 } }),
+  useLawyers: () => ({
+    data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },
+  }),
   useRequireLawyerReviewForProfile: () => ({ mutateAsync: mockRequire, isPending: false }),
   useLawyerReview: () => ({ data: null, isLoading: false, isError: false }),
   useAssignLawyerReview: () => ({ mutateAsync: vi.fn(), isPending: false }),
@@ -122,7 +124,7 @@ describe('LawyerReviewPanel', () => {
     mockSession.mockReturnValue({ data: { user: { roles: ['admin'] } } });
     mockUseProfileRiskAssessment.mockReturnValue({ data: makeAssessment(), refetch: vi.fn() });
     mockUseIntakeLawyerReviews.mockReturnValue({
-      data: { items: [], total: 0, page: 1, limit: 20 },
+      data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },
     });
   });
 
@@ -158,7 +160,7 @@ describe('LawyerReviewPanel', () => {
 
   it('prefers the lawyer name snapshot over the current directory name', () => {
     mockUseIntakeLawyerReviews.mockReturnValue({
-      data: { items: [makeReview()], total: 1, page: 1, limit: 20 },
+      data: { items: [makeReview()], pagination: { page: 1, limit: 20, total: 1, totalPages: 1 } },
     });
 
     render(<LawyerReviewPanel intakeId="intake-1" profileId="profile-1" />);

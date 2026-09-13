@@ -43,7 +43,15 @@ const makeNotification = (overrides: Partial<RightsNotification> = {}): RightsNo
 const mockState = (unreadCount: number, items: RightsNotification[] = []) => {
   mockUseUnreadCount.mockReturnValue({ data: { unreadCount }, isLoading: false });
   mockUseNotifications.mockReturnValue({
-    data: { items, total: items.length, page: 1, limit: 10 },
+    data: {
+      items,
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: items.length,
+        totalPages: Math.ceil(items.length / 10),
+      },
+    },
     isLoading: false,
   });
 };

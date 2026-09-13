@@ -14,7 +14,9 @@ vi.mock('next-auth/react', () => ({
 
 vi.mock('@/api/hooks/useRightsLawyer', () => ({
   useLawyerReviews: (params: unknown) => mockUseLawyerReviews(params),
-  useLawyers: () => ({ data: { items: [], total: 0, page: 1, limit: 20 } }),
+  useLawyers: () => ({
+    data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },
+  }),
   useRunLawyerExpiryScan: () => ({ mutateAsync: mockScan, isPending: false }),
   useLawyerReview: () => ({ data: null, isLoading: false, isError: false }),
   useAssignLawyerReview: () => ({ mutateAsync: vi.fn(), isPending: false }),
@@ -92,7 +94,7 @@ describe('LegalReviewsInbox', () => {
     vi.clearAllMocks();
     mockSession.mockReturnValue({ data: { user: { roles: ['admin'] } } });
     mockUseLawyerReviews.mockReturnValue({
-      data: { items: [], total: 0, page: 1, limit: 20 },
+      data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },
       isLoading: false,
       isError: false,
     });
@@ -106,7 +108,7 @@ describe('LegalReviewsInbox', () => {
 
   it('renders a review row with its number and risk level', () => {
     mockUseLawyerReviews.mockReturnValue({
-      data: { items: [makeReview()], total: 1, page: 1, limit: 20 },
+      data: { items: [makeReview()], pagination: { page: 1, limit: 20, total: 1, totalPages: 1 } },
       isLoading: false,
       isError: false,
     });
@@ -118,6 +120,40 @@ describe('LegalReviewsInbox', () => {
     // The label also appears in the status filter, so scope the assertion to the table row.
     expect(within(screen.getByRole('table')).getByText('Ожидает юриста')).toBeInTheDocument();
     expect(within(screen.getByRole('table')).getByText('HIGH')).toBeInTheDocument();
+  });
+
+  /**
+   * Число страниц берётся у сервера (`LEGACY-177`) и здесь не пересчитывается:
+   * правило округления живёт в одном месте — `paginated()` на бэкенде.
+   * Ответ прежней формы до экрана не доходит вовсе: его сворачивает
+   * `lib/api/paginated-envelope.ts` в слое данных, и проверяется это там же
+   * (`__tests__/api/paginatedEnvelope.test.ts`).
+   */
+  it('берёт число страниц у сервера, а не считает делением', () => {
+    mockUseLawyerReviews.mockReturnValue({
+      // 41 строка при размере страницы 20 — это три страницы, но сервер
+      // сообщает семь: подпись обязана повторить сервер, а не пересчитать.
+      data: { items: [makeReview()], pagination: { page: 1, limit: 20, total: 41, totalPages: 7 } },
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<LegalReviewsInbox />);
+
+    expect(screen.getByText(/Страница 1 из 7/)).toBeInTheDocument();
+  });
+
+  it('пустая выдача не даёт «страница 1 из 0»', () => {
+    mockUseLawyerReviews.mockReturnValue({
+      data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<LegalReviewsInbox />);
+
+    // Пагинатор скрыт целиком, пока строк меньше страницы, — подписи нет вовсе.
+    expect(screen.queryByText(/Страница/)).not.toBeInTheDocument();
   });
 
   it('passes the selected status filter to the query', async () => {

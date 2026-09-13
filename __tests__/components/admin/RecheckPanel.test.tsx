@@ -90,7 +90,7 @@ describe('RecheckPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseIntakeRecheckTasks.mockReturnValue({
-      data: { items: [], total: 0, page: 1, limit: 20 },
+      data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },
     });
     mockUseRecheckSchedule.mockReturnValue({ data: makeSchedule() });
   });
@@ -105,9 +105,7 @@ describe('RecheckPanel', () => {
     mockUseIntakeRecheckTasks.mockReturnValue({
       data: {
         items: [makeTask({ isOverdue: true, daysUntilDue: -45, effectiveSeverity: 'BLOCKING' })],
-        total: 1,
-        page: 1,
-        limit: 20,
+        pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
       },
     });
 
@@ -120,7 +118,7 @@ describe('RecheckPanel', () => {
   it('opens the complete modal and sends the typed note', async () => {
     const user = userEvent.setup();
     mockUseIntakeRecheckTasks.mockReturnValue({
-      data: { items: [makeTask()], total: 1, page: 1, limit: 20 },
+      data: { items: [makeTask()], pagination: { page: 1, limit: 20, total: 1, totalPages: 1 } },
     });
 
     render(<RecheckPanel intakeId="intake-1" profileId="profile-1" workflowStatus="APPROVED" />);
@@ -140,7 +138,7 @@ describe('RecheckPanel', () => {
   it('does not fire the dismiss mutation without a reason', async () => {
     const user = userEvent.setup();
     mockUseIntakeRecheckTasks.mockReturnValue({
-      data: { items: [makeTask()], total: 1, page: 1, limit: 20 },
+      data: { items: [makeTask()], pagination: { page: 1, limit: 20, total: 1, totalPages: 1 } },
     });
 
     render(<RecheckPanel intakeId="intake-1" profileId="profile-1" workflowStatus="APPROVED" />);

@@ -8,16 +8,20 @@ import { toast } from '@/lib/utils/toast';
 import { ApiError } from '@/types/api';
 
 /**
- * Ответ `GET /users/me/activities` — обёртка `{items,total,page,limit,hasNext}`,
- * а не голый массив (`LEGACY-218`). Хелпер собирает страницу мока, чтобы
+ * Ответ `GET /users/me/activities` — единая обёртка `{items, pagination}`
+ * (`LEGACY-177`, 13.09.2026). `hasNext` лежит **внутри** `pagination`, а не рядом
+ * с `items`, как было до (`LEGACY-218`). Хелпер собирает страницу мока, чтобы
  * каждый вызов `useUserActivities` в тестах не повторял форму руками.
  */
 const activitiesPage = (items: unknown[] = [], hasNext = false, page = 1) => ({
   items,
-  total: items.length,
-  page,
-  limit: 10,
-  hasNext,
+  pagination: {
+    page,
+    limit: 10,
+    total: items.length,
+    totalPages: Math.ceil(items.length / 10),
+    hasNext,
+  },
 });
 
 /**
@@ -30,10 +34,10 @@ const activitiesQuery = (
   overrides: Record<string, unknown> = {}
 ) =>
   ({
-    data: { pages, pageParams: pages.map((p) => p.page) },
+    data: { pages, pageParams: pages.map((p) => p.pagination.page) },
     isLoading: false,
     isFetchingNextPage: false,
-    hasNextPage: pages.length > 0 ? pages[pages.length - 1].hasNext : false,
+    hasNextPage: pages.length > 0 ? pages[pages.length - 1].pagination.hasNext : false,
     fetchNextPage: vi.fn(),
     isError: false,
     refetch: vi.fn(),

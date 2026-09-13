@@ -38,7 +38,7 @@ const intake: RightsIntakeListItem = {
 
 vi.mock('@/api/hooks/useRightsIntakes', () => ({
   useRightsIntakes: () => ({
-    data: { items: [intake], total: 1, page: 1, limit: 20 },
+    data: { items: [intake], pagination: { page: 1, limit: 20, total: 1, totalPages: 1 } },
     isLoading: false,
     error: null,
   }),

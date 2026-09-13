@@ -31,8 +31,8 @@ describe('admin authors endpoints', () => {
       http.get(`${API_BASE}/admin/authors`, ({ request }) => {
         seenUrl = request.url;
         return HttpResponse.json({
-          data: [],
-          meta: { page: 1, limit: 30, total: 0, totalPages: 0 },
+          items: [],
+          pagination: { page: 1, limit: 30, total: 0, totalPages: 0 },
         });
       })
     );
@@ -52,8 +52,8 @@ describe('admin authors endpoints', () => {
       http.get(`${API_BASE}/admin/authors`, ({ request }) => {
         seenUrl = request.url;
         return HttpResponse.json({
-          data: [],
-          meta: { page: 1, limit: 30, total: 0, totalPages: 0 },
+          items: [],
+          pagination: { page: 1, limit: 30, total: 0, totalPages: 0 },
         });
       })
     );

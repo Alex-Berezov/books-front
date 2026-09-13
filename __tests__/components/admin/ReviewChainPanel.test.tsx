@@ -36,7 +36,9 @@ describe('ReviewChainPanel', () => {
   });
 
   it('says the clearance has not been rechecked yet when there is a single review', () => {
-    mockUseReviewChain.mockReturnValue({ data: { items: [makeItem()], total: 1 } });
+    mockUseReviewChain.mockReturnValue({
+      data: { items: [makeItem()], pagination: { page: 1, limit: 1, total: 1, totalPages: 1 } },
+    });
 
     render(<ReviewChainPanel intakeId="intake-1" />);
 
@@ -77,7 +79,7 @@ describe('ReviewChainPanel', () => {
             },
           }),
         ],
-        total: 3,
+        pagination: { page: 1, limit: 3, total: 3, totalPages: 1 },
       },
     });
 
@@ -93,7 +95,9 @@ describe('ReviewChainPanel', () => {
   });
 
   it('renders an empty state when the intake has no reviews', () => {
-    mockUseReviewChain.mockReturnValue({ data: { items: [], total: 0 } });
+    mockUseReviewChain.mockReturnValue({
+      data: { items: [], pagination: { page: 1, limit: 0, total: 0, totalPages: 0 } },
+    });
 
     render(<ReviewChainPanel intakeId="intake-1" />);
 

@@ -14,7 +14,9 @@ import { BookForm } from '@/components/admin/books/BookForm/BookForm';
  */
 
 vi.mock('@/api/hooks/useAuthors', () => ({
-  useAuthors: () => ({ data: { data: [] } }),
+  useAuthors: () => ({
+    data: { items: [], pagination: { page: 1, limit: 0, total: 0, totalPages: 0 } },
+  }),
   useAuthor: () => ({ data: undefined }),
 }));
 

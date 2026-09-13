@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { AuthorSearchSelect } from '@/components/admin/authors/AuthorSearchSelect';
-import type { Author } from '@/types/api-schema';
+import type { Author, PaginatedResult } from '@/types/api-schema';
 
 /**
  * `LEGACY-352`: выпадающий список авторов брал одну страницу общим потолком
@@ -26,6 +26,16 @@ const authorOf = (overrides: Partial<Author> = {}): Author => ({
   slug: 'jane-doe',
   translations: [{ language: 'en', slug: 'jane-doe', name: 'Jane Doe' }],
   ...overrides,
+});
+
+/**
+ * Страница выдачи `GET /admin/authors` в той форме, в какой её отдаёт сервер
+ * после `LEGACY-177`: `{items, pagination}`. Раньше здесь стояла обёртка
+ * `{data, meta}`; форму собирает хелпер, чтобы каждый мок не повторял её руками.
+ */
+const authorsPage = (items: Author[]): PaginatedResult<Author> => ({
+  items,
+  pagination: { page: 1, limit: 20, total: items.length, totalPages: items.length ? 1 : 0 },
 });
 
 const EXTRA = [
@@ -64,7 +74,7 @@ describe('AuthorSearchSelect (LEGACY-352)', () => {
   // проверка держалась бы на том, что 500 мс успевают пройти внутри `waitFor`.
   it('отдаёт введённый текст серверу как search, а не фильтрует загруженную страницу', () => {
     vi.useFakeTimers();
-    mocks.useAuthors.mockReturnValue({ data: { data: [authorOf()] }, isFetching: false });
+    mocks.useAuthors.mockReturnValue({ data: authorsPage([authorOf()]), isFetching: false });
     mocks.useAuthor.mockReturnValue({ data: undefined });
 
     const { container } = renderSelect();
@@ -86,7 +96,7 @@ describe('AuthorSearchSelect (LEGACY-352)', () => {
   });
 
   it('резолвит выбранного автора одиночным чтением, когда его нет в выдаче', () => {
-    mocks.useAuthors.mockReturnValue({ data: { data: [] }, isFetching: false });
+    mocks.useAuthors.mockReturnValue({ data: authorsPage([]), isFetching: false });
     mocks.useAuthor.mockReturnValue({ data: authorOf({ id: 'outside-page' }) });
 
     renderSelect('outside-page');
@@ -97,7 +107,7 @@ describe('AuthorSearchSelect (LEGACY-352)', () => {
 
   // Лишний запрос за тем, что уже на руках: автор в выдаче есть.
   it('не ходит за автором, который уже пришёл в выдаче поиска', () => {
-    mocks.useAuthors.mockReturnValue({ data: { data: [authorOf({ id: 'a-1' })] } });
+    mocks.useAuthors.mockReturnValue({ data: authorsPage([authorOf({ id: 'a-1' })]) });
     mocks.useAuthor.mockReturnValue({ data: undefined });
 
     renderSelect('a-1');
@@ -107,7 +117,7 @@ describe('AuthorSearchSelect (LEGACY-352)', () => {
 
   // Служебные пункты формы автором не являются и одиночного чтения не вызывают.
   it('не принимает служебный пункт за идентификатор автора', () => {
-    mocks.useAuthors.mockReturnValue({ data: { data: [] } });
+    mocks.useAuthors.mockReturnValue({ data: authorsPage([]) });
     mocks.useAuthor.mockReturnValue({ data: undefined });
 
     renderSelect('custom');
@@ -138,7 +148,7 @@ describe('AuthorSearchSelect (LEGACY-352)', () => {
   });
 
   it('пустая выдача без отказа — «не найдено»', () => {
-    mocks.useAuthors.mockReturnValue({ data: { data: [] }, isFetching: false, isError: false });
+    mocks.useAuthors.mockReturnValue({ data: authorsPage([]), isFetching: false, isError: false });
     mocks.useAuthor.mockReturnValue({ data: undefined });
 
     const { container } = renderSelect();
@@ -150,7 +160,7 @@ describe('AuthorSearchSelect (LEGACY-352)', () => {
   // Отказ одиночного чтения: без своей строки в поле остаётся голый uuid,
   // и объяснения нет никакого.
   it('говорит, что выбранного автора не удалось загрузить', () => {
-    mocks.useAuthors.mockReturnValue({ data: { data: [] }, isFetching: false, isError: false });
+    mocks.useAuthors.mockReturnValue({ data: authorsPage([]), isFetching: false, isError: false });
     mocks.useAuthor.mockReturnValue({ data: undefined, isError: true });
 
     const { container } = renderSelect('outside-page');
@@ -163,7 +173,7 @@ describe('AuthorSearchSelect (LEGACY-352)', () => {
   // фильтр его больше не выбрасывает: с активной первой опцией Enter выбирал бы
   // «-- Select Existing Author --» и стирал уже набранное вручную имя.
   it('не делает служебный пункт активным по умолчанию', () => {
-    mocks.useAuthors.mockReturnValue({ data: { data: [authorOf()] }, isFetching: false });
+    mocks.useAuthors.mockReturnValue({ data: authorsPage([authorOf()]), isFetching: false });
     mocks.useAuthor.mockReturnValue({ data: undefined });
 
     const { container } = renderSelect();
@@ -177,7 +187,7 @@ describe('AuthorSearchSelect (LEGACY-352)', () => {
   // человека читалась бы как «в базе больше никого нет».
   it('сбрасывает запрос после выбора автора, а не тянет старый q дальше', () => {
     vi.useFakeTimers();
-    mocks.useAuthors.mockReturnValue({ data: { data: [authorOf()] }, isFetching: false });
+    mocks.useAuthors.mockReturnValue({ data: authorsPage([authorOf()]), isFetching: false });
     mocks.useAuthor.mockReturnValue({ data: undefined });
 
     const onChange = vi.fn();

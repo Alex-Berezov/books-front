@@ -73,9 +73,13 @@ export const handlers = [
           updatedAt: '2026-07-01T00:00:00Z',
         },
       ],
-      total: 1,
-      page: Number(url.searchParams.get('page') ?? '1'),
-      limit: Number(url.searchParams.get('limit') ?? '20'),
+      // `LEGACY-177`: обёртка списка сведена к `{items, pagination}`.
+      pagination: {
+        total: 1,
+        page: Number(url.searchParams.get('page') ?? '1'),
+        limit: Number(url.searchParams.get('limit') ?? '20'),
+        totalPages: 1,
+      },
     });
   }),
 
@@ -83,14 +87,17 @@ export const handlers = [
     const url = new URL(request.url);
     return HttpResponse.json({
       items: [],
-      total: 0,
-      page: Number(url.searchParams.get('page') ?? '1'),
-      limit: Number(url.searchParams.get('limit') ?? '20'),
+      pagination: {
+        total: 0,
+        page: Number(url.searchParams.get('page') ?? '1'),
+        limit: Number(url.searchParams.get('limit') ?? '20'),
+        totalPages: 0,
+      },
     });
   }),
 
   http.get(`${API_BASE}/admin/rights/intakes/:intakeId/lawyer-reviews`, () =>
-    HttpResponse.json({ items: [], total: 0, page: 1, limit: 20 })
+    HttpResponse.json({ items: [], pagination: { total: 0, page: 1, limit: 20, totalPages: 0 } })
   ),
 
   http.get(`${API_BASE}/admin/rights/profiles/:profileId/risk-assessment`, ({ params }) =>

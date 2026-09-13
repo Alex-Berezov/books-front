@@ -12,7 +12,9 @@ vi.mock('next-auth/react', () => ({
 vi.mock('@/api/hooks/useRightsLawyer', () => ({
   useVersionLawyerReview: () => ({ data: null, isLoading: false }),
   useLawyerReview: () => ({ data: null, isLoading: false, isError: false }),
-  useLawyers: () => ({ data: { items: [], total: 0, page: 1, limit: 20 } }),
+  useLawyers: () => ({
+    data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },
+  }),
   useAssignLawyerReview: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useStartLawyerReview: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useDecideLawyerReview: () => ({ mutateAsync: vi.fn(), isPending: false }),
@@ -106,7 +108,7 @@ vi.mock('@/api/hooks/useRightsRecheck', () => ({
 
 vi.mock('@/api/hooks/useRightsClaims', () => ({
   useVersionRightsClaims: () => ({
-    data: { items: [], total: 0, page: 1, limit: 0 },
+    data: { items: [], pagination: { page: 1, limit: 0, total: 0, totalPages: 0 } },
     isLoading: false,
   }),
   useRightsClaim: () => ({ data: undefined, isLoading: false }),

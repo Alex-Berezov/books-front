@@ -73,11 +73,27 @@ const makeSubmission = (overrides: Partial<RightsAgentSubmission> = {}): RightsA
 
 const mockData = (tokens: RightsAgentToken[], submissions: RightsAgentSubmission[] = []) => {
   mockUseRightsAgentTokens.mockReturnValue({
-    data: { items: tokens, total: tokens.length, page: 1, limit: 20 },
+    data: {
+      items: tokens,
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: tokens.length,
+        totalPages: Math.ceil(tokens.length / 20),
+      },
+    },
     isLoading: false,
   });
   mockUseRightsAgentSubmissions.mockReturnValue({
-    data: { items: submissions, total: submissions.length, page: 1, limit: 20 },
+    data: {
+      items: submissions,
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: submissions.length,
+        totalPages: Math.ceil(submissions.length / 20),
+      },
+    },
     isLoading: false,
   });
 };
