@@ -64,7 +64,7 @@ export const AuthorSearchSelect: FC<AuthorSearchSelectProps> = (props) => {
     isError,
   } = useAuthors({ limit: AUTHOR_SEARCH_PAGE_SIZE, search: debouncedSearch || undefined });
 
-  const authors = authorsData?.data || [];
+  const authors = authorsData?.items || [];
   const isRealAuthorId = Boolean(value) && !extraOptions.some((option) => option.value === value);
   // Отсутствующим автор считается только по **пришедшему** ответу: пока список
   // грузится, `authors` пуст, и на `!authors.some(...)` одиночное чтение уходило

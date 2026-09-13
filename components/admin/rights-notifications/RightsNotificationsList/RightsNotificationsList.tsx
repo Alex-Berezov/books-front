@@ -73,8 +73,11 @@ export const RightsNotificationsList: FC<RightsNotificationsListProps> = ({ lang
   const markAllReadMutation = useMarkAllRightsNotificationsRead();
 
   const items = notificationsQuery.data?.items ?? [];
-  const total = notificationsQuery.data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  // `totalPages` берётся у сервера (`LEGACY-177`). Приведение формы живёт
+  // в слое данных (`lib/api/paginated-envelope.ts`), поэтому запасного расчёта
+  // здесь нет. `Math.max(1, ...)` сохранён: сервер на пустой выдаче отдаёт 0,
+  // и без него подпись сменилась бы на «страница 1 из 0».
+  const totalPages = Math.max(1, notificationsQuery.data?.pagination.totalPages ?? 0);
 
   return (
     <div className={styles.container}>

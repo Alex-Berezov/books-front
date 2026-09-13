@@ -117,8 +117,8 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
   };
 
   const handleNextPage = () => {
-    if (data?.meta.totalPages) {
-      setPage((p) => Math.min(data.meta.totalPages, p + 1));
+    if (data?.pagination?.totalPages) {
+      setPage((p) => Math.min(data.pagination?.totalPages ?? p + 1, p + 1));
     }
   };
 
@@ -135,8 +135,12 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
     return <ErrorState lang={lang} errorMessage="No data available" />;
   }
 
-  // Check for valid data format
-  if (!isLoading && (Array.isArray(data) || !data?.meta || !data?.data)) {
+  // Проверка формы ответа. Остаётся и после `LEGACY-177`, только сверяется теперь
+  // с новой обёрткой `{items, pagination}`: стороны выкатываются врозь (бэкенд тегом,
+  // фронт пушем), безопасного порядка у пары нет, и в окне выката сюда приходит ответ
+  // ровно одной из двух форм. Без этой ветки старая обёртка развернулась бы в
+  // `undefined` и уронила экран вместо внятного отказа.
+  if (!isLoading && (Array.isArray(data) || !data?.pagination || !data?.items)) {
     enqueueSnackbar('Invalid API response format received', { variant: 'error' });
     return (
       <ErrorState
@@ -148,9 +152,9 @@ export const PageListTable: FC<PageListTableProps> = (props) => {
 
   // Calculate pagination data
   // Calculate pagination data
-  const totalPages = data?.meta?.totalPages || 0;
-  const totalItems = data?.meta?.total || 0;
-  const groups = data?.data || [];
+  const totalPages = data?.pagination?.totalPages || 0;
+  const totalItems = data?.pagination?.total || 0;
+  const groups = data?.items || [];
 
   return (
     <div className={styles.container}>

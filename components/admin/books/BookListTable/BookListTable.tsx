@@ -68,8 +68,8 @@ export const BookListTable: FC<BookListTableProps> = (props) => {
   }
 
   // Calculate pagination data
-  const totalPages = data?.meta.totalPages || 0;
-  const books = data?.data || [];
+  const totalPages = data?.pagination?.totalPages || 0;
+  const books = data?.items || [];
 
   return (
     <div className={styles.root}>

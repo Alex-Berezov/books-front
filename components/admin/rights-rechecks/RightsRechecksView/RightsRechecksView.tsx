@@ -123,10 +123,10 @@ export const RightsRechecksView: FC<RightsRechecksViewProps> = ({ lang }) => {
   const archiveLegalMutation = useArchiveRightsLegalChange();
 
   const tasks = tasksQuery.data?.items ?? [];
-  const total = tasksQuery.data?.total ?? 0;
+  const total = tasksQuery.data?.pagination?.total ?? 0;
   const lastScan = scanRunsQuery.data?.items[0] ?? null;
   const legalChanges = legalChangesQuery.data?.items ?? [];
-  const legalTotal = legalChangesQuery.data?.total ?? 0;
+  const legalTotal = legalChangesQuery.data?.pagination?.total ?? 0;
 
   const closeModal = () => {
     setModal(null);
@@ -236,8 +236,12 @@ export const RightsRechecksView: FC<RightsRechecksViewProps> = ({ lang }) => {
     }
   };
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const legalTotalPages = Math.max(1, Math.ceil(legalTotal / PAGE_SIZE));
+  // `totalPages` берётся у сервера (`LEGACY-177`). Приведение формы живёт
+  // в слое данных (`lib/api/paginated-envelope.ts`), поэтому запасного расчёта
+  // здесь нет. `Math.max(1, ...)` сохранён: сервер на пустой выдаче отдаёт 0,
+  // и без него подпись сменилась бы на «страница 1 из 0».
+  const totalPages = Math.max(1, tasksQuery.data?.pagination.totalPages ?? 0);
+  const legalTotalPages = Math.max(1, legalChangesQuery.data?.pagination.totalPages ?? 0);
 
   return (
     <div className={styles.container}>

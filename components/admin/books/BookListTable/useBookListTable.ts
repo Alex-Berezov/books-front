@@ -59,7 +59,10 @@ export const useBookListTable = (_props: UseBookListTableProps) => {
   const data = rawData
     ? {
         ...rawData,
-        data: rawData.data.filter((book) => {
+        // `items ?? []`: в окне между выкатами (бэкенд уезжает тегом, фронт —
+        // пушем) старый бэкенд отдаёт `{data, meta}`, и `items` приходит
+        // `undefined`. Без запасного значения `.filter` роняет весь список книг.
+        items: (rawData.items ?? []).filter((book) => {
           // Search filter - check title, slug, author in versions
           const searchLower = debouncedSearch.toLowerCase();
           const matchesSearch =

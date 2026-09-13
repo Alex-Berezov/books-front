@@ -27,7 +27,7 @@ export const AuthorList: FC<AuthorListProps> = ({ lang }) => {
   const { data, isLoading, error } = useAuthors({ page, limit: 100 });
   const deleteMutation = useDeleteAuthor();
 
-  const rawAuthors = data?.data || [];
+  const rawAuthors = data?.items || [];
 
   // Filter on client side
   const authors = rawAuthors.filter((author) => {

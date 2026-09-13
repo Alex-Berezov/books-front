@@ -63,7 +63,7 @@ export const CommentsList: FC = () => {
   const handleReplySubmit = (form: { content: string }) => {
     // `form`, а не `data`: имя `data` уже занято ответом списка выше, и
     // затенение здесь молча увело бы поиск родителя в форму.
-    const parent = data?.data.find((item) => item.id === replyId);
+    const parent = data?.items.find((item) => item.id === replyId);
     // Ответ создаётся как обычный комментарий: нужен и родитель, и цель —
     // одного `parentId` серверу мало (XOR по полям цели).
     if (!parent?.bookVersionId) return;
@@ -115,7 +115,7 @@ export const CommentsList: FC = () => {
               <Skeleton variant="text" width="80%" />
             </div>
           ))
-        ) : data?.data.length === 0 ? (
+        ) : data?.items.length === 0 ? (
           <EmptyState
             title="No comments found"
             description={
@@ -124,7 +124,7 @@ export const CommentsList: FC = () => {
             icon={<MessageSquare />}
           />
         ) : (
-          data?.data.map((comment: Comment) => (
+          data?.items.map((comment: Comment) => (
             <CommentItem
               key={comment.id}
               comment={comment}
@@ -137,9 +137,13 @@ export const CommentsList: FC = () => {
         )}
       </div>
 
-      {data?.meta && data.meta.totalPages > 1 && (
+      {data?.pagination && data.pagination.totalPages > 1 && (
         <div className={styles.pagination}>
-          <Pagination currentPage={page} totalPages={data.meta.totalPages} onPageChange={setPage} />
+          <Pagination
+            currentPage={page}
+            totalPages={data.pagination.totalPages}
+            onPageChange={setPage}
+          />
         </div>
       )}
 

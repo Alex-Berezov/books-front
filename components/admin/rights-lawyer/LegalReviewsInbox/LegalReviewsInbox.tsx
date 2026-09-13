@@ -87,9 +87,13 @@ export const LegalReviewsInbox: FC = () => {
   });
 
   const reviews = useMemo(() => reviewsQuery.data?.items ?? [], [reviewsQuery.data]);
-  const total = reviewsQuery.data?.total ?? 0;
+  const total = reviewsQuery.data?.pagination?.total ?? 0;
   const lawyers = useMemo(() => lawyersQuery.data?.items ?? [], [lawyersQuery.data]);
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  // `totalPages` берётся у сервера (`LEGACY-177`). Приведение формы живёт
+  // в слое данных (`lib/api/paginated-envelope.ts`), поэтому запасного расчёта
+  // здесь нет. `Math.max(1, ...)` сохранён: сервер на пустой выдаче отдаёт 0,
+  // и без него подпись сменилась бы на «страница 1 из 0».
+  const totalPages = Math.max(1, reviewsQuery.data?.pagination.totalPages ?? 0);
 
   const resetPage = () => setPage(1);
 

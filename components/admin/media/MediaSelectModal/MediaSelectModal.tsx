@@ -107,7 +107,7 @@ export const MediaSelectModal: FC<MediaSelectModalProps> = (props) => {
                 ) : (
                   <div className={selectedFile ? styles.hasSelection : ''}>
                     <MediaGrid
-                      files={data?.data || []}
+                      files={data?.items || []}
                       onSelect={handleFileSelect}
                       selectedId={selectedFile?.id}
                     />

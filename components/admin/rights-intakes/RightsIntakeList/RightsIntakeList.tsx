@@ -81,7 +81,7 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
     );
   }
 
-  const totalPages = data ? Math.ceil(data.total / data.limit) : 0;
+  const totalPages = data?.pagination?.totalPages ?? 0;
   const intakes = data?.items || [];
 
   return (
@@ -164,7 +164,7 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
 
       {data && (
         <div className={styles.info}>
-          Showing {intakes.length} of {data.total} intakes
+          Showing {intakes.length} of {data.pagination?.total ?? intakes.length} intakes
         </div>
       )}
 

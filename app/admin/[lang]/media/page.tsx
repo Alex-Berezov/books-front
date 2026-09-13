@@ -126,7 +126,7 @@ export default function MediaPage() {
             ))}
           </div>
         )
-      ) : !data?.data?.length ? (
+      ) : !data?.items?.length ? (
         <EmptyState
           title="No media files found"
           description={search ? 'Try a different search term' : 'Upload your first media file'}
@@ -144,24 +144,24 @@ export default function MediaPage() {
         <>
           {viewMode === 'grid' ? (
             <MediaGrid
-              files={data.data}
+              files={data.items}
               onSelect={setPreviewFile}
               onDelete={setFileToDelete}
               onCopyUrl={handleCopyUrl}
             />
           ) : (
             <MediaList
-              files={data.data}
+              files={data.items}
               onSelect={setPreviewFile}
               onDelete={setFileToDelete}
               onCopyUrl={handleCopyUrl}
             />
           )}
 
-          {(data?.meta?.totalPages ?? 0) > 1 && (
+          {(data?.pagination?.totalPages ?? 0) > 1 && (
             <Pagination
               currentPage={page}
-              totalPages={data.meta.totalPages}
+              totalPages={data.pagination.totalPages}
               onPageChange={setPage}
             />
           )}

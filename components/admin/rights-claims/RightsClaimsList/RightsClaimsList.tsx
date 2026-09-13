@@ -85,7 +85,7 @@ export const RightsClaimsList: FC<RightsClaimsListProps> = ({ lang }) => {
   }
 
   const claims = data?.items ?? [];
-  const totalPages = data ? Math.ceil(data.total / data.limit) : 0;
+  const totalPages = data?.pagination?.totalPages ?? 0;
   const hasFilters = Boolean(
     search || statusFilter || typeFilter || severityFilter || openOnly || overdueOnly
   );
@@ -180,7 +180,7 @@ export const RightsClaimsList: FC<RightsClaimsListProps> = ({ lang }) => {
 
       {data && (
         <div className={styles.info}>
-          Показано {claims.length} из {data.total} претензий
+          Показано {claims.length} из {data.pagination?.total ?? claims.length} претензий
         </div>
       )}
 

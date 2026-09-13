@@ -50,7 +50,7 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
   }
 
   const users = data?.items || [];
-  const totalPages = data?.total && data?.limit ? Math.ceil(data.total / data.limit) : 0;
+  const totalPages = data?.pagination?.totalPages ?? 0;
 
   return (
     <div className={styles.root}>
