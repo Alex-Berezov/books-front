@@ -1,3 +1,5 @@
+import type { PaginatedResult } from './api-schema/common';
+
 export type ContributorRole =
   | 'AUTHOR'
   | 'TRANSLATOR'
@@ -113,12 +115,11 @@ export interface Contributor {
   updatedAt: string;
 }
 
-export interface ContributorListResponse {
-  items: Contributor[];
-  total: number;
-  page: number;
-  limit: number;
-}
+/**
+ * Ответ `GET /admin/contributors` — единая обёртка `{items, pagination}` (`LEGACY-177`,
+ * 13.09.2026). До этого дня `total`, `page` и `limit` лежали рядом с `items`.
+ */
+export type ContributorListResponse = PaginatedResult<Contributor>;
 
 export interface CreateContributorPayload {
   displayName: string;

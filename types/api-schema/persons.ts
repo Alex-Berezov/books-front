@@ -6,11 +6,14 @@
  * и оттуда же импортируется: этот файл описывает только конверт ответа.
  */
 
+import type { PaginatedResult } from './common';
 import type { Person } from '../contributors';
 
-export interface PersonListResponse {
-  items: Person[];
-  total: number;
-  limit: number;
-  offset: number;
-}
+/**
+ * Единая обёртка `{items, pagination}` (`LEGACY-177`, 13.09.2026).
+ *
+ * ⚠️ `offset` из **ответа** ушёл: номер страницы сервер считает сам
+ * (`books/src/modules/persons/persons.service.ts` — `Math.floor(offset / limit) + 1`).
+ * Входной query-параметр `offset` не менялся и по-прежнему уходит в запросе.
+ */
+export type PersonListResponse = PaginatedResult<Person>;

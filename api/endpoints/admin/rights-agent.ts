@@ -1,3 +1,4 @@
+import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpGetAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   CreateRightsAgentTokenRequest,
@@ -59,7 +60,7 @@ export const getRightsAgentTokens = async (
   httpGetAuth<RightsAgentTokensListResponse>(
     `/admin/rights/intakes/${intakeId}/agent-tokens?${buildTokensQuery(params)}`,
     { requireAuth: true }
-  );
+  ).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const revokeRightsAgentToken = async (
   tokenId: string,
@@ -76,7 +77,7 @@ export const getRightsAgentSubmissions = async (
   httpGetAuth<RightsAgentSubmissionsListResponse>(
     `/admin/rights/intakes/${intakeId}/agent-submissions?${buildSubmissionsQuery(params)}`,
     { requireAuth: true }
-  );
+  ).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getRightsAgentSubmission = async (
   submissionId: string
@@ -91,7 +92,7 @@ export const getRightsNotifications = async (
   httpGetAuth<RightsNotificationsListResponse>(
     `/admin/rights/notifications?${buildNotificationsQuery(params)}`,
     { requireAuth: true }
-  );
+  ).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getRightsNotificationsUnreadCount =
   async (): Promise<RightsNotificationsUnreadCount> =>

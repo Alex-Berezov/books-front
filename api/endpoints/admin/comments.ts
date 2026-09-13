@@ -1,3 +1,4 @@
+import { toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   ClientComment,
@@ -21,7 +22,7 @@ import type { UUID } from '@/types/api-schema/common';
  * раздельного ответа по роли.
  */
 export const commentsApi = {
-  getComments: (params: GetCommentsParams) => {
+  getComments: async (params: GetCommentsParams): Promise<CommentsResponse> => {
     const queryParams = new URLSearchParams();
     if (params.page) queryParams.append('page', String(params.page));
     if (params.limit) queryParams.append('limit', String(params.limit));
@@ -30,7 +31,10 @@ export const commentsApi = {
     if (params.bookId) queryParams.append('bookId', params.bookId);
 
     const endpoint = `/admin/comments?${queryParams.toString()}`;
-    return httpGetAuth<CommentsResponse>(endpoint);
+    // Форма ответа приводится здесь, а не в экране: в окне между выкатами
+    // сторон сюда приходит прежняя `{data, meta}` (`LEGACY-177`).
+    const body = await httpGetAuth<CommentsResponse>(endpoint);
+    return toPaginated(body, { page: params.page ?? 1, limit: params.limit ?? 20 });
   },
 
   /**

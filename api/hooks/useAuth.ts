@@ -102,7 +102,7 @@ export const useUserActivities = (
     queryFn: ({ pageParam }) => authApi.getUserActivities({ page: pageParam, limit }),
     initialPageParam: 1,
     getNextPageParam: (lastPage: UserActivitiesResponse) =>
-      lastPage.hasNext ? lastPage.page + 1 : undefined,
+      lastPage.pagination.hasNext ? lastPage.pagination.page + 1 : undefined,
     staleTime: staleTimeConfig.user,
     ...options,
   });

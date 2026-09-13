@@ -25,7 +25,7 @@ import type {
   BookDetailResponse,
   BookListItem,
   CreateBookResponse,
-  PaginatedResponse,
+  PaginatedResult,
   UserRatingResponse,
 } from '@/types/api-schema';
 
@@ -65,7 +65,7 @@ export const bookKeys = {
  */
 export const useBooks = (
   params: GetBooksParams = {},
-  options?: Omit<UseQueryOptions<PaginatedResponse<BookListItem>>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginatedResult<BookListItem>>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: bookKeys.list(params),

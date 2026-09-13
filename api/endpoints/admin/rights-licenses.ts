@@ -1,3 +1,4 @@
+import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   CreateRightsLicenseRequest,
@@ -32,7 +33,9 @@ export const getRightsLicenses = async (
   params: QueryRightsLicensesParams = {}
 ): Promise<RightsLicensesListResponse> => {
   const endpoint = `/admin/rights/licenses?${buildLicensesQuery(params)}`;
-  return httpGetAuth<RightsLicensesListResponse>(endpoint, { requireAuth: true });
+  return httpGetAuth<RightsLicensesListResponse>(endpoint, { requireAuth: true }).then((body) =>
+    toPaginated(body, LIST_FALLBACK)
+  );
 };
 
 export const getRightsLicense = async (id: string): Promise<RightsLicense> =>
@@ -74,7 +77,7 @@ export const unlinkRightsLicense = async (
 export const getProfileLicenses = async (profileId: string): Promise<RightsLicensesListResponse> =>
   httpGetAuth<RightsLicensesListResponse>(`/admin/rights/profiles/${profileId}/licenses`, {
     requireAuth: true,
-  });
+  }).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getProfileLicenseCoverage = async (
   profileId: string

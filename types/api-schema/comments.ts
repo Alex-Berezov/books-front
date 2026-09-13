@@ -1,4 +1,4 @@
-import type { UUID, ISODate, PaginationMeta } from './common';
+import type { UUID, ISODate, PaginatedResult } from './common';
 
 export type CommentStatus = 'visible' | 'hidden';
 
@@ -41,10 +41,13 @@ export interface GetCommentsParams {
   bookId?: UUID;
 }
 
-export interface CommentsResponse {
-  data: Comment[];
-  meta: PaginationMeta;
-}
+/**
+ * Ответ `GET /admin/comments` — единая обёртка `{items, pagination}` (`LEGACY-177`).
+ *
+ * ⚠️ Публичный `GET /comments` (он же `BookCommentsResponse` ниже) на эту форму
+ * **не переводился**: там осталась своя.
+ */
+export type CommentsResponse = PaginatedResult<Comment>;
 
 export interface ModerateCommentRequest {
   isHidden: boolean;

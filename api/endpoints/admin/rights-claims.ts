@@ -1,3 +1,4 @@
+import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   ApplyClaimBlockRequest,
@@ -53,7 +54,7 @@ export const getRightsClaims = async (
 ): Promise<RightsClaimsListResponse> =>
   httpGetAuth<RightsClaimsListResponse>(`/admin/rights/claims?${buildClaimsQuery(params)}`, {
     requireAuth: true,
-  });
+  }).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getRightsClaim = async (id: string): Promise<RightsClaim> =>
   httpGetAuth<RightsClaim>(`/admin/rights/claims/${id}`, { requireAuth: true });
@@ -160,9 +161,9 @@ export const getVersionRightsClaims = async (
 ): Promise<RightsClaimsListResponse> =>
   httpGetAuth<RightsClaimsListResponse>(`/admin/versions/${versionId}/rights-claims`, {
     requireAuth: true,
-  });
+  }).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getBookRightsClaims = async (bookId: string): Promise<RightsClaimsListResponse> =>
   httpGetAuth<RightsClaimsListResponse>(`/admin/books/${bookId}/rights-claims`, {
     requireAuth: true,
-  });
+  }).then((body) => toPaginated(body, LIST_FALLBACK));

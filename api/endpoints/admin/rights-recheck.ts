@@ -1,3 +1,4 @@
+import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   CompleteRecheckTaskRequest,
@@ -67,7 +68,7 @@ export const getRightsRecheckTasks = async (
   httpGetAuth<RightsRecheckTasksListResponse>(
     `/admin/rights/recheck/tasks?${buildTasksQuery(params)}`,
     { requireAuth: true }
-  );
+  ).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getRightsRecheckTask = async (taskId: string): Promise<RightsRecheckTaskDetail> =>
   httpGetAuth<RightsRecheckTaskDetail>(`/admin/rights/recheck/tasks/${taskId}`, {
@@ -126,7 +127,7 @@ export const getIntakeRecheckTasks = async (
   httpGetAuth<RightsRecheckTasksListResponse>(
     `/admin/rights/intakes/${intakeId}/recheck-tasks?${buildTasksQuery(params)}`,
     { requireAuth: true }
-  );
+  ).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getRecheckSchedule = async (
   profileId: string
@@ -154,7 +155,7 @@ export const getVersionRecheck = async (versionId: string): Promise<VersionReche
 export const getReviewChain = async (intakeId: string): Promise<RightsReviewChainResponse> =>
   httpGetAuth<RightsReviewChainResponse>(`/admin/rights/intakes/${intakeId}/review-chain`, {
     requireAuth: true,
-  });
+  }).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const runRecheckScan = async (): Promise<RightsRecheckScanRun> =>
   httpPostAuth<RightsRecheckScanRun>('/admin/rights/recheck/scan', {}, { requireAuth: true });
@@ -165,7 +166,7 @@ export const getRecheckScanRuns = async (
   httpGetAuth<RightsRecheckScanRunsListResponse>(
     `/admin/rights/recheck/scan-runs?${buildScanRunsQuery(params)}`,
     { requireAuth: true }
-  );
+  ).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getRightsLegalChanges = async (
   params: ListLegalChangesParams = {}
@@ -173,7 +174,7 @@ export const getRightsLegalChanges = async (
   httpGetAuth<RightsLegalChangesListResponse>(
     `/admin/rights/legal-changes?${buildLegalChangesQuery(params)}`,
     { requireAuth: true }
-  );
+  ).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const createRightsLegalChange = async (
   data: CreateLegalChangeRequest

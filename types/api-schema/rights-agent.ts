@@ -3,6 +3,8 @@
  * Mirrors `books/src/modules/rights-agent/dto/*`.
  */
 
+import type { PaginatedResult } from './common';
+
 export type RightsAgentTokenStatus = 'ACTIVE' | 'USED' | 'REVOKED' | 'EXPIRED';
 
 export type RightsAgentSubmissionStatus =
@@ -136,26 +138,11 @@ export interface RightsNotification {
   createdAt: string;
 }
 
-export interface RightsAgentTokensListResponse {
-  items: RightsAgentToken[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsAgentTokensListResponse = PaginatedResult<RightsAgentToken>;
 
-export interface RightsAgentSubmissionsListResponse {
-  items: RightsAgentSubmission[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsAgentSubmissionsListResponse = PaginatedResult<RightsAgentSubmission>;
 
-export interface RightsNotificationsListResponse {
-  items: RightsNotification[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsNotificationsListResponse = PaginatedResult<RightsNotification>;
 
 export interface CreateRightsAgentTokenRequest {
   labelRu?: string;

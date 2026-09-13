@@ -59,6 +59,45 @@ export interface PaginatedResponse<T> {
 }
 
 /**
+ * Пагинация единой обёртки `{items, pagination}` (`LEGACY-177`, 13.09.2026).
+ *
+ * Поля те же, что у `PaginationMeta`, но объявлены отдельно намеренно: `PaginationMeta`
+ * — половина `PaginatedResponse` и живёт на публичных маршрутах, которые этой обёрткой
+ * **не переводятся** (их ответы лежат в edge-кэше Cloudflare). Общий тип на две формы
+ * связал бы публичную витрину с админской правкой: переименование поля здесь поехало бы
+ * туда, где форма не менялась.
+ */
+export interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+/**
+ * Пагинация с признаком следующей страницы — для бесконечных списков
+ * (`GET /users/me/activities`, `GET /me/bookshelf`).
+ *
+ * `hasNext` бэкенд оставил **внутри** `pagination`, а не рядом с ним: снаружи обёртки
+ * у списочного ответа теперь только `items` и `pagination`.
+ */
+export interface PaginationInfoWithNext extends PaginationInfo {
+  hasNext: boolean;
+}
+
+/**
+ * Единая обёртка списочного ответа: `{ items, pagination }`.
+ *
+ * Источник формы — `books/src/shared/dto/paginated-response.dto.ts`. Переведены на неё
+ * только перечисленные там админские и личные маршруты; публичная витрина осталась
+ * на `PaginatedResponse` (`{data, meta}`) и на своих собственных формах.
+ */
+export interface PaginatedResult<T, P extends PaginationInfo = PaginationInfo> {
+  items: T[];
+  pagination: P;
+}
+
+/**
  * Import result from JSON import endpoints
  */
 export interface ImportResult {

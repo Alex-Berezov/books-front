@@ -6,12 +6,13 @@
  * multiple versions in different languages.
  */
 
+import { toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth } from '@/lib/http-client';
 import type {
   BookDetailResponse,
   BookListItem,
   CreateBookResponse,
-  PaginatedResponse,
+  PaginatedResult,
 } from '@/types/api-schema';
 
 /**
@@ -37,7 +38,7 @@ export interface GetBooksParams {
  */
 export const getBooks = async (
   params: GetBooksParams = {}
-): Promise<PaginatedResponse<BookListItem>> => {
+): Promise<PaginatedResult<BookListItem>> => {
   const { page = 1, limit = 20 } = params;
 
   const queryParams = new URLSearchParams({
@@ -48,7 +49,10 @@ export const getBooks = async (
   const endpoint = `/books?${queryParams.toString()}`;
   // ⚠️ Токен обязателен с 10.08.2026: маршрут админский и показывает черновики
   // (`LEGACY-093`). Публичной витрине нужен `getPublicBooks` — `/:lang/books`.
-  return httpGetAuth<PaginatedResponse<BookListItem>>(endpoint);
+  // Форма ответа приводится здесь, а не в экранах: в окне между выкатами сторон
+  // сюда приходит прежняя `{data, meta}` (`LEGACY-177`).
+  const body = await httpGetAuth<PaginatedResult<BookListItem>>(endpoint);
+  return toPaginated(body, { page, limit });
 };
 
 /**

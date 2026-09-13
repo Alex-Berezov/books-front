@@ -1,3 +1,5 @@
+import type { PaginatedResult } from './common';
+
 export type RightsIntakeStatus =
   | 'DRAFT'
   | 'READY_FOR_AGENT'
@@ -74,12 +76,7 @@ export interface RightsIntakeListItem extends RightsIntake {
   currentRightsProfile?: IntakeRightsProfileSummary | null;
 }
 
-export interface RightsIntakesListResponse {
-  items: RightsIntakeListItem[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsIntakesListResponse = PaginatedResult<RightsIntakeListItem>;
 
 export interface CreateRightsIntakeRequest {
   candidateTitle: string;
@@ -251,12 +248,7 @@ export interface RightsReviewImportDetail extends RightsReviewImportListItem {
   agentModel?: string | null;
 }
 
-export interface RightsReviewImportsListResponse {
-  items: RightsReviewImportListItem[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsReviewImportsListResponse = PaginatedResult<RightsReviewImportListItem>;
 
 export interface CreateRightsReviewImportRequest {
   reportJson: Record<string, unknown>;
@@ -649,10 +641,7 @@ export interface RightsProfileDetail {
   updatedAt: string;
 }
 
-export interface RightsProfileList {
-  items: RightsProfileSummary[];
-  total: number;
-}
+export type RightsProfileList = PaginatedResult<RightsProfileSummary>;
 
 export interface RightsApprovalDecision {
   id: string;

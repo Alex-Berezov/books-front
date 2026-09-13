@@ -1,3 +1,4 @@
+import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   Contributor,
@@ -20,7 +21,9 @@ export const getContributors = async (
   if (params.role) queryParams.set('role', params.role);
 
   const endpoint = `/admin/contributors?${queryParams.toString()}`;
-  return httpGetAuth<ContributorListResponse>(endpoint, { requireAuth: true });
+  return httpGetAuth<ContributorListResponse>(endpoint, { requireAuth: true }).then((body) =>
+    toPaginated(body, LIST_FALLBACK)
+  );
 };
 
 export const getContributor = async (id: string): Promise<Contributor> => {

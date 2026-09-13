@@ -4,7 +4,14 @@
  * User profile, settings
  */
 
-import type { ISODate, RoleName, SupportedLang, UUID } from './common';
+import type {
+  ISODate,
+  PaginatedResult,
+  PaginationInfoWithNext,
+  RoleName,
+  SupportedLang,
+  UUID,
+} from './common';
 
 /**
  * Ответ сохранения профиля (`PATCH /users/profile`).
@@ -68,14 +75,10 @@ export interface GetUsersParams {
 }
 
 /**
- * Response for users list
+ * Ответ `GET /users` (админский список) — единая обёртка `{items, pagination}`
+ * (`LEGACY-177`). До 13.09.2026 `total`, `page` и `limit` лежали рядом с `items`.
  */
-export interface UsersResponse {
-  items: User[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type UsersResponse = PaginatedResult<User>;
 
 /**
  * Request to create a new user
@@ -164,11 +167,11 @@ export interface GetUserActivitiesParams {
   limit?: number;
 }
 
-/** Ответ `GET /users/me/activities` — та же обёртка, что у `BookCommentsResponse` (`LEGACY-218`). */
-export interface UserActivitiesResponse {
-  items: UserActivity[];
-  total: number;
-  page: number;
-  limit: number;
-  hasNext: boolean;
-}
+/**
+ * Ответ `GET /users/me/activities` — единая обёртка `{items, pagination}` (`LEGACY-177`).
+ *
+ * `hasNext` не исчез, а переехал **внутрь** `pagination`: снаружи у списочного ответа
+ * теперь только `items` и `pagination`. До 13.09.2026 всё лежало плоско — так же,
+ * как у `BookCommentsResponse` (`LEGACY-218`), который на новую форму не переводился.
+ */
+export type UserActivitiesResponse = PaginatedResult<UserActivity, PaginationInfoWithNext>;

@@ -47,7 +47,7 @@ export const updateProfile = async (data: UpdateProfileRequest): Promise<UserPro
  * @returns Paginated user activities list
  *
  * ⚠️ Ответ разбирается в двух формах, и это не перестраховка. Смена формы —
- * ломающее изменение контракта (`LEGACY-177`), а выкатываются стороны врозь:
+ * ломающее изменение контракта (`LEGACY-218`), а выкатываются стороны врозь:
  * бэкенд уезжает тегом, фронт — пушем в `main`. Безопасного порядка у этой пары
  * нет: старый фронт на новом бэкенде читает `length` у объекта и показывает пустую
  * активность, новый фронт на старом бэкенде разворачивает `undefined` и роняет
@@ -65,9 +65,49 @@ export const getUserActivities = async (
     { requireAuth: true }
   );
 
+  // `totalPages` считается так же, как в `paginated()` на бэкенде: при нулевом
+  // `limit` страниц ноль, а не `Infinity`.
+  const totalPages = (total: number): number => (limit > 0 ? Math.ceil(total / limit) : 0);
+
   if (Array.isArray(body)) {
-    return { items: body, total: body.length, page: 1, limit, hasNext: false };
+    return {
+      items: body,
+      pagination: {
+        page: 1,
+        limit,
+        total: body.length,
+        totalPages: totalPages(body.length),
+        hasNext: false,
+      },
+    };
   }
+
+  // Плоская форма — та, которую бэкенд отдаёт до выката своего тега. Ветка
+  // обязана быть ровно по причине, описанной выше: пока бэкенд старый, поля
+  // `pagination` в ответе нет, а `useAuth.ts` читает `pagination.hasNext`
+  // и роняет страницу профиля целиком.
+  // `!body`: `lib/http.ts` возвращает `undefined` на 204 и на пустом теле,
+  // и оператор `in` по `undefined` бросил бы прямо внутри `queryFn`.
+  if (!body || !('pagination' in body)) {
+    const flat = (body ?? {}) as unknown as {
+      items: UserActivity[];
+      total: number;
+      page: number;
+      limit: number;
+      hasNext: boolean;
+    };
+    return {
+      items: flat.items ?? [],
+      pagination: {
+        page: flat.page ?? 1,
+        limit: flat.limit ?? limit,
+        total: flat.total ?? 0,
+        totalPages: totalPages(flat.total ?? 0),
+        hasNext: flat.hasNext ?? false,
+      },
+    };
+  }
+
   return body;
 };
 

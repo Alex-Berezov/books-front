@@ -4,7 +4,7 @@
  * User library, reading progress
  */
 
-import type { ISODate, UUID } from './common';
+import type { ISODate, PaginatedResult, PaginationInfoWithNext, UUID } from './common';
 
 /**
  * Тело ответа `POST /me/bookshelf/:versionId` (`BookshelfEntryDto` на бэкенде).
@@ -96,7 +96,14 @@ export interface BookVersionPreview {
   id: UUID;
   bookId: UUID;
   language: string;
-  slug?: string;
+  /**
+   * ⚠️ `string | null`, а не `string | undefined`: в схеме `BookVersion.slug`
+   * объявлен `String?` (`books/prisma/schema.prisma:64`), то есть сервер
+   * присылает ключ со значением `null`, а не опускает его. До 13.09.2026
+   * тип обещал непустую строку, и расхождение не ловилось ничем — гейт
+   * `check:type-sync` сверяет только тело ответа.
+   */
+  slug: string | null;
   title: string;
   author: string;
   description: string;
@@ -118,10 +125,8 @@ export interface BookshelfItemDto {
   bookVersion: BookVersionPreview;
 }
 
-export interface BookshelfListResponse {
-  items: BookshelfItemDto[];
-  page: number;
-  limit: number;
-  total: number;
-  hasNext: boolean;
-}
+/**
+ * Ответ `GET /me/bookshelf` — единая обёртка `{items, pagination}` (`LEGACY-177`).
+ * `hasNext` сохранён **внутри** `pagination`.
+ */
+export type BookshelfListResponse = PaginatedResult<BookshelfItemDto, PaginationInfoWithNext>;

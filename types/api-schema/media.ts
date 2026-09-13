@@ -1,4 +1,4 @@
-import type { UUID, ISODate, PaginationMeta } from './common';
+import type { UUID, ISODate, PaginatedResult } from './common';
 import type { MediaAsset } from './uploads';
 
 export type MediaType = 'image' | 'video' | 'audio' | 'document';
@@ -21,10 +21,13 @@ export interface GetMediaParams {
   search?: string;
 }
 
-export interface MediaResponse {
-  data: MediaFile[];
-  meta: PaginationMeta;
-}
+/**
+ * Ответ `GET /media` после отображения в `MediaFile` — единая обёртка `{items, pagination}`
+ * (`LEGACY-177`). До 13.09.2026 эта форма была своей собственной (`{data, meta}`): её строил
+ * маппер в `api/endpoints/admin/media.ts`, пока сервер отдавал `{items,total,page,limit}`.
+ * Теперь обёртка совпадает с серверной, и маппер переносит `pagination` как есть.
+ */
+export type MediaResponse = PaginatedResult<MediaFile>;
 
 /**
  * Тело ответа `POST /media/upload`.

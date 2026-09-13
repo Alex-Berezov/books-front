@@ -1,3 +1,4 @@
+import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   RightsIntake,
@@ -37,7 +38,9 @@ export const getRightsIntakes = async (
     queryParams.set('includeSummary', String(params.includeSummary));
 
   const endpoint = `/admin/rights/intakes?${queryParams.toString()}`;
-  return httpGetAuth<RightsIntakesListResponse>(endpoint, { requireAuth: true });
+  return httpGetAuth<RightsIntakesListResponse>(endpoint, { requireAuth: true }).then((body) =>
+    toPaginated(body, LIST_FALLBACK)
+  );
 };
 
 export const getRightsIntake = async (id: string): Promise<RightsIntake> => {
@@ -115,7 +118,9 @@ export const getRightsReviewImports = async (
   if (params.status) queryParams.set('status', params.status);
 
   const endpoint = `/admin/rights/intakes/${intakeId}/review-imports?${queryParams.toString()}`;
-  return httpGetAuth<RightsReviewImportsListResponse>(endpoint, { requireAuth: true });
+  return httpGetAuth<RightsReviewImportsListResponse>(endpoint, { requireAuth: true }).then(
+    (body) => toPaginated(body, LIST_FALLBACK)
+  );
 };
 
 export const getRightsReviewImport = async (

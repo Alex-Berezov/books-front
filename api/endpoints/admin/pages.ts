@@ -6,12 +6,13 @@
  * "Terms of Service" and other informational pages.
  */
 
+import { toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   CreatePageRequest,
   PageGroup,
   PageResponse,
-  PaginatedResponse,
+  PaginatedResult,
   PublicationStatus,
   UpdatePageRequest,
 } from '@/types/api-schema';
@@ -43,7 +44,7 @@ export interface GetPagesParams {
  */
 export const getPages = async (
   params: GetPagesParams = {}
-): Promise<PaginatedResponse<PageGroup>> => {
+): Promise<PaginatedResult<PageGroup>> => {
   const searchParams = new URLSearchParams();
 
   if (params.page) searchParams.append('page', params.page.toString());
@@ -54,7 +55,10 @@ export const getPages = async (
   const queryString = searchParams.toString();
   const endpoint = queryString ? `/admin/pages?${queryString}` : '/admin/pages';
 
-  return httpGetAuth<PaginatedResponse<PageGroup>>(endpoint);
+  // Форма ответа приводится здесь, а не в экранах: в окне между выкатами сторон
+  // сюда приходит прежняя `{data, meta}` (`LEGACY-177`).
+  const body = await httpGetAuth<PaginatedResult<PageGroup>>(endpoint);
+  return toPaginated(body, { page: params.page ?? 1, limit: params.limit ?? 20 });
 };
 
 /**

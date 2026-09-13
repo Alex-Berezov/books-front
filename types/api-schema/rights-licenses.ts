@@ -6,6 +6,8 @@
  * that country plus the version's language and format.
  */
 
+import type { PaginatedResult } from './common';
+
 export type RightsLicenseType =
   | 'DIRECT_LICENSE'
   | 'DIRECT_PERMISSION'
@@ -240,9 +242,4 @@ export interface QueryRightsLicensesParams {
   expiringInDays?: number;
 }
 
-export interface RightsLicensesListResponse {
-  items: RightsLicenseSummary[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsLicensesListResponse = PaginatedResult<RightsLicenseSummary>;

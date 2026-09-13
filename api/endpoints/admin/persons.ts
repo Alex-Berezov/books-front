@@ -1,3 +1,4 @@
+import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type { PersonListResponse } from '@/types/api-schema';
 import type {
@@ -23,13 +24,13 @@ export const personsApi = {
       {
         requireAuth: true,
       }
-    );
+    ).then((body) => toPaginated(body, LIST_FALLBACK));
   },
 
   async search(q: string): Promise<PersonListResponse> {
     return httpGetAuth<PersonListResponse>(`/admin/persons/search?q=${encodeURIComponent(q)}`, {
       requireAuth: true,
-    });
+    }).then((body) => toPaginated(body, LIST_FALLBACK));
   },
 
   async getById(id: string): Promise<Person> {

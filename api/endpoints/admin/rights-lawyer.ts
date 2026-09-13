@@ -1,3 +1,4 @@
+import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   AddLawyerReviewNoteRequest,
@@ -67,7 +68,7 @@ export const getLawyers = async (
 ): Promise<RightsLawyersListResponse> =>
   httpGetAuth<RightsLawyersListResponse>(`/admin/rights/lawyers?${buildLawyersQuery(params)}`, {
     requireAuth: true,
-  });
+  }).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getLawyer = async (id: string): Promise<RightsLawyerDetail> =>
   httpGetAuth<RightsLawyerDetail>(`/admin/rights/lawyers/${id}`, { requireAuth: true });
@@ -104,7 +105,7 @@ export const getLawyerReviews = async (
   httpGetAuth<RightsLawyerReviewsListResponse>(
     `/admin/rights/lawyer-reviews?${buildReviewsQuery(params)}`,
     { requireAuth: true }
-  );
+  ).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getLawyerReview = async (id: string): Promise<RightsLawyerReviewDetail> =>
   httpGetAuth<RightsLawyerReviewDetail>(`/admin/rights/lawyer-reviews/${id}`, {
@@ -233,7 +234,7 @@ export const getIntakeLawyerReviews = async (
   httpGetAuth<RightsLawyerReviewsListResponse>(
     `/admin/rights/intakes/${intakeId}/lawyer-reviews?${buildReviewsQuery(params)}`,
     { requireAuth: true }
-  );
+  ).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getProfileRiskAssessment = async (
   profileId: string

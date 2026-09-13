@@ -27,7 +27,7 @@ import type {
   CreatePageRequest,
   PageGroup,
   PageResponse,
-  PaginatedResponse,
+  PaginatedResult,
   UpdatePageRequest,
 } from '@/types/api-schema';
 
@@ -69,7 +69,7 @@ export const pageKeys = {
  */
 export const usePages = (
   params: GetPagesParams = {},
-  options?: Omit<UseQueryOptions<PaginatedResponse<PageGroup>>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginatedResult<PageGroup>>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: pageKeys.list(params),

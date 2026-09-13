@@ -3,6 +3,8 @@
  * Statuses and enums are string unions, matching the convention of the other rights types.
  */
 
+import type { PaginatedResult } from './common';
+
 export type RightsRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export type RightsLawyerType = 'IN_HOUSE' | 'EXTERNAL_COUNSEL' | 'LAW_FIRM' | 'OTHER';
@@ -397,16 +399,6 @@ export interface AddLawyerReviewNoteRequest {
   messageRu: string;
 }
 
-export interface RightsLawyersListResponse {
-  items: RightsLawyer[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsLawyersListResponse = PaginatedResult<RightsLawyer>;
 
-export interface RightsLawyerReviewsListResponse {
-  items: RightsLawyerReview[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsLawyerReviewsListResponse = PaginatedResult<RightsLawyerReview>;

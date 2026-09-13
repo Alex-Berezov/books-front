@@ -4,6 +4,7 @@
  * API endpoints for managing authors (Admin only).
  */
 
+import { toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPostAuth, httpPutAuth } from '@/lib/http-client';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
@@ -11,7 +12,7 @@ import type {
   CreateAuthorRequest,
   UpdateAuthorRequest,
   CheckAuthorSlugResponse,
-  PaginatedResponse,
+  PaginatedResult,
 } from '@/types/api-schema';
 
 export interface GetAuthorsParams {
@@ -23,7 +24,7 @@ export interface GetAuthorsParams {
 
 export const getAuthors = async (
   params: GetAuthorsParams = {}
-): Promise<PaginatedResponse<Author>> => {
+): Promise<PaginatedResult<Author>> => {
   const { page = 1, limit = 50, search } = params;
 
   const queryParams = new URLSearchParams({
@@ -35,7 +36,10 @@ export const getAuthors = async (
   }
 
   const endpoint = `/admin/authors?${queryParams.toString()}`;
-  return httpGetAuth<PaginatedResponse<Author>>(endpoint, { requireAuth: true });
+  // Форма ответа приводится здесь, а не в экранах: в окне между выкатами сторон
+  // сюда приходит прежняя `{data, meta}` (`LEGACY-177`).
+  const body = await httpGetAuth<PaginatedResult<Author>>(endpoint, { requireAuth: true });
+  return toPaginated(body, { page, limit });
 };
 
 export const getAuthorById = async (id: string): Promise<Author> => {

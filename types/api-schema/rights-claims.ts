@@ -3,6 +3,8 @@
  * Mirrors the backend contract exposed under `/admin/rights/claims*`.
  */
 
+import type { PaginatedResult } from './common';
+
 export type RightsClaimType =
   | 'DMCA_TAKEDOWN'
   | 'COPYRIGHT_INFRINGEMENT'
@@ -364,9 +366,4 @@ export interface QueryRightsClaimsParams {
   limit?: number;
 }
 
-export interface RightsClaimsListResponse {
-  items: RightsClaimSummary[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsClaimsListResponse = PaginatedResult<RightsClaimSummary>;

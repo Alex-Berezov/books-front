@@ -3,6 +3,8 @@
  * Mirrors `books/src/modules/rights-recheck/dto/*` — keep both sides in sync.
  */
 
+import type { PaginatedResult } from './common';
+
 export type RightsRecheckReason =
   | 'SCHEDULED_DUE'
   | 'CONTENT_CHANGED'
@@ -141,12 +143,7 @@ export interface RightsRecheckTaskDetail extends RightsRecheckTask {
   targets: RightsRecheckTaskTargets;
 }
 
-export interface RightsRecheckTasksListResponse {
-  items: RightsRecheckTask[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsRecheckTasksListResponse = PaginatedResult<RightsRecheckTask>;
 
 export interface RightsRecheckSchedule {
   rightsProfileId: string;
@@ -211,12 +208,7 @@ export interface RightsLegalChangeDetail extends RightsLegalChange {
   tasksCount: number;
 }
 
-export interface RightsLegalChangesListResponse {
-  items: RightsLegalChange[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsLegalChangesListResponse = PaginatedResult<RightsLegalChange>;
 
 export interface RightsReviewChainDiff {
   overallStatusChanged: boolean;
@@ -245,10 +237,7 @@ export interface RightsReviewChainItem {
   diffFromPrevious: RightsReviewChainDiff | null;
 }
 
-export interface RightsReviewChainResponse {
-  items: RightsReviewChainItem[];
-  total: number;
-}
+export type RightsReviewChainResponse = PaginatedResult<RightsReviewChainItem>;
 
 export interface RightsRecheckScanRun {
   id: string;
@@ -267,12 +256,7 @@ export interface RightsRecheckScanRun {
   triggeredByUserId: string | null;
 }
 
-export interface RightsRecheckScanRunsListResponse {
-  items: RightsRecheckScanRun[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type RightsRecheckScanRunsListResponse = PaginatedResult<RightsRecheckScanRun>;
 
 // ---------------------------------------------------------------------------
 // Request payloads and list params

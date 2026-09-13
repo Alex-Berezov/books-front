@@ -1,3 +1,4 @@
+import { toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   GetMediaParams,
@@ -6,6 +7,7 @@ import type {
   UUID,
   MediaType,
   MediaFile,
+  PaginationInfo,
 } from '@/types/api-schema';
 
 // Backend specific types
@@ -21,11 +23,14 @@ interface BackendMediaItem {
   isDeleted: boolean;
 }
 
+/**
+ * Тело `GET /media` как его отдаёт сервер: единая обёртка `{items, pagination}`
+ * (`LEGACY-177`, 13.09.2026). `totalPages` теперь считает бэкенд, а не этот файл:
+ * прежний `Math.ceil(total / limit)` при `limit = 0` давал `Infinity`.
+ */
 interface BackendMediaResponse {
   items: BackendMediaItem[];
-  total: number;
-  page: number;
-  limit: number;
+  pagination: PaginationInfo;
 }
 
 const mapBackendItemToMediaFile = (item: BackendMediaItem): MediaFile => {
@@ -71,14 +76,14 @@ export const getMediaFiles = async (params: GetMediaParams = {}): Promise<MediaR
   const endpoint = `/media?${queryParams.toString()}`;
   const response = await httpGetAuth<BackendMediaResponse>(endpoint);
 
+  // Форма приводится общим хелпером: в окне между выкатами сторон сюда приходит
+  // плоский ответ без `pagination` (`LEGACY-177`). Строки перекладываются после
+  // приведения — маппер не должен знать, в какой форме они приехали.
+  const normalized = toPaginated(response, { page, limit });
+
   return {
-    data: response.items.map(mapBackendItemToMediaFile),
-    meta: {
-      page: response.page,
-      limit: response.limit,
-      total: response.total,
-      totalPages: Math.ceil(response.total / response.limit),
-    },
+    items: normalized.items.map(mapBackendItemToMediaFile),
+    pagination: normalized.pagination,
   };
 };
 

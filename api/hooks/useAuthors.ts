@@ -23,7 +23,7 @@ import type {
   CreateAuthorRequest,
   UpdateAuthorRequest,
   PublicAuthorDetail,
-  PaginatedResponse,
+  PaginatedResult,
   SupportedLang,
 } from '@/types/api-schema';
 
@@ -46,9 +46,9 @@ export const authorKeys = {
 
 export const useAuthors = (
   params: GetAuthorsParams = {},
-  options?: Omit<UseQueryOptions<PaginatedResponse<Author>, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginatedResult<Author>, Error>, 'queryKey' | 'queryFn'>
 ) => {
-  return useQuery<PaginatedResponse<Author>, Error>({
+  return useQuery<PaginatedResult<Author>, Error>({
     queryKey: authorKeys.list(params),
     queryFn: () => getAuthors(params),
     ...options,
