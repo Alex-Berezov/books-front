@@ -5,6 +5,7 @@
  * §7.3 (`PUT /me/progress/:versionId` audio variant).
  */
 
+import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';
 import { httpGet } from '@/lib/http';
 import { httpPostAuth, httpPutAuth } from '@/lib/http-client';
 import type {
@@ -30,7 +31,15 @@ export const getPublicAudioChapters = async (
     limit: String(limit),
   });
   const endpoint = `/versions/${bookVersionId}/audio-chapters?${queryParams.toString()}`;
-  return httpGet<AudioChaptersListResponse>(endpoint);
+  // 🔴 `LEGACY-369`. Режим кэша обязателен, даже когда единственный вызывающий —
+  // клиентский хук (`api/hooks/usePublicAudio.ts`): в браузере кэша данных Next нет,
+  // и опция инертна, но стоит позвать эту функцию из серверного компонента, как
+  // умолчание Next 14 (`force-cache`, `revalidate = false`) заморозит список аудиоглав
+  // навсегда. `cache: 'no-store'` здесь не годится — его браузер
+  // исполняет и выключил бы HTTP-кэш живому вызову. Решение арбитра 13.09.2026, вариант D.
+  return httpGet<AudioChaptersListResponse>(endpoint, {
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /**

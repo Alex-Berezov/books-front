@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { getPublicAudioChapters, recordView } from '@/api/endpoints/public-audio';
+import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';
 import { server } from '../../msw/server';
 
 describe('public audio endpoints', () => {
@@ -25,6 +26,31 @@ describe('public audio endpoints', () => {
       expect(seenUrl).toContain('/versions/ver-123/audio-chapters');
       expect(seenUrl).toContain('page=1');
       expect(seenUrl).toContain('limit=100');
+    });
+
+    /**
+     * LEGACY-369: режим кэша — часть поведения функции. Статический сторож
+     * `publicCacheMode.test.ts` читает исходник и зеленеет на любых словах
+     * `next:`/`revalidate:` в блоке вызова, значения он не сверяет; здесь проверяется,
+     * что в `httpGet` уходит именно шаг публичного чтения, а не, скажем, `revalidate: 0`.
+     * msw для этого не годится — опции Next до сервера не доезжают, поэтому мок слоя.
+     */
+    it('передаёт шаг ревалидации публичного чтения', async () => {
+      vi.resetModules();
+      const httpGet = vi.fn().mockResolvedValue({ items: [], total: 0, page: 1, limit: 100 });
+      vi.doMock('@/lib/http', () => ({
+        httpGet,
+        buildLangPath: (l: string, p: string) => `/${l}${p}`,
+      }));
+
+      const { getPublicAudioChapters: fresh } = await import('@/api/endpoints/public-audio');
+      await fresh('ver-123');
+
+      expect(httpGet.mock.calls[0][1]).toEqual(
+        expect.objectContaining({ next: { revalidate: PUBLIC_REVALIDATE_SECONDS } })
+      );
+      vi.doUnmock('@/lib/http');
+      vi.resetModules();
     });
 
     it('forwards custom page/limit params', async () => {

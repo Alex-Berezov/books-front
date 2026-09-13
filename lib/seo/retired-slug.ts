@@ -1,3 +1,4 @@
+import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';
 import { buildLangPath, httpGet } from '@/lib/http';
 import type { SupportedLang } from '@/types/api-schema';
 
@@ -20,6 +21,15 @@ interface SlugRedirectResponse {
   newSlug: string | null;
 }
 
+/**
+ * 🔴 `LEGACY-369`. Режим кэша здесь обязателен. Next 14 кэширует `fetch` без явного
+ * режима навсегда (`force-cache`, `revalidate = false`), и `dynamic = 'force-dynamic'`
+ * на странице этого не снимает — перезапускается обработчик, а `fetch` под ним
+ * продолжает отвечать из кэша данных. Поэтому разовый запрос слага, которого тогда
+ * ещё не было, оседал ответом `{ newSlug: null }` до конца жизни развёртывания:
+ * книга позже выходила под этим слагом и переименовывалась, история X -> Y на бэкенде
+ * была, а этот вызов продолжал отвечать «преемника нет» — глухой 404 там, где положен 308.
+ */
 export async function resolveRetiredSlug(
   entityType: RetiredSlugEntityType,
   lang: SupportedLang,
@@ -30,7 +40,10 @@ export async function resolveRetiredSlug(
   try {
     const params = new URLSearchParams({ entityType, slug });
     const endpoint = buildLangPath(lang, `/slug-redirect?${params.toString()}`);
-    const response = await httpGet<SlugRedirectResponse>(endpoint, { language: lang });
+    const response = await httpGet<SlugRedirectResponse>(endpoint, {
+      language: lang,
+      next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+    });
     return response?.newSlug ?? null;
   } catch {
     // Отказ этого запроса не должен превращать 404 во что-то другое: страница и так

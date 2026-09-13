@@ -29,7 +29,15 @@ export const getComments = async (params: GetBookCommentsParams): Promise<BookCo
     limit: String(params.limit ?? 10),
     sortBy: params.sortBy ?? 'date',
   });
-  return httpGet<BookCommentsResponse>(`/comments?${query.toString()}`);
+  // 🔴 `LEGACY-369`. Режим кэша обязателен даже у чтения, которое сегодня зовёт только
+  // клиентский хук: в браузере опция инертна, но первый же серверный рендер без неё
+  // пришпилил бы ответ навсегда (умолчание Next 14 — `force-cache` без срока).
+  // Здесь `no-store`, а не `revalidate`: список комментариев и счётчик лайков — самые
+  // изменчивые публичные данные, пятиминутная выдержка на них видна читателю.
+  // Решение арбитра 13.09.2026.
+  return httpGet<BookCommentsResponse>(`/comments?${query.toString()}`, {
+    cache: 'no-store',
+  });
 };
 
 /**
@@ -99,5 +107,8 @@ export const getLikeCount = async (
   targetId: string
 ): Promise<LikeCountResponse> => {
   const query = new URLSearchParams({ target, targetId });
-  return httpGet<LikeCountResponse>(`/likes/count?${query.toString()}`);
+  // `LEGACY-369`, тот же довод, что у `getComments` выше.
+  return httpGet<LikeCountResponse>(`/likes/count?${query.toString()}`, {
+    cache: 'no-store',
+  });
 };

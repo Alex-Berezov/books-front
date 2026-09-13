@@ -14,6 +14,7 @@
  * then already chosen for the first server caller instead of being picked by default.
  */
 
+import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';
 import { httpGet, buildLangPath } from '@/lib/http';
 import { httpGetAuth } from '@/lib/http-client';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -39,16 +40,6 @@ import type {
   PublicAuthorDetail,
   RelatedBooksResponse,
 } from '@/types/api-schema';
-
-/**
- * Data-cache lifetime of a public read, in seconds.
- *
- * One name, not one policy: a function whose data changes at a different rate passes
- * its own number here. The constant exists because today eleven reads share the same
- * cadence, and a TTL change was eleven identical literals nothing checked against
- * each other.
- */
-const PUBLIC_REVALIDATE_SECONDS = 300;
 
 /**
  * Get public chapters list for a book version

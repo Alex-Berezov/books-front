@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';
 import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 
 const mocks = vi.hoisted(() => ({ httpGet: vi.fn() }));
@@ -28,6 +29,14 @@ describe('resolveRetiredSlug', () => {
     expect(endpoint).toContain('/en/slug-redirect');
     expect(endpoint).toContain('entityType=category');
     expect(endpoint).toContain('slug=old-slug');
+
+    // LEGACY-369: режим кэша — часть поведения функции, а не оформление вызова.
+    // Статический сторож `publicCacheMode.test.ts` читает исходник и зеленеет на любых
+    // словах `next:`/`revalidate:` в блоке вызова; здесь проверяется, что в `httpGet`
+    // действительно уходит шаг публичного чтения, а не, скажем, `revalidate: 0`.
+    expect(mocks.httpGet.mock.calls[0][1]).toEqual(
+      expect.objectContaining({ next: { revalidate: PUBLIC_REVALIDATE_SECONDS } })
+    );
   });
 
   it('returns null when nothing was retired under that slug', async () => {

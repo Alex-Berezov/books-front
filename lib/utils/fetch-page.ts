@@ -1,3 +1,4 @@
+import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { SystemPageKey } from '@/lib/system-pages';
 import type { PageResponse } from '@/types/api-schema';
@@ -7,7 +8,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/
 async function fetchPage(lang: SupportedLang, path: string): Promise<PageResponse | null> {
   try {
     const res = await fetch(`${API_BASE}/${lang}/${path}`, {
-      next: { revalidate: 300 },
+      next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
       headers: { 'Accept-Language': lang },
     });
     if (!res.ok) return null;
