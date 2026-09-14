@@ -28,6 +28,12 @@ export interface PersonTranslation {
   wikidataUrl?: string | null;
   wikipediaUrl?: string | null;
   photoUrl?: string | null;
+  // Перевод приходит связью без `select`, то есть строкой целиком; схема бэкенда называет
+  // служебные поля с 14.09.2026 (`LEGACY-016`). Парная правка к
+  // `books/src/modules/persons/dto/person-response.dto.ts`.
+  seoId?: number | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Person {

@@ -167,8 +167,11 @@
   },
   {
     "route": "DELETE /admin/versions/{id}/contributors/{contributorId}",
-    "hasResponseSchema": false,
-    "fields": []
+    "hasResponseSchema": true,
+    "fields": [
+      "success",
+      "warning"
+    ]
   },
   {
     "route": "DELETE /audio-chapters/{id}",
@@ -177,8 +180,10 @@
   },
   {
     "route": "DELETE /books/{id}",
-    "hasResponseSchema": false,
-    "fields": []
+    "hasResponseSchema": true,
+    "fields": [
+      "success"
+    ]
   },
   {
     "route": "DELETE /categories/{id}",
@@ -207,8 +212,11 @@
   },
   {
     "route": "DELETE /media/{id}",
-    "hasResponseSchema": false,
-    "fields": []
+    "hasResponseSchema": true,
+    "fields": [
+      "storageDeleted",
+      "success"
+    ]
   },
   {
     "route": "DELETE /tags/{id}",
@@ -1962,6 +1970,20 @@
       "items[].publicDomainFromYear",
       "items[].slug",
       "items[].sortName",
+      "items[].translations",
+      "items[].translations[].biography",
+      "items[].translations[].createdAt",
+      "items[].translations[].displayName",
+      "items[].translations[].id",
+      "items[].translations[].language",
+      "items[].translations[].personId",
+      "items[].translations[].photoUrl",
+      "items[].translations[].seoId",
+      "items[].translations[].shortDescription",
+      "items[].translations[].slug",
+      "items[].translations[].updatedAt",
+      "items[].translations[].wikidataUrl",
+      "items[].translations[].wikipediaUrl",
       "items[].type",
       "items[].updatedAt",
       "items[].viafId",
@@ -1993,13 +2015,16 @@
       "sortName",
       "translations",
       "translations[].biography",
+      "translations[].createdAt",
       "translations[].displayName",
       "translations[].id",
       "translations[].language",
       "translations[].personId",
       "translations[].photoUrl",
+      "translations[].seoId",
       "translations[].shortDescription",
       "translations[].slug",
+      "translations[].updatedAt",
       "translations[].wikidataUrl",
       "translations[].wikipediaUrl",
       "type",
@@ -2027,6 +2052,20 @@
       "items[].publicDomainFromYear",
       "items[].slug",
       "items[].sortName",
+      "items[].translations",
+      "items[].translations[].biography",
+      "items[].translations[].createdAt",
+      "items[].translations[].displayName",
+      "items[].translations[].id",
+      "items[].translations[].language",
+      "items[].translations[].personId",
+      "items[].translations[].photoUrl",
+      "items[].translations[].seoId",
+      "items[].translations[].shortDescription",
+      "items[].translations[].slug",
+      "items[].translations[].updatedAt",
+      "items[].translations[].wikidataUrl",
+      "items[].translations[].wikipediaUrl",
       "items[].type",
       "items[].updatedAt",
       "items[].viafId",
@@ -6265,13 +6304,16 @@
       "sortName",
       "translations",
       "translations[].biography",
+      "translations[].createdAt",
       "translations[].displayName",
       "translations[].id",
       "translations[].language",
       "translations[].personId",
       "translations[].photoUrl",
+      "translations[].seoId",
       "translations[].shortDescription",
       "translations[].slug",
+      "translations[].updatedAt",
       "translations[].wikidataUrl",
       "translations[].wikipediaUrl",
       "type",
@@ -7512,13 +7554,16 @@
       "sortName",
       "translations",
       "translations[].biography",
+      "translations[].createdAt",
       "translations[].displayName",
       "translations[].id",
       "translations[].language",
       "translations[].personId",
       "translations[].photoUrl",
+      "translations[].seoId",
       "translations[].shortDescription",
       "translations[].slug",
+      "translations[].updatedAt",
       "translations[].wikidataUrl",
       "translations[].wikipediaUrl",
       "type",

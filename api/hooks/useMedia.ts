@@ -6,7 +6,13 @@ import {
   type UseQueryOptions,
 } from '@tanstack/react-query';
 import { deleteMedia, getMediaFiles, uploadMedia } from '@/api/endpoints/admin/media';
-import type { GetMediaParams, MediaResponse, UploadMediaResponse, UUID } from '@/types/api-schema';
+import type {
+  DeleteMediaResponse,
+  GetMediaParams,
+  MediaResponse,
+  UploadMediaResponse,
+  UUID,
+} from '@/types/api-schema';
 
 export const mediaKeys = {
   all: ['media'] as const,
@@ -41,7 +47,7 @@ export const useUploadMedia = (
   });
 };
 
-export const useDeleteMedia = (options?: UseMutationOptions<void, Error, UUID>) => {
+export const useDeleteMedia = (options?: UseMutationOptions<DeleteMediaResponse, Error, UUID>) => {
   const queryClient = useQueryClient();
 
   return useMutation({

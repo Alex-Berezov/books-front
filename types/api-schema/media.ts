@@ -37,3 +37,15 @@ export type MediaResponse = PaginatedResult<MediaFile>;
  * несуществующую форму, и чтение `response.data` дало бы `undefined`.
  */
 export type UploadMediaResponse = MediaAsset;
+
+/**
+ * Ответ `DELETE /media/:id` (`DeleteMediaResponseDto` на бэкенде).
+ *
+ * 🔴 `storageDeleted: false` означает, что запись помечена удалённой, а объект в хранилище
+ * остался сиротой и снимается руками. Это единственный признак расхождения базы с хранилищем:
+ * код ответа в обоих случаях 200.
+ */
+export interface DeleteMediaResponse {
+  success: boolean;
+  storageDeleted: boolean;
+}

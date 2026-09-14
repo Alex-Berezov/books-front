@@ -12,6 +12,7 @@ import type {
   BookDetailResponse,
   BookListItem,
   CreateBookResponse,
+  DeleteBookResponse,
   PaginatedResult,
 } from '@/types/api-schema';
 
@@ -66,9 +67,9 @@ export const getBooks = async (
  * await deleteBook('book-uuid-123');
  * ```
  */
-export const deleteBook = async (bookId: string): Promise<void> => {
+export const deleteBook = async (bookId: string): Promise<DeleteBookResponse> => {
   const endpoint = `/books/${bookId}`;
-  return httpDeleteAuth<void>(endpoint);
+  return httpDeleteAuth<DeleteBookResponse>(endpoint);
 };
 
 /**

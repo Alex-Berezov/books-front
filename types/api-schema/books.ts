@@ -431,3 +431,8 @@ export interface BookDetailResponse {
   rating?: number | null;
   versions: BookDetailVersion[];
 }
+
+/** Ответ `DELETE /books/:id` (`DeleteBookResponseDto` на бэкенде): маршрут отвечает 200 с телом. */
+export interface DeleteBookResponse {
+  success: boolean;
+}

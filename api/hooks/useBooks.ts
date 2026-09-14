@@ -25,6 +25,7 @@ import type {
   BookDetailResponse,
   BookListItem,
   CreateBookResponse,
+  DeleteBookResponse,
   PaginatedResult,
   UserRatingResponse,
 } from '@/types/api-schema';
@@ -92,7 +93,7 @@ export const useBooks = (
  * ```
  */
 export const useDeleteBook = (
-  options?: Omit<UseMutationOptions<void, Error, string>, 'mutationFn'>
+  options?: Omit<UseMutationOptions<DeleteBookResponse, Error, string>, 'mutationFn'>
 ) => {
   const queryClient = useQueryClient();
 

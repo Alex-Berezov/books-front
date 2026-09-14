@@ -1,6 +1,7 @@
 import { toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPostAuth } from '@/lib/http-client';
 import type {
+  DeleteMediaResponse,
   GetMediaParams,
   MediaResponse,
   UploadMediaResponse,
@@ -93,6 +94,6 @@ export const uploadMedia = async (formData: FormData): Promise<UploadMediaRespon
   return httpPostAuth<UploadMediaResponse>('/media/upload', formData);
 };
 
-export const deleteMedia = async (id: UUID): Promise<void> => {
-  return httpDeleteAuth(`/media/${id}`);
+export const deleteMedia = async (id: UUID): Promise<DeleteMediaResponse> => {
+  return httpDeleteAuth<DeleteMediaResponse>(`/media/${id}`);
 };

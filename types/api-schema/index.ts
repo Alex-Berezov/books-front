@@ -68,6 +68,7 @@ export type {
   BookVersion,
   BookVersionDetail,
   CreateBookResponse,
+  DeleteBookResponse,
   CreateBookVersionRequest,
   ReaderBootstrapChapter,
   ReaderBootstrapResponse,
@@ -134,6 +135,7 @@ export type {
 
 // Media
 export type {
+  DeleteMediaResponse,
   GetMediaParams,
   MediaResponse,
   UploadMediaResponse,
