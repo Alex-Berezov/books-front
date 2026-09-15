@@ -249,9 +249,10 @@ export default async function GenreDetailPage({ params, searchParams }: Props) {
     // работал бы через раз, в зависимости от того, как именно API сообщил об отсутствии.
     if (isNotFoundError(error)) {
       const retired = await resolveRetiredSlug('category', supportedLang, slug);
+      // 🔴 `LEGACY-391`: номер страницы сюда не переносится. Разбор — в шапке модуля
+      // `lib/seo/retired-slug.ts`.
       if (retired && retired !== slug) {
-        const query = currentPage > 1 ? `?page=${currentPage}` : '';
-        permanentRedirect(`/${supportedLang}/genre/${retired}${query}`);
+        permanentRedirect(`/${supportedLang}/genre/${retired}`);
       }
     }
     handleContentFailure(error, notFound);
@@ -267,9 +268,10 @@ export default async function GenreDetailPage({ params, searchParams }: Props) {
     // отдать живую сущность, и лишь затем история: слаг, занятый заново, иначе увёл
     // бы посетителя со страницы, которая существует.
     const retired = await resolveRetiredSlug('category', supportedLang, slug);
+    // 🔴 `LEGACY-391`: номер страницы сюда не переносится. Разбор — в шапке модуля
+    // `lib/seo/retired-slug.ts`.
     if (retired && retired !== slug) {
-      const query = currentPage > 1 ? `?page=${currentPage}` : '';
-      permanentRedirect(`/${supportedLang}/genre/${retired}${query}`);
+      permanentRedirect(`/${supportedLang}/genre/${retired}`);
     }
     notFound();
   }

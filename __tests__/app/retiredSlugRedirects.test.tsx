@@ -303,3 +303,75 @@ describe('catalog redirect page — сбой API больше не превра�
     expect(mocks.resolveRetiredSlug).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * `LEGACY-391`. Номер страницы на редиректе по истории слагов НЕ переносится
+ * на трёх страницах категорий — и это утверждение, а не пропуск.
+ *
+ * До 15.09.2026 перенос был верен: преемником из истории всегда оказывался тот же
+ * термин после переименования, и страница N у него осмысленна. С закрытием
+ * `LEGACY-085` преемником стал бывать **родительский** термин — другой список
+ * другой длины, где страницы N может не быть вовсе. Отличить переименование
+ * от смены сущности нечем: ответ `GET /:lang/slug-redirect` отдаёт только
+ * `{ newSlug }`. Цена ошибки несимметрична — пустая страница под 308 кэшируется
+ * у посетителя навсегда, а потеря позиции в списке стоит одного клика пагинации
+ * (решение арбитра 15.09.2026, `decisions-log.md`).
+ *
+ * 🔴 Страница тега в этот набор не входит намеренно: у `Tag` родителя нет
+ * по построению схемы, преемник там всегда тот же термин, и перенос `?page`
+ * на ней остаётся — см. кейс «переносит номер страницы в редирект» выше.
+ */
+const taxonomyPages = [
+  { segment: 'category', load: () => import('@/app/[lang]/category/[slug]/page') },
+  { segment: 'genre', load: () => import('@/app/[lang]/genre/[slug]/page') },
+  { segment: 'collection', load: () => import('@/app/[lang]/collection/[slug]/page') },
+];
+
+for (const { segment, load } of taxonomyPages) {
+  describe(`${segment} page — LEGACY-391: номер страницы на редирект не переносится`, () => {
+    const run = async (slug: string, page?: string) => {
+      const mod = await load();
+      return mod.default({
+        params: Promise.resolve({ lang: 'ru', slug }),
+        searchParams: Promise.resolve(page ? { page } : {}),
+      });
+    };
+
+    /** Карточки — единственный запрос без собственного фоллбэка; остальные два гасятся сами. */
+    const arrangeCards = (cards: unknown) =>
+      mocks.httpGet.mockImplementation((endpoint: string) =>
+        endpoint.includes('/books/cards')
+          ? cards instanceof Error
+            ? Promise.reject(cards)
+            : Promise.resolve(cards)
+          : Promise.reject(notFoundError())
+      );
+
+    it('путь «API ответил 404»: 308 ведёт на первую страницу преемника', async () => {
+      arrangeCards(notFoundError());
+      mocks.resolveRetiredSlug.mockResolvedValue('hudozhestvennaya-literatura');
+
+      await expect(run('priklyucheniya', '9')).rejects.toThrow('NEXT_REDIRECT');
+
+      expect(mocks.resolveRetiredSlug).toHaveBeenCalledWith('category', 'ru', 'priklyucheniya');
+      expect(mocks.permanentRedirect).toHaveBeenCalledWith(
+        `/ru/${segment}/hudozhestvennaya-literatura`
+      );
+    });
+
+    it('путь «термина нет в ответе»: 308 ведёт на первую страницу преемника', async () => {
+      arrangeCards({
+        category: null,
+        items: [],
+        pagination: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
+      mocks.resolveRetiredSlug.mockResolvedValue('hudozhestvennaya-literatura');
+
+      await expect(run('priklyucheniya', '9')).rejects.toThrow('NEXT_REDIRECT');
+
+      expect(mocks.permanentRedirect).toHaveBeenCalledWith(
+        `/ru/${segment}/hudozhestvennaya-literatura`
+      );
+    });
+  });
+}
