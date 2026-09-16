@@ -218,15 +218,52 @@ jobs:
             ./deploy-bluegreen.sh
           "
 
+      # 🔴 LEGACY-393. Раньше здесь стоял `curl -fsS https://bibliaris.com/` — корень,
+      # который отвечает редиректом 307 и может быть отдан из кэша Cloudflare. 15.09.2026
+      # он прошёл в 10:54:26, пока сайт сорок минут отдавал 502: проверка, которую можно
+      # удовлетворить из кэша, проверкой не является. Теперь запрашивается настоящая
+      # страница, и к ней — сверка ревизии на `/api/version` (`no-store` на самом роуте).
+      #
+      # ⚠️ Это вторая дверь, а не дубль первой: вердикт о переключении даёт скрипт по
+      # загруженному конфигу Caddy (`localhost:2019/config/`), а этот шаг смотрит снаружи,
+      # через Cloudflare, из чужой сети. Отказ на пути между ними виден только отсюда.
+      #
+      # ⚠️ Сверка SHA сама по себе вердиктом быть не может: на Re-run того же коммита
+      # прежний контейнер отдаёт ту же ревизию (`L-007`). Поэтому она стоит рядом
+      # с запросом страницы, а не вместо него, и решает не она.
       - name: Health check
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
         run: |
           for i in $(seq 1 12); do
-            if curl -fsS https://bibliaris.com/ -o /dev/null; then
-              echo "Health check passed"
+            # Присваивание под условием намеренно: раннер гоняет bash с `-eo pipefail`,
+            # и голое `live_sha="$(curl … | grep …)"` уронило бы шаг на первой же
+            # неудаче вместо двенадцати попыток — то есть ровно на прогреве контейнера.
+            if ! body="$(curl -fsS --max-time 10 -H 'Cache-Control: no-cache' \
+              https://bibliaris.com/api/version)"; then
+              echo "Attempt $i: снаружи не ответили, retrying in 5s..."
+              sleep 5
+              continue
+            fi
+            # Пустая ревизия при живом ответе — отдельный исход, а не «нет связи»:
+            # роут отдаёт `{"sha":null}` без переменной, а Dockerfile умеет `unknown`.
+            # Одна строка на оба случая отправила бы дежурного искать сеть вместо образа.
+            if ! live_sha="$(printf '%s' "$body" | grep -oE '"sha"[^,}]*' \
+              | grep -oE '[0-9a-fA-F]{7,}' | head -1)"; then
+              live_sha=""
+            fi
+            if [ -z "$live_sha" ]; then
+              echo "Attempt $i: ответ есть, ревизии в нём нет ($body), retrying in 5s..."
+              sleep 5
+              continue
+            fi
+            if [ "$live_sha" = "$EXPECTED_SHA" ] \
+              && curl -fsS --max-time 10 -H 'Cache-Control: no-cache' https://bibliaris.com/en -o /dev/null; then
+              echo "Health check passed: снаружи отвечает $EXPECTED_SHA"
               exit 0
             fi
-            echo "Attempt $i failed, retrying in 5s..."
+            echo "Attempt $i failed (наверху: $live_sha), retrying in 5s..."
             sleep 5
           done
-          echo "Health check failed after 60s"
+          echo "Health check failed after 60s: снаружи так и не появилась ревизия $EXPECTED_SHA"
           exit 1

@@ -126,3 +126,46 @@ describe('конвейер выката фронта: красный CI оста
     expect(workflow).not.toMatch(/if:\s*false\b/);
   });
 });
+
+/**
+ * Вторая дверь: шаг `Health check` в конвейере. Скрипт даёт вердикт по загруженному
+ * конфигу с самой машины, этот шаг смотрит снаружи, из чужой сети через Cloudflare.
+ * Прогнать его здесь нечем, поэтому проверка текстовая, и она сторожит ровно то,
+ * чем шаг был бесполезен 15.09.2026: адрес запроса и отсутствие запрета на кэш.
+ */
+describe('конвейер выката: Health check нельзя удовлетворить из кэша', () => {
+  /** Тело шага по имени; отсутствие шага — отдельный исход, а не пустая строка (`L-015`). */
+  const stepBody = (name: string): string | undefined => {
+    const start = workflow.indexOf(`
+      - name: ${name}
+`);
+    if (start === -1) return undefined;
+
+    const rest = workflow.slice(start + 1);
+    const next = rest.slice(1).indexOf('\n      - name: ');
+    return next === -1 ? rest : rest.slice(0, next + 1);
+  };
+
+  it('шаг Health check на месте и разбирается', () => {
+    expect(
+      stepBody('Health check'),
+      'шаг Health check не найден — сторож ниже проверял бы пустоту'
+    ).toBeDefined();
+  });
+
+  it('шаг не ходит на корень домена', () => {
+    expect(
+      /curl[^\n]*bibliaris\.com\/\s/.test(stepBody('Health check') ?? ''),
+      'корень отвечает редиректом 307 и отдаётся из кэша Cloudflare — он прошёл при лежащем сайте'
+    ).toBe(false);
+  });
+
+  it('шаг запрещает кэш, дёргает настоящую страницу и сверяет ревизию', () => {
+    const step = stepBody('Health check') ?? '';
+
+    expect(step).toContain('Cache-Control: no-cache');
+    expect(step).toContain('/api/version');
+    expect(step).toContain('/en');
+    expect(step).toContain('EXPECTED_SHA');
+  });
+});
