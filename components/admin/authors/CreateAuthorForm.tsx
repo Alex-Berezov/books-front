@@ -1,5 +1,6 @@
 import type { FC, ChangeEvent } from 'react';
 import { Input } from '@/components/common/Input';
+import { UnknownCheckNotice } from '@/components/common/SlugInput';
 import type { CreateAuthorFormData } from './CreateAuthorModal.types';
 import styles from '../books/CreateBookModal/CreateBookModal.module.scss';
 
@@ -9,6 +10,7 @@ interface CreateAuthorFormProps {
   generatedSlug: string;
   finalSlug: string;
   slugError: string | null;
+  slugCheckFailed: boolean;
   isValidatingSlug: boolean;
   isPending: boolean;
   onInputChange: (field: keyof CreateAuthorFormData) => (e: ChangeEvent<HTMLInputElement>) => void;
@@ -20,6 +22,7 @@ export const CreateAuthorForm: FC<CreateAuthorFormProps> = ({
   generatedSlug,
   finalSlug,
   slugError,
+  slugCheckFailed,
   isValidatingSlug,
   isPending,
   onInputChange,
@@ -47,9 +50,11 @@ export const CreateAuthorForm: FC<CreateAuthorFormProps> = ({
           <div>
             <div className={styles.hint}>Generated slug:</div>
             <div className={styles.generatedSlug}>
-              {slugError ? finalSlug : generatedSlug}
-              {slugError && <span> (suggested alternative)</span>}
+              {finalSlug || generatedSlug}
+              {slugError && finalSlug && <span> (suggested alternative)</span>}
             </div>
+            {slugError && <span className={styles.errorMessage}>{slugError}</span>}
+            {slugCheckFailed && <UnknownCheckNotice />}
             {isValidatingSlug && (
               <div className={styles.loadingContainer}>
                 <div className={styles.spinner} />

@@ -152,6 +152,13 @@ export interface UserActivityParentOrChildComment {
   };
 }
 
+// Ответ в ветке. `isHidden: true` приходит только у собственного ответа автора
+// под его же скрытым корнем (`LEGACY-366`, решение арбитра 16.09.2026); свои
+// скрытые ответы под видимым корнем приходят отдельной записью активности.
+export interface UserActivityReply extends UserActivityParentOrChildComment {
+  isHidden: boolean;
+}
+
 export interface UserActivity {
   id: UUID;
   text: string;
@@ -167,7 +174,7 @@ export interface UserActivity {
   parentId: UUID | null;
   bookVersion: UserActivityBookVersion | null;
   parent: UserActivityParentOrChildComment | null;
-  replies: UserActivityParentOrChildComment[];
+  replies: UserActivityReply[];
 }
 
 export interface GetUserActivitiesParams {

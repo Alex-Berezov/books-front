@@ -361,6 +361,7 @@
     "repliedTo": "A répondu à",
     "replies": "Réponses",
     "hiddenByModerator": "Masqué par un modérateur : ce commentaire et ses réponses ne sont pas visibles par les autres lecteurs.",
+    "replyHiddenByModerator": "Masqué par un modérateur : cette réponse n'est pas visible par les autres lecteurs.",
     "noActivities": "Vous n'avez pas encore laissé de critiques ou de commentaires.",
     "loadMore": "Afficher plus",
     "exploreCatalog": "Explorer le catalogue",

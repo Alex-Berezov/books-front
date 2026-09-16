@@ -2,17 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Skeleton } from 'antd';
-import {
-  User,
-  Mail,
-  Tag,
-  Save,
-  Upload,
-  MessageSquare,
-  Loader2,
-  ArrowRight,
-  EyeOff,
-} from 'lucide-react';
+import { User, Mail, Tag, Save, Upload, MessageSquare, Loader2, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
@@ -28,6 +18,7 @@ import { isOptimizableHost } from '@/lib/utils/image-host';
 import { logError } from '@/lib/utils/log-error';
 import { toast } from '@/lib/utils/toast';
 import type { UserActivity } from '@/types/api-schema';
+import { HiddenNotice } from './HiddenNotice';
 import styles from './profile.module.scss';
 
 export default function ProfileClient() {
@@ -364,12 +355,7 @@ export default function ProfileClient() {
                     {/* Скрытая модератором запись остаётся на странице автора,
                         но помечена явно: молчаливое исчезновение ветки ответов
                         неотличимо от пропажи данных (`LEGACY-212`). */}
-                    {activity.isHidden && (
-                      <div className={styles.hiddenNotice}>
-                        <EyeOff size={12} />
-                        <span>{t('profile.hiddenByModerator')}</span>
-                      </div>
-                    )}
+                    {activity.isHidden && <HiddenNotice text={t('profile.hiddenByModerator')} />}
 
                     <p className={styles.activityText}>{activity.text}</p>
                     <span className={styles.activityDate}>
@@ -395,6 +381,9 @@ export default function ProfileClient() {
                                   reply.user.name ||
                                   t('common.anonymousUser')}
                               </span>
+                              {reply.isHidden && (
+                                <HiddenNotice text={t('profile.replyHiddenByModerator')} />
+                              )}
                               <p className={styles.replyText}>{reply.text}</p>
                             </div>
                           ))}

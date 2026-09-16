@@ -14,6 +14,7 @@ export const CreateAuthorModal: FC<CreateAuthorModalProps> = (props) => {
     generatedSlug,
     finalSlug,
     slugError,
+    slugCheckFailed,
     isValidatingSlug,
     isPending,
     canSubmit,
@@ -40,6 +41,7 @@ export const CreateAuthorModal: FC<CreateAuthorModalProps> = (props) => {
         generatedSlug={generatedSlug}
         isPending={isPending}
         isValidatingSlug={isValidatingSlug}
+        slugCheckFailed={slugCheckFailed}
         slugError={slugError}
         onInputChange={handleInputChange}
       />

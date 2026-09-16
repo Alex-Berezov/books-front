@@ -102,6 +102,8 @@ vi.mock('@/lib/i18n/useTranslation', () => ({
         'profile.replies': 'Replies',
         'profile.hiddenByModerator':
           'Hidden by a moderator: this comment and its replies are not visible to other readers.',
+        'profile.replyHiddenByModerator':
+          'Hidden by a moderator: this reply is not visible to other readers.',
         'profile.noActivities': 'You have not left any reviews or comments yet.',
         'profile.exploreCatalog': 'Explore Catalog',
         'profile.invalidNickname': 'Nickname must contain only letters, numbers and underscores.',
@@ -475,6 +477,76 @@ describe('ProfilePage', () => {
     // 🔴 Ровно одна метка на две записи: метка на каждой означала бы, что
     // компонент не читает флаг вовсе.
     expect(screen.getAllByText(/Hidden by a moderator/i)).toHaveLength(1);
+  });
+
+  // Посадка LEGACY-366: свой ответ, скрытый под своим же скрытым корнем, приходит
+  // в ветке с признаком — метка стоит у него, а не у соседнего видимого ответа.
+  it('помечает собственный скрытый ответ в ветке (LEGACY-366)', () => {
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { email: 'john@example.com' } },
+      status: 'authenticated',
+    } as unknown as ReturnType<typeof useSession>);
+
+    const user = { id: 'u1', nickname: 'john_doe' };
+    const mockActivities = [
+      {
+        id: 'act-hidden',
+        text: 'My hidden root',
+        isHidden: true,
+        createdAt: '2026-06-12T00:00:00.000Z',
+        parentId: null,
+        parent: null,
+        bookVersion: null,
+        replies: [
+          {
+            id: 'r-hidden',
+            text: 'My hidden reply',
+            isHidden: true,
+            createdAt: '2026-06-12T00:00:00.000Z',
+            user,
+          },
+          {
+            id: 'r-visible',
+            text: 'My visible reply',
+            isHidden: false,
+            createdAt: '2026-06-12T00:00:00.000Z',
+            user,
+          },
+        ],
+      },
+    ];
+
+    vi.mocked(useAuthHooks.useMe).mockReturnValue({
+      data: {
+        email: 'john@example.com',
+        displayName: 'John Doe',
+        nickname: 'john_doe',
+        avatarUrl: '',
+        roles: ['USER'],
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useMe>);
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(
+      activitiesQuery([activitiesPage(mockActivities)])
+    );
+    vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUpdateProfile>);
+    vi.mocked(useAuthHooks.useUploadAvatar).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUploadAvatar>);
+
+    render(<ProfilePage />);
+
+    const labels = screen.getAllByText(
+      'Hidden by a moderator: this reply is not visible to other readers.'
+    );
+    expect(labels).toHaveLength(1);
+    const hiddenReply = screen.getByText('My hidden reply').parentElement;
+    expect(hiddenReply).toContainElement(labels[0]);
+    expect(screen.getByText('My visible reply')).toBeInTheDocument();
   });
 
   it('triggers validation error on invalid nickname characters', async () => {

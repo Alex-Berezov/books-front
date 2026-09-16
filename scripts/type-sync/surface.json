@@ -1638,7 +1638,8 @@
       "existingAuthor",
       "existingAuthor.id",
       "existingAuthor.slug",
-      "exists"
+      "exists",
+      "suggestedSlug"
     ]
   },
   {
@@ -6041,6 +6042,7 @@
       "items[].replies",
       "items[].replies[].createdAt",
       "items[].replies[].id",
+      "items[].replies[].isHidden",
       "items[].replies[].text",
       "items[].replies[].user",
       "items[].replies[].user.avatarUrl",

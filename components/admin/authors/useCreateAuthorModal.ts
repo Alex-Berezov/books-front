@@ -25,6 +25,7 @@ export const useCreateAuthorModal = (props: CreateAuthorModalProps) => {
   const [generatedSlug, setGeneratedSlug] = useState('');
   const [isValidatingSlug, setIsValidatingSlug] = useState(false);
   const [slugError, setSlugError] = useState<string | null>(null);
+  const [slugCheckFailed, setSlugCheckFailed] = useState(false);
   const [finalSlug, setFinalSlug] = useState('');
   const [errors, setErrors] = useState<Partial<Record<keyof CreateAuthorFormData, string>>>({});
   const [isPending, setIsPending] = useState(false);
@@ -37,37 +38,64 @@ export const useCreateAuthorModal = (props: CreateAuthorModalProps) => {
       setGeneratedSlug('');
       setFinalSlug('');
       setSlugError(null);
+      setSlugCheckFailed(false);
     }
   }, [formData.name]);
 
+  /**
+   * LEGACY-370: три исхода проверки — свободен, занят, проверить не удалось.
+   * Прежний слаг снимается сразу, а не по ответу: иначе за полсекунды debounce
+   * форма создала бы автора под слагом прошлого имени. Ответ по устаревшему
+   * имени отбрасывается флагом `stale` — таймер отменяется, запрос нет.
+   */
   useEffect(() => {
     if (!generatedSlug) {
+      // Имя, из которого слаг не собирается («!!!», «李白»), не оставляет в форме слаг прошлого имени.
+      setIsValidatingSlug(false);
+      setFinalSlug('');
+      setSlugError(null);
+      setSlugCheckFailed(false);
       return;
     }
 
-    const validateSlug = async () => {
-      setIsValidatingSlug(true);
-      setSlugError(null);
+    let stale = false;
+    setIsValidatingSlug(true);
+    setFinalSlug('');
+    setSlugError(null);
+    setSlugCheckFailed(false);
 
+    const validateSlug = async () => {
       try {
         const result = await checkAuthorSlug(generatedSlug, CREATED_TRANSLATION_LANGUAGE);
+        if (stale) {
+          return;
+        }
 
-        if (result.exists && result.suggestedSlug) {
+        if (result.exists) {
           setSlugError(`Slug "${generatedSlug}" is already taken`);
-          setFinalSlug(result.suggestedSlug);
+          setFinalSlug(result.suggestedSlug ?? '');
         } else {
-          setSlugError(null);
           setFinalSlug(generatedSlug);
         }
-      } catch (error) {
+      } catch {
+        if (stale) {
+          return;
+        }
+        // Непроверенный слаг уходит на сервер, но с предупреждением: база отклонит дубль.
+        setSlugCheckFailed(true);
         setFinalSlug(generatedSlug);
       } finally {
-        setIsValidatingSlug(false);
+        if (!stale) {
+          setIsValidatingSlug(false);
+        }
       }
     };
 
     const timeoutId = setTimeout(validateSlug, 500);
-    return () => clearTimeout(timeoutId);
+    return () => {
+      stale = true;
+      clearTimeout(timeoutId);
+    };
   }, [generatedSlug]);
 
   const handleInputChange =
@@ -101,7 +129,7 @@ export const useCreateAuthorModal = (props: CreateAuthorModalProps) => {
     }
 
     if (!finalSlug) {
-      setErrors({ name: 'Cannot generate valid slug from name' });
+      setErrors({ name: slugError ?? 'Cannot generate valid slug from name' });
       return;
     }
 
@@ -128,6 +156,7 @@ export const useCreateAuthorModal = (props: CreateAuthorModalProps) => {
       setGeneratedSlug('');
       setFinalSlug('');
       setSlugError(null);
+      setSlugCheckFailed(false);
 
       // Redirect to edit page of the newly created author
       router.push(`/admin/${lang}/authors/${newAuthor.id}/edit`);
@@ -143,6 +172,7 @@ export const useCreateAuthorModal = (props: CreateAuthorModalProps) => {
     setGeneratedSlug('');
     setFinalSlug('');
     setSlugError(null);
+    setSlugCheckFailed(false);
     setErrors({});
     onClose();
   };
@@ -153,6 +183,7 @@ export const useCreateAuthorModal = (props: CreateAuthorModalProps) => {
     generatedSlug,
     finalSlug,
     slugError,
+    slugCheckFailed,
     isValidatingSlug,
     isPending,
     canSubmit: !!formData.name.trim() && !isValidatingSlug,
