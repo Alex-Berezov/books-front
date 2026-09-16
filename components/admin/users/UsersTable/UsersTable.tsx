@@ -176,7 +176,7 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
                         <div className={styles.userInfo}>
                           <div className={styles.avatar}>
                             {user.avatarUrl ? (
-                              /* eslint-disable-next-line @next/next/no-img-element */
+                              /* eslint-disable-next-line @next/next/no-img-element -- аватар приходит из профиля OAuth-провайдера (books: auth.service.ts:265), хост произвольный и в remotePatterns next.config.js его нет: next/image на таком адресе отказывает в рантайме */
                               <img src={user.avatarUrl} alt={name} />
                             ) : (
                               name.charAt(0).toUpperCase()
