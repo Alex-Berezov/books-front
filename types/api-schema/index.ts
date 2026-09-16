@@ -35,6 +35,8 @@ export type {
 
 // User
 export type {
+  User,
+  UsersResponse,
   UserMeResponse,
   UserProfileResponse,
   UpdateProfileRequest,
@@ -44,14 +46,6 @@ export type {
   GetUserActivitiesParams,
   UserActivitiesResponse,
 } from './user';
-// ⚠️ `User` и `UsersResponse` здесь намеренно **не** экспортируются, хотя обёртка
-// `GET /users` переведена на `{items, pagination}` вместе с остальными (`LEGACY-177`).
-// Через барель маршрут дошёл бы до слоя 2 гейта `check:type-sync` и покраснел бы не
-// обёрткой, а **строкой**: схема отдаёт `firstName`/`lastName`/`name`/`nickname`
-// как `string | null` и не знает полей `displayName` и `lastLoginAt`, которые
-// рукописный `User` объявляет и читает `UsersTable`. Это отдельное расхождение
-// контракта, чинится оно правкой строки и экрана, а не переименованием полей
-// пагинации. Пока оно живо, маршрут остаётся там же, где был, — вне покрытия.
 
 // Books
 export type {

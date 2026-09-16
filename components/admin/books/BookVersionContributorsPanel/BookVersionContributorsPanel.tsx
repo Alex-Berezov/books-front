@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { useState } from 'react';
-import { Button, Form, Input, Modal, Popconfirm, Select, Switch, Tag } from 'antd';
+import { Button, Form, Input, message, Modal, Popconfirm, Select, Switch, Tag } from 'antd';
 import { ArrowDown, ArrowUp, Pencil, Plus, Star, Trash2, Users } from 'lucide-react';
 import {
   useAddBookVersionContributor,
@@ -66,6 +66,25 @@ export const BookVersionContributorsPanel: FC<BookVersionContributorsPanelProps>
     } catch {
       // Form validation failure
     }
+  };
+
+  // 🔴 Ответ `remove` несёт `warning`, когда снят последний автор версии
+  // (`books/src/modules/book-version/book-version.service.ts:1572-1583`). Читается только
+  // факт его наличия: текст бэкенда говорит про внутреннее поле `BookVersion.author`
+  // и редактору ничего не подсказывает (`LEGACY-383`, решение арбитра 16.09.2026).
+  const handleRemove = (contributorId: string) => {
+    removeMutation.mutate(contributorId, {
+      onSuccess: (result) => {
+        if (result.warning) {
+          message.warning(
+            'У версии не осталось ни одного автора, но на публичной карточке книги останется прежнее имя: оно берётся из поля «Автор» в основных данных версии. Поправьте его там — добавление участника это имя не меняет.'
+          );
+        }
+      },
+      onError: () => {
+        message.error('Не удалось снять участника. Проверьте связь и повторите.');
+      },
+    });
   };
 
   const handleStartEdit = (c: BookVersionContributor) => {
@@ -181,11 +200,17 @@ export const BookVersionContributorsPanel: FC<BookVersionContributorsPanelProps>
                   />
                   <Popconfirm
                     title="Удалить привязку участника?"
-                    onConfirm={() => removeMutation.mutate(c.id)}
+                    onConfirm={() => handleRemove(c.id)}
                     okText="Да"
                     cancelText="Отмена"
                   >
-                    <Button type="text" danger size="small" icon={<Trash2 size={14} />} />
+                    <Button
+                      type="text"
+                      danger
+                      size="small"
+                      aria-label="Снять участника"
+                      icon={<Trash2 size={14} />}
+                    />
                   </Popconfirm>
                 </div>
               )}

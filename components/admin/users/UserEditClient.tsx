@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useUser, useDeleteUser } from '@/api/hooks/useUsers';
 import { Spinner } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
+import { userDisplayName } from '@/lib/utils/user-name';
 import type { UUID } from '@/types/api-schema/common';
 import { PasswordResetModal } from './PasswordResetModal';
 import styles from './UserEditClient.module.scss';
@@ -50,7 +51,7 @@ export const UserEditClient: FC<UserEditClientProps> = ({ userId, lang }) => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Edit User: {user.displayName || user.email}</h1>
+        <h1 className={styles.title}>Edit User: {userDisplayName(user)}</h1>
         <div className={styles.headerActions}>
           <Button variant="secondary" onClick={() => setIsPasswordModalOpen(true)}>
             Reset Password

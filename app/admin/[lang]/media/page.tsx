@@ -27,7 +27,7 @@ export default function MediaPage() {
   const [previewFile, setPreviewFile] = useState<MediaFile | null>(null);
   const limit = 20;
 
-  const { enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const { mutateAsync: deleteMedia, isPending: isDeleting } = useDeleteMedia();
 
   const { data, isLoading } = useMediaFiles({
@@ -60,8 +60,29 @@ export default function MediaPage() {
     if (!fileToDelete) return;
 
     try {
-      await deleteMedia(fileToDelete.id);
-      enqueueSnackbar('File deleted successfully', { variant: 'success' });
+      const result = await deleteMedia(fileToDelete.id);
+      // `storageDeleted: false` — запись снята, а объект в бакете остался сиротой: критерий
+      // сироты по FK его больше не видит (LEGACY-058), снимать придётся руками. Код ответа
+      // в обоих случаях 200, поэтому единственный признак — тело ответа (LEGACY-382).
+      if (result.storageDeleted) {
+        enqueueSnackbar('File deleted successfully', { variant: 'success' });
+      } else {
+        // Адрес, а не `filename`: имя в списке — это хвост ключа
+        // (`api/endpoints/admin/media.ts:47`), по нему объект в бакете не найти.
+        // Сообщение не гаснет само: запись из списка уже ушла, и другого следа не останется.
+        enqueueSnackbar(
+          `"${fileToDelete.filename}" was removed from the library, but the stored file is still in the bucket and has to be removed by hand: ${fileToDelete.url}`,
+          {
+            variant: 'warning',
+            persist: true,
+            action: (key) => (
+              <Button variant="ghost" size="sm" onClick={() => closeSnackbar(key)}>
+                Dismiss
+              </Button>
+            ),
+          }
+        );
+      }
       setFileToDelete(null);
     } catch (error) {
       // Отказ 409 объясняет, **что именно** держит файл (LEGACY-060): обложка книги,

@@ -48,8 +48,17 @@ export const bookVersionContributorsApi = {
     );
   },
 
-  remove: async (versionId: string, contributorId: string): Promise<{ success: boolean }> => {
-    return httpDeleteAuth<{ success: boolean }>(
+  /**
+   * 🔴 `warning` приходит одной веткой: снят основной `AUTHOR`, и авторов у версии
+   * не осталось (`books/src/modules/book-version/book-version.service.ts:1572-1583`).
+   * Унаследованная строка `BookVersion.author` при этом не меняется, поэтому публичная
+   * карточка книги продолжает показывать прежнее имя (`LEGACY-383`).
+   */
+  remove: async (
+    versionId: string,
+    contributorId: string
+  ): Promise<{ success: boolean; warning?: string }> => {
+    return httpDeleteAuth<{ success: boolean; warning?: string }>(
       `/admin/versions/${versionId}/contributors/${contributorId}`
     );
   },

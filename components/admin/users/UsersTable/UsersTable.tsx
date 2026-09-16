@@ -9,6 +9,7 @@ import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { formatDate } from '@/lib/utils/date';
+import { userDisplayName } from '@/lib/utils/user-name';
 import type { UsersTableProps } from './UsersTable.types';
 import styles from './UsersTable.module.scss';
 import { useUsersTable } from './useUsersTable';
@@ -166,67 +167,67 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
-                  <tr key={user.id}>
-                    <td>
-                      <div className={styles.userInfo}>
-                        <div className={styles.avatar}>
-                          {user.avatarUrl ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img src={user.avatarUrl} alt={user.displayName || user.email} />
-                          ) : (
-                            (user.firstName?.[0] || user.email[0]).toUpperCase()
-                          )}
+                {users.map((user) => {
+                  const name = userDisplayName(user);
+
+                  return (
+                    <tr key={user.id}>
+                      <td>
+                        <div className={styles.userInfo}>
+                          <div className={styles.avatar}>
+                            {user.avatarUrl ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img src={user.avatarUrl} alt={name} />
+                            ) : (
+                              name.charAt(0).toUpperCase()
+                            )}
+                          </div>
+                          <div className={styles.userDetails}>
+                            <span className={styles.userName}>{name}</span>
+                            <span className={styles.userEmail}>{user.email}</span>
+                          </div>
                         </div>
-                        <div className={styles.userDetails}>
-                          <span className={styles.userName}>
-                            {user.firstName && user.lastName
-                              ? `${user.firstName} ${user.lastName}`
-                              : user.displayName || 'Unknown'}
+                      </td>
+                      <td>
+                        {user.roles?.map((role) => (
+                          <span key={role} className={`${styles.roleBadge} ${styles[role]}`}>
+                            {role.replace('_', ' ')}
                           </span>
-                          <span className={styles.userEmail}>{user.email}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      {user.roles?.map((role) => (
-                        <span key={role} className={`${styles.roleBadge} ${styles[role]}`}>
-                          {role.replace('_', ' ')}
-                        </span>
-                      ))}
-                    </td>
-                    <td>
-                      <span
-                        className={`${styles.statusBadge} ${
-                          user.isActive ? styles.active : styles.inactive
-                        }`}
-                      >
-                        <span className={styles.dot} />
-                        {user.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td>{user.lastLoginAt ? formatDate(user.lastLoginAt, lang) : 'Never'}</td>
-                    <td>{formatDate(user.createdAt, lang)}</td>
-                    <td>
-                      <div className={styles.actions}>
-                        <Link href={`/admin/${lang}/users/${user.id}`}>
-                          <Button variant="ghost" size="sm" ariaLabel="Edit user">
-                            <Edit size={16} />
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          ariaLabel="Delete user"
-                          onClick={() => handleDeleteUser(user.id)}
-                          className={styles.deleteButton}
+                        ))}
+                      </td>
+                      <td>
+                        <span
+                          className={`${styles.statusBadge} ${
+                            user.isActive ? styles.active : styles.inactive
+                          }`}
                         >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          <span className={styles.dot} />
+                          {user.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td>{user.lastLogin ? formatDate(user.lastLogin, lang) : 'Never'}</td>
+                      <td>{formatDate(user.createdAt, lang)}</td>
+                      <td>
+                        <div className={styles.actions}>
+                          <Link href={`/admin/${lang}/users/${user.id}`}>
+                            <Button variant="ghost" size="sm" ariaLabel="Edit user">
+                              <Edit size={16} />
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            ariaLabel="Delete user"
+                            onClick={() => handleDeleteUser(user.id)}
+                            className={styles.deleteButton}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

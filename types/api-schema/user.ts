@@ -48,18 +48,26 @@ export interface UserMeResponse {
 }
 
 /**
- * User object for admin list
+ * Пользователь в админском списке — `PublicUserWithRolesDto` (`GET /users`, `GET /users/:id`).
+ *
+ * 🔴 Все поля имени сервер отдаёт **всегда**, но со значением `null`, а не пропускает ключ:
+ * `?: string` и `string | null` — разные вещи, и первое обещает отсутствие ключа, которого
+ * не бывает (`LEGACY-380`). Отображаемого имени в ответе нет вовсе — оно собирается на
+ * экране из этих полей (`userDisplayName`), поля `displayName` у сервера не существует.
+ * Дата последнего входа зовётся `lastLogin`, а не `lastLoginAt`.
  */
 export interface User {
   id: UUID;
   email: string;
-  firstName?: string;
-  lastName?: string;
-  displayName?: string;
-  avatarUrl?: string | null;
+  name: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  nickname: string | null;
+  avatarUrl: string | null;
+  languagePreference: SupportedLang;
   roles: RoleName[];
   isActive: boolean;
-  lastLoginAt?: ISODate;
+  lastLogin: ISODate | null;
   createdAt: ISODate;
 }
 
