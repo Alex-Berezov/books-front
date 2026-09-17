@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { RightsClaimsPanel } from '@/components/admin/books/RightsClaimsPanel/RightsClaimsPanel';
+import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import type { RightsClaimSummary } from '@/types/api-schema/rights-claims';
 
 const mockUseVersionRightsClaims = vi.fn();
@@ -58,15 +59,15 @@ const makeClaim = (overrides: Partial<RightsClaimSummary> = {}): RightsClaimSumm
   ...overrides,
 });
 
-const mockClaims = (items: RightsClaimSummary[]) => {
+const mockClaims = (items: RightsClaimSummary[], total = items.length) => {
   mockUseVersionRightsClaims.mockReturnValue({
     data: {
       items,
       pagination: {
         page: 1,
-        limit: items.length,
-        total: items.length,
-        totalPages: items.length > 0 ? 1 : 0,
+        limit: API_MAX_PAGE_SIZE,
+        total,
+        totalPages: total > 0 ? Math.ceil(total / API_MAX_PAGE_SIZE) : 0,
       },
     },
     isLoading: false,
@@ -127,6 +128,112 @@ describe('RightsClaimsPanel', () => {
 
     expect(screen.getByTestId('claim-overdue-claim-1')).toBeInTheDocument();
     expect(screen.getByText('Просроченных: 1')).toBeInTheDocument();
+  });
+
+  it('says the list is incomplete when the server holds more claims than one page (LEGACY-377)', () => {
+    mockClaims([makeClaim(), makeClaim({ id: 'claim-2', claimNumber: 'CLM-2026-000002' })], 130);
+
+    render(<RightsClaimsPanel bookId="book-1" versionId="version-1" />);
+
+    expect(screen.getByTestId('claims-truncated')).toHaveTextContent(
+      'Показаны первые 2 из 130 претензий'
+    );
+    expect(screen.getByText('Претензии и DMCA (130)')).toBeInTheDocument();
+    expect(screen.getByText('Всего: 130')).toBeInTheDocument();
+    expect(screen.getByTestId('claims-truncated')).not.toHaveTextContent('разделе претензий');
+  });
+
+  it('does not claim "no active claims" when the page is closed claims only and the list is cut', () => {
+    mockClaims([makeClaim({ isOpen: false, blocksPublication: false })], 130);
+
+    render(<RightsClaimsPanel bookId="book-1" versionId="version-1" />);
+
+    expect(screen.queryByText('Активных претензий нет')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Список неполный: блокирующие претензии могли не попасть на страницу')
+    ).toBeInTheDocument();
+  });
+
+  it('does not settle for "open claims" when the list is cut: a blocking claim may be past the page', () => {
+    mockClaims([makeClaim({ blocksPublication: false })], 130);
+
+    render(<RightsClaimsPanel bookId="book-1" versionId="version-1" />);
+
+    expect(screen.queryByText('Есть открытые претензии')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Список неполный: блокирующие претензии могли не попасть на страницу')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Блокирующих публикацию (среди показанных): 0')).toBeInTheDocument();
+  });
+
+  it('still reports a blocking claim it can see on a cut list', () => {
+    mockClaims([makeClaim()], 130);
+
+    render(<RightsClaimsPanel bookId="book-1" versionId="version-1" />);
+
+    expect(
+      screen.getByText('Публикация заблокирована претензией правообладателя')
+    ).toBeInTheDocument();
+  });
+
+  it('does not read a failed request as "no claims"', () => {
+    mockUseVersionRightsClaims.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+    });
+
+    render(<RightsClaimsPanel bookId="book-1" versionId="version-1" />);
+
+    expect(screen.queryByText('Активных претензий нет')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('По этой версии не зарегистрировано ни одной претензии правообладателей.')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Не удалось загрузить претензии: статус неизвестен')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Претензии и DMCA (—)')).toBeInTheDocument();
+    expect(screen.getByText('Блокирующих публикацию: —')).toBeInTheDocument();
+  });
+
+  it('keeps the loaded claims when a background refresh fails', () => {
+    mockUseVersionRightsClaims.mockReturnValue({
+      data: {
+        items: [makeClaim({ blocksPublication: false })],
+        pagination: { page: 1, limit: API_MAX_PAGE_SIZE, total: 1, totalPages: 1 },
+      },
+      isLoading: false,
+      isError: true,
+    });
+
+    render(<RightsClaimsPanel bookId="book-1" versionId="version-1" />);
+
+    expect(screen.getByTestId('claim-row-claim-1')).toBeInTheDocument();
+    expect(screen.getByText('Заблокировать доступ')).toBeInTheDocument();
+    expect(screen.getByTestId('claims-refresh-failed')).toBeInTheDocument();
+    expect(screen.getByText('Есть открытые претензии')).toBeInTheDocument();
+  });
+
+  it('does not read a pending request as "no claims"', () => {
+    mockUseVersionRightsClaims.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+    });
+
+    render(<RightsClaimsPanel bookId="book-1" versionId="version-1" />);
+
+    expect(screen.queryByText('Активных претензий нет')).not.toBeInTheDocument();
+    expect(screen.getByText('Всего: —')).toBeInTheDocument();
+    expect(screen.getByText('Открытых: —')).toBeInTheDocument();
+  });
+
+  it('stays silent about completeness when the whole list fits', () => {
+    mockClaims([makeClaim()]);
+
+    render(<RightsClaimsPanel bookId="book-1" versionId="version-1" />);
+
+    expect(screen.queryByTestId('claims-truncated')).not.toBeInTheDocument();
   });
 
   it('hides mutation controls in readOnly mode', () => {

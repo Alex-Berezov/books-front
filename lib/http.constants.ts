@@ -17,6 +17,9 @@
  * которые раньше его не видели вовсе: публичный `GET /:lang/books`, `GET /:lang/tags`
  * и `GET /categories`. У всех троих теперь своя валидируемая query-DTO на бэкенде,
  * повторяющая `PAGINATION_MAX_LIMIT`, а не отдельный потолок.
+ *
+ * С 17.09.2026 (`LEGACY-377`) - и три админских списка прав: претензии версии и книги,
+ * лицензии профиля (`api/endpoints/admin/rights-claims.ts`, `rights-licenses.ts`).
  */
 export const API_MAX_PAGE_SIZE = 100;
 

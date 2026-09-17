@@ -1,5 +1,6 @@
 import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
+import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import type {
   ApplyClaimBlockRequest,
   AssignRightsClaimRequest,
@@ -156,14 +157,18 @@ export const removeClaimAttachment = async (
     requireAuth: true,
   });
 
+/** Панель версии берёт одну страницу по потолку; неполноту показывает сама (`LEGACY-377`). */
 export const getVersionRightsClaims = async (
   versionId: string
 ): Promise<RightsClaimsListResponse> =>
-  httpGetAuth<RightsClaimsListResponse>(`/admin/versions/${versionId}/rights-claims`, {
-    requireAuth: true,
-  }).then((body) => toPaginated(body, LIST_FALLBACK));
+  httpGetAuth<RightsClaimsListResponse>(
+    `/admin/versions/${versionId}/rights-claims?page=1&limit=${API_MAX_PAGE_SIZE}`,
+    { requireAuth: true }
+  ).then((body) => toPaginated(body, LIST_FALLBACK));
 
+/** Первая страница по потолку, потребителя пока нет: экран на этом списке обязан показать неполноту по `pagination.total` (`LEGACY-377`). */
 export const getBookRightsClaims = async (bookId: string): Promise<RightsClaimsListResponse> =>
-  httpGetAuth<RightsClaimsListResponse>(`/admin/books/${bookId}/rights-claims`, {
-    requireAuth: true,
-  }).then((body) => toPaginated(body, LIST_FALLBACK));
+  httpGetAuth<RightsClaimsListResponse>(
+    `/admin/books/${bookId}/rights-claims?page=1&limit=${API_MAX_PAGE_SIZE}`,
+    { requireAuth: true }
+  ).then((body) => toPaginated(body, LIST_FALLBACK));

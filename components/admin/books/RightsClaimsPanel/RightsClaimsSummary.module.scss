@@ -1,0 +1,52 @@
+@import '@/styles/tokens.scss';
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs $spacing-md;
+  margin-top: $spacing-sm;
+  padding: $spacing-sm;
+  border-block: 1px solid $color-border-light;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+}
+
+.notice {
+  margin-top: $spacing-sm;
+  padding: $spacing-sm;
+  border-radius: $border-radius-sm;
+  background: rgba($color-warning, 0.14);
+  color: $color-text-primary;
+  font-size: $font-size-xs;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
+  padding: $spacing-sm;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-xs;
+
+  &[data-status='BLOCK'] {
+    background: rgba($color-error, 0.12);
+    color: $color-error;
+  }
+
+  &[data-status='WARN'],
+  &[data-status='PARTIAL'],
+  &[data-status='ERROR'] {
+    background: rgba($color-warning, 0.14);
+    color: $color-text-primary;
+  }
+
+  &[data-status='LOADING'] {
+    color: $color-text-secondary;
+  }
+
+  &[data-status='OK'] {
+    background: rgba($color-success, 0.12);
+    color: $color-text-primary;
+  }
+}

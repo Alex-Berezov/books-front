@@ -1,5 +1,6 @@
 import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
+import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import type {
   CreateRightsLicenseRequest,
   LicenseCoverageResult,
@@ -74,10 +75,12 @@ export const unlinkRightsLicense = async (
     requireAuth: true,
   });
 
+/** Первая страница по потолку, потребителя пока нет: экран на этом списке обязан показать неполноту по `pagination.total` (`LEGACY-377`). */
 export const getProfileLicenses = async (profileId: string): Promise<RightsLicensesListResponse> =>
-  httpGetAuth<RightsLicensesListResponse>(`/admin/rights/profiles/${profileId}/licenses`, {
-    requireAuth: true,
-  }).then((body) => toPaginated(body, LIST_FALLBACK));
+  httpGetAuth<RightsLicensesListResponse>(
+    `/admin/rights/profiles/${profileId}/licenses?page=1&limit=${API_MAX_PAGE_SIZE}`,
+    { requireAuth: true }
+  ).then((body) => toPaginated(body, LIST_FALLBACK));
 
 export const getProfileLicenseCoverage = async (
   profileId: string
