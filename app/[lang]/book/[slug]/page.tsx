@@ -415,14 +415,6 @@ export default async function BookDetailPage({ params }: Props) {
                   </span>
                 </div>
               )}
-              {activeVersion?.copyrightStatus && (
-                <div className={styles.metaItem}>
-                  <FileText size={16} aria-hidden="true" />
-                  <span>
-                    {dict.book.copyrightStatus}: {activeVersion.copyrightStatus}
-                  </span>
-                </div>
-              )}
               {activeVersion?.alternativeTitles && activeVersion.alternativeTitles.length > 0 && (
                 <div className={styles.metaItem}>
                   <FileText size={16} aria-hidden="true" />
