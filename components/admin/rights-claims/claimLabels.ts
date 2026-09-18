@@ -151,9 +151,12 @@ export const formatClaimDateTime = (value: string | null | undefined): string =>
 
 /**
  * Терминальные статусы претензии - зеркало `CLOSED_CLAIM_STATUSES` из
- * `books/src/modules/rights-claims/rights-claim.constants.ts:16` (именно оттуда, а не
- * из одноимённой константы в `rights-lawyer.constants.ts`: та объявлена строками
- * и с перечислением не совпадает). Бэкенд гейтит `openOnly` и `overdueOnly`
+ * `books/src/modules/rights-claims/rights-claim.constants.ts:16`. Одноимённая константа
+ * в `rights-lawyer.constants.ts` содержит тот же набор значений (расхождение закрыто
+ * по `LEGACY-409` 18.09.2026), но остаётся отдельной копией: тот файл обязан быть
+ * import-free листом по ADR-003. Синхронность двух бэкендовых копий держит
+ * `books/src/modules/rights-lawyer/rights-lawyer.constants.spec.ts`. Бэкенд гейтит
+ * `openOnly` и `overdueOnly`
  * условием «претензия открыта», поэтому с этими статусами оба флага дают пустую выдачу.
  */
 export const CLOSED_CLAIM_STATUSES: readonly RightsClaimStatus[] = [
