@@ -68,6 +68,17 @@
     color: $color-text-primary;
     font-weight: $font-weight-semibold;
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.fieldHint {
+  margin: $spacing-xs 0 0;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
 }
 
 .info {

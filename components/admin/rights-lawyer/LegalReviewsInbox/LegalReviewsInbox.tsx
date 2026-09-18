@@ -31,6 +31,11 @@ const STATUS_OPTIONS: RightsLawyerReviewStatus[] = [
   'EXPIRED',
 ];
 
+/** Открытые статусы проверки - как `LAWYER_REVIEW_OPEN_STATUSES` в `books`
+ * (`rights-lawyer.constants.ts:53-56`). `overdueOnly` бэкенд кладёт в `AND` вместе
+ * с этим условием, поэтому с любым другим статусом пересечение пусто всегда. */
+const OPEN_STATUSES: readonly RightsLawyerReviewStatus[] = ['PENDING', 'IN_PROGRESS'];
+
 const RISK_OPTIONS: RightsRiskLevel[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 
 const TRIGGER_OPTIONS: RightsLawyerReviewTrigger[] = [
@@ -95,7 +100,26 @@ export const LegalReviewsInbox: FC = () => {
   // и без него подпись сменилась бы на «страница 1 из 0».
   const totalPages = Math.max(1, reviewsQuery.data?.pagination.totalPages ?? 0);
 
+  const isClosedStatusSelected = status !== '' && !OPEN_STATUSES.includes(status);
+
   const resetPage = () => setPage(1);
+
+  /** Закрытый статус исключает «только просроченные»: бэкенд гейтит флаг условием
+   * «проверка открыта», и вместе они дали бы пустую выдачу. */
+  const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value as RightsLawyerReviewStatus | '';
+    setStatus(value);
+    if (value !== '' && !OPEN_STATUSES.includes(value)) setOverdueOnly(false);
+    resetPage();
+  };
+
+  /** «Только мои» и явный выбор юриста складываются на бэкенде через `AND`, поэтому
+   * галка гасит список юристов и снимает сделанный в нём выбор. */
+  const handleMineChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setMine(event.target.checked);
+    if (event.target.checked) setAssignedLawyerId('');
+    resetPage();
+  };
 
   return (
     <div className={styles.section}>
@@ -114,10 +138,7 @@ export const LegalReviewsInbox: FC = () => {
             id="inbox-status"
             className={styles.select}
             value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as RightsLawyerReviewStatus | '');
-              resetPage();
-            }}
+            onChange={handleStatusChange}
           >
             <option value="">Все</option>
             {STATUS_OPTIONS.map((value) => (
@@ -180,6 +201,7 @@ export const LegalReviewsInbox: FC = () => {
             id="inbox-lawyer"
             className={styles.select}
             value={assignedLawyerId}
+            disabled={mine}
             onChange={(event) => {
               setAssignedLawyerId(event.target.value);
               resetPage();
@@ -192,6 +214,7 @@ export const LegalReviewsInbox: FC = () => {
               </option>
             ))}
           </select>
+          {mine && <p className={styles.fieldHint}>Отключено: активна галка «Только мои».</p>}
         </div>
 
         <div className={styles.filterField}>
@@ -212,15 +235,7 @@ export const LegalReviewsInbox: FC = () => {
         </div>
 
         <label className={styles.checkboxRow} htmlFor="inbox-mine">
-          <input
-            id="inbox-mine"
-            type="checkbox"
-            checked={mine}
-            onChange={(event) => {
-              setMine(event.target.checked);
-              resetPage();
-            }}
-          />
+          <input id="inbox-mine" type="checkbox" checked={mine} onChange={handleMineChange} />
           Только мои
         </label>
 
@@ -229,6 +244,7 @@ export const LegalReviewsInbox: FC = () => {
             id="inbox-overdue"
             type="checkbox"
             checked={overdueOnly}
+            disabled={isClosedStatusSelected}
             onChange={(event) => {
               setOverdueOnly(event.target.checked);
               resetPage();
@@ -236,6 +252,11 @@ export const LegalReviewsInbox: FC = () => {
           />
           Только просроченные
         </label>
+        {isClosedStatusSelected && (
+          <p className={styles.fieldHint}>
+            Выбранный статус закрыт: «только просроченные» с ним не совпадёт.
+          </p>
+        )}
 
         {isAdmin && (
           <button

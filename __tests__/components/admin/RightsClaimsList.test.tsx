@@ -83,6 +83,49 @@ describe('RightsClaimsList', () => {
     );
   });
 
+  /**
+   * `LEGACY-408`: `openOnly`/`overdueOnly` требуют открытый статус на бэкенде -
+   * выбор закрытого статуса вместе с одним из них раньше давал пустой список без объяснения.
+   */
+  it('гасит «только открытые» и «только просроченные», когда выбран закрытый статус', () => {
+    mockUseRightsClaims.mockReturnValue({
+      data: { items: [makeClaim()], pagination: { page: 1, limit: 20, total: 1, totalPages: 1 } },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<RightsClaimsList lang="en" />);
+
+    // Оба флага должны реально стоять в `true` до смены статуса, иначе проверка
+    // на `undefined` пройдёт и без сброса — ветка осталась бы непокрытой.
+    fireEvent.click(screen.getByText('Только открытые'));
+    fireEvent.click(screen.getByText('Только просроченные'));
+    expect(mockUseRightsClaims).toHaveBeenLastCalledWith(
+      expect.objectContaining({ openOnly: true, overdueOnly: true })
+    );
+
+    fireEvent.change(screen.getByDisplayValue('Все статусы'), {
+      target: { value: 'CLOSED' },
+    });
+
+    expect(mockUseRightsClaims).toHaveBeenLastCalledWith(
+      expect.objectContaining({ status: 'CLOSED', openOnly: undefined, overdueOnly: undefined })
+    );
+    expect(screen.getByText('Только открытые')).toBeDisabled();
+    expect(screen.getByText('Только просроченные')).toBeDisabled();
+    expect(
+      screen.getByText(
+        'Выбранный статус закрыт: «только открытые» и «только просроченные» с ним не совпадут.'
+      )
+    ).toBeInTheDocument();
+
+    // Возврат к открытому статусу снова включает оба контрола.
+    fireEvent.change(screen.getByDisplayValue('Закрыта'), { target: { value: '' } });
+
+    expect(screen.getByText('Только открытые')).toBeEnabled();
+    expect(screen.getByText('Только просроченные')).toBeEnabled();
+  });
+
   it('renders the empty state when nothing matches', () => {
     mockUseRightsClaims.mockReturnValue({
       data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },

@@ -123,6 +123,17 @@
   gap: $spacing-xs;
   font-size: $font-size-sm;
   color: $color-text-primary;
+
+  &:has(input:disabled) {
+    color: $color-text-secondary;
+    cursor: not-allowed;
+  }
+}
+
+.fieldHint {
+  margin: 0;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
 }
 
 .actionBtnPrimary {

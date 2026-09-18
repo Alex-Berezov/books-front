@@ -54,6 +54,10 @@ const REASON_OPTIONS: RightsRecheckReason[] = [
 
 const SEVERITY_OPTIONS: RightsRecheckSeverity[] = ['INFO', 'WARNING', 'BLOCKING'];
 
+/** Терминальные статусы (как `CLOSED_STATUSES` в `books`) - с ними «только просроченные»
+ * не может дать результат, потому что бэкенд считает задачу в этом статусе закрытой. */
+const CLOSED_STATUSES: readonly RightsRecheckStatus[] = ['COMPLETED', 'DISMISSED'];
+
 const CHANGE_TYPE_OPTIONS: RightsLegalChangeType[] = [
   'COPYRIGHT_TERM_CHANGE',
   'PUBLIC_DOMAIN_RULE_CHANGE',
@@ -124,6 +128,16 @@ export const RightsRechecksView: FC<RightsRechecksViewProps> = ({ lang }) => {
 
   const tasks = tasksQuery.data?.items ?? [];
   const total = tasksQuery.data?.pagination?.total ?? 0;
+  const isClosedStatusSelected = statusFilter !== '' && CLOSED_STATUSES.includes(statusFilter);
+
+  /** Терминальный статус исключает «только просроченные»: бэкенд гейтит флаг условием
+   * «задача открыта», и вместе они дали бы пустую выдачу. */
+  const handleStatusFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value as RightsRecheckStatus | '';
+    setStatusFilter(value);
+    if (value !== '' && CLOSED_STATUSES.includes(value)) setOverdueOnly(false);
+    setPage(1);
+  };
   const lastScan = scanRunsQuery.data?.items[0] ?? null;
   const legalChanges = legalChangesQuery.data?.items ?? [];
   const legalTotal = legalChangesQuery.data?.pagination?.total ?? 0;
@@ -294,10 +308,7 @@ export const RightsRechecksView: FC<RightsRechecksViewProps> = ({ lang }) => {
                 id="recheck-filter-status"
                 className={styles.select}
                 value={statusFilter}
-                onChange={(event) => {
-                  setStatusFilter(event.target.value as RightsRecheckStatus | '');
-                  setPage(1);
-                }}
+                onChange={handleStatusFilterChange}
               >
                 <option value="">Все</option>
                 {STATUS_OPTIONS.map((option) => (
@@ -353,6 +364,7 @@ export const RightsRechecksView: FC<RightsRechecksViewProps> = ({ lang }) => {
               <input
                 type="checkbox"
                 checked={overdueOnly}
+                disabled={isClosedStatusSelected}
                 onChange={(event) => {
                   setOverdueOnly(event.target.checked);
                   setPage(1);
@@ -360,6 +372,11 @@ export const RightsRechecksView: FC<RightsRechecksViewProps> = ({ lang }) => {
               />
               Только просроченные
             </label>
+            {isClosedStatusSelected && (
+              <p className={styles.fieldHint}>
+                Выбранный статус закрыт: «только просроченные» с ним не совпадёт.
+              </p>
+            )}
           </div>
 
           {tasks.length === 0 ? (

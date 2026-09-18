@@ -148,3 +148,17 @@ export const formatClaimDate = (value: string | null | undefined): string =>
 
 export const formatClaimDateTime = (value: string | null | undefined): string =>
   value ? new Date(value).toISOString().slice(0, 16).replace('T', ' ') : '—';
+
+/**
+ * Терминальные статусы претензии - зеркало `CLOSED_CLAIM_STATUSES` из
+ * `books/src/modules/rights-claims/rights-claim.constants.ts:16` (именно оттуда, а не
+ * из одноимённой константы в `rights-lawyer.constants.ts`: та объявлена строками
+ * и с перечислением не совпадает). Бэкенд гейтит `openOnly` и `overdueOnly`
+ * условием «претензия открыта», поэтому с этими статусами оба флага дают пустую выдачу.
+ */
+export const CLOSED_CLAIM_STATUSES: readonly RightsClaimStatus[] = [
+  'RESOLVED_VALID',
+  'RESOLVED_INVALID',
+  'WITHDRAWN',
+  'CLOSED',
+];

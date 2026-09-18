@@ -15,7 +15,10 @@ vi.mock('next-auth/react', () => ({
 vi.mock('@/api/hooks/useRightsLawyer', () => ({
   useLawyerReviews: (params: unknown) => mockUseLawyerReviews(params),
   useLawyers: () => ({
-    data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },
+    data: {
+      items: [{ id: 'lawyer-1', fullName: 'Иванова' }],
+      pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+    },
   }),
   useRunLawyerExpiryScan: () => ({ mutateAsync: mockScan, isPending: false }),
   useLawyerReview: () => ({ data: null, isLoading: false, isError: false }),
@@ -177,6 +180,71 @@ describe('LegalReviewsInbox', () => {
     expect(mockUseLawyerReviews).toHaveBeenLastCalledWith(
       expect.objectContaining({ mine: true, overdueOnly: true })
     );
+  });
+
+  /**
+   * `LEGACY-408`: `mine` и `assignedLawyerId` складываются через `AND` на бэкенде -
+   * выбор чужого юриста вместе с «только мои» раньше давал пустой список без объяснения.
+   */
+  it('снимает выбранного юриста и гасит список, когда включена «только мои»', async () => {
+    const user = userEvent.setup();
+    render(<LegalReviewsInbox />);
+
+    await user.selectOptions(screen.getByLabelText('Юрист'), 'lawyer-1');
+    expect(mockUseLawyerReviews).toHaveBeenLastCalledWith(
+      expect.objectContaining({ assignedLawyerId: 'lawyer-1' })
+    );
+
+    await user.click(screen.getByLabelText('Только мои'));
+
+    expect(screen.getByLabelText('Юрист')).toBeDisabled();
+    expect(mockUseLawyerReviews).toHaveBeenLastCalledWith(expect.objectContaining({ mine: true }));
+    expect(mockUseLawyerReviews).toHaveBeenLastCalledWith(
+      expect.not.objectContaining({ assignedLawyerId: expect.anything() })
+    );
+  });
+
+  /**
+   * Четвёртая пара того же класса на том же экране (решение арбитра 18.09.2026):
+   * `overdueOnly` бэкенд кладёт в `AND` с `LAWYER_REVIEW_OPEN_WHERE` = `PENDING`/`IN_PROGRESS`,
+   * поэтому с закрытым статусом пересечение пусто всегда.
+   */
+  it.each(['APPROVED', 'REJECTED', 'EXPIRED'])(
+    'гасит «только просроченные», когда выбран закрытый статус %s',
+    async (closedStatus) => {
+      const user = userEvent.setup();
+      render(<LegalReviewsInbox />);
+
+      await user.click(screen.getByLabelText('Только просроченные'));
+      expect(mockUseLawyerReviews).toHaveBeenLastCalledWith(
+        expect.objectContaining({ overdueOnly: true })
+      );
+
+      await user.selectOptions(screen.getByLabelText('Статус'), closedStatus);
+
+      expect(mockUseLawyerReviews).toHaveBeenLastCalledWith(
+        expect.objectContaining({ status: closedStatus })
+      );
+      expect(mockUseLawyerReviews).toHaveBeenLastCalledWith(
+        expect.not.objectContaining({ overdueOnly: expect.anything() })
+      );
+      expect(screen.getByLabelText('Только просроченные')).toBeDisabled();
+
+      // Возврат к открытому статусу снова включает чекбокс.
+      await user.selectOptions(screen.getByLabelText('Статус'), 'PENDING');
+      expect(screen.getByLabelText('Только просроченные')).toBeEnabled();
+    }
+  );
+
+  it('снятие «только мои» возвращает список юриста в рабочее состояние', async () => {
+    const user = userEvent.setup();
+    render(<LegalReviewsInbox />);
+
+    await user.click(screen.getByLabelText('Только мои'));
+    expect(screen.getByLabelText('Юрист')).toBeDisabled();
+
+    await user.click(screen.getByLabelText('Только мои'));
+    expect(screen.getByLabelText('Юрист')).toBeEnabled();
   });
 
   it('passes the expiry window to the query', async () => {

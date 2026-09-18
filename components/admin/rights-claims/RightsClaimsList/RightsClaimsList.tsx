@@ -10,6 +10,7 @@ import {
   CLAIM_SEVERITY_LABELS,
   CLAIM_STATUS_LABELS,
   CLAIM_TYPE_LABELS,
+  CLOSED_CLAIM_STATUSES,
   formatClaimDate,
 } from '@/components/admin/rights-claims/claimLabels';
 import { EmptyState, Pagination } from '@/components/admin/shared';
@@ -89,6 +90,20 @@ export const RightsClaimsList: FC<RightsClaimsListProps> = ({ lang }) => {
   const hasFilters = Boolean(
     search || statusFilter || typeFilter || severityFilter || openOnly || overdueOnly
   );
+  const isClosedStatusSelected =
+    statusFilter !== '' && CLOSED_CLAIM_STATUSES.includes(statusFilter);
+
+  /** Закрытый статус исключает «только открытые» и «только просроченные»: бэкенд гейтит
+   * оба флага условием «претензия открыта», и вместе они дали бы пустую выдачу. */
+  const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value as RightsClaimStatus | '';
+    setStatusFilter(value);
+    if (value !== '' && CLOSED_CLAIM_STATUSES.includes(value)) {
+      setOpenOnly(false);
+      setOverdueOnly(false);
+    }
+    setPage(1);
+  };
 
   return (
     <div className={styles.container}>
@@ -110,14 +125,7 @@ export const RightsClaimsList: FC<RightsClaimsListProps> = ({ lang }) => {
             value={search}
           />
         </div>
-        <select
-          className={styles.filterSelect}
-          onChange={(e) => {
-            setStatusFilter(e.target.value as RightsClaimStatus | '');
-            setPage(1);
-          }}
-          value={statusFilter}
-        >
+        <select className={styles.filterSelect} onChange={handleStatusChange} value={statusFilter}>
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
@@ -155,10 +163,12 @@ export const RightsClaimsList: FC<RightsClaimsListProps> = ({ lang }) => {
         <button
           className={styles.filterToggle}
           data-active={openOnly}
+          disabled={isClosedStatusSelected}
           onClick={() => {
             setOpenOnly(!openOnly);
             setPage(1);
           }}
+          title={isClosedStatusSelected ? 'Недоступно: выбран закрытый статус' : undefined}
           type="button"
         >
           <ShieldAlert size={14} />
@@ -167,16 +177,23 @@ export const RightsClaimsList: FC<RightsClaimsListProps> = ({ lang }) => {
         <button
           className={styles.filterToggle}
           data-active={overdueOnly}
+          disabled={isClosedStatusSelected}
           onClick={() => {
             setOverdueOnly(!overdueOnly);
             setPage(1);
           }}
+          title={isClosedStatusSelected ? 'Недоступно: выбран закрытый статус' : undefined}
           type="button"
         >
           <AlertCircle size={14} />
           Только просроченные
         </button>
       </div>
+      {isClosedStatusSelected && (
+        <p className={styles.fieldHint}>
+          Выбранный статус закрыт: «только открытые» и «только просроченные» с ним не совпадут.
+        </p>
+      )}
 
       {data && (
         <div className={styles.info}>
