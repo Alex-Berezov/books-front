@@ -218,6 +218,47 @@ export default async function BookDetailPage({ params }: Props) {
     : null;
   const activeVersion = textVersion || audioVersion || book.versions?.[0] || null;
 
+  /**
+   * 🔴 LEGACY-006. Адрес автора берётся у сервера, а не собирается из отображаемого имени:
+   * настоящий слаг бывает транслитерацией — «Сунь-цзы» лежит под `sun-czy`, — и собранный
+   * из имени адрес ведёт в 404. Инцидент этого класса уже был
+   * (`app/[lang]/author/[authorSlug]/page.tsx`).
+   *
+   * Имя и слаг читаются из **одного** источника. Порознь их брать нельзя: цепочка активной
+   * версии здесь (`textVersion`, `audioVersion`, иначе `versions[0]`) и на бэкенде
+   * (`textVersion`, `audioVersion`, иначе referral-версия) расходятся, и пара «имя от версии,
+   * слаг от книги» подписывала бы одного автора ссылкой на другого. Для читателя это 200
+   * с чужим автором — хуже, чем отсутствие ссылки.
+   *
+   * `authorPageUrl` — ручной ввод редактора и потому первый источник. Слага нет (у версии
+   * нет ключа автора или нет перевода на её язык) — ссылки не будет вовсе, имя показывается
+   * текстом: ссылка в 404 хуже её отсутствия.
+   */
+  const authorSource = activeVersion ?? book;
+  /**
+   * 🔴 Слаг берётся с **верхнего уровня** ответа, а не у версии. Активная версия не обязана
+   * быть на языке страницы: бэкенд после промаха по запрошенному языку берёт первую версию
+   * с текстом любого языка. Её слаг посчитан в **её** языке, и склеенный с префиксом `/ru`
+   * он дал бы пару «слаг + язык», которой нет, — то есть 404 (`getPublicBySlug` ищет строго
+   * парой). Верхнеуровневое поле посчитано в языке ответа и потому годится для этого адреса;
+   * `versions[].authorSlug` — для ссылки в языке своей версии.
+   */
+  const authorSlug = book.authorSlug ?? null;
+  /**
+   * `authorPageUrl` — ручной ввод редактора и потому первый источник. Отсекается ровно один
+   * случай: админка собирает адрес как `/{lang}/author/{slug}` из перевода, которого может
+   * не быть, и тогда в базе оседает строка с пустым последним сегментом. Пустую строку отсёк
+   * бы и `||`, а `/en/author/` — нет, и такой адрес победил бы верный слаг.
+   *
+   * ⚠️ Проверка узкая намеренно. Поле — свободный текст с обеих сторон, и его пример в DTO
+   * бэкенда — **внешний** адрес: редактор вправе увести на Википедию. Проверка «похоже
+   * на внутренний путь автора» молча выбрасывала бы такие ссылки.
+   */
+  const manualAuthorHref = activeVersion?.authorPageUrl?.trim();
+  const authorHref =
+    (manualAuthorHref && !manualAuthorHref.endsWith('/author/') ? manualAuthorHref : null) ||
+    (authorSlug ? `/${supportedLang}/author/${encodeURIComponent(authorSlug)}` : null);
+
   const textHasSummary = textVersion
     ? ((textVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0
     : false;
@@ -241,6 +282,7 @@ export default async function BookDetailPage({ params }: Props) {
   })();
 
   const dict = getDictionary(supportedLang);
+  const authorName = authorSource.author || dict.book.unknownAuthor;
   const descriptionTitle = dict.book.aboutBook.replace(
     '{title}',
     activeVersion?.title || book.title
@@ -328,15 +370,13 @@ export default async function BookDetailPage({ params }: Props) {
             <h1 className={styles.title}>{activeVersion?.title || book.title}</h1>
             <p className={styles.author}>
               {dict.book.by}{' '}
-              <Link
-                href={
-                  activeVersion?.authorPageUrl ||
-                  `/${supportedLang}/author/${encodeURIComponent((activeVersion?.author || book.author || '').trim().toLowerCase().replace(/\s+/g, '-'))}`
-                }
-                className={styles.authorLink}
-              >
-                {activeVersion?.author || book.author || dict.book.unknownAuthor}
-              </Link>
+              {authorHref ? (
+                <Link href={authorHref} className={styles.authorLink}>
+                  {authorName}
+                </Link>
+              ) : (
+                <span>{authorName}</span>
+              )}
             </p>
 
             {book.rating !== undefined && book.rating !== null && (
@@ -367,11 +407,13 @@ export default async function BookDetailPage({ params }: Props) {
             <BookTaxonomyChips lang={supportedLang} terms={book.tags ?? []} variant="tags" />
 
             <div className={styles.metadataList}>
-              {(activeVersion?.author || book.author) && (
+              {authorSource.author && (
                 <div className={styles.metaItem}>
                   <User size={16} aria-hidden="true" />
+                  {/* Тот же источник, что и у подписи выше: одна страница не должна давать
+                      двух ответов на вопрос «кто автор». */}
                   <span>
-                    {dict.book.author}: {activeVersion?.author || book.author}
+                    {dict.book.author}: {authorSource.author}
                   </span>
                 </div>
               )}

@@ -75,7 +75,11 @@ export default function AuthorDetailClient({
 
   if (dbAuthor) {
     finalDisplayName = dbAuthor.name;
-    authorBooks = (dbAuthor.books || []).map(toBookCardModelFromAuthorBook);
+    // LEGACY-006: слаг автора берётся из адреса страницы — это книги именно этого автора,
+    // и выводить его из отображаемого имени нельзя (адрес бывает транслитерацией).
+    authorBooks = (dbAuthor.books || []).map((book) =>
+      toBookCardModelFromAuthorBook(book, authorSlug)
+    );
     biography = dbAuthor.biography || '';
     quotes = (dbAuthor.quotes as AuthorQuote[]) || [];
     faq = (dbAuthor.faq as AuthorFaq[]) || [];

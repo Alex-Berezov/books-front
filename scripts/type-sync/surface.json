@@ -476,6 +476,7 @@
     "hasResponseSchema": true,
     "fields": [
       "author",
+      "authorSlug",
       "availableLanguages",
       "book",
       "book.id",
@@ -627,6 +628,7 @@
       "versions[].author",
       "versions[].authorId",
       "versions[].authorPageUrl",
+      "versions[].authorSlug",
       "versions[].bookId",
       "versions[].characters",
       "versions[].characters[].description",

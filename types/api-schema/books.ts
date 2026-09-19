@@ -29,6 +29,16 @@ export interface VersionPreview {
   originalLanguage?: string | null;
   copyrightStatus?: string | null;
   authorPageUrl?: string | null;
+  /**
+   * Настоящий `AuthorTranslation.slug` для публичного адреса автора (LEGACY-006).
+   *
+   * 🔴 `null`, когда у версии нет ключа автора **или нет перевода на её язык**.
+   * Фолбэка на английский нет намеренно: страница автора ищет строго парой «слаг + язык»
+   * и при промахе отдаёт 404, то есть `en`-слаг под `/ru` — гарантированно битый адрес.
+   * Собирать слаг из `author` **нельзя**: он бывает транслитерацией («Сунь-цзы» лежит
+   * под `sun-czy`). При `null` имя автора показывается текстом, без ссылки.
+   */
+  authorSlug?: string | null;
   characters?: { name: string; description?: string }[] | null;
   quotes?: { text: string; author?: string }[] | null;
   faq?: { question: string; answer: string }[] | null;
@@ -50,7 +60,10 @@ export interface VersionPreview {
  *
  * `id` is the canonical Book.id (bookId), used for deduplication, ratings and relations.
  * `slug` is the BookVersion.slug for the requested :lang.
- * `authorSlug` is null when authorId is null (legacy data) — do NOT generate from display name.
+ * `authorSlug` is null when authorId is null (legacy data), and — since 19.09.2026,
+ * `LEGACY-006` — also when the author has no translation in the requested language:
+ * the English fallback was removed because the author page matches strictly on the
+ * (slug, language) pair. Render the name as plain text then; do NOT generate from display name.
  */
 export interface BookCardModel {
   id: UUID;
@@ -103,6 +116,16 @@ export interface BookOverview {
   slug: string;
   title: string;
   author: string;
+  /**
+   * Настоящий `AuthorTranslation.slug` для публичного адреса автора (LEGACY-006).
+   *
+   * 🔴 `null`, когда у версии нет ключа автора **или нет перевода на её язык**.
+   * Фолбэка на английский нет намеренно: страница автора ищет строго парой «слаг + язык»
+   * и при промахе отдаёт 404, то есть `en`-слаг под `/ru` — гарантированно битый адрес.
+   * Собирать слаг из `author` **нельзя**: он бывает транслитерацией («Сунь-цзы» лежит
+   * под `sun-czy`). При `null` имя автора показывается текстом, без ссылки.
+   */
+  authorSlug?: string | null;
   description?: string;
   coverUrl?: string;
   coverImageUrl?: string;
