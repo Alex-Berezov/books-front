@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/types/api';
 
 /**
@@ -61,6 +61,22 @@ vi.mock('@/lib/http', async () => {
   return { ...actual, httpGet: mocks.httpGet };
 });
 
+/**
+ * 🔴 Потолок на **загрузку модуля страницы**, а не на тест.
+ *
+ * Страницы грузятся динамическим `import`, и первый тест блока платил трансформацию
+ * всего графа импортов страницы из собственного бюджета `testTimeout: 15000`. В одиночку
+ * файл проходит за 5,6 с, под полным прогоном тот же первый тест упирался в потолок
+ * (16790 мс) — красное приходило на разные тесты в зависимости от нагрузки машины.
+ * Дважды: 19.09.2026 по `LEGACY-006` и в тот же день по `LEGACY-005`.
+ *
+ * Поэтому загрузка поднята в `beforeAll` со своим щедрым потолком. `testTimeout` не тронут:
+ * сами тесты по-прежнему обязаны укладываться в 15 с, и зависший тест краснеет как раньше.
+ * В хуке держится **только** загрузка модуля — ни ожиданий, ни настройки моков
+ * (решение арбитра 19.09.2026, `decisions-log.md`).
+ */
+const MODULE_LOAD_TIMEOUT_MS = 60_000;
+
 const notFoundError = () => new ApiError({ message: 'Not found', statusCode: 404 });
 const outageError = () => new ApiError({ message: 'Too many requests', statusCode: 429 });
 
@@ -76,10 +92,16 @@ beforeEach(() => {
 });
 
 describe('book detail page — оба пути к 404 спрашивают историю слагов', () => {
-  const load = async () => (await import('@/app/[lang]/book/[slug]/page')).default;
+  let page: (typeof import('@/app/[lang]/book/[slug]/page'))['default'];
 
-  const run = (slug: string) =>
-    load().then((page) => page({ params: Promise.resolve({ lang: 'en', slug }) }));
+  beforeAll(async () => {
+    page = (await import('@/app/[lang]/book/[slug]/page')).default;
+  }, MODULE_LOAD_TIMEOUT_MS);
+
+  // `async` здесь не украшение: без него синхронный бросок внутри страницы уходил бы
+  // наружу синхронно, а прежняя форма через `import().then(...)` обращала его в отказ
+  // промиса. Ожидания `rejects` в тестах рассчитаны на отказ.
+  const run = async (slug: string) => page({ params: Promise.resolve({ lang: 'en', slug }) });
 
   it('редиректит 308 на преемника, когда API ответил 404', async () => {
     mocks.getCachedBookOverview.mockRejectedValue(notFoundError());
@@ -138,10 +160,14 @@ describe('book detail page — оба пути к 404 спрашивают ис�
 });
 
 describe('author page — оба пути к 404 спрашивают историю слагов', () => {
-  const run = (authorSlug: string) =>
-    import('@/app/[lang]/author/[authorSlug]/page').then((m) =>
-      m.default({ params: Promise.resolve({ lang: 'ru', authorSlug }) })
-    );
+  let page: (typeof import('@/app/[lang]/author/[authorSlug]/page'))['default'];
+
+  beforeAll(async () => {
+    page = (await import('@/app/[lang]/author/[authorSlug]/page')).default;
+  }, MODULE_LOAD_TIMEOUT_MS);
+
+  const run = async (authorSlug: string) =>
+    page({ params: Promise.resolve({ lang: 'ru', authorSlug }) });
 
   it('редиректит 308 на преемника, когда API ответил 404', async () => {
     mocks.getPublicAuthorBySlug.mockRejectedValue(notFoundError());
@@ -181,13 +207,17 @@ describe('author page — оба пути к 404 спрашивают истор
 });
 
 describe('tag page — оба пути к 404 спрашивают историю слагов', () => {
-  const run = (tagSlug: string, page?: string) =>
-    import('@/app/[lang]/tag/[tagSlug]/page').then((m) =>
-      m.default({
-        params: Promise.resolve({ lang: 'es', tagSlug }),
-        searchParams: Promise.resolve(page ? { page } : {}),
-      })
-    );
+  let tagPage: (typeof import('@/app/[lang]/tag/[tagSlug]/page'))['default'];
+
+  beforeAll(async () => {
+    tagPage = (await import('@/app/[lang]/tag/[tagSlug]/page')).default;
+  }, MODULE_LOAD_TIMEOUT_MS);
+
+  const run = async (tagSlug: string, page?: string) =>
+    tagPage({
+      params: Promise.resolve({ lang: 'es', tagSlug }),
+      searchParams: Promise.resolve(page ? { page } : {}),
+    });
 
   /** Страница тега шлёт два запроса: SEO-бандл (его отказ проглатывается) и карточки. */
   const arrange = (cards: unknown) =>
@@ -245,10 +275,14 @@ describe('tag page — оба пути к 404 спрашивают истори�
 });
 
 describe('catalog redirect page — сбой API больше не превращается в постоянный 308', () => {
-  const run = (categorySlug: string) =>
-    import('@/app/[lang]/catalog/[categorySlug]/page').then((m) =>
-      m.default({ params: Promise.resolve({ lang: 'en', categorySlug }) })
-    );
+  let page: (typeof import('@/app/[lang]/catalog/[categorySlug]/page'))['default'];
+
+  beforeAll(async () => {
+    page = (await import('@/app/[lang]/catalog/[categorySlug]/page')).default;
+  }, MODULE_LOAD_TIMEOUT_MS);
+
+  const run = async (categorySlug: string) =>
+    page({ params: Promise.resolve({ lang: 'en', categorySlug }) });
 
   it('уводит на живой сегмент, не спрашивая историю', async () => {
     mocks.resolveSeo.mockImplementation((_lang: string, type: string) =>
@@ -329,13 +363,17 @@ const taxonomyPages = [
 
 for (const { segment, load } of taxonomyPages) {
   describe(`${segment} page — LEGACY-391: номер страницы на редирект не переносится`, () => {
-    const run = async (slug: string, page?: string) => {
-      const mod = await load();
-      return mod.default({
+    let taxonomyPage: Awaited<ReturnType<typeof load>>['default'];
+
+    beforeAll(async () => {
+      taxonomyPage = (await load()).default;
+    }, MODULE_LOAD_TIMEOUT_MS);
+
+    const run = async (slug: string, page?: string) =>
+      taxonomyPage({
         params: Promise.resolve({ lang: 'ru', slug }),
         searchParams: Promise.resolve(page ? { page } : {}),
       });
-    };
 
     /** Карточки — единственный запрос без собственного фоллбэка; остальные два гасятся сами. */
     const arrangeCards = (cards: unknown) =>
