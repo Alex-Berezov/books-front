@@ -332,6 +332,7 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
 
               <ContributorsPanel
                 profileContributors={currentProfile.contributors}
+                contributorEvents={currentProfile.contributorEvents}
                 sourceEditionId={currentProfile.sourceEdition?.id}
               />
 

@@ -588,6 +588,39 @@ export interface TerritoryRegionSummary {
   blockingReasons: TerritoryRegionReason[];
 }
 
+/**
+ * LEGACY-037: снимок связи участника на момент события. Лежит в колонке `payload Json?`
+ * бэкенда, но наружу отдаётся типизированным объектом — сырой Json в рукописной схеме
+ * превратился бы в `unknown` (решение арбитра 21.09.2026, `decisions-log.md`).
+ */
+export interface RightsProfileContributorEventSnapshot {
+  canonicalName: string | null;
+  birthYear: number | null;
+  deathYear: number | null;
+  nationalityCountryCode: string | null;
+  notesRu: string | null;
+  linkedAt: string | null;
+}
+
+/**
+ * LEGACY-037: одна привязка или отвязка участника профиля прав. Строка связи удаляется
+ * физически, поэтому событие — единственный след того, кого и когда отвязали.
+ */
+export interface RightsProfileContributorEvent {
+  id: string;
+  eventType: 'LINKED' | 'UNLINKED';
+  rightsProfileContributorId: string;
+  rightsComponentId: string | null;
+  sourceEditionId: string | null;
+  personId: string | null;
+  role: string | null;
+  displayName: string | null;
+  creditedName: string | null;
+  snapshot: RightsProfileContributorEventSnapshot | null;
+  createdByUserId: string | null;
+  createdAt: string;
+}
+
 export interface RightsProfileDetail {
   id: string;
   rightsIntakeId: string;
@@ -609,6 +642,11 @@ export interface RightsProfileDetail {
   evidence: RightsEvidence[];
   actions: RightsAction[];
   contributors?: import('../contributors').RightsProfileContributor[];
+  /**
+   * LEGACY-037: журнал привязок и отвязок участников, свежие сверху, не больше 200 строк.
+   * Имя не `events`: журнал принадлежит не профилю, а его связям.
+   */
+  contributorEvents?: RightsProfileContributorEvent[];
   contributorsCount?: number;
   authorsCount?: number;
   translatorsCount?: number;

@@ -99,3 +99,59 @@
   color: $color-text-tertiary;
   font-size: $font-size-sm;
 }
+
+/* LEGACY-037: журнал привязок и отвязок участников профиля прав. */
+.history {
+  margin-top: $spacing-md;
+  padding-top: $spacing-sm;
+  border-top: 1px solid $color-border-light;
+}
+
+.historyToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}
+
+.timeline {
+  margin: $spacing-sm 0 0;
+  padding-left: $spacing-md;
+  list-style: none;
+}
+
+.timelineItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs 0;
+  font-size: $font-size-sm;
+  border-bottom: 1px solid $color-border-light;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.timelineDate {
+  color: $color-text-tertiary;
+  font-variant-numeric: tabular-nums;
+}
+
+.timelineName {
+  font-weight: $font-weight-medium;
+}
+
+.timelineMuted {
+  color: $color-text-secondary;
+}

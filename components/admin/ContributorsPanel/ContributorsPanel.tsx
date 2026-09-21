@@ -1,13 +1,15 @@
 import type { FC } from 'react';
 import { useState } from 'react';
 import { Button, Popconfirm, Tag } from 'antd';
-import { ExternalLink, Plus, Trash2, UserCheck } from 'lucide-react';
+import { ExternalLink, History, Plus, Trash2, UserCheck } from 'lucide-react';
 import {
   useLinkRightsComponentContributor,
   useLinkSourceEditionContributor,
   useUnlinkRightsComponentContributor,
   useUnlinkSourceEditionContributor,
 } from '@/api/hooks/useContributors';
+import { formatClaimDateTime } from '@/components/admin/rights-claims/claimLabels';
+import type { RightsProfileContributorEvent } from '@/types/api-schema/rights-intake';
 import type { Contributor, ContributorRole, RightsProfileContributor } from '@/types/contributors';
 import { ContributorModal } from './ContributorModal';
 import styles from './ContributorsPanel.module.scss';
@@ -24,6 +26,11 @@ export interface ContributorsPanelProps {
   rightsComponentId?: string;
   items?: ContributorItem[];
   profileContributors?: RightsProfileContributor[];
+  /**
+   * LEGACY-037: журнал привязок и отвязок. Связь удаляется физически, поэтому список выше
+   * не отвечает на вопрос «кого убрали» — на него отвечает только журнал.
+   */
+  contributorEvents?: RightsProfileContributorEvent[];
   title?: string;
   readOnly?: boolean;
 }
@@ -44,6 +51,21 @@ const ROLE_LABELS: Record<ContributorRole, string> = {
   OTHER: 'Другое',
 };
 
+/** LEGACY-037: два типа события журнала связей — других в `RightsProfileContributorEventType` нет. */
+/**
+ * Зеркало `CONTRIBUTOR_EVENTS_LIMIT` из
+ * `books/src/modules/rights-intake/rights-profile.service.ts`. Ответ признака усечения
+ * не несёт, поэтому полный список от обрезанного отличается только по длине: печатать
+ * её как «всего событий» значит выдавать обрезанную выборку за полную ровно там, где
+ * журнал и читают — «когда этого человека привязали впервые».
+ */
+const CONTRIBUTOR_EVENTS_LIMIT = 200;
+
+const EVENT_LABELS: Record<RightsProfileContributorEvent['eventType'], string> = {
+  LINKED: 'Привязан',
+  UNLINKED: 'Отвязан',
+};
+
 const CONFIDENCE_COLORS: Record<string, string> = {
   HIGH: 'green',
   MEDIUM: 'blue',
@@ -55,10 +77,12 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
   rightsComponentId,
   items = [],
   profileContributors,
+  contributorEvents,
   title = 'Участники и авторы (Contributors / Person Model)',
   readOnly = false,
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const linkSourceEditionMutation = useLinkSourceEditionContributor();
   const unlinkSourceEditionMutation = useUnlinkSourceEditionContributor();
@@ -251,6 +275,53 @@ export const ContributorsPanel: FC<ContributorsPanelProps> = ({
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/*
+        LEGACY-037: журнал заводился ради человеческой читаемости, но до 21.09.2026 не читался
+        нигде — отвязанного участника было видно только прямым запросом в базу.
+      */}
+      {contributorEvents && contributorEvents.length > 0 && (
+        <div className={styles.history}>
+          <button
+            type="button"
+            className={styles.historyToggle}
+            onClick={() => setHistoryOpen((open) => !open)}
+            aria-expanded={historyOpen}
+          >
+            <History size={14} />
+            {contributorEvents.length >= CONTRIBUTOR_EVENTS_LIMIT
+              ? `История привязок (последние ${CONTRIBUTOR_EVENTS_LIMIT})`
+              : `История привязок (${contributorEvents.length})`}
+          </button>
+
+          {historyOpen && (
+            <ol className={styles.timeline}>
+              {contributorEvents.map((event) => (
+                <li key={event.id} className={styles.timelineItem}>
+                  <span className={styles.timelineDate}>
+                    {formatClaimDateTime(event.createdAt)}
+                  </span>
+                  <Tag color={event.eventType === 'LINKED' ? 'green' : 'volcano'}>
+                    {EVENT_LABELS[event.eventType]}
+                  </Tag>
+                  <span className={styles.timelineName}>
+                    {event.snapshot?.canonicalName ?? event.displayName ?? event.personId ?? '—'}
+                    {event.role && ` · ${ROLE_LABELS[event.role as ContributorRole] || event.role}`}
+                  </span>
+                  {(event.snapshot?.birthYear != null || event.snapshot?.deathYear != null) && (
+                    <span className={styles.timelineMuted}>
+                      {event.snapshot.birthYear ?? '?'}&ndash;{event.snapshot.deathYear ?? ''}
+                    </span>
+                  )}
+                  {event.snapshot?.notesRu && (
+                    <span className={styles.timelineMuted}>{event.snapshot.notesRu}</span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
       )}
 
