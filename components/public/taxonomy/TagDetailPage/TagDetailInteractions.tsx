@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useId } from 'react';
+import { RichTextContent } from '@/components/common/RichTextContent';
 import styles from './TagDetailPage.module.scss';
 
 interface TagDetailInteractionsProps {
@@ -26,12 +27,12 @@ export function TagDetailInteractions({
   return (
     <section className={styles.descriptionSection}>
       <h2 className={styles.sectionTitle}>{descriptionSectionTitle}</h2>
-      <div
+      <RichTextContent
         id={descId}
+        html={description}
         className={`${styles.description} ${
           !showFullDescription && descriptionIsLong ? styles.descriptionCollapsed : ''
         }`}
-        dangerouslySetInnerHTML={{ __html: description }}
       />
       {descriptionIsLong && (
         <button

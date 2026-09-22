@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useBookSummary } from '@/api/hooks/useBookSummary';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
+import { RichTextContent } from '@/components/common/RichTextContent';
 import { useSmartBack } from '@/components/public/navigation';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { isNotFoundError } from '@/lib/utils/content-failure';
@@ -119,30 +120,21 @@ export default function SummaryClient({ params, initialBook }: Props) {
           {summaryData.summary && (
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>{t('book.keyTakeaways')}</h2>
-              <div
-                className={styles.bodyText}
-                dangerouslySetInnerHTML={{ __html: summaryData.summary }}
-              />
+              <RichTextContent html={summaryData.summary} className={styles.bodyText} />
             </section>
           )}
 
           {summaryData.analysis && (
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>{t('book.analysis')}</h2>
-              <div
-                className={styles.bodyText}
-                dangerouslySetInnerHTML={{ __html: summaryData.analysis }}
-              />
+              <RichTextContent html={summaryData.analysis} className={styles.bodyText} />
             </section>
           )}
 
           {summaryData.themes && (
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>{t('book.themesSection')}</h2>
-              <div
-                className={styles.bodyText}
-                dangerouslySetInnerHTML={{ __html: summaryData.themes }}
-              />
+              <RichTextContent html={summaryData.themes} className={styles.bodyText} />
             </section>
           )}
         </article>

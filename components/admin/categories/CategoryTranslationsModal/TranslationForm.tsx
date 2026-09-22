@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
 import {
   SeoBasicSection,
   SeoOpenGraphSection,
@@ -10,7 +11,6 @@ import {
 } from '@/components/admin/common/SeoSections';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { Select } from '@/components/common/Select';
 import { generateSlug } from '@/lib/utils/slug';
 import styles from './CategoryTranslationsModal.module.scss';
@@ -165,7 +165,7 @@ export const TranslationForm = ({
           name="description"
           control={control}
           render={({ field }) => (
-            <RichTextEditor
+            <AdminRichTextEditor
               value={field.value ?? ''}
               onChange={field.onChange}
               onBlur={field.onBlur}

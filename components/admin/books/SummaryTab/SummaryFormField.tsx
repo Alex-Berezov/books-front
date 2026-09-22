@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
 import type { SummaryFormData } from './SummaryTab.types';
 import styles from './SummaryTab.module.scss';
 
@@ -29,7 +29,7 @@ export const SummaryFormField: FC<SummaryFormFieldProps> = (props) => {
         {label}
         <span className={styles.labelHint}>({hint})</span>
       </label>
-      <RichTextEditor
+      <AdminRichTextEditor
         id={id}
         value={value}
         onChange={handleChange}

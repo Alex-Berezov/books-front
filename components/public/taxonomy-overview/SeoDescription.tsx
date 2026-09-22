@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { RichTextContent } from '@/components/common/RichTextContent';
 import styles from './SeoDescription.module.scss';
 
 export interface SeoDescriptionProps {
@@ -10,7 +11,7 @@ export const SeoDescription: FC<SeoDescriptionProps> = ({ description }) => {
 
   return (
     <div className={styles.seoDescription}>
-      <div className={styles.content} dangerouslySetInnerHTML={{ __html: description }} />
+      <RichTextContent html={description} className={styles.content} />
     </div>
   );
 };

@@ -17,6 +17,7 @@ import { usePublicAuthor } from '@/api/hooks/useAuthors';
 import { Button } from '@/components/common/Button';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
+import { RichTextContent } from '@/components/common/RichTextContent';
 import { BookCard } from '@/components/public/books/BookCard';
 import { useSmartBack } from '@/components/public/navigation';
 import { pluralize, pluralFormsOf } from '@/lib/i18n/plural';
@@ -189,10 +190,7 @@ export default function AuthorDetailClient({
         {biography && (
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>{t('author.about', { name: finalDisplayName })}</h2>
-            <div
-              className={styles.biographyContent}
-              dangerouslySetInnerHTML={{ __html: biography }}
-            />
+            <RichTextContent html={biography} className={styles.biographyContent} />
           </section>
         )}
 

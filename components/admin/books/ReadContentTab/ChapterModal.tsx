@@ -4,9 +4,9 @@ import { useEffect } from 'react';
 import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
 import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
-import { RichTextEditor } from '@/components/common/RichTextEditor';
 import styles from './ChapterModal.module.scss';
 import { type ChapterFormData, type ChapterModalProps, chapterSchema } from './ChapterModal.types';
 
@@ -99,7 +99,7 @@ export const ChapterModal: FC<ChapterModalProps> = (props) => {
             name="content"
             control={control}
             render={({ field }) => (
-              <RichTextEditor
+              <AdminRichTextEditor
                 id="content"
                 value={field.value ?? ''}
                 onChange={field.onChange}

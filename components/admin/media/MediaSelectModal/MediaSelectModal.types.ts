@@ -1,4 +1,4 @@
-import type { MediaFile } from '@/types/api-schema/media';
+import type { MediaFile, MediaType } from '@/types/api-schema/media';
 
 export interface MediaSelectModalProps {
   /** Whether the modal is open */
@@ -9,6 +9,9 @@ export interface MediaSelectModalProps {
   onSelect: (file: MediaFile) => void;
   /** Currently selected file URL (to show as selected) */
   initialSelectedUrl?: string;
-  /** Allowed media types (optional) */
-  allowedTypes?: ('image' | 'video' | 'audio' | 'document')[];
+  /**
+   * Restricts both the library listing and the upload tab to these types.
+   * Omit it and every kind of media is offered.
+   */
+  allowedTypes?: MediaType[];
 }

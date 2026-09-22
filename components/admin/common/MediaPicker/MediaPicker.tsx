@@ -4,7 +4,7 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import { Image as ImageIcon, Pencil, Trash2 } from 'lucide-react';
 import { MediaSelectModal } from '@/components/admin/media/MediaSelectModal';
-import type { MediaFile } from '@/types/api-schema/media';
+import type { MediaFile, MediaType } from '@/types/api-schema/media';
 import styles from './MediaPicker.module.scss';
 
 interface MediaPickerProps {
@@ -17,7 +17,7 @@ interface MediaPickerProps {
   /** Error message */
   error?: string;
   /** Allowed media types */
-  allowedTypes?: ('image' | 'video' | 'audio' | 'document')[];
+  allowedTypes?: MediaType[];
   /** Disabled state */
   disabled?: boolean;
   /** Aspect ratio for image preview block */

@@ -12,18 +12,47 @@ interface MediaToolbarProps {
   onTypeFilterChange: (value: MediaType | 'all') => void;
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
+  /**
+   * Restricts the type filter to these types, dropping "All Types" with it.
+   * Used when the caller can only accept some kinds of media - picking an
+   * image for an article, say - so the filter cannot offer what the caller
+   * would have to reject afterwards.
+   */
+  availableTypes?: MediaType[];
 }
 
+const TYPE_LABELS: Record<MediaType, string> = {
+  image: 'Images',
+  video: 'Videos',
+  audio: 'Audio',
+  document: 'Documents',
+};
+
+const ALL_TYPES: MediaType[] = ['image', 'video', 'audio', 'document'];
+
 export const MediaToolbar: FC<MediaToolbarProps> = (props) => {
-  const { search, onSearchChange, typeFilter, onTypeFilterChange, viewMode, onViewModeChange } =
-    props;
+  const {
+    search,
+    onSearchChange,
+    typeFilter,
+    onTypeFilterChange,
+    viewMode,
+    onViewModeChange,
+    availableTypes,
+  } = props;
+
+  const restricted = availableTypes !== undefined && availableTypes.length > 0;
+  const listedTypes = restricted ? availableTypes : ALL_TYPES;
+
+  // "All Types" is dropped only when a single type is permitted - then it would
+  // promise more than the caller accepts. With several it stays and means "all
+  // permitted", and without it the Select would hold a value outside its own
+  // list and render blank.
+  const showAllOption = listedTypes.length > 1;
 
   const typeOptions = [
-    { value: 'all', label: 'All Types' },
-    { value: 'image', label: 'Images' },
-    { value: 'video', label: 'Videos' },
-    { value: 'audio', label: 'Audio' },
-    { value: 'document', label: 'Documents' },
+    ...(showAllOption ? [{ value: 'all', label: 'All Types' }] : []),
+    ...listedTypes.map((type) => ({ value: type, label: TYPE_LABELS[type] })),
   ];
 
   return (

@@ -58,6 +58,12 @@ export const ReplyCommentModal: FC<ReplyCommentModalProps> = (props) => {
           name="content"
           control={control}
           render={({ field }) => (
+            // 🔴 No image button and no alignment here on purpose: a reply is
+            // shown to readers as plain text (`BookReviews.tsx` renders
+            // `{comment.text}`, which React escapes), because the same field
+            // also carries reader-written reviews and rendering those as HTML
+            // would be an XSS hole. Anything the editor cannot show would
+            // reach the reader as a visible `<img src="…">` string.
             <RichTextEditor
               value={field.value ?? ''}
               onChange={field.onChange}
@@ -67,6 +73,7 @@ export const ReplyCommentModal: FC<ReplyCommentModalProps> = (props) => {
               error={!!errors.content}
               minHeight="140px"
               ariaLabel="Reply content"
+              enableAlignment={false}
             />
           )}
         />

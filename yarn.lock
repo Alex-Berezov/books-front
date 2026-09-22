@@ -1577,6 +1577,11 @@
   resolved "https://registry.npmjs.org/@tiptap/extension-horizontal-rule/-/extension-horizontal-rule-3.22.4.tgz"
   integrity sha512-cCI1HekGQwhY/MbgaKQ0R/7HcH5ZM1oFAyI/J72QGLC0XnF403S/OXoHMuBWr1mCu8hNiQWCzeNRJUty0iytNw==
 
+"@tiptap/extension-image@3.22.4":
+  version "3.22.4"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-image/-/extension-image-3.22.4.tgz#b8e2e5314f8a6ed8fff91f2edb6d1ef758120079"
+  integrity sha512-ZDc+fLaratTQ4IgnKcJJwfUgUgpcHjbZSBi6UQAILJwkflMy1Zxj8mpbma5P934nLSI+uDnR5ret6ZZLNITKhA==
+
 "@tiptap/extension-italic@^3.22.4":
   version "3.22.4"
   resolved "https://registry.npmjs.org/@tiptap/extension-italic/-/extension-italic-3.22.4.tgz"
@@ -1623,6 +1628,11 @@
   version "3.22.4"
   resolved "https://registry.npmjs.org/@tiptap/extension-strike/-/extension-strike-3.22.4.tgz"
   integrity sha512-aRHWQj42HiailXSC9LkKYM3jWMcSeGwOjbqM4PiuxQZmHVDRFmeHkfJItOdn2cSHaO0vuEVK+TvrWUWsBFi3pg==
+
+"@tiptap/extension-text-align@3.22.4":
+  version "3.22.4"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-text-align/-/extension-text-align-3.22.4.tgz#c92a51ae91781519810e58149e9dd8e00fdadef2"
+  integrity sha512-W7TnXWSyfDXSatGXp5y/CahE8G4btrQPb0/sy+eG+42FxdzYsqvh1ys3OE9j2XSuTrZ1q/tZA/NLPUkc7vw6Kw==
 
 "@tiptap/extension-text@^3.22.4":
   version "3.22.4"

@@ -58,6 +58,26 @@ const mapBackendItemToMediaFile = (item: BackendMediaItem): MediaFile => {
   };
 };
 
+/**
+ * `MediaType` as `GET /media` understands it.
+ *
+ * 🔴 The handler filters by a content-type **prefix** - `contentType: { startsWith: type }`
+ * (`books/src/modules/media/media.service.ts:97`) - not by the word the UI uses.
+ * Sending the bare `"document"` matched nothing, because a pdf is
+ * `application/pdf`; the filter looked alive and always came back empty.
+ *
+ * ⚠️ `document` is the UI's catch-all for "not image, video or audio", and
+ * `application/` covers only part of it: a `text/plain` upload is a document on
+ * this side and is not found by this filter. Narrowing it properly needs the
+ * handler to learn the category, which is a backend change (`LEGACY-415`).
+ */
+const TYPE_TO_CONTENT_TYPE_PREFIX: Record<MediaType, string> = {
+  image: 'image/',
+  video: 'video/',
+  audio: 'audio/',
+  document: 'application/',
+};
+
 export const getMediaFiles = async (params: GetMediaParams = {}): Promise<MediaResponse> => {
   const { page = 1, limit = 20, type, search } = params;
 
@@ -67,11 +87,15 @@ export const getMediaFiles = async (params: GetMediaParams = {}): Promise<MediaR
   });
 
   if (type) {
-    queryParams.append('type', type);
+    queryParams.append('type', TYPE_TO_CONTENT_TYPE_PREFIX[type]);
   }
 
   if (search) {
-    queryParams.append('search', search);
+    // 🔴 The handler calls it `q` (`MediaListQueryDto`), and the global pipe runs
+    // with `forbidNonWhitelisted: true` - `search` came back as a 400. The modal
+    // showed an empty grid with no word of the failure, so the library looked
+    // empty the moment anyone typed in the search box.
+    queryParams.append('q', search);
   }
 
   const endpoint = `/media?${queryParams.toString()}`;

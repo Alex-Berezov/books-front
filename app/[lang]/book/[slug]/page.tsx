@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import { permanentRedirect, notFound } from 'next/navigation';
+import { RichTextContent } from '@/components/common/RichTextContent';
 import { StarRating } from '@/components/public/books/StarRating';
 import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
 import { getDictionary } from '@/lib/i18n/dictionaries';
@@ -489,10 +490,7 @@ export default async function BookDetailPage({ params }: Props) {
           <h2 className={styles.descriptionTitle}>{descriptionTitle}</h2>
           <DescriptionWrapper showMoreText={dict.book.showMore} showLessText={dict.book.showLess}>
             {book.description ? (
-              <div
-                className={styles.description}
-                dangerouslySetInnerHTML={{ __html: book.description }}
-              />
+              <RichTextContent html={book.description} className={styles.description} />
             ) : (
               <p className={styles.description}>{dict.book.noDescription}</p>
             )}

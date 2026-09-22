@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useUpdateTextProgress } from '@/api/hooks/useProgress';
 import { useReaderBootstrap } from '@/api/hooks/usePublic';
+import { RichTextContent } from '@/components/common/RichTextContent';
 import { RightsBlockedNotice } from '@/components/common/RightsBlockedNotice';
 import { useSmartBack } from '@/components/public/navigation';
 import { isRightsBlockedError } from '@/lib/errors';
@@ -22,6 +23,33 @@ import styles from './reader.module.scss';
 
 type FontSize = 'sm' | 'md' | 'lg' | 'xl';
 type Theme = 'light' | 'sepia' | 'dark';
+
+/**
+ * The seven stops the line-height slider offers. Holding them as a list rather
+ * than a raw number keeps the setting in the same shape as the font size next
+ * to it: a class from a map, never an inline style.
+ */
+const LINE_HEIGHTS = [1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4] as const;
+
+/**
+ * Index into `LINE_HEIGHTS`, spelled out so the map below is exhaustive: adding
+ * an eighth stop without its class turns `className` into `"… undefined"` and
+ * drops the line height to the default, with typecheck still green.
+ */
+type LineHeightIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+/** 1.8 is the reader's default. */
+const DEFAULT_LINE_HEIGHT_INDEX: LineHeightIndex = 3;
+
+const lineHeightMap: Record<LineHeightIndex, string> = {
+  0: styles.lineHeight12,
+  1: styles.lineHeight14,
+  2: styles.lineHeight16,
+  3: styles.lineHeight18,
+  4: styles.lineHeight20,
+  5: styles.lineHeight22,
+  6: styles.lineHeight24,
+};
 
 const fontSizeMap: Record<FontSize, string> = {
   sm: styles.fontSizeSm,
@@ -73,7 +101,8 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
   const [fontSize, setFontSize] = useState<FontSize>('md');
-  const [lineHeight, setLineHeight] = useState(1.8);
+  const [lineHeightIndex, setLineHeightIndex] =
+    useState<LineHeightIndex>(DEFAULT_LINE_HEIGHT_INDEX);
   const [theme, setTheme] = useState<Theme>('light');
   const [showToc, setShowToc] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -498,17 +527,18 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
 
               <div className={styles.settingsSection}>
                 <h4 className={styles.settingsTitle}>
-                  {t('reader.lineHeight')} ({lineHeight})
+                  {t('reader.lineHeight')} ({LINE_HEIGHTS[lineHeightIndex]})
                 </h4>
                 <input
                   type="range"
-                  min={1.2}
-                  max={2.4}
-                  step={0.2}
-                  value={lineHeight}
-                  onChange={(e) => setLineHeight(Number(e.target.value))}
+                  min={0}
+                  max={LINE_HEIGHTS.length - 1}
+                  step={1}
+                  value={lineHeightIndex}
+                  onChange={(e) => setLineHeightIndex(Number(e.target.value) as LineHeightIndex)}
                   className={styles.nativeSlider}
                   aria-label={t('reader.lineHeight')}
+                  aria-valuetext={String(LINE_HEIGHTS[lineHeightIndex])}
                 />
               </div>
             </div>
@@ -521,10 +551,9 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
           {currentChapter ? (
             <article>
               <h1 className={styles.chapterHeader}>{currentChapter.title}</h1>
-              <div
-                className={`${styles.chapterBody} ${fontSizeMap[fontSize]}`}
-                style={{ lineHeight: lineHeight }}
-                dangerouslySetInnerHTML={{ __html: currentChapter.content || '' }}
+              <RichTextContent
+                html={currentChapter.content || ''}
+                className={`${styles.chapterBody} ${fontSizeMap[fontSize]} ${lineHeightMap[lineHeightIndex]}`}
               />
             </article>
           ) : (

@@ -2,10 +2,10 @@
 
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
+import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
 import { FormField } from '@/components/admin/common/SeoSections';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
@@ -160,7 +160,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
             name="content"
             control={control}
             render={({ field }) => (
-              <RichTextEditor
+              <AdminRichTextEditor
                 id="content"
                 value={field.value ?? ''}
                 onChange={field.onChange}

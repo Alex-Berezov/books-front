@@ -81,3 +81,23 @@
   border-radius: $border-radius-sm;
   border: 1px solid $color-border-light;
 }
+
+// A failed request used to look exactly like an empty library.
+.loadFailed {
+  padding: $spacing-lg;
+  text-align: center;
+  color: $color-error;
+}
+
+.retry {
+  border: none;
+  background: none;
+  padding: 0;
+  color: $color-primary;
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: $color-primary-hover;
+  }
+}

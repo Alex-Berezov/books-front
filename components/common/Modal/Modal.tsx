@@ -65,9 +65,16 @@ export const Modal: FC<ModalProps> = (props) => {
 
   /**
    * Escape закрывает окно.
+   *
+   * 🔴 `stopPropagation` обязателен: вложенное окно рисуется в разметке внешнего,
+   * и без остановки одно нажатие Escape закрывало оба сразу. В админке под
+   * внешним окном лежит несохранённая форма — глава книги, перевод категории, —
+   * и она пропадала вместе с ним: при следующем открытии `ChapterModal` делает
+   * `reset` по `initialData`. Окно, которое Escape обработало, дальше его не пускает.
    */
   const handleDialogKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape' && !isLoading) {
+      e.stopPropagation();
       onCancel();
     }
   };

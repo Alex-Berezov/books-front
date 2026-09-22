@@ -1,34 +1,16 @@
 'use client';
 
 import { useEffect, type CSSProperties, type FC } from 'react';
+import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
+import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import type { RichTextEditorProps } from './RichTextEditor.types';
 import styles from './RichTextEditor.module.scss';
 import { Toolbar } from './Toolbar';
-
-export interface RichTextEditorProps {
-  /** Current HTML value */
-  value: string;
-  /** Called whenever the editor content changes (returns HTML) */
-  onChange: (html: string) => void;
-  /** Called when the editor loses focus */
-  onBlur?: () => void;
-  /** Placeholder shown when the editor is empty */
-  placeholder?: string;
-  /** Disables editing */
-  disabled?: boolean;
-  /** Visual error state */
-  error?: boolean;
-  /** DOM id applied to the editable content area */
-  id?: string;
-  /** Minimum height of the editor content area (CSS value) */
-  minHeight?: string;
-  /** Accessible label */
-  ariaLabel?: string;
-}
 
 /**
  * RichTextEditor - Headless rich text editor built on TipTap/ProseMirror.
@@ -62,6 +44,8 @@ export const RichTextEditor: FC<RichTextEditorProps> = (props) => {
     id,
     minHeight = '160px',
     ariaLabel,
+    imagePicker,
+    enableAlignment = true,
   } = props;
 
   const editor = useEditor({
@@ -69,7 +53,11 @@ export const RichTextEditor: FC<RichTextEditorProps> = (props) => {
     immediatelyRender: false,
     editable: !disabled,
     extensions: [
-      StarterKit,
+      // StarterKit 3 already ships Link and Underline. Leaving them on while
+      // also listing the configured copies below makes TipTap warn about
+      // duplicate extension names, and which copy wins is not defined -
+      // the link options right underneath were never guaranteed to apply.
+      StarterKit.configure({ link: false, underline: false }),
       Underline,
       Link.configure({
         openOnClick: false,
@@ -82,6 +70,38 @@ export const RichTextEditor: FC<RichTextEditorProps> = (props) => {
       Placeholder.configure({
         placeholder: placeholder ?? '',
       }),
+      // 🔴 The extension is registered only when alignment is on, not merely
+      // hidden from the toolbar. It ships `Mod-Shift-L/E/R/J` shortcuts of its
+      // own, so leaving it loaded would let Ctrl+Shift+E store
+      // `<p style="text-align: center">` in a field whose consumer prints the
+      // value as plain text - and the reader would see that attribute.
+      ...(enableAlignment
+        ? [
+            TextAlign.configure({
+              // Lists and quotes keep their own layout; aligning blocks of text
+              // is what editors are expected to do.
+              types: ['heading', 'paragraph'],
+            }),
+          ]
+        : []),
+      // Same reasoning as above: without a picker the field is not meant to
+      // hold images at all, and a registered extension would still accept one
+      // pasted as HTML from another page.
+      ...(imagePicker
+        ? [
+            Image.configure({
+              // Inline images sit inside a paragraph, so the paragraph's inline
+              // `text-align` centres them for free - no extra CSS, and the
+              // editor matches the published page.
+              inline: true,
+              // Pasting a screenshot from the clipboard would otherwise inline
+              // megabytes of base64 into a column that has no length limit
+              // (Postgres TEXT, DTOs carry no @MaxLength). Images go through
+              // the picker instead.
+              allowBase64: false,
+            }),
+          ]
+        : []),
     ],
     content: value || '',
     onUpdate: ({ editor: instance }) => {
@@ -133,7 +153,14 @@ export const RichTextEditor: FC<RichTextEditorProps> = (props) => {
 
   return (
     <div className={wrapperClasses}>
-      {editor && <Toolbar editor={editor} disabled={disabled} />}
+      {editor && (
+        <Toolbar
+          editor={editor}
+          disabled={disabled}
+          imagePicker={imagePicker}
+          enableAlignment={enableAlignment}
+        />
+      )}
       <EditorContent editor={editor} className={styles.editor} style={editorStyle} />
     </div>
   );

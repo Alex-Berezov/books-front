@@ -260,6 +260,31 @@
   font-size: 24px;
 }
 
+// The seven stops of the line-height slider, mirroring `LINE_HEIGHTS` in
+// `ReaderClient.tsx`. Kept as classes for the same reason the font sizes above
+// are: the value belongs in the stylesheet, not in a `style` attribute.
+.lineHeight12 {
+  line-height: 1.2;
+}
+.lineHeight14 {
+  line-height: 1.4;
+}
+.lineHeight16 {
+  line-height: 1.6;
+}
+.lineHeight18 {
+  line-height: 1.8;
+}
+.lineHeight20 {
+  line-height: 2;
+}
+.lineHeight22 {
+  line-height: 2.2;
+}
+.lineHeight24 {
+  line-height: 2.4;
+}
+
 // Native drawer
 .drawerOverlay {
   position: fixed;

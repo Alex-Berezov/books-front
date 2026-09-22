@@ -2,6 +2,7 @@
 
 import { useState, useId, type ReactNode } from 'react';
 import { X } from 'lucide-react';
+import { RichTextContent } from '@/components/common/RichTextContent';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './TaxonomyDetailPage.module.scss';
 
@@ -71,12 +72,12 @@ export function TaxonomyDetailInteractions({
       {description && (
         <section className={styles.descriptionSection}>
           <h2 className={styles.sectionTitle}>{descriptionSectionTitle}</h2>
-          <div
+          <RichTextContent
             id={descId}
+            html={description}
             className={`${styles.description} ${
               !showFullDescription && descriptionIsLong ? styles.descriptionCollapsed : ''
             }`}
-            dangerouslySetInnerHTML={{ __html: description }}
           />
           {descriptionIsLong && (
             <button

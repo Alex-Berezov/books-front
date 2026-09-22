@@ -136,3 +136,26 @@
     }
   }
 }
+
+// Rich-text content - shared by the admin editor and the public renderer.
+//
+// Everything the TipTap editor can emit and a reader can see lives here, so the
+// draft in the admin and the published page cannot drift apart. Included by
+// `RichTextEditor.module.scss` (inside `:global(.ProseMirror)`) and by
+// `RichTextContent.module.scss`.
+//
+// Alignment needs no rules: TipTap writes it inline (`style="text-align: center"`)
+// and the browser applies it. Images are inline nodes, so the same inline style
+// centres them too - which is why `Image` is configured with `inline: true`.
+@mixin rich-text-content {
+  img {
+    // Without this a 1920px screenshot dropped into a chapter overflows the
+    // text column and adds horizontal scroll on phones.
+    max-width: 100%;
+    // Keeps proportions when the width above kicks in, and when the stored
+    // HTML carries a `width` attribute.
+    height: auto;
+    vertical-align: middle;
+    border-radius: $border-radius-base;
+  }
+}

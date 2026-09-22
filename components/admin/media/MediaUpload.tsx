@@ -5,14 +5,37 @@ import { UploadCloud } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useDropzone } from 'react-dropzone';
 import { useUploadMedia } from '@/api/hooks/useMedia';
+import type { MediaType } from '@/types/api-schema/media';
+import type { Accept } from 'react-dropzone';
 import styles from './MediaUpload.module.scss';
 import { UploadProgress, type UploadFile } from './UploadProgress';
 
 interface MediaUploadProps {
   onUploadComplete?: () => void;
+  /**
+   * Narrows what the dropzone accepts. Without it a picker restricted to images
+   * still let an admin upload a pdf, answered "uploaded successfully" and then
+   * showed a library that filtered the new file straight back out - success and
+   * an empty space, with no explanation anywhere.
+   */
+  acceptTypes?: MediaType[];
 }
 
-export const MediaUpload = ({ onUploadComplete }: MediaUploadProps) => {
+const ACCEPT_BY_TYPE: Record<MediaType, Accept> = {
+  image: { 'image/*': [] },
+  video: { 'video/*': [] },
+  audio: { 'audio/*': [] },
+  document: { 'application/pdf': [] },
+};
+
+const ACCEPT_ALL: Accept = {
+  'image/*': [],
+  'video/*': [],
+  'audio/*': [],
+  'application/pdf': [],
+};
+
+export const MediaUpload = ({ onUploadComplete, acceptTypes }: MediaUploadProps) => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const { mutateAsync: upload } = useUploadMedia();
   const { enqueueSnackbar } = useSnackbar();
@@ -68,15 +91,12 @@ export const MediaUpload = ({ onUploadComplete }: MediaUploadProps) => {
     [upload, enqueueSnackbar, onUploadComplete]
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': [],
-      'video/*': [],
-      'audio/*': [],
-      'application/pdf': [],
-    },
-  });
+  const accept =
+    acceptTypes && acceptTypes.length > 0
+      ? acceptTypes.reduce<Accept>((acc, type) => ({ ...acc, ...ACCEPT_BY_TYPE[type] }), {})
+      : ACCEPT_ALL;
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept });
 
   return (
     <div>

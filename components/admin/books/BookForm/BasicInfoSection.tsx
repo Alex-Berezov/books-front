@@ -3,8 +3,8 @@ import { Select as AntdSelect } from 'antd';
 import { Controller } from 'react-hook-form';
 import { useCategories } from '@/api/hooks/useCategories';
 import { AuthorSearchSelect } from '@/components/admin/authors/AuthorSearchSelect';
+import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
 import { Input } from '@/components/common/Input';
-import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
@@ -264,7 +264,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
           name="description"
           control={control}
           render={({ field }) => (
-            <RichTextEditor
+            <AdminRichTextEditor
               id="description"
               value={field.value ?? ''}
               onChange={field.onChange}
