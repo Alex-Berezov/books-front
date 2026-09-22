@@ -1,7 +1,6 @@
 'use client';
 
 import type { FC } from 'react';
-import type { RichTextImagePicker } from './RichTextEditor.types';
 import type { Editor } from '@tiptap/react';
 import { ImageButton } from './ImageButton';
 import { LinkButton } from './LinkButton';
@@ -20,14 +19,15 @@ import { useToolbarState } from './useToolbarState';
 interface ToolbarProps {
   editor: Editor;
   disabled?: boolean;
-  imagePicker?: RichTextImagePicker;
+  /** Absent means the field takes no images and the button is not rendered. */
+  onInsertImage?: () => void;
   enableAlignment?: boolean;
 }
 
 const Divider: FC = () => <div className={styles.divider} aria-hidden="true" />;
 
 export const Toolbar: FC<ToolbarProps> = (props) => {
-  const { editor, disabled = false, imagePicker, enableAlignment = true } = props;
+  const { editor, disabled = false, onInsertImage, enableAlignment = true } = props;
 
   const state = useToolbarState(editor);
 
@@ -53,13 +53,8 @@ export const Toolbar: FC<ToolbarProps> = (props) => {
       <Divider />
       <div className={styles.group}>
         <LinkButton editor={editor} disabled={disabled} isActive={state.isLink} />
-        {imagePicker && (
-          <ImageButton
-            editor={editor}
-            picker={imagePicker}
-            disabled={disabled}
-            isActive={state.isImage}
-          />
+        {onInsertImage && (
+          <ImageButton onClick={onInsertImage} disabled={disabled} isActive={state.isImage} />
         )}
       </div>
 

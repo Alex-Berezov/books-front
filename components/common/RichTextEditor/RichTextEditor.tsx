@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type CSSProperties, type FC } from 'react';
+import { useEffect, useState, type CSSProperties, type FC } from 'react';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -8,7 +8,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import type { RichTextEditorProps } from './RichTextEditor.types';
+import type { RichTextEditorProps, RichTextImage } from './RichTextEditor.types';
 import styles from './RichTextEditor.module.scss';
 import { Toolbar } from './Toolbar';
 
@@ -47,6 +47,8 @@ export const RichTextEditor: FC<RichTextEditorProps> = (props) => {
     imagePicker,
     enableAlignment = true,
   } = props;
+
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const editor = useEditor({
     // Avoid SSR hydration mismatches in Next.js.
@@ -151,17 +153,35 @@ export const RichTextEditor: FC<RichTextEditorProps> = (props) => {
 
   const editorStyle: CSSProperties = { minHeight };
 
+  const Picker = imagePicker;
+
+  const handleImageSelected = (image: RichTextImage) => {
+    setIsPickerOpen(false);
+    editor?.chain().focus().setImage({ src: image.url, alt: image.alt }).run();
+  };
+
   return (
     <div className={wrapperClasses}>
       {editor && (
         <Toolbar
           editor={editor}
           disabled={disabled}
-          imagePicker={imagePicker}
+          onInsertImage={Picker ? () => setIsPickerOpen(true) : undefined}
           enableAlignment={enableAlignment}
         />
       )}
       <EditorContent editor={editor} className={styles.editor} style={editorStyle} />
+
+      {/* Outside the toolbar on purpose - see `ImageButton`: the sticky toolbar
+          is a stacking context, and a fixed dialog inside it would be drawn
+          beneath the admin sidebar. */}
+      {Picker && isPickerOpen && (
+        <Picker
+          isOpen={isPickerOpen}
+          onClose={() => setIsPickerOpen(false)}
+          onSelect={handleImageSelected}
+        />
+      )}
     </div>
   );
 };

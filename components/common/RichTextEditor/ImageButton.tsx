@@ -1,55 +1,38 @@
 'use client';
 
-import { useState, type FC } from 'react';
+import type { FC } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
-import type { RichTextImage, RichTextImagePicker } from './RichTextEditor.types';
-import type { Editor } from '@tiptap/react';
 import styles from './Toolbar.module.scss';
 import { ToolbarButton } from './ToolbarButton';
 import { TOOLBAR_LABELS } from './toolbarLabels';
 
 interface ImageButtonProps {
-  editor: Editor;
-  picker: RichTextImagePicker;
+  onClick: () => void;
   disabled?: boolean;
   isActive?: boolean;
 }
 
 /**
- * Inserts an image into the editor through a picker supplied by the caller.
+ * Opens the image picker.
  *
- * The picker is a prop rather than an import so the design system stays free of
- * the admin area: the media library lives in `components/admin/`, and pulling it
- * in here would make every page that renders the editor depend on admin code.
+ * 🔴 The picker itself is rendered by `RichTextEditor`, not here. The toolbar is
+ * `position: sticky`, and a sticky element creates a stacking context of its
+ * own - a `position: fixed` dialog rendered inside it stops being measured
+ * against the document and ends up beneath the admin sidebar
+ * (`AdminSidebar.module.scss`, `fixed`, `z-index: 100`). `Modal` has no portal,
+ * so the only way out is to keep the dialog out of this subtree.
  */
 export const ImageButton: FC<ImageButtonProps> = (props) => {
-  const { editor, picker: Picker, disabled = false, isActive = false } = props;
-
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
-
-  const handleSelect = (image: RichTextImage) => {
-    setIsPickerOpen(false);
-    editor.chain().focus().setImage({ src: image.url, alt: image.alt }).run();
-  };
+  const { onClick, disabled = false, isActive = false } = props;
 
   return (
-    <>
-      <ToolbarButton
-        onClick={() => setIsPickerOpen(true)}
-        isActive={isActive}
-        disabled={disabled}
-        title={TOOLBAR_LABELS.insertImage}
-      >
-        <ImageIcon className={styles.icon} />
-      </ToolbarButton>
-
-      {isPickerOpen && (
-        <Picker
-          isOpen={isPickerOpen}
-          onClose={() => setIsPickerOpen(false)}
-          onSelect={handleSelect}
-        />
-      )}
-    </>
+    <ToolbarButton
+      onClick={onClick}
+      isActive={isActive}
+      disabled={disabled}
+      title={TOOLBAR_LABELS.insertImage}
+    >
+      <ImageIcon className={styles.icon} />
+    </ToolbarButton>
   );
 };

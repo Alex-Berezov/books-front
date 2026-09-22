@@ -146,6 +146,22 @@ describe('RichTextEditor', () => {
     promptSpy.mockRestore();
   });
 
+  it('renders the picker outside the sticky toolbar', async () => {
+    const user = userEvent.setup();
+    setup('<p>Hello</p>', { imagePicker: StubImagePicker });
+
+    await user.click(await screen.findByRole('button', { name: 'Insert image' }));
+
+    // The toolbar is `position: sticky`, which is a stacking context: a fixed
+    // dialog rendered inside it is drawn beneath the admin sidebar instead of
+    // over the page. `Modal` has no portal, so the dialog has to stay out of
+    // this subtree.
+    const toolbar = screen.getByRole('toolbar', { name: 'Text formatting' });
+    const picked = screen.getByRole('button', { name: 'Pick this image' });
+
+    expect(toolbar.contains(picked)).toBe(false);
+  });
+
   it('renders an image already present in the value', async () => {
     setup('<p><img src="/cover.png" alt="Cover" /></p>', { imagePicker: StubImagePicker });
 
