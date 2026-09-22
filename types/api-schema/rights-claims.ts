@@ -98,7 +98,14 @@ export type RightsClaimEventType =
   | 'ATTACHMENT_REMOVED'
   | 'VERSION_UNPUBLISHED';
 
-/** Reuses the Phase 12 `GeoBlockScope` values. */
+/**
+ * Reuses the Phase 12 `GeoBlockScope` values. Kept permissive on purpose: existing rows
+ * created before LEGACY-027 (21.09.2026) may still carry `SPECIFIC_ASSET`, and the backend
+ * never filters or rewrites it on read (`RightsClaimAccessBlockDto.scope` in the OpenAPI
+ * snapshot still lists it). Narrowing this type would make `CLAIM_BLOCK_SCOPE_LABELS[scope]`
+ * silently resolve to `undefined` for those rows. The scope an admin may *pick* when creating
+ * a new block is narrower — see `ApplyClaimBlockScope` below.
+ */
 export type RightsClaimBlockScope =
   | 'ENTIRE_BOOK'
   | 'LANGUAGE_EDITION'
@@ -106,6 +113,14 @@ export type RightsClaimBlockScope =
   | 'DOWNLOADS'
   | 'AUDIO'
   | 'SPECIFIC_ASSET';
+
+/**
+ * Scopes an admin may pick when applying a claim block. `SPECIFIC_ASSET` is deliberately
+ * absent: the owner forbade it (LEGACY-027, 21.09.2026) — a block with that scope never
+ * matched any request, and point-level blocking of a single file is done by hand. Mirrors
+ * `ALLOWED_CLAIM_BLOCK_SCOPES` in `books/src/modules/rights-claims/rights-claim.constants.ts`.
+ */
+export type ApplyClaimBlockScope = Exclude<RightsClaimBlockScope, 'SPECIFIC_ASSET'>;
 
 export interface RightsClaimSummary {
   id: string;
@@ -309,7 +324,7 @@ export interface ReopenRightsClaimRequest {
 }
 
 export interface ApplyClaimBlockRequest {
-  scope: RightsClaimBlockScope;
+  scope: ApplyClaimBlockScope;
   countryCodes?: string[];
   bookVersionId?: string;
   bookId?: string;
