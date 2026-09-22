@@ -41,7 +41,7 @@ export const TagsPanel: FC<TagsPanelProps> = (props) => {
         isTagSelected={isTagSelected}
         onTagToggle={handleTagToggle}
         searchQuery={searchQuery}
-        tags={tagsData?.data}
+        tags={tagsData?.items}
       />
 
       <SelectedTagsList isPending={isPending} onRemoveTag={handleRemoveTag} tags={selectedTags} />

@@ -7,59 +7,56 @@
  */
 
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
+import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import type {
   AttachCategoryRequest,
   Category,
+  CategoryListItem,
+  PaginatedResult,
   CategoryTranslation,
   CategoryTree,
   CreateCategoryRequest,
   CreateCategoryTranslationRequest,
   ImportResult,
-  PaginatedResponse,
   UpdateCategoryRequest,
   UpdateCategoryTranslationRequest,
 } from '@/types/api-schema';
 
 /**
- * Parameters for fetching categories list
+ * Parameters for the admin categories list.
  */
-export interface GetCategoriesParams {
+export interface GetAdminCategoriesParams {
   /** Page number (starting from 1) */
   page?: number;
   /** Number of items per page */
   limit?: number;
   /** Filter by category type (category|genre|collection) */
-  type?: string;
-  /** Filter by language */
+  type?: 'category' | 'genre' | 'collection';
+  /** Язык поязыковых счётчиков; без него `booksCount` сквозной по всем языкам. */
   lang?: string;
 }
 
 /**
- * Get list of categories
+ * Get list of categories for admin pickers.
  *
- * @param params - Request parameters
- * @returns Paginated list of categories
+ * Ходит на `GET /admin/categories` — маршрут за `JwtAuthGuard`, а не на публичный
+ * `GET /{lang}/categories`. Публичный идёт под `PublicCacheInterceptor` и отдаётся
+ * с `public, s-maxage=300, stale-while-revalidate=3600`: заведённая контент-менеджером
+ * категория не появлялась бы в пикере до часа — «категория не сохранилась»
+ * (`LEGACY-387`, решение арбитра 22.09.2026).
  *
- * @example
- * ```ts
- * const categories = await getCategories({ page: 1, limit: 50 });
- * ```
+ * Языка нет намеренно — как и у тегов: без него `booksCount` остаётся сквозным
+ * по всем языкам, ровно как до переезда.
  */
-export const getCategories = async (
-  params: GetCategoriesParams = {}
-): Promise<PaginatedResponse<Category>> => {
-  const { page = 1, limit = 50, type, lang } = params;
+export const getAdminCategories = async (
+  params: GetAdminCategoriesParams = {}
+): Promise<PaginatedResult<CategoryListItem>> => {
+  const { page = 1, limit = API_MAX_PAGE_SIZE, type, lang } = params;
 
   const queryParams = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
-
-  // Поиска по категориям на бэкенде нет вовсе (`ListCategoriesQueryDto`, docstring
-  // в `books/src/modules/category/dto/list-categories-query.dto.ts`); поле `search`
-  // раньше молча игнорировалось на `@Query()`-параметрах без DTO, а с переходом
-  // маршрута на DTO и `forbidNonWhitelisted: true` дало бы 400 (`LEGACY-298`).
-  // Живых вызовов с `search` не было — параметр убран, а не подключён к бэкенду.
 
   if (type) {
     queryParams.append('type', type);
@@ -69,8 +66,8 @@ export const getCategories = async (
     queryParams.append('lang', lang);
   }
 
-  const endpoint = `/categories?${queryParams.toString()}`;
-  return httpGetAuth<PaginatedResponse<Category>>(endpoint, { requireAuth: false });
+  const endpoint = `/admin/categories?${queryParams.toString()}`;
+  return httpGetAuth<PaginatedResult<CategoryListItem>>(endpoint, { requireAuth: true });
 };
 
 /**

@@ -1,6 +1,8 @@
 import { notFound, permanentRedirect } from 'next/navigation';
+import { getPublicCategories } from '@/api/endpoints/public';
 import { TaxonomyDetailPage } from '@/components/public/taxonomy/TaxonomyDetailPage/TaxonomyDetailPage';
 import { buildLangPath, httpGet } from '@/lib/http';
+import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import { pluralFormsOf } from '@/lib/i18n/plural';
@@ -18,10 +20,8 @@ import {
   toCountResult,
 } from '@/lib/utils/seo-indexing';
 import type {
-  Category,
   CategoryBookCardsResponse,
   CategoryType,
-  PaginatedResponse,
   SeoResolveResponse,
 } from '@/types/api-schema';
 import type { Metadata } from 'next';
@@ -220,8 +220,6 @@ export default async function GenreDetailPage({ params, searchParams }: Props) {
 
     // `lang` matters: without it booksCount comes back summed across all
     // languages, and that is the value isTaxonomyLinkable uses as its floor.
-    const sidebarParams = new URLSearchParams({ type: 'genre', limit: '100', lang: supportedLang });
-
     [seoData, data, allCategoriesData] = await Promise.all([
       httpGet<SeoResolveResponse>(`${seoEndpoint}?${seoParams.toString()}`, {
         language: supportedLang,
@@ -231,11 +229,9 @@ export default async function GenreDetailPage({ params, searchParams }: Props) {
         language: supportedLang,
         ...cache,
       }),
-      httpGet<PaginatedResponse<Category>>(`/categories?${sidebarParams.toString()}`, {
-        ...cache,
-      }).catch(() => ({
+      getPublicCategories(supportedLang, 'genre', { limit: API_MAX_PAGE_SIZE }).catch(() => ({
         data: [],
-        meta: { total: 0, page: 1, limit: 100, totalPages: 0 },
+        meta: { total: 0, page: 1, limit: API_MAX_PAGE_SIZE, totalPages: 0 },
       })),
     ]);
   } catch (error) {

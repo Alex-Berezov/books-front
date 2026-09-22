@@ -30,7 +30,7 @@ import type {
   CreateTagRequest,
   CreateTagTranslationRequest,
   ImportResult,
-  PaginatedResponse,
+  PaginatedResult,
   Tag,
   TagTranslation,
   UpdateTagRequest,
@@ -70,7 +70,7 @@ export const tagKeys = {
  */
 export const useTags = (
   params: GetTagsParams = {},
-  options?: Omit<UseQueryOptions<PaginatedResponse<Tag>>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginatedResult<Tag>>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: tagKeys.list(params),

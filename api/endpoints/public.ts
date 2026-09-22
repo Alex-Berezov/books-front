@@ -331,14 +331,23 @@ export const getCategoryBookCards = async (
 
 /**
  * Get public category/genre/collection listing for catalog sidebar / homepage.
+ *
+ * `page`/`limit` появились вместе со снятием безъязыкого `GET /categories`
+ * (`LEGACY-387`): карта сайта обходит каталог страницами, и без них ей пришлось
+ * бы остаться на снимаемом адресе. Умолчания не заданы нарочно — их задаёт сервер
+ * (`PublicCategoriesQueryDto`: 50 на страницу, потолок 200), и дублировать их здесь
+ * значило бы завести второе место, где они живут.
  */
 export const getPublicCategories = async (
   lang: SupportedLang,
-  type?: 'category' | 'genre' | 'collection'
+  type?: 'category' | 'genre' | 'collection',
+  params: { page?: number; limit?: number } = {}
 ): Promise<PaginatedCategoriesResponse> => {
-  const params = new URLSearchParams();
-  if (type) params.append('type', type);
-  const endpoint = buildLangPath(lang, `/categories?${params.toString()}`);
+  const queryParams = new URLSearchParams();
+  if (type) queryParams.append('type', type);
+  if (params.page !== undefined) queryParams.append('page', String(params.page));
+  if (params.limit !== undefined) queryParams.append('limit', String(params.limit));
+  const endpoint = buildLangPath(lang, `/categories?${queryParams.toString()}`);
   return httpGet<PaginatedCategoriesResponse>(endpoint, {
     language: lang,
     next: { revalidate: PUBLIC_REVALIDATE_SECONDS },

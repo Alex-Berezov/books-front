@@ -19,13 +19,12 @@ import {
   deleteCategory,
   deleteCategoryTranslation,
   detachCategory,
-  getCategories,
+  getAdminCategories,
   getCategoriesTree,
   getCategoryTranslations,
   importCategories,
   updateCategory,
   updateCategoryTranslation,
-  type GetCategoriesParams,
 } from '@/api/endpoints/admin/categories';
 import type {
   Category,
@@ -33,8 +32,8 @@ import type {
   CategoryTree,
   CreateCategoryRequest,
   CreateCategoryTranslationRequest,
+  CategoryListItem,
   ImportResult,
-  PaginatedResponse,
   UpdateCategoryRequest,
   UpdateCategoryTranslationRequest,
 } from '@/types/api-schema';
@@ -49,7 +48,7 @@ export const categoryKeys = {
   /** Category lists */
   lists: () => [...categoryKeys.all, 'list'] as const,
   /** Category list with parameters */
-  list: (params: GetCategoriesParams) => [...categoryKeys.lists(), params] as const,
+  list: (params: CategoryListParams) => [...categoryKeys.lists(), params] as const,
   /** Category tree (optionally by type) */
   tree: (type?: string) => [...categoryKeys.all, 'tree', type ?? 'all'] as const,
   /** Category translations */
@@ -57,24 +56,57 @@ export const categoryKeys = {
 };
 
 /**
+ * Параметры списка категорий для пикеров админки.
+ *
+ * Языка нет: список ходит на безъязыкий админский `GET /admin/categories`, и без
+ * языка `booksCount` остаётся сквозным по всем языкам — ровно как до переезда
+ * с публичного адреса (`LEGACY-387`).
+ */
+export interface CategoryListParams {
+  type?: 'category' | 'genre' | 'collection';
+}
+
+/**
+ * Потолок обхода страниц пикера, страницами по сто.
+ *
+ * Назван явно по той же причине, что и потолки обхода в карте сайта: один
+ * `limit` числом уже молча терял термины (категорий 133 при потолке админской
+ * ручки в 100), а бесконечный цикл на отказе ручки крутился бы вечно. Сотня
+ * страниц — десять тысяч терминов, на порядок больше сегодняшнего каталога.
+ */
+const CATEGORY_TRAVERSAL_MAX_PAGES = 100;
+
+/**
  * Hook for getting category list
  *
- * @param params - Request parameters (pagination, search)
+ * @param params - Request parameters (language, pagination, type)
  * @param options - React Query options
  * @returns React Query result with paginated category list
  *
  * @example
  * ```tsx
- * const { data, isLoading } = useCategories({ page: 1, limit: 50 });
+ * const { data, isLoading } = useCategories({ lang: 'en', page: 1, limit: 50 });
  * ```
  */
 export const useCategories = (
-  params: GetCategoriesParams = {},
-  options?: Omit<UseQueryOptions<PaginatedResponse<Category>>, 'queryKey' | 'queryFn'>
+  params: CategoryListParams = {},
+  options?: Omit<UseQueryOptions<CategoryListItem[]>, 'queryKey' | 'queryFn'>
 ) => {
+  const { type } = params;
   return useQuery({
     queryKey: categoryKeys.list(params),
-    queryFn: () => getCategories(params),
+    // Страницы добираются, а не берутся первой сотней: у админской ручки потолок
+    // `limit` — 100 (`PAGINATION_MAX_LIMIT`), а терминов больше, и прежний
+    // `limit: 100` молча терял хвост каталога.
+    queryFn: async () => {
+      const collected: CategoryListItem[] = [];
+      for (let page = 1; page <= CATEGORY_TRAVERSAL_MAX_PAGES; page += 1) {
+        const { items, pagination } = await getAdminCategories({ page, type });
+        collected.push(...items);
+        if (page >= pagination.totalPages || items.length === 0) break;
+      }
+      return collected;
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });

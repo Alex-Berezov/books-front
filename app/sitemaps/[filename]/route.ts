@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getCategories } from '@/api/endpoints/admin/categories';
-import { getTags } from '@/api/endpoints/admin/tags';
 import {
   getPublicBooks,
   getBookCards,
   getPublicAuthors,
+  getPublicCategories,
+  getPublicTags,
   getAuthorLetters,
 } from '@/api/endpoints/public';
 import { authorsBasePath } from '@/components/public/authors/authors-href';
@@ -31,9 +31,8 @@ import { toCountResult, type CountResult } from '@/lib/utils/seo-indexing';
 import type {
   AuthorLetter,
   BookListItem,
-  Category,
-  CategoryTranslation,
-  Tag,
+  CategoryListItem,
+  TagListItem,
   TagTranslation,
   BookListVersion,
   AuthorListItem,
@@ -42,7 +41,7 @@ import type {
 export const dynamic = 'force-dynamic';
 
 /**
- * The sitemap must never be built from stale taxonomy state.
+ * The sitemap is built without the Next data cache.
  *
  * `dynamic = 'force-dynamic'` only guarantees the handler re-runs per request —
  * the upstream `fetch` calls still land in the Next data cache, because the API
@@ -50,6 +49,17 @@ export const dynamic = 'force-dynamic';
  * kept the sitemap advertising 2205 taxonomy URLs for hours after the backend
  * had already recomputed `autoIndexable` to `false` for all of them: the handler
  * ran fresh (`lastmod` was current) while its data was hours old.
+ *
+ * 🔴 Что эта строка **не** даёт, чтобы её не читали шире, чем она есть. Закрыт
+ * только кэш данных Next; общий кэш перед API она не трогает. С 22.09.2026
+ * (`LEGACY-387`) разделы таксономии читают `GET /:lang/categories`
+ * и `GET /:lang/tags` — они идут под `PublicCacheInterceptor` и отдаются
+ * с `public, s-maxage=300, stale-while-revalidate=3600`, то есть карта может
+ * до часа предлагать термины, уже снятые с индексации. Это **принято осознанно**
+ * (решение арбитра 22.09.2026, `books-app-docs/ai-context/decisions-log.md`):
+ * разделы книг и авторов сидят на кэшируемых ручках давно, а окно здесь
+ * ограничено сверху, в отличие от инцидента выше, где границы не было вовсе.
+ * Обходить общий кэш кэшбастером или своим заголовком запрещено тем же решением.
  */
 export const fetchCache = 'force-no-store';
 
@@ -283,12 +293,13 @@ export async function GET(request: Request, { params }: { params: { filename: st
   else if (filename.startsWith('sitemap-genres-') && filename.endsWith('.xml')) {
     const lang = filename.substring('sitemap-genres-'.length, filename.length - '.xml'.length);
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
-      let categories: Category[] = [];
+      let categories: CategoryListItem[] = [];
       try {
         // Обход всех страниц, а не первая тысяча: `limit: 1000` без добора
         // молча терял всё, что за неё не поместилось (`LEGACY-098`).
         categories = await fetchAllPages(
-          (page) => getCategories({ type: 'genre', page, limit: API_MAX_PAGE_SIZE, lang }),
+          (page) =>
+            getPublicCategories(lang as SupportedLang, 'genre', { page, limit: API_MAX_PAGE_SIZE }),
           `genres ${lang}`,
           TAXONOMY_TRAVERSAL_MAX_PAGES
         );
@@ -297,9 +308,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       categories.forEach((cat) => {
-        const currentTranslation = cat.translations?.find(
-          (t: CategoryTranslation) => t.language === lang && t.slug
-        );
+        const currentTranslation = cat.translations?.find((t) => t.language === lang && t.slug);
         if (!currentTranslation?.slug) return;
         if (!isTaxonomyLinkable(cat)) return;
 
@@ -328,12 +337,16 @@ export async function GET(request: Request, { params }: { params: { filename: st
   else if (filename.startsWith('sitemap-categories-') && filename.endsWith('.xml')) {
     const lang = filename.substring('sitemap-categories-'.length, filename.length - '.xml'.length);
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
-      let categories: Category[] = [];
+      let categories: CategoryListItem[] = [];
       try {
         // Обход всех страниц, а не первая тысяча: `limit: 1000` без добора
         // молча терял всё, что за неё не поместилось (`LEGACY-098`).
         categories = await fetchAllPages(
-          (page) => getCategories({ type: 'category', page, limit: API_MAX_PAGE_SIZE, lang }),
+          (page) =>
+            getPublicCategories(lang as SupportedLang, 'category', {
+              page,
+              limit: API_MAX_PAGE_SIZE,
+            }),
           `categories ${lang}`,
           TAXONOMY_TRAVERSAL_MAX_PAGES
         );
@@ -342,9 +355,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       categories.forEach((cat) => {
-        const currentTranslation = cat.translations?.find(
-          (t: CategoryTranslation) => t.language === lang && t.slug
-        );
+        const currentTranslation = cat.translations?.find((t) => t.language === lang && t.slug);
         if (!currentTranslation?.slug) return;
         if (!isTaxonomyLinkable(cat)) return;
 
@@ -370,12 +381,16 @@ export async function GET(request: Request, { params }: { params: { filename: st
   else if (filename.startsWith('sitemap-collections-') && filename.endsWith('.xml')) {
     const lang = filename.substring('sitemap-collections-'.length, filename.length - '.xml'.length);
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
-      let categories: Category[] = [];
+      let categories: CategoryListItem[] = [];
       try {
         // Обход всех страниц, а не первая тысяча: `limit: 1000` без добора
         // молча терял всё, что за неё не поместилось (`LEGACY-098`).
         categories = await fetchAllPages(
-          (page) => getCategories({ type: 'collection', page, limit: API_MAX_PAGE_SIZE, lang }),
+          (page) =>
+            getPublicCategories(lang as SupportedLang, 'collection', {
+              page,
+              limit: API_MAX_PAGE_SIZE,
+            }),
           `collections ${lang}`,
           TAXONOMY_TRAVERSAL_MAX_PAGES
         );
@@ -384,9 +399,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
       }
 
       categories.forEach((cat) => {
-        const currentTranslation = cat.translations?.find(
-          (t: CategoryTranslation) => t.language === lang && t.slug
-        );
+        const currentTranslation = cat.translations?.find((t) => t.language === lang && t.slug);
         if (!currentTranslation?.slug) return;
         if (!isTaxonomyLinkable(cat)) return;
 
@@ -578,10 +591,10 @@ export async function GET(request: Request, { params }: { params: { filename: st
   else if (filename.startsWith('sitemap-tags-') && filename.endsWith('.xml')) {
     const lang = filename.substring('sitemap-tags-'.length, filename.length - '.xml'.length);
     if ((SUPPORTED_LANGS as readonly string[]).includes(lang)) {
-      let tags: Tag[] = [];
+      let tags: TagListItem[] = [];
       try {
         tags = await fetchAllPages(
-          (page) => getTags({ page, limit: 100, lang }),
+          (page) => getPublicTags(lang as SupportedLang, { page, limit: API_MAX_PAGE_SIZE }),
           `tags ${lang}`,
           TAGS_TRAVERSAL_MAX_PAGES
         );

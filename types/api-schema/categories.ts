@@ -213,14 +213,39 @@ export interface UpdateCategoryRequest {
  *
  * Жил в `api/endpoints/public.ts` до 10.09.2026: рукописные формы ответа собраны здесь,
  * чтобы гейт `check:type-sync` видел их через барель, а не только внутри модуля вызовов.
+ *
+ * 🔴 Признаки индексируемости дописаны 22.09.2026 (`LEGACY-387`), когда сюда переехала
+ * карта сайта. Сервис отдавал их и раньше — `CategoryService.list` выбирает `bookCount`
+ * и `autoIndexable` у переводов с докблоком «Consumed by the frontend sitemap route», —
+ * но рукописный тип о них молчал. Молчание было небезопасным: `isTaxonomyLinkable`
+ * при отсутствующем `autoIndexable` деградирует до решения по одному счётчику, и
+ * ровно это однажды выпустило в карту сайта 2205 пустых страниц.
  */
 export interface CategoryListItem {
   id: string;
+  key: string;
   name: string;
   slug: string;
-  type: string;
+  type: CategoryType;
   booksCount: number;
-  translations: Array<{ language: string; name: string; slug: string }>;
+  /** Порядок в списках. */
+  sortOrder?: number;
+  /** Редакторский выключатель: термин скрыт из публичных списков. */
+  isVisible?: boolean;
+  /** Редакторский выключатель: термин исключён из индексации. */
+  indexable?: boolean;
+  /** Гистерезис индексируемости для запрошенного языка. */
+  autoIndexable?: boolean;
+  /** Число книг в запрошенном языке. */
+  langBookCount?: number;
+  translations: Array<{
+    language: string;
+    name: string;
+    slug: string;
+    /** Своё у каждого перевода — `toAlternateCandidates` решает по нему. */
+    bookCount?: number;
+    autoIndexable?: boolean;
+  }>;
 }
 
 /**

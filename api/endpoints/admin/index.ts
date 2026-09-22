@@ -31,7 +31,6 @@ export * from './chapters';
 
 // Categories Domain
 export * from './categories';
-export type { GetCategoriesParams } from './categories';
 
 // Tags Domain
 export * from './tags';

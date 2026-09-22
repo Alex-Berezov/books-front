@@ -66,8 +66,12 @@ describe('http*Auth в серверном контексте', () => {
   });
 
   it('с requireAuth: false запрос по-прежнему уходит', async () => {
-    // Обходной путь карты сайта: `getCategories` и `getTags` жёстко ставят этот
-    // флаг, и снимать его нельзя, пока нет серверного способа получить токен.
+    // Флаг нужен серверным чтениям без токена. ⚠️ Прежний пример здесь был
+    // `getCategories`/`getTags` карты сайта — с 22.09.2026 он неверен: карта
+    // ходит публичными `getPublicCategories`/`getPublicTags` (`httpGet`, без
+    // авторизации вовсе), `getCategories` удалён, а `getTags` переведён на
+    // `/admin/tags` с `requireAuth: true` (`LEGACY-387`). Сам кейс остаётся:
+    // он про поведение клиента, а не про этих двух потребителей.
     await expect(httpGetAuth('/categories', { requireAuth: false })).resolves.toEqual({ ok: true });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });

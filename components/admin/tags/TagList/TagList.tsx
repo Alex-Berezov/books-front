@@ -91,9 +91,12 @@ export const TagList: FC<TagListProps> = (props) => {
 
   const deleteMutation = useDeleteTag();
 
-  // Handle both paginated and flat array responses
-  const rawTags = Array.isArray(data) ? data : data?.data || [];
-  const meta = !Array.isArray(data) ? data?.meta : undefined;
+  // `GET /admin/tags` отдаёт общую форму «за логином» — `{items, pagination}`
+  // (`LEGACY-177`). Ветка на голый массив снята вместе с переездом: прежний
+  // безъязыкий `GET /tags` её тоже не отдавал, а её наличие маскировало бы
+  // расхождение формы молчаливой пустотой.
+  const rawTags = data?.items ?? [];
+  const meta = data?.pagination;
 
   // Отбор идёт на сервере: клиентский фильтр видел бы только текущую страницу.
   const tags = rawTags;

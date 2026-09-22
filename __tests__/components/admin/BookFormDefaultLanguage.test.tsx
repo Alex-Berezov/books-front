@@ -21,7 +21,7 @@ vi.mock('@/api/hooks/useAuthors', () => ({
 }));
 
 vi.mock('@/api/hooks/useCategories', () => ({
-  useCategories: () => ({ data: { data: [] } }),
+  useCategories: () => ({ data: [] }),
 }));
 
 vi.mock('@/api/hooks/useBooks', () => ({

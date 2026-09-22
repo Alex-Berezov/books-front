@@ -64,11 +64,22 @@ const ANCHORS = [
 ];
 
 /**
- * Lower bound on inspected call blocks: an empty walk must go red, not green (L-015).
- * Measured, not guessed — 45 blocks across 10 files on 13.09.2026. Raise it when the real
- * count grows; never lower it to make a run pass.
+ * Exact count of inspected call blocks: an empty walk must go red, not green (L-015),
+ * and so must a silent shrink. Measured, not guessed — 42 blocks on 22.09.2026, down
+ * from 45 on 13.09.2026: three inline `httpGet` reads of `/categories` on the taxonomy
+ * pages collapsed into calls to the existing `getPublicCategories` helper (`LEGACY-387`).
+ *
+ * 🔴 Сверка точная (`toBe`), а не «не меньше», — решение арбитра 22.09.2026
+ * (`books-app-docs/ai-context/decisions-log.md`). Односторонний порог не ловил тихую
+ * усадку: схлопнувшийся или потерянный обходом вызов оставлял прогон зелёным, пока
+ * число не падало ниже границы. Та же форма, что у `bundle-baseline.json`
+ * и `outside-assertions.json`, — красное и на рост, и на снижение.
+ *
+ * Число меняется **только диффом** с причиной в этом комментарии и берётся из настоящего
+ * прогона. Снимка в отдельном файле и автообновления у него нет нарочно: менять его
+ * должно быть ровно так же заметно, как и всё остальное в этом файле.
  */
-const MIN_BLOCKS = 45;
+const EXPECTED_BLOCKS = 42;
 
 /** `httpGet<...>(` / `httpGetAuth<...>(` — the call site, not the import line. */
 const CALL_SITE = /\bhttpGet(?:Auth)?</g;
@@ -242,9 +253,9 @@ describe('public fetch cache mode (LEGACY-145, LEGACY-369)', () => {
     expect(ANCHORS.filter((anchor) => !reached.has(anchor))).toEqual([]);
   });
 
-  it('the walk inspects at least as many call blocks as it did when written', () => {
+  it('the walk inspects exactly as many call blocks as the snapshot records', () => {
     const total = inspected.reduce((sum, { source }) => sum + getCallBlocks(source).length, 0);
-    expect(total).toBeGreaterThanOrEqual(MIN_BLOCKS);
+    expect(total).toBe(EXPECTED_BLOCKS);
   });
 
   it('parses every call site in api/endpoints/public.ts, nested generics included', () => {

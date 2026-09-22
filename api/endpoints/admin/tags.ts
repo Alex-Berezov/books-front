@@ -12,7 +12,7 @@ import type {
   CreateTagRequest,
   CreateTagTranslationRequest,
   ImportResult,
-  PaginatedResponse,
+  PaginatedResult,
   Tag,
   TagTranslation,
   UpdateTagRequest,
@@ -29,12 +29,23 @@ export interface GetTagsParams {
   limit?: number;
   /** Search by name */
   search?: string;
-  /** Filter by language */
-  lang?: string;
 }
 
 /**
- * Get list of tags
+ * Get list of tags for admin pickers.
+ *
+ * Ходит на `GET /admin/tags` — маршрут за `JwtAuthGuard`, а не на безъязыкий
+ * публичный `GET /tags`, который снимается по `LEGACY-387`. Публичного языкового
+ * двойника здесь мало: поиска у `GET /:lang/tags` нет и не будет (решение арбитра
+ * 22.09.2026, `books-app-docs/ai-context/decisions-log.md`).
+ *
+ * Языка нет намеренно: без него `booksCount` остаётся сквозным по всем языкам —
+ * ровно то число, которое админская таблица показывала до переезда. Карта сайта
+ * поязыковые списки берёт не отсюда, а из `getPublicTags`.
+ *
+ * Форма ответа — `{items, pagination}`, общая для всего, что лежит за логином
+ * (`LEGACY-177`). Публичная `{data, meta}` осталась только на публичных адресах,
+ * и брать её у соседнего маршрута нельзя: у них разные контуры.
  *
  * @param params - Request parameters
  * @returns Paginated list of tags
@@ -44,8 +55,8 @@ export interface GetTagsParams {
  * const tags = await getTags({ page: 1, limit: 50, search: 'motiv' });
  * ```
  */
-export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResponse<Tag>> => {
-  const { page = 1, limit = 50, search, lang } = params;
+export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResult<Tag>> => {
+  const { page = 1, limit = 50, search } = params;
 
   const queryParams = new URLSearchParams({
     page: String(page),
@@ -56,12 +67,8 @@ export const getTags = async (params: GetTagsParams = {}): Promise<PaginatedResp
     queryParams.append('q', search);
   }
 
-  if (lang) {
-    queryParams.append('lang', lang);
-  }
-
-  const endpoint = `/tags?${queryParams.toString()}`;
-  return httpGetAuth<PaginatedResponse<Tag>>(endpoint, { requireAuth: false });
+  const endpoint = `/admin/tags?${queryParams.toString()}`;
+  return httpGetAuth<PaginatedResult<Tag>>(endpoint, { requireAuth: true });
 };
 
 /**

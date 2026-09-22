@@ -49,12 +49,15 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
     value: langCode,
   }));
 
-  const { data: categoriesData } = useCategories({ limit: 100 });
+  // Список приходит добранным по страницам (`useCategories`), поэтому здесь
+  // ни `limit`, ни языка: прежний `limit: 100` молча терял хвост каталога,
+  // а язык пикеру не нужен — подпись берётся из перевода, выбранного в форме.
+  const { data: categories } = useCategories();
 
   const currentLang = watch('language');
   const categoryOptions = [
     { label: 'None', value: '' },
-    ...(categoriesData?.data || []).map((cat) => {
+    ...(categories ?? []).map((cat) => {
       const trans =
         cat.translations?.find((t) => t.language === watch('language')) || cat.translations?.[0];
       return {
