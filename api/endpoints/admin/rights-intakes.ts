@@ -1,4 +1,4 @@
-import { LIST_FALLBACK, toListResult, toPaginated } from '@/lib/api/paginated-envelope';
+import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type { PaginatedResult } from '@/types/api-schema/common';
 import type {
@@ -182,11 +182,9 @@ export const rejectRightsReview = (
 export const getRightsIntakeApprovals = async (
   intakeId: string
 ): Promise<PaginatedResult<RightsApprovalDecision>> =>
-  toListResult(
-    await httpGetAuth<RightsApprovalDecision[] | PaginatedResult<RightsApprovalDecision>>(
-      `/admin/rights/intakes/${intakeId}/approvals`,
-      { requireAuth: true }
-    )
+  httpGetAuth<PaginatedResult<RightsApprovalDecision>>(
+    `/admin/rights/intakes/${intakeId}/approvals`,
+    { requireAuth: true }
   );
 
 export const createBookFromClearance = (

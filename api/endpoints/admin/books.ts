@@ -6,7 +6,7 @@
  * multiple versions in different languages.
  */
 
-import { toListResult, toPaginated } from '@/lib/api/paginated-envelope';
+import { toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth } from '@/lib/http-client';
 import type {
   BookDetailResponse,
@@ -119,5 +119,5 @@ export const getBook = async (bookId: string): Promise<BookDetailResponse> => {
  * Get all unique themes across all books.
  */
 export const getThemes = async (): Promise<PaginatedResult<string>> => {
-  return toListResult(await httpGetAuth<string[] | PaginatedResult<string>>('/books/themes'));
+  return httpGetAuth<PaginatedResult<string>>('/books/themes');
 };

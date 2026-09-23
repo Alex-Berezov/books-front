@@ -194,8 +194,17 @@ jobs:
             echo "Проверь маршрут authors/letters в books/src/modules/public/public.controller.ts - парным правилом эта граница не покрыта (LEGACY-292)."
             exit 1
           fi
-          if ! filled=$(jq -e '[.[] | select(.count > 0 and .letter != "#")] | length' "$RUNNER_TEMP/letters.json"); then
-            echo "::error::Ответ /api/ru/authors/letters не разбирается: ожидался массив записей с полями letter и count."
+          # С пачки `W7` (`LEGACY-379`) ответ — `{items, pagination}`: записи лежат в `items`.
+          # Форма проверяется явно, как у дерева категорий ниже: `.items[]` не заметил бы
+          # пропавшей `pagination`.
+          if ! jq -e '(.items | type == "array") and (.pagination | type == "object")' "$RUNNER_TEMP/letters.json" > /dev/null; then
+            echo "::error::Ответ /api/ru/authors/letters не в форме {items, pagination}."
+            echo "Похоже, форма ответа изменилась в books/src/modules/public/public.controller.ts."
+            cat "$RUNNER_TEMP/letters.json"
+            exit 1
+          fi
+          if ! filled=$(jq -e '[.items[] | select(.count > 0 and .letter != "#")] | length' "$RUNNER_TEMP/letters.json"); then
+            echo "::error::Ответ /api/ru/authors/letters не разбирается: в items ожидались записи с полями letter и count."
             echo "Похоже, форма ответа изменилась в books/src/modules/author/author.service.ts."
             cat "$RUNNER_TEMP/letters.json"
             exit 1
@@ -248,6 +257,14 @@ jobs:
               if ! curl -fsS "http://127.0.0.1:5000/api/categories/tree?lang=$lang&type=$type" -o "$RUNNER_TEMP/terms.json"; then
                 echo "::error::Ручка /api/categories/tree не ответила 200 ($lang/$type)."
                 echo "Проверь маршрут categories/tree в books/src/modules/category/category.controller.ts."
+                exit 1
+              fi
+              # С пачки `W7` (`LEGACY-379`) дерево приходит `{items, pagination}`; рекурсивный
+              # фильтр ниже нашёл бы узлы и в голом массиве, поэтому форма проверяется отдельно.
+              if ! jq -e '(.items | type == "array") and (.pagination | type == "object")' "$RUNNER_TEMP/terms.json" > /dev/null; then
+                echo "::error::Ответ /api/categories/tree не в форме {items, pagination} ($lang/$type)."
+                echo "Похоже, форма ответа изменилась в books/src/modules/category/category.controller.ts."
+                cat "$RUNNER_TEMP/terms.json"
                 exit 1
               fi
               if ! linkable=$(linkable_filter "$lang" "$RUNNER_TEMP/terms.json"); then

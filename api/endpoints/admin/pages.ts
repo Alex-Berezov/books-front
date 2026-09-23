@@ -6,7 +6,7 @@
  * "Terms of Service" and other informational pages.
  */
 
-import { toListResult, toPaginated } from '@/lib/api/paginated-envelope';
+import { toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   CreatePageRequest,
@@ -69,7 +69,7 @@ export const getPages = async (
  */
 export const getPageGroup = async (groupId: string): Promise<PaginatedResult<PageResponse>> => {
   const endpoint = `/admin/pages/group/${groupId}`;
-  return toListResult(await httpGetAuth<PageResponse[] | PaginatedResult<PageResponse>>(endpoint));
+  return httpGetAuth<PaginatedResult<PageResponse>>(endpoint);
 };
 
 /**

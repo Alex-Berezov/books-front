@@ -6,7 +6,6 @@
  * for classifying books (e.g., Fiction → Fantasy → Epic Fantasy).
  */
 
-import { toListResult } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import type {
@@ -92,11 +91,9 @@ export const getCategoriesTree = async (
   if (lang) params.append('lang', lang);
   const qs = params.toString();
   const endpoint = `/categories/tree${qs ? `?${qs}` : ''}`;
-  return toListResult(
-    await httpGetAuth<CategoryTree[] | PaginatedResult<CategoryTree>>(endpoint, {
-      requireAuth: false,
-    })
-  );
+  return httpGetAuth<PaginatedResult<CategoryTree>>(endpoint, {
+    requireAuth: false,
+  });
 };
 
 /**
@@ -135,9 +132,7 @@ export const getCategoryTranslations = async (
   id: string
 ): Promise<PaginatedResult<CategoryTranslation>> => {
   const endpoint = `/categories/${id}/translations`;
-  return toListResult(
-    await httpGetAuth<CategoryTranslation[] | PaginatedResult<CategoryTranslation>>(endpoint)
-  );
+  return httpGetAuth<PaginatedResult<CategoryTranslation>>(endpoint);
 };
 
 /**

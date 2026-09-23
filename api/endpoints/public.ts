@@ -14,7 +14,6 @@
  * then already chosen for the first server caller instead of being picked by default.
  */
 
-import { toListResult } from '@/lib/api/paginated-envelope';
 import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';
 import { httpGet, buildLangPath } from '@/lib/http';
 import { httpGetAuth } from '@/lib/http-client';
@@ -389,15 +388,10 @@ export const getPublicCategoriesTree = async (
 ): Promise<PaginatedResult<CategoryTree>> => {
   const params = new URLSearchParams({ lang });
   if (type) params.append('type', type);
-  return toListResult(
-    await httpGet<CategoryTree[] | PaginatedResult<CategoryTree>>(
-      `/categories/tree?${params.toString()}`,
-      {
-        language: lang,
-        next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
-      }
-    )
-  );
+  return httpGet<PaginatedResult<CategoryTree>>(`/categories/tree?${params.toString()}`, {
+    language: lang,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };
 
 /**
@@ -535,10 +529,8 @@ export const getAuthorLetters = async (
 ): Promise<PaginatedResult<AuthorLetter>> => {
   const query = search ? `?search=${encodeURIComponent(search)}` : '';
   const endpoint = buildLangPath(lang, `/authors/letters${query}`);
-  return toListResult(
-    await httpGet<AuthorLetter[] | PaginatedResult<AuthorLetter>>(endpoint, {
-      language: lang,
-      next: search ? { revalidate: 0 } : { revalidate: PUBLIC_REVALIDATE_SECONDS },
-    })
-  );
+  return httpGet<PaginatedResult<AuthorLetter>>(endpoint, {
+    language: lang,
+    next: search ? { revalidate: 0 } : { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
 };

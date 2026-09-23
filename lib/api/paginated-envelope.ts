@@ -1,4 +1,3 @@
-import { ApiError } from '@/types/api';
 import type { PaginatedResult, PaginationInfo } from '@/types/api-schema/common';
 
 /**
@@ -101,35 +100,4 @@ export const toPaginated = <T>(
     items,
     pagination: { page, limit, total, totalPages: meta?.totalPages ?? pagesOf(total, limit) },
   };
-};
-
-/**
- * ⚠️ Переходник пачки `W7` (`LEGACY-379`): четырнадцать маршрутов бэкенда переходят
- * с голого массива на `{items, pagination}`, а фронт выкатывается раньше тега бэкенда.
- * Строже `toPaginated` намеренно: принимаются ровно две формы, массив сворачивается
- * в одну страницу, всё остальное (включая `null`) — ошибка, а не пустой список,
- * иначе сломанный ответ выглядел бы как «данных нет». Ошибка — `ApiError` с кодом 502:
- * глобальный тост в `providers/AppProviders.tsx` показывает только `ApiError` от 500.
- *
- * Снимается вторым коммитом того же захода, после выката бэкенда и сброса кэша
- * (решение арбитра 23.09.2026, `books-app-docs/ai-context/decisions-log.md`).
- */
-export const toListResult = <T>(body: T[] | PaginatedResult<T>): PaginatedResult<T> => {
-  if (Array.isArray(body)) {
-    return toPaginated(body, { page: 1, limit: body.length });
-  }
-  if (
-    body !== null &&
-    typeof body === 'object' &&
-    Array.isArray(body.items) &&
-    body.pagination !== null &&
-    typeof body.pagination === 'object'
-  ) {
-    return body;
-  }
-  throw new ApiError({
-    statusCode: 502,
-    error: 'Bad Gateway',
-    message: 'Unexpected list response shape: expected {items, pagination}',
-  });
 };
