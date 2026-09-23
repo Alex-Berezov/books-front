@@ -319,8 +319,16 @@ describe('takeCompletePage: полнота СТРАНИЦЫ, а не выбор�
     ]);
   });
 
-  it('пропускает ответ без pagination.total — сверять не с чем', () => {
-    expect(takeCompletePage({ items: [1] }, 'legacy endpoint')).toEqual([1]);
+  // `LEGACY-378`: форма у всех потребителей одна, «сверять не с чем» больше не бывает —
+  // прежняя форма, пустое тело или ответ без счётчика означают отказ, а не пустую страницу.
+  it.each([
+    ['без pagination.total', { items: [1] }],
+    ['прежняя форма {data, meta}', { data: [1], meta: { total: 1 } }],
+    ['пустое тело', undefined],
+  ])('отказывает на ответе %s', (_name, response) => {
+    expect(() =>
+      takeCompletePage(response as Parameters<typeof takeCompletePage>[0], 'tags ru')
+    ).toThrow(/tags ru: ответ не в форме/);
   });
 
   it('пустой ответ при total = 0 законен', () => {

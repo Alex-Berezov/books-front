@@ -1,4 +1,3 @@
-import { ApiError } from '@/types/api';
 import type { PaginatedResult, PaginationInfo } from '@/types/api-schema/common';
 
 /**
@@ -101,71 +100,4 @@ export const toPaginated = <T>(
     items,
     pagination: { page, limit, total, totalPages: meta?.totalPages ?? pagesOf(total, limit) },
   };
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const badShape = (): ApiError =>
-  new ApiError({
-    statusCode: 502,
-    error: 'Bad Gateway',
-    message: 'Unexpected list response shape: expected {items, pagination}',
-  });
-
-/**
- * Строгий переходник окна выката `W9` (`LEGACY-378`, остаток `LEGACY-379`) для публичных
- * списков: до тега бэкенд отвечает прежней формой, после — `{items, pagination}`.
- *
- * ⚠️ В отличие от `toPaginated`, счётчик здесь **не выдумывается**: ответ без настоящего
- * `total` (пустое тело, третья форма) — ошибка 502, а не `total = items.length` или ноль.
- * Индекс карты сайта и `robots` хаба авторов отличают «не знаю» от «ноль» по отказу,
- * а подставленное число выбросило бы книжные карты из индекса при ответе 200.
- *
- * | Что прислал сервер | Во что превращается |
- * | --- | --- |
- * | `{items, pagination}` | как есть |
- * | `{data, meta}` с числовым `meta.total` | `items` из `data`, `pagination` из `meta` |
- * | `{items, total, page, limit, hasNext}` (`GET /comments`) | `pagination` из плоских полей, `hasNext` внутри |
- * | голый массив (списки глав) | одна страница со всеми строками, как `paginatedAll()` бэкенда |
- *
- * Снимается вторым коммитом пачки — после тега бэкенда и сброса edge-кэша.
- */
-export const fromRolloutEnvelope = <T, P extends PaginationInfo = PaginationInfo>(
-  body: unknown
-): PaginatedResult<T, P> => {
-  if (Array.isArray(body)) {
-    const total = body.length;
-    const pagination = { page: 1, limit: total, total, totalPages: total > 0 ? 1 : 0 };
-    return { items: body as T[], pagination: pagination as P };
-  }
-  if (!isRecord(body)) throw badShape();
-
-  if (Array.isArray(body.items) && isRecord(body.pagination)) {
-    const { page, limit, total } = body.pagination;
-    if (typeof page !== 'number' || typeof limit !== 'number' || typeof total !== 'number') {
-      throw badShape();
-    }
-    return body as unknown as PaginatedResult<T, P>;
-  }
-
-  const legacy = Array.isArray(body.data) && isRecord(body.meta) ? body.meta : body;
-  const items = Array.isArray(body.data) ? body.data : body.items;
-  const { page, limit, total } = legacy;
-  if (
-    !Array.isArray(items) ||
-    typeof page !== 'number' ||
-    typeof limit !== 'number' ||
-    typeof total !== 'number'
-  ) {
-    throw badShape();
-  }
-  const pagination = {
-    page,
-    limit,
-    total,
-    totalPages: pagesOf(total, limit),
-    ...(typeof body.hasNext === 'boolean' ? { hasNext: body.hasNext } : {}),
-  };
-  return { items: items as T[], pagination: pagination as P };
 };

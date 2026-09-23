@@ -151,9 +151,7 @@ ${xmlItems.join('\n')}
  * Ожидание считается из самой `pagination`: сколько строк остаётся до конца выборки
  * на этой странице, но не больше её размера.
  */
-function expectedRowsOnPage(pagination: PaginationLike): number | null {
-  const { total, page, limit } = pagination;
-  if (typeof total !== 'number') return null;
+function expectedRowsOnPage(total: number, { page, limit }: PaginationLike): number {
   if (typeof page !== 'number' || typeof limit !== 'number' || limit <= 0) {
     // Постраничных признаков нет — считаем выдачу одностраничной.
     return total;
@@ -186,21 +184,39 @@ export interface PagedResponse<T> {
  * ⚠️ Проверяется полнота **страницы**, а не всей выборки. «Есть ещё страницы» —
  * это не усечение, а пагинация; за полноту многостраничного обхода отвечает
  * `fetchAllPages`.
+ *
+ * 🔴 Ответ без массива `items` или без числового `pagination.total` — отказ, а не пустая
+ * страница (`LEGACY-378`). Иначе прежняя форма `{data, meta}` (откат бэкенда, застрявший
+ * edge-кэш) или пустое тело читались бы как «терминов нет», и раздел карты сайта уходил
+ * бы пустым `<urlset>` с кодом 200 вместо 503.
  */
 export function takeCompletePage<T>(
   response: PagedResponse<T> | null | undefined,
   where: string
 ): T[] {
-  const items = response?.items ?? [];
-  const expected = response?.pagination ? expectedRowsOnPage(response.pagination) : null;
+  return readCompletePage(response, where).items;
+}
 
-  if (expected !== null && items.length < expected) {
+/** Страница, прошедшая проверку формы и полноты, вместе с её счётчиком. */
+function readCompletePage<T>(
+  response: PagedResponse<T> | null | undefined,
+  where: string
+): { items: T[]; total: number; pagination: PaginationLike } {
+  const items = response?.items;
+  const pagination = response?.pagination ?? {};
+  const { total } = pagination;
+  if (!Array.isArray(items) || typeof total !== 'number') {
+    throw new Error(`${where}: ответ не в форме {items, pagination} с числовым total`);
+  }
+  const expected = expectedRowsOnPage(total, pagination);
+
+  if (items.length < expected) {
     throw new Error(
       `${where}: получено ${items.length} из ${expected} на странице — выдача усечена`
     );
   }
 
-  return items;
+  return { items, total, pagination };
 }
 
 /**
@@ -241,13 +257,9 @@ export async function fetchAllPages<T>(
 ): Promise<T[]> {
   const withRetry = (page: number) => fetchPageWithRetry(fetchPage, page);
 
-  const first = await withRetry(1);
-  const items = takeCompletePage(first, `${where} p1`);
-  const total = first?.pagination?.total;
-  const limit = first?.pagination?.limit ?? items.length;
-  const totalPages =
-    first?.pagination?.totalPages ??
-    (typeof total === 'number' && limit > 0 ? Math.ceil(total / limit) : 1);
+  const { items, total, pagination } = readCompletePage(await withRetry(1), `${where} p1`);
+  const limit = pagination.limit ?? items.length;
+  const totalPages = pagination.totalPages ?? (limit > 0 ? Math.ceil(total / limit) : 1);
 
   if (totalPages > maxPages) {
     throw new Error(`${where}: страниц ${totalPages}, потолок обхода ${maxPages}`);
@@ -257,7 +269,7 @@ export async function fetchAllPages<T>(
     items.push(...takeCompletePage(await withRetry(page), `${where} p${page}`));
   }
 
-  if (typeof total === 'number' && items.length < total) {
+  if (items.length < total) {
     throw new Error(`${where}: собрано ${items.length} из ${total} — обход неполон`);
   }
 

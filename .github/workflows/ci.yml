@@ -287,6 +287,14 @@ jobs:
               echo "Проверь маршрут tags в books/src/modules/public/public.controller.ts."
               exit 1
             fi
+            # С пачки `W9` (`LEGACY-378`) список тегов приходит `{items, pagination}`; рекурсивный
+            # фильтр ниже нашёл бы записи и в прежней `{data, meta}`, поэтому форма проверяется отдельно.
+            if ! jq -e '(.items | type == "array") and (.pagination.total | type == "number") and (.pagination.page | type == "number") and (.pagination.limit | type == "number")' "$RUNNER_TEMP/tags.json" > /dev/null; then
+              echo "::error::Ответ /api/$lang/tags не в форме {items, pagination} с числовыми total, page и limit."
+              echo "Похоже, форма ответа изменилась в books/src/modules/public/public.controller.ts."
+              cat "$RUNNER_TEMP/tags.json"
+              exit 1
+            fi
             if ! linkable=$(linkable_filter "$lang" "$RUNNER_TEMP/tags.json"); then
               echo "::error::Ответ /api/$lang/tags не разбирается: ожидались записи с booksCount, autoIndexable и translations."
               echo "Похоже, форма ответа изменилась в books/src/modules/tags/tags.service.ts."

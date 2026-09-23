@@ -6,7 +6,6 @@
  * order index and access settings.
  */
 
-import { fromRolloutEnvelope } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   ChapterDetail,
@@ -33,10 +32,7 @@ import type {
  */
 export const getChapters = async (versionId: string): Promise<PaginatedResult<ChapterDetail>> => {
   const endpoint = `/admin/versions/${versionId}/chapters`;
-  // ⚠️ Переходник окна выката `W9` (`LEGACY-379`): до тега бэкенд отвечает массивом.
-  return fromRolloutEnvelope<ChapterDetail>(
-    await httpGetAuth<ChapterDetail[] | PaginatedResult<ChapterDetail>>(endpoint)
-  );
+  return httpGetAuth<PaginatedResult<ChapterDetail>>(endpoint);
 };
 
 /**

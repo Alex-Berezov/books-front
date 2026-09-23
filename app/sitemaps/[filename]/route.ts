@@ -114,7 +114,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
    * адреса внутри неё разом, а 503 читает как «зайди позже».
    *
    * Сюда же попадает **усечение** (`LEGACY-098`): если API отдал меньше строк,
-   * чем обещает `meta.total`, короткий `<urlset>` с кодом 200 — тихая потеря
+   * чем обещает `pagination.total`, короткий `<urlset>` с кодом 200 — тихая потеря
    * URL, которую не заметит никто. Такой ответ обязан быть громким отказом.
    */
   const upstreamFailures: string[] = [];

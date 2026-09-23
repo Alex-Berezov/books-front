@@ -304,11 +304,10 @@ async function fetchAllRows(buildUrl) {
   const rows = [];
   for (let page = 1; page <= TERM_MAX_PAGES; page += 1) {
     const payload = await fetchJson(buildUrl(page));
-    // ⚠️ Окно выката `W9` (`LEGACY-378`): до тега бэкенд отвечает `{data, meta}`.
-    const pageRows = payload?.items ?? payload?.data;
-    if (!pageRows) return null;
-    rows.push(...pageRows);
-    const totalPages = (payload.pagination ?? payload.meta)?.totalPages ?? 1;
+    // Без числового `totalPages` полноту обхода не доказать — это «не ответила», а не одна страница.
+    const totalPages = payload?.pagination?.totalPages;
+    if (!Array.isArray(payload?.items) || typeof totalPages !== 'number') return null;
+    rows.push(...payload.items);
     if (page >= totalPages) return rows;
   }
   return rows;
