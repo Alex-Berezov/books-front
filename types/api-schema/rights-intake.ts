@@ -364,7 +364,6 @@ export interface EditionRights {
   languageCode: string;
   status: string;
   notesRu: string | null;
-  legalBasisRu: string | null;
   translationOrigin: string;
   translationSourceLanguage: string | null;
   requiresGeoBlock: boolean;

@@ -301,7 +301,6 @@ const mockDashboard: BookRightsDashboard = {
           languageCode: 'en',
           status: 'ALLOWED',
           notesRu: 'Free to distribute',
-          legalBasisRu: 'Author died > 70 yrs ago',
           translationOrigin: 'NOT_APPLICABLE_ORIGINAL',
           translationSourceLanguage: null,
           requiresGeoBlock: false,
@@ -314,7 +313,6 @@ const mockDashboard: BookRightsDashboard = {
           languageCode: 'ru',
           status: 'LICENSE_REQUIRED',
           notesRu: 'Перевод сделан с французского перевода',
-          legalBasisRu: null,
           translationOrigin: 'BIBLIARIS_TRANSLATION_FROM_INTERMEDIATE_TRANSLATION',
           translationSourceLanguage: 'fr',
           requiresGeoBlock: true,
@@ -546,10 +544,10 @@ describe('RightsTab Components (Phase 10)', () => {
       expect(screen.getByText('Orgullo y prejuicio (ES)')).toBeInTheDocument();
       expect(screen.getByTestId('geo-block-rules-panel')).toBeInTheDocument();
 
-      // Source Edition & Legal Basis
-      expect(screen.getByText('Source Edition & Legal Basis')).toBeInTheDocument();
+      // Source Edition
+      expect(screen.getByText('Source Edition')).toBeInTheDocument();
       expect(screen.getByText('PROJECT_GUTENBERG')).toBeInTheDocument();
-      expect(screen.getByText('Author died > 70 yrs ago')).toBeInTheDocument();
+      expect(screen.getByText('Free to distribute')).toBeInTheDocument();
 
       // Active Rights Profile
       expect(screen.getByText('Rights Profile')).toBeInTheDocument();

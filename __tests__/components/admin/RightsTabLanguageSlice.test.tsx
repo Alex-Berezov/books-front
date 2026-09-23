@@ -18,7 +18,6 @@ const makeEditionRights = (overrides: Partial<EditionRights> = {}): EditionRight
   languageCode: 'en',
   status: 'ALLOWED',
   notesRu: null,
-  legalBasisRu: null,
   translationOrigin: 'NOT_APPLICABLE_ORIGINAL',
   translationSourceLanguage: null,
   requiresGeoBlock: false,
@@ -131,7 +130,10 @@ describe('RightsTabSourceEdition (WP-7.4)', () => {
       />
     );
 
-    expect(screen.getByText('Language Rights & Legal Ground')).toBeInTheDocument();
+    // LEGACY-033: основания у языковой редакции нет — колонка показывает только заметку.
+    expect(screen.getByText('Language Rights')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Notes' })).toBeInTheDocument();
+    expect(screen.queryByText(/Legal Basis|Legal Ground/)).not.toBeInTheDocument();
     const ruRow = screen.getByText('RU').closest('tr');
     expect(within(ruRow as HTMLElement).getByText('LICENSE_REQUIRED')).toBeInTheDocument();
     expect(within(ruRow as HTMLElement).getByText('FR')).toBeInTheDocument();

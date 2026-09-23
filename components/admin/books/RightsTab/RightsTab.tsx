@@ -247,7 +247,7 @@ export const RightsTab: FC<RightsTabProps> = ({ versionId, bookId, lang }) => {
         <RightsTabLawyer versionId={versionId} />
       </div>
 
-      {/* 6. Source Edition & Legal Basis */}
+      {/* 6. Source Edition */}
       <RightsTabSourceEdition sourceEdition={sourceEdition} />
 
       {/* 7. Active Rights Profile (bound directly to current version) */}

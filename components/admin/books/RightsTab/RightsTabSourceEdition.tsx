@@ -16,7 +16,7 @@ export const RightsTabSourceEdition: FC<RightsTabSourceEditionProps> = ({ source
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>
           <BookOpen size={18} />
-          Source Edition & Legal Basis
+          Source Edition
         </h2>
         <p className={styles.mutedText}>
           No source edition record bound to this clearance profile.
@@ -35,7 +35,7 @@ export const RightsTabSourceEdition: FC<RightsTabSourceEditionProps> = ({ source
     <div className={styles.section}>
       <h2 className={styles.sectionTitle}>
         <BookOpen size={18} />
-        Source Edition & Legal Basis
+        Source Edition
       </h2>
       <div className={styles.detailsGrid}>
         <div className={styles.detailItem}>
@@ -90,7 +90,7 @@ export const RightsTabSourceEdition: FC<RightsTabSourceEditionProps> = ({ source
         дословно повторявшая статус и заметку исходного издания (R7-02).
       */}
       <div className={styles.subSection}>
-        <h3 className={styles.subSectionTitle}>Language Rights & Legal Ground</h3>
+        <h3 className={styles.subSectionTitle}>Language Rights</h3>
         {editionRights.length === 0 ? (
           <p className={styles.mutedText}>
             Языковой срез прав ещё не материализован. Он появится после импорта отчёта, в котором
@@ -106,7 +106,7 @@ export const RightsTabSourceEdition: FC<RightsTabSourceEditionProps> = ({ source
                   <th>Translation Origin</th>
                   <th>Translated From</th>
                   <th>Geo-block</th>
-                  <th>Legal Basis / Notes</th>
+                  <th>Notes</th>
                 </tr>
               </thead>
               <tbody>
@@ -138,7 +138,7 @@ export const RightsTabSourceEdition: FC<RightsTabSourceEditionProps> = ({ source
                         <span className={styles.mutedText}>Не требуется</span>
                       )}
                     </td>
-                    <td>{record.legalBasisRu || record.notesRu || '—'}</td>
+                    <td>{record.notesRu || '—'}</td>
                   </tr>
                 ))}
               </tbody>
