@@ -304,9 +304,11 @@ async function fetchAllRows(buildUrl) {
   const rows = [];
   for (let page = 1; page <= TERM_MAX_PAGES; page += 1) {
     const payload = await fetchJson(buildUrl(page));
-    if (!payload?.data) return null;
-    rows.push(...payload.data);
-    const totalPages = payload.meta?.totalPages ?? 1;
+    // ⚠️ Окно выката `W9` (`LEGACY-378`): до тега бэкенд отвечает `{data, meta}`.
+    const pageRows = payload?.items ?? payload?.data;
+    if (!pageRows) return null;
+    rows.push(...pageRows);
+    const totalPages = (payload.pagination ?? payload.meta)?.totalPages ?? 1;
     if (page >= totalPages) return rows;
   }
   return rows;

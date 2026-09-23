@@ -133,10 +133,10 @@ export default async function AuthorsByLetterPage({ params, searchParams }: Prop
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <AuthorsHub
-        authors={authors.data}
+        authors={authors.items}
         lang={lang}
         letters={letters}
-        meta={authors.meta}
+        pagination={authors.pagination}
         page={page}
         query={query}
       />

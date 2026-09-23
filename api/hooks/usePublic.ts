@@ -18,8 +18,8 @@ import type {
   TagBooksResponse,
   SeoResolveResponse,
   ChapterDetail,
-  PaginatedResponse,
-  PaginatedTagsResponse,
+  PaginatedResult,
+  TagListItem,
   ReaderBootstrapResponse,
 } from '@/types/api-schema';
 
@@ -221,9 +221,9 @@ export const useSeoResolve = (
  */
 export const usePublicChapters = (
   versionId: string,
-  options?: Omit<UseQueryOptions<ChapterDetail[], ApiError>, 'queryKey' | 'queryFn'>
-): UseQueryResult<ChapterDetail[], ApiError> => {
-  return useQuery<ChapterDetail[], ApiError>({
+  options?: Omit<UseQueryOptions<PaginatedResult<ChapterDetail>, ApiError>, 'queryKey' | 'queryFn'>
+): UseQueryResult<PaginatedResult<ChapterDetail>, ApiError> => {
+  return useQuery<PaginatedResult<ChapterDetail>, ApiError>({
     queryKey: ['publicChapters', versionId],
     queryFn: () => publicApi.getPublicChapters(versionId),
     staleTime: staleTimeConfig.public,
@@ -260,9 +260,9 @@ export const useReaderBootstrap = (
 export const usePublicBooks = (
   lang: SupportedLang,
   params: { page?: number; limit?: number } = {},
-  options?: Omit<UseQueryOptions<PaginatedResponse<BookListItem>, ApiError>, 'queryKey' | 'queryFn'>
-): UseQueryResult<PaginatedResponse<BookListItem>, ApiError> => {
-  return useQuery<PaginatedResponse<BookListItem>, ApiError>({
+  options?: Omit<UseQueryOptions<PaginatedResult<BookListItem>, ApiError>, 'queryKey' | 'queryFn'>
+): UseQueryResult<PaginatedResult<BookListItem>, ApiError> => {
+  return useQuery<PaginatedResult<BookListItem>, ApiError>({
     queryKey: queryKeys.publicBooks(lang, params),
     queryFn: () => publicApi.getPublicBooks(lang, params),
     staleTime: staleTimeConfig.public,
@@ -279,9 +279,9 @@ export const usePublicBooks = (
 export const usePublicTags = (
   lang: SupportedLang,
   params: { page?: number; limit?: number } = {},
-  options?: Omit<UseQueryOptions<PaginatedTagsResponse, ApiError>, 'queryKey' | 'queryFn'>
-): UseQueryResult<PaginatedTagsResponse, ApiError> => {
-  return useQuery<PaginatedTagsResponse, ApiError>({
+  options?: Omit<UseQueryOptions<PaginatedResult<TagListItem>, ApiError>, 'queryKey' | 'queryFn'>
+): UseQueryResult<PaginatedResult<TagListItem>, ApiError> => {
+  return useQuery<PaginatedResult<TagListItem>, ApiError>({
     queryKey: queryKeys.publicTags(lang, params),
     queryFn: () => publicApi.getPublicTags(lang, params),
     staleTime: staleTimeConfig.catalog,

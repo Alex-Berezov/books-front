@@ -1,4 +1,4 @@
-import type { UUID, ISODate, PaginatedResult } from './common';
+import type { UUID, ISODate, PaginatedResult, PaginationInfoWithNext } from './common';
 
 export type CommentStatus = 'visible' | 'hidden';
 
@@ -41,12 +41,7 @@ export interface GetCommentsParams {
   bookId?: UUID;
 }
 
-/**
- * Ответ `GET /admin/comments` — единая обёртка `{items, pagination}` (`LEGACY-177`).
- *
- * ⚠️ Публичный `GET /comments` (он же `BookCommentsResponse` ниже) на эту форму
- * **не переводился**: там осталась своя.
- */
+/** Ответ `GET /admin/comments` — единая обёртка `{items, pagination}` (`LEGACY-177`). */
 export type CommentsResponse = PaginatedResult<Comment>;
 
 export interface ModerateCommentRequest {
@@ -123,13 +118,8 @@ export interface GetBookCommentsParams {
   sortBy?: 'date' | 'popularity';
 }
 
-export interface BookCommentsResponse {
-  items: ClientComment[];
-  total: number;
-  page: number;
-  limit: number;
-  hasNext: boolean;
-}
+/** Ответ `GET /comments`: `hasNext` лежит внутри `pagination` (`LEGACY-378`). */
+export type BookCommentsResponse = PaginatedResult<ClientComment, PaginationInfoWithNext>;
 
 // --- Reaction / Likes types ---
 

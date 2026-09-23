@@ -14,6 +14,7 @@
  * then already chosen for the first server caller instead of being picked by default.
  */
 
+import { fromRolloutEnvelope } from '@/lib/api/paginated-envelope';
 import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';
 import { httpGet, buildLangPath } from '@/lib/http';
 import { httpGetAuth } from '@/lib/http-client';
@@ -28,8 +29,8 @@ import type {
   CategoryBookCardsResponse,
   CategoryBooksResponse,
   CategoryTree,
-  PaginatedCategoriesResponse,
-  PaginatedTagsResponse,
+  CategoryListItem,
+  TagListItem,
   ReaderBootstrapResponse,
   PageResponse,
   TagBookCardsResponse,
@@ -46,11 +47,17 @@ import type {
  * Get public chapters list for a book version
  *
  * @param versionId - Book version ID
- * @returns Array of chapters
+ * @returns All chapters of the version as one page
  */
-export const getPublicChapters = async (versionId: string): Promise<ChapterDetail[]> => {
+export const getPublicChapters = async (
+  versionId: string
+): Promise<PaginatedResult<ChapterDetail>> => {
   const endpoint = `/versions/${versionId}/chapters`;
-  return httpGet<ChapterDetail[]>(endpoint, { next: { revalidate: PUBLIC_REVALIDATE_SECONDS } });
+  // ⚠️ Переходник окна выката `W9` (`LEGACY-379`): до тега бэкенд отвечает массивом.
+  const body = await httpGet<ChapterDetail[] | PaginatedResult<ChapterDetail>>(endpoint, {
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
+  return fromRolloutEnvelope<ChapterDetail>(body);
 };
 
 /**
@@ -183,14 +190,19 @@ export const getReaderBootstrap = async (
 export const getPublicBooks = async (
   lang: SupportedLang,
   params: { page?: number; limit?: number } = {}
-): Promise<PaginatedResponse<BookListItem>> => {
+): Promise<PaginatedResult<BookListItem>> => {
   const { page = 1, limit = 20 } = params;
   const queryParams = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
   const endpoint = buildLangPath(lang, `/books?${queryParams.toString()}`);
-  return httpGet<PaginatedResponse<BookListItem>>(endpoint, { language: lang, cache: 'no-store' });
+  // ⚠️ Переходник окна выката `W9` (`LEGACY-378`): до тега бэкенд отвечает `{data, meta}`.
+  const body = await httpGet<PaginatedResult<BookListItem> | PaginatedResponse<BookListItem>>(
+    endpoint,
+    { language: lang, cache: 'no-store' }
+  );
+  return fromRolloutEnvelope<BookListItem>(body);
 };
 
 /**
@@ -343,16 +355,20 @@ export const getPublicCategories = async (
   lang: SupportedLang,
   type?: 'category' | 'genre' | 'collection',
   params: { page?: number; limit?: number } = {}
-): Promise<PaginatedCategoriesResponse> => {
+): Promise<PaginatedResult<CategoryListItem>> => {
   const queryParams = new URLSearchParams();
   if (type) queryParams.append('type', type);
   if (params.page !== undefined) queryParams.append('page', String(params.page));
   if (params.limit !== undefined) queryParams.append('limit', String(params.limit));
   const endpoint = buildLangPath(lang, `/categories?${queryParams.toString()}`);
-  return httpGet<PaginatedCategoriesResponse>(endpoint, {
+  // ⚠️ Переходник окна выката `W9` (`LEGACY-378`): до тега бэкенд отвечает `{data, meta}`.
+  const body = await httpGet<
+    PaginatedResult<CategoryListItem> | PaginatedResponse<CategoryListItem>
+  >(endpoint, {
     language: lang,
     next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
   });
+  return fromRolloutEnvelope<CategoryListItem>(body);
 };
 
 /**
@@ -400,14 +416,19 @@ export const getPublicCategoriesTree = async (
 export const getPublicTags = async (
   lang: SupportedLang,
   params: { page?: number; limit?: number } = {}
-): Promise<PaginatedTagsResponse> => {
+): Promise<PaginatedResult<TagListItem>> => {
   const { page = 1, limit = 50 } = params;
   const queryParams = new URLSearchParams({ page: String(page), limit: String(limit) });
   const endpoint = buildLangPath(lang, `/tags?${queryParams.toString()}`);
-  return httpGet<PaginatedTagsResponse>(endpoint, {
-    language: lang,
-    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
-  });
+  // ⚠️ Переходник окна выката `W9` (`LEGACY-378`): до тега бэкенд отвечает `{data, meta}`.
+  const body = await httpGet<PaginatedResult<TagListItem> | PaginatedResponse<TagListItem>>(
+    endpoint,
+    {
+      language: lang,
+      next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+    }
+  );
+  return fromRolloutEnvelope<TagListItem>(body);
 };
 
 /**
@@ -486,7 +507,7 @@ export type PublicAuthorsParams = {
 export const getPublicAuthors = async (
   lang: SupportedLang,
   params: PublicAuthorsParams = {}
-): Promise<PaginatedResponse<AuthorListItem>> => {
+): Promise<PaginatedResult<AuthorListItem>> => {
   const { page = 1, limit = 50, search, letter, sort, hasBooks } = params;
   const queryParams = new URLSearchParams({
     page: String(page),
@@ -509,10 +530,15 @@ export const getPublicAuthors = async (
   // `.next/cache/fetch-cache`, у которого нет лимита по диску: обход по
   // случайным `?search=` раздул бы кэш контейнера. Странице поиска кэш всё
   // равно ничего не даёт — она `noindex`.
-  return httpGet<PaginatedResponse<AuthorListItem>>(endpoint, {
-    language: lang,
-    next: search ? { revalidate: 0 } : { revalidate: PUBLIC_REVALIDATE_SECONDS },
-  });
+  // ⚠️ Переходник окна выката `W9` (`LEGACY-378`): до тега бэкенд отвечает `{data, meta}`.
+  const body = await httpGet<PaginatedResult<AuthorListItem> | PaginatedResponse<AuthorListItem>>(
+    endpoint,
+    {
+      language: lang,
+      next: search ? { revalidate: 0 } : { revalidate: PUBLIC_REVALIDATE_SECONDS },
+    }
+  );
+  return fromRolloutEnvelope<AuthorListItem>(body);
 };
 
 /**

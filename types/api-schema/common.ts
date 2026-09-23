@@ -61,11 +61,9 @@ export interface PaginatedResponse<T> {
 /**
  * Пагинация единой обёртки `{items, pagination}` (`LEGACY-177`, 13.09.2026).
  *
- * Поля те же, что у `PaginationMeta`, но объявлены отдельно намеренно: `PaginationMeta`
- * — половина `PaginatedResponse` и живёт на публичных маршрутах, которые этой обёрткой
- * **не переводятся** (их ответы лежат в edge-кэше Cloudflare). Общий тип на две формы
- * связал бы публичную витрину с админской правкой: переименование поля здесь поехало бы
- * туда, где форма не менялась.
+ * Поля те же, что у `PaginationMeta`, но объявлены отдельно: `PaginationMeta` — половина
+ * `PaginatedResponse`, которая осталась только внутри составных ответов-страниц
+ * (`tags/:slug/books`, `categories/:slug/books`).
  */
 export interface PaginationInfo {
   page: number;
@@ -88,9 +86,8 @@ export interface PaginationInfoWithNext extends PaginationInfo {
 /**
  * Единая обёртка списочного ответа: `{ items, pagination }`.
  *
- * Источник формы — `books/src/shared/dto/paginated-response.dto.ts`. Переведены на неё
- * только перечисленные там админские и личные маршруты; публичная витрина осталась
- * на `PaginatedResponse` (`{data, meta}`) и на своих собственных формах.
+ * Источник формы — `books/src/shared/dto/paginated-response.dto.ts`. Публичные списки на ней
+ * с 23.09.2026 (`LEGACY-378`); вне формы — только списки аудиоглав (плоская форма).
  */
 export interface PaginatedResult<T, P extends PaginationInfo = PaginationInfo> {
   items: T[];

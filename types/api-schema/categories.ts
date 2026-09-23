@@ -247,19 +247,3 @@ export interface CategoryListItem {
     autoIndexable?: boolean;
   }>;
 }
-
-/**
- * Страница публичного списка категорий (`GET /{lang}/categories`).
- *
- * Переехала из `api/endpoints/public.ts` 10.09.2026 вслед за `CategoryListItem`:
- * близнец `PaginatedTagsResponse` уже лежал в `types/api-schema/tags.ts`.
- */
-export interface PaginatedCategoriesResponse {
-  data: CategoryListItem[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}

@@ -186,7 +186,6 @@ export interface GetUserActivitiesParams {
  * Ответ `GET /users/me/activities` — единая обёртка `{items, pagination}` (`LEGACY-177`).
  *
  * `hasNext` не исчез, а переехал **внутрь** `pagination`: снаружи у списочного ответа
- * теперь только `items` и `pagination`. До 13.09.2026 всё лежало плоско — так же,
- * как у `BookCommentsResponse` (`LEGACY-218`), который на новую форму не переводился.
+ * теперь только `items` и `pagination`. До 13.09.2026 всё лежало плоско.
  */
 export type UserActivitiesResponse = PaginatedResult<UserActivity, PaginationInfoWithNext>;

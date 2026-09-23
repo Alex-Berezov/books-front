@@ -4,7 +4,10 @@ const getBookCards = vi.fn();
 
 vi.mock('@/api/endpoints/public', () => ({
   getBookCards: (...args: unknown[]) => getBookCards(...args),
-  getPublicCategories: vi.fn().mockResolvedValue({ data: [] }),
+  getPublicCategories: vi.fn().mockResolvedValue({
+    items: [],
+    pagination: { page: 1, limit: 50, total: 0, totalPages: 0 },
+  }),
 }));
 
 const { generateMetadata } = await import('@/app/[lang]/catalog/page');

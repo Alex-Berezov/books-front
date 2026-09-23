@@ -30,13 +30,16 @@ describe('admin chapters endpoints', () => {
       http.get(`${API_BASE}/admin/versions/:id/chapters`, ({ request }) => {
         seenUrl = request.url;
         seenAuth = request.headers.get('authorization');
-        return HttpResponse.json([{ id: 'c1', number: 1, title: 'Глава 1', content: '...' }]);
+        return HttpResponse.json({
+          items: [{ id: 'c1', number: 1, title: 'Глава 1', content: '...' }],
+          pagination: { page: 1, limit: 1, total: 1, totalPages: 1 },
+        });
       })
     );
 
     const result = await getChapters('ver-42');
 
-    expect(result).toHaveLength(1);
+    expect(result.items).toHaveLength(1);
     expect(seenUrl).toContain('/admin/versions/ver-42/chapters');
     expect(seenUrl).not.toContain('/api/versions/ver-42/chapters');
     expect(seenAuth).toBe('Bearer test-token');

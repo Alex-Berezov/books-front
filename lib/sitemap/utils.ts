@@ -141,18 +141,18 @@ ${xmlItems.join('\n')}
 /**
  * Сколько строк обязана содержать **эта** страница выдачи.
  *
- * 🔴 `meta.total` — счётчик по **всей** выборке, а не по странице. Первая
+ * 🔴 `pagination.total` — счётчик по **всей** выборке, а не по странице. Первая
  * версия детектора сравнивала с ним длину одной страницы и потому объявляла
  * усечением любую нормальную постраничную выдачу: 1000 книг на странице при
  * `total = 1500` читались как потеря 500 строк. Карта книг ушла бы в 503
  * навсегда в тот день, когда каталог перевалит за тысячу, — то есть детектор
  * неполноты сам стал бы причиной полной потери (`LEGACY-098`).
  *
- * Ожидание считается из самой `meta`: сколько строк остаётся до конца выборки
+ * Ожидание считается из самой `pagination`: сколько строк остаётся до конца выборки
  * на этой странице, но не больше её размера.
  */
-function expectedRowsOnPage(meta: PaginationLike): number | null {
-  const { total, page, limit } = meta;
+function expectedRowsOnPage(pagination: PaginationLike): number | null {
+  const { total, page, limit } = pagination;
   if (typeof total !== 'number') return null;
   if (typeof page !== 'number' || typeof limit !== 'number' || limit <= 0) {
     // Постраничных признаков нет — считаем выдачу одностраничной.
@@ -169,13 +169,14 @@ export interface PaginationLike {
   totalPages?: number;
 }
 
+/** Страница списка в единой форме `{items, pagination}` (`LEGACY-378`). */
 export interface PagedResponse<T> {
-  data?: T[];
-  meta?: PaginationLike;
+  items?: T[];
+  pagination?: PaginationLike;
 }
 
 /**
- * Отдаёт `data` страницы, если она пришла целиком, и падает, если усечена.
+ * Отдаёт `items` страницы, если она пришла целиком, и падает, если усечена.
  *
  * Ограничение выдачи без детектора усечения — это тихая потеря данных
  * (`LEGACY-098`): ветка карты сайта, получившая меньше строк, чем должна,
@@ -190,16 +191,16 @@ export function takeCompletePage<T>(
   response: PagedResponse<T> | null | undefined,
   where: string
 ): T[] {
-  const data = response?.data ?? [];
-  const expected = response?.meta ? expectedRowsOnPage(response.meta) : null;
+  const items = response?.items ?? [];
+  const expected = response?.pagination ? expectedRowsOnPage(response.pagination) : null;
 
-  if (expected !== null && data.length < expected) {
+  if (expected !== null && items.length < expected) {
     throw new Error(
-      `${where}: получено ${data.length} из ${expected} на странице — выдача усечена`
+      `${where}: получено ${items.length} из ${expected} на странице — выдача усечена`
     );
   }
 
-  return data;
+  return items;
 }
 
 /**
@@ -242,10 +243,10 @@ export async function fetchAllPages<T>(
 
   const first = await withRetry(1);
   const items = takeCompletePage(first, `${where} p1`);
-  const total = first?.meta?.total;
-  const limit = first?.meta?.limit ?? items.length;
+  const total = first?.pagination?.total;
+  const limit = first?.pagination?.limit ?? items.length;
   const totalPages =
-    first?.meta?.totalPages ??
+    first?.pagination?.totalPages ??
     (typeof total === 'number' && limit > 0 ? Math.ceil(total / limit) : 1);
 
   if (totalPages > maxPages) {

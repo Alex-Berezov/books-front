@@ -6,8 +6,14 @@
  * order index and access settings.
  */
 
+import { fromRolloutEnvelope } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
-import type { ChapterDetail, CreateChapterRequest, UpdateChapterRequest } from '@/types/api-schema';
+import type {
+  ChapterDetail,
+  CreateChapterRequest,
+  PaginatedResult,
+  UpdateChapterRequest,
+} from '@/types/api-schema';
 
 /**
  * Get list of chapters for book version
@@ -18,16 +24,19 @@ import type { ChapterDetail, CreateChapterRequest, UpdateChapterRequest } from '
  * version being prepared.
  *
  * @param versionId - Book version ID
- * @returns Array of chapters
+ * @returns All chapters of the version as one page
  *
  * @example
  * ```ts
- * const chapters = await getChapters('version-uuid');
+ * const { items } = await getChapters('version-uuid');
  * ```
  */
-export const getChapters = async (versionId: string): Promise<ChapterDetail[]> => {
+export const getChapters = async (versionId: string): Promise<PaginatedResult<ChapterDetail>> => {
   const endpoint = `/admin/versions/${versionId}/chapters`;
-  return httpGetAuth<ChapterDetail[]>(endpoint);
+  // ⚠️ Переходник окна выката `W9` (`LEGACY-379`): до тега бэкенд отвечает массивом.
+  return fromRolloutEnvelope<ChapterDetail>(
+    await httpGetAuth<ChapterDetail[] | PaginatedResult<ChapterDetail>>(endpoint)
+  );
 };
 
 /**

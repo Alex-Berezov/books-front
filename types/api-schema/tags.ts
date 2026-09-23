@@ -255,13 +255,3 @@ export interface TagListItem {
     autoIndexable?: boolean;
   }>;
 }
-
-export interface PaginatedTagsResponse {
-  data: TagListItem[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}

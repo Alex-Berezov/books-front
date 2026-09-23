@@ -20,16 +20,16 @@ const getPublicTags = vi.fn();
 vi.mock('@/api/endpoints/public', () => ({
   getPublicCategories: (...args: unknown[]) => getPublicCategories(...args) as unknown,
   getPublicTags: (...args: unknown[]) => getPublicTags(...args) as unknown,
-  getPublicBooks: vi.fn(async () => ({ data: [], meta: { total: 0, totalPages: 0 } })),
+  getPublicBooks: vi.fn(async () => ({ items: [], pagination: { total: 0, totalPages: 0 } })),
   getBookCards: vi.fn(async () => ({ items: [], pagination: { total: 0, totalPages: 0 } })),
-  getPublicAuthors: vi.fn(async () => ({ data: [], meta: { total: 0, totalPages: 0 } })),
+  getPublicAuthors: vi.fn(async () => ({ items: [], pagination: { total: 0, totalPages: 0 } })),
   getAuthorLetters: vi.fn(async () => ({
     items: [],
     pagination: { page: 1, limit: 0, total: 0, totalPages: 0 },
   })),
 }));
 
-const emptyPage = { data: [], meta: { total: 0, page: 1, limit: 100, totalPages: 0 } };
+const emptyPage = { items: [], pagination: { total: 0, page: 1, limit: 100, totalPages: 0 } };
 
 /** Термин, проходящий `isTaxonomyLinkable`: видим, индексируем, с книгами. */
 const linkableTerm = (slug: string, lang: string) => ({
@@ -66,8 +66,8 @@ describe('LEGACY-387: карта сайта строит ссылки из яз�
     getPublicTags.mockImplementation(async (_lang: string, params: { page?: number }) =>
       params.page === 1
         ? {
-            data: [linkableTerm('solitude', 'es')],
-            meta: { total: 1, page: 1, limit: 100, totalPages: 1 },
+            items: [linkableTerm('solitude', 'es')],
+            pagination: { total: 1, page: 1, limit: 100, totalPages: 1 },
           }
         : emptyPage
     );
@@ -84,8 +84,8 @@ describe('LEGACY-387: карта сайта строит ссылки из яз�
       async (_lang: string, _type: string, params: { page?: number }) =>
         params.page === 1
           ? {
-              data: [linkableTerm('tragedy', 'fr')],
-              meta: { total: 1, page: 1, limit: 100, totalPages: 1 },
+              items: [linkableTerm('tragedy', 'fr')],
+              pagination: { total: 1, page: 1, limit: 100, totalPages: 1 },
             }
           : emptyPage
     );
@@ -104,8 +104,8 @@ describe('LEGACY-387: карта сайта строит ссылки из яз�
     getPublicTags.mockImplementation(async (_lang: string, params: { page?: number }) =>
       params.page === 1
         ? {
-            data: [linkableTerm('solitude', 'en')],
-            meta: { total: 1, page: 1, limit: 100, totalPages: 1 },
+            items: [linkableTerm('solitude', 'en')],
+            pagination: { total: 1, page: 1, limit: 100, totalPages: 1 },
           }
         : emptyPage
     );

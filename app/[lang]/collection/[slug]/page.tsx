@@ -230,8 +230,8 @@ export default async function CollectionDetailPage({ params, searchParams }: Pro
         ...cache,
       }),
       getPublicCategories(supportedLang, 'collection', { limit: API_MAX_PAGE_SIZE }).catch(() => ({
-        data: [],
-        meta: { total: 0, page: 1, limit: API_MAX_PAGE_SIZE, totalPages: 0 },
+        items: [],
+        pagination: { total: 0, page: 1, limit: API_MAX_PAGE_SIZE, totalPages: 0 },
       })),
     ]);
   } catch (error) {
@@ -356,7 +356,7 @@ export default async function CollectionDetailPage({ params, searchParams }: Pro
         slug={slug}
         taxonomyType={TAXONOMY_TYPE}
         data={data}
-        allCategories={allCategoriesData.data}
+        allCategories={allCategoriesData.items}
         translations={translations}
         path={path}
         currentPage={currentPage}

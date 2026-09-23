@@ -110,13 +110,14 @@ export default function BookReviews({
   };
 
   const comments = data?.items || [];
-  const hasNext = data?.hasNext || false;
+  const hasNext = data?.pagination.hasNext || false;
 
   return (
     <div className={styles.reviewsSection}>
       <div className={styles.header}>
         <h2 className={styles.sectionTitle}>
-          {t('reviews.title')} <span className={styles.countBadge}>{data?.total || 0}</span>
+          {t('reviews.title')}{' '}
+          <span className={styles.countBadge}>{data?.pagination.total || 0}</span>
         </h2>
 
         <div className={styles.controls}>

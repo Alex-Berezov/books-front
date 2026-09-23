@@ -139,7 +139,7 @@ describe('countAuthors', () => {
   });
 
   it('returns the total when the request succeeded', async () => {
-    getPublicAuthors.mockResolvedValue({ data: [], meta: { total: 42 } });
+    getPublicAuthors.mockResolvedValue({ items: [], pagination: { total: 42 } });
 
     expect(await countAuthors('ru', query)).toBe(42);
   });
@@ -151,18 +151,18 @@ describe('countAuthors', () => {
   });
 
   it('returns null when the answer carried no total', async () => {
-    getPublicAuthors.mockResolvedValue({ data: [], meta: {} });
+    getPublicAuthors.mockResolvedValue({ items: [], pagination: {} });
     expect(await countAuthors('ru', query)).toBeNull();
 
-    getPublicAuthors.mockResolvedValue({ data: [] });
+    getPublicAuthors.mockResolvedValue({ items: [] });
     expect(await countAuthors('ru', query)).toBeNull();
 
-    getPublicAuthors.mockResolvedValue({ data: [], meta: { total: '42' } });
+    getPublicAuthors.mockResolvedValue({ items: [], pagination: { total: '42' } });
     expect(await countAuthors('ru', query)).toBeNull();
   });
 
   it('counts zero as a real answer', async () => {
-    getPublicAuthors.mockResolvedValue({ data: [], meta: { total: 0 } });
+    getPublicAuthors.mockResolvedValue({ items: [], pagination: { total: 0 } });
 
     expect(await countAuthors('ru', query)).toBe(0);
   });

@@ -17,7 +17,8 @@ export const useReadContentTab = (props: ReadContentTabProps) => {
   const [deletingChapterId, setDeletingChapterId] = useState<string | null>(null);
 
   // API Hooks
-  const { data: chapters, error, isLoading } = useChapters(versionId);
+  const { data, error, isLoading } = useChapters(versionId);
+  const chapters = data?.items;
   const createChapterMutation = useCreateChapter();
   const updateChapterMutation = useUpdateChapter();
   const deleteChapterMutation = useDeleteChapter();

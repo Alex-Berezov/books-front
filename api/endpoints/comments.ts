@@ -2,6 +2,7 @@
  * Client API endpoints for comments, reviews, and reactions.
  */
 
+import { fromRolloutEnvelope } from '@/lib/api/paginated-envelope';
 import { httpGet } from '@/lib/http';
 import { httpPostAuth, httpPatchAuth, httpDeleteAuth } from '@/lib/http-client';
 import type {
@@ -35,9 +36,12 @@ export const getComments = async (params: GetBookCommentsParams): Promise<BookCo
   // Здесь `no-store`, а не `revalidate`: список комментариев и счётчик лайков — самые
   // изменчивые публичные данные, пятиминутная выдержка на них видна читателю.
   // Решение арбитра 13.09.2026.
-  return httpGet<BookCommentsResponse>(`/comments?${query.toString()}`, {
+  // ⚠️ Переходник окна выката `W9` (`LEGACY-378`): до тега бэкенд отвечает плоско —
+  // `{items, total, page, limit, hasNext}`; `hasNext` переходник кладёт внутрь `pagination`.
+  const body = await httpGet<BookCommentsResponse>(`/comments?${query.toString()}`, {
     cache: 'no-store',
   });
+  return fromRolloutEnvelope<ClientComment, BookCommentsResponse['pagination']>(body);
 };
 
 /**

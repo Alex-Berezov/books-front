@@ -111,8 +111,8 @@ export default async function PublicLangPage({ params }: Props) {
       // взяв первые двенадцать по алфавиту, блок рисовался бы пустым каждый раз,
       // когда у них нет опубликованных книг, — а не «иногда», как раньше.
       getPublicAuthors(supportedLang, { limit: 12, sort: 'books', hasBooks: true }).catch(() => ({
-        data: [] as AuthorListItem[],
-        meta: { total: 0, page: 1, limit: 12, totalPages: 0 },
+        items: [] as AuthorListItem[],
+        pagination: { total: 0, page: 1, limit: 12, totalPages: 0 },
       })),
       getPageBySystemKey(supportedLang, 'homepage').catch(() => null as PageResponse | null),
     ]);
@@ -120,11 +120,11 @@ export default async function PublicLangPage({ params }: Props) {
     const featuredBooks = popularRes?.items || [];
     const newReleases = newRes?.items || [];
     const audiobooks = audioRes?.items || [];
-    const allCategories = linkableSortedByBooksCount(catsRes?.data || []).slice(0, 12);
-    const allGenres = linkableSortedByBooksCount(genresRes?.data || []).slice(0, 12);
-    const allCollections = linkableSortedByBooksCount(colsRes?.data || []).slice(0, 12);
-    const allTags = linkableSortedByBooksCount(tagsRes?.data || []).slice(0, 12);
-    const allAuthors = linkableAuthorsSortedByBooksCount(authorsRes?.data || []).slice(0, 12);
+    const allCategories = linkableSortedByBooksCount(catsRes?.items || []).slice(0, 12);
+    const allGenres = linkableSortedByBooksCount(genresRes?.items || []).slice(0, 12);
+    const allCollections = linkableSortedByBooksCount(colsRes?.items || []).slice(0, 12);
+    const allTags = linkableSortedByBooksCount(tagsRes?.items || []).slice(0, 12);
+    const allAuthors = linkableAuthorsSortedByBooksCount(authorsRes?.items || []).slice(0, 12);
 
     const [classicBooks, fantasyBooks] = await Promise.all([
       getCategoryBookCards(supportedLang, 'classics', 1, 8)

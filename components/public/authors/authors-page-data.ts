@@ -1,7 +1,7 @@
 import { getAuthorLetters, getPublicAuthors } from '@/api/endpoints/public';
 import type { AuthorsQuery } from './authors-href';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { AuthorLetter, AuthorListItem, PaginatedResponse } from '@/types/api-schema';
+import type { AuthorLetter, AuthorListItem, PaginatedResult } from '@/types/api-schema';
 
 /** Размер страницы хаба. Совпадает с умолчанием бэкенда. */
 export const AUTHORS_PAGE_SIZE = 24;
@@ -22,7 +22,7 @@ export const AUTHORS_PAGE_SIZE = 24;
 export function loadAuthors(
   lang: SupportedLang,
   query: AuthorsQuery
-): Promise<PaginatedResponse<AuthorListItem>> {
+): Promise<PaginatedResult<AuthorListItem>> {
   return getPublicAuthors(lang, {
     page: query.page,
     limit: AUTHORS_PAGE_SIZE,
@@ -63,7 +63,7 @@ export async function countAuthors(
 ): Promise<number | null> {
   try {
     const response = await loadAuthors(lang, query);
-    return typeof response.meta?.total === 'number' ? response.meta.total : null;
+    return typeof response.pagination?.total === 'number' ? response.pagination.total : null;
   } catch {
     return null;
   }

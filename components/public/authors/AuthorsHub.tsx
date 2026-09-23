@@ -20,7 +20,7 @@ export interface AuthorsHubProps {
   lang: SupportedLang;
   page: PageResponse | null;
   authors: AuthorListItem[];
-  meta: { page: number; totalPages: number; total: number };
+  pagination: { page: number; totalPages: number; total: number };
   letters: AuthorLetter[];
   query: AuthorsQuery;
 }
@@ -34,7 +34,14 @@ export interface AuthorsHubProps {
  * ссылки на термин при том, что все они лежали в карте сайта (правило 7.6,
  * 25 находок). Клиентский здесь только `AuthorsToolbar`.
  */
-export const AuthorsHub: FC<AuthorsHubProps> = ({ lang, page, authors, meta, letters, query }) => {
+export const AuthorsHub: FC<AuthorsHubProps> = ({
+  lang,
+  page,
+  authors,
+  pagination,
+  letters,
+  query,
+}) => {
   const t = createTranslator(lang);
 
   const hubTitle = page?.h1 || page?.title || t('authors.title');
@@ -65,7 +72,7 @@ export const AuthorsHub: FC<AuthorsHubProps> = ({ lang, page, authors, meta, let
       : [{ label: t('breadcrumb.authors') }]),
   ];
 
-  const authorsLabel = pluralize(meta.total, lang, pluralFormsOf(t, 'authors.authorsCount'));
+  const authorsLabel = pluralize(pagination.total, lang, pluralFormsOf(t, 'authors.authorsCount'));
 
   const cardLabels = {
     books: pluralFormsOf(t, 'authors.booksCount'),
@@ -84,13 +91,13 @@ export const AuthorsHub: FC<AuthorsHubProps> = ({ lang, page, authors, meta, let
         <OverviewHero h1={h1} shortDescription={shortDescription} />
 
         {/*
-          Один счётчик — авторов, из `meta.total`. Счётчиков книг и аудиокниг
+          Один счётчик — авторов, из `pagination.total`. Счётчиков книг и аудиокниг
           нет намеренно: суммарных агрегатов бэкенд не отдаёт, а складывать их
           по видимой странице значило бы показать сумму двадцати четырёх
           карточек под видом суммы по библиотеке.
         */}
         <p className={styles.counters}>
-          {meta.total} {authorsLabel}
+          {pagination.total} {authorsLabel}
         </p>
 
         <AuthorsToolbar
@@ -136,8 +143,8 @@ export const AuthorsHub: FC<AuthorsHubProps> = ({ lang, page, authors, meta, let
             pagination: t('authors.pagination'),
             pageLabel: t('authors.pageLabel'),
           }}
-          page={meta.page}
-          totalPages={meta.totalPages}
+          page={pagination.page}
+          totalPages={pagination.totalPages}
         />
 
         {description && <SeoDescription description={description} />}

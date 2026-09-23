@@ -71,8 +71,8 @@ export default async function PopularBooksPage({ params, searchParams }: Props) 
 
   const books = booksRes?.items ?? [];
   const pagination = booksRes?.pagination ?? { page: 1, limit: PAGE_SIZE, total: 0, totalPages: 0 };
-  const categories = (categoriesRes?.data ?? []).filter(isTaxonomyLinkable);
-  const genres = (genresRes?.data ?? []).filter(isTaxonomyLinkable);
+  const categories = (categoriesRes?.items ?? []).filter(isTaxonomyLinkable);
+  const genres = (genresRes?.items ?? []).filter(isTaxonomyLinkable);
 
   const siteUrl = getSiteUrl();
   const routeUrl = `${siteUrl}/${supportedLang}/popular-books`;

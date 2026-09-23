@@ -18,7 +18,12 @@ import {
   getChapters,
   updateChapter,
 } from '@/api/endpoints/admin/chapters';
-import type { ChapterDetail, CreateChapterRequest, UpdateChapterRequest } from '@/types/api-schema';
+import type {
+  ChapterDetail,
+  CreateChapterRequest,
+  PaginatedResult,
+  UpdateChapterRequest,
+} from '@/types/api-schema';
 
 /**
  * Query keys for chapters
@@ -45,12 +50,13 @@ export const chapterKeys = {
  *
  * @example
  * ```tsx
- * const { data: chapters, isLoading } = useChapters('version-uuid');
+ * const { data, isLoading } = useChapters('version-uuid');
+ * const chapters = data?.items;
  * ```
  */
 export const useChapters = (
   versionId: string,
-  options?: Omit<UseQueryOptions<ChapterDetail[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginatedResult<ChapterDetail>>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: chapterKeys.list(versionId),

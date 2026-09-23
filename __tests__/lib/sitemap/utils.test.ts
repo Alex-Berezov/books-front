@@ -255,21 +255,25 @@ describe('buildUrlSetXml', () => {
  */
 describe('takeCompletePage: полнота СТРАНИЦЫ, а не выборки (LEGACY-098)', () => {
   it('отдаёт данные, когда страница пришла целиком', () => {
-    expect(takeCompletePage({ data: [1, 2, 3], meta: { total: 3 } }, 'books')).toEqual([1, 2, 3]);
+    expect(takeCompletePage({ items: [1, 2, 3], pagination: { total: 3 } }, 'books')).toEqual([
+      1, 2, 3,
+    ]);
   });
 
   it('падает, когда одностраничная выдача короче обещанной', () => {
-    expect(() => takeCompletePage({ data: [1, 2], meta: { total: 441 } }, 'categories en')).toThrow(
-      /получено 2 из 441/
-    );
+    expect(() =>
+      takeCompletePage({ items: [1, 2], pagination: { total: 441 } }, 'categories en')
+    ).toThrow(/получено 2 из 441/);
   });
 
   it('называет место в сообщении — иначе по логу не найти виноватую секцию', () => {
-    expect(() => takeCompletePage({ data: [], meta: { total: 5 } }, 'tags ru')).toThrow(/tags ru/);
+    expect(() => takeCompletePage({ items: [], pagination: { total: 5 } }, 'tags ru')).toThrow(
+      /tags ru/
+    );
   });
 
   /**
-   * 🔴 Регрессия, найденная код-ревью. `meta.total` — счётчик по **всей**
+   * 🔴 Регрессия, найденная код-ревью. `pagination.total` — счётчик по **всей**
    * выборке, а не по странице. Сравнение с ним длины одной страницы объявляло
    * усечением нормальную пагинацию: карта книг ушла бы в 503 навсегда в тот
    * день, когда каталог перевалит за тысячу. Детектор неполноты стал бы
@@ -277,52 +281,57 @@ describe('takeCompletePage: полнота СТРАНИЦЫ, а не выбор�
    */
   it('полная первая страница из нескольких — не усечение', () => {
     const page = {
-      data: Array.from({ length: 1000 }, (_, i) => i),
-      meta: { total: 1500, page: 1, limit: 1000 },
+      items: Array.from({ length: 1000 }, (_, i) => i),
+      pagination: { total: 1500, page: 1, limit: 1000 },
     };
     expect(takeCompletePage(page, 'books en p1')).toHaveLength(1000);
   });
 
   it('последняя, неполная по размеру страница — тоже не усечение', () => {
     const page = {
-      data: Array.from({ length: 500 }, (_, i) => i),
-      meta: { total: 1500, page: 2, limit: 1000 },
+      items: Array.from({ length: 500 }, (_, i) => i),
+      pagination: { total: 1500, page: 2, limit: 1000 },
     };
     expect(takeCompletePage(page, 'books en p2')).toHaveLength(500);
   });
 
   it('страница за пределами выборки пуста законно — это путь к 404, а не к 503', () => {
     expect(
-      takeCompletePage({ data: [], meta: { total: 500, page: 2, limit: 1000 } }, 'books en p2')
+      takeCompletePage(
+        { items: [], pagination: { total: 500, page: 2, limit: 1000 } },
+        'books en p2'
+      )
     ).toEqual([]);
   });
 
   it('но недобор внутри страницы по-прежнему усечение', () => {
     const page = {
-      data: Array.from({ length: 900 }, (_, i) => i),
-      meta: { total: 1500, page: 1, limit: 1000 },
+      items: Array.from({ length: 900 }, (_, i) => i),
+      pagination: { total: 1500, page: 1, limit: 1000 },
     };
     expect(() => takeCompletePage(page, 'books en p1')).toThrow(/усечена/);
   });
 
   it('не считает ошибкой, когда строк больше обещанного', () => {
     // Гонка с добавлением записей между подсчётом и выборкой — не потеря.
-    expect(takeCompletePage({ data: [1, 2, 3], meta: { total: 2 } }, 'authors')).toEqual([1, 2, 3]);
+    expect(takeCompletePage({ items: [1, 2, 3], pagination: { total: 2 } }, 'authors')).toEqual([
+      1, 2, 3,
+    ]);
   });
 
-  it('пропускает ответ без meta.total — сверять не с чем', () => {
-    expect(takeCompletePage({ data: [1] }, 'legacy endpoint')).toEqual([1]);
+  it('пропускает ответ без pagination.total — сверять не с чем', () => {
+    expect(takeCompletePage({ items: [1] }, 'legacy endpoint')).toEqual([1]);
   });
 
   it('пустой ответ при total = 0 законен', () => {
-    expect(takeCompletePage({ data: [], meta: { total: 0 } }, 'collections fr')).toEqual([]);
+    expect(takeCompletePage({ items: [], pagination: { total: 0 } }, 'collections fr')).toEqual([]);
   });
 });
 
 describe('fetchAllPages: обход всех страниц (LEGACY-098)', () => {
   const pageOf = (items: number[], page: number, limit: number, total: number) => ({
-    data: items,
-    meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    items: items,
+    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
   });
 
   it('собирает все страницы, а не первую', async () => {
@@ -353,8 +362,8 @@ describe('fetchAllPages: обход всех страниц (LEGACY-098)', () =>
 
   it('падает, если собранное меньше обещанного', async () => {
     const fetchPage = vi.fn(async (page: number) => ({
-      data: page === 1 ? [1] : [],
-      meta: { total: 5, page, limit: 1, totalPages: 1 },
+      items: page === 1 ? [1] : [],
+      pagination: { total: 5, page, limit: 1, totalPages: 1 },
     }));
 
     await expect(fetchAllPages(fetchPage, 'categories es')).rejects.toThrow(/обход неполон/);
@@ -376,8 +385,8 @@ describe('fetchAllPages: обход всех страниц (LEGACY-098)', () =>
  */
 describe('fetchPageWindow: фиксированное окно страниц (LEGACY-298)', () => {
   const pageOf = (items: number[], page: number, limit: number, total: number) => ({
-    data: items,
-    meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    items: items,
+    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
   });
 
   it('складывает несколько бэкенд-страниц в одно окно', async () => {

@@ -9,14 +9,15 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 /**
- * `res.meta.total` was read unguarded. A missing `meta` threw; worse, a non-numeric
+ * `res.pagination.total` was read unguarded (as `meta.total` before `LEGACY-378`). A missing
+ * envelope threw; worse, a non-numeric
  * `total` did not even throw — it produced `Math.ceil(NaN)`, then an empty array of
  * book sitemaps, with no error anywhere. Returning `null` keeps "could not tell"
  * distinct from "no books", which is the whole point of the branch downstream.
  */
 async function fetchBooksTotal(lang: string): Promise<number | null> {
   const res = await getPublicBooks(lang as SupportedLang, { page: 1, limit: 1 });
-  const total = res?.meta?.total;
+  const total = res?.pagination?.total;
   return typeof total === 'number' && Number.isFinite(total) ? total : null;
 }
 
