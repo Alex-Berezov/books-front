@@ -1,4 +1,6 @@
+import { toListResult } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
+import type { PaginatedResult } from '@/types/api-schema';
 import type { BookVersionContributor, ContributorRole } from '@/types/contributors';
 
 export interface CreateBookVersionContributorDto {
@@ -23,8 +25,12 @@ export interface UpdateBookVersionContributorDto {
 }
 
 export const bookVersionContributorsApi = {
-  list: async (versionId: string): Promise<BookVersionContributor[]> => {
-    return httpGetAuth<BookVersionContributor[]>(`/admin/versions/${versionId}/contributors`);
+  list: async (versionId: string): Promise<PaginatedResult<BookVersionContributor>> => {
+    return toListResult(
+      await httpGetAuth<BookVersionContributor[] | PaginatedResult<BookVersionContributor>>(
+        `/admin/versions/${versionId}/contributors`
+      )
+    );
   },
 
   add: async (

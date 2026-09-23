@@ -23,7 +23,9 @@ vi.mock('@/api/hooks/useCategories', () => ({
 }));
 
 vi.mock('@/api/hooks/useBooks', () => ({
-  useThemes: () => ({ data: [] }),
+  useThemes: () => ({
+    data: { items: [], pagination: { page: 1, limit: 0, total: 0, totalPages: 0 } },
+  }),
 }));
 
 vi.mock('@/components/common/RichTextEditor', () => ({

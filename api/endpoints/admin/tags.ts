@@ -6,6 +6,7 @@
  * (e.g., "motivation", "business", "self-development").
  */
 
+import { toListResult } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   AttachTagRequest,
@@ -135,8 +136,12 @@ export const detachTag = async (versionId: string, tagId: string): Promise<void>
  * @param id - Tag ID
  * @returns List of translations
  */
-export const getTagTranslations = async (id: string): Promise<TagTranslation[]> => {
-  return httpGetAuth<TagTranslation[]>(`/tags/${id}/translations`);
+export const getTagTranslations = async (id: string): Promise<PaginatedResult<TagTranslation>> => {
+  return toListResult(
+    await httpGetAuth<TagTranslation[] | PaginatedResult<TagTranslation>>(
+      `/tags/${id}/translations`
+    )
+  );
 };
 
 /**

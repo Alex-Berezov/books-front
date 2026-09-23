@@ -39,8 +39,11 @@ export function loadAuthors(
  * `search` передаётся, потому что указатель рисуется над отфильтрованной сеткой:
  * без него буква говорила бы «Д — 12» над выдачей из двух человек.
  */
-export function loadAuthorLetters(lang: SupportedLang, search?: string): Promise<AuthorLetter[]> {
-  return getAuthorLetters(lang, search);
+export async function loadAuthorLetters(
+  lang: SupportedLang,
+  search?: string
+): Promise<AuthorLetter[]> {
+  return (await getAuthorLetters(lang, search)).items;
 }
 
 /**

@@ -69,9 +69,10 @@ export const CategoryTranslationsModal = (props: CategoryTranslationsModalProps)
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState<TranslationFormData | undefined>(undefined);
 
-  const { data: translations = [], isLoading } = useCategoryTranslations(category.id, {
+  const { data: translationsPage, isLoading } = useCategoryTranslations(category.id, {
     enabled: isOpen,
   });
+  const translations = translationsPage?.items ?? [];
 
   const createMutation = useCreateCategoryTranslation();
   const updateMutation = useUpdateCategoryTranslation();

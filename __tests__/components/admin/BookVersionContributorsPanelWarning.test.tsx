@@ -26,7 +26,18 @@ vi.mock('antd', async () => {
 const removeMutate = vi.fn();
 
 vi.mock('@/api/hooks/useBookVersionContributors', () => ({
-  useBookVersionContributors: () => ({ data: contributors, isLoading: false }),
+  useBookVersionContributors: () => ({
+    data: {
+      items: contributors,
+      pagination: {
+        page: 1,
+        limit: contributors.length,
+        total: contributors.length,
+        totalPages: contributors.length > 0 ? 1 : 0,
+      },
+    },
+    isLoading: false,
+  }),
   useAddBookVersionContributor: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateBookVersionContributor: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useRemoveBookVersionContributor: () => ({ mutate: removeMutate, isPending: false }),

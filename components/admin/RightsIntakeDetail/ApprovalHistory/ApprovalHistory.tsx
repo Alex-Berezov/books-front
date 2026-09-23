@@ -13,7 +13,8 @@ interface ApprovalHistoryProps {
 }
 
 export const ApprovalHistory: FC<ApprovalHistoryProps> = ({ intakeId }) => {
-  const { data: approvals, isLoading } = useRightsIntakeApprovals(intakeId);
+  const { data: approvalsPage, isLoading } = useRightsIntakeApprovals(intakeId);
+  const approvals = approvalsPage?.items;
 
   if (isLoading) {
     return null;

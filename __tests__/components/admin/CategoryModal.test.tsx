@@ -12,7 +12,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@/api/hooks/useCategories', () => ({
   useCreateCategory: () => ({ mutateAsync: mocks.create, isPending: false }),
   useUpdateCategory: () => ({ mutateAsync: mocks.update, isPending: false }),
-  useCategoriesTree: () => ({ data: [] }),
+  useCategoriesTree: () => ({
+    data: { items: [], pagination: { page: 1, limit: 0, total: 0, totalPages: 0 } },
+  }),
 }));
 
 vi.mock('@/api/endpoints/slug-validation', () => ({

@@ -45,7 +45,7 @@ export const CategoryTreeNode: FC<CategoryTreeNodeProps> = (props) => {
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
   });
 
-  const translations = node.translations || fetchedTranslations;
+  const translations = node.translations || fetchedTranslations?.items;
 
   const status = getTaxonomyVisibilityStatus({
     isVisible: node.isVisible,

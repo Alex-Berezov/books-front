@@ -116,7 +116,7 @@ export const usePage = (
  */
 export const usePageGroup = (
   groupId: string,
-  options?: Omit<UseQueryOptions<PageResponse[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginatedResult<PageResponse>>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: pageKeys.group(groupId),

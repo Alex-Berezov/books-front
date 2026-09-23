@@ -112,7 +112,10 @@ describe('loadLettersByLang', () => {
     getAuthorLetters.mockImplementation((lang: string) =>
       lang === 'es'
         ? Promise.reject(new Error('502'))
-        : Promise.resolve([{ letter: 'A', count: 3 }])
+        : Promise.resolve({
+            items: [{ letter: 'A', count: 3 }],
+            pagination: { page: 1, limit: 1, total: 1, totalPages: 1 },
+          })
     );
 
     const result = await loadLettersByLang();

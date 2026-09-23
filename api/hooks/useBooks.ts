@@ -205,7 +205,9 @@ export const useUserBookRating = (
 /**
  * Hook for getting all unique book themes
  */
-export const useThemes = (options?: Omit<UseQueryOptions<string[]>, 'queryKey' | 'queryFn'>) => {
+export const useThemes = (
+  options?: Omit<UseQueryOptions<PaginatedResult<string>>, 'queryKey' | 'queryFn'>
+) => {
   return useQuery({
     queryKey: [...bookKeys.all, 'themes'] as const,
     queryFn: () => getThemes(),

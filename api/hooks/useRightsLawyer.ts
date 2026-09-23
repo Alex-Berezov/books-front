@@ -36,6 +36,7 @@ import {
 import { versionKeys } from '@/api/hooks/useBookVersions';
 import { rightsAgentKeys } from '@/api/hooks/useRightsAgent';
 import { rightsIntakeKeys } from '@/api/hooks/useRightsIntakes';
+import type { PaginatedResult } from '@/types/api-schema/common';
 import type {
   AddLawyerReviewNoteRequest,
   AssignLawyerReviewRequest,
@@ -169,9 +170,12 @@ export const useVersionLawyerReview = (
 
 export const useLegalOpinions = (
   reviewId: string,
-  options?: Omit<UseQueryOptions<RightsLegalOpinion[], Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<PaginatedResult<RightsLegalOpinion>, Error>,
+    'queryKey' | 'queryFn'
+  >
 ) =>
-  useQuery<RightsLegalOpinion[], Error>({
+  useQuery<PaginatedResult<RightsLegalOpinion>, Error>({
     queryKey: rightsLawyerKeys.opinions(reviewId),
     queryFn: () => getLegalOpinions(reviewId),
     enabled: !!reviewId,

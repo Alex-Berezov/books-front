@@ -57,7 +57,10 @@ vi.mock('@/api/hooks/useContributors', () => ({
 }));
 
 vi.mock('@/api/hooks/useBookVersionContributors', () => ({
-  useBookVersionContributors: () => ({ data: [], isLoading: false }),
+  useBookVersionContributors: () => ({
+    data: { items: [], pagination: { page: 1, limit: 0, total: 0, totalPages: 0 } },
+    isLoading: false,
+  }),
   useAddBookVersionContributor: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateBookVersionContributor: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useRemoveBookVersionContributor: () => ({ mutate: vi.fn() }),
@@ -67,7 +70,10 @@ vi.mock('@/api/hooks/useBookVersionContributors', () => ({
 vi.mock('@/api/hooks/useRightsIntakes', () => ({
   useCurrentRightsProfile: () => ({ data: null, isLoading: false }),
   useMaterializeRightsReviewImport: () => ({ mutate: vi.fn(), isPending: false }),
-  useRightsIntakeApprovals: () => ({ data: [], isLoading: false }),
+  useRightsIntakeApprovals: () => ({
+    data: { items: [], pagination: { page: 1, limit: 0, total: 0, totalPages: 0 } },
+    isLoading: false,
+  }),
   // WP-5.4: чеклист обязательных действий внутри RightsProfilePanel.
   useUpdateRightsAction: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }),
 }));

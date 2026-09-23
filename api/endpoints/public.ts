@@ -14,6 +14,7 @@
  * then already chosen for the first server caller instead of being picked by default.
  */
 
+import { toListResult } from '@/lib/api/paginated-envelope';
 import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';
 import { httpGet, buildLangPath } from '@/lib/http';
 import { httpGetAuth } from '@/lib/http-client';
@@ -37,6 +38,7 @@ import type {
   SeoResolveResponse,
   ChapterDetail,
   PaginatedResponse,
+  PaginatedResult,
   PublicAuthorDetail,
   RelatedBooksResponse,
 } from '@/types/api-schema';
@@ -384,13 +386,18 @@ export const getTagBookCards = async (
 export const getPublicCategoriesTree = async (
   lang: SupportedLang,
   type?: 'category' | 'genre' | 'collection'
-): Promise<CategoryTree[]> => {
+): Promise<PaginatedResult<CategoryTree>> => {
   const params = new URLSearchParams({ lang });
   if (type) params.append('type', type);
-  return httpGet<CategoryTree[]>(`/categories/tree?${params.toString()}`, {
-    language: lang,
-    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
-  });
+  return toListResult(
+    await httpGet<CategoryTree[] | PaginatedResult<CategoryTree>>(
+      `/categories/tree?${params.toString()}`,
+      {
+        language: lang,
+        next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+      }
+    )
+  );
 };
 
 /**
@@ -525,11 +532,13 @@ export const getPublicAuthors = async (
 export const getAuthorLetters = async (
   lang: SupportedLang,
   search?: string
-): Promise<AuthorLetter[]> => {
+): Promise<PaginatedResult<AuthorLetter>> => {
   const query = search ? `?search=${encodeURIComponent(search)}` : '';
   const endpoint = buildLangPath(lang, `/authors/letters${query}`);
-  return httpGet<AuthorLetter[]>(endpoint, {
-    language: lang,
-    next: search ? { revalidate: 0 } : { revalidate: PUBLIC_REVALIDATE_SECONDS },
-  });
+  return toListResult(
+    await httpGet<AuthorLetter[] | PaginatedResult<AuthorLetter>>(endpoint, {
+      language: lang,
+      next: search ? { revalidate: 0 } : { revalidate: PUBLIC_REVALIDATE_SECONDS },
+    })
+  );
 };

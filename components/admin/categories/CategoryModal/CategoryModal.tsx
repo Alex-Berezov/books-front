@@ -47,7 +47,8 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
 
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
-  const { data: categoriesTree } = useCategoriesTree(type);
+  const { data: categoriesTreePage } = useCategoriesTree(type);
+  const categoriesTree = categoriesTreePage?.items;
 
   // Reset form when modal opens or category changes
   useEffect(() => {

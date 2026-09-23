@@ -31,7 +31,8 @@ export const CategoryTree: FC<{ type?: 'category' | 'genre' | 'collection' }> = 
   // показывать не то, что решает robots. Язык берётся из адреса админки
   // (`/admin/:lang/...`) — тем же способом, что и AdminLanguageSwitcher.
   const adminLang = getLangFromPath(pathname);
-  const { data: treeData, isLoading, isError } = useCategoriesTree(type, undefined, adminLang);
+  const { data: treePage, isLoading, isError } = useCategoriesTree(type, undefined, adminLang);
+  const treeData = treePage?.items;
 
   // Search state
   const [search, setSearch] = useState('');

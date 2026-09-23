@@ -34,6 +34,7 @@ import type {
   CreateCategoryTranslationRequest,
   CategoryListItem,
   ImportResult,
+  PaginatedResult,
   UpdateCategoryRequest,
   UpdateCategoryTranslationRequest,
 } from '@/types/api-schema';
@@ -128,7 +129,7 @@ export const useCategories = (
  */
 export const useCategoriesTree = (
   type?: string,
-  options?: Omit<UseQueryOptions<CategoryTree[]>, 'queryKey' | 'queryFn'>,
+  options?: Omit<UseQueryOptions<PaginatedResult<CategoryTree>>, 'queryKey' | 'queryFn'>,
   lang?: string
 ) => {
   return useQuery({
@@ -147,7 +148,7 @@ export const useCategoriesTree = (
  */
 export const useCategoryTranslations = (
   id: string,
-  options?: Omit<UseQueryOptions<CategoryTranslation[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginatedResult<CategoryTranslation>>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: categoryKeys.translations(id),

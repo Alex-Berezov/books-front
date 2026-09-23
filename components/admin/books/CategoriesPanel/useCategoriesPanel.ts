@@ -11,7 +11,8 @@ export const useCategoriesPanel = (props: CategoriesPanelProps) => {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   // Load categories tree (optionally filtered by type)
-  const { data: categoriesTree, isLoading } = useCategoriesTree(type);
+  const { data: categoriesTreePage, isLoading } = useCategoriesTree(type);
+  const categoriesTree = categoriesTreePage?.items;
 
   // Mutations for attach/detach
   const attachMutation = useAttachCategory({

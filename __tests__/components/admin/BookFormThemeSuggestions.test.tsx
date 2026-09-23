@@ -16,7 +16,12 @@ import type { BookFormData } from '@/components/admin/books/BookForm/BookForm.ty
  */
 
 vi.mock('@/api/hooks/useBooks', () => ({
-  useThemes: () => ({ data: ['redemption', 'revenge'] }),
+  useThemes: () => ({
+    data: {
+      items: ['redemption', 'revenge'],
+      pagination: { page: 1, limit: 2, total: 2, totalPages: 1 },
+    },
+  }),
 }));
 
 const Harness = () => {

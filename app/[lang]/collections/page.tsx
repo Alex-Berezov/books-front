@@ -41,7 +41,7 @@ export default async function CollectionsPage({ params }: Props) {
 
   // Deliberately not caught: the terms *are* this page. A failed request must
   // surface as 5xx, not as a 200 that says the site has no collections.
-  const [page, items] = await Promise.all([
+  const [page, tree] = await Promise.all([
     fetchPageBySystemKey(lang, TAXONOMY_OVERVIEW_CONFIGS.collection.pageKey),
     getPublicCategoriesTree(lang, 'collection'),
   ]);
@@ -63,7 +63,7 @@ export default async function CollectionsPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <TaxonomyOverview configKey="collection" items={items} lang={lang} page={page} />
+      <TaxonomyOverview configKey="collection" items={tree.items} lang={lang} page={page} />
     </>
   );
 }

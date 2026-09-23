@@ -226,7 +226,7 @@ export const useDetachTag = (
  */
 export const useTagTranslations = (
   tagId: string,
-  options?: Omit<UseQueryOptions<TagTranslation[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginatedResult<TagTranslation>>, 'queryKey' | 'queryFn'>
 ) => {
   return useQuery({
     queryKey: tagKeys.translations(tagId),

@@ -28,6 +28,7 @@ import {
   updateRightsAction,
 } from '@/api/endpoints/admin/rights-intakes';
 import { versionKeys } from '@/api/hooks/useBookVersions';
+import type { PaginatedResult } from '@/types/api-schema/common';
 import type {
   RightsIntake,
   RightsIntakesListResponse,
@@ -359,9 +360,12 @@ export const useRejectRightsReview = (
 
 export const useRightsIntakeApprovals = (
   intakeId: string,
-  options?: Omit<UseQueryOptions<RightsApprovalDecision[], Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<PaginatedResult<RightsApprovalDecision>, Error>,
+    'queryKey' | 'queryFn'
+  >
 ) => {
-  return useQuery<RightsApprovalDecision[], Error>({
+  return useQuery<PaginatedResult<RightsApprovalDecision>, Error>({
     queryKey: [...rightsIntakeKeys.all, 'approvals', intakeId],
     queryFn: () => getRightsIntakeApprovals(intakeId),
     enabled: !!intakeId,

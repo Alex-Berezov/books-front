@@ -77,9 +77,10 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState<TranslationFormData | undefined>(undefined);
 
-  const { data: translations = [], isLoading } = useTagTranslations(tag.id, {
+  const { data: translationsPage, isLoading } = useTagTranslations(tag.id, {
     enabled: isOpen,
   });
+  const translations = translationsPage?.items ?? [];
 
   const createMutation = useCreateTagTranslation();
   const updateMutation = useUpdateTagTranslation();

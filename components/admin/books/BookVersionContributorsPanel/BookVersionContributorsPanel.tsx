@@ -44,7 +44,8 @@ export const BookVersionContributorsPanel: FC<BookVersionContributorsPanelProps>
   const [addForm] = Form.useForm();
   const [editForm] = Form.useForm();
 
-  const { data: contributors = [], isLoading } = useBookVersionContributors(versionId);
+  const { data: contributorsPage, isLoading } = useBookVersionContributors(versionId);
+  const contributors = contributorsPage?.items ?? [];
   const addMutation = useAddBookVersionContributor(versionId);
   const updateMutation = useUpdateBookVersionContributor(versionId);
   const removeMutation = useRemoveBookVersionContributor(versionId);

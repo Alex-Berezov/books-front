@@ -1,5 +1,6 @@
-import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
+import { LIST_FALLBACK, toListResult, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
+import type { PaginatedResult } from '@/types/api-schema/common';
 import type {
   AddLawyerReviewNoteRequest,
   AssignLawyerReviewRequest,
@@ -167,10 +168,15 @@ export const addLawyerReviewNote = async (
 
 // --- Legal opinions --------------------------------------------------------
 
-export const getLegalOpinions = async (reviewId: string): Promise<RightsLegalOpinion[]> =>
-  httpGetAuth<RightsLegalOpinion[]>(`/admin/rights/lawyer-reviews/${reviewId}/opinions`, {
-    requireAuth: true,
-  });
+export const getLegalOpinions = async (
+  reviewId: string
+): Promise<PaginatedResult<RightsLegalOpinion>> =>
+  toListResult(
+    await httpGetAuth<RightsLegalOpinion[] | PaginatedResult<RightsLegalOpinion>>(
+      `/admin/rights/lawyer-reviews/${reviewId}/opinions`,
+      { requireAuth: true }
+    )
+  );
 
 export const attachLegalOpinion = async (
   reviewId: string,

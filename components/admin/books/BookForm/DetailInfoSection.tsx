@@ -27,7 +27,8 @@ export const DetailInfoSection: FC<DetailInfoSectionProps> = (props) => {
   const { register, control, errors, watch, setValue } = props;
 
   // React Query hook to get all unique themes for autocomplete
-  const { data: allExistingThemes = [] } = useThemes();
+  const { data: themesPage } = useThemes();
+  const allExistingThemes = themesPage?.items ?? [];
 
   // Local state for adding themes
   const [themeInput, setThemeInput] = useState('');

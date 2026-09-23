@@ -31,8 +31,8 @@ export async function loadLettersByLang(): Promise<LettersByLang> {
   await Promise.all(
     SUPPORTED_LANGS.map(async (lang) => {
       try {
-        const entries = await getAuthorLetters(lang as SupportedLang);
-        byLang.set(lang, new Map(entries.map((entry) => [entry.letter, entry.count])));
+        const { items } = await getAuthorLetters(lang as SupportedLang);
+        byLang.set(lang, new Map(items.map((entry) => [entry.letter, entry.count])));
       } catch {
         byLang.set(lang, null);
       }

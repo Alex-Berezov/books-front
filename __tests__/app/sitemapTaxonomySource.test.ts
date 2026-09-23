@@ -23,7 +23,10 @@ vi.mock('@/api/endpoints/public', () => ({
   getPublicBooks: vi.fn(async () => ({ data: [], meta: { total: 0, totalPages: 0 } })),
   getBookCards: vi.fn(async () => ({ items: [], pagination: { total: 0, totalPages: 0 } })),
   getPublicAuthors: vi.fn(async () => ({ data: [], meta: { total: 0, totalPages: 0 } })),
-  getAuthorLetters: vi.fn(async () => []),
+  getAuthorLetters: vi.fn(async () => ({
+    items: [],
+    pagination: { page: 1, limit: 0, total: 0, totalPages: 0 },
+  })),
 }));
 
 const emptyPage = { data: [], meta: { total: 0, page: 1, limit: 100, totalPages: 0 } };

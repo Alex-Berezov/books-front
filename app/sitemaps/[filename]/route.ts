@@ -545,7 +545,7 @@ export async function GET(request: Request, { params }: { params: { filename: st
        */
       let own: AuthorLetter[];
       try {
-        own = await getAuthorLetters(lang as SupportedLang);
+        own = (await getAuthorLetters(lang as SupportedLang)).items;
       } catch (error) {
         noteFailure(`author letters ${lang}`, error);
         return sitemapUnavailable(upstreamFailures);

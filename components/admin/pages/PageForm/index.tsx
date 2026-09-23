@@ -48,7 +48,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
   });
 
   const translations =
-    groupPages?.map((p) => ({
+    groupPages?.items.map((p) => ({
       id: p.id,
       language: p.language,
       slug: p.slug,

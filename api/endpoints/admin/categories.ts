@@ -6,6 +6,7 @@
  * for classifying books (e.g., Fiction → Fantasy → Epic Fantasy).
  */
 
+import { toListResult } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import type {
@@ -74,7 +75,7 @@ export const getAdminCategories = async (
  * Get categories tree (optionally filtered by type)
  *
  * @param type - Filter by category type (category|genre|collection)
- * @returns Hierarchical tree of categories
+ * @returns Root nodes of the hierarchy in `{items, pagination}`, one page (`LEGACY-379`)
  *
  * @example
  * ```ts
@@ -82,13 +83,20 @@ export const getAdminCategories = async (
  * const genres = await getCategoriesTree('genre');
  * ```
  */
-export const getCategoriesTree = async (type?: string, lang?: string): Promise<CategoryTree[]> => {
+export const getCategoriesTree = async (
+  type?: string,
+  lang?: string
+): Promise<PaginatedResult<CategoryTree>> => {
   const params = new URLSearchParams();
   if (type) params.append('type', type);
   if (lang) params.append('lang', lang);
   const qs = params.toString();
   const endpoint = `/categories/tree${qs ? `?${qs}` : ''}`;
-  return httpGetAuth<CategoryTree[]>(endpoint, { requireAuth: false });
+  return toListResult(
+    await httpGetAuth<CategoryTree[] | PaginatedResult<CategoryTree>>(endpoint, {
+      requireAuth: false,
+    })
+  );
 };
 
 /**
@@ -123,9 +131,13 @@ export const updateCategory = async (
  * @param id - Category ID
  * @returns List of category translations
  */
-export const getCategoryTranslations = async (id: string): Promise<CategoryTranslation[]> => {
+export const getCategoryTranslations = async (
+  id: string
+): Promise<PaginatedResult<CategoryTranslation>> => {
   const endpoint = `/categories/${id}/translations`;
-  return httpGetAuth<CategoryTranslation[]>(endpoint);
+  return toListResult(
+    await httpGetAuth<CategoryTranslation[] | PaginatedResult<CategoryTranslation>>(endpoint)
+  );
 };
 
 /**
