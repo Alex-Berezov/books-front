@@ -91,7 +91,7 @@ books-app-front/
 
 ### Prerequisites
 
-- Node.js 20.x LTS
+- Node.js 22.x LTS (at least 22.12 — required by `sanitize-html`)
 - Yarn (via Corepack)
 
 ### Installation

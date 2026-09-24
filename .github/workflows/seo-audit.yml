@@ -34,7 +34,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       # The site runs as a single container, so a deploy is a restart and requests
       # during the swap are simply not served. Three of the four post-deploy runs
