@@ -49,4 +49,14 @@ describe('RichTextContent', () => {
 
     expect(container.querySelector('p')).toHaveStyle({ textAlign: 'center' });
   });
+
+  it('sanitises the HTML before it reaches the DOM (LEGACY-414)', () => {
+    const { container } = render(
+      <RichTextContent html='<p>Text</p><img src="https://e.com/x.png" onerror="alert(1)"><script>alert(2)</script>' />
+    );
+
+    expect(container.querySelector('img')).not.toHaveAttribute('onerror');
+    expect(container.querySelector('script')).toBeNull();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+  });
 });

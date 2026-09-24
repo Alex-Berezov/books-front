@@ -1,4 +1,5 @@
-import type { FC } from 'react';
+import { useMemo, type FC } from 'react';
+import { sanitizeRichHtml } from '@/lib/utils/rich-html';
 import type { RichTextContentProps } from './RichTextContent.types';
 import styles from './RichTextContent.module.scss';
 
@@ -9,8 +10,8 @@ import styles from './RichTextContent.module.scss';
  * Keeping it in one component means the rules every such block needs - an
  * image that cannot overflow its column, alignment that survives - are written
  * once instead of copied into every page that happens to show a description.
- * It is also the one chokepoint where sanitising the HTML would go, so that
- * work stays a one-line change in one file (`LEGACY-414`).
+ * It is also the one chokepoint where the HTML is sanitised against the same
+ * allow-list the backend applies on write (`lib/utils/rich-html.ts`, `LEGACY-414`).
  *
  * 🔴 Only for HTML written by an admin through `RichTextEditor`. Text typed by
  * a reader - a review, a comment - must keep going through plain JSX so React
@@ -29,6 +30,8 @@ export const RichTextContent: FC<RichTextContentProps> = (props) => {
   const { html, className, id } = props;
 
   const classes = className ? `${styles.content} ${className}` : styles.content;
+  // Чистка длинной главы дорогая: без мемо читалка гоняла бы её на каждом ререндере от настроек и оглавления.
+  const safeHtml = useMemo(() => sanitizeRichHtml(html), [html]);
 
-  return <div id={id} className={classes} dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div id={id} className={classes} dangerouslySetInnerHTML={{ __html: safeHtml }} />;
 };
