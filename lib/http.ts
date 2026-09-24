@@ -19,6 +19,7 @@ import {
   HEADER_VALUE,
   AUTH_PREFIX,
   API_ERROR_TYPE,
+  HTTP_STATUS,
 } from './http.constants';
 
 /**
@@ -215,6 +216,45 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 };
 
 /**
+ * Фаза `next build`. Next ставит её в `process.env.NEXT_PHASE` до создания
+ * статических воркеров (`next/dist/build/index.js`), и воркеры её наследуют.
+ */
+const NEXT_BUILD_PHASE = 'phase-production-build';
+
+/**
+ * Повтор GET на 429 включается **только при `next build`** (`LEGACY-411`).
+ * Сборка печёт главную на пять языков одним IP раннера, делает 60-140 запросов
+ * за окно лимитера бэкенда, и без повтора последний по счёту язык запекается
+ * пустым. Живой SSR, фоновая ревалидация и карта сайта не ждут: посетитель или
+ * краулер получили бы минуту тишины вместо деградировавшего блока или 503.
+ */
+const isBuildPhase = (): boolean => process.env.NEXT_PHASE === NEXT_BUILD_PHASE;
+
+/**
+ * Потолок ожидания по `Retry-After`, мс. Лимитер отдаёт полное окно - 60 с
+ * (`books/src/common/guards/global-rate-limit.guard.ts`), а окно фиксированное,
+ * поэтому пауза на весь `Retry-After` гарантированно выводит повтор в новое окно.
+ * Дольше потолка - сломанная настройка, а не рябь. Бюджет страницы под эту паузу
+ * поднят в `next.config.js` (`staticPageGenerationTimeout`).
+ */
+const MAX_RETRY_AFTER_WAIT_MS = 65_000;
+
+/** Разброс к паузе: иначе все запросы, поймавшие 429, бьют в новое окно разом. */
+const RETRY_JITTER_MS = 5_000;
+
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+const retryDelayMs = (response: Response): number => {
+  const header = response.headers.get(HTTP_HEADER.RETRY_AFTER);
+  const seconds = header ? Number(header) : NaN;
+  const base =
+    Number.isFinite(seconds) && seconds > 0
+      ? Math.min(seconds * 1000, MAX_RETRY_AFTER_WAIT_MS)
+      : MAX_RETRY_AFTER_WAIT_MS;
+  return base + Math.random() * RETRY_JITTER_MS;
+};
+
+/**
  * Executes GET request to API
  *
  * @param endpoint - Endpoint path (without base URL)
@@ -231,15 +271,36 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
  */
 export const httpGet = async <T>(endpoint: string, options?: HttpRequestOptions): Promise<T> => {
   const url = `${API_BASE_URL}${endpoint}`;
-  const headers = createHeaders(options);
-
-  const response = await fetch(url, {
+  // Опции собираются на каждый вызов заново: Next при промахе кэша удаляет `next`
+  // из переданного объекта (`next/dist/server/lib/patch-fetch.js`), и повтор из
+  // того же объекта ушёл бы без `revalidate` и `tags`.
+  const buildInit = (): RequestInit => ({
     ...options,
     method: HTTP_METHOD.GET,
-    headers: mergeHeaders(headers, options?.headers),
+    headers: mergeHeaders(createHeaders(options), options?.headers),
   });
 
-  return handleResponse<T>(response);
+  const response = await fetch(url, buildInit());
+
+  if (response.status !== HTTP_STATUS.TOO_MANY_REQUESTS || !isBuildPhase()) {
+    return handleResponse<T>(response);
+  }
+
+  const delayMs = retryDelayMs(response);
+  // Тело 429 больше не нужно. Отмену не ждём: её промис не обязан завершиться
+  // (под склейкой Next и под перехватчиком запросов он висит), а пауза ждать не должна.
+  void response.body?.cancel().catch(() => undefined);
+  await sleep(delayMs);
+
+  // Свой `signal` выключает склейку одинаковых GET при рендере серверных
+  // компонентов (`next/dist/server/lib/dedupe-fetch.js`): без него повтор
+  // получил бы из памяти тот же 429 и в сеть не вышел бы.
+  const retried = await fetch(url, {
+    ...buildInit(),
+    signal: options?.signal ?? new AbortController().signal,
+  });
+
+  return handleResponse<T>(retried);
 };
 
 /**

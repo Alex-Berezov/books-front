@@ -96,6 +96,8 @@ export const HTTP_HEADER = {
   AUTHORIZATION: 'Authorization',
   /** Language */
   ACCEPT_LANGUAGE: 'Accept-Language',
+  /** Retry-After - секунды до следующей попытки, ставит лимитер на 429 (`LEGACY-411`) */
+  RETRY_AFTER: 'Retry-After',
 } as const;
 
 /**

@@ -1,8 +1,8 @@
 /**
  * Retry logic for HTTP requests
  *
- * Handles retry attempts on 401 errors (with token refresh)
- * and other temporary errors
+ * Handles retry attempts on 401 errors (with token refresh).
+ * 429 on `next build` is retried once by `httpGet` in `lib/http.ts` (LEGACY-411) - do not add a second retry here.
  */
 
 import { ApiError } from '@/types/api';
