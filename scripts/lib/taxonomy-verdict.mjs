@@ -99,3 +99,16 @@ export function judgedEnough(judged, intended) {
   if (intended === 0) return false;
   return judged >= Math.ceil(intended * MIN_JUDGED_RATIO);
 }
+
+/**
+ * Адрес страницы публичного списка терминов - тот же вызов, что делает карта сайта
+ * (`getPublicCategories` / `getPublicTags`). Язык - в пути: безъязыкие
+ * `GET /categories` и `GET /tags` сняты 23.09.2026 (`LEGACY-387`), и аудит,
+ * ходивший туда, собирал ноль терминов - 7.7 краснела INCONCLUSIVE каждую ночь.
+ * С языком в пути `booksCount` считается по этому языку, как требует предикат.
+ */
+export function taxonomyListUrl(apiBase, lang, type, page, limit) {
+  const query =
+    type === 'tag' ? `page=${page}&limit=${limit}` : `type=${type}&page=${page}&limit=${limit}`;
+  return `${apiBase}/${lang}/${type === 'tag' ? 'tags' : 'categories'}?${query}`;
+}

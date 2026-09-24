@@ -30,6 +30,7 @@ import {
   findVerdictDrift,
   judgedEnough,
   linkablePredicate,
+  taxonomyListUrl,
 } from './lib/taxonomy-verdict.mjs';
 
 const BASE = (
@@ -316,18 +317,15 @@ async function fetchAllRows(buildUrl) {
 /**
  * Every term with the fields the predicate needs, per rendered language.
  *
- * `lang` is passed on purpose: without it `booksCount` comes back summed across
- * languages and the floor weakens (`seo-rules.md` §391). This is the same call
- * the sitemap route makes.
+ * The language goes in the path (`taxonomyListUrl`): without it `booksCount` comes
+ * back summed across languages and the floor weakens (`seo-rules.md` §391). This is
+ * the same call the sitemap route makes.
  */
 async function collectTaxonomyTerms() {
   const terms = [];
   for (const lang of LANGS) {
     for (const type of ['category', 'genre', 'collection', 'tag']) {
-      const buildUrl = (page) =>
-        type === 'tag'
-          ? `${API_BASE}/tags?page=${page}&limit=${TERM_PAGE_SIZE}&lang=${lang}`
-          : `${API_BASE}/categories?type=${type}&page=${page}&limit=${TERM_PAGE_SIZE}&lang=${lang}`;
+      const buildUrl = (page) => taxonomyListUrl(API_BASE, lang, type, page, TERM_PAGE_SIZE);
       const rows = await fetchAllRows(buildUrl);
       if (!rows) {
         note('7.7', buildUrl(1), 'taxonomy list endpoint did not answer — cross-check incomplete');
