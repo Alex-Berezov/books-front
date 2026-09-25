@@ -17,6 +17,13 @@ export interface MediaFile {
 export interface GetMediaParams {
   page?: number;
   limit?: number;
+  /**
+   * `GET /media` считает категорию сама (`MediaListQueryDto.type`,
+   * `MEDIA_CATEGORIES` в `books/src/modules/media/dto/create-media.dto.ts`) — слово категории
+   * шлётся как есть, не MIME-префикс. `document` там — «не image/video/audio», та же
+   * категоризация, что в `mapBackendItemToMediaFile` ниже (`LEGACY-415`, закрыто 25.09.2026).
+   * Значение вне `MediaType` отклоняется 400 (`@IsIn`).
+   */
   type?: MediaType;
   search?: string;
 }

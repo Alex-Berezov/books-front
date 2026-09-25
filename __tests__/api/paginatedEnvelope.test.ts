@@ -199,6 +199,27 @@ describe('единая обёртка {items, pagination} (LEGACY-177)', () => {
     });
 
     /**
+     * `LEGACY-415`, пункт 1: слово категории уходит в query как есть, без MIME-префикса
+     * (`document` больше не превращается в `application/`) — категорию считает ручка.
+     */
+    it('GET /media шлёт слово категории в type=, а не MIME-префикс', async () => {
+      let capturedUrl = '';
+      server.use(
+        http.get(`${API_BASE}/media`, ({ request }) => {
+          capturedUrl = request.url;
+          return HttpResponse.json({
+            items: [],
+            pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+          });
+        })
+      );
+
+      await getMediaFiles({ type: 'document' });
+
+      expect(new URL(capturedUrl).searchParams.get('type')).toBe('document');
+    });
+
+    /**
      * Ветка со старым **массивом** — это `LEGACY-218`, а не `LEGACY-177`: она
      * закрывает окно выката, когда сервер ещё не знал о пагинации вовсе. Снимать её
      * здесь нечем, но форму она обязана собирать новую.
