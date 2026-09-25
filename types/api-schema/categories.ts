@@ -227,6 +227,7 @@ export interface CategoryListItem {
   name: string;
   slug: string;
   type: CategoryType;
+  parentId: string | null;
   booksCount: number;
   /** Порядок в списках. */
   sortOrder?: number;
