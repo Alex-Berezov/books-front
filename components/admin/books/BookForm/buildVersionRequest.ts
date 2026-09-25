@@ -4,6 +4,8 @@ import type {
   CreateBookVersionRequest,
   UpdateBookVersionRequest,
 } from '@/types/api-schema';
+import type { z } from 'zod';
+import { bookVersionBaseSchema } from './bookVersionSchema';
 
 /**
  * Сборка тел запросов из данных формы версии книги.
@@ -98,6 +100,34 @@ export interface ImportedTranslation {
 }
 
 /**
+ * Элементы Json-массивов из внешнего файла пересобираются той же схемой, что держит форму версии
+ * (`bookVersionSchema.ts`): zod срезает лишние ключи, а бэкенд на лишнем ключе отвечает 400
+ * (`LEGACY-402`), и 400 посреди цикла по языкам оставил бы импорт наполовину записанным.
+ * Нет поля или пустой список — `null`, как и раньше. Не массив или хоть один негодный
+ * элемент — `undefined`: колонка не трогается, потому что `null` на правке стёр бы
+ * заполненный список версии, а урезанный — его часть.
+ */
+const pickItems = <T>(items: unknown, element: z.ZodType<T>): T[] | null | undefined => {
+  if (items === undefined || items === null) return null;
+  if (!Array.isArray(items)) return undefined;
+  if (items.length === 0) return null;
+  const picked: T[] = [];
+  for (const item of items) {
+    // `null` в необязательном поле (`author: null` у цитаты) бэкенд принимает, а zod формы - нет.
+    const parsed = element.safeParse(
+      item && typeof item === 'object'
+        ? Object.fromEntries(Object.entries(item).filter(([, value]) => value !== null))
+        : item
+    );
+    if (!parsed.success) return undefined;
+    picked.push(parsed.data);
+  }
+  return picked;
+};
+
+const itemsOf = bookVersionBaseSchema.shape;
+
+/**
  * Тело для импорта переводов: цикл идёт по пяти языкам, и часть версий книги может быть уже
  * опубликована. Пустые описание и обложка не отправляются вовсе — пустая строка означала бы
  * стирание живого текста у опубликованной соседки, бэкенд ответил бы 400, и импорт оборвался бы
@@ -119,10 +149,10 @@ export const buildImportVersionPayload = (
   alternativeTitles: translation.alternativeTitles || null,
   shortDescription: translation.shortDescription || null,
   summaryShort: translation.summaryShort || null,
-  symbols: translation.symbols || null,
+  symbols: pickItems(translation.symbols, itemsOf.symbols.unwrap().element),
   coverAlt: translation.coverAlt || null,
-  characters: translation.characters || null,
-  quotes: translation.quotes || null,
-  faq: translation.faq || null,
+  characters: pickItems(translation.characters, itemsOf.characters.unwrap().element),
+  quotes: pickItems(translation.quotes, itemsOf.quotes.unwrap().element),
+  faq: pickItems(translation.faq, itemsOf.faq.unwrap().element),
   themes: translation.themes || null,
 });

@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
+import { bookVersionBaseSchema } from '@/components/admin/books/BookForm/bookVersionSchema';
 import {
   buildCreateVersionRequest,
   buildImportVersionPayload,
@@ -203,5 +204,87 @@ describe('buildImportVersionPayload', () => {
     expect(payload.title).toBe('The Brothers Karamazov');
     expect(payload.description).toBe('Novel');
     expect(payload.coverImageUrl).toBe('https://cdn.example.com/c.jpg');
+  });
+});
+
+/**
+ * `LEGACY-402`: бэкенд отбивает 400 элемент Json-массива с лишним ключом или без обязательной
+ * строки. Импорт из внешнего JSON обязан пересобрать элементы, иначе 400 обрывает цикл по языкам
+ * посередине; правка формы — пройти через схему формы, которая срезает лишнее.
+ */
+describe('форма элементов Json-массивов на выходе (LEGACY-402)', () => {
+  const version = {
+    title: 'T',
+    author: 'A',
+    description: '',
+    coverImageUrl: '',
+    copyrightStatus: null,
+  };
+
+  it('импорт срезает лишние ключи у годных элементов', () => {
+    const payload = buildImportVersionPayload(
+      {
+        characters: [{ name: 'Dorian', description: 'Main', role: 'hero' }] as never,
+        quotes: [{ text: 'Q', author: 'W', source: 'ch. 1' }, { text: 'Only text' }] as never,
+        symbols: [{ title: 'Portrait', description: 'Soul', extra: 1 }] as never,
+        faq: [{ question: 'Q', answer: 'A', id: 'x' }] as never,
+      },
+      version
+    );
+
+    expect(payload.characters).toEqual([{ name: 'Dorian', description: 'Main' }]);
+    expect(payload.quotes).toEqual([{ text: 'Q', author: 'W' }, { text: 'Only text' }]);
+    expect(payload.symbols).toEqual([{ title: 'Portrait', description: 'Soul' }]);
+    expect(payload.faq).toEqual([{ question: 'Q', answer: 'A' }]);
+  });
+
+  // `null` на правке — это `Prisma.DbNull` на бэкенде: стёр бы заполненный список версии.
+  it('негодный элемент или не-массив не трогают колонку: поле не отправляется', () => {
+    const payload = buildImportVersionPayload(
+      {
+        characters: [{ name: 'Dorian', description: 'Main' }, { name: 'Basil' }] as never,
+        faq: [{ question: 'Q', answer: 'A' }, null] as never,
+        quotes: { text: 'Q' } as never,
+      },
+      version
+    );
+
+    expect(payload.characters).toBeUndefined();
+    expect(payload.faq).toBeUndefined();
+    expect(payload.quotes).toBeUndefined();
+  });
+
+  it('null в необязательном поле не выбрасывает элемент', () => {
+    const payload = buildImportVersionPayload(
+      { quotes: [{ text: 'Q', author: null }] as never },
+      version
+    );
+
+    expect(payload.quotes).toEqual([{ text: 'Q' }]);
+  });
+
+  it('нет поля или пустой список — null, как до правки', () => {
+    const payload = buildImportVersionPayload({ characters: [] }, version);
+
+    expect(payload.characters).toBeNull();
+    expect(payload.symbols).toBeNull();
+  });
+});
+
+/** Путь формы защищён не сборщиком, а zod-схемой формы: она срезает лишние ключи до отправки. */
+describe('форма версии: элементы Json-массивов уходят только с полями DTO', () => {
+  it('ключи сверх схемы (в том числе id от useFieldArray) не доходят до тела правки', () => {
+    const parsed = bookVersionBaseSchema.partial().parse({
+      characters: [{ id: 'rhf-1', name: 'Dorian', description: 'Main', role: 'hero' }],
+      quotes: [{ id: 'rhf-2', text: 'Q', author: '' }],
+      symbols: [{ id: 'rhf-3', title: 'Portrait', description: 'Soul' }],
+      faq: [{ id: 'rhf-4', question: 'Q', answer: 'A' }],
+    });
+    const request = buildUpdateVersionRequest(formData(parsed as Partial<BookFormData>));
+
+    expect(request.characters).toEqual([{ name: 'Dorian', description: 'Main' }]);
+    expect(request.quotes).toEqual([{ text: 'Q', author: '' }]);
+    expect(request.symbols).toEqual([{ title: 'Portrait', description: 'Soul' }]);
+    expect(request.faq).toEqual([{ question: 'Q', answer: 'A' }]);
   });
 });
