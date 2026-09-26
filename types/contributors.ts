@@ -1,4 +1,7 @@
 import type { PaginatedResult } from './api-schema/common';
+import type { Person, PersonType } from './api-schema/persons';
+
+export type { Person, PersonTranslation, PersonType } from './api-schema/persons';
 
 export type ContributorRole =
   | 'AUTHOR'
@@ -14,49 +17,6 @@ export type ContributorRole =
   | 'COVER_ARTIST'
   | 'RIGHTS_HOLDER'
   | 'OTHER';
-
-export type PersonType = 'NATURAL_PERSON' | 'ORGANIZATION' | 'UNKNOWN';
-
-export interface PersonTranslation {
-  id: string;
-  personId: string;
-  language: string;
-  slug: string;
-  displayName: string;
-  biography?: string | null;
-  shortDescription?: string | null;
-  wikidataUrl?: string | null;
-  wikipediaUrl?: string | null;
-  photoUrl?: string | null;
-  // Перевод приходит связью без `select`, то есть строкой целиком; схема бэкенда называет
-  // служебные поля с 14.09.2026 (`LEGACY-016`). Парная правка к
-  // `books/src/modules/persons/dto/person-response.dto.ts`.
-  seoId?: number | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Person {
-  id: string;
-  type: PersonType;
-  canonicalName: string;
-  sortName?: string | null;
-  slug?: string | null;
-  birthDate?: string | null;
-  deathDate?: string | null;
-  birthYear?: number | null;
-  deathYear?: number | null;
-  nationalityCountryCode?: string | null;
-  publicDomainFromYear?: number | null;
-  wikidataId?: string | null;
-  viafId?: string | null;
-  isni?: string | null;
-  gutenbergAgentId?: string | null;
-  notesRu?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  translations?: PersonTranslation[];
-}
 
 export interface BookVersionContributor {
   id: string;

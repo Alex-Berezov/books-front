@@ -249,3 +249,19 @@ export interface SeoResolveResponse {
     type?: 'category' | 'genre' | 'collection';
   }> | null;
 }
+
+/**
+ * Ответ `GET /admin/pages/check-slug`. Переехал из `api/endpoints/slug-validation.ts`
+ * 26.09.2026 (`LEGACY-183`, `T41`): объявленный в слое вызовов, он был недостижим
+ * для слоя 2 `check:type-sync`.
+ */
+export interface CheckPageSlugResponse {
+  exists: boolean;
+  suggestedSlug?: string;
+  existingPage?: {
+    id: string;
+    title: string;
+    status: PublicationStatus;
+  };
+  reserved?: boolean;
+}

@@ -7,7 +7,11 @@
 
 import { httpGetAuth } from '@/lib/http-client';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { PublicationStatus } from '@/types/api-schema';
+import type {
+  CheckBookSlugResponse,
+  CheckPageSlugResponse,
+  PublicationStatus,
+} from '@/types/api-schema';
 
 /**
  * Slug uniqueness validation result
@@ -46,32 +50,6 @@ export interface SlugValidationResult {
    * consumer that renders the owner would break on a truthy "taken" without it.
    */
   reserved?: boolean;
-}
-
-/**
- * Backend response for Pages check-slug
- */
-interface CheckPageSlugResponse {
-  exists: boolean;
-  suggestedSlug?: string;
-  existingPage?: {
-    id: string;
-    title: string;
-    status: PublicationStatus;
-  };
-  reserved?: boolean;
-}
-
-/**
- * Backend response for Books check-slug
- */
-interface CheckBookSlugResponse {
-  exists: boolean;
-  suggestedSlug?: string;
-  existingBook?: {
-    id: string;
-    slug: string;
-  };
 }
 
 /**

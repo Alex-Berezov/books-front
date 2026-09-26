@@ -1,7 +1,7 @@
 {
   "callSites": 278,
-  "assertions": 162,
+  "assertions": 167,
   "noResponseSchema": 13,
   "unnamedCallType": 10,
-  "namesOutsideBarrel": 93
+  "namesOutsideBarrel": 88
 }

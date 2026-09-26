@@ -61,6 +61,7 @@ export type {
   BookSummaryDetail,
   BookVersion,
   BookVersionDetail,
+  CheckBookSlugResponse,
   CreateBookResponse,
   DeleteBookResponse,
   CreateBookVersionRequest,
@@ -153,6 +154,7 @@ export type {
   BookCollectionData,
   BookCollectionPosition,
   BookCollectionTaxonomy,
+  CheckPageSlugResponse,
   CreatePageRequest,
   PageGroup,
   PageResponse,
@@ -180,7 +182,7 @@ export type {
 export type { RateBookResponse, UserRatingResponse } from './rating';
 
 // Persons (contributors)
-export type { PersonListResponse } from './persons';
+export type { Person, PersonListResponse, PersonTranslation, PersonType } from './persons';
 
 // Views
 export type { RecordViewRequest, ViewSource } from './views';

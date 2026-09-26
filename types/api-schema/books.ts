@@ -459,3 +459,17 @@ export interface BookDetailResponse {
 export interface DeleteBookResponse {
   success: boolean;
 }
+
+/**
+ * Ответ `GET /books/check-slug`. Переехал из `api/endpoints/slug-validation.ts`
+ * 26.09.2026 (`LEGACY-183`, `T41`): объявленный в слое вызовов, он был недостижим
+ * для слоя 2 `check:type-sync`.
+ */
+export interface CheckBookSlugResponse {
+  exists: boolean;
+  suggestedSlug?: string;
+  existingBook?: {
+    id: string;
+    slug: string;
+  };
+}
