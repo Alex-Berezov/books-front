@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { RightsTabSourceEdition } from '@/components/admin/books/RightsTab/RightsTabSourceEdition';
 import { RightsTabVersions } from '@/components/admin/books/RightsTab/RightsTabVersions';
-import type { BookRightsDashboardVersionSummary } from '@/types/api-schema/book-rights';
+import type { BookRightsDashboardVersionListItem } from '@/types/api-schema/book-rights';
 import type { EditionRights, SourceEdition } from '@/types/api-schema/rights-intake';
 
 /**
@@ -36,8 +36,8 @@ const intermediateRu = makeEditionRights({
 });
 
 const makeVersion = (
-  overrides: Partial<BookRightsDashboardVersionSummary> = {}
-): BookRightsDashboardVersionSummary =>
+  overrides: Partial<BookRightsDashboardVersionListItem> = {}
+): BookRightsDashboardVersionListItem =>
   ({
     id: 'version-en',
     language: 'en',
@@ -49,7 +49,7 @@ const makeVersion = (
     rightsStaleDetectedAt: null,
     rightsStaleReasonCode: null,
     ...overrides,
-  }) as BookRightsDashboardVersionSummary;
+  }) as BookRightsDashboardVersionListItem;
 
 const makeSourceEdition = (editionRights: EditionRights[]): SourceEdition => ({
   id: 'se-1',

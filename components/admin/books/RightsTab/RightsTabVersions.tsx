@@ -4,13 +4,13 @@ import type { FC } from 'react';
 import { Globe, AlertCircle, ShieldAlert, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { BookRightsDashboardVersionSummary } from '@/types/api-schema/book-rights';
+import type { BookRightsDashboardVersionListItem } from '@/types/api-schema/book-rights';
 import type { EditionRights } from '@/types/api-schema/rights-intake';
 import styles from './RightsTab.module.scss';
 import { INTERMEDIATE_TRANSLATION_ORIGIN, TRANSLATION_ORIGIN_LABELS } from './translationOrigin';
 
 interface RightsTabVersionsProps {
-  versions: BookRightsDashboardVersionSummary[];
+  versions: BookRightsDashboardVersionListItem[];
   currentVersionId: string;
   lang: SupportedLang;
   /** WP-7.4: правовой срез по языкам действующего клиренса. */

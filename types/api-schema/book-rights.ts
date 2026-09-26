@@ -20,36 +20,50 @@ export interface BookRightsDashboardBookSummary {
   rightsCreatedAt: string | null;
 }
 
-export interface BookRightsDashboardVersionSummary {
+/**
+ * Поля версии, общие для обеих форм дашборда. Формы две, как и на бэкенде
+ * (`BookRightsDashboardCurrentVersionDto`, `BookRightsDashboardVersionListItemDto`, `LEGACY-016`):
+ * до 26.09.2026 один тип описывал обе, и чтение поля, которого в строке списка нет, не было ошибкой.
+ */
+interface BookRightsDashboardVersionCore {
   id: string;
   language: string;
   type: string;
   status: string;
-  title?: string;
   rightsProfileId: string | null;
   approvedRightsReviewId: string | null;
   rightsStatus: string | null;
   rightsGeoBlockRequired: boolean;
   rightsGeoBlockConfigured: boolean;
-  rightsGeoBlockConfiguredAt?: string | null;
-  rightsGeoBlockNotesRu?: string | null;
-  rightsGeoBlockVerifiedAt?: string | null;
-  rightsGeoBlockVerifiedByUserId?: string | null;
-  rightsGeoBlockLastGeneratedAt?: string | null;
-  rightsContentHash?: string | null;
-  rightsContentHashAlgorithmVersion?: string | null;
-  rightsContentHashCalculatedAt?: string | null;
   rightsRecheckRequired: boolean;
-  rightsStaleDetectedAt?: string | null;
-  rightsStaleReasonCode?: string | null;
-  rightsStaleReasonRu?: string | null;
+  rightsStaleDetectedAt: string | null;
+}
+
+/** Строка списка версий книги (`versions[]`). */
+export interface BookRightsDashboardVersionListItem extends BookRightsDashboardVersionCore {
+  title: string;
+  rightsStaleReasonCode: string | null;
+}
+
+/** Текущая версия (`currentVersion`): строка целиком, без заголовка. */
+export interface BookRightsDashboardCurrentVersion extends BookRightsDashboardVersionCore {
+  rightsGeoBlockConfiguredAt: string | null;
+  rightsGeoBlockNotesRu: string | null;
+  rightsGeoBlockVerifiedAt: string | null;
+  rightsGeoBlockVerifiedByUserId: string | null;
+  rightsGeoBlockLastGeneratedAt: string | null;
+  rightsContentHash: string | null;
+  rightsContentHashAlgorithmVersion: string | null;
+  rightsContentHashCalculatedAt: string | null;
+  rightsStaleReasonCode: string | null;
+  rightsStaleReasonRu: string | null;
   // Phase 15: license snapshot recorded at publish / book creation time
-  rightsLicenseCoverageStatus?: string | null;
-  rightsLicenseCheckedAt?: string | null;
-  rightsLicenseIds?: string[] | null;
+  rightsLicenseCoverageStatus: string | null;
+  rightsLicenseCheckedAt: string | null;
+  rightsLicenseIds: string[] | null;
   // Phase 16: denormalised rights-claim block state
-  rightsClaimBlockActive?: boolean;
-  rightsClaimBlockAppliedAt?: string | null;
+  rightsClaimBlockActive: boolean;
+  rightsClaimBlockAppliedAt: string | null;
 }
 
 export interface BookRightsDashboardMetrics {
@@ -126,8 +140,8 @@ export interface BookRightsDashboardMetrics {
 
 export interface BookRightsDashboard {
   book: BookRightsDashboardBookSummary;
-  currentVersion: BookRightsDashboardVersionSummary;
-  versions: BookRightsDashboardVersionSummary[];
+  currentVersion: BookRightsDashboardCurrentVersion;
+  versions: BookRightsDashboardVersionListItem[];
   intake: RightsIntake | null;
   currentProfile: RightsProfileDetail | null;
   approvedReview: RightsReview | null;

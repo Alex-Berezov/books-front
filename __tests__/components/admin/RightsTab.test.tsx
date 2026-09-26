@@ -192,7 +192,6 @@ const mockDashboard: BookRightsDashboard = {
     language: 'en',
     type: 'text',
     status: 'published',
-    title: 'Pride and Prejudice (EN)',
     rightsProfileId: 'profile-1',
     approvedRightsReviewId: 'review-1',
     rightsStatus: 'APPROVED',
@@ -207,6 +206,14 @@ const mockDashboard: BookRightsDashboard = {
     rightsStaleDetectedAt: null,
     rightsStaleReasonCode: null,
     rightsStaleReasonRu: null,
+    rightsGeoBlockVerifiedAt: null,
+    rightsGeoBlockVerifiedByUserId: null,
+    rightsGeoBlockLastGeneratedAt: null,
+    rightsLicenseCoverageStatus: null,
+    rightsLicenseCheckedAt: null,
+    rightsLicenseIds: null,
+    rightsClaimBlockActive: false,
+    rightsClaimBlockAppliedAt: null,
   },
   versions: [
     {
@@ -221,6 +228,8 @@ const mockDashboard: BookRightsDashboard = {
       rightsGeoBlockRequired: true,
       rightsGeoBlockConfigured: true,
       rightsRecheckRequired: false,
+      rightsStaleDetectedAt: null,
+      rightsStaleReasonCode: null,
     },
     {
       id: 'v2',
@@ -234,6 +243,8 @@ const mockDashboard: BookRightsDashboard = {
       rightsGeoBlockRequired: true,
       rightsGeoBlockConfigured: false,
       rightsRecheckRequired: true,
+      rightsStaleDetectedAt: null,
+      rightsStaleReasonCode: null,
     },
   ],
   intake: {
