@@ -1,7 +1,7 @@
 import { getBookCards, getPublicCategories } from '@/api/endpoints/public';
 import { CatalogContent } from '@/components/public/catalog/CatalogContent/CatalogContent';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
-import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import { buildItemListJsonLd, getSiteUrl, serializeJsonLd } from '@/lib/utils/json-ld';
 import { logError } from '@/lib/utils/log-error';
 import { getPageMetadata } from '@/lib/utils/seo';
 import { shouldNoindexPaginatedPage, toCountResult } from '@/lib/utils/seo-indexing';
@@ -119,7 +119,7 @@ export default async function CatalogPage({ params, searchParams }: Props) {
       {itemListJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(itemListJsonLd) }}
         />
       )}
       <CatalogContent

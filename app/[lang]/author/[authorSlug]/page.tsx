@@ -3,7 +3,7 @@ import { getPublicAuthorBySlug } from '@/api/endpoints/public';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
-import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import { buildBreadcrumbJsonLd, getSiteUrl, serializeJsonLd } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import { buildRobotsByCount, toCountResult } from '@/lib/utils/seo-indexing';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -229,12 +229,12 @@ export default async function AuthorDetailPage({ params }: Props) {
       {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
         />
       )}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       <AuthorDetailClient
         lang={lang}

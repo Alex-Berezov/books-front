@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import { useSnackbar } from 'notistack';
 import {
   useCreateTagTranslation,
   useDeleteTagTranslation,
@@ -8,8 +9,10 @@ import {
 } from '@/api/hooks/useTags';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
+import { toUserMessage } from '@/lib/errors';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { LANGUAGE_LABELS, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
+import { ApiError } from '@/types/api';
 import type {
   CreateTagTranslationRequest,
   SeoInput,
@@ -73,6 +76,7 @@ const translationToFormData = (translation: TagTranslation): TranslationFormData
 
 export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
   const { isOpen, onClose, tag } = props;
+  const { enqueueSnackbar } = useSnackbar();
   const [editingLang, setEditingLang] = useState<string | null>(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState<TranslationFormData | undefined>(undefined);
@@ -196,7 +200,10 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
       }
       handleCancelForm();
     } catch (error) {
-      console.error('Failed to save translation:', error);
+      // 4xx и сеть показывает модалка (400 предела FAQ, LEGACY-419, иначе уходил молча); 5xx — глобальный тост.
+      if (!(error instanceof ApiError && error.statusCode >= 500)) {
+        enqueueSnackbar(toUserMessage(error), { variant: 'error' });
+      }
     }
   };
 

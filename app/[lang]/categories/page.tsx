@@ -3,7 +3,7 @@ import { TaxonomyOverview } from '@/components/public/taxonomy-overview/Taxonomy
 import { TAXONOMY_OVERVIEW_CONFIGS } from '@/components/public/taxonomy-overview/TaxonomyOverviewConfig';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { fetchPageBySystemKey } from '@/lib/utils/fetch-page';
-import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import { buildBreadcrumbJsonLd, getSiteUrl, serializeJsonLd } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -61,7 +61,7 @@ export default async function CategoriesIndexPage({ params }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       <TaxonomyOverview configKey="category" items={tree.items} lang={lang} page={page} />
     </>

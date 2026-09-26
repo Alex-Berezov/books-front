@@ -5,7 +5,7 @@ import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { fetchAllPages } from '@/lib/sitemap/utils';
 import { fetchPageBySystemKey } from '@/lib/utils/fetch-page';
-import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import { buildBreadcrumbJsonLd, getSiteUrl, serializeJsonLd } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { TagListItem } from '@/types/api-schema';
@@ -95,7 +95,7 @@ export default async function TagsPage({ params }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       <TaxonomyOverview configKey="tag" items={tags} lang={lang} page={page} />
     </>

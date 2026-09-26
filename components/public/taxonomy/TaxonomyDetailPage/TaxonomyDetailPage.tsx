@@ -6,6 +6,7 @@ import { Breadcrumbs } from '@/components/public/Breadcrumbs';
 import { PageBackButton } from '@/components/public/navigation';
 import { pluralize, type PluralForms } from '@/lib/i18n/plural';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
+import { serializeJsonLd } from '@/lib/utils/json-ld';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Category, CategoryBookCardsResponse, CategoryTranslation } from '@/types/api-schema';
 import { TaxonomyDetailInteractions } from './TaxonomyDetailInteractions';
@@ -358,7 +359,7 @@ export function TaxonomyDetailPage({
       {faqJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }}
         />
       )}
       <div className={styles.container}>

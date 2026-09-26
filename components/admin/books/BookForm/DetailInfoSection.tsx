@@ -5,6 +5,7 @@ import { useFieldArray } from 'react-hook-form';
 import { useThemes } from '@/api/hooks/useBooks';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { FAQ_ANSWER_MAX_LENGTH, FAQ_QUESTION_MAX_LENGTH } from '@/lib/constants/faq';
 import type { BookFormData } from './BookForm.types';
 import type {
   Control,
@@ -572,6 +573,7 @@ export const DetailInfoSection: FC<DetailInfoSectionProps> = (props) => {
           <Input
             placeholder="FAQ Question (e.g. Who wrote this book?)"
             value={newFaqQuestion}
+            maxLength={FAQ_QUESTION_MAX_LENGTH}
             onChange={(e) => setNewFaqQuestion(e.target.value)}
             fullWidth
           />
@@ -579,6 +581,7 @@ export const DetailInfoSection: FC<DetailInfoSectionProps> = (props) => {
             className={styles.textarea}
             placeholder="FAQ Answer..."
             value={newFaqAnswer}
+            maxLength={FAQ_ANSWER_MAX_LENGTH}
             onChange={(e) => setNewFaqAnswer(e.target.value)}
             rows={2}
           />

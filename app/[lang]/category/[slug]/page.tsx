@@ -12,7 +12,7 @@ import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { isUnaddressableInLanguage, resolveTaxonomyDestination } from '@/lib/seo/taxonomy-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
-import { buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import { buildItemListJsonLd, getSiteUrl, serializeJsonLd } from '@/lib/utils/json-ld';
 import {
   applyEditorialVisibility,
   robotsForUnreadableBundle,
@@ -342,13 +342,13 @@ export default async function CategoryDetailPage({ params, searchParams }: Props
       {seoData?.schema && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(toPublicJsonLd(seoData.schema)) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(toPublicJsonLd(seoData.schema)) }}
         />
       )}
       {itemListJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(itemListJsonLd) }}
         />
       )}
       <TaxonomyDetailPage

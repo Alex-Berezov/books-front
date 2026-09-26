@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
+import { FAQ_ANSWER_MAX_LENGTH, FAQ_QUESTION_MAX_LENGTH } from '@/lib/constants/faq';
 import { generateSlug } from '@/lib/utils/slug';
 import styles from './CategoryTranslationsModal.module.scss';
 import { translationSchema, type TranslationFormData } from './CategoryTranslationsModal.types';
@@ -251,12 +252,14 @@ export const TranslationForm = ({
           <Input
             placeholder="FAQ Question"
             value={newFaqQuestion}
+            maxLength={FAQ_QUESTION_MAX_LENGTH}
             onChange={(e) => setNewFaqQuestion(e.target.value)}
           />
           <textarea
             className={styles.textarea}
             placeholder="FAQ Answer…"
             value={newFaqAnswer}
+            maxLength={FAQ_ANSWER_MAX_LENGTH}
             onChange={(e) => setNewFaqAnswer(e.target.value)}
             rows={2}
           />

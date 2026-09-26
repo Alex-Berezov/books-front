@@ -3,6 +3,7 @@ import {
   buildBreadcrumbJsonLd,
   buildItemListJsonLd,
   schemaContainsType,
+  serializeJsonLd,
 } from '@/lib/utils/json-ld';
 
 const ORIGINAL_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
@@ -120,5 +121,29 @@ describe('buildItemListJsonLd', () => {
       'https://bibliaris.com/en/catalog#itemlist'
     );
     expect(buildItemListJsonLd(items)?.['@id']).toBe('https://bibliaris.com/#itemlist');
+  });
+});
+
+describe('serializeJsonLd', () => {
+  const LS = String.fromCharCode(0x2028);
+  const PS = String.fromCharCode(0x2029);
+  const BACKSLASH = String.fromCharCode(0x5c);
+  const HOSTILE = `</script><img src=x onerror=alert(1)> & ${LS}${PS}`;
+
+  it('does not let admin text close the script block', () => {
+    const out = serializeJsonLd({ text: HOSTILE });
+    expect(out).not.toMatch(/[<>&]/);
+    expect(out).not.toContain(LS);
+    expect(out).not.toContain(PS);
+    expect(out).toContain(`${BACKSLASH}u003c/script${BACKSLASH}u003e`);
+  });
+
+  it('renders an empty block instead of throwing when there is nothing to serialize', () => {
+    expect(serializeJsonLd(undefined)).toBe('');
+  });
+
+  it('stays valid JSON that parses back to the original value', () => {
+    const value = { '@type': 'FAQPage', mainEntity: [{ name: HOSTILE }] };
+    expect(JSON.parse(serializeJsonLd(value))).toEqual(value);
   });
 });

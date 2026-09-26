@@ -13,7 +13,7 @@ import {
 } from '@/components/public/authors';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { fetchPageBySystemKey } from '@/lib/utils/fetch-page';
-import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import { buildBreadcrumbJsonLd, getSiteUrl, serializeJsonLd } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -130,7 +130,7 @@ export default async function AuthorsByLetterPage({ params, searchParams }: Prop
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       <AuthorsHub
         authors={authors.items}

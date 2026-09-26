@@ -10,6 +10,7 @@ import { MediaPicker } from '@/components/admin/common/MediaPicker/MediaPicker';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { SlugInput } from '@/components/common/SlugInput';
+import { FAQ_ANSWER_MAX_LENGTH, FAQ_QUESTION_MAX_LENGTH } from '@/lib/constants/faq';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type {
@@ -699,6 +700,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
                       <div className={styles.faqInputs}>
                         <Input
                           value={f.question}
+                          maxLength={FAQ_QUESTION_MAX_LENGTH}
                           onChange={(e) =>
                             handleFaqChange(langKey, idx, 'question', e.target.value)
                           }
@@ -706,6 +708,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
                         />
                         <Input
                           value={f.answer}
+                          maxLength={FAQ_ANSWER_MAX_LENGTH}
                           onChange={(e) => handleFaqChange(langKey, idx, 'answer', e.target.value)}
                           placeholder="Answer"
                         />

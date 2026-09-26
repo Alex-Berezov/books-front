@@ -8,7 +8,12 @@ import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { buildLangUrl, toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
-import { buildItemListJsonLd, getSiteUrl, schemaContainsType } from '@/lib/utils/json-ld';
+import {
+  buildItemListJsonLd,
+  getSiteUrl,
+  schemaContainsType,
+  serializeJsonLd,
+} from '@/lib/utils/json-ld';
 import {
   applyEditorialVisibility,
   robotsForUnreadableBundle,
@@ -335,7 +340,7 @@ export default async function TagDetailPageRoute({ params, searchParams }: Props
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: serializeJsonLd({
               '@context': 'https://schema.org',
               '@graph': combinedItems,
             }),

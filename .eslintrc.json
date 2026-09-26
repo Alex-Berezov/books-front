@@ -94,7 +94,22 @@
     "jsx-a11y/click-events-have-key-events": "error",
     "jsx-a11y/no-static-element-interactions": "error",
     "jsx-a11y/label-has-associated-control": "error",
-    "jsx-a11y/img-redundant-alt": "error"
+    "jsx-a11y/img-redundant-alt": "error",
+    // 🔴 LEGACY-419. `JSON.stringify` не экранирует `<`: текст FAQ `</script><img onerror=…>`
+    // закрывал блок JSON-LD и исполнялся на публичной странице. Вывод только через
+    // `serializeJsonLd` из `lib/utils/json-ld.ts`. Сторож — `__tests__/eslintJsonLdRule.test.ts`.
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "JSXAttribute[name.name='dangerouslySetInnerHTML'] CallExpression[callee.object.name='JSON'][callee.property.name='stringify']",
+        "message": "JSON.stringify в dangerouslySetInnerHTML не экранирует `<` — используй serializeJsonLd из @/lib/utils/json-ld (LEGACY-419)."
+      },
+      {
+        // Строка, собранная заранее в переменной, обходит первое правило — у <script> тело только прямым вызовом.
+        "selector": "JSXOpeningElement[name.name='script'] Property[key.name='__html']:not([value.callee.name='serializeJsonLd'])",
+        "message": "Тело <script> — только прямым вызовом serializeJsonLd(...) из @/lib/utils/json-ld (LEGACY-419)."
+      }
+    ]
   },
   // Каталоги, которых линт не касается. `next lint` фильтровал охват своим списком
   // `eslint.dirs`, и половина кода оставалась непроверенной (LEGACY-151); прямой вызов

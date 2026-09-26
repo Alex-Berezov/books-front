@@ -9,7 +9,7 @@ import {
 } from '@/components/public/authors';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { fetchPageBySystemKey } from '@/lib/utils/fetch-page';
-import { buildBreadcrumbJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import { buildBreadcrumbJsonLd, getSiteUrl, serializeJsonLd } from '@/lib/utils/json-ld';
 import { logError } from '@/lib/utils/log-error';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -88,7 +88,7 @@ export default async function AuthorsPage({ params, searchParams }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       <AuthorsHub
         authors={authors.items}

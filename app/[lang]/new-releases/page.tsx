@@ -2,7 +2,12 @@ import { getBookCards, getPublicCategories } from '@/api/endpoints/public';
 import { CatalogContent } from '@/components/public/catalog/CatalogContent/CatalogContent';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
-import { buildBreadcrumbJsonLd, buildItemListJsonLd, getSiteUrl } from '@/lib/utils/json-ld';
+import {
+  buildBreadcrumbJsonLd,
+  buildItemListJsonLd,
+  getSiteUrl,
+  serializeJsonLd,
+} from '@/lib/utils/json-ld';
 import { logError } from '@/lib/utils/log-error';
 import { getPageMetadata } from '@/lib/utils/seo';
 import {
@@ -99,12 +104,12 @@ export default async function NewReleasesPage({ params, searchParams }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       {itemListJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(itemListJsonLd) }}
         />
       )}
       <CatalogContent

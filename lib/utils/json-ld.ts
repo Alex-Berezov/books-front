@@ -55,4 +55,27 @@ function buildItemListJsonLd(
   };
 }
 
-export { getSiteUrl, buildBreadcrumbJsonLd, buildItemListJsonLd, schemaContainsType };
+// `<`, `>`, `&` и разделители строк U+2028/U+2029 - записью кодов, чтобы в исходнике не было невидимых символов.
+const JSON_LD_UNSAFE = new RegExp(
+  `[${String.fromCharCode(0x3c, 0x3e, 0x26, 0x2028, 0x2029)}]`,
+  'g'
+);
+
+// Для <script type="application/ld+json">: голый JSON.stringify пропускает `</script>` из текста админки (LEGACY-419).
+function serializeJsonLd(value: unknown): string {
+  // JSON.stringify(undefined) даёт undefined: пустой блок вместо падения всей страницы на `.replace`.
+  const json = JSON.stringify(value) as string | undefined;
+  if (json === undefined) return '';
+  return json.replace(
+    JSON_LD_UNSAFE,
+    (ch) => `\\u${ch.charCodeAt(0).toString(16).padStart(4, '0')}`
+  );
+}
+
+export {
+  getSiteUrl,
+  buildBreadcrumbJsonLd,
+  buildItemListJsonLd,
+  schemaContainsType,
+  serializeJsonLd,
+};

@@ -2,6 +2,7 @@
 
 import type { FC, ReactNode } from 'react';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { serializeJsonLd } from '@/lib/utils/json-ld';
 import styles from './FaqBlock.module.scss';
 
 export interface FaqItem {
@@ -34,7 +35,7 @@ export const FaqBlock: FC<FaqBlockProps> = ({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: serializeJsonLd({
               '@context': 'https://schema.org',
               '@type': 'FAQPage',
               mainEntity: items.map((item) => ({

@@ -14,6 +14,7 @@ import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
 import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
 import { isOptimizableHost } from '@/lib/utils/image-host';
+import { serializeJsonLd } from '@/lib/utils/json-ld';
 import { logError } from '@/lib/utils/log-error';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -296,7 +297,7 @@ export default async function BookDetailPage({ params }: Props) {
         {seoData?.schema && (
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(toPublicJsonLd(seoData.schema)) }}
+            dangerouslySetInnerHTML={{ __html: serializeJsonLd(toPublicJsonLd(seoData.schema)) }}
           />
         )}
 

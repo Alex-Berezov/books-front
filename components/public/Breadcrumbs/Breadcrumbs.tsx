@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { buildPublicUrl } from '@/lib/seo/urls';
+import { serializeJsonLd } from '@/lib/utils/json-ld';
 import styles from './Breadcrumbs.module.scss';
 
 export interface BreadcrumbItem {
@@ -40,7 +41,7 @@ export function Breadcrumbs({ items, emitJsonLd = true }: BreadcrumbsProps) {
       {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
         />
       )}
       <nav aria-label={t('a11y.breadcrumb')} className={styles.breadcrumbs}>

@@ -8,6 +8,7 @@ import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { SlugInput } from '@/components/common/SlugInput';
+import { FAQ_ANSWER_MAX_LENGTH, FAQ_QUESTION_MAX_LENGTH } from '@/lib/constants/faq';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { PageFormData } from '../PageForm.types';
 import type { PageResponse } from '@/types/api-schema';
@@ -240,6 +241,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
               <div className={styles.faqInputs}>
                 <Input
                   value={item.question}
+                  maxLength={FAQ_QUESTION_MAX_LENGTH}
                   onChange={(e) => {
                     const list = [...(watch('faq') || [])];
                     list[idx] = { ...list[idx], question: e.target.value };
@@ -250,6 +252,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
                 />
                 <Input
                   value={item.answer}
+                  maxLength={FAQ_ANSWER_MAX_LENGTH}
                   onChange={(e) => {
                     const list = [...(watch('faq') || [])];
                     list[idx] = { ...list[idx], answer: e.target.value };
