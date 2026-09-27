@@ -66,4 +66,12 @@ describe('RightsRechecksView', () => {
       expect(screen.getByLabelText('Только просроченные')).toBeEnabled();
     }
   );
+
+  /** Решение владельца 27.09.2026: скан задач больше не заводит, задачи ставятся вручную. */
+  it('поясняет, что скан только напоминает и закрывает задачи, новых не заводит', () => {
+    render(<RightsRechecksView lang="en" />);
+
+    expect(screen.getByText(/новых задач перепроверки он не заводит/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Run scan now \(reminders only\)/ })).toBeVisible();
+  });
 });

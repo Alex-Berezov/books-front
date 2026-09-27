@@ -332,6 +332,14 @@ export {
   useArchiveRightsLegalChange,
 } from './useRightsRecheck';
 
+// Rights publication override (admin last resort)
+export {
+  rightsOverrideKeys,
+  useRightsOverride,
+  useGrantRightsOverride,
+  useRevokeRightsOverride,
+} from './useRightsOverride';
+
 // Rights Intakes (continued: review imports, profile, agent manifest)
 export {
   useMaterializeRightsReviewImport,

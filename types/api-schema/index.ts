@@ -313,3 +313,11 @@ export type {
   UpdateRecheckScheduleRequest,
   VersionRecheckEvaluation,
 } from './rights-recheck';
+
+// Rights publication override (admin last resort, 27.09.2026)
+export type {
+  GrantRightsOverrideRequest,
+  RevokeRightsOverrideRequest,
+  RightsPublicationOverride,
+  RightsPublicationOverrideState,
+} from './rights-override';

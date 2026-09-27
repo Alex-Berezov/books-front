@@ -4,7 +4,7 @@ import type { FC } from 'react';
 import { AlertTriangle, Calendar, Loader2, PlugZap, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import type { PublishPanelProps } from './PublishPanel.types';
-import { gateReasonLabel } from './gateReasonLabels';
+import { gateReasonLabel, isOverriddenBySupervisor } from './gateReasonLabels';
 import { PublishConfirmModal } from './PublishConfirmModal';
 import styles from './PublishPanel.module.scss';
 import { PublishStatusBadge } from './PublishStatusBadge';
@@ -135,10 +135,17 @@ export const PublishPanel: FC<PublishPanelProps> = (props) => {
               <span className={styles.warningTitle}>Warnings</span>
             </div>
             <ul className={styles.reasonList}>
-              {warnings.map((w) => (
-                <li key={w.code} className={styles.reasonItem}>
+              {/* Снятые решением администратора блокеры одного кода могут повторяться
+                  (две претензии — два `ACTIVE_RIGHTS_CLAIM`), поэтому один код ключом не служит. */}
+              {warnings.map((w, index) => (
+                <li key={`${w.code}-${index}`} className={styles.reasonItem}>
                   <span className={styles.reasonCode}>{gateReasonLabel(w.code)}</span>
                   <span className={styles.reasonMessage}>{w.messageRu}</span>
+                  {isOverriddenBySupervisor(w.details) && (
+                    <span className={styles.supervisorOverriddenBadge}>
+                      Снято решением администратора
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

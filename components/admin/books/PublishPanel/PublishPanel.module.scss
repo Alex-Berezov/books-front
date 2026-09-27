@@ -216,6 +216,17 @@
   line-height: $line-height-base;
 }
 
+/* Blocker lifted by the admin last-resort decision (27.09.2026) */
+.supervisorOverriddenBadge {
+  flex-shrink: 0;
+  padding: 0 $spacing-xs;
+  border-radius: $border-radius-sm;
+  background: rgba($color-warning, 0.16);
+  color: $color-warning;
+  font-size: $font-size-xs;
+  white-space: nowrap;
+}
+
 /* Publication gate - check in flight (WP-A.5) */
 .gatePendingSection {
   margin-bottom: $spacing-md;

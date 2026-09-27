@@ -1652,6 +1652,36 @@
     ]
   },
   {
+    "route": "GET /admin/books/{bookId}/rights-override",
+    "hasResponseSchema": true,
+    "fields": [
+      "active",
+      "active.bookId",
+      "active.bookSlug",
+      "active.grantedAt",
+      "active.grantedByEmail",
+      "active.grantedByUserId",
+      "active.id",
+      "active.reasonRu",
+      "active.revokeReasonRu",
+      "active.revokedAt",
+      "active.revokedByEmail",
+      "active.revokedByUserId",
+      "history",
+      "history[].bookId",
+      "history[].bookSlug",
+      "history[].grantedAt",
+      "history[].grantedByEmail",
+      "history[].grantedByUserId",
+      "history[].id",
+      "history[].reasonRu",
+      "history[].revokeReasonRu",
+      "history[].revokedAt",
+      "history[].revokedByEmail",
+      "history[].revokedByUserId"
+    ]
+  },
+  {
     "route": "GET /admin/books/{id}/rights-claims",
     "hasResponseSchema": true,
     "fields": [
@@ -5000,6 +5030,11 @@
       "rightsRecheckRequired",
       "rightsStatus",
       "riskLevel",
+      "supervisorOverride",
+      "supervisorOverride.grantedAt",
+      "supervisorOverride.grantedByUserId",
+      "supervisorOverride.id",
+      "supervisorOverride.reasonRu",
       "versionId",
       "warnings",
       "warnings[].code",
@@ -5365,6 +5400,11 @@
       "publicationGate.rightsRecheckRequired",
       "publicationGate.rightsStatus",
       "publicationGate.riskLevel",
+      "publicationGate.supervisorOverride",
+      "publicationGate.supervisorOverride.grantedAt",
+      "publicationGate.supervisorOverride.grantedByUserId",
+      "publicationGate.supervisorOverride.id",
+      "publicationGate.supervisorOverride.reasonRu",
       "publicationGate.versionId",
       "publicationGate.warnings",
       "publicationGate.warnings[].code",
@@ -7578,6 +7618,40 @@
       "translations[].wikidataUrl",
       "translations[].wikipediaUrl",
       "updatedAt"
+    ]
+  },
+  {
+    "route": "POST /admin/books/{bookId}/rights-override",
+    "hasResponseSchema": true,
+    "fields": [
+      "bookId",
+      "bookSlug",
+      "grantedAt",
+      "grantedByEmail",
+      "grantedByUserId",
+      "id",
+      "reasonRu",
+      "revokeReasonRu",
+      "revokedAt",
+      "revokedByEmail",
+      "revokedByUserId"
+    ]
+  },
+  {
+    "route": "POST /admin/books/{bookId}/rights-override/revoke",
+    "hasResponseSchema": true,
+    "fields": [
+      "bookId",
+      "bookSlug",
+      "grantedAt",
+      "grantedByEmail",
+      "grantedByUserId",
+      "id",
+      "reasonRu",
+      "revokeReasonRu",
+      "revokedAt",
+      "revokedByEmail",
+      "revokedByUserId"
     ]
   },
   {

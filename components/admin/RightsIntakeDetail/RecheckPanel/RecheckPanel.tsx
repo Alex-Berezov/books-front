@@ -215,8 +215,9 @@ export const RecheckPanel: FC<RecheckPanelProps> = ({ intakeId, profileId, workf
     <div className={styles.section}>
       <h2 className={styles.sectionTitle}>Recheck &amp; Schedule</h2>
       <p className={styles.sectionHint}>
-        Проверка прав — живой процесс: у профиля есть плановая дата перепроверки, а изменения
-        контента, языков и законодательства автоматически открывают задачи перепроверки.
+        У профиля есть плановая дата перепроверки, но задачи перепроверки ставятся только вручную:
+        изменения контента, языков и законодательства их сами не открывают. Ни одна задача, в том
+        числе просроченная, публикацию не блокирует.
       </p>
 
       {profileId ? (

@@ -2,7 +2,15 @@
 
 import type { FC } from 'react';
 import { useState, useCallback } from 'react';
-import { ShieldCheck, ShieldAlert, ShieldOff, RefreshCw, Copy, Check } from 'lucide-react';
+import {
+  ShieldCheck,
+  ShieldAlert,
+  ShieldOff,
+  RefreshCw,
+  Copy,
+  Check,
+  FileDiff,
+} from 'lucide-react';
 import {
   useVersionRightsContentHash,
   useCheckVersionRightsContentHash,
@@ -84,7 +92,19 @@ export const RightsContentHashPanel: FC<RightsContentHashPanelProps> = ({ versio
     icon = <ShieldOff className={styles.iconMissing} size={18} />;
     statusText = 'Content hash не создан';
     statusClass = styles.statusMissing;
-  } else if (data.isStale || data.recheckRequired) {
+  } else if (data.recheckRequired) {
+    icon = <ShieldAlert className={styles.iconStale} size={18} />;
+    statusText = 'Требуется повторная проверка прав';
+    statusClass = styles.statusStale;
+  } else if (data.matchesBaseline === false) {
+    // Решение владельца 27.09.2026: правка контента флагов перепроверки не ставит. Baseline —
+    // одобренный слепок, переснимается при публикации; расхождение пишется в журнал и
+    // публикацию не блокирует, поэтому это не «нужна перепроверка».
+    icon = <FileDiff className={styles.iconChanged} size={18} />;
+    statusText =
+      'Контент изменён после одобрения прав — изменение записано в журнал, публикацию не блокирует';
+    statusClass = styles.statusChanged;
+  } else if (data.isStale) {
     icon = <ShieldAlert className={styles.iconStale} size={18} />;
     statusText = 'Требуется повторная проверка прав';
     statusClass = styles.statusStale;

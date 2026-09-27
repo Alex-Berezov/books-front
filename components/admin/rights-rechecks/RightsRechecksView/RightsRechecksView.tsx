@@ -69,8 +69,13 @@ const CHANGE_TYPE_OPTIONS: RightsLegalChangeType[] = [
   'OTHER',
 ];
 
+// Решение владельца 27.09.2026: применение изменения только фиксирует событие — задачи
+// перепроверки бэкенд больше не открывает (`createdTasksCount` всегда 0), их ставят вручную.
 const APPLY_WARNING =
-  'Будут открыты задачи перепроверки для всех профилей в выбранных юрисдикциях. Действие необратимо.';
+  'Изменение законодательства будет зафиксировано как применённое. Задачи перепроверки при этом не открываются — их ставят вручную по профилям, которых оно касается. Действие необратимо.';
+
+const SCAN_HINT =
+  'Скан только напоминает о сроках и закрывает неактуальные задачи — новых задач перепроверки он не заводит, их ставят вручную.';
 
 const formatDate = (value: string | null): string =>
   value ? new Date(value).toLocaleDateString() : '—';
@@ -286,6 +291,7 @@ export const RightsRechecksView: FC<RightsRechecksViewProps> = ({ lang }) => {
                 ? `Последний скан: ${formatDateTime(lastScan.startedAt)} · ${lastScan.status} · создано задач: ${lastScan.tasksCreated} · закрыто: ${lastScan.tasksAutoClosed} · напоминаний: ${lastScan.remindersSent}`
                 : 'Сканов ещё не было.'}
             </p>
+            <p className={styles.fieldHint}>{SCAN_HINT}</p>
             {/* Only an admin may trigger a catalogue-wide scan. */}
             {isAdmin && (
               <button
@@ -294,7 +300,7 @@ export const RightsRechecksView: FC<RightsRechecksViewProps> = ({ lang }) => {
                 disabled={runScanMutation.isPending}
               >
                 <PlayCircle size={14} />
-                Run scan now
+                Run scan now (reminders only)
               </button>
             )}
           </div>

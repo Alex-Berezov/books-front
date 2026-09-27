@@ -771,6 +771,20 @@ export interface PublicationGateResult {
   blockingRecheckTasksCount?: number;
   nextRecheckDueAt?: string | null;
   recheckTaskIds?: string[];
+  /**
+   * Действующее решение администратора «Разрешить публикацию» по книге (27.09.2026). Снятые им
+   * блокеры приходят в `warnings` с `details.overriddenBySupervisor: true` и отдельным
+   * предупреждением `SUPERVISOR_OVERRIDE_APPLIED`; оставшиеся — в `blockingReasons`.
+   * Необязательно: бэкенд до выката решения поля не присылает.
+   */
+  supervisorOverride?: PublicationGateSupervisorOverride | null;
+}
+
+export interface PublicationGateSupervisorOverride {
+  id: string;
+  grantedAt: string;
+  grantedByUserId: string | null;
+  reasonRu: string;
 }
 
 export interface UpdateRightsGeoBlockRequest {

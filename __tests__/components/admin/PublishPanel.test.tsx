@@ -270,3 +270,44 @@ describe('PublishPanel — WP-H preparation stage', () => {
     expect(screen.queryByText('Blocks preparation too')).not.toBeInTheDocument();
   });
 });
+
+describe('PublishPanel — admin last-resort override (27.09.2026)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('marks a blocker lifted by the admin decision and names the override warning', () => {
+    arrangeGate({
+      data: gateResult({
+        warnings: [
+          {
+            code: 'SUPERVISOR_OVERRIDE_APPLIED',
+            severity: 'WARNING',
+            messageRu: 'Ограничения сняты решением администратора.',
+            details: { overriddenCodes: ['LICENSE_EXPIRED'] },
+          },
+          {
+            code: 'LICENSE_EXPIRED',
+            severity: 'WARNING',
+            messageRu: 'Срок лицензии истёк.',
+            details: { overriddenBySupervisor: true },
+          },
+          {
+            code: 'LICENSE_EXPIRING_SOON',
+            severity: 'WARNING',
+            messageRu: 'Лицензия скоро истечёт.',
+          },
+        ],
+      }),
+    });
+    renderPanel();
+
+    expect(
+      screen.getByText('Ограничения сняты решением администратора (последняя инстанция)')
+    ).toBeInTheDocument();
+    // Отметка стоит ровно у снятого блокера, а не у обычного предупреждения.
+    expect(screen.getAllByText('Снято решением администратора')).toHaveLength(1);
+    const liftedItem = screen.getByText('Срок лицензии истёк').closest('li');
+    expect(liftedItem).toHaveTextContent('Снято решением администратора');
+  });
+});

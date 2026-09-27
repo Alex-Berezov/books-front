@@ -101,6 +101,15 @@ describe('RecheckPanel', () => {
     expect(screen.getByText('Открытых задач перепроверки нет.')).toBeInTheDocument();
   });
 
+  // Решение владельца 27.09.2026: автоматических перепроверок нет, и подсказка не должна их обещать.
+  it('says recheck tasks are manual and never block publication', () => {
+    render(<RecheckPanel intakeId="intake-1" profileId="profile-1" workflowStatus="APPROVED" />);
+
+    expect(screen.getByText(/задачи перепроверки ставятся только вручную/)).toBeInTheDocument();
+    expect(screen.getByText(/публикацию не блокирует/)).toBeInTheDocument();
+    expect(screen.queryByText(/автоматически открывают/)).not.toBeInTheDocument();
+  });
+
   it('renders an overdue task with a BLOCKING badge and a negative day count', () => {
     mockUseIntakeRecheckTasks.mockReturnValue({
       data: {

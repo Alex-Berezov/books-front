@@ -1,0 +1,175 @@
+/**
+ * Styles for the admin publication override panel (last resort, 27.09.2026)
+ */
+
+@import '@/styles/tokens.scss';
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  background: $color-background-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-sm;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: $color-text-secondary;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.text {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  line-height: $line-height-base;
+}
+
+.activeSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $spacing-xs;
+  padding: $spacing-md;
+  background: rgba($color-warning, 0.08);
+  border: 1px solid rgba($color-warning, 0.3);
+  border-radius: $border-radius-base;
+}
+
+.activeHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  color: $color-warning;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+}
+
+.remaining {
+  width: 100%;
+  margin-top: $spacing-xs;
+  padding: $spacing-sm;
+  background: rgba($color-error, 0.08);
+  border: 1px solid rgba($color-error, 0.2);
+  border-radius: $border-radius-base;
+  font-size: $font-size-xs;
+  color: $color-text-primary;
+}
+
+.remainingTitle {
+  font-weight: $font-weight-semibold;
+  color: $color-error;
+}
+
+.remainingList {
+  margin: $spacing-xs 0 0;
+  padding-left: $spacing-lg;
+}
+
+.grantSection {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.meta {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.reason {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  line-height: $line-height-base;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.history {
+  font-size: $font-size-xs;
+}
+
+.historySummary {
+  cursor: pointer;
+  color: $color-text-secondary;
+}
+
+.historyList {
+  margin: $spacing-sm 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historyItem {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  padding: $spacing-sm 0;
+
+  & + & {
+    border-top: 1px solid $color-border-light;
+  }
+}
+
+.modalWarning {
+  margin-bottom: $spacing-md;
+  padding: $spacing-md;
+  background: rgba($color-error, 0.08);
+  border: 1px solid rgba($color-error, 0.2);
+  border-radius: $border-radius-base;
+}
+
+.modalWarningText {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  line-height: $line-height-base;
+
+  & + & {
+    margin-top: $spacing-sm;
+  }
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: $spacing-xs;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.textarea {
+  width: 100%;
+  padding: $spacing-sm;
+  font-family: $font-family-base;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  resize: vertical;
+}
+
+.fieldHint,
+.fieldError {
+  margin: $spacing-xs 0 0;
+  font-size: $font-size-xs;
+}
+
+.fieldHint {
+  color: $color-text-secondary;
+}
+
+.fieldError {
+  color: $color-error;
+}

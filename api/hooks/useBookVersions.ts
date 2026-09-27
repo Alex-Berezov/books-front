@@ -68,8 +68,9 @@ export const versionKeys = {
    * Ответ гейта публикации. Ключ собирался строкой в четырёх местах: разойдись они хоть в одном,
    * инвалидация промахнётся молча — редактор будет видеть устаревший запрет на публикацию.
    */
-  publicationGate: (id: string | undefined) =>
-    [...versionKeys.all, 'publication-gate', id] as const,
+  publicationGate: (id: string | undefined) => [...versionKeys.publicationGates(), id] as const,
+  /** Префикс ответов гейта всех версий: решение по книге меняет вердикт каждой из них. */
+  publicationGates: () => [...versionKeys.all, 'publication-gate'] as const,
 };
 
 /**

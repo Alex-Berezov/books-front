@@ -12,6 +12,7 @@ import {
   PublishPanel,
   ReadContentTab,
   RightsContentHashPanel,
+  RightsOverridePanel,
   RightsTab,
   SummaryTab,
   TagsPanel,
@@ -176,6 +177,14 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
             onPublishSuccess={handlePublishSuccess}
             onUnpublishSuccess={handleUnpublishSuccess}
             publishBlockedReason={publishBlockedReason}
+            status={version.status}
+            versionId={versionId}
+          />
+
+          <div className={styles.sidebarSpacer} />
+
+          <RightsOverridePanel
+            bookId={version.bookId}
             status={version.status}
             versionId={versionId}
           />

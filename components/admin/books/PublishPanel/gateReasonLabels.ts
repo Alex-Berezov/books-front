@@ -34,6 +34,7 @@ export const GATE_REASON_LABELS: Record<string, string> = {
   MISSING_LANGUAGE_RIGHTS_ASSESSMENT: 'Язык версии не покрыт правовой оценкой',
   VERSION_CONTENT_INCOMPLETE: 'Версия не наполнена: нет описания или обложки',
   LAWYER_OVERRIDE_APPLIED: 'Часть требований снята заключением юриста',
+  SUPERVISOR_OVERRIDE_APPLIED: 'Ограничения сняты решением администратора (последняя инстанция)',
   BLOCKED_COUNTRIES_REQUIRE_GEO_BLOCK: 'Закрытые страны требуют настройки geo-block',
   BLOCKED_COUNTRIES_WITH_GEO_BLOCK: 'Есть закрытые страны, geo-block настроен',
   GEO_BLOCK_NOT_CONFIGURED: 'Geo-block не настроен',
@@ -78,3 +79,12 @@ export const UNKNOWN_GATE_REASON_LABEL = 'Другое требование ге
 
 export const gateReasonLabel = (code: string): string =>
   GATE_REASON_LABELS[code] ?? UNKNOWN_GATE_REASON_LABEL;
+
+/**
+ * Блокер, снятый решением администратора «Разрешить публикацию»: бэкенд переносит его
+ * в `warnings` с `details.overriddenBySupervisor: true`. Без отметки такой пункт читался бы
+ * как обычное предупреждение, хотя запрет по нему действует — снят только под ответственность
+ * администратора.
+ */
+export const isOverriddenBySupervisor = (details: Record<string, unknown> | undefined): boolean =>
+  details?.overriddenBySupervisor === true;
