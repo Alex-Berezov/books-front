@@ -1,14 +1,13 @@
 import { useEffect } from 'react';
 import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Modal } from '@/components/common/Modal';
-import { RichTextEditor } from '@/components/common/RichTextEditor';
 import styles from './ReplyCommentModal.module.scss';
 
 const replySchema = z.object({
-  content: z.string().min(1, 'Reply content is required'),
+  content: z.string().trim().min(1, 'Reply content is required'),
 });
 
 type ReplyFormData = z.infer<typeof replySchema>;
@@ -24,7 +23,7 @@ export const ReplyCommentModal: FC<ReplyCommentModalProps> = (props) => {
   const { isOpen, isLoading = false, onClose, onSubmit } = props;
 
   const {
-    control,
+    register,
     handleSubmit,
     reset,
     formState: { errors },
@@ -54,28 +53,15 @@ export const ReplyCommentModal: FC<ReplyCommentModalProps> = (props) => {
       onCancel={onClose}
     >
       <form className={styles.form} onSubmit={handleSubmit(handleFormSubmit)}>
-        <Controller
-          name="content"
-          control={control}
-          render={({ field }) => (
-            // 🔴 No image button and no alignment here on purpose: a reply is
-            // shown to readers as plain text (`BookReviews.tsx` renders
-            // `{comment.text}`, which React escapes), because the same field
-            // also carries reader-written reviews and rendering those as HTML
-            // would be an XSS hole. Anything the editor cannot show would
-            // reach the reader as a visible `<img src="…">` string.
-            <RichTextEditor
-              value={field.value ?? ''}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              disabled={isLoading}
-              placeholder="Write your reply here..."
-              error={!!errors.content}
-              minHeight="140px"
-              ariaLabel="Reply content"
-              enableAlignment={false}
-            />
-          )}
+        {/* 🔴 Plain text on purpose (LEGACY-415): readers see `{comment.text}` escaped, and the
+            same field holds reader reviews, so it must never be rendered as HTML. */}
+        <textarea
+          {...register('content')}
+          className={`${styles.textarea} ${errors.content ? styles.error : ''}`}
+          placeholder="Write your reply here..."
+          aria-label="Reply content"
+          aria-invalid={!!errors.content}
+          disabled={isLoading}
         />
         {errors.content && <span className={styles.errorText}>{errors.content.message}</span>}
       </form>
