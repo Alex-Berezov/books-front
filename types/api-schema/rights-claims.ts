@@ -374,7 +374,9 @@ export interface QueryRightsClaimsParams {
   overdueOnly?: boolean;
   hasActiveBlock?: boolean;
   deadlineWithinDays?: number;
+  /** ISO date-time with a time zone (`2026-09-27T00:00:00Z`); a bare date is 400 (LEGACY-426). */
   receivedFrom?: string;
+  /** ISO date-time with a time zone; earlier than `receivedFrom` is 400 (LEGACY-426). */
   receivedTo?: string;
   requiresLawyerReview?: boolean;
   page?: number;
