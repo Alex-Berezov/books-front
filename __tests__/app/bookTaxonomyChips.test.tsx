@@ -115,6 +115,29 @@ describe('BookTaxonomyChips', () => {
     expect(screen.queryByRole('link', { name: 'Hidden' })).not.toBeInTheDocument();
   });
 
+  // `LEGACY-422`, `T73`: снятая в админке галочка перевода тега закрывает ссылку на его язык.
+  it('drops the link to a tag translation closed by its own switch', () => {
+    render(
+      <BookTaxonomyChips
+        lang="es"
+        variant="tags"
+        terms={[
+          {
+            id: 't1',
+            name: 'Love',
+            booksCount: 4,
+            translations: [
+              { language: 'es', name: 'Amor', slug: 'amor', autoIndexable: true, indexable: false },
+            ],
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText('Amor')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Amor' })).not.toBeInTheDocument();
+  });
+
   it('renders nothing when the book has no terms', () => {
     const { container } = render(<BookTaxonomyChips lang="en" variant="tags" terms={[]} />);
     expect(container).toBeEmptyDOMElement();

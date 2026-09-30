@@ -44,6 +44,13 @@ export const translationSchema = z.object({
   seoOgImageUrl: z.string(),
   seoOgImageAlt: z.string(),
   seoTwitterCard: z.enum(['summary', 'summary_large_image', '']),
+
+  /**
+   * Editorial indexing switch of this translation (`TagTranslation.indexable`).
+   * The page is indexed only when the tag, this flag and the automatic
+   * book-count flag all allow it (`LEGACY-422`, `T73`).
+   */
+  indexable: z.boolean(),
 });
 
 export type TranslationFormData = z.infer<typeof translationSchema>;

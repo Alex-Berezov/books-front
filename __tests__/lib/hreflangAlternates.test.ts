@@ -114,6 +114,23 @@ describe('toAlternateCandidates', () => {
     ]);
   });
 
+  // `LEGACY-422`, `T73`: у перевода тега свой редакционный флаг — закрывает только свой язык.
+  it('lets a translation-level switch close its own language only', () => {
+    const res = toAlternateCandidates(
+      term,
+      [
+        { language: 'en', slug: 'love', autoIndexable: true, bookCount: 7 },
+        { language: 'es', slug: 'amor', autoIndexable: true, bookCount: 7, indexable: false },
+      ],
+      isTaxonomyLinkable
+    );
+
+    expect(res.map((c) => [c.language, c.linkable])).toEqual([
+      ['en', true],
+      ['es', false],
+    ]);
+  });
+
   // Редакторский переключатель общий для всех языков и обязан закрыть каждый.
   it('lets a term-level switch close every language', () => {
     const res = toAlternateCandidates(

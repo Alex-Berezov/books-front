@@ -243,7 +243,10 @@ export interface TagListItem {
    * `isTaxonomyLinkable`, never with `booksCount` directly.
    */
   autoIndexable?: boolean;
-  /** Editorial switch: tag excluded from indexing */
+  /**
+   * Editorial switch: tag excluded from indexing. With `?lang` it also carries the
+   * switch of that language's translation (`LEGACY-422`, `T73`).
+   */
   indexable?: boolean;
   /** Editorial switch: tag hidden from public lists */
   isVisible?: boolean;
@@ -253,5 +256,10 @@ export interface TagListItem {
     slug: string;
     bookCount?: number;
     autoIndexable?: boolean;
+    /**
+     * Editorial switch of this translation (`LEGACY-422`, `T73`). `false` closes this
+     * language in meta robots, the sitemap and hreflang alike; absent means open.
+     */
+    indexable?: boolean;
   }>;
 }
