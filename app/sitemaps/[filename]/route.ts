@@ -607,6 +607,8 @@ export async function GET(request: Request, { params }: { params: { filename: st
           (t: TagTranslation) => t.language === lang && t.slug
         );
         if (!currentTranslation?.slug) return;
+        // Верхний `indexable` списка с `?lang` уже несёт флаг перевода на этот язык
+        // (`LEGACY-422`, `T73`, `TagsService.list`), поэтому отдельной проверки нет.
         if (!isTaxonomyLinkable(tag)) return;
 
         const url = `${cleanBaseUrl}/${lang}/tag/${currentTranslation.slug}`;

@@ -56,6 +56,11 @@ export type TermTranslation = {
   slug?: string;
   autoIndexable?: boolean;
   bookCount?: number;
+  /**
+   * Редакционный флаг самого перевода — есть только у тега (`LEGACY-422`, `T73`).
+   * `false` закрывает этот язык; отсутствие поля значит «открыт».
+   */
+  indexable?: boolean;
 };
 
 /** Редакторские переключатели уровня термина — общие для всех языков. */
@@ -97,7 +102,7 @@ export function toAlternateCandidates(
       slug: t.slug as string,
       linkable: isLinkable({
         isVisible: term.isVisible,
-        indexable: term.indexable,
+        indexable: term.indexable !== false && t.indexable !== false,
         autoIndexable: t.autoIndexable,
         booksCount: t.bookCount,
       }),

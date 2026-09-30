@@ -10,6 +10,7 @@ import {
   SeoTwitterSection,
 } from '@/components/admin/common/SeoSections';
 import { Button } from '@/components/common/Button';
+import { Checkbox } from '@/components/common/Checkbox';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { FAQ_ANSWER_MAX_LENGTH, FAQ_QUESTION_MAX_LENGTH } from '@/lib/constants/faq';
@@ -57,6 +58,7 @@ export const TranslationForm = (props: TranslationFormProps) => {
       seoOgImageUrl: '',
       seoOgImageAlt: '',
       seoTwitterCard: 'summary',
+      indexable: true,
     },
   });
 
@@ -315,6 +317,28 @@ export const TranslationForm = (props: TranslationFormProps) => {
 
       <div className={styles.seoBlock}>
         <h3 className={styles.seoBlockTitle}>SEO Settings</h3>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="tag-translation-indexable-checkbox">
+            Indexable
+          </label>
+          <Controller
+            name="indexable"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                id="tag-translation-indexable-checkbox"
+                checked={field.value}
+                onChange={(e) => field.onChange(e.target.checked)}
+              />
+            )}
+          />
+          <span className={styles.hint}>
+            Unticked: this language page is noindex and leaves the sitemap, hreflang and related
+            links. Ticked: it is indexed only while the tag itself is visible and indexable and this
+            language has enough published books.
+          </span>
+        </div>
 
         <SeoBasicSection<TranslationFormData>
           errors={errors}

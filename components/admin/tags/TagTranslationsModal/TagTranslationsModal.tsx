@@ -72,6 +72,7 @@ const translationToFormData = (translation: TagTranslation): TranslationFormData
   seoOgImageAlt: translation.ogImageAlt ?? '',
   seoTwitterCard:
     (translation.seo?.twitterCard as 'summary' | 'summary_large_image' | '') || 'summary',
+  indexable: translation.indexable ?? true,
 });
 
 export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
@@ -134,6 +135,7 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
       seoOgImageUrl: '',
       seoOgImageAlt: '',
       seoTwitterCard: 'summary',
+      indexable: true,
     });
     setIsFormVisible(true);
   };
@@ -167,6 +169,7 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
           faq: faq.length > 0 ? faq : undefined,
           relatedCategorySlugs,
           relatedCollectionSlugs,
+          indexable: data.indexable,
           seo,
         };
         await updateMutation.mutateAsync({
@@ -191,6 +194,7 @@ export const TagTranslationsModal = (props: TagTranslationsModalProps) => {
           faq: faq.length > 0 ? faq : undefined,
           relatedCategorySlugs,
           relatedCollectionSlugs,
+          indexable: data.indexable,
           seo,
         };
         await createMutation.mutateAsync({
