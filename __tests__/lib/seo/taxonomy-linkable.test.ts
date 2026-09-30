@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
+import { isTaxonomyLinkable, isTermTranslationIndexable } from '@/lib/seo/taxonomy-linkable';
 
 describe('isTaxonomyLinkable', () => {
   it('refuses a term the backend closed by hysteresis, even with books attached', () => {
@@ -43,5 +43,29 @@ describe('isTaxonomyLinkable', () => {
   it('treats a missing term as not linkable', () => {
     expect(isTaxonomyLinkable(null)).toBe(false);
     expect(isTaxonomyLinkable(undefined)).toBe(false);
+  });
+});
+
+describe('isTermTranslationIndexable (LEGACY-422, T74)', () => {
+  it.each([
+    [true, true, true],
+    [false, true, false],
+    [true, false, false],
+    [false, false, false],
+  ])('term %s, translation %s -> %s', (termFlag, translationFlag, expected) => {
+    expect(
+      isTermTranslationIndexable({ indexable: termFlag }, { indexable: translationFlag })
+    ).toBe(expected);
+  });
+
+  it('treats an absent switch or an absent translation as open', () => {
+    expect(isTermTranslationIndexable({}, undefined)).toBe(true);
+    expect(isTermTranslationIndexable(undefined, null)).toBe(true);
+    expect(isTermTranslationIndexable({ indexable: true }, {})).toBe(true);
+  });
+
+  it('a closed half closes the language even when the other half is missing', () => {
+    expect(isTermTranslationIndexable({ indexable: false }, null)).toBe(false);
+    expect(isTermTranslationIndexable(null, { indexable: false })).toBe(false);
   });
 });

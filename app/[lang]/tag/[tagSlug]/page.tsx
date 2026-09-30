@@ -151,6 +151,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
           ? isTaxonomyLinkable({
               isVisible: countRes?.tag?.isVisible,
               indexable: countRes?.tag?.indexable,
+              // Гистерезис перевода, закрытый на этот язык, даёт `noindex`, а не 5xx
+              // (`LEGACY-417`/`422`, `T74`): половина вердикта, считаемая независимо от бандла.
+              autoIndexable: countRes?.tag?.translation?.autoIndexable,
               booksCount: countRes.pagination?.total,
             })
           : undefined,

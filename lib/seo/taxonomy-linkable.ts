@@ -72,3 +72,20 @@ export function isTaxonomyLinkable(term: LinkableTerm | null | undefined): boole
 
   return term.autoIndexable;
 }
+
+/**
+ * Editorial indexability of a tag on one language: the term switch AND the switch of that
+ * language's translation (`LEGACY-422`, `T73`/`T74`). One copy for the sitemap/hreflang
+ * candidates and the book-page chips; the backend has its own
+ * (`isTagTranslationIndexable`) and the two must decide alike.
+ *
+ * Compared with `!== false`, not truthiness: an absent switch means open — categories
+ * have no translation switch at all. `autoIndexable` is deliberately not part of it: it
+ * is per translation and goes into `isTaxonomyLinkable` on its own.
+ */
+export function isTermTranslationIndexable(
+  term: { indexable?: boolean } | null | undefined,
+  translation: { indexable?: boolean } | null | undefined
+): boolean {
+  return term?.indexable !== false && translation?.indexable !== false;
+}

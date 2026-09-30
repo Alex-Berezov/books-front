@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
+import { isTaxonomyLinkable, isTermTranslationIndexable } from '@/lib/seo/taxonomy-linkable';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './book.module.scss';
 
@@ -65,7 +65,7 @@ export function BookTaxonomyChips({ lang, terms, variant }: BookTaxonomyChipsPro
           isTaxonomyLinkable({
             isVisible: term.isVisible,
             // Перевод тега, закрытый своим флагом, отдаёт `noindex` — ссылки на него нет.
-            indexable: term.indexable !== false && localTranslation?.indexable !== false,
+            indexable: isTermTranslationIndexable(term, localTranslation),
             autoIndexable: localTranslation?.autoIndexable,
             booksCount: term.booksCount,
           });

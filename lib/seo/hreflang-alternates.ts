@@ -1,3 +1,5 @@
+import { isTermTranslationIndexable } from './taxonomy-linkable';
+
 /**
  * Кластер hreflang, построенный **только из индексируемых языков**.
  *
@@ -102,7 +104,7 @@ export function toAlternateCandidates(
       slug: t.slug as string,
       linkable: isLinkable({
         isVisible: term.isVisible,
-        indexable: term.indexable !== false && t.indexable !== false,
+        indexable: isTermTranslationIndexable(term, t),
         autoIndexable: t.autoIndexable,
         booksCount: t.bookCount,
       }),
