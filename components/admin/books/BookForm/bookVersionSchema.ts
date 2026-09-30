@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { httpUrlOrEmpty } from '@/lib/utils/http-url';
+import { httpUrlOrEmpty } from '@/lib/utils/http-url-field';
 import type { PublicationStatus } from '@/types/api-schema';
 
 /**

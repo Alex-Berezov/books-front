@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { translationSchema as categorySchema } from '@/components/admin/categories/CategoryTranslationsModal/CategoryTranslationsModal.types';
 import { pageSchema } from '@/components/admin/pages/PageForm/PageForm.types';
 import { translationSchema as tagSchema } from '@/components/admin/tags/TagTranslationsModal/TagTranslationsModal.types';
-import { httpUrlOrEmpty, isAbsoluteHttpUrl } from '@/lib/utils/http-url';
+import { isAbsoluteHttpUrl } from '@/lib/utils/http-url';
+import { httpUrlOrEmpty } from '@/lib/utils/http-url-field';
 
 // Второй ряд — то, что пропускает `new URL`, а `isURL` бэкенда отбивает (ревью `T75`).
 const BAD = [

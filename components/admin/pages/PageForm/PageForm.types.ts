@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { httpUrlOrEmpty } from '@/lib/utils/http-url';
+import { httpUrlOrEmpty } from '@/lib/utils/http-url-field';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PageResponse } from '@/types/api-schema';
 

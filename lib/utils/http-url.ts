@@ -1,9 +1,11 @@
-import { z } from 'zod';
-
 /**
  * Абсолютный адрес со схемой `http`/`https` — то же, что `@IsAbsoluteHttpUrl()` на бэкенде
  * (`books/src/shared/validators/absolute-http-url.decorator.ts`, `LEGACY-401`). Хост без TLD
  * допустим: адрес `LocalStorage` по умолчанию `http://localhost:5000`.
+ *
+ * Файл без `zod` намеренно: форма автора зовёт проверку напрямую, и импорт `zod` отсюда
+ * добавлял ~30 kB в бандл трёх роутов авторов (бюджет бандла, `T75`). Поле формы на `zod` —
+ * `http-url-field.ts`.
  */
 export function isAbsoluteHttpUrl(value: string): boolean {
   // `new URL` мягче `isURL` из class-validator: срезает пробелы по краям, достраивает
@@ -17,8 +19,3 @@ export function isAbsoluteHttpUrl(value: string): boolean {
     return false;
   }
 }
-
-/** Поле формы с адресом: пустая строка («не задано») или абсолютный http(s). */
-export const httpUrlOrEmpty = z
-  .string()
-  .refine((value) => value === '' || isAbsoluteHttpUrl(value), 'Must be an absolute http(s) URL');
