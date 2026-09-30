@@ -13,6 +13,7 @@ import { SlugInput } from '@/components/common/SlugInput';
 import { FAQ_ANSWER_MAX_LENGTH, FAQ_QUESTION_MAX_LENGTH } from '@/lib/constants/faq';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
+import { isAbsoluteHttpUrl } from '@/lib/utils/http-url';
 import type {
   Author,
   AuthorTranslation,
@@ -22,6 +23,13 @@ import type {
 } from '@/types/api-schema';
 import styles from './AuthorForm.module.scss';
 import { ImportAuthorModal } from './ImportAuthorModal';
+
+/**
+ * Адреса `seo`, у которых в форме есть поле ввода: бэкенд принимает в них только абсолютный
+ * http(s) (`UpdateSeoDto`). Ключи без поля в форме не проверяются — иначе сохранение упиралось
+ * бы в значение, которое админ не может исправить.
+ */
+const SEO_URL_KEYS = ['canonicalUrl', 'ogImageUrl'] as const;
 
 interface AuthorFormProps {
   author?: Author | null;
@@ -436,6 +444,17 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
             seoData[k] = v;
           }
         });
+
+        const badUrlKey = SEO_URL_KEYS.find(
+          (k) => typeof seoData[k] === 'string' && !isAbsoluteHttpUrl(seoData[k] as string)
+        );
+        if (badUrlKey) {
+          enqueueSnackbar(
+            `SEO ${badUrlKey} must be an absolute http(s) URL (${langKey.toUpperCase()})`,
+            { variant: 'error' }
+          );
+          return;
+        }
 
         activeTranslations.push({
           language: langKey,

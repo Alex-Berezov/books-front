@@ -258,13 +258,13 @@ export interface CreateBookVersionRequest {
   author: string;
   /** Book description: optional at creation, required to publish */
   description?: string;
-  /** Book cover URL: optional at creation, required to publish */
+  /** Book cover URL: optional at creation, required to publish; `""` or absolute http(s) (400 otherwise) */
   coverImageUrl?: string;
   /** Version type (text, audio, or referral) */
   type: VersionType;
   /** Whether version is free */
   isFree: boolean;
-  /** URL for referral links (optional) */
+  /** URL for referral links (optional): absolute http(s) only (400 otherwise) */
   referralUrl?: string;
   /** ID основной категории книги для хлебных крошек */
   primaryCategoryId?: UUID | null;
@@ -297,13 +297,13 @@ export interface UpdateBookVersionRequest {
   author?: string;
   /** Book description: empty string clears it on a draft; a published version keeps its own */
   description?: string;
-  /** Book cover URL: empty string clears it on a draft; a published version keeps its own */
+  /** Book cover URL: empty string clears it on a draft; a published version keeps its own; otherwise absolute http(s) only (400) */
   coverImageUrl?: string;
   /** Version type (text or audio) */
   type?: VersionType;
   /** Whether version is free */
   isFree?: boolean;
-  /** URL for referral links */
+  /** URL for referral links: absolute http(s) only (400 otherwise) */
   referralUrl?: string;
   /** Preview audio MediaAsset id (nullable to clear). See contract §5. */
   previewMediaId?: UUID | null;

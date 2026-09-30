@@ -1,3 +1,4 @@
+import { isAbsoluteHttpUrl } from '@/lib/utils/http-url';
 import type { BookFormData } from './BookForm.types';
 import type {
   BookVersionDetail,
@@ -144,7 +145,11 @@ export const buildImportVersionPayload = (
   author: translation.localizedAuthorName || version.author,
   description:
     translation.description || translation.shortDescription || version.description || undefined,
-  coverImageUrl: translation.coverImageUrl || version.coverImageUrl || undefined,
+  // Бэкенд принимает обложку только абсолютным http(s) (`T75`): адрес без схемы или `ftp://`
+  // из внешнего JSON или из старой записи оборвал бы цикл по языкам тем же 400 — не отправляем.
+  coverImageUrl: [translation.coverImageUrl, version.coverImageUrl].find(
+    (url): url is string => !!url && isAbsoluteHttpUrl(url)
+  ),
   copyrightStatus: translation.copyrightStatusSuggestion || version.copyrightStatus || null,
   alternativeTitles: translation.alternativeTitles || null,
   shortDescription: translation.shortDescription || null,

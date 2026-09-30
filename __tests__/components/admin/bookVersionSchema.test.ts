@@ -119,3 +119,23 @@ describe('buildBookVersionSchema', () => {
     expect(schema.safeParse(formData()).success).toBe(true);
   });
 });
+
+// `T75`: форма версии — зеркало `@IsAbsoluteHttpUrl()` на `coverImageUrl`/`referralUrl` и
+// `UpdateSeoDto` на SEO-адресах; `z.url()` пропускал `ftp://`, а голая строка — что угодно.
+describe('buildBookVersionSchema: адреса (LEGACY-401, T75)', () => {
+  const schema = buildBookVersionSchema({ description: false, coverImageUrl: false });
+
+  it.each(['coverImageUrl', 'referralUrl', 'seoCanonicalUrl', 'seoOgImageUrl'] as const)(
+    '%s отбивает ftp и адрес без схемы, пускает пусто и https',
+    (field) => {
+      for (const bad of ['ftp://cdn.example.com/c.jpg', 'cdn.example.com/c.jpg']) {
+        const result = schema.safeParse(formData({ [field]: bad }));
+        expect(result.error?.issues.map((issue) => issue.path[0])).toContain(field);
+      }
+      expect(schema.safeParse(formData({ [field]: '' })).success).toBe(true);
+      expect(schema.safeParse(formData({ [field]: 'https://cdn.example.com/c.jpg' })).success).toBe(
+        true
+      );
+    }
+  );
+});

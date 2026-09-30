@@ -205,6 +205,19 @@ describe('buildImportVersionPayload', () => {
     expect(payload.description).toBe('Novel');
     expect(payload.coverImageUrl).toBe('https://cdn.example.com/c.jpg');
   });
+
+  // `T75`: бэкенд отбивает обложку не-http(s) 400 посреди цикла по языкам.
+  it('не отправляет обложку без схемы или с ftp, берёт следующую годную', () => {
+    expect(
+      buildImportVersionPayload({ coverImageUrl: 'cdn.example.com/c.jpg' }, version).coverImageUrl
+    ).toBeUndefined();
+    expect(
+      buildImportVersionPayload(
+        { coverImageUrl: 'ftp://cdn.example.com/c.jpg' },
+        { ...version, coverImageUrl: 'https://cdn.example.com/c.jpg' }
+      ).coverImageUrl
+    ).toBe('https://cdn.example.com/c.jpg');
+  });
 });
 
 /**

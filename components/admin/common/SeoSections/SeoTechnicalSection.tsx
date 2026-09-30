@@ -95,7 +95,10 @@ export const SeoTechnicalSection = <TFormData extends FieldValues>(
   };
 
   return (
-    <SeoCollapsible title="Technical SEO (required)">
+    <SeoCollapsible
+      title="Technical SEO (required)"
+      forceOpen={Boolean(errors[canonicalUrlField] || errors[robotsField])}
+    >
       <FormField
         error={errors[canonicalUrlField]?.message as string | undefined}
         hint="Use to avoid duplicate content penalties. Auto-generates based on current page."

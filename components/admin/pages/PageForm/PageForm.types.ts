@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { httpUrlOrEmpty } from '@/lib/utils/http-url';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PageResponse } from '@/types/api-schema';
 
@@ -51,7 +52,7 @@ export const pageSchema = z.object({
 
   // Technical SEO
   /** Canonical URL to avoid duplicate content */
-  seoCanonicalUrl: z.string(),
+  seoCanonicalUrl: httpUrlOrEmpty,
   /** Robots meta tag for indexing control */
   seoRobots: z.string(),
 
@@ -61,7 +62,7 @@ export const pageSchema = z.object({
   /** OG description for social media */
   seoOgDescription: z.string().max(160, 'OG Description is too long'),
   /** OG image URL (1200x630 recommended) */
-  seoOgImageUrl: z.string(),
+  seoOgImageUrl: httpUrlOrEmpty,
 
   // Twitter Card
   /** Twitter card type (uses metaTitle and metaDescription automatically) */

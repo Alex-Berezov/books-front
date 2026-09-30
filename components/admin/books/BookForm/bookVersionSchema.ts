@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { httpUrlOrEmpty } from '@/lib/utils/http-url';
 import type { PublicationStatus } from '@/types/api-schema';
 
 /**
@@ -34,13 +35,13 @@ export const bookVersionBaseSchema = z.object({
   /** Book description: required only for a published version */
   description: z.string(),
   /** Cover image URL: required only for a published version */
-  coverImageUrl: z.url('Invalid URL').or(z.literal('')),
+  coverImageUrl: httpUrlOrEmpty,
   /** Version type */
   type: z.enum(['text', 'audio', 'referral']),
   /** Whether version is free */
   isFree: z.boolean(),
   /** URL for referral links */
-  referralUrl: z.url('Invalid URL').optional().or(z.literal('')),
+  referralUrl: httpUrlOrEmpty.optional(),
   /** ID основной категории книги для хлебных крошек */
   primaryCategoryId: z.uuid('Invalid UUID').nullable().optional().or(z.literal('')),
 
@@ -56,7 +57,7 @@ export const bookVersionBaseSchema = z.object({
 
   // Technical SEO
   /** Canonical URL to avoid duplicate content */
-  seoCanonicalUrl: z.string(),
+  seoCanonicalUrl: httpUrlOrEmpty,
   /** Robots meta tag for indexing control */
   seoRobots: z.string(),
 
@@ -66,7 +67,7 @@ export const bookVersionBaseSchema = z.object({
   /** OG description for social media */
   seoOgDescription: z.string().max(160, 'OG Description is too long'),
   /** OG image URL (1200x630 recommended) */
-  seoOgImageUrl: z.string(),
+  seoOgImageUrl: httpUrlOrEmpty,
 
   // Twitter Card
   /** Twitter card type */

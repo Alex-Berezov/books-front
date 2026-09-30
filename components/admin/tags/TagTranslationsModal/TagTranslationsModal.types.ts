@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { httpUrlOrEmpty } from '@/lib/utils/http-url';
 
 /**
  * Validation schema for tag translation form.
@@ -37,11 +38,11 @@ export const translationSchema = z.object({
   // ========================================
   seoMetaTitle: z.string().max(60, 'Meta Title should be 50-60 characters'),
   seoMetaDescription: z.string().max(160, 'Meta Description should be 120-160 characters'),
-  seoCanonicalUrl: z.string(),
+  seoCanonicalUrl: httpUrlOrEmpty,
   seoRobots: z.string(),
   seoOgTitle: z.string().max(60, 'OG Title is too long'),
   seoOgDescription: z.string().max(160, 'OG Description is too long'),
-  seoOgImageUrl: z.string(),
+  seoOgImageUrl: httpUrlOrEmpty,
   seoOgImageAlt: z.string(),
   seoTwitterCard: z.enum(['summary', 'summary_large_image', '']),
 

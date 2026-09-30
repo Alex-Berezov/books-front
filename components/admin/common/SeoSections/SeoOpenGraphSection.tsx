@@ -66,7 +66,15 @@ export const SeoOpenGraphSection = <TFormData extends FieldValues>(
   } = props;
 
   return (
-    <SeoCollapsible title="Open Graph - Social Media (Facebook, LinkedIn) (required)">
+    <SeoCollapsible
+      title="Open Graph - Social Media (Facebook, LinkedIn) (required)"
+      forceOpen={Boolean(
+        errors[ogTitleField] ||
+        errors[ogDescriptionField] ||
+        errors[ogImageUrlField] ||
+        (ogImageAltField && errors[ogImageAltField])
+      )}
+    >
       <div className={styles.autoFillNotice}>
         ℹ️ OG Title and Description are auto-filled from Basic Meta Tags
       </div>
