@@ -233,7 +233,10 @@ export interface CategoryListItem {
   sortOrder?: number;
   /** Редакторский выключатель: термин скрыт из публичных списков. */
   isVisible?: boolean;
-  /** Редакторский выключатель: термин исключён из индексации. */
+  /**
+   * Редакторский выключатель: термин исключён из индексации. В публичном списке с языком пути это
+   * флаг **для этого языка** и в него уже свёрнут `noindex` поля Robots `Seo` перевода (`T81`).
+   */
   indexable?: boolean;
   /** Гистерезис индексируемости для запрошенного языка. */
   autoIndexable?: boolean;
@@ -246,5 +249,10 @@ export interface CategoryListItem {
     /** Своё у каждого перевода — `toAlternateCandidates` решает по нему. */
     bookCount?: number;
     autoIndexable?: boolean;
+    /**
+     * Только публичный список (`GET /:lang/categories`): `false`, когда поле Robots записи `Seo`
+     * перевода говорит `noindex`/`none` (`LEGACY-422`, `T81`). Своего флага у перевода категории нет.
+     */
+    indexable?: boolean;
   }>;
 }

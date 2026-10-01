@@ -86,7 +86,10 @@ export interface TagTranslation {
   canonicalUrl?: string | null;
   /** Robots directive (index, follow / noindex, follow) */
   robots?: string | null;
-  /** Whether this tag should be indexed by search engines (editorial switch) */
+  /**
+   * Editorial switch of the translation. In the public list (`GET /:lang/tags`) the backend also
+   * folds `noindex`/`none` from the Robots field of the translation SEO record into it (`T81`).
+   */
   indexable?: boolean;
   /** Published books attached to this term in this language (cached by the backend) */
   bookCount?: number;

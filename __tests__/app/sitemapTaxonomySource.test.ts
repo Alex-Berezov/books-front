@@ -142,6 +142,64 @@ describe('LEGACY-387: карта сайта строит ссылки из яз�
     expect(await callGet('sitemap-tags-en.xml')).toContain('https://bibliaris.com/es/tag/amor');
   });
 
+  // `LEGACY-422`, `T81` (решение арбитра 01.10.2026): `GET /{lang}/categories` сворачивает `noindex` поля
+  // Robots `Seo` перевода в верхний `indexable` по языку запроса и отдаёт его же в `translations[].indexable`
+  // — у категорий поле новое. Ветки жанров, категорий и коллекций зовут `toAlternateCandidates` каждая
+  // отдельно от тегов, поэтому каждая проверена своим файлом: закрытый `ru` — не в карте и не в hreflang
+  // открытого `en`; парный случай — тот же термин с открытым `ru`.
+  const threeLangTerm =
+    (type: 'genre' | 'category' | 'collection', ruOpen: boolean) => (lang: string) => ({
+      ...linkableTerm('poetry', lang),
+      type,
+      indexable: lang !== 'ru' || ruOpen,
+      translations: [
+        { language: 'en', name: 'poetry', slug: 'poetry', bookCount: 7, autoIndexable: true },
+        { language: 'fr', name: 'poesie', slug: 'poesie', bookCount: 7, autoIndexable: true },
+        {
+          language: 'ru',
+          name: 'poeziya',
+          slug: 'poeziya',
+          bookCount: 7,
+          autoIndexable: true,
+          indexable: ruOpen,
+        },
+      ],
+    });
+  const serveCategories = (build: (lang: string) => unknown) =>
+    getPublicCategories.mockImplementation(
+      async (lang: string, _type: string, params: { page?: number }) =>
+        params.page === 1
+          ? { items: [build(lang)], pagination: { total: 1, page: 1, limit: 100, totalPages: 1 } }
+          : emptyPage
+    );
+
+  describe.each([
+    ['genre', 'genres'],
+    ['category', 'categories'],
+    ['collection', 'collections'],
+  ] as const)('%s: перевод, закрытый Robots, и карта сайта', (type, plural) => {
+    it('закрытый ru пропадает из карты и из hreflang соседей', async () => {
+      serveCategories(threeLangTerm(type, false));
+
+      expect(await callGet(`sitemap-${plural}-ru.xml`)).not.toContain(`/ru/${type}/poeziya`);
+      const en = await callGet(`sitemap-${plural}-en.xml`);
+      expect(en).toContain(`https://bibliaris.com/en/${type}/poetry`);
+      expect(en).toContain(`https://bibliaris.com/fr/${type}/poesie`);
+      expect(en).not.toContain(`/ru/${type}/poeziya`);
+    });
+
+    it('тот же термин с открытым ru есть и в карте, и в hreflang соседей', async () => {
+      serveCategories(threeLangTerm(type, true));
+
+      expect(await callGet(`sitemap-${plural}-ru.xml`)).toContain(
+        `https://bibliaris.com/ru/${type}/poeziya`
+      );
+      expect(await callGet(`sitemap-${plural}-en.xml`)).toContain(
+        `https://bibliaris.com/ru/${type}/poeziya`
+      );
+    });
+  });
+
   it('термин без перевода на язык файла в карту не попадает', async () => {
     // Страховка от обратного прочтения проверок выше: совпадение по подстроке
     // не должно проходить оттого, что в XML попало вообще всё подряд.

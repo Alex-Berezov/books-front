@@ -102,6 +102,11 @@ describe('toPublicAlternates', () => {
   it('returns an empty map for missing input', () => {
     expect(toPublicAlternates(undefined)).toEqual({});
   });
+
+  // `T81`: закрытая страница термина отдаёт `hreflangs: []` — alternates пустые, а не отсутствуют.
+  it('returns an empty map for an empty list (closed term page)', () => {
+    expect(toPublicAlternates([])).toEqual({});
+  });
 });
 
 describe('toPublicJsonLd', () => {

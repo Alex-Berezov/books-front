@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildIndexableAlternates, toAlternateCandidates } from '@/lib/seo/hreflang-alternates';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
+import type { CategoryListItem } from '@/types/api-schema/categories';
 
 /**
  * `LEGACY-057`. URL попадал в sitemap только если термин линкуем в языке файла,
@@ -128,6 +129,30 @@ describe('toAlternateCandidates', () => {
     expect(res.map((c) => [c.language, c.linkable])).toEqual([
       ['en', true],
       ['es', false],
+    ]);
+  });
+
+  // `LEGACY-422`, `T81`: публичный список категорий отдаёт `translations[].indexable` — бэкенд
+  // сворачивает в него `noindex` поля Robots `Seo` перевода. Перевод из `CategoryListItem` идёт
+  // в кандидаты как есть и закрывает свой язык.
+  it('closes a category language the public list marks as not indexable', () => {
+    const translations: CategoryListItem['translations'] = [
+      { language: 'en', name: 'Poetry', slug: 'poetry', autoIndexable: true, bookCount: 9 },
+      {
+        language: 'ru',
+        name: 'Поэзия',
+        slug: 'poeziya',
+        autoIndexable: true,
+        bookCount: 9,
+        indexable: false,
+      },
+    ];
+
+    const res = toAlternateCandidates(term, translations, isTaxonomyLinkable);
+
+    expect(res.map((c) => [c.language, c.linkable])).toEqual([
+      ['en', true],
+      ['ru', false],
     ]);
   });
 
