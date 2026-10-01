@@ -181,6 +181,44 @@ export type {
 // Ratings
 export type { RateBookResponse, UserRatingResponse } from './rating';
 
+// Book version contributors
+export type { BookVersionContributor, ContributorRole } from './book-version-contributors';
+
+// Rights claims
+export type {
+  ApplyClaimBlockRequest,
+  ApplyClaimBlockScope,
+  AssignRightsClaimRequest,
+  ChangeRightsClaimStatusRequest,
+  CreateClaimAttachmentRequest,
+  CreateRightsClaimRequest,
+  LiftClaimBlockRequest,
+  LinkClaimComponentRequest,
+  QueryRightsClaimsParams,
+  RecordClaimResponseRequest,
+  RecordCounterNoticeRequest,
+  ReopenRightsClaimRequest,
+  ResolveRightsClaimRequest,
+  RightsClaim,
+  RightsClaimAccessBlock,
+  RightsClaimAttachment,
+  RightsClaimAttachmentType,
+  RightsClaimBlockScope,
+  RightsClaimBlockStatus,
+  RightsClaimChannel,
+  RightsClaimComponentRef,
+  RightsClaimEvent,
+  RightsClaimEventType,
+  RightsClaimResolution,
+  RightsClaimSeverity,
+  RightsClaimStatus,
+  RightsClaimSummary,
+  RightsClaimType,
+  RightsClaimantType,
+  RightsClaimsListResponse,
+  UpdateRightsClaimRequest,
+} from './rights-claims';
+
 // Persons (contributors)
 export type { Person, PersonListResponse, PersonTranslation, PersonType } from './persons';
 

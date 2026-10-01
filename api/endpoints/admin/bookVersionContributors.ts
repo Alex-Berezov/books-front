@@ -1,6 +1,5 @@
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
-import type { PaginatedResult } from '@/types/api-schema';
-import type { BookVersionContributor, ContributorRole } from '@/types/contributors';
+import type { BookVersionContributor, ContributorRole, PaginatedResult } from '@/types/api-schema';
 
 export interface CreateBookVersionContributorDto {
   personId: string;

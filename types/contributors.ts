@@ -1,37 +1,12 @@
+import type { ContributorRole } from './api-schema/book-version-contributors';
 import type { PaginatedResult } from './api-schema/common';
 import type { Person, PersonType } from './api-schema/persons';
 
+export type {
+  BookVersionContributor,
+  ContributorRole,
+} from './api-schema/book-version-contributors';
 export type { Person, PersonTranslation, PersonType } from './api-schema/persons';
-
-export type ContributorRole =
-  | 'AUTHOR'
-  | 'TRANSLATOR'
-  | 'EDITOR'
-  | 'ILLUSTRATOR'
-  | 'NARRATOR'
-  | 'ADAPTER'
-  | 'COMPILER'
-  | 'COMMENTATOR'
-  | 'INTRODUCTION_AUTHOR'
-  | 'AFTERWORD_AUTHOR'
-  | 'COVER_ARTIST'
-  | 'RIGHTS_HOLDER'
-  | 'OTHER';
-
-export interface BookVersionContributor {
-  id: string;
-  bookVersionId: string;
-  personId: string;
-  role: ContributorRole;
-  roleOtherRu?: string | null;
-  displayOrder: number;
-  isPrimary: boolean;
-  creditedName?: string | null;
-  creditedLanguage?: string | null;
-  contributionNoteRu?: string | null;
-  confidence?: string | null;
-  person?: Person;
-}
 
 export interface RightsProfileContributor {
   id: string;

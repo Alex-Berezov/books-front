@@ -20,7 +20,7 @@ import type {
   RightsClaimComponentRef,
   RightsClaimsListResponse,
   UpdateRightsClaimRequest,
-} from '@/types/api-schema/rights-claims';
+} from '@/types/api-schema';
 
 const buildClaimsQuery = (params: QueryRightsClaimsParams): string => {
   const queryParams = new URLSearchParams();
