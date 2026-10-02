@@ -3,6 +3,7 @@
 import { useState, useMemo, type FC } from 'react';
 import { Card, Button, Input, Select, Checkbox, Typography, Space, message, Alert } from 'antd';
 import { useCreateBookFromClearance } from '@/api/hooks/useRightsIntakes';
+import { isAbsoluteHttpUrl } from '@/lib/utils/http-url';
 import { generateSlug } from '@/lib/utils/slug';
 import type {
   RightsIntake,
@@ -221,11 +222,28 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
     );
   };
 
+  // Сервер принимает `referralUrl` только абсолютным http(s) (`@IsAbsoluteHttpUrl()`, `T88`):
+  // форма отбивает адрес раньше, чем ручка ответит 400 общим сообщением.
+  const isReferralUrlValid = (version: VersionFormState): boolean =>
+    !version.referralUrl || isAbsoluteHttpUrl(version.referralUrl);
+
   const allVersionsValid = versions.length > 0 && versions.every(isVersionValid);
+  // Поле лежит в свёрнутом блоке «Optional fields» — плашка называет языки, где искать.
+  const invalidReferralUrlIndexes = new Set(
+    versions.flatMap((version, index) => (isReferralUrlValid(version) ? [] : [index]))
+  );
+  const invalidReferralUrlLanguages = versions.flatMap((version, index) => {
+    if (!invalidReferralUrlIndexes.has(index)) return [];
+    return version.language
+      ? [LANG_LABELS[version.language] || version.language.toUpperCase()]
+      : [`version ${index + 1}`];
+  });
+  const allReferralUrlsValid = invalidReferralUrlIndexes.size === 0;
   const isSlugValid = slug.trim().length > 0;
   const canSubmit =
     isSlugValid &&
-    (attachToExistingBook || (allVersionsValid && !hasDuplicateLanguages)) &&
+    (attachToExistingBook ||
+      (allVersionsValid && allReferralUrlsValid && !hasDuplicateLanguages)) &&
     !createBookMutation.isPending;
 
   const handleSubmit = () => {
@@ -384,6 +402,7 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                         <Input
                           id={`version-${index}-referral-url`}
                           value={version.referralUrl}
+                          status={invalidReferralUrlIndexes.has(index) ? 'error' : undefined}
                           onChange={(event) =>
                             handleVersionFieldChange(index, 'referralUrl', event.target.value)
                           }
@@ -633,6 +652,13 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
             <Alert
               type="error"
               message="Duplicate language selection. Each version row must have a unique target language."
+              showIcon
+            />
+          )}
+          {!attachToExistingBook && !allReferralUrlsValid && (
+            <Alert
+              type="error"
+              message={`Referral URL must be an absolute address starting with http:// or https:// (${invalidReferralUrlLanguages.join(', ')})`}
               showIcon
             />
           )}

@@ -111,3 +111,71 @@ describe('CreateBookFromClearanceForm — WP-L.2 attaching to an existing book',
     expect(submit()).toBeDisabled();
   });
 });
+
+// T88: сервер принимает `referralUrl` только абсолютным http(s) — форма отбивает раньше ручки.
+describe('CreateBookFromClearanceForm — referral URL form', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const referralUrl = () => screen.getByLabelText('Referral URL');
+
+  it.each(['amazon.com/ref', 'ftp://example.com/ref', ' https://example.com/ref'])(
+    'blocks submit for "%s"',
+    async (value) => {
+      renderForm();
+
+      await userEvent.type(referralUrl(), value);
+
+      expect(submit()).toBeDisabled();
+      expect(screen.getByText(/referral url must be an absolute address/i)).toBeInTheDocument();
+      await userEvent.click(submit());
+      expect(mocks.mutate).not.toHaveBeenCalled();
+    }
+  );
+
+  it('names the language of the version with a bad referral URL', async () => {
+    renderForm();
+
+    await userEvent.type(referralUrl(), 'amazon.com/ref');
+
+    expect(
+      screen.getByText(/referral url must be an absolute address.*\(English\)/i)
+    ).toBeInTheDocument();
+  });
+
+  // Версии при привязке не отправляются — их адрес не блокирует отправку.
+  it('ignores a bad referral URL when attaching to an existing book', async () => {
+    renderForm();
+
+    await userEvent.type(referralUrl(), 'amazon.com/ref');
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: /attach the clearance to an existing book/i })
+    );
+
+    expect(submit()).toBeEnabled();
+    expect(screen.queryByText(/referral url must be an absolute address/i)).not.toBeInTheDocument();
+  });
+
+  it('submits an absolute https referral URL as typed', async () => {
+    renderForm();
+
+    await userEvent.type(referralUrl(), 'https://example.com/ref');
+    await userEvent.click(submit());
+
+    expect(mocks.mutate).toHaveBeenCalledTimes(1);
+    const payload = mocks.mutate.mock.calls[0][0] as {
+      data: { versions?: Array<Record<string, unknown>> };
+    };
+    expect(payload.data.versions?.[0]).toMatchObject({ referralUrl: 'https://example.com/ref' });
+  });
+
+  it('submits without a referral URL when the field is empty', async () => {
+    renderForm();
+
+    await userEvent.click(submit());
+
+    expect(mocks.mutate).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/referral url must be an absolute address/i)).not.toBeInTheDocument();
+  });
+});
