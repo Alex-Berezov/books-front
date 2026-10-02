@@ -144,15 +144,15 @@ export interface CreateCategoryTranslationRequest {
   slug: string;
   description?: string | null;
   /** Колонка `h1 String?`: приходит `null`, а не отсутствие ключа. */
-  h1?: string;
+  h1?: string | null;
   shortDescription?: string | null;
-  metaTitle?: string;
+  metaTitle?: string | null;
   metaDescription?: string | null;
-  ogTitle?: string;
+  ogTitle?: string | null;
   ogDescription?: string | null;
   ogImageUrl?: string | null;
-  ogImageAlt?: string;
-  faq?: Array<{ question: string; answer: string }>;
+  ogImageAlt?: string | null;
+  faq?: Array<{ question: string; answer: string }> | null;
   seo?: SeoInput;
 }
 
@@ -164,15 +164,15 @@ export interface UpdateCategoryTranslationRequest {
   slug?: string;
   description?: string | null;
   /** Колонка `h1 String?`: приходит `null`, а не отсутствие ключа. */
-  h1?: string;
+  h1?: string | null;
   shortDescription?: string | null;
-  metaTitle?: string;
+  metaTitle?: string | null;
   metaDescription?: string | null;
-  ogTitle?: string;
+  ogTitle?: string | null;
   ogDescription?: string | null;
   ogImageUrl?: string | null;
-  ogImageAlt?: string;
-  faq?: Array<{ question: string; answer: string }>;
+  ogImageAlt?: string | null;
+  faq?: Array<{ question: string; answer: string }> | null;
   seo?: SeoInput;
 }
 

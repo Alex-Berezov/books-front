@@ -119,18 +119,18 @@ export interface CreateTagTranslationRequest {
   slug: string;
   description?: string | null;
   /** Колонка `h1 String?`: приходит `null`, а не отсутствие ключа. */
-  h1?: string;
+  h1?: string | null;
   shortDescription?: string | null;
-  metaTitle?: string;
+  metaTitle?: string | null;
   metaDescription?: string | null;
-  ogTitle?: string;
+  ogTitle?: string | null;
   ogDescription?: string | null;
   ogImageUrl?: string | null;
-  ogImageAlt?: string;
+  ogImageAlt?: string | null;
   canonicalUrl?: string;
   robots?: string;
   indexable?: boolean;
-  faq?: Array<{ question: string; answer: string }>;
+  faq?: Array<{ question: string; answer: string }> | null;
   relatedTagSlugs?: string[];
   relatedGenreSlugs?: string[];
   relatedCategorySlugs?: string[];
@@ -146,18 +146,18 @@ export interface UpdateTagTranslationRequest {
   slug?: string;
   description?: string | null;
   /** Колонка `h1 String?`: приходит `null`, а не отсутствие ключа. */
-  h1?: string;
+  h1?: string | null;
   shortDescription?: string | null;
-  metaTitle?: string;
+  metaTitle?: string | null;
   metaDescription?: string | null;
-  ogTitle?: string;
+  ogTitle?: string | null;
   ogDescription?: string | null;
   ogImageUrl?: string | null;
-  ogImageAlt?: string;
+  ogImageAlt?: string | null;
   canonicalUrl?: string;
   robots?: string;
   indexable?: boolean;
-  faq?: Array<{ question: string; answer: string }>;
+  faq?: Array<{ question: string; answer: string }> | null;
   relatedTagSlugs?: string[];
   relatedGenreSlugs?: string[];
   relatedCategorySlugs?: string[];
