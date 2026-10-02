@@ -1,4 +1,5 @@
 import type { Person } from './persons';
+import type { RightsConfidence } from './rights-intake';
 
 export type ContributorRole =
   | 'AUTHOR'
@@ -26,6 +27,9 @@ export interface BookVersionContributor {
   creditedName?: string | null;
   creditedLanguage?: string | null;
   contributionNoteRu?: string | null;
-  confidence?: string | null;
+  confidence?: RightsConfidence | null;
+  sourceEvidenceIds?: string[] | null;
+  createdAt: string;
+  updatedAt: string;
   person?: Person;
 }

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { RightsClaimsPanel } from '@/components/admin/books/RightsClaimsPanel/RightsClaimsPanel';
 import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
-import type { RightsClaimSummary } from '@/types/api-schema/rights-claims';
+import type { RightsClaimSummary } from '@/types/api-schema';
 
 const mockUseVersionRightsClaims = vi.fn();
 

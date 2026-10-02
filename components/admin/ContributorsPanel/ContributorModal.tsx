@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import type { FC } from 'react';
 import { Form, Input, InputNumber, Modal, Select, message } from 'antd';
 import { useCreateContributor, useContributors } from '@/api/hooks/useContributors';
-import type { Contributor, ContributorRole } from '@/types/contributors';
+import type { ContributorRole } from '@/types/api-schema';
+import type { Contributor } from '@/types/contributors';
 import styles from './ContributorModal.module.scss';
 
 interface ContributorModalProps {

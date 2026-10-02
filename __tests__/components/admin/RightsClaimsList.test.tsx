@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { RightsClaimsList } from '@/components/admin/rights-claims/RightsClaimsList/RightsClaimsList';
-import type { RightsClaimSummary } from '@/types/api-schema/rights-claims';
+import type { RightsClaimSummary } from '@/types/api-schema';
 
 const mockUseRightsClaims = vi.fn();
 

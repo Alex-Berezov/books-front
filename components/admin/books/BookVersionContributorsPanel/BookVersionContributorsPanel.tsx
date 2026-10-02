@@ -10,7 +10,7 @@ import {
   useUpdateBookVersionContributor,
 } from '@/api/hooks/useBookVersionContributors';
 import { PersonSearchSelect } from '@/components/admin/PersonSearchSelect/PersonSearchSelect';
-import type { BookVersionContributor, ContributorRole } from '@/types/contributors';
+import type { BookVersionContributor, ContributorRole } from '@/types/api-schema';
 import styles from './BookVersionContributorsPanel.module.scss';
 
 interface BookVersionContributorsPanelProps {

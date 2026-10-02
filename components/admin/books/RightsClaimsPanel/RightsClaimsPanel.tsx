@@ -12,7 +12,7 @@ import {
   CLAIM_TYPE_LABELS,
   formatClaimDate,
 } from '@/components/admin/rights-claims/claimLabels';
-import type { RightsClaimSummary } from '@/types/api-schema/rights-claims';
+import type { RightsClaimSummary } from '@/types/api-schema';
 import { RightsClaimDetailDrawer } from './RightsClaimDetailDrawer';
 import { RightsClaimFormModal } from './RightsClaimFormModal';
 import styles from './RightsClaimsPanel.module.scss';

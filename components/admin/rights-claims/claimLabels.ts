@@ -9,7 +9,7 @@ import type {
   RightsClaimStatus,
   RightsClaimType,
   RightsClaimantType,
-} from '@/types/api-schema/rights-claims';
+} from '@/types/api-schema';
 
 export const CLAIM_TYPE_LABELS: Record<RightsClaimType, string> = {
   DMCA_TAKEDOWN: 'DMCA-требование об удалении',

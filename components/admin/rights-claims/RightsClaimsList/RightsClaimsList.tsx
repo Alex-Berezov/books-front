@@ -16,11 +16,7 @@ import {
 import { EmptyState, Pagination } from '@/components/admin/shared';
 import { Input } from '@/components/common/Input';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type {
-  RightsClaimSeverity,
-  RightsClaimStatus,
-  RightsClaimType,
-} from '@/types/api-schema/rights-claims';
+import type { RightsClaimSeverity, RightsClaimStatus, RightsClaimType } from '@/types/api-schema';
 import styles from './RightsClaimsList.module.scss';
 
 const STATUS_OPTIONS: Array<{ value: RightsClaimStatus | ''; label: string }> = [

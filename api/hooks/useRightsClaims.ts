@@ -46,7 +46,7 @@ import type {
   RightsClaimComponentRef,
   RightsClaimsListResponse,
   UpdateRightsClaimRequest,
-} from '@/types/api-schema/rights-claims';
+} from '@/types/api-schema';
 
 export const rightsClaimKeys = {
   all: ['rights-claims'] as const,

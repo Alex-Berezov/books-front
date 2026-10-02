@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
-import type { RightsClaimSummary } from '@/types/api-schema/rights-claims';
+import type { RightsClaimSummary } from '@/types/api-schema';
 import styles from './RightsClaimsSummary.module.scss';
 
 type BannerStatus = 'ERROR' | 'LOADING' | 'BLOCK' | 'PARTIAL' | 'WARN' | 'OK';

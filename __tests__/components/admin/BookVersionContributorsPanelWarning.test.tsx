@@ -11,7 +11,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { BookVersionContributorsPanel } from '@/components/admin/books/BookVersionContributorsPanel/BookVersionContributorsPanel';
-import type { BookVersionContributor } from '@/types/contributors';
+import type { BookVersionContributor } from '@/types/api-schema';
 
 const warningSpy = vi.fn();
 
@@ -58,6 +58,8 @@ const contributors: BookVersionContributor[] = [
     displayOrder: 0,
     creditedName: null,
     creditedLanguage: null,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
     contributionNoteRu: null,
     person: {
       id: 'person-1',

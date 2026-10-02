@@ -2,10 +2,6 @@ import type { ContributorRole } from './api-schema/book-version-contributors';
 import type { PaginatedResult } from './api-schema/common';
 import type { Person, PersonType } from './api-schema/persons';
 
-export type {
-  BookVersionContributor,
-  ContributorRole,
-} from './api-schema/book-version-contributors';
 export type { Person, PersonTranslation, PersonType } from './api-schema/persons';
 
 export interface RightsProfileContributor {

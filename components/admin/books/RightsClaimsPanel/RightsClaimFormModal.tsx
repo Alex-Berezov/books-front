@@ -17,7 +17,7 @@ import type {
   RightsClaimSeverity,
   RightsClaimType,
   RightsClaimantType,
-} from '@/types/api-schema/rights-claims';
+} from '@/types/api-schema';
 import styles from './RightsClaimFormModal.module.scss';
 
 export interface RightsClaimFormModalProps {

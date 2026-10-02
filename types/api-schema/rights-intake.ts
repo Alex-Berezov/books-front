@@ -691,7 +691,7 @@ export interface RightsApprovalDecision {
     name?: string | null;
     email: string;
   } | null;
-  notesRu?: string;
+  notesRu: string | null;
   createdAt: string;
 }
 
@@ -704,7 +704,7 @@ export interface RightsReviewApprovalFields {
   rejectedByUser?: { id: string; name?: string; email: string } | null;
   rejectedAt?: string | null;
   rejectionReasonRu?: string | null;
-  approvals?: RightsApprovalDecision[];
+  approvals: RightsApprovalDecision[];
 }
 
 // Phase 8: Content Hash

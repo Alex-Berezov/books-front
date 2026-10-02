@@ -27,10 +27,7 @@ import {
   formatClaimDate,
   formatClaimDateTime,
 } from '@/components/admin/rights-claims/claimLabels';
-import type {
-  RightsClaimAttachmentType,
-  RightsClaimResolution,
-} from '@/types/api-schema/rights-claims';
+import type { RightsClaimAttachmentType, RightsClaimResolution } from '@/types/api-schema';
 import styles from './RightsClaimDetailDrawer.module.scss';
 
 export interface RightsClaimDetailDrawerProps {
