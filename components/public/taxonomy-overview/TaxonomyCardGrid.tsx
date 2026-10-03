@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import Link from 'next/link';
 import { pluralize, type PluralForms } from '@/lib/i18n/plural';
-import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
+import { isTermLinkableIn } from '@/lib/seo/taxonomy-linkable';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { TagListItem } from '@/types/api-schema';
 import type { CategoryTree } from '@/types/api-schema';
@@ -80,7 +80,7 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
   // A term without a slug in this language is dropped here rather than skipped
   // during render, so that "nothing to show" still reaches `emptyText` instead
   // of leaving an empty grid behind.
-  const filtered = items.filter((item) => isTaxonomyLinkable(item) && getSlug(item, lang));
+  const filtered = items.filter((item) => isTermLinkableIn(item, lang) && getSlug(item, lang));
 
   if (filtered.length === 0) {
     return <p className={styles.empty}>{emptyText}</p>;
@@ -99,7 +99,7 @@ export const TaxonomyCardGrid: FC<TaxonomyCardGridProps> = ({
         if (!isTagKind) {
           const cat = item as CategoryTree;
           children = (cat.children || [])
-            .filter((child) => isTaxonomyLinkable(child))
+            .filter((child) => isTermLinkableIn(child, lang))
             .map((child) => {
               const childSlug = getSlug(child, lang);
               return childSlug

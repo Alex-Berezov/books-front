@@ -39,7 +39,12 @@ export interface Category {
    * `isTaxonomyLinkable`, never with `booksCount` directly.
    */
   autoIndexable?: boolean;
-  /** Whether the page is indexable by search engines */
+  /**
+   * Editorial switch of the category. In the category details and cards (`GET /{lang}/categories/{slug}/books`,
+   * `.../books/cards`) the backend also folds `noindex`/`none` from the Robots field of the translation
+   * SEO record into it (`LEGACY-422`, `T90`). In the tree (`GET /categories/tree`) it stays the editorial
+   * switch with and without `?lang` — the admin form sends it back with PATCH.
+   */
   indexable?: boolean;
   /** Whether the category is visible in public lists */
   isVisible?: boolean;
@@ -130,6 +135,13 @@ export interface CategoryTranslation {
   bookCount?: number;
   /** Automatic indexability derived from bookCount with hysteresis (close <=2, open >=5) */
   autoIndexable?: boolean;
+  /**
+   * Public outputs only (`GET /{lang}/categories`, `GET /categories/tree?lang=`, book overview,
+   * category cards):
+   * `false` when the Robots field of the translation SEO record says `noindex`/`none`
+   * (`LEGACY-422`, `T81`/`T90`). Category translations have no editorial switch of their own.
+   */
+  indexable?: boolean;
   /** SEO metadata for the localized category page */
   seoId?: number | null;
   seo?: SeoData | null;
@@ -250,8 +262,9 @@ export interface CategoryListItem {
     bookCount?: number;
     autoIndexable?: boolean;
     /**
-     * Только публичный список (`GET /:lang/categories`): `false`, когда поле Robots записи `Seo`
-     * перевода говорит `noindex`/`none` (`LEGACY-422`, `T81`). Своего флага у перевода категории нет.
+     * Публичные выдачи (`GET /:lang/categories`, `GET /categories/tree?lang=`, ответ книги): `false`,
+     * когда поле Robots записи `Seo` перевода говорит `noindex`/`none` (`LEGACY-422`, `T81`/`T90`).
+     * Своего флага у перевода категории нет.
      */
     indexable?: boolean;
   }>;

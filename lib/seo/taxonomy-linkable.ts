@@ -74,18 +74,42 @@ export function isTaxonomyLinkable(term: LinkableTerm | null | undefined): boole
 }
 
 /**
- * Editorial indexability of a tag on one language: the term switch AND the switch of that
- * language's translation (`LEGACY-422`, `T73`/`T74`). One copy for the sitemap/hreflang
- * candidates and the book-page chips; the backend has its own
- * (`isTagTranslationIndexable`) and the two must decide alike.
+ * Editorial indexability of a term on one language: the term switch AND the `indexable` of that
+ * language's translation (`LEGACY-422`, `T73`/`T74`/`T90`). For a tag the backend folds the
+ * translation switch and `noindex` in the Robots field of its SEO record into it; for a category,
+ * genre or collection only the Robots field (no switch of its own). One copy for the
+ * sitemap/hreflang candidates, the book-page chips and the taxonomy overviews; the backend has its
+ * own (`isTagTermOpen`/`isCategoryTermOpen`) and the two must decide alike.
  *
- * Compared with `!== false`, not truthiness: an absent switch means open — categories
- * have no translation switch at all. `autoIndexable` is deliberately not part of it: it
- * is per translation and goes into `isTaxonomyLinkable` on its own.
+ * Compared with `!== false`, not truthiness: an absent field means open. `autoIndexable` is
+ * deliberately not part of it: it is per translation and goes into `isTaxonomyLinkable` on its own.
  */
 export function isTermTranslationIndexable(
   term: { indexable?: boolean } | null | undefined,
   translation: { indexable?: boolean } | null | undefined
 ): boolean {
   return term?.indexable !== false && translation?.indexable !== false;
+}
+
+/**
+ * Linkable on one language, for a term that carries its own per-language projections
+ * (`autoIndexable`, `booksCount` for the requested `?lang`) next to its translations — the taxonomy
+ * overviews (`TaxonomyCardGrid`). The term switch and the folded `indexable` of the translation into
+ * `lang` go through `isTermTranslationIndexable` (`LEGACY-422`, `T90`): for a category tree only the
+ * translation carries the Robots field — the node flag stays editorial because the admin form sends it
+ * back with PATCH.
+ */
+export function isTermLinkableIn(
+  term: LinkableTerm & {
+    translations?: Array<{ language: string; indexable?: boolean }>;
+  },
+  lang: string
+): boolean {
+  const translation = (term.translations ?? []).find((t) => t.language === lang);
+  return isTaxonomyLinkable({
+    isVisible: term.isVisible,
+    indexable: isTermTranslationIndexable(term, translation),
+    autoIndexable: term.autoIndexable,
+    booksCount: term.booksCount,
+  });
 }

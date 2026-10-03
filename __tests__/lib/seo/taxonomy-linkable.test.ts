@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { isTaxonomyLinkable, isTermTranslationIndexable } from '@/lib/seo/taxonomy-linkable';
+import {
+  isTaxonomyLinkable,
+  isTermLinkableIn,
+  isTermTranslationIndexable,
+} from '@/lib/seo/taxonomy-linkable';
 
 describe('isTaxonomyLinkable', () => {
   it('refuses a term the backend closed by hysteresis, even with books attached', () => {
@@ -67,5 +71,27 @@ describe('isTermTranslationIndexable (LEGACY-422, T74)', () => {
   it('a closed half closes the language even when the other half is missing', () => {
     expect(isTermTranslationIndexable({ indexable: false }, null)).toBe(false);
     expect(isTermTranslationIndexable(null, { indexable: false })).toBe(false);
+  });
+});
+
+// `LEGACY-422`, `T90`: правило обзоров — флаг термина ∧ свёрнутый `indexable` перевода на язык.
+describe('isTermLinkableIn (LEGACY-422, T90)', () => {
+  const open = { isVisible: true, indexable: true, autoIndexable: true, booksCount: 9 };
+
+  it.each([
+    ['перевод на язык открыт', open, [{ language: 'en', indexable: true }], true],
+    ['перевода на язык нет — решает термин', open, [{ language: 'ru', indexable: false }], true],
+    ['переводы не пришли', open, undefined, true],
+    ['перевод закрыт полем Robots', open, [{ language: 'en', indexable: false }], false],
+    [
+      'термин закрыт флагом',
+      { ...open, indexable: false },
+      [{ language: 'en', indexable: true }],
+      false,
+    ],
+    ['автоматика закрыта', { ...open, autoIndexable: false }, [{ language: 'en' }], false],
+    ['книг нет', { ...open, booksCount: 0 }, [{ language: 'en' }], false],
+  ])('%s', (_name, term, translations, expected) => {
+    expect(isTermLinkableIn({ ...term, translations }, 'en')).toBe(expected);
   });
 });

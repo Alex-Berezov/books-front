@@ -17,7 +17,11 @@ export interface BookTaxonomyTerm {
     name: string;
     slug: string;
     autoIndexable?: boolean;
-    /** Editorial switch of a tag translation (`LEGACY-422`, `T73`); categories have none. */
+    /**
+     * Translation open for indexing (`LEGACY-422`, `T73`/`T90`): the backend folds the tag
+     * translation switch and `noindex` in the Robots field of its `Seo`; for categories only the
+     * Robots field.
+     */
     indexable?: boolean;
   }>;
 }
@@ -64,7 +68,7 @@ export function BookTaxonomyChips({ lang, terms, variant }: BookTaxonomyChipsPro
           Boolean(slug) &&
           isTaxonomyLinkable({
             isVisible: term.isVisible,
-            // Перевод тега, закрытый своим флагом, отдаёт `noindex` — ссылки на него нет.
+            // Перевод, закрытый флагом или полем Robots (тег и категория, `T90`), — ссылки на него нет.
             indexable: isTermTranslationIndexable(term, localTranslation),
             autoIndexable: localTranslation?.autoIndexable,
             booksCount: term.booksCount,

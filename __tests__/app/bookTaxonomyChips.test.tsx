@@ -115,6 +115,38 @@ describe('BookTaxonomyChips', () => {
     expect(screen.queryByRole('link', { name: 'Hidden' })).not.toBeInTheDocument();
   });
 
+  // `LEGACY-422`, `T90`: перевод категории, закрытый полем Robots, бэкенд отдаёт с
+  // `indexable: false` — ссылки на него нет; тот же перевод с `indexable: true` — ссылка есть.
+  it.each([
+    [false, false],
+    [true, true],
+  ])('category translation indexable=%s -> link %s', (indexable, linked) => {
+    render(
+      <BookTaxonomyChips
+        lang="es"
+        variant="categories"
+        terms={[
+          {
+            id: 'c1',
+            name: 'Poetry',
+            type: 'genre',
+            booksCount: 4,
+            translations: [
+              { language: 'es', name: 'Poesía', slug: 'poesia', autoIndexable: true, indexable },
+            ],
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText('Poesía')).toBeInTheDocument();
+    if (linked) {
+      expect(screen.getByRole('link', { name: 'Poesía' })).toBeInTheDocument();
+    } else {
+      expect(screen.queryByRole('link', { name: 'Poesía' })).not.toBeInTheDocument();
+    }
+  });
+
   // `LEGACY-422`, `T73`: снятая в админке галочка перевода тега закрывает ссылку на его язык.
   it('drops the link to a tag translation closed by its own switch', () => {
     render(

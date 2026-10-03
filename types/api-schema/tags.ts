@@ -87,8 +87,9 @@ export interface TagTranslation {
   /** Robots directive (index, follow / noindex, follow) */
   robots?: string | null;
   /**
-   * Editorial switch of the translation. In the public list (`GET /:lang/tags`) the backend also
-   * folds `noindex`/`none` from the Robots field of the translation SEO record into it (`T81`).
+   * Editorial switch of the translation. In public outputs (`GET /:lang/tags`, the book overview) the
+   * backend also folds `noindex`/`none` from the Robots field of the translation SEO record into it
+   * (`T81`/`T90`).
    */
   indexable?: boolean;
   /** Published books attached to this term in this language (cached by the backend) */
@@ -248,7 +249,8 @@ export interface TagListItem {
   autoIndexable?: boolean;
   /**
    * Editorial switch: tag excluded from indexing. With `?lang` it also carries the
-   * switch of that language's translation (`LEGACY-422`, `T73`).
+   * switch of that language's translation (`LEGACY-422`, `T73`) and `noindex`/`none` from the
+   * Robots field of its SEO record (`T81`).
    */
   indexable?: boolean;
   /** Editorial switch: tag hidden from public lists */
@@ -260,8 +262,9 @@ export interface TagListItem {
     bookCount?: number;
     autoIndexable?: boolean;
     /**
-     * Editorial switch of this translation (`LEGACY-422`, `T73`). `false` closes this
-     * language in meta robots, the sitemap and hreflang alike; absent means open.
+     * Editorial switch of this translation (`LEGACY-422`, `T73`) with `noindex`/`none` from the
+     * Robots field of its SEO record folded in (`T81`). `false` closes this language in meta
+     * robots, the sitemap, hreflang and the `/tags` overview alike; absent means open.
      */
     indexable?: boolean;
   }>;
