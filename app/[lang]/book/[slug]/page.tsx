@@ -18,6 +18,7 @@ import { serializeJsonLd } from '@/lib/utils/json-ld';
 import { logError } from '@/lib/utils/log-error';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
+import { resolveAuthorHref } from './authorHref';
 import styles from './book.module.scss';
 import { getCachedBookOverview, getCachedBookSeo } from './bookData';
 import { BookTaxonomyChips } from './BookTaxonomyChips';
@@ -246,20 +247,8 @@ export default async function BookDetailPage({ params }: Props) {
    * `versions[].authorSlug` — для ссылки в языке своей версии.
    */
   const authorSlug = book.authorSlug ?? null;
-  /**
-   * `authorPageUrl` — ручной ввод редактора и потому первый источник. Отсекается ровно один
-   * случай: админка собирает адрес как `/{lang}/author/{slug}` из перевода, которого может
-   * не быть, и тогда в базе оседает строка с пустым последним сегментом. Пустую строку отсёк
-   * бы и `||`, а `/en/author/` — нет, и такой адрес победил бы верный слаг.
-   *
-   * ⚠️ Проверка узкая намеренно. Поле — свободный текст с обеих сторон, и его пример в DTO
-   * бэкенда — **внешний** адрес: редактор вправе увести на Википедию. Проверка «похоже
-   * на внутренний путь автора» молча выбрасывала бы такие ссылки.
-   */
-  const manualAuthorHref = activeVersion?.authorPageUrl?.trim();
-  const authorHref =
-    (manualAuthorHref && !manualAuthorHref.endsWith('/author/') ? manualAuthorHref : null) ||
-    (authorSlug ? `/${supportedLang}/author/${encodeURIComponent(authorSlug)}` : null);
+  // Правило выбора между `authorPageUrl` и слагом и проверка сохранённого адреса — `authorHref.ts`.
+  const authorHref = resolveAuthorHref(activeVersion?.authorPageUrl, authorSlug, supportedLang);
 
   const textHasSummary = textVersion
     ? ((textVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0

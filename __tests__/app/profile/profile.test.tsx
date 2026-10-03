@@ -707,4 +707,80 @@ describe('ProfilePage', () => {
       });
     });
   });
+
+  // `T94`: ручка принимает `avatarUrl` только абсолютным http(s). Адрес, сохранённый до правила,
+  // не должен запирать смену имени: аватар уходит, только если сменён загрузкой (решение арбитра).
+  describe('адрес аватара в сохранении профиля (T94)', () => {
+    const renderWithAvatar = (avatarUrl: string, uploadedUrl = '') => {
+      vi.mocked(useSession).mockReturnValue({
+        data: { user: { email: 'john@example.com' } },
+        status: 'authenticated',
+      } as unknown as ReturnType<typeof useSession>);
+      vi.mocked(useAuthHooks.useMe).mockReturnValue({
+        data: {
+          email: 'john@example.com',
+          displayName: 'John Doe',
+          nickname: 'john_doe',
+          avatarUrl,
+          roles: ['USER'],
+        },
+        isLoading: false,
+      } as unknown as ReturnType<typeof useAuthHooks.useMe>);
+      vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(
+        activitiesQuery([activitiesPage()])
+      );
+      const mutateAsyncMock = vi.fn().mockResolvedValue({});
+      vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
+        mutateAsync: mutateAsyncMock,
+        isPending: false,
+      } as unknown as ReturnType<typeof useAuthHooks.useUpdateProfile>);
+      vi.mocked(useAuthHooks.useUploadAvatar).mockReturnValue({
+        mutateAsync: vi.fn().mockResolvedValue(uploadedUrl),
+        isPending: false,
+      } as unknown as ReturnType<typeof useAuthHooks.useUploadAvatar>);
+      const { container } = render(<ProfilePage />);
+      return { mutateAsyncMock, container };
+    };
+
+    it('неизменённый сохранённый адрес не уходит, даже негодный', async () => {
+      const { mutateAsyncMock } = renderWithAvatar('example.com/a.png');
+
+      fireEvent.change(screen.getByLabelText(/Full Name/i), { target: { value: 'John New' } });
+      fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
+
+      await waitFor(() => expect(mutateAsyncMock).toHaveBeenCalledTimes(1));
+      expect(mutateAsyncMock).toHaveBeenCalledWith({
+        name: 'John New',
+        nickname: 'john_doe',
+        avatarUrl: undefined,
+      });
+      expect(mutateAsyncMock.mock.calls[0][0].avatarUrl).toBeUndefined();
+    });
+
+    it('загруженный адрес уходит', async () => {
+      const { mutateAsyncMock, container } = renderWithAvatar(
+        'example.com/a.png',
+        'https://cdn.example.com/new.png'
+      );
+
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      fireEvent.change(fileInput, {
+        target: { files: [new File(['x'], 'a.png', { type: 'image/png' })] },
+      });
+      await waitFor(() =>
+        expect(screen.getByAltText('a11y.userAvatar')).toHaveAttribute(
+          'src',
+          expect.stringContaining('new.png')
+        )
+      );
+      fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
+
+      await waitFor(() => expect(mutateAsyncMock).toHaveBeenCalledTimes(1));
+      expect(mutateAsyncMock).toHaveBeenCalledWith({
+        name: 'John Doe',
+        nickname: 'john_doe',
+        avatarUrl: 'https://cdn.example.com/new.png',
+      });
+    });
+  });
 });

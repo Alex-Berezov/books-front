@@ -52,6 +52,14 @@ describe('LEGACY-006: адрес автора берётся с сервера, 
     expect(source).toContain('authorSlug');
   });
 
+  // `T94`: выбор адреса автора переехал из `page.tsx` в `authorHref.ts` — сторож идёт следом.
+  it('сборка ссылки на автора не выводит слаг из имени', () => {
+    const source = readRepoCode('app/[lang]/book/[slug]/authorHref.ts');
+
+    expect(source).not.toContain(SLUGIFY_CALL);
+    expect(source).toContain('encodeURIComponent(authorSlug)');
+  });
+
   it('маппер карточек автора не собирает слаг из имени', () => {
     const source = readRepoCode('lib/mappers/book.ts');
 

@@ -102,11 +102,17 @@ export default function ProfileClient() {
       }
     }
 
+    // Аватар уходит, только если он сменён загрузкой (`T94`, решение арбитра 03.10.2026): ручка
+    // проверяет `avatarUrl` как абсолютный http(s), а адрес, сохранённый до этого правила,
+    // при повторной отправке запер бы смену имени и ника. Без ключа ручка аватар не трогает.
+    const trimmedAvatarUrl = avatarUrl.trim();
+    const avatarChanged = trimmedAvatarUrl !== (user?.avatarUrl ?? '').trim();
+
     try {
       await updateProfileMutation.mutateAsync({
         name: name.trim() || undefined,
         nickname: nickname.trim() || undefined,
-        avatarUrl: avatarUrl.trim() || undefined,
+        avatarUrl: avatarChanged ? trimmedAvatarUrl || undefined : undefined,
       });
       toast.success(t('profile.updateSuccess'));
     } catch (err: unknown) {

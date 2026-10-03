@@ -3,7 +3,7 @@
 import { useState, useMemo, type FC } from 'react';
 import { Card, Button, Input, Select, Checkbox, Typography, Space, message, Alert } from 'antd';
 import { useCreateBookFromClearance } from '@/api/hooks/useRightsIntakes';
-import { isAbsoluteHttpUrl } from '@/lib/utils/http-url';
+import { isAbsoluteHttpUrl, isAbsoluteHttpUrlOrRootPath } from '@/lib/utils/http-url';
 import { generateSlug } from '@/lib/utils/slug';
 import type {
   RightsIntake,
@@ -227,23 +227,31 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
   const isReferralUrlValid = (version: VersionFormState): boolean =>
     !version.referralUrl || isAbsoluteHttpUrl(version.referralUrl);
 
+  // `@IsAbsoluteHttpUrlOrRootPath()` у `authorPageUrl` (`T94`): http(s) или путь от корня.
+  const isAuthorPageUrlValid = (version: VersionFormState): boolean =>
+    !version.authorPageUrl || isAbsoluteHttpUrlOrRootPath(version.authorPageUrl);
+
   const allVersionsValid = versions.length > 0 && versions.every(isVersionValid);
   // Поле лежит в свёрнутом блоке «Optional fields» — плашка называет языки, где искать.
-  const invalidReferralUrlIndexes = new Set(
-    versions.flatMap((version, index) => (isReferralUrlValid(version) ? [] : [index]))
-  );
-  const invalidReferralUrlLanguages = versions.flatMap((version, index) => {
-    if (!invalidReferralUrlIndexes.has(index)) return [];
-    return version.language
-      ? [LANG_LABELS[version.language] || version.language.toUpperCase()]
-      : [`version ${index + 1}`];
-  });
-  const allReferralUrlsValid = invalidReferralUrlIndexes.size === 0;
+  const invalidVersionLabels = (isValid: (version: VersionFormState) => boolean): string[] =>
+    versions.flatMap((version, index) => {
+      if (isValid(version)) return [];
+      return version.language
+        ? [LANG_LABELS[version.language] || version.language.toUpperCase()]
+        : [`version ${index + 1}`];
+    });
+  const invalidReferralUrlLanguages = invalidVersionLabels(isReferralUrlValid);
+  const allReferralUrlsValid = invalidReferralUrlLanguages.length === 0;
+  const invalidAuthorPageUrlLanguages = invalidVersionLabels(isAuthorPageUrlValid);
+  const allAuthorPageUrlsValid = invalidAuthorPageUrlLanguages.length === 0;
   const isSlugValid = slug.trim().length > 0;
   const canSubmit =
     isSlugValid &&
     (attachToExistingBook ||
-      (allVersionsValid && allReferralUrlsValid && !hasDuplicateLanguages)) &&
+      (allVersionsValid &&
+        allReferralUrlsValid &&
+        allAuthorPageUrlsValid &&
+        !hasDuplicateLanguages)) &&
     !createBookMutation.isPending;
 
   const handleSubmit = () => {
@@ -402,7 +410,7 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                         <Input
                           id={`version-${index}-referral-url`}
                           value={version.referralUrl}
-                          status={invalidReferralUrlIndexes.has(index) ? 'error' : undefined}
+                          status={isReferralUrlValid(version) ? undefined : 'error'}
                           onChange={(event) =>
                             handleVersionFieldChange(index, 'referralUrl', event.target.value)
                           }
@@ -531,10 +539,11 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
                         <Input
                           id={`version-${index}-author-page-url`}
                           value={version.authorPageUrl}
+                          status={isAuthorPageUrlValid(version) ? undefined : 'error'}
                           onChange={(event) =>
                             handleVersionFieldChange(index, 'authorPageUrl', event.target.value)
                           }
-                          placeholder="https://..."
+                          placeholder="https://... or /en/author/..."
                         />
                       </div>
                     </div>
@@ -659,6 +668,13 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
             <Alert
               type="error"
               message={`Referral URL must be an absolute address starting with http:// or https:// (${invalidReferralUrlLanguages.join(', ')})`}
+              showIcon
+            />
+          )}
+          {!attachToExistingBook && !allAuthorPageUrlsValid && (
+            <Alert
+              type="error"
+              message={`Author page URL must be an absolute http(s) address or a path starting with "/" (${invalidAuthorPageUrlLanguages.join(', ')})`}
               showIcon
             />
           )}

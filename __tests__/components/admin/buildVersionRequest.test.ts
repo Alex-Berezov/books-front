@@ -145,6 +145,20 @@ describe('buildVersionSeoPayload', () => {
 });
 
 describe('buildCommonFields через оба сборщика', () => {
+  // `T94`: путь от корня — законная форма `authorPageUrl`, уходит без нормализации.
+  it.each([
+    ['/ru/author/oscar-wilde', '/ru/author/oscar-wilde'],
+    ['https://en.wikipedia.org/wiki/X', 'https://en.wikipedia.org/wiki/X'],
+    ['', null],
+  ])('authorPageUrl %j уходит как %j', (value, expected) => {
+    expect(buildCreateVersionRequest(formData({ authorPageUrl: value })).authorPageUrl).toBe(
+      expected
+    );
+    expect(buildUpdateVersionRequest(formData({ authorPageUrl: value })).authorPageUrl).toBe(
+      expected
+    );
+  });
+
   it('пустые списки уходят как null, непустые — как есть', () => {
     const empty = buildUpdateVersionRequest(formData());
     expect(empty.themes).toBeNull();

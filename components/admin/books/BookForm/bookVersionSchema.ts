@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { httpUrlOrEmpty } from '@/lib/utils/http-url-field';
+import { httpUrlOrEmpty, httpUrlOrRootPathOrEmpty } from '@/lib/utils/http-url-field';
 import type { PublicationStatus } from '@/types/api-schema';
 
 /**
@@ -97,7 +97,7 @@ export const bookVersionBaseSchema = z.object({
     .optional(),
   originalLanguage: z.string().optional().or(z.literal('')),
   copyrightStatus: z.string().optional().or(z.literal('')),
-  authorPageUrl: z.string().optional().or(z.literal('')),
+  authorPageUrl: httpUrlOrRootPathOrEmpty.optional(),
   authorId: z.string().optional().or(z.literal('')),
   characters: z.array(z.object({ name: z.string(), description: z.string() })).optional(),
   quotes: z

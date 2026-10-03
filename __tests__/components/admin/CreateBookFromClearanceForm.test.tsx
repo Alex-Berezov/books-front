@@ -179,3 +179,65 @@ describe('CreateBookFromClearanceForm — referral URL form', () => {
     expect(screen.queryByText(/referral url must be an absolute address/i)).not.toBeInTheDocument();
   });
 });
+
+// `T94`: `authorPageUrl` — `@IsAbsoluteHttpUrlOrRootPath()` на ручке; форма отбивает раньше.
+describe('CreateBookFromClearanceForm — author page URL form', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const authorPageUrl = () => screen.getByLabelText('Author Page URL');
+  const AUTHOR_PAGE_ERROR = /author page url must be an absolute http\(s\) address/i;
+
+  it.each(['javascript:alert(1)', 'wikipedia.org/wiki/X', '//evil.example/x'])(
+    'blocks submit for "%s"',
+    async (value) => {
+      renderForm();
+
+      await userEvent.type(authorPageUrl(), value);
+
+      expect(submit()).toBeDisabled();
+      expect(screen.getByText(AUTHOR_PAGE_ERROR)).toBeInTheDocument();
+      await userEvent.click(submit());
+      expect(mocks.mutate).not.toHaveBeenCalled();
+    }
+  );
+
+  it('names the language of the version with a bad author page URL', async () => {
+    renderForm();
+
+    await userEvent.type(authorPageUrl(), 'wikipedia.org/wiki/X');
+
+    expect(
+      screen.getByText(/author page url must be an absolute http\(s\) address.*\(English\)/i)
+    ).toBeInTheDocument();
+  });
+
+  it('ignores a bad author page URL when attaching to an existing book', async () => {
+    renderForm();
+
+    await userEvent.type(authorPageUrl(), 'wikipedia.org/wiki/X');
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: /attach the clearance to an existing book/i })
+    );
+
+    expect(submit()).toBeEnabled();
+    expect(screen.queryByText(AUTHOR_PAGE_ERROR)).not.toBeInTheDocument();
+  });
+
+  it.each(['https://en.wikipedia.org/wiki/X', '/en/author/oscar-wilde'])(
+    'submits "%s" as typed',
+    async (value) => {
+      renderForm();
+
+      await userEvent.type(authorPageUrl(), value);
+      await userEvent.click(submit());
+
+      expect(mocks.mutate).toHaveBeenCalledTimes(1);
+      const payload = mocks.mutate.mock.calls[0][0] as {
+        data: { versions?: Array<Record<string, unknown>> };
+      };
+      expect(payload.data.versions?.[0]).toMatchObject({ authorPageUrl: value });
+    }
+  );
+});

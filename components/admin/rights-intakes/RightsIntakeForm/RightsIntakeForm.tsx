@@ -3,6 +3,7 @@
 import { useState, type FC, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCreateRightsIntake, useUpdateRightsIntake } from '@/api/hooks/useRightsIntakes';
+import { isAbsoluteHttpUrl } from '@/lib/utils/http-url';
 import { canInferTextTypeFrom, deriveRightsSourceFromUrl } from '@/lib/utils/rights-source-url';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
@@ -192,7 +193,8 @@ export const RightsIntakeForm: FC<RightsIntakeFormProps> = ({
       validationErrors.targetLanguages = 'Select at least one target language';
     if (form.plannedContentTypes.length === 0)
       validationErrors.plannedContentTypes = 'Select at least one planned content type';
-    if (form.sourceUrl && !/^https?:\/\/.+/.test(form.sourceUrl))
+    // Та же проверка, что `@IsAbsoluteHttpUrl()` у `sourceUrl` ручки приёма (`T94`).
+    if (form.sourceUrl && !isAbsoluteHttpUrl(form.sourceUrl))
       validationErrors.sourceUrl = 'Must be a valid URL starting with http:// or https://';
     if (!form.targetCountryCodes.trim())
       validationErrors.targetCountryCodes = 'Enter at least one ISO-2 country code';

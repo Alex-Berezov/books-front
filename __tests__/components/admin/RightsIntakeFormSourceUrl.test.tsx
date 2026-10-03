@@ -187,3 +187,30 @@ describe('RightsIntakeForm: вывод источника по ссылке (WP-
     expect(screen.queryByText(/Bibliaris recognised this link/)).toBeNull();
   });
 });
+
+// `T94`: ручка приёма проверяет `sourceUrl` через `@IsAbsoluteHttpUrl()`; форма отбивает раньше.
+describe('RightsIntakeForm: форма ссылки источника (T94)', () => {
+  const submit = () =>
+    fireEvent.click(screen.getByRole('button', { name: /Create Rights Intake/ }));
+
+  it.each(['https://-a.com/book', 'https://a!b.com/book', 'https://example.com/a<b'])(
+    'отбивает %s до отправки',
+    (url) => {
+      render(<RightsIntakeForm lang="en" />);
+      fireEvent.change(sourceUrlInput(), { target: { value: url } });
+      submit();
+
+      expect(screen.getByText(/Must be a valid URL starting with http/)).toBeInTheDocument();
+    }
+  );
+
+  it('пропускает абсолютный https', () => {
+    render(<RightsIntakeForm lang="en" />);
+    fireEvent.change(sourceUrlInput(), {
+      target: { value: 'https://www.gutenberg.org/ebooks/1342' },
+    });
+    submit();
+
+    expect(screen.queryByText(/Must be a valid URL starting with http/)).toBeNull();
+  });
+});
