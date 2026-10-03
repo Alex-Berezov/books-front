@@ -32,11 +32,17 @@ interface CategoryTranslationsModalProps {
 }
 
 /**
- * Build `SeoInput` from form data — only fields that live in the `Seo` table
- * (canonical url, robots, twitter card). Meta/OG fields are sent as flat
- * translation fields instead.
+ * Build `SeoInput` from form data. Meta/OG fields go to `Seo` too: the public SEO bundle
+ * and social cards read only `Seo` (`LEGACY-430`, `T96`); the flat translation fields are
+ * still sent alongside.
  */
 const buildSeoInput = (data: TranslationFormData): SeoInput => ({
+  metaTitle: data.seoMetaTitle || null,
+  metaDescription: data.seoMetaDescription || null,
+  ogTitle: data.seoOgTitle || null,
+  ogDescription: data.seoOgDescription || null,
+  ogImageUrl: data.seoOgImageUrl || null,
+  ogImageAlt: data.seoOgImageAlt || null,
   canonicalUrl: data.seoCanonicalUrl || null,
   robots: data.seoRobots || null,
   twitterCard: data.seoTwitterCard || null,
@@ -44,7 +50,8 @@ const buildSeoInput = (data: TranslationFormData): SeoInput => ({
 
 /**
  * Map an existing `CategoryTranslation` to form data shape.
- * Reads from flat translation fields first, falls back to the `seo` relation.
+ * Meta/OG fields read the `seo` relation first (the public page reads only `Seo`), then fall back
+ * to the flat fields; saving then publishes that flat value (`LEGACY-430`, `T96`).
  */
 const translationToFormData = (translation: CategoryTranslation): TranslationFormData => ({
   language: translation.language as SupportedLang,
@@ -54,14 +61,14 @@ const translationToFormData = (translation: CategoryTranslation): TranslationFor
   h1: translation.h1 ?? '',
   shortDescription: translation.shortDescription ?? '',
   faq: (translation.faq as Array<{ question: string; answer: string }>) ?? [],
-  seoMetaTitle: translation.metaTitle ?? translation.seo?.metaTitle ?? '',
-  seoMetaDescription: translation.metaDescription ?? translation.seo?.metaDescription ?? '',
+  seoMetaTitle: translation.seo?.metaTitle ?? translation.metaTitle ?? '',
+  seoMetaDescription: translation.seo?.metaDescription ?? translation.metaDescription ?? '',
   seoCanonicalUrl: translation.seo?.canonicalUrl ?? '',
   seoRobots: translation.seo?.robots ?? 'index, follow',
-  seoOgTitle: translation.ogTitle ?? translation.seo?.ogTitle ?? '',
-  seoOgDescription: translation.ogDescription ?? translation.seo?.ogDescription ?? '',
-  seoOgImageUrl: translation.ogImageUrl ?? translation.seo?.ogImageUrl ?? '',
-  seoOgImageAlt: translation.ogImageAlt ?? '',
+  seoOgTitle: translation.seo?.ogTitle ?? translation.ogTitle ?? '',
+  seoOgDescription: translation.seo?.ogDescription ?? translation.ogDescription ?? '',
+  seoOgImageUrl: translation.seo?.ogImageUrl ?? translation.ogImageUrl ?? '',
+  seoOgImageAlt: translation.seo?.ogImageAlt ?? translation.ogImageAlt ?? '',
   seoTwitterCard:
     (translation.seo?.twitterCard as 'summary' | 'summary_large_image' | '') || 'summary',
 });
