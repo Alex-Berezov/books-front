@@ -21,7 +21,7 @@ Documentation repo: `D:\newDev\books-app-docs`. Read it directly with Read/Grep/
 Start with `ai-context/README.md` (index) and `ai-context/agent-rules.md` (mandatory agent rules).
 The full task → document map is in `CLAUDE.md`. **Do not read `ai-context/` wholesale** — it burns context.
 
-**Читать документы больше ~10 КБ только секциями:** `grep -nE "^## " <файл>` → выбрать заголовок → `Read` с `offset`/`limit`. Целиком — `endpoints.md` (167 КБ), `changelog.md`, `legacy-warnings.md`, `database-schema.md`, `rights-clearance.md`, `api-contracts.md`, `content-model.md`, `frontend.md`, файлы в `tasks/` — **не читать**. Протокол и таблица размеров: `ai-context/agent-rules.md` §«Как читать документацию».
+**Читать документы больше ~10 КБ только секциями:** `grep -nE "^## " <файл>` → выбрать заголовок → `Read` с `offset`/`limit`. Целиком — `endpoints.md` (через `endpoints.index.md`), `changelog.md`, `legacy-warnings.md`, `database-schema.md` (через `database-schema.index.md`), `rights-clearance.md`, `api-contracts.md` (через `api-contracts.index.md`), `content-model.md`, `frontend.md`, файлы в `tasks/` — **не читать**. Протокол и таблица размеров: `ai-context/agent-rules.md` §«Как читать документацию».
 
 **Структуру кода в документации не искать** — состав папок, список компонентов и место символа даёт `ast-index` (см. `.claude/rules/ast-index.md`).
 
@@ -31,7 +31,7 @@ The full task → document map is in `CLAUDE.md`. **Do not read `ai-context/` wh
 | Folder/file map of all three repos      | `ai-context/folder-structure.md`       |
 | Full quality-gate matrix, CI guards     | `ai-context/quality-gates.md`          |
 | Work queue (tech debt)                  | `ai-context/work-queue.md`             |
-| API endpoint catalog                    | `backend/api/endpoints.md`             |
+| API endpoint catalog (via its index)    | `backend/api/endpoints.index.md`       |
 | VPS deploy commands (user runs them)    | `backend/deployment/quick-commands.md` |
 
 **Before building any component, check `ai-context/ui-kit.md`.** It lists what already exists — `FaqBlock`, `QuotesBlock`, `SlugInput`, `RichTextEditor`, `SeoSections` — and what is explicitly forbidden to recreate.
@@ -86,7 +86,7 @@ Every modified or newly created file MUST strictly satisfy ESLint `import/order`
 - Server pages call **public** functions only, or pass `accessToken` explicitly: `http*Auth` with `requireAuth` on the server fails before the network with `ServerContextAuthUnavailable` / 500, not 401 (`LEGACY-140`).
 - Handle 401 / 403 / 404 / 429 and 451 — rights blocking is its own branch (`isRightsBlockedError` in `lib/errors.ts` → `RightsBlockedNotice`), not a generic error message.
 - **Every server-side public read states its cache mode**, wherever it lives — `next: { revalidate: N }` (public ones — `PUBLIC_REVALIDATE_SECONDS` from `lib/constants/cache.ts`) or `cache: 'no-store'`. The Next 14 default is "cache forever" and a page's own `revalidate` does not undo it (`LEGACY-145`). The rule used to say "every new function in `api/endpoints/`", and a read outside that folder slipped through it — `lib/seo/retired-slug.ts` pinned `{ newSlug: null }` for the life of the deployment (`LEGACY-369`). Machine reach is `__tests__/api/endpoints/publicCacheMode.test.ts`: it walks `api/endpoints/public*.ts`, `lib/seo/**/*.ts`, `lib/utils/fetch-page.ts` and `app/[lang]/**/*.tsx`. A public read written outside those globs is on you until its folder is added there.
-- Endpoint catalog: `books-app-docs/backend/api/endpoints.md`.
+- Endpoint catalog: `books-app-docs/backend/api/endpoints.index.md` (one line per endpoint, with the line in `endpoints.md`).
 
 ---
 
