@@ -4,7 +4,7 @@
  * Authorization, registration, token refresh
  */
 
-import type { RoleName, UUID } from './common';
+import type { UserMeResponse } from './user';
 
 /**
  * Login request
@@ -20,21 +20,27 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  displayName?: string;
+  name?: string;
 }
 
 /**
- * Response on successful authorization
+ * Пользователь в ответе входа — `AuthUserResponse` бэкенда (`auth/dto/auth-response.dto.ts`), а не
+ * `PublicUserWithRolesDto`: схема объявляет `firstName`, `lastName`, `nickname`, `isActive`, `lastLogin`
+ * необязательными. Поля `displayName` у сервера нет (`LEGACY-380`).
+ */
+export type AuthUser = Omit<
+  UserMeResponse,
+  'firstName' | 'lastName' | 'nickname' | 'isActive' | 'lastLogin'
+> &
+  Partial<Pick<UserMeResponse, 'firstName' | 'lastName' | 'nickname' | 'isActive' | 'lastLogin'>>;
+
+/**
+ * Response on successful authorization (`POST /auth/login`, `/auth/register`, `/auth/social`)
  */
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
-  user: {
-    id: UUID;
-    email: string;
-    displayName?: string;
-    roles: RoleName[];
-  };
+  user: AuthUser;
 }
 
 /**

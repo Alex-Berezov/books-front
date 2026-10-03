@@ -185,7 +185,7 @@ describe('ProfilePage', () => {
 
     const mockUser = {
       email: 'john@example.com',
-      displayName: 'John Doe',
+      name: 'John Doe',
       nickname: 'john_doe',
       avatarUrl: 'https://avatar.png',
       roles: ['USER'],
@@ -239,6 +239,40 @@ describe('ProfilePage', () => {
     expect(screen.getByText('This is my review of the book')).toBeInTheDocument();
   });
 
+  // LEGACY-380: у `GET /users/me` поля `displayName` нет, имя в форму берётся только из `name`.
+  it('fills Full Name from name only and ignores a stray displayName', () => {
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { email: 'john@example.com' } },
+      status: 'authenticated',
+    } as unknown as ReturnType<typeof useSession>);
+    vi.mocked(useAuthHooks.useMe).mockReturnValue({
+      data: {
+        email: 'john@example.com',
+        name: null,
+        displayName: 'Ghost Name',
+        nickname: 'john_doe',
+        avatarUrl: null,
+        roles: ['USER'],
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useMe>);
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(
+      activitiesQuery([activitiesPage([])])
+    );
+    vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUpdateProfile>);
+    vi.mocked(useAuthHooks.useUploadAvatar).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUploadAvatar>);
+
+    render(<ProfilePage />);
+
+    expect(screen.getByLabelText(/Full Name/i)).toHaveValue('');
+  });
+
   // Посадка LEGACY-218 на стороне фронта: страница режется бэкендом, а «Load more»
   // обязан ДОПОЛНЯТЬ список, а не подменять его — иначе первая страница пропадает
   // из виду в момент клика.
@@ -250,7 +284,7 @@ describe('ProfilePage', () => {
     vi.mocked(useAuthHooks.useMe).mockReturnValue({
       data: {
         email: 'john@example.com',
-        displayName: 'John Doe',
+        name: 'John Doe',
         nickname: 'john_doe',
         avatarUrl: '',
         roles: ['USER'],
@@ -322,7 +356,7 @@ describe('ProfilePage', () => {
     vi.mocked(useAuthHooks.useMe).mockReturnValue({
       data: {
         email: 'john@example.com',
-        displayName: 'John Doe',
+        name: 'John Doe',
         nickname: 'john_doe',
         avatarUrl: '',
         roles: ['USER'],
@@ -370,7 +404,7 @@ describe('ProfilePage', () => {
     vi.mocked(useAuthHooks.useMe).mockReturnValue({
       data: {
         email: 'john@example.com',
-        displayName: 'John Doe',
+        name: 'John Doe',
         nickname: 'john_doe',
         avatarUrl: '',
         roles: ['USER'],
@@ -449,7 +483,7 @@ describe('ProfilePage', () => {
     vi.mocked(useAuthHooks.useMe).mockReturnValue({
       data: {
         email: 'john@example.com',
-        displayName: 'John Doe',
+        name: 'John Doe',
         nickname: 'john_doe',
         avatarUrl: '',
         roles: ['USER'],
@@ -519,7 +553,7 @@ describe('ProfilePage', () => {
     vi.mocked(useAuthHooks.useMe).mockReturnValue({
       data: {
         email: 'john@example.com',
-        displayName: 'John Doe',
+        name: 'John Doe',
         nickname: 'john_doe',
         avatarUrl: '',
         roles: ['USER'],
@@ -557,7 +591,7 @@ describe('ProfilePage', () => {
 
     const mockUser = {
       email: 'john@example.com',
-      displayName: 'John Doe',
+      name: 'John Doe',
       nickname: 'john_doe',
       avatarUrl: '',
       roles: ['USER'],
@@ -600,7 +634,7 @@ describe('ProfilePage', () => {
 
     const mockUser = {
       email: 'john@example.com',
-      displayName: 'John Doe',
+      name: 'John Doe',
       nickname: 'john_doe',
       avatarUrl: '',
       roles: ['USER'],
@@ -651,7 +685,7 @@ describe('ProfilePage', () => {
         status: 'authenticated',
       } as unknown as ReturnType<typeof useSession>);
       vi.mocked(useAuthHooks.useMe).mockReturnValue({
-        data: { email: 'john@example.com', displayName: 'John', nickname: 'john', roles: ['USER'] },
+        data: { email: 'john@example.com', name: 'John', nickname: 'john', roles: ['USER'] },
         isLoading: false,
       } as unknown as ReturnType<typeof useAuthHooks.useMe>);
       vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(
@@ -719,7 +753,7 @@ describe('ProfilePage', () => {
       vi.mocked(useAuthHooks.useMe).mockReturnValue({
         data: {
           email: 'john@example.com',
-          displayName: 'John Doe',
+          name: 'John Doe',
           nickname: 'john_doe',
           avatarUrl,
           roles: ['USER'],

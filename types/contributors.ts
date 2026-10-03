@@ -1,6 +1,7 @@
 import type { ContributorRole } from './api-schema/book-version-contributors';
 import type { PaginatedResult } from './api-schema/common';
-import type { Person, PersonType } from './api-schema/persons';
+import type { PersonType, RightsProfilePersonSummary } from './api-schema/persons';
+import type { RightsConfidence } from './api-schema/rights-intake';
 
 export type { Person, PersonTranslation, PersonType } from './api-schema/persons';
 
@@ -24,9 +25,10 @@ export interface RightsProfileContributor {
   creditedLanguage?: string | null;
   publicDomainFromYear?: number | null;
   sourceEvidenceIds?: string[] | null;
-  confidence?: string | null;
+  confidence?: RightsConfidence | null;
   notesRu?: string | null;
-  person?: Person;
+  /** Только в составе профиля прав; ответы привязки и отвязки участника (`ContributorLinkResponseDto`) ключа не несут. */
+  person?: RightsProfilePersonSummary | null;
 }
 
 /**

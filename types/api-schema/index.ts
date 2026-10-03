@@ -220,7 +220,13 @@ export type {
 } from './rights-claims';
 
 // Persons (contributors)
-export type { Person, PersonListResponse, PersonTranslation, PersonType } from './persons';
+export type {
+  Person,
+  PersonListResponse,
+  PersonTranslation,
+  PersonType,
+  RightsProfilePersonSummary,
+} from './persons';
 
 // Views
 export type { RecordViewRequest, ViewSource } from './views';
@@ -273,6 +279,9 @@ export type {
   UpdateRightsIntakeRequest,
   ChangeRightsIntakeStatusRequest,
   GetRightsIntakesParams,
+  RightsApprovalDecision,
+  RightsProfileDetail,
+  RightsProfileList,
 } from './rights-intake';
 
 // GeoIP market blocking

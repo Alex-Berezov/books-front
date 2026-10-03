@@ -1,3 +1,4 @@
+import type { ContributorRole } from './book-version-contributors';
 import type { PaginatedResult } from './common';
 
 export type RightsIntakeStatus =
@@ -395,11 +396,11 @@ export interface RightsReview {
   lawyerApprovedAt?: string | null;
   lawyerNameSnapshot?: string | null;
   approvedByUserId: string | null;
-  approvedByUser: { id: string; name?: string; email: string } | null;
+  approvedByUser?: { id: string; name?: string; email: string } | null;
   approvedAt: string | null;
   approvalNotesRu: string | null;
   rejectedByUserId: string | null;
-  rejectedByUser: { id: string; name?: string; email: string } | null;
+  rejectedByUser?: { id: string; name?: string; email: string } | null;
   rejectedAt: string | null;
   rejectionReasonRu: string | null;
   createdAt: string;
@@ -612,7 +613,7 @@ export interface RightsProfileContributorEvent {
   rightsComponentId: string | null;
   sourceEditionId: string | null;
   personId: string | null;
-  role: string | null;
+  role: ContributorRole | null;
   displayName: string | null;
   creditedName: string | null;
   snapshot: RightsProfileContributorEventSnapshot | null;
@@ -693,18 +694,6 @@ export interface RightsApprovalDecision {
   } | null;
   notesRu: string | null;
   createdAt: string;
-}
-
-export interface RightsReviewApprovalFields {
-  approvedByUserId?: string | null;
-  approvedByUser?: { id: string; name?: string; email: string } | null;
-  approvedAt?: string | null;
-  approvalNotesRu?: string | null;
-  rejectedByUserId?: string | null;
-  rejectedByUser?: { id: string; name?: string; email: string } | null;
-  rejectedAt?: string | null;
-  rejectionReasonRu?: string | null;
-  approvals: RightsApprovalDecision[];
 }
 
 // Phase 8: Content Hash

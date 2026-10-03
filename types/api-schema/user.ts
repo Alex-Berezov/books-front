@@ -14,38 +14,20 @@ import type {
 } from './common';
 
 /**
- * Ответ сохранения профиля (`PATCH /users/profile`).
+ * Ответ сохранения профиля (`PATCH /users/profile`) — `PublicUserDto`: поля пользователя целиком, как у `User`, без ролей.
+ * Поля имени приходят всегда, со значением `null`, а не пропущенным ключом; `displayName` у сервера нет (`LEGACY-380`).
  *
  * 🔴 Ролей здесь нет намеренно: `UsersService.updateMe` их не выбирает
  * (`books/src/modules/users/users.service.ts`), и это защита - экран, переписывающий
  * состояние пользователя ответом на сохранение имени, обнулил бы себе роли.
  */
-export interface UserProfileResponse {
-  id: UUID;
-  email: string;
-  name?: string | null;
-  displayName?: string;
-  nickname?: string | null;
-  avatarUrl?: string | null;
-  languagePreference?: SupportedLang;
-  createdAt: ISODate;
-}
+export type UserProfileResponse = Omit<User, 'roles'>;
 
 /**
- * Ответ `GET /users/me` — тот же пользователь, но **с ролями**: на них держится вся
+ * Ответ `GET /users/me` — `PublicUserWithRolesDto`, тот же пользователь, но **с ролями**: на них держится вся
  * разметка прав в интерфейсе.
  */
-export interface UserMeResponse {
-  id: UUID;
-  email: string;
-  name?: string | null;
-  displayName?: string;
-  nickname?: string | null;
-  avatarUrl?: string | null;
-  languagePreference?: SupportedLang;
-  roles: RoleName[];
-  createdAt: ISODate;
-}
+export type UserMeResponse = User;
 
 /**
  * Пользователь в админском списке — `PublicUserWithRolesDto` (`GET /users`, `GET /users/:id`).

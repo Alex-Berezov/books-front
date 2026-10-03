@@ -61,7 +61,7 @@ export default function ProfileClient() {
 
   useEffect(() => {
     if (user) {
-      setName(user.displayName || user.name || '');
+      setName(user.name || '');
       setNickname(user.nickname || '');
       setAvatarUrl(user.avatarUrl || '');
     }

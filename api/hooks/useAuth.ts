@@ -36,7 +36,7 @@ import type {
  *
  *   return (
  *     <div>
- *       <h1>{user.displayName || user.email}</h1>
+ *       <h1>{user.name || user.email}</h1>
  *       <p>Roles: {user.roles.join(', ')}</p>
  *     </div>
  *   );

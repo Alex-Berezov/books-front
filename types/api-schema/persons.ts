@@ -61,3 +61,22 @@ export interface Person {
  * Входной query-параметр `offset` не менялся и по-прежнему уходит в запросе.
  */
 export type PersonListResponse = PaginatedResult<Person>;
+
+/**
+ * Персона в составе профиля прав — `PersonSummaryDto` бэкенда (`rights-profile-response.dto.ts`):
+ * короткая выжимка без дат и переводов, а не `Person` целиком. Нет персоны — `null`.
+ */
+export interface RightsProfilePersonSummary {
+  id: string;
+  type: string;
+  canonicalName: string;
+  sortName: string | null;
+  slug: string | null;
+  birthYear: number | null;
+  deathYear: number | null;
+  nationalityCountryCode: string | null;
+  wikidataId: string | null;
+  viafId: string | null;
+  isni: string | null;
+  gutenbergAgentId: string | null;
+}
