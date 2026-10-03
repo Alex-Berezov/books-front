@@ -38,9 +38,9 @@ The full task → document map is in `CLAUDE.md`. **Do not read `ai-context/` wh
 
 ---
 
-## 🔴 MANDATORY: ESLint Import Ordering Rules (`import/order`)
+## Import order (`import/order`)
 
-Every modified or newly created file MUST strictly satisfy ESLint `import/order`.
+`import/order` is an `error` in `.eslintrc.json`, so `yarn lint` / `yarn ci` fail on it. The order:
 
 **Import Order Priority:**
 
@@ -50,9 +50,7 @@ Every modified or newly created file MUST strictly satisfy ESLint `import/order`
 4. Type imports `import type ...` (alphabetical by module specifier)
 5. Relative imports `./...` (alphabetical by path: `./Component.module.scss`, `./SubComponent`)
 
-**Verification Protocol:**
-
-- Always run `yarn lint` or `npx eslint <path> --fix` before completing any frontend task to ensure 0 `import/order` warnings/errors!
+`.scss` imports go last (they are grouped after `index`). Check the order with `yarn lint`.
 
 ---
 
