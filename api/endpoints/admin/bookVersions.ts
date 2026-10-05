@@ -10,6 +10,8 @@ import { httpGetAuth, httpPatchAuth, httpPostAuth, httpPutAuth } from '@/lib/htt
 import type {
   BookVersionDetail,
   CreateBookVersionRequest,
+  PublicationGateResult,
+  RightsContentHashCheck,
   UpdateBookVersionRequest,
 } from '@/types/api-schema';
 import type { BookRightsDashboard } from '@/types/api-schema/book-rights';
@@ -20,11 +22,7 @@ import type {
   VerifyGeoBlockRulesRequest,
 } from '@/types/api-schema/geo-block';
 import type { SeoData, SeoInput } from '@/types/api-schema/pages';
-import type {
-  PublicationGateResult,
-  RightsContentHashCheck,
-  UpdateRightsGeoBlockRequest,
-} from '@/types/api-schema/rights-intake';
+import type { UpdateRightsGeoBlockRequest } from '@/types/api-schema/rights-intake';
 
 /**
  * Get book version details by ID (admin endpoint)

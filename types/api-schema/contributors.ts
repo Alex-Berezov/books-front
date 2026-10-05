@@ -1,11 +1,14 @@
 /**
- * Участники в админском каталоге и ответ привязки участника: `Contributor`, `ContributorListResponse`,
- * `ContributorLink`, `DeleteContributorResponse`.
+ * Участники в админском каталоге, ответ привязки участника и тела запросов каталога и привязки:
+ * `Contributor`, `ContributorListResponse`, `ContributorLink`, `DeleteContributorResponse`,
+ * `Create`/`UpdateContributorPayload`, `QueryContributorsParams`, `Link*ContributorPayload`.
  *
  * Переехали из `types/contributors` (`LEGACY-183`, пачка `T104`): слой 2 `check:type-sync` сверяет только
  * имена бареля, и `/admin/contributors[/{id}]`, привязка и отвязка участника до этого не проверялись вовсе.
- * Реэкспорта из `types/contributors` нет, как у контрибьютора версии (`T89`): потребители берут эти имена
- * из бареля `@/types/api-schema`.
+ * Тела запросов доехали в пачке `T104b`, `types/contributors.ts` удалён; их слой 2 не сверяет вовсе
+ * (только тела ответов), с DTO бэкенда они держатся руками; участник в составе профиля прав
+ * (`RightsProfileContributor`) лежит в `rights-intake.ts` рядом с журналом его привязок. Потребители берут
+ * эти имена из бареля `@/types/api-schema`.
  */
 
 import type { ContributorRole } from './book-version-contributors';
@@ -75,4 +78,43 @@ export interface ContributorLink {
 /** Ответ `DELETE /admin/contributors/{id}` — `DeleteContributorResponseDto` бэкенда: только `id` удалённой записи. */
 export interface DeleteContributorResponse {
   id: string;
+}
+
+export interface CreateContributorPayload {
+  displayName: string;
+  birthDate?: string;
+  deathDate?: string;
+  birthYear?: number;
+  deathYear?: number;
+  nationalityCountry?: string;
+  publicDomainFromYear?: number;
+  wikidataId?: string;
+  viafId?: string;
+  isni?: string;
+  gutenbergAgentId?: string;
+  notesRu?: string;
+  authorId?: string;
+}
+
+export type UpdateContributorPayload = Partial<CreateContributorPayload>;
+
+export interface LinkSourceEditionContributorPayload {
+  contributorId: string;
+  role: ContributorRole;
+  creditedName?: string;
+  notesRu?: string;
+}
+
+export interface LinkRightsComponentContributorPayload {
+  contributorId: string;
+  role: ContributorRole;
+  creditedName?: string;
+  notesRu?: string;
+}
+
+export interface QueryContributorsParams {
+  q?: string;
+  role?: ContributorRole;
+  page?: number;
+  limit?: number;
 }

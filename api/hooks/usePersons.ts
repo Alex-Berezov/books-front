@@ -3,7 +3,7 @@ import type {
   CreatePersonPayload,
   QueryPersonsParams,
   UpdatePersonPayload,
-} from '@/types/contributors';
+} from '@/types/api-schema';
 import { personsApi } from '../endpoints/admin/persons';
 
 export function usePersons(params?: QueryPersonsParams) {

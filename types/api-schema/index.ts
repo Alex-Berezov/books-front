@@ -179,7 +179,12 @@ export type {
   Contributor,
   ContributorLink,
   ContributorListResponse,
+  CreateContributorPayload,
   DeleteContributorResponse,
+  LinkRightsComponentContributorPayload,
+  LinkSourceEditionContributorPayload,
+  QueryContributorsParams,
+  UpdateContributorPayload,
 } from './contributors';
 
 // Book version contributors
@@ -222,11 +227,14 @@ export type {
 
 // Persons (contributors)
 export type {
+  CreatePersonPayload,
   Person,
   PersonListResponse,
   PersonTranslation,
   PersonType,
+  QueryPersonsParams,
   RightsProfilePersonSummary,
+  UpdatePersonPayload,
 } from './persons';
 
 // Views
@@ -279,8 +287,11 @@ export type {
   CreateRightsIntakeRequest,
   UpdateRightsIntakeRequest,
   ChangeRightsIntakeStatusRequest,
+  PublicationGateResult,
+  RightsContentHashCheck,
   GetRightsIntakesParams,
   RightsApprovalDecision,
+  RightsProfileContributor,
   RightsProfileDetail,
   RightsProfileList,
 } from './rights-intake';

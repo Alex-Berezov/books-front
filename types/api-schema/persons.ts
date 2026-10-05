@@ -5,9 +5,11 @@
  * в `types/api-schema/rating.ts`. Сущность переехала из `types/contributors` 26.09.2026
  * (`LEGACY-183`, пачка `T41`): слой 2 `check:type-sync` сверяет только имена бареля,
  * и `GET`/`POST`/`PATCH /admin/persons[/{id}]` до этого не проверялись вовсе.
- * `types/contributors` реэкспортирует эти имена, импортёры не менялись.
+ * Тела записи и параметры запроса (`CreatePersonPayload`, `UpdatePersonPayload`, `QueryPersonsParams`) переехали
+ * туда же в пачке `T104b`; `types/contributors.ts` удалён.
  */
 
+import type { ContributorRole } from './book-version-contributors';
 import type { PaginatedResult } from './common';
 
 export type PersonType = 'NATURAL_PERSON' | 'ORGANIZATION' | 'UNKNOWN';
@@ -79,4 +81,33 @@ export interface RightsProfilePersonSummary {
   viafId: string | null;
   isni: string | null;
   gutenbergAgentId: string | null;
+}
+
+export interface CreatePersonPayload {
+  type?: PersonType;
+  canonicalName: string;
+  sortName?: string;
+  slug?: string;
+  birthDate?: string;
+  deathDate?: string;
+  birthYear?: number;
+  deathYear?: number;
+  nationalityCountryCode?: string;
+  publicDomainFromYear?: number;
+  wikidataId?: string;
+  viafId?: string;
+  isni?: string;
+  gutenbergAgentId?: string;
+  notesRu?: string;
+}
+
+export type UpdatePersonPayload = Partial<CreatePersonPayload>;
+
+export interface QueryPersonsParams {
+  q?: string;
+  role?: ContributorRole;
+  type?: PersonType;
+  language?: string;
+  limit?: number;
+  offset?: number;
 }

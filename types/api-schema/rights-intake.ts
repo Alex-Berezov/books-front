@@ -1,5 +1,6 @@
 import type { ContributorRole } from './book-version-contributors';
 import type { PaginatedResult } from './common';
+import type { RightsProfilePersonSummary } from './persons';
 
 export type RightsIntakeStatus =
   | 'DRAFT'
@@ -603,6 +604,37 @@ export interface RightsProfileContributorEventSnapshot {
 }
 
 /**
+ * Участник в составе профиля прав — `RightsProfileContributorDto` бэкенда
+ * (`rights-intake/dto/rights-profile-response.dto.ts`). Нет персоны — `person: null`.
+ */
+export interface RightsProfileContributor {
+  id: string;
+  rightsProfileId: string;
+  rightsComponentId: string | null;
+  personId: string | null;
+  role: ContributorRole;
+  roleOtherRu: string | null;
+  displayName: string;
+  canonicalName: string | null;
+  creditedName: string | null;
+  birthYear: number | null;
+  deathYear: number | null;
+  nationalityCountryCode: string | null;
+  wikidataId: string | null;
+  viafId: string | null;
+  isni: string | null;
+  gutenbergAgentId: string | null;
+  creditedLanguage: string | null;
+  sourceEvidenceIds: string[] | null;
+  publicDomainFromYear: number | null;
+  confidence: RightsConfidence | null;
+  notesRu: string | null;
+  person: RightsProfilePersonSummary | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * LEGACY-037: одна привязка или отвязка участника профиля прав. Строка связи удаляется
  * физически, поэтому событие — единственный след того, кого и когда отвязали.
  */
@@ -641,7 +673,7 @@ export interface RightsProfileDetail {
   components: RightsComponent[];
   evidence: RightsEvidence[];
   actions: RightsAction[];
-  contributors?: import('../contributors').RightsProfileContributor[];
+  contributors?: RightsProfileContributor[];
   /**
    * LEGACY-037: журнал привязок и отвязок участников, свежие сверху, не больше 200 строк.
    * Имя не `events`: журнал принадлежит не профилю, а его связям.

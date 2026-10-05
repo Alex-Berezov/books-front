@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
  * LEGACY-183, CODE_STYLE.md («Component file structure»): завёл барель — импортируй через него.
  * Имена `RightsClaim*` достижимы через `@/types/api-schema`; второй путь к тем же типам — вторая
  * точка входа, которую автоимпорт IDE размножает. Контрибьютора (`BookVersionContributor`,
- * `ContributorRole`) сторож не ведёт: реэкспорт из `types/contributors.ts` снят, обход ловит `tsc`.
+ * `ContributorRole`) сторож не ведёт: `types/contributors.ts` удалён (`T104b`), обход ловит `tsc`.
  *
  * Обходит всё дерево исходников, а не список каталогов: новый каталог не должен оставаться
  * слепым пятном. Ловит любые кавычки, относительный путь, `export … from`, `import()`

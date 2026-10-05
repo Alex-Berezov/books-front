@@ -7,7 +7,7 @@ import {
 } from '@/components/admin/books/RightsOverridePanel/rightsOverridePolicy';
 import { ApiError } from '@/types/api';
 import type { RightsPublicationOverride } from '@/types/api-schema';
-import type { PublicationGateResult } from '@/types/api-schema/rights-intake';
+import type { PublicationGateResult } from '@/types/api-schema';
 
 const mocks = vi.hoisted(() => ({
   session: vi.fn(),

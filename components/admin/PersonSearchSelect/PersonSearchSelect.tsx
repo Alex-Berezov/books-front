@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button, Form, Input, Modal, Select, Space, Tag } from 'antd';
 import { UserPlus } from 'lucide-react';
 import { useCreatePerson, usePersons } from '@/api/hooks/usePersons';
-import type { CreatePersonPayload, Person } from '@/types/contributors';
+import type { CreatePersonPayload, Person } from '@/types/api-schema';
 import styles from './PersonSearchSelect.module.scss';
 
 export interface PersonSearchSelectProps {

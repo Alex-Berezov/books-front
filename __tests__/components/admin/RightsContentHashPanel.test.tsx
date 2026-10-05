@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RightsContentHashPanel } from '@/components/admin/books/RightsContentHashPanel/RightsContentHashPanel';
-import type { RightsContentHashCheck } from '@/types/api-schema/rights-intake';
+import type { RightsContentHashCheck } from '@/types/api-schema';
 
 const mocks = vi.hoisted(() => ({ hash: vi.fn(), check: vi.fn() }));
 

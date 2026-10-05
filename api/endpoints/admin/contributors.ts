@@ -4,15 +4,13 @@ import type {
   Contributor,
   ContributorLink,
   ContributorListResponse,
-  DeleteContributorResponse,
-} from '@/types/api-schema';
-import type {
   CreateContributorPayload,
+  DeleteContributorResponse,
   LinkRightsComponentContributorPayload,
   LinkSourceEditionContributorPayload,
   QueryContributorsParams,
   UpdateContributorPayload,
-} from '@/types/contributors';
+} from '@/types/api-schema';
 
 export const getContributors = async (
   params: QueryContributorsParams = {}

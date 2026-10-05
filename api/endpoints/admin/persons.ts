@@ -1,12 +1,12 @@
 import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
-import type { PersonListResponse } from '@/types/api-schema';
 import type {
   CreatePersonPayload,
   Person,
+  PersonListResponse,
   QueryPersonsParams,
   UpdatePersonPayload,
-} from '@/types/contributors';
+} from '@/types/api-schema';
 
 export const personsApi = {
   async list(params?: QueryPersonsParams): Promise<PersonListResponse> {

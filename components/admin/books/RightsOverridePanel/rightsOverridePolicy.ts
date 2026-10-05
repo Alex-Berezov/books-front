@@ -1,4 +1,4 @@
-import type { PublicationGateResult } from '@/types/api-schema/rights-intake';
+import type { PublicationGateResult } from '@/types/api-schema';
 
 /** Границы причины решения — те же, что проверяет бэкенд (после trim). */
 export const OVERRIDE_REASON_MIN_LENGTH = 10;

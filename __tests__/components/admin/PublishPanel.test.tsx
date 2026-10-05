@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PublishPanel } from '@/components/admin/books/PublishPanel/PublishPanel';
-import type { PublicationGateResult } from '@/types/api-schema/rights-intake';
+import type { PublicationGateResult } from '@/types/api-schema';
 
 const mocks = vi.hoisted(() => ({
   snackbar: vi.fn(),

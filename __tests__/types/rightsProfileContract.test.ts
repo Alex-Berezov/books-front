@@ -2,11 +2,11 @@ import { describe, expectTypeOf, it } from 'vitest';
 import type {
   ContributorLink,
   PersonType,
+  RightsProfileContributor,
   RightsProfileDetail,
   RightsProfilePersonSummary,
 } from '@/types/api-schema';
 import type { RiskFactor, RightsRiskLevel } from '@/types/api-schema/rights-lawyer';
-import type { RightsProfileContributor } from '@/types/contributors';
 
 /**
  * LEGACY-183, T103: формы, на которые бэкенд даёт гарантию в схеме (`required`, `enum`),
