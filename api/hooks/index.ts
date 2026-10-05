@@ -10,7 +10,6 @@ export {
   useBook,
   useBooks,
   useDeleteBook,
-  useUpdateBook,
   useUserBookRating,
   useThemes,
 } from './useBooks';

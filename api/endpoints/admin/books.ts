@@ -7,11 +7,10 @@
  */
 
 import { toPaginated } from '@/lib/api/paginated-envelope';
-import { httpDeleteAuth, httpGetAuth, httpPatchAuth } from '@/lib/http-client';
+import { httpDeleteAuth, httpGetAuth } from '@/lib/http-client';
 import type {
   BookDetailResponse,
   BookListItem,
-  CreateBookResponse,
   DeleteBookResponse,
   PaginatedResult,
 } from '@/types/api-schema';
@@ -70,26 +69,6 @@ export const getBooks = async (
 export const deleteBook = async (bookId: string): Promise<DeleteBookResponse> => {
   const endpoint = `/books/${bookId}`;
   return httpDeleteAuth<DeleteBookResponse>(endpoint);
-};
-
-/**
- * Update book data (e.g., slug)
- *
- * @param bookId - ID of the book to update
- * @param data - Update data
- * @returns Updated book
- *
- * @example
- * ```ts
- * const book = await updateBook('book-uuid-123', { slug: 'new-slug' });
- * ```
- */
-export const updateBook = async (
-  bookId: string,
-  data: { slug: string }
-): Promise<CreateBookResponse> => {
-  const endpoint = `/books/${bookId}`;
-  return httpPatchAuth<CreateBookResponse>(endpoint, data);
 };
 
 /**

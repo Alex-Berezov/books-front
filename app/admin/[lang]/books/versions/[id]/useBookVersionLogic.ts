@@ -7,7 +7,6 @@ import { getBook } from '@/api/endpoints/admin/books';
 import {
   useAudioChapters,
   useBookVersion,
-  useUpdateBook,
   useUpdateBookVersion,
   useUpsertVersionSeo,
   useCreateBookVersion,
@@ -16,6 +15,7 @@ import {
   buildImportVersionPayload,
   buildUpdateVersionRequest,
   buildVersionSeoPayload,
+  versionSlugOf,
 } from '@/components/admin/books';
 import type { BookFormData, TabType } from '@/components/admin/books';
 import type { ApiError } from '@/types/api';
@@ -65,16 +65,6 @@ export const useBookVersionLogic = (versionId: string) => {
     },
     onError: (error: ApiError) => {
       enqueueSnackbar(`Failed to update SEO: ${error.message}`, { variant: 'error' });
-    },
-  });
-
-  // Mutation for updating book (e.g., slug)
-  const updateBookMutation = useUpdateBook({
-    onSuccess: () => {
-      enqueueSnackbar('Book slug updated successfully', { variant: 'success' });
-    },
-    onError: (error) => {
-      enqueueSnackbar(`Failed to update book slug: ${error.message}`, { variant: 'error' });
     },
   });
 
@@ -211,23 +201,17 @@ export const useBookVersionLogic = (versionId: string) => {
    * Form submission handler
    */
   const handleSubmit = async (formData: BookFormData) => {
-    // Check if slug has changed
-    const slugChanged = version && formData.bookSlug !== version.bookSlug;
-
-    // If slug changed, update book first
-    if (slugChanged && version) {
-      try {
-        await updateBookMutation.mutateAsync({
-          bookId: version.bookId,
-          data: { slug: formData.bookSlug },
-        });
-      } catch (error) {
-        return;
-      }
-    }
-
+    // Слаг принадлежит этой языковой версии и уходит в её же запрос (`slug` в
+    // `buildUpdateVersionRequest`). `Book.slug` общий на все языки, отсюда его не трогаем:
+    // иначе слаг, сгенерированный в одном языке, становился слагом всех остальных.
     const seoData = buildVersionSeoPayload(formData);
     const requestData = buildUpdateVersionRequest(formData);
+    // Слаг, которого редактор не менял, не отправляется. У версии без своего слага поле
+    // показывает адрес книги; записать его в версию значит упереться в чужую версию того же
+    // языка с тем же слагом и не сохранить даже правку описания.
+    if (version && formData.bookSlug === versionSlugOf(version)) {
+      delete requestData.slug;
+    }
 
     // Send update request
     try {
@@ -272,11 +256,7 @@ export const useBookVersionLogic = (versionId: string) => {
     }
   };
 
-  const isSubmitting =
-    updateMutation.isPending ||
-    updateBookMutation.isPending ||
-    seoMutation.isPending ||
-    isImporting;
+  const isSubmitting = updateMutation.isPending || seoMutation.isPending || isImporting;
 
   return {
     version,

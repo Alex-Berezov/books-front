@@ -13,6 +13,15 @@ interface UseBookFormProps {
   initialAuthor?: string;
 }
 
+/**
+ * Слаг языковой версии. У версии, которой свой слаг ещё не задали (`null`), её действующий
+ * публичный адрес - слаг книги (`getOverview` на бэкенде падает на `Book.slug`), поэтому поле
+ * показывает его: сохранение не меняет адрес побочным эффектом, сменить слаг на свой для языка
+ * редактор может только явно.
+ */
+export const versionSlugOf = (version: BookVersionDetail): string =>
+  version.slug || version.bookSlug || '';
+
 export const useBookForm = (props: UseBookFormProps) => {
   const { lang, initialData, initialTitle, initialAuthor } = props;
 
@@ -27,7 +36,7 @@ export const useBookForm = (props: UseBookFormProps) => {
     resolver: zodResolver(schema) as unknown as Resolver<BookFormData>,
     defaultValues: initialData
       ? {
-          bookSlug: initialData.bookSlug || '',
+          bookSlug: versionSlugOf(initialData),
           author: initialData.author,
           coverImageUrl: initialData.coverImageUrl || '',
           description: initialData.description || '',
@@ -109,7 +118,7 @@ export const useBookForm = (props: UseBookFormProps) => {
   useEffect(() => {
     if (initialData) {
       reset({
-        bookSlug: initialData.bookSlug || '',
+        bookSlug: versionSlugOf(initialData),
         author: initialData.author,
         coverImageUrl: initialData.coverImageUrl || '',
         description: initialData.description || '',

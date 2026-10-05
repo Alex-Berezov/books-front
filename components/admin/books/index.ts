@@ -8,6 +8,7 @@ export {
   buildUpdateVersionRequest,
   buildVersionSeoPayload,
   requiredContentFieldsFor,
+  versionSlugOf,
 } from './BookForm';
 export type { RequiredContentFields } from './BookForm';
 export type { BookFormData, BookFormProps } from './BookForm';

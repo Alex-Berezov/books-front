@@ -138,12 +138,20 @@ export const checkBookSlugUniqueness = async (
   slug: string,
   excludeBookId?: string
 ): Promise<SlugValidationResult> => {
-  try {
-    const params = new URLSearchParams({ slug });
-    if (excludeBookId) {
-      params.append('excludeId', excludeBookId);
-    }
+  const params = new URLSearchParams({ slug });
+  if (excludeBookId) {
+    params.append('excludeId', excludeBookId);
+  }
+  return requestBookSlugCheck(params, 'checkBookSlugUniqueness');
+};
 
+/** Один запрос и один разбор ответа `GET /books/check-slug` на обе проверки: книги и версии. */
+const requestBookSlugCheck = async (
+  params: URLSearchParams,
+  caller: string
+): Promise<SlugValidationResult> => {
+  const slug = params.get('slug') ?? '';
+  try {
     const endpoint = `/books/check-slug?${params.toString()}`;
     const response = await httpGetAuth<CheckBookSlugResponse>(endpoint);
 
@@ -156,12 +164,35 @@ export const checkBookSlugUniqueness = async (
   } catch (error) {
     // The check itself failed - report unknown, not unique. Saving is still
     // not blocked: the caller reads `checkFailed`.
-    console.error('[checkBookSlugUniqueness] Error checking slug:', error);
+    console.error(`[${caller}] Error checking slug:`, error);
     return {
       slug,
       checkFailed: true,
     };
   }
+};
+
+/**
+ * Слаг языковой версии книги: `GET /books/check-slug?lang=…`.
+ *
+ * С `lang` ручка проверяет слаг так, как разрешается публичный адрес: занят слаг другой версии
+ * того же языка, `Book.slug` другой книги и слаг версии другой книги в любом языке. Свои слаги
+ * ведут в ту же книгу и свободны, поэтому ручке нужна своя книга: `excludeVersionId` при правке
+ * версии, `excludeId` (id книги) при создании.
+ */
+export const checkBookVersionSlugUniqueness = async (
+  slug: string,
+  lang: SupportedLang,
+  exclude: { versionId?: string; bookId?: string } = {}
+): Promise<SlugValidationResult> => {
+  const params = new URLSearchParams({ slug, lang });
+  if (exclude.versionId) {
+    params.append('excludeVersionId', exclude.versionId);
+  }
+  if (exclude.bookId) {
+    params.append('excludeId', exclude.bookId);
+  }
+  return requestBookSlugCheck(params, 'checkBookVersionSlugUniqueness');
 };
 
 /**

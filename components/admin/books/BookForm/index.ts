@@ -8,3 +8,4 @@ export {
 } from './buildVersionRequest';
 export { buildBookVersionSchema, requiredContentFieldsFor } from './bookVersionSchema';
 export type { RequiredContentFields } from './bookVersionSchema';
+export { versionSlugOf } from './useBookForm';

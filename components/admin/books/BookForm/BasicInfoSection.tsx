@@ -25,6 +25,9 @@ interface BasicInfoSectionProps {
   watch: UseFormWatch<BookFormData>;
   setValue: UseFormSetValue<BookFormData>;
   isEditMode: boolean;
+  /** Id редактируемой версии: исключается из проверки слага. Нет - форма создания. */
+  versionId?: string;
+  /** Книга версии: её собственные слаги проверка слага конфликтом не считает. */
   bookId?: string;
   existingLanguages?: SupportedLang[];
 }
@@ -37,6 +40,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
     watch,
     setValue,
     isEditMode,
+    versionId,
     bookId,
     existingLanguages = [],
   } = props;
@@ -170,15 +174,17 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="bookSlug">
-          Book Slug *
+          Version Slug *
         </label>
         <SlugInput
           autoGenerate
-          entityType="book"
+          entityType="bookVersion"
           error={errors.bookSlug?.message}
-          excludeId={bookId}
+          excludeId={versionId}
           id="bookSlug"
-          mode={bookId ? 'edit' : 'create'}
+          lang={watch('language')}
+          mode={versionId ? 'edit' : 'create'}
+          ownBookId={bookId}
           onChange={(value) => setValue('bookSlug', value)}
           placeholder="harry-potter"
           showGenerateButton
@@ -186,7 +192,8 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
           value={watch('bookSlug')}
         />
         <span className={styles.hint}>
-          URL-friendly identifier for the book (lowercase, hyphens only). Example: about-us
+          URL-friendly identifier for this language version (lowercase, hyphens only). Each language
+          has its own slug. Example: harry-potter
         </span>
       </div>
 

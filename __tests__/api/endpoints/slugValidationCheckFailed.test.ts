@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   checkBookSlugUniqueness,
+  checkBookVersionSlugUniqueness,
   checkCategorySlugUniqueness,
   checkPageSlugUniqueness,
   checkTagSlugUniqueness,
@@ -37,6 +38,15 @@ describe('slug-validation endpoints report a failed check as unknown, not unique
     mocks.httpGetAuth.mockRejectedValue(new Error('network'));
 
     const result = await checkBookSlugUniqueness('harry-potter');
+
+    expect(result.isUnique).not.toBe(true);
+    expect(result.checkFailed).toBe(true);
+  });
+
+  it('checkBookVersionSlugUniqueness', async () => {
+    mocks.httpGetAuth.mockRejectedValue(new Error('network'));
+
+    const result = await checkBookVersionSlugUniqueness('voyna-i-mir', 'ru');
 
     expect(result.isUnique).not.toBe(true);
     expect(result.checkFailed).toBe(true);

@@ -103,7 +103,6 @@
   "PATCH /admin/{lang}/pages/{id}/publish",
   "PATCH /admin/{lang}/pages/{id}/unpublish",
   "PATCH /audio-chapters/{id}",
-  "PATCH /books/{id}",
   "PATCH /categories/{id}",
   "PATCH /categories/{id}/translations/{language}",
   "PATCH /chapters/{id}",

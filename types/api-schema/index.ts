@@ -56,7 +56,6 @@ export type {
   BookVersion,
   BookVersionDetail,
   CheckBookSlugResponse,
-  CreateBookResponse,
   DeleteBookResponse,
   CreateBookVersionRequest,
   ReaderBootstrapChapter,

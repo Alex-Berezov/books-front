@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { checkTagSlugUniqueness } from '@/api/endpoints/slug-validation';
+import {
+  checkBookVersionSlugUniqueness,
+  checkTagSlugUniqueness,
+} from '@/api/endpoints/slug-validation';
 
 const mocks = vi.hoisted(() => ({ httpGetAuth: vi.fn() }));
 
@@ -54,4 +57,55 @@ describe('checkTagSlugUniqueness', () => {
   // Поведение при отказе самой проверки (LEGACY-142) закреплено вместе с тремя
   // остальными функциями того же модуля - `__tests__/api/endpoints/slugValidationCheckFailed.test.ts`.
   // Здесь только маршрутизация по типу сущности, ради которой файл и заведён.
+});
+
+/**
+ * Слаг языковой версии проверяется так, как разрешается публичный адрес, и ручке нужна своя
+ * книга: при правке - через саму версию, при создании - id книги. Без языка ручка ответила бы
+ * про `Book.slug` - это другой вопрос, им проверяется создание книги.
+ */
+describe('checkBookVersionSlugUniqueness', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('editing: sends the language and the edited version', async () => {
+    mocks.httpGetAuth.mockResolvedValue({ exists: false });
+
+    const result = await checkBookVersionSlugUniqueness('voyna-i-mir', 'ru', {
+      versionId: 'version-1',
+    });
+
+    const endpoint = mocks.httpGetAuth.mock.calls[0][0] as string;
+    expect(endpoint).toContain('/books/check-slug');
+    expect(endpoint).toContain('slug=voyna-i-mir');
+    expect(endpoint).toContain('lang=ru');
+    expect(endpoint).toContain('excludeVersionId=version-1');
+    expect(endpoint).not.toContain('excludeId=');
+    expect(result.isUnique).toBe(true);
+  });
+
+  it('creating: sends the own book, and no version', async () => {
+    mocks.httpGetAuth.mockResolvedValue({ exists: false });
+
+    await checkBookVersionSlugUniqueness('voyna-i-mir', 'ru', { bookId: 'book-1' });
+
+    const endpoint = mocks.httpGetAuth.mock.calls[0][0] as string;
+    expect(endpoint).toContain('excludeId=book-1');
+    expect(endpoint).not.toContain('excludeVersionId');
+  });
+
+  it('reports a taken slug together with the suggestion and the conflicting book', async () => {
+    mocks.httpGetAuth.mockResolvedValue({
+      exists: true,
+      suggestedSlug: 'voyna-i-mir-2',
+      existingBook: { id: 'book-2', slug: 'voyna-i-mir' },
+    });
+
+    const result = await checkBookVersionSlugUniqueness('voyna-i-mir', 'ru');
+
+    expect(result.isUnique).toBe(false);
+    expect(result.suggestedSlug).toBe('voyna-i-mir-2');
+    expect(result.existingBook).toEqual({ id: 'book-2', slug: 'voyna-i-mir' });
+  });
 });

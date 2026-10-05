@@ -65,6 +65,7 @@ const buildCommonFields = (data: BookFormData) => ({
  */
 export const buildCreateVersionRequest = (data: BookFormData): CreateBookVersionRequest => ({
   language: data.language,
+  slug: data.bookSlug || undefined,
   description: data.description || undefined,
   coverImageUrl: data.coverImageUrl || undefined,
   ...buildCommonFields(data),

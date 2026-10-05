@@ -6933,20 +6933,6 @@
     ]
   },
   {
-    "route": "PATCH /books/{id}",
-    "hasResponseSchema": true,
-    "fields": [
-      "approvedRightsReviewId",
-      "createdAt",
-      "currentRightsProfileId",
-      "id",
-      "rightsCreatedAt",
-      "rightsIntakeId",
-      "slug",
-      "updatedAt"
-    ]
-  },
-  {
     "route": "PATCH /categories/{id}",
     "hasResponseSchema": true,
     "fields": [

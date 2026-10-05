@@ -54,6 +54,7 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
     lang,
     mode,
     onChange,
+    ownBookId,
     placeholder = 'about-us',
     showGenerateButton = true,
     sourceValue,
@@ -86,6 +87,7 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
     entityType,
     lang,
     excludeId,
+    ownBookId,
     enabled: !disabled,
   });
 
@@ -110,13 +112,15 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
   }, [sourceValue, autoGenerate, autoGenerationLocked, value, onChange]);
 
   /**
-   * Check uniqueness when slug changes
+   * Check uniqueness when slug changes - and when what the check depends on changes: a slug of
+   * a page or a book version is unique within its language, and a version's own book is not a
+   * conflict, so a verdict for another language or without the own book is stale.
    */
   useEffect(() => {
     if (value && isValidSlug(value)) {
       validate(value);
     }
-  }, [value, validate]);
+  }, [value, validate, lang, excludeId, ownBookId]);
 
   /**
    * Handle manual slug change

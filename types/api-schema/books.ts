@@ -162,16 +162,6 @@ export interface BookOverview {
 }
 
 /**
- * Response on book creation
- */
-export interface CreateBookResponse {
-  id: UUID;
-  slug: string;
-  createdAt: ISODate;
-  updatedAt: ISODate;
-}
-
-/**
  * Book version
  */
 export interface BookVersion {
@@ -197,6 +187,8 @@ export interface BookVersionDetail {
   bookId: UUID;
   /** Только `GET /admin/versions/{id}`: остальные маршруты версии слаг книги не собирают. */
   bookSlug?: string;
+  /** Слаг этой языковой версии (`BookVersion.slug`); `null`, пока версии его не задали. */
+  slug: string | null;
   language: SupportedLang;
   title: string;
   author: string;
@@ -252,6 +244,8 @@ export interface BookVersionDetail {
 export interface CreateBookVersionRequest {
   /** Book version language */
   language: SupportedLang;
+  /** Localized slug for the book version */
+  slug?: string;
   /** Book title */
   title: string;
   /** Book author */

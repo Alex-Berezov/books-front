@@ -82,6 +82,16 @@ describe('buildCreateVersionRequest', () => {
   });
 });
 
+describe('buildCreateVersionRequest: слаг', () => {
+  it('отправляет слаг новой языковой версии, иначе версия заводится без своего адреса', () => {
+    expect(buildCreateVersionRequest(formData()).slug).toBe('bratya-karamazovy');
+  });
+
+  it('пустой слаг не отправляет', () => {
+    expect(buildCreateVersionRequest(formData({ bookSlug: '' })).slug).toBeUndefined();
+  });
+});
+
 describe('buildUpdateVersionRequest', () => {
   it('отправляет пустое поле пустой строкой — иначе очистить его нельзя', () => {
     const request = buildUpdateVersionRequest(formData());

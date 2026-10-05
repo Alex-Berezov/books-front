@@ -16,7 +16,6 @@ import {
   deleteBook,
   getBook,
   getBooks,
-  updateBook,
   getThemes,
   type GetBooksParams,
 } from '@/api/endpoints/admin/books';
@@ -24,7 +23,6 @@ import { getUserBookRating } from '@/api/endpoints/rating';
 import type {
   BookDetailResponse,
   BookListItem,
-  CreateBookResponse,
   DeleteBookResponse,
   PaginatedResult,
   UserRatingResponse,
@@ -103,56 +101,6 @@ export const useDeleteBook = (
     onSuccess: (data, variables, context) => {
       // Invalidate books list after deletion
       queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
-      (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
-        data,
-        variables,
-        context
-      );
-    },
-  });
-};
-
-/**
- * Parameters for updating a book
- */
-export interface UpdateBookParams {
-  /** Book ID */
-  bookId: string;
-  /** Update data */
-  data: { slug: string };
-}
-
-/**
- * Hook for updating a book (e.g., changing slug)
- *
- * @param options - React Query mutation options
- * @returns React Query mutation for updating book
- *
- * @example
- * ```tsx
- * const updateBookMutation = useUpdateBook();
- *
- * const handleUpdateSlug = async (bookId: string, newSlug: string) => {
- *   await updateBookMutation.mutateAsync({
- *     bookId,
- *     data: { slug: newSlug }
- *   });
- *   console.log('Book slug updated');
- * };
- * ```
- */
-export const useUpdateBook = (
-  options?: Omit<UseMutationOptions<CreateBookResponse, Error, UpdateBookParams>, 'mutationFn'>
-) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ bookId, data }: UpdateBookParams) => updateBook(bookId, data),
-    ...options,
-    onSuccess: (data, variables, context) => {
-      // Invalidate books list and details after update
-      queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: bookKeys.details() });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
         variables,

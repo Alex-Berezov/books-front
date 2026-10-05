@@ -28,6 +28,8 @@ export interface SlugInputProps {
   lang?: SupportedLang;
   /** ID of edited entity (to exclude from uniqueness check) */
   excludeId?: string;
+  /** `bookVersion` only: the version's own book - its slugs lead to the same book */
+  ownBookId?: string;
   /** Disable field */
   disabled?: boolean;
   /** Show "Generate from title" button */

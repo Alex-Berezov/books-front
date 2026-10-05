@@ -26,6 +26,7 @@ export type { BookFormData, BookFormProps } from './BookForm.types';
 export const BookForm: FC<BookFormProps> = (props) => {
   const {
     lang,
+    bookId,
     initialData,
     initialTitle,
     initialAuthor,
@@ -111,7 +112,8 @@ export const BookForm: FC<BookFormProps> = (props) => {
 
       {/* Basic Information */}
       <BasicInfoSection
-        bookId={initialData?.bookId}
+        bookId={initialData?.bookId ?? bookId}
+        versionId={initialData?.id}
         control={control}
         errors={errors}
         existingLanguages={existingLanguages}
