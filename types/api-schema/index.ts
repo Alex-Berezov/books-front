@@ -174,6 +174,14 @@ export type {
 // Ratings
 export type { RateBookResponse, UserRatingResponse } from './rating';
 
+// Contributors (admin catalog, link response)
+export type {
+  Contributor,
+  ContributorLink,
+  ContributorListResponse,
+  DeleteContributorResponse,
+} from './contributors';
+
 // Book version contributors
 export type { BookVersionContributor, ContributorRole } from './book-version-contributors';
 

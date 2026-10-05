@@ -18,12 +18,15 @@ import {
 } from '@/api/endpoints/admin/contributors';
 import type {
   Contributor,
+  ContributorLink,
   ContributorListResponse,
+  DeleteContributorResponse,
+} from '@/types/api-schema';
+import type {
   CreateContributorPayload,
   LinkRightsComponentContributorPayload,
   LinkSourceEditionContributorPayload,
   QueryContributorsParams,
-  ContributorLink,
   UpdateContributorPayload,
 } from '@/types/contributors';
 
@@ -98,9 +101,11 @@ export const useUpdateContributor = (
   });
 };
 
-export const useDeleteContributor = (options?: UseMutationOptions<Contributor, Error, string>) => {
+export const useDeleteContributor = (
+  options?: UseMutationOptions<DeleteContributorResponse, Error, string>
+) => {
   const queryClient = useQueryClient();
-  return useMutation<Contributor, Error, string>({
+  return useMutation<DeleteContributorResponse, Error, string>({
     mutationFn: (id) => deleteContributor(id),
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: CONTRIBUTOR_KEYS.all });

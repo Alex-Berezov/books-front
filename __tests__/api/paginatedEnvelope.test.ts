@@ -13,6 +13,7 @@ import { getBookshelf } from '@/api/endpoints/bookshelf';
 import type {
   BookshelfListResponse,
   CommentsResponse,
+  ContributorListResponse,
   MediaResponse,
   PersonListResponse,
   UserActivitiesResponse,
@@ -20,7 +21,6 @@ import type {
 // Не через барель: `UsersResponse` туда не вынесен намеренно — причина в комментарии
 // у блока `./user` в `types/api-schema/index.ts`.
 import type { UsersResponse } from '@/types/api-schema/user';
-import type { ContributorListResponse } from '@/types/contributors';
 import { server } from '../msw/server';
 
 /**

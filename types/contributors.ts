@@ -1,5 +1,4 @@
 import type { ContributorRole } from './api-schema/book-version-contributors';
-import type { PaginatedResult } from './api-schema/common';
 import type { PersonType, RightsProfilePersonSummary } from './api-schema/persons';
 import type { RightsConfidence } from './api-schema/rights-intake';
 
@@ -35,66 +34,6 @@ export interface RightsProfileContributor {
   createdAt: string;
   updatedAt: string;
 }
-
-/**
- * Ответ привязки и отвязки участника — `ContributorLinkResponseDto` бэкенда
- * (`contributors/dto/contributor-response.dto.ts`). Отдельный класс на бэкенде — отдельный тип
- * здесь: без `person`, а `sourceEvidenceIds` — сырая Json-колонка, путь привязки её не нормализует.
- */
-export interface ContributorLink {
-  id: string;
-  rightsProfileId: string;
-  rightsComponentId: string | null;
-  personId: string | null;
-  role: ContributorRole;
-  roleOtherRu: string | null;
-  displayName: string;
-  canonicalName: string | null;
-  creditedName: string | null;
-  birthYear: number | null;
-  deathYear: number | null;
-  nationalityCountryCode: string | null;
-  wikidataId: string | null;
-  viafId: string | null;
-  isni: string | null;
-  gutenbergAgentId: string | null;
-  creditedLanguage: string | null;
-  publicDomainFromYear: number | null;
-  sourceEvidenceIds: unknown;
-  confidence: RightsConfidence | null;
-  notesRu: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Участник в админском каталоге. Физически это запись `Person` —
- * отдельной таблицы `Contributor` в базе нет (см. фазу 14).
- */
-export interface Contributor {
-  id: string;
-  displayName: string;
-  sortName?: string | null;
-  birthDate?: string | null;
-  deathDate?: string | null;
-  birthYear?: number | null;
-  deathYear?: number | null;
-  nationalityCountry?: string | null;
-  publicDomainFromYear?: number | null;
-  wikidataId?: string | null;
-  viafId?: string | null;
-  isni?: string | null;
-  gutenbergAgentId?: string | null;
-  notesRu?: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Ответ `GET /admin/contributors` — единая обёртка `{items, pagination}` (`LEGACY-177`,
- * 13.09.2026). До этого дня `total`, `page` и `limit` лежали рядом с `items`.
- */
-export type ContributorListResponse = PaginatedResult<Contributor>;
 
 export interface CreateContributorPayload {
   displayName: string;

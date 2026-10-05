@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { Contributor, RightsProfileContributor } from '@/types/contributors';
+import type { Contributor } from '@/types/api-schema';
+import type { RightsProfileContributor } from '@/types/contributors';
 import { ContributorsPanel } from './ContributorsPanel';
 
 vi.mock('@/api/hooks/useContributors', () => ({

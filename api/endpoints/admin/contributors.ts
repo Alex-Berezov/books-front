@@ -2,12 +2,15 @@ import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   Contributor,
+  ContributorLink,
   ContributorListResponse,
+  DeleteContributorResponse,
+} from '@/types/api-schema';
+import type {
   CreateContributorPayload,
   LinkRightsComponentContributorPayload,
   LinkSourceEditionContributorPayload,
   QueryContributorsParams,
-  ContributorLink,
   UpdateContributorPayload,
 } from '@/types/contributors';
 
@@ -43,8 +46,10 @@ export const updateContributor = async (
   return httpPatchAuth<Contributor>(`/admin/contributors/${id}`, payload, { requireAuth: true });
 };
 
-export const deleteContributor = async (id: string): Promise<Contributor> => {
-  return httpDeleteAuth<Contributor>(`/admin/contributors/${id}`, { requireAuth: true });
+export const deleteContributor = async (id: string): Promise<DeleteContributorResponse> => {
+  return httpDeleteAuth<DeleteContributorResponse>(`/admin/contributors/${id}`, {
+    requireAuth: true,
+  });
 };
 
 export const linkSourceEditionContributor = async (
