@@ -664,8 +664,8 @@ export interface RightsProfileDetail {
   licenseCoveredCountriesCount?: number;
   licenseUncoveredCountriesCount?: number;
   // Phase 19: снимок оценки риска и юридического утверждения
-  riskLevel?: import('./rights-lawyer').RightsRiskLevel;
-  riskFactors?: import('./rights-lawyer').RiskFactor[];
+  riskLevel: import('./rights-lawyer').RightsRiskLevel;
+  riskFactors: import('./rights-lawyer').RiskFactor[];
   riskAssessedAt?: string | null;
   lawyerReviewRequired?: boolean;
   lawyerReviewBlocking?: boolean;

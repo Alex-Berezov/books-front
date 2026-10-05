@@ -287,6 +287,8 @@ const mockDashboard: BookRightsDashboard = {
     conclusionRu: 'Full clearance granted',
     reasoningRu: null,
     nextReviewAt: null,
+    riskLevel: 'LOW',
+    riskFactors: [],
     reviews: [mockReview],
     supersededAt: null,
     archivedAt: null,

@@ -79,7 +79,7 @@ export interface RiskFactor {
   code: RightsRiskFactorCode;
   level: RightsRiskLevel;
   messageRu: string;
-  details?: Record<string, unknown> | null;
+  details: Record<string, unknown> | null;
 }
 
 export interface RightsLawyer {

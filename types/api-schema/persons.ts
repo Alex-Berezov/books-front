@@ -68,7 +68,7 @@ export type PersonListResponse = PaginatedResult<Person>;
  */
 export interface RightsProfilePersonSummary {
   id: string;
-  type: string;
+  type: PersonType;
   canonicalName: string;
   sortName: string | null;
   slug: string | null;

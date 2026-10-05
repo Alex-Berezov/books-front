@@ -15,15 +15,6 @@ export interface LoginRequest {
 }
 
 /**
- * Registration request
- */
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  name?: string;
-}
-
-/**
  * Пользователь в ответе входа — `AuthUserResponse` бэкенда (`auth/dto/auth-response.dto.ts`), а не
  * `PublicUserWithRolesDto`: схема объявляет `firstName`, `lastName`, `nickname`, `isActive`, `lastLogin`
  * необязательными. Поля `displayName` у сервера нет (`LEGACY-380`).

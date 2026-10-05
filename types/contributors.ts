@@ -5,30 +5,66 @@ import type { RightsConfidence } from './api-schema/rights-intake';
 
 export type { Person, PersonTranslation, PersonType } from './api-schema/persons';
 
+/**
+ * Участник в составе профиля прав — `RightsProfileContributorDto` бэкенда
+ * (`rights-intake/dto/rights-profile-response.dto.ts`). Нет персоны — `person: null`.
+ */
 export interface RightsProfileContributor {
   id: string;
   rightsProfileId: string;
-  rightsComponentId?: string | null;
-  personId?: string | null;
+  rightsComponentId: string | null;
+  personId: string | null;
   role: ContributorRole;
-  roleOtherRu?: string | null;
+  roleOtherRu: string | null;
   displayName: string;
-  canonicalName?: string | null;
-  creditedName?: string | null;
-  birthYear?: number | null;
-  deathYear?: number | null;
-  nationalityCountryCode?: string | null;
-  wikidataId?: string | null;
-  viafId?: string | null;
-  isni?: string | null;
-  gutenbergAgentId?: string | null;
-  creditedLanguage?: string | null;
-  publicDomainFromYear?: number | null;
-  sourceEvidenceIds?: string[] | null;
-  confidence?: RightsConfidence | null;
-  notesRu?: string | null;
-  /** Только в составе профиля прав; ответы привязки и отвязки участника (`ContributorLinkResponseDto`) ключа не несут. */
-  person?: RightsProfilePersonSummary | null;
+  canonicalName: string | null;
+  creditedName: string | null;
+  birthYear: number | null;
+  deathYear: number | null;
+  nationalityCountryCode: string | null;
+  wikidataId: string | null;
+  viafId: string | null;
+  isni: string | null;
+  gutenbergAgentId: string | null;
+  creditedLanguage: string | null;
+  sourceEvidenceIds: string[] | null;
+  publicDomainFromYear: number | null;
+  confidence: RightsConfidence | null;
+  notesRu: string | null;
+  person: RightsProfilePersonSummary | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Ответ привязки и отвязки участника — `ContributorLinkResponseDto` бэкенда
+ * (`contributors/dto/contributor-response.dto.ts`). Отдельный класс на бэкенде — отдельный тип
+ * здесь: без `person`, а `sourceEvidenceIds` — сырая Json-колонка, путь привязки её не нормализует.
+ */
+export interface ContributorLink {
+  id: string;
+  rightsProfileId: string;
+  rightsComponentId: string | null;
+  personId: string | null;
+  role: ContributorRole;
+  roleOtherRu: string | null;
+  displayName: string;
+  canonicalName: string | null;
+  creditedName: string | null;
+  birthYear: number | null;
+  deathYear: number | null;
+  nationalityCountryCode: string | null;
+  wikidataId: string | null;
+  viafId: string | null;
+  isni: string | null;
+  gutenbergAgentId: string | null;
+  creditedLanguage: string | null;
+  publicDomainFromYear: number | null;
+  sourceEvidenceIds: unknown;
+  confidence: RightsConfidence | null;
+  notesRu: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**

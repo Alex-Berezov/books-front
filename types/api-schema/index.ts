@@ -25,13 +25,7 @@ export type {
 } from './common';
 
 // Auth
-export type {
-  AuthResponse,
-  LoginRequest,
-  RefreshRequest,
-  RefreshResponse,
-  RegisterRequest,
-} from './auth';
+export type { AuthResponse, LoginRequest, RefreshRequest, RefreshResponse } from './auth';
 
 // User
 export type {

@@ -27,10 +27,28 @@ describe('ContributorsPanel', () => {
   const sampleProfileContributor: RightsProfileContributor = {
     id: 'rpc-1',
     rightsProfileId: 'profile-1',
+    rightsComponentId: null,
     personId: 'person-1',
     role: 'NARRATOR',
+    roleOtherRu: null,
     displayName: 'Juan Pérez',
+    canonicalName: null,
+    creditedName: null,
+    birthYear: null,
+    deathYear: null,
+    nationalityCountryCode: null,
+    wikidataId: null,
+    viafId: null,
+    isni: null,
+    gutenbergAgentId: null,
+    creditedLanguage: null,
+    sourceEvidenceIds: null,
+    publicDomainFromYear: null,
     confidence: 'HIGH',
+    notesRu: null,
+    person: null,
+    createdAt: '2026-07-27T00:00:00Z',
+    updatedAt: '2026-07-27T00:00:00Z',
   };
 
   it('renders empty message when no items', () => {

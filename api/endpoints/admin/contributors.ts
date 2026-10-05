@@ -7,7 +7,7 @@ import type {
   LinkRightsComponentContributorPayload,
   LinkSourceEditionContributorPayload,
   QueryContributorsParams,
-  RightsProfileContributor,
+  ContributorLink,
   UpdateContributorPayload,
 } from '@/types/contributors';
 
@@ -50,8 +50,8 @@ export const deleteContributor = async (id: string): Promise<Contributor> => {
 export const linkSourceEditionContributor = async (
   sourceEditionId: string,
   payload: LinkSourceEditionContributorPayload
-): Promise<RightsProfileContributor> => {
-  return httpPostAuth<RightsProfileContributor>(
+): Promise<ContributorLink> => {
+  return httpPostAuth<ContributorLink>(
     `/admin/source-editions/${sourceEditionId}/contributors`,
     payload,
     { requireAuth: true }
@@ -61,8 +61,8 @@ export const linkSourceEditionContributor = async (
 export const unlinkSourceEditionContributor = async (
   sourceEditionId: string,
   linkId: string
-): Promise<RightsProfileContributor> => {
-  return httpDeleteAuth<RightsProfileContributor>(
+): Promise<ContributorLink> => {
+  return httpDeleteAuth<ContributorLink>(
     `/admin/source-editions/${sourceEditionId}/contributors/${linkId}`,
     { requireAuth: true }
   );
@@ -71,8 +71,8 @@ export const unlinkSourceEditionContributor = async (
 export const linkRightsComponentContributor = async (
   rightsComponentId: string,
   payload: LinkRightsComponentContributorPayload
-): Promise<RightsProfileContributor> => {
-  return httpPostAuth<RightsProfileContributor>(
+): Promise<ContributorLink> => {
+  return httpPostAuth<ContributorLink>(
     `/admin/rights-components/${rightsComponentId}/contributors`,
     payload,
     { requireAuth: true }
@@ -82,8 +82,8 @@ export const linkRightsComponentContributor = async (
 export const unlinkRightsComponentContributor = async (
   rightsComponentId: string,
   linkId: string
-): Promise<RightsProfileContributor> => {
-  return httpDeleteAuth<RightsProfileContributor>(
+): Promise<ContributorLink> => {
+  return httpDeleteAuth<ContributorLink>(
     `/admin/rights-components/${rightsComponentId}/contributors/${linkId}`,
     { requireAuth: true }
   );

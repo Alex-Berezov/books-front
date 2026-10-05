@@ -142,6 +142,8 @@ const mockProfile: RightsProfileDetail = {
   conclusionRu: 'Conclusion',
   reasoningRu: null,
   nextReviewAt: null,
+  riskLevel: 'LOW',
+  riskFactors: [],
   sourceEdition: null,
   reviews: [],
   territoryDecisions: [
