@@ -15,7 +15,7 @@ import type {
   RightsNotificationsListResponse,
   RightsNotificationsMarkAllReadResponse,
   RightsNotificationsUnreadCount,
-} from '@/types/api-schema/rights-agent';
+} from '@/types/api-schema';
 
 const buildTokensQuery = (params: ListRightsAgentTokensParams): string => {
   const queryParams = new URLSearchParams();

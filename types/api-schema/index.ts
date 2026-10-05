@@ -302,6 +302,24 @@ export type {
   RightsProfileList,
 } from './rights-intake';
 
+// Rights agent tokens and notifications
+export type {
+  CreateRightsAgentTokenRequest,
+  ListRightsAgentSubmissionsParams,
+  ListRightsAgentTokensParams,
+  ListRightsNotificationsParams,
+  RevokeRightsAgentTokenRequest,
+  RightsAgentSubmission,
+  RightsAgentSubmissionsListResponse,
+  RightsAgentToken,
+  RightsAgentTokenIssued,
+  RightsAgentTokensListResponse,
+  RightsNotification,
+  RightsNotificationsListResponse,
+  RightsNotificationsMarkAllReadResponse,
+  RightsNotificationsUnreadCount,
+} from './rights-agent';
+
 // GeoIP market blocking
 export type {
   CheckGeoBlockAccessRequest,

@@ -32,7 +32,7 @@ import type {
   RightsNotificationsListResponse,
   RightsNotificationsMarkAllReadResponse,
   RightsNotificationsUnreadCount,
-} from '@/types/api-schema/rights-agent';
+} from '@/types/api-schema';
 
 export const rightsAgentKeys = {
   all: ['rights-agent'] as const,
