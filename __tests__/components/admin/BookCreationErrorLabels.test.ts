@@ -10,7 +10,7 @@ describe('bookCreationErrorMessage (WP-H)', () => {
   it('translates a known refusal code', () => {
     expect(
       bookCreationErrorMessage({ code: 'BOOK_CREATION_SLUG_TAKEN', messageRu: 'Слаг занят.' })
-    ).toBe('Книга с таким слагом уже существует');
+    ).toBe('Слаг занят другой книгой: её адресом, версией или старым адресом');
   });
 
   it('falls back to the Russian message of an unknown code', () => {

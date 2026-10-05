@@ -120,6 +120,57 @@ describe('buildBookVersionSchema', () => {
   });
 });
 
+// `LEGACY-437`: формат слага в форме — тот же, что у DTO версии (`SLUG_PATTERN`, длина 100);
+// иначе форма пропускает то, на что сервер ответит 400 без подсказки у поля.
+describe('buildBookVersionSchema: формат слага (LEGACY-437)', () => {
+  const schema = buildBookVersionSchema({ description: false, coverImageUrl: false });
+  const slugIssues = (bookSlug: string) =>
+    schema
+      .safeParse(formData({ bookSlug }))
+      .error?.issues.filter((issue) => issue.path[0] === 'bookSlug') ?? [];
+
+  it.each(['-hamlet', 'hamlet-', 'ham--let', 'Hamlet', 'ham let', 'a'.repeat(101)])(
+    'отбивает %s',
+    (bookSlug) => {
+      expect(slugIssues(bookSlug)).not.toEqual([]);
+    }
+  );
+
+  it('нетронутый старый слаг не по формату не запирает сохранение; изменённый — проверяется', () => {
+    const editing = buildBookVersionSchema(
+      { description: false, coverImageUrl: false },
+      'old--slug'
+    );
+    const issues = (bookSlug: string) =>
+      editing
+        .safeParse(formData({ bookSlug }))
+        .error?.issues.filter((issue) => issue.path[0] === 'bookSlug') ?? [];
+
+    expect(issues('old--slug')).toEqual([]);
+    // Длина — тоже только у изменённого: `Book.slug` длиннее 100 бэкенд не запрещал.
+    const longKept = 'a'.repeat(101);
+    const editingLong = buildBookVersionSchema(
+      { description: false, coverImageUrl: false },
+      longKept
+    );
+    expect(
+      editingLong
+        .safeParse(formData({ bookSlug: longKept }))
+        .error?.issues.filter((issue) => issue.path[0] === 'bookSlug') ?? []
+    ).toEqual([]);
+    expect(issues('a'.repeat(101))).not.toEqual([]);
+    expect(issues('new--slug')).not.toEqual([]);
+    expect(issues('new-slug')).toEqual([]);
+  });
+
+  it.each(['hamlet', 'hamlet-2', 'bratya-karamazovy', 'a'.repeat(100)])(
+    'пускает %s',
+    (bookSlug) => {
+      expect(slugIssues(bookSlug)).toEqual([]);
+    }
+  );
+});
+
 // `T75`: форма версии — зеркало `@IsAbsoluteHttpUrl()` на `coverImageUrl`/`referralUrl` и
 // `UpdateSeoDto` на SEO-адресах; `z.url()` пропускал `ftp://`, а голая строка — что угодно.
 describe('buildBookVersionSchema: адреса (LEGACY-401, T75)', () => {

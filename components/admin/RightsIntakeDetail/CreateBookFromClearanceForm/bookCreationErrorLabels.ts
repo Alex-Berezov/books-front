@@ -17,7 +17,8 @@ export const BOOK_CREATION_ERROR_LABELS: Record<string, string> = {
   BOOK_CREATION_PROFILE_NOT_APPROVED: 'Профиль прав не утверждён',
   BOOK_CREATION_PROFILE_INTAKE_MISMATCH: 'Профиль прав принадлежит другой проверке',
   BOOK_CREATION_PUBLICATION_GATE_BLOCK: 'Публикация запрещена по результатам проверки',
-  BOOK_CREATION_SLUG_TAKEN: 'Книга с таким слагом уже существует',
+  // `LEGACY-437`: код покрывает и версию, и старый адрес другой книги, а не только её слаг.
+  BOOK_CREATION_SLUG_TAKEN: 'Слаг занят другой книгой: её адресом, версией или старым адресом',
   BOOK_CREATION_LANGUAGE_NOT_TARGETED: 'Язык версии не входит в целевые языки проверки',
   // WP-L.2: привязка клиренса к существующей книге.
   BOOK_CREATION_BOOK_NOT_FOUND: 'Книга с таким слагом не найдена',

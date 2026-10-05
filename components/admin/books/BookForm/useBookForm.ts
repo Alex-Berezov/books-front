@@ -28,7 +28,11 @@ export const useBookForm = (props: UseBookFormProps) => {
   // Черновик сохраняется с любым наполнением; у версии, которая уже выходила наружу, нельзя
   // стереть заполненные описание и обложку. Разбор случаев — в `requiredContentFieldsFor`.
   const schema = useMemo(
-    () => buildBookVersionSchema(requiredContentFieldsFor(initialData)),
+    () =>
+      buildBookVersionSchema(
+        requiredContentFieldsFor(initialData),
+        initialData ? versionSlugOf(initialData) : undefined
+      ),
     [initialData]
   );
 

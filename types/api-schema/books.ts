@@ -244,7 +244,11 @@ export interface BookVersionDetail {
 export interface CreateBookVersionRequest {
   /** Book version language */
   language: SupportedLang;
-  /** Localized slug for the book version */
+  /**
+   * Localized slug for the book version: `^[a-z0-9]+(?:-[a-z0-9]+)*$`, at most 100 chars (400 otherwise).
+   * 400 also when it is another version's slug in this language or another book's address,
+   * current or old (`LEGACY-437`).
+   */
   slug?: string;
   /** Book title */
   title: string;
@@ -283,7 +287,11 @@ export interface CreateBookVersionRequest {
  * Request to update book version
  */
 export interface UpdateBookVersionRequest {
-  /** Localized slug for the book version */
+  /**
+   * Localized slug for the book version: `^[a-z0-9]+(?:-[a-z0-9]+)*$`, at most 100 chars (400 otherwise).
+   * 400 also when it is another version's slug in this language or another book's address,
+   * current or old (`LEGACY-437`).
+   */
   slug?: string;
   /** Book title */
   title?: string;
