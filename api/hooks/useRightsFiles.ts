@@ -18,7 +18,7 @@ import type {
   RightsFileDescriptor,
   RightsFileLimits,
   SupersedeRightsEvidenceResponse,
-} from '@/types/api-schema/rights-intake';
+} from '@/types/api-schema';
 
 export const rightsFileKeys = {
   all: ['rights-files'] as const,

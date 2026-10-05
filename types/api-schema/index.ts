@@ -295,6 +295,9 @@ export type {
   RightsProfileContributor,
   RightsProfileContributorEvent,
   UpdateRightsGeoBlockRequest,
+  RightsFileDescriptor,
+  RightsFileLimits,
+  SupersedeRightsEvidenceResponse,
   RightsProfileDetail,
   RightsProfileList,
 } from './rights-intake';

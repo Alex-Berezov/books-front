@@ -18,7 +18,7 @@ import type {
   RightsFileDescriptor,
   RightsFileLimits,
   SupersedeRightsEvidenceResponse,
-} from '@/types/api-schema/rights-intake';
+} from '@/types/api-schema';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
