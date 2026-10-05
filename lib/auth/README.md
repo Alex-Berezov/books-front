@@ -110,7 +110,7 @@ openssl rand -base64 32
 interface User {
   id: string;
   email: string;
-  displayName?: string;
+  name?: string | null;
   roles: string[]; // ['user'] or ['admin', 'content_manager']
   accessToken: string; // JWT, 12 hours
   refreshToken: string; // JWT, 7 days
@@ -124,7 +124,7 @@ interface Session {
   user: {
     id: string;
     email: string;
-    displayName?: string;
+    name?: string | null;
     roles: string[];
   };
   accessToken: string;
@@ -139,7 +139,7 @@ interface Session {
 interface JWT {
   id: string;
   email: string;
-  displayName?: string;
+  name?: string | null;
   roles: string[];
   accessToken: string;
   refreshToken: string;

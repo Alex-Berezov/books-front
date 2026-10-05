@@ -65,7 +65,7 @@ export default async function AdminLayout({ children, params }: Props) {
             {/* Top bar */}
             <AdminTopBar
               userEmail={session.user.email || undefined}
-              userName={session.user.displayName || undefined}
+              userName={session.user.name || undefined}
             />
 
             {/* Main page content */}

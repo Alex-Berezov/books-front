@@ -12,7 +12,9 @@
 import { CredentialsSignin } from '@auth/core/errors';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
+import { userDisplayName } from '@/lib/utils/user-name';
 import { visitorIpHeaderFrom } from '@/lib/visitor-ip';
+import type { AuthResponse } from '@/types/api-schema';
 import type { User, Session, Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import { AUTH_TOKEN_EXPIRY, SESSION_SETTINGS, AuthErrorType, AUTH_ROUTES } from './constants';
@@ -116,6 +118,17 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
 };
 
 /**
+ * Имя из токена старого формата: `undefined`, если поля `displayName` в токене нет
+ * (токен нового формата). Старый токен без имени на сервере нёс `displayName: null` —
+ * тогда, как и до перехода, показывается почта, а не имя профиля провайдера в `name`.
+ */
+function legacyDisplayName(token: JWT): string | undefined {
+  if (!('displayName' in token)) return undefined;
+  const value: unknown = token['displayName'];
+  return typeof value === 'string' && value ? value : token.email;
+}
+
+/**
  * NextAuth configuration
  *
  * For next-auth v5 a simplified configuration object is used
@@ -185,14 +198,14 @@ export const authOptions = {
             throw new SignInCodeError(AuthErrorType.AUTHENTICATION_FAILED);
           }
 
-          const data = await response.json();
+          const data = (await response.json()) as AuthResponse;
 
           // Return User object with tokens
           // Roles now come directly from backend in /auth/login
           return {
             id: data.user.id,
             email: data.user.email,
-            displayName: data.user.displayName || data.user.name,
+            name: userDisplayName(data.user),
             roles: data.user.roles || [],
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
@@ -238,7 +251,7 @@ export const authOptions = {
             ...token,
             id: user.id,
             email: user.email,
-            displayName: user.displayName,
+            name: user.name,
             roles: user.roles,
             accessToken: user.accessToken,
             refreshToken: user.refreshToken,
@@ -287,13 +300,13 @@ export const authOptions = {
               };
             }
 
-            const data = await response.json();
+            const data = (await response.json()) as AuthResponse;
 
             return {
               ...token,
               id: data.user.id,
               email: data.user.email,
-              displayName: data.user.displayName || data.user.name,
+              name: userDisplayName(data.user),
               roles: data.user.roles || [],
               accessToken: data.accessToken,
               refreshToken: data.refreshToken,
@@ -330,7 +343,13 @@ export const authOptions = {
       session.user = {
         id: token.id,
         email: token.email,
-        displayName: token.displayName,
+        // Токены, выданные до перехода на `name` (`LEGACY-380`, 05.10.2026), несут имя
+        // от сервера в прежнем поле `displayName`, а `refreshAccessToken` имени
+        // не перечитывает. Оно идёт первым: в старом токене Google `name` — имя профиля
+        // провайдера из токена Auth.js по умолчанию, а не имя с сервера. Продление сессии
+        // переносит поле дальше (`...token`), поэтому срока у таких токенов нет —
+        // запасное чтение снимается только вместе с принудительным перелогином.
+        name: legacyDisplayName(token) ?? token.name,
         roles: token.roles,
       };
       session.accessToken = token.accessToken;

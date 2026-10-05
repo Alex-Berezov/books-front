@@ -13,7 +13,9 @@ import type { User } from '@/types/api-schema/user';
  * «Unknown» на экране не появляется вовсе.
  */
 export const userDisplayName = (
-  user: Pick<User, 'name' | 'firstName' | 'lastName' | 'nickname' | 'email'>
+  // Части имени необязательны: ответ входа (`AuthUserResponse`) объявляет их так,
+  // и сессия собирает имя этим же правилом (`lib/auth/config.ts`).
+  user: Pick<User, 'email'> & Partial<Pick<User, 'name' | 'firstName' | 'lastName' | 'nickname'>>
 ): string => {
   const firstName = user.firstName?.trim();
   const lastName = user.lastName?.trim();
