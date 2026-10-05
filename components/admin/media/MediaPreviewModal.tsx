@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { ImageOff } from 'lucide-react';
 import { Modal } from '@/components/common/Modal';
+import { formatFileSize } from '@/lib/admin/formatters';
 import type { MediaFile } from '@/types/api-schema/media';
 import styles from './MediaPreviewModal.module.scss';
 
@@ -64,7 +65,7 @@ export const MediaPreviewModal: FC<MediaPreviewModalProps> = ({ isOpen, onClose,
 
           <div className={styles.metaRow}>
             <span className={styles.metaLabel}>Size:</span>
-            <span className={styles.metaValue}>{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+            <span className={styles.metaValue}>{formatFileSize(file.size)}</span>
           </div>
 
           <div className={styles.urlRow}>

@@ -8,38 +8,18 @@ import type {
   UUID,
   MediaType,
   MediaFile,
-  PaginationInfo,
+  MediaAsset,
+  MediaListResponse,
 } from '@/types/api-schema';
 
-// Backend specific types
-interface BackendMediaItem {
-  id: string;
-  url: string;
-  key: string;
-  contentType: string;
-  size: number;
-  createdAt: string;
-  updatedAt?: string;
-  createdById: string;
-  isDeleted: boolean;
-}
-
-/**
- * Тело `GET /media` как его отдаёт сервер: единая обёртка `{items, pagination}`
- * (`LEGACY-177`, 13.09.2026). `totalPages` теперь считает бэкенд, а не этот файл:
- * прежний `Math.ceil(total / limit)` при `limit = 0` давал `Infinity`.
- */
-interface BackendMediaResponse {
-  items: BackendMediaItem[];
-  pagination: PaginationInfo;
-}
-
-const mapBackendItemToMediaFile = (item: BackendMediaItem): MediaFile => {
-  const type: MediaType = item.contentType.startsWith('image/')
+const mapBackendItemToMediaFile = (item: MediaAsset): MediaFile => {
+  // Строка без типа содержимого (`contentType: null`) — «документ», а не падение на `startsWith`.
+  const contentType = item.contentType ?? '';
+  const type: MediaType = contentType.startsWith('image/')
     ? 'image'
-    : item.contentType.startsWith('video/')
+    : contentType.startsWith('video/')
       ? 'video'
-      : item.contentType.startsWith('audio/')
+      : contentType.startsWith('audio/')
         ? 'audio'
         : 'document';
 
@@ -54,7 +34,7 @@ const mapBackendItemToMediaFile = (item: BackendMediaItem): MediaFile => {
     size: item.size,
     type,
     createdAt: item.createdAt,
-    updatedAt: item.updatedAt || item.createdAt,
+    updatedAt: item.createdAt,
   };
 };
 
@@ -82,7 +62,7 @@ export const getMediaFiles = async (params: GetMediaParams = {}): Promise<MediaR
   }
 
   const endpoint = `/media?${queryParams.toString()}`;
-  const response = await httpGetAuth<BackendMediaResponse>(endpoint);
+  const response = await httpGetAuth<MediaListResponse>(endpoint);
 
   // Форма приводится общим хелпером: в окне между выкатами сторон сюда приходит
   // плоский ответ без `pagination` (`LEGACY-177`). Строки перекладываются после

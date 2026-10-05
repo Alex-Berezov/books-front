@@ -13,6 +13,7 @@ import type {
   PublicationGateResult,
   RightsContentHashCheck,
   UpdateBookVersionRequest,
+  UpdateRightsGeoBlockRequest,
 } from '@/types/api-schema';
 import type { BookRightsDashboard } from '@/types/api-schema/book-rights';
 import type {
@@ -22,7 +23,6 @@ import type {
   VerifyGeoBlockRulesRequest,
 } from '@/types/api-schema/geo-block';
 import type { SeoData, SeoInput } from '@/types/api-schema/pages';
-import type { UpdateRightsGeoBlockRequest } from '@/types/api-schema/rights-intake';
 
 /**
  * Get book version details by ID (admin endpoint)

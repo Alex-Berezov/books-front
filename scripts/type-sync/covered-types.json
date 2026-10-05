@@ -69,6 +69,7 @@
   "GET /likes/count",
   "GET /me/bookshelf",
   "GET /me/progress/{versionId}",
+  "GET /media",
   "GET /tags/check-slug",
   "GET /tags/{id}/translations",
   "GET /uploads/limits",

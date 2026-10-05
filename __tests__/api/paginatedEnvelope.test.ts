@@ -171,9 +171,14 @@ describe('единая обёртка {items, pagination} (LEGACY-177)', () => {
                 key: 'covers/x.png',
                 contentType: 'image/png',
                 size: 10,
+                width: null,
+                height: null,
+                duration: null,
+                hash: null,
                 createdAt: '2026-01-01T00:00:00Z',
                 createdById: 'u1',
                 isDeleted: false,
+                deletedAt: null,
               },
             ],
             pagination: { page: 2, limit: 0, total: 7, totalPages: 0 },
@@ -196,6 +201,50 @@ describe('единая обёртка {items, pagination} (LEGACY-177)', () => {
         ],
         pagination: { page: 2, limit: 0, total: 7, totalPages: 0 },
       });
+    });
+
+    // Строка `MediaAsset` с `contentType: null` и `size: null` (колонки `String?`/`Int?`):
+    // до T104c маппер падал на `startsWith`, и вместе с ним пустела вся медиатека.
+    it('GET /media: строка без contentType и size (null в схеме) отображается как документ, а не роняет список', async () => {
+      server.use(
+        http.get(`${API_BASE}/media`, () =>
+          HttpResponse.json({
+            items: [
+              {
+                id: 'm-2',
+                url: 'https://cdn/y',
+                key: 'misc/y',
+                contentType: null,
+                size: null,
+                width: null,
+                height: null,
+                duration: null,
+                hash: null,
+                createdAt: '2026-01-02T00:00:00Z',
+                createdById: null,
+                isDeleted: false,
+                deletedAt: null,
+              },
+            ],
+            pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+          })
+        )
+      );
+
+      const res = await getMediaFiles();
+
+      expect(res.items).toEqual([
+        {
+          id: 'm-2',
+          url: 'https://cdn/y',
+          filename: 'y',
+          mimeType: null,
+          size: null,
+          type: 'document',
+          createdAt: '2026-01-02T00:00:00Z',
+          updatedAt: '2026-01-02T00:00:00Z',
+        },
+      ]);
     });
 
     /**

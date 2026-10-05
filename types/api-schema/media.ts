@@ -7,8 +7,10 @@ export interface MediaFile {
   id: UUID;
   url: string;
   filename: string;
-  mimeType: string;
-  size: number;
+  /** `null` — сервер не знает типа содержимого (`MediaAsset.contentType String?`). */
+  mimeType: string | null;
+  /** `null` — размер неизвестен (`MediaAsset.size Int?`), а не пустой файл. */
+  size: number | null;
   type: MediaType;
   createdAt: ISODate;
   updatedAt: ISODate;
@@ -21,12 +23,22 @@ export interface GetMediaParams {
    * `GET /media` считает категорию сама (`MediaListQueryDto.type`,
    * `MEDIA_CATEGORIES` в `books/src/modules/media/dto/create-media.dto.ts`) — слово категории
    * шлётся как есть, не MIME-префикс. `document` там — «не image/video/audio», та же
-   * категоризация, что в `mapBackendItemToMediaFile` ниже (`LEGACY-415`, закрыто 25.09.2026).
+   * категоризация, что в `mapBackendItemToMediaFile` (`api/endpoints/admin/media.ts`, `LEGACY-415`,
+   * закрыто 25.09.2026). Расходятся они на строке с `contentType: null`: маппер считает её
+   * документом, а фильтр сервера (`NOT startsWith` на `NULL`) её не отдаёт (`LEGACY-183`, T104c).
    * Значение вне `MediaType` отклоняется 400 (`@IsIn`).
    */
   type?: MediaType;
   search?: string;
 }
+
+/**
+ * Тело `GET /media` как его отдаёт сервер: единая обёртка `{items, pagination}` над той же
+ * строкой `MediaAsset`, что отдаёт загрузка (`MediaAssetResponseDto` на обеих ручках,
+ * `LEGACY-177`). `totalPages` считает бэкенд, а не фронт: прежний `Math.ceil(total / limit)`
+ * при `limit = 0` давал `Infinity`.
+ */
+export type MediaListResponse = PaginatedResult<MediaAsset>;
 
 /**
  * Ответ `GET /media` после отображения в `MediaFile` — единая обёртка `{items, pagination}`

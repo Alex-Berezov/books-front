@@ -9,8 +9,12 @@ import {
   useUnlinkSourceEditionContributor,
 } from '@/api/hooks/useContributors';
 import { formatClaimDateTime } from '@/components/admin/rights-claims/claimLabels';
-import type { Contributor, ContributorRole, RightsProfileContributor } from '@/types/api-schema';
-import type { RightsProfileContributorEvent } from '@/types/api-schema/rights-intake';
+import type {
+  Contributor,
+  ContributorRole,
+  RightsProfileContributor,
+  RightsProfileContributorEvent,
+} from '@/types/api-schema';
 import { ContributorModal } from './ContributorModal';
 import styles from './ContributorsPanel.module.scss';
 

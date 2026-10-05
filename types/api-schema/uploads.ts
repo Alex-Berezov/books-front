@@ -22,6 +22,7 @@ export interface MediaAsset {
   height: number | null;
   /** Duration in seconds (ffprobe, audio/video only). May be null right after confirm. */
   duration: number | null;
+  hash: string | null;
   createdAt: ISODate;
   /** `null` у ассетов, заведённых не через личный путь загрузки (колонка `String?`). */
   createdById: UUID | null;

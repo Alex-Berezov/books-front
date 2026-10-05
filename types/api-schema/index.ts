@@ -126,6 +126,7 @@ export type {
   MediaResponse,
   UploadMediaResponse,
   MediaFile,
+  MediaListResponse,
   MediaType,
 } from './media';
 
@@ -292,6 +293,8 @@ export type {
   GetRightsIntakesParams,
   RightsApprovalDecision,
   RightsProfileContributor,
+  RightsProfileContributorEvent,
+  UpdateRightsGeoBlockRequest,
   RightsProfileDetail,
   RightsProfileList,
 } from './rights-intake';

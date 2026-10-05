@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ContributorsPanel } from '@/components/admin/ContributorsPanel/ContributorsPanel';
-import type { RightsProfileContributorEvent } from '@/types/api-schema/rights-intake';
+import type { RightsProfileContributorEvent } from '@/types/api-schema';
 
 /**
  * LEGACY-037: журнал связей участников заводился ради человеческой читаемости, но до

@@ -33,9 +33,11 @@ export const formatDateTime = (
 };
 
 /**
- * Format file size (bytes to KB/MB)
+ * Format file size (bytes to KB/MB). `null`/`undefined` — размер неизвестен
+ * (`MediaAsset.size Int?`): прочерк, а не «0 B», то есть не пустой файл.
  */
-export const formatFileSize = (bytes: number): string => {
+export const formatFileSize = (bytes: number | null | undefined): string => {
+  if (bytes == null) return '—';
   if (bytes === 0) return '0 B';
 
   const k = 1024;

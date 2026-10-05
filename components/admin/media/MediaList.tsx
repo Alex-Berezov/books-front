@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import { FileText, Image as ImageIcon, Music, Video, Copy, Trash2 } from 'lucide-react';
 import Image from 'next/image';
+import { formatFileSize } from '@/lib/admin/formatters';
 import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { MediaFile, MediaType } from '@/types/api-schema/media';
 import styles from './MediaPage.module.scss';
@@ -33,14 +34,6 @@ export const MediaList: FC<MediaListProps> = ({ files, onSelect, onDelete, onCop
       default:
         return <FileText size={20} />;
     }
-  };
-
-  const formatSize = (bytes: number) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   };
 
   return (
@@ -82,7 +75,7 @@ export const MediaList: FC<MediaListProps> = ({ files, onSelect, onDelete, onCop
               {file.filename}
             </td>
             <td>{file.type}</td>
-            <td>{formatSize(file.size)}</td>
+            <td>{formatFileSize(file.size)}</td>
             <td>{new Date(file.createdAt).toLocaleDateString()}</td>
             <td>
               <div className={styles.listActions}>

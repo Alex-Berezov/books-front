@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import { FileText, Image as ImageIcon, Music, Video, Copy, Trash2, Eye } from 'lucide-react';
 import Image from 'next/image';
+import { formatFileSize } from '@/lib/admin/formatters';
 import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { MediaFile, MediaType } from '@/types/api-schema/media';
 import styles from './MediaPage.module.scss';
@@ -40,14 +41,6 @@ export const MediaGrid: FC<MediaGridProps> = ({
       default:
         return <FileText className={styles.icon} />;
     }
-  };
-
-  const formatSize = (bytes: number) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   };
 
   return (
@@ -118,7 +111,7 @@ export const MediaGrid: FC<MediaGridProps> = ({
               {file.filename}
             </div>
             <div className={styles.meta}>
-              <span>{formatSize(file.size)}</span>
+              <span>{formatFileSize(file.size)}</span>
               <span>{new Date(file.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
