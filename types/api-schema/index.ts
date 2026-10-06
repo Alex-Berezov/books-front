@@ -327,6 +327,31 @@ export type {
   RightsNotificationsUnreadCount,
 } from './rights-agent';
 
+// Rights lawyer review
+export type {
+  AddLawyerReviewNoteRequest,
+  AssignLawyerReviewRequest,
+  CreateLawyerRequest,
+  CreateLegalOpinionRequest,
+  DecideLawyerReviewRequest,
+  LawyerConditionInput,
+  LawyerExpiryScanResult,
+  ListLawyerReviewsParams,
+  ListLawyersParams,
+  ReasonRequest,
+  RequestLawyerReviewRequest,
+  RequireLawyerReviewRequest,
+  RightsLawyerDetail,
+  RightsLawyerReviewDetail,
+  RightsLawyerReviewsListResponse,
+  RightsLawyersListResponse,
+  RightsLegalOpinion,
+  RiskAssessmentSnapshot,
+  SatisfyConditionRequest,
+  UpdateLawyerRequest,
+  VersionLawyerReview,
+} from './rights-lawyer';
+
 // GeoIP market blocking
 export type {
   CheckGeoBlockAccessRequest,

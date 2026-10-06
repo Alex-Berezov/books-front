@@ -36,7 +36,6 @@ import {
 import { versionKeys } from '@/api/hooks/useBookVersions';
 import { rightsAgentKeys } from '@/api/hooks/useRightsAgent';
 import { rightsIntakeKeys } from '@/api/hooks/useRightsIntakes';
-import type { PaginatedResult } from '@/types/api-schema/common';
 import type {
   AddLawyerReviewNoteRequest,
   AssignLawyerReviewRequest,
@@ -59,7 +58,8 @@ import type {
   SatisfyConditionRequest,
   UpdateLawyerRequest,
   VersionLawyerReview,
-} from '@/types/api-schema/rights-lawyer';
+} from '@/types/api-schema';
+import type { PaginatedResult } from '@/types/api-schema/common';
 
 export const rightsLawyerKeys = {
   all: ['rights-lawyer'] as const,
