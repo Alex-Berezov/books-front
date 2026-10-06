@@ -75,6 +75,7 @@
   "GET /admin/versions/{id}/recheck",
   "GET /admin/versions/{id}/rights-claims",
   "GET /admin/versions/{id}/rights-content-hash",
+  "GET /admin/versions/{id}/rights-dashboard",
   "GET /books",
   "GET /books/check-slug",
   "GET /books/themes",

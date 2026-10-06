@@ -31,6 +31,7 @@ import {
 } from '@/api/endpoints/admin/bookVersions';
 import type { ApiError } from '@/types/api';
 import type {
+  BookRightsDashboard,
   BookVersionDetail,
   CreateBookVersionRequest,
   PublicationGateResult,
@@ -38,7 +39,6 @@ import type {
   UpdateBookVersionRequest,
   UpdateRightsGeoBlockRequest,
 } from '@/types/api-schema';
-import type { BookRightsDashboard } from '@/types/api-schema/book-rights';
 import type {
   CheckGeoBlockAccessRequest,
   GeoAccessCheckResult,

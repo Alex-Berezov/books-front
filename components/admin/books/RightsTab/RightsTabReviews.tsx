@@ -2,11 +2,11 @@
 
 import type { FC } from 'react';
 import { History, CheckCircle2 } from 'lucide-react';
-import type { RightsReview } from '@/types/api-schema/rights-intake';
+import type { BookRightsDashboardReview } from '@/types/api-schema';
 import styles from './RightsTab.module.scss';
 
 interface RightsTabReviewsProps {
-  reviews: RightsReview[];
+  reviews: BookRightsDashboardReview[];
   approvedReviewId: string | null;
 }
 
@@ -37,22 +37,13 @@ export const RightsTabReviews: FC<RightsTabReviewsProps> = ({ reviews, approvedR
               <th>Overall Status</th>
               <th>Gate Recommendation</th>
               <th>Confidence</th>
-              <th>Provider</th>
+              <th>Reviewer</th>
               <th>Approved</th>
             </tr>
           </thead>
           <tbody>
             {reviews.map((r) => {
               const isApproved = r.id === approvedReviewId;
-              const provider =
-                (r as unknown as Record<string, unknown>)['rightsReviewImport'] &&
-                (
-                  (r as unknown as Record<string, unknown>)['rightsReviewImport'] as Record<
-                    string,
-                    unknown
-                  >
-                )['provider'];
-
               return (
                 <tr key={r.id} className={isApproved ? styles.activeRow : ''}>
                   <td>
@@ -69,7 +60,7 @@ export const RightsTabReviews: FC<RightsTabReviewsProps> = ({ reviews, approvedR
                     </span>
                   </td>
                   <td>{r.confidence}</td>
-                  <td>{(provider as string) || 'Standard'}</td>
+                  <td>{r.reviewerType}</td>
                   <td>
                     {isApproved ? (
                       <span className={styles.badge} data-status="APPROVED">

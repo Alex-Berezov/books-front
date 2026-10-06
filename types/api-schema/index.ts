@@ -227,6 +227,9 @@ export type {
   UpdateRightsClaimRequest,
 } from './rights-claims';
 
+// Book rights dashboard
+export type { BookRightsDashboard, BookRightsDashboardReview } from './book-rights';
+
 // Persons (contributors)
 export type {
   CreatePersonPayload,

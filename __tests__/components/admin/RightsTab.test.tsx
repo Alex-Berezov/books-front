@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { RightsTab } from '@/components/admin/books/RightsTab/RightsTab';
 import { RightsTabEmptyState } from '@/components/admin/books/RightsTab/RightsTabEmptyState';
-import type { BookRightsDashboard } from '@/types/api-schema/book-rights';
+import type { BookRightsDashboard, BookRightsDashboardReview } from '@/types/api-schema';
 
 // Phase 19: RightsTabLawyer reads the session to decide which actions to show.
 vi.mock('next-auth/react', () => ({
@@ -172,6 +172,39 @@ const mockReview = {
   approvalNotesRu: null,
   rejectedByUserId: null,
   rejectedByUser: null,
+  rejectedAt: null,
+  rejectionReasonRu: null,
+  createdAt: '2026-07-26T10:00:00Z',
+  updatedAt: '2026-07-26T10:00:00Z',
+};
+
+// Форма истории проверок дашборда литералом: без пользователей решения, поля цепочки и юриста
+// обязательны — лишний ключ, которого нет у бэкенда, здесь не пройдёт проверку типа.
+const mockDashboardReview: BookRightsDashboardReview = {
+  id: 'review-1',
+  rightsProfileId: 'profile-1',
+  rightsReviewImportId: 'import-1',
+  status: 'APPROVED',
+  reviewerType: 'HUMAN',
+  schemaVersion: '1.0',
+  overallStatus: 'APPROVED',
+  publicationGate: 'ALLOW',
+  confidence: 'HIGH',
+  summaryRu: 'Approved by human reviewer',
+  conclusionRu: 'Ready for publication',
+  reasoningRu: null,
+  nextReviewAt: null,
+  previousReviewId: null,
+  chainRootReviewId: 'review-1',
+  revisionNumber: 1,
+  lawyerReviewRequired: false,
+  lawyerReviewId: null,
+  lawyerApprovedAt: null,
+  lawyerNameSnapshot: null,
+  approvedByUserId: 'user-1',
+  approvedAt: '2026-07-26T10:00:00Z',
+  approvalNotesRu: null,
+  rejectedByUserId: null,
   rejectedAt: null,
   rejectionReasonRu: null,
   createdAt: '2026-07-26T10:00:00Z',
@@ -472,8 +505,11 @@ const mockDashboard: BookRightsDashboard = {
       },
     ],
   },
-  approvedReview: mockReview,
-  reviewHistory: [mockReview],
+  approvedReview: mockDashboardReview,
+  reviewHistory: [
+    mockDashboardReview,
+    { ...mockDashboardReview, id: 'review-2', reviewerType: 'AI_AGENT' },
+  ],
   approvalHistory: [],
   publicationGate: {
     versionId: 'v1',
@@ -569,7 +605,15 @@ describe('RightsTab Components (Phase 10)', () => {
       expect(screen.getByTestId('component-territory-GB')).toBeInTheDocument();
 
       // Review History
-      expect(screen.getByText('Review History (1)')).toBeInTheDocument();
+      expect(screen.getByText('Review History (2)')).toBeInTheDocument();
+      // Колонка «Reviewer» читает reviewerType своей строки; поля импорта в истории нет (T104j).
+      const historyTable = screen.getByRole('columnheader', { name: 'Reviewer' }).closest('table');
+      expect(historyTable).not.toBeNull();
+      const [, firstRow, secondRow] = within(historyTable as HTMLTableElement).getAllByRole('row');
+      expect(within(firstRow).getByRole('cell', { name: 'HUMAN' })).toBeInTheDocument();
+      expect(within(secondRow).getByRole('cell', { name: 'AI_AGENT' })).toBeInTheDocument();
+      expect(within(historyTable as HTMLTableElement).queryByText('Standard')).toBeNull();
+      expect(screen.queryByRole('columnheader', { name: 'Provider' })).toBeNull();
 
       // Phase 16: Copyright claims & DMCA panel replaced the old placeholder
       expect(screen.getByText('Претензии и DMCA (0)')).toBeInTheDocument();

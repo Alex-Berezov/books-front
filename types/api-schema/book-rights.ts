@@ -138,14 +138,40 @@ export interface BookRightsDashboardMetrics {
   geoCountrySourceWarning?: boolean;
 }
 
+/**
+ * Проверка прав в истории дашборда (`BookRightsDashboardReviewDto`): колонки строки без связей.
+ * Пользователей решения и список решений дашборд не отдаёт, отчёт импорта — тоже.
+ */
+export interface BookRightsDashboardReview extends Omit<
+  RightsReview,
+  | 'approvedByUser'
+  | 'rejectedByUser'
+  | 'previousReviewId'
+  | 'chainRootReviewId'
+  | 'revisionNumber'
+  | 'lawyerReviewRequired'
+  | 'lawyerReviewId'
+  | 'lawyerApprovedAt'
+  | 'lawyerNameSnapshot'
+> {
+  // Бэкенд отдаёт эти поля всегда — в отличие от `RightsReview`, здесь они обязательны.
+  previousReviewId: string | null;
+  chainRootReviewId: string | null;
+  revisionNumber: number;
+  lawyerReviewRequired: boolean;
+  lawyerReviewId: string | null;
+  lawyerApprovedAt: string | null;
+  lawyerNameSnapshot: string | null;
+}
+
 export interface BookRightsDashboard {
   book: BookRightsDashboardBookSummary;
   currentVersion: BookRightsDashboardCurrentVersion;
   versions: BookRightsDashboardVersionListItem[];
   intake: RightsIntake | null;
   currentProfile: RightsProfileDetail | null;
-  approvedReview: RightsReview | null;
-  reviewHistory: RightsReview[];
+  approvedReview: BookRightsDashboardReview | null;
+  reviewHistory: BookRightsDashboardReview[];
   approvalHistory: RightsApprovalDecision[];
   publicationGate: PublicationGateResult | null;
   contentHash: RightsContentHashCheck | null;

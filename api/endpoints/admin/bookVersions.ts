@@ -9,13 +9,13 @@
 import { httpGetAuth, httpPatchAuth, httpPostAuth, httpPutAuth } from '@/lib/http-client';
 import type {
   BookVersionDetail,
+  BookRightsDashboard,
   CreateBookVersionRequest,
   PublicationGateResult,
   RightsContentHashCheck,
   UpdateBookVersionRequest,
   UpdateRightsGeoBlockRequest,
 } from '@/types/api-schema';
-import type { BookRightsDashboard } from '@/types/api-schema/book-rights';
 import type {
   CheckGeoBlockAccessRequest,
   GeoAccessCheckResult,
