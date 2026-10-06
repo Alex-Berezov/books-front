@@ -102,6 +102,39 @@ describe('CreateBookFromClearanceForm — WP-L.2 attaching to an existing book',
     expect(payload.data.versions).toHaveLength(1);
   });
 
+  // LEGACY-437: сервер отбивает слаг новой книги длиннее 100 — форма не даёт отправить его раньше.
+  it('blocks a new-book slug longer than 100 characters', async () => {
+    renderForm();
+
+    const slugInput = screen.getByPlaceholderText('book-slug');
+    await userEvent.clear(slugInput);
+    await userEvent.click(slugInput);
+    await userEvent.paste('a'.repeat(101));
+
+    expect(submit()).toBeDisabled();
+    expect(screen.getByText(/slug must be at most 100 characters/i)).toBeInTheDocument();
+  });
+
+  it('accepts a 100-character slug for a new book and any length when attaching', async () => {
+    renderForm();
+
+    const slugInput = screen.getByPlaceholderText('book-slug');
+    await userEvent.clear(slugInput);
+    await userEvent.click(slugInput);
+    await userEvent.paste('a'.repeat(100));
+    expect(submit()).toBeEnabled();
+
+    await userEvent.paste('a');
+    await userEvent.click(attachCheckbox());
+    expect(submit()).toBeEnabled();
+    expect(screen.queryByText(/slug must be at most 100 characters/i)).not.toBeInTheDocument();
+
+    await userEvent.click(attachCheckbox());
+    expect(submit()).toBeDisabled();
+    await userEvent.click(submit());
+    expect(mocks.mutate).not.toHaveBeenCalled();
+  });
+
   it('still requires a slug when attaching', async () => {
     renderForm();
 

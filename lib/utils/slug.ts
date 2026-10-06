@@ -203,6 +203,9 @@ export const getBaseSlug = (slug: string): string => {
   return slug.replace(/-\d+$/, '');
 };
 
+/** Предел длины слага книги на записи — зеркало `SLUG_MAX_LENGTH` бэкенда (`LEGACY-437`). */
+export const BOOK_SLUG_MAX_LENGTH = 100;
+
 /**
  * Checks if slug is valid
  *

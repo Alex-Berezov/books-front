@@ -4,7 +4,7 @@ import { useState, useMemo, type FC } from 'react';
 import { Card, Button, Input, Select, Checkbox, Typography, Space, message, Alert } from 'antd';
 import { useCreateBookFromClearance } from '@/api/hooks/useRightsIntakes';
 import { isAbsoluteHttpUrl, isAbsoluteHttpUrlOrRootPath } from '@/lib/utils/http-url';
-import { generateSlug } from '@/lib/utils/slug';
+import { BOOK_SLUG_MAX_LENGTH, generateSlug } from '@/lib/utils/slug';
 import type {
   RightsIntake,
   RightsProfileDetail,
@@ -244,7 +244,11 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
   const allReferralUrlsValid = invalidReferralUrlLanguages.length === 0;
   const invalidAuthorPageUrlLanguages = invalidVersionLabels(isAuthorPageUrlValid);
   const allAuthorPageUrlsValid = invalidAuthorPageUrlLanguages.length === 0;
-  const isSlugValid = slug.trim().length > 0;
+  const isSlugPresent = slug.trim().length > 0;
+  // Предел — только у новой книги (`CreateBookFromClearanceDto`, `LEGACY-437`): слаг при привязке
+  // принадлежит существующей книге, его длину не проверяет ни сервер, ни форма.
+  const isSlugTooLong = !attachToExistingBook && slug.length > BOOK_SLUG_MAX_LENGTH;
+  const isSlugValid = isSlugPresent && !isSlugTooLong;
   const canSubmit =
     isSlugValid &&
     (attachToExistingBook ||
@@ -654,8 +658,15 @@ export const CreateBookFromClearanceForm: FC<CreateBookFromClearanceFormProps> =
             </>
           )}
 
-          {!isSlugValid && slug.length > 0 && (
+          {!isSlugPresent && slug.length > 0 && (
             <Alert type="error" message="Slug is required" showIcon />
+          )}
+          {isSlugTooLong && (
+            <Alert
+              type="error"
+              message={`Slug must be at most ${BOOK_SLUG_MAX_LENGTH} characters long`}
+              showIcon
+            />
           )}
           {!attachToExistingBook && hasDuplicateLanguages && (
             <Alert

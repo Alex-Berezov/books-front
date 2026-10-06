@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { httpUrlOrEmpty, httpUrlOrRootPathOrEmpty } from '@/lib/utils/http-url-field';
-import { isValidSlug } from '@/lib/utils/slug';
+import { BOOK_SLUG_MAX_LENGTH, isValidSlug } from '@/lib/utils/slug';
 import type { PublicationStatus } from '@/types/api-schema';
 
 /**
@@ -177,9 +177,10 @@ export const requiredContentFieldsFor = (version?: {
 export const buildBookVersionSchema = (required: RequiredContentFields, keptSlug?: string) =>
   bookVersionBaseSchema.superRefine((data, ctx) => {
     // `isValidSlug` — зеркало `SLUG_PATTERN` DTO версии на бэкенде (`LEGACY-437`).
-    // Длина — там же: у версии без своего слага поле показывает `Book.slug`, а его длину бэкенд
-    // не ограничивал; нетронутый слаг не уходит на сервер и не должен запирать сохранение.
-    if (data.bookSlug !== keptSlug && data.bookSlug.length > 100) {
+    // Длина — там же: у версии без своего слага поле показывает `Book.slug`, а у старых книг он
+    // бывает длиннее предела (бэкенд ввёл его на записи `Book.slug` позже); нетронутый слаг
+    // не уходит на сервер и не должен запирать сохранение.
+    if (data.bookSlug !== keptSlug && data.bookSlug.length > BOOK_SLUG_MAX_LENGTH) {
       ctx.addIssue({ code: 'custom', path: ['bookSlug'], message: 'Slug is too long' });
     }
     if (data.bookSlug !== keptSlug && !isValidSlug(data.bookSlug)) {
