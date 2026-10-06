@@ -20,6 +20,7 @@ import type {
   ImportResult,
   UpdateCategoryRequest,
   UpdateCategoryTranslationRequest,
+  VersionCategoryLink,
 } from '@/types/api-schema';
 
 /**
@@ -192,7 +193,7 @@ export const deleteCategoryTranslation = async (id: string, language: string): P
 export const attachCategory = async (versionId: string, categoryId: string): Promise<void> => {
   const endpoint = `/versions/${versionId}/categories`;
   const data: AttachCategoryRequest = { categoryId };
-  return httpPostAuth<void>(endpoint, data);
+  await httpPostAuth<VersionCategoryLink>(endpoint, data);
 };
 
 /**

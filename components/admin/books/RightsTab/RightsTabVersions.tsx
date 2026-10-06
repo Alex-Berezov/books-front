@@ -4,8 +4,7 @@ import type { FC } from 'react';
 import { Globe, AlertCircle, ShieldAlert, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { BookRightsDashboardVersionListItem } from '@/types/api-schema/book-rights';
-import type { EditionRights } from '@/types/api-schema/rights-intake';
+import type { BookRightsDashboardVersionListItem, EditionRights } from '@/types/api-schema';
 import styles from './RightsTab.module.scss';
 import { INTERMEDIATE_TRANSLATION_ORIGIN, TRANSLATION_ORIGIN_LABELS } from './translationOrigin';
 

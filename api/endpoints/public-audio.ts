@@ -10,7 +10,9 @@ import { httpGet } from '@/lib/http';
 import { httpPostAuth, httpPutAuth } from '@/lib/http-client';
 import type {
   AudioChaptersListResponse,
+  CreateViewResponse,
   GetAudioChaptersParams,
+  ReadingProgress,
   RecordViewRequest,
   UpdateAudioProgressRequest,
 } from '@/types/api-schema';
@@ -47,7 +49,7 @@ export const getPublicAudioChapters = async (
  * backend and attributed to `null` user.
  */
 export const recordView = async (data: RecordViewRequest): Promise<void> => {
-  await httpPostAuth<void>('/views', data, { requireAuth: false });
+  await httpPostAuth<CreateViewResponse>('/views', data, { requireAuth: false });
 };
 
 /**
@@ -60,5 +62,5 @@ export const updateAudioProgress = async (
   versionId: string,
   data: UpdateAudioProgressRequest
 ): Promise<void> => {
-  await httpPutAuth<void>(`/me/progress/${versionId}`, data);
+  await httpPutAuth<ReadingProgress>(`/me/progress/${versionId}`, data);
 };

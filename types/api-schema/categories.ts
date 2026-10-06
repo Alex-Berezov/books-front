@@ -93,6 +93,16 @@ export interface AttachCategoryRequest {
 }
 
 /**
+ * Ответ `POST /versions/:id/categories` — `VersionCategoryLinkDto`: строка связи версии с категорией.
+ */
+export interface VersionCategoryLink {
+  id: UUID;
+  bookVersionId: UUID;
+  categoryId: UUID;
+  sortOrder: number;
+}
+
+/**
  * Request to detach category from book version
  */
 export interface DetachCategoryRequest {

@@ -38,5 +38,5 @@ export const updateTextProgress = async (
   data: UpdateProgressRequest
 ): Promise<void> => {
   const endpoint = `/me/progress/${versionId}`;
-  return httpPutAuth<void>(endpoint, data);
+  await httpPutAuth<ReadingProgress>(endpoint, data);
 };

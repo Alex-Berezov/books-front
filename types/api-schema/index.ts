@@ -34,12 +34,16 @@ export type {
   UsersResponse,
   UserMeResponse,
   UserProfileResponse,
+  UserRoleResponse,
   UpdateProfileRequest,
   UserActivityBookVersion,
   UserActivityParentOrChildComment,
   UserActivity,
   GetUserActivitiesParams,
   UserActivitiesResponse,
+  CreateUserRequest,
+  GetUsersParams,
+  UpdateUserRequest,
 } from './user';
 
 // Books
@@ -101,6 +105,7 @@ export type {
   DetachCategoryRequest,
   UpdateCategoryRequest,
   UpdateCategoryTranslationRequest,
+  VersionCategoryLink,
 } from './categories';
 
 // Tags
@@ -118,6 +123,7 @@ export type {
   TagTranslation,
   UpdateTagRequest,
   UpdateTagTranslationRequest,
+  VersionTagLink,
 } from './tags';
 
 // Media
@@ -228,7 +234,11 @@ export type {
 } from './rights-claims';
 
 // Book rights dashboard
-export type { BookRightsDashboard, BookRightsDashboardReview } from './book-rights';
+export type {
+  BookRightsDashboard,
+  BookRightsDashboardReview,
+  BookRightsDashboardVersionListItem,
+} from './book-rights';
 
 // Persons (contributors)
 export type {
@@ -243,7 +253,7 @@ export type {
 } from './persons';
 
 // Views
-export type { RecordViewRequest, ViewSource } from './views';
+export type { CreateViewResponse, RecordViewRequest, ViewSource } from './views';
 
 // Comments
 export type {
@@ -315,6 +325,8 @@ export type {
   CreateBookFromClearanceResponse,
   RightsAction,
   UpdateRightsActionRequest,
+  EditionRights,
+  SourceEdition,
 } from './rights-intake';
 
 // Rights agent tokens and notifications

@@ -14,7 +14,8 @@ import type {
 } from './common';
 
 /**
- * Ответ сохранения профиля (`PATCH /users/profile`) — `PublicUserDto`: поля пользователя целиком, как у `User`, без ролей.
+ * Ответ сохранения профиля (`PATCH /users/profile`) и удаления пользователя админом (`DELETE /users/:id`) —
+ * `PublicUserDto`: поля пользователя целиком, как у `User`, без ролей.
  * Поля имени приходят всегда, со значением `null`, а не пропущенным ключом; `displayName` у сервера нет (`LEGACY-380`).
  *
  * 🔴 Ролей здесь нет намеренно: `UsersService.updateMe` их не выбирает
@@ -51,6 +52,15 @@ export interface User {
   isActive: boolean;
   lastLogin: ISODate | null;
   createdAt: ISODate;
+}
+
+/**
+ * Ответ выдачи и снятия роли (`POST`/`DELETE /users/:id/roles/:role`) — `UserRoleDto`: пара «пользователь - роль»,
+ * а не пользователь с обновлёнными ролями.
+ */
+export interface UserRoleResponse {
+  userId: UUID;
+  role: RoleName;
 }
 
 /**

@@ -2,8 +2,11 @@ import { render, screen, within } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { RightsTabSourceEdition } from '@/components/admin/books/RightsTab/RightsTabSourceEdition';
 import { RightsTabVersions } from '@/components/admin/books/RightsTab/RightsTabVersions';
-import type { BookRightsDashboardVersionListItem } from '@/types/api-schema/book-rights';
-import type { EditionRights, SourceEdition } from '@/types/api-schema/rights-intake';
+import type {
+  BookRightsDashboardVersionListItem,
+  EditionRights,
+  SourceEdition,
+} from '@/types/api-schema';
 
 /**
  * WP-7.4 (R7-01): до этого пакета раздел «Языковые версии» показывал эксплуатационное

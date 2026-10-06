@@ -5,14 +5,16 @@
  */
 
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
-import type { UUID } from '@/types/api-schema/common';
 import type {
   CreateUserRequest,
   GetUsersParams,
   UpdateUserRequest,
   User,
+  UserProfileResponse,
+  UserRoleResponse,
   UsersResponse,
-} from '@/types/api-schema/user';
+  UUID,
+} from '@/types/api-schema';
 
 /**
  * Get list of users (for admin panel)
@@ -86,7 +88,7 @@ export const updateUser = async (id: UUID, data: UpdateUserRequest): Promise<Use
  * @param id - User ID
  */
 export const deleteUser = async (id: UUID): Promise<void> => {
-  return httpDeleteAuth(`/users/${id}`);
+  await httpDeleteAuth<UserProfileResponse>(`/users/${id}`);
 };
 
 /**
@@ -96,7 +98,7 @@ export const deleteUser = async (id: UUID): Promise<void> => {
  * @param role - Role to assign
  */
 export const assignRole = async (id: UUID, role: string): Promise<void> => {
-  return httpPostAuth(`/users/${id}/roles/${role}`, {});
+  await httpPostAuth<UserRoleResponse>(`/users/${id}/roles/${role}`, {});
 };
 
 /**
@@ -106,7 +108,7 @@ export const assignRole = async (id: UUID, role: string): Promise<void> => {
  * @param role - Role to revoke
  */
 export const revokeRole = async (id: UUID, role: string): Promise<void> => {
-  return httpDeleteAuth(`/users/${id}/roles/${role}`);
+  await httpDeleteAuth<UserRoleResponse>(`/users/${id}/roles/${role}`);
 };
 
 /**
@@ -119,5 +121,5 @@ export const resetPassword = async (id: UUID, password: string): Promise<void> =
   // Отдельной ручки сброса пароля у бэкенда нет: пароль принимает `PATCH /users/:id`
   // (`UpdateUserDto.password`, хэшируется в `users.service.ts`). Прежний адрес
   // `/users/:id/password-reset` не существовал никогда - админ получал 404.
-  return httpPatchAuth(`/users/${id}`, { password });
+  await httpPatchAuth<User>(`/users/${id}`, { password });
 };

@@ -22,3 +22,10 @@ export interface RecordViewRequest {
   versionId: UUID;
   source: ViewSource;
 }
+
+/**
+ * Ответ `POST /views` — `CreateViewResponseDto`.
+ */
+export interface CreateViewResponse {
+  success: boolean;
+}

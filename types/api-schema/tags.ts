@@ -207,6 +207,15 @@ export interface AttachTagRequest {
 }
 
 /**
+ * Ответ `POST /versions/:id/tags` — `VersionTagLinkDto`: строка связи версии с тегом.
+ */
+export interface VersionTagLink {
+  id: UUID;
+  bookVersionId: UUID;
+  tagId: UUID;
+}
+
+/**
  * Request to detach tag from book version
  */
 export interface DetachTagRequest {

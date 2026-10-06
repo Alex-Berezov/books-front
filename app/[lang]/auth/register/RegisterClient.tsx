@@ -27,6 +27,7 @@ import { publicErrorKey } from '@/lib/errors';
 import { httpPost } from '@/lib/http';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { logError } from '@/lib/utils/log-error';
+import type { AuthResponse } from '@/types/api-schema';
 import styles from './register.module.scss';
 
 const { Title, Text } = Typography;
@@ -61,7 +62,7 @@ const RegisterClient: FC = () => {
       setError(null);
 
       // Call backend auth register
-      await httpPost('/auth/register', {
+      await httpPost<AuthResponse>('/auth/register', {
         email: values.email,
         password: values.password,
       });

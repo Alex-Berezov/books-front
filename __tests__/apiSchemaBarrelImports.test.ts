@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 /**
  * LEGACY-183, CODE_STYLE.md («Component file structure»): завёл барель — импортируй через него.
- * Имена `RightsClaim*` достижимы через `@/types/api-schema`; второй путь к тем же типам — вторая
+ * Имена `RightsClaim*` и `BookRightsDashboard*` достижимы через `@/types/api-schema`; второй путь к тем же типам — вторая
  * точка входа, которую автоимпорт IDE размножает. Контрибьютора (`BookVersionContributor`,
  * `ContributorRole`) сторож не ведёт: `types/contributors.ts` удалён (`T104b`), обход ловит `tsc`.
  *
@@ -33,18 +33,23 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
-// Любой спецификатор модуля, кончающийся на `types/api-schema/rights-claims` (с `@/`,
+// Любой спецификатор модуля, кончающийся на `types/api-schema/<модуль>` (с `@/`,
 // относительный, в одинарных, двойных или обратных кавычках), кроме самого бареля.
-const RIGHTS_CLAIMS_SPECIFIER =
-  /(['"`])(?:@\/|(?:\.\.?\/)+)(?:types\/)?api-schema\/rights-claims\1/;
+// `book-rights` переведён на барель в `T104k`.
+const GUARDED_SPECIFIERS = {
+  'rights-claims': /(['"`])(?:@\/|(?:\.\.?\/)+)(?:types\/)?api-schema\/rights-claims\1/,
+  'book-rights': /(['"`])(?:@\/|(?:\.\.?\/)+)(?:types\/)?api-schema\/book-rights\1/,
+};
 
 function findBypassingImports(source: string, file: string): string[] {
-  // Сам барель и соседние модули `types/api-schema/*` ссылаются на `./rights-claims` законно.
+  // Сам барель и соседние модули `types/api-schema/*` ссылаются на свои соседи законно.
   if (/[\/]types[\/]api-schema[\/]/.test(file)) return [];
-  return RIGHTS_CLAIMS_SPECIFIER.test(source) ? ['types/api-schema/rights-claims'] : [];
+  return Object.entries(GUARDED_SPECIFIERS)
+    .filter(([, specifier]) => specifier.test(source))
+    .map(([name]) => `types/api-schema/${name}`);
 }
 
-describe('импорты RightsClaim* идут через барель @/types/api-schema', () => {
+describe('импорты RightsClaim* и BookRightsDashboard* идут через барель @/types/api-schema', () => {
   it.each([
     ["import type { A } from '@/types/api-schema/rights-claims';"],
     ['import type { A } from "@/types/api-schema/rights-claims";'],
@@ -59,8 +64,18 @@ describe('импорты RightsClaim* идут через барель @/types/a
   });
 
   it.each([
+    ["import type { A } from '@/types/api-schema/book-rights';"],
+    ["import type { A } from '../types/api-schema/book-rights';"],
+  ])('узнаёт обход book-rights: %s', (source) => {
+    expect(findBypassingImports(source, 'components/x.ts')).toEqual([
+      'types/api-schema/book-rights',
+    ]);
+  });
+
+  it.each([
     ["import type { A } from '@/types/api-schema';"],
     ["import type { A } from '@/types/api-schema/rights-claims-extra';"],
+    ["import type { A } from '@/types/api-schema/book-rights-extra';"],
   ])('пропускает барель и чужой модуль: %s', (source) => {
     expect(findBypassingImports(source, 'components/x.ts')).toEqual([]);
   });

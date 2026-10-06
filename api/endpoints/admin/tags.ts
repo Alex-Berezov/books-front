@@ -17,6 +17,7 @@ import type {
   TagTranslation,
   UpdateTagRequest,
   UpdateTagTranslationRequest,
+  VersionTagLink,
 } from '@/types/api-schema';
 
 /**
@@ -115,7 +116,7 @@ export const deleteTag = async (id: string): Promise<void> => {
 export const attachTag = async (versionId: string, tagId: string): Promise<void> => {
   const endpoint = `/versions/${versionId}/tags`;
   const data: AttachTagRequest = { tagId };
-  return httpPostAuth<void>(endpoint, data);
+  await httpPostAuth<VersionTagLink>(endpoint, data);
 };
 
 /**
