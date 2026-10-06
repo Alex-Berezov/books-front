@@ -144,5 +144,5 @@ export const unpublishPage = async (pageId: string, lang = 'en'): Promise<PageRe
  */
 export const deletePage = async (pageId: string, lang = 'en'): Promise<void> => {
   const endpoint = `/admin/${lang}/pages/${pageId}`;
-  return httpDeleteAuth(endpoint);
+  return httpDeleteAuth<void>(endpoint);
 };

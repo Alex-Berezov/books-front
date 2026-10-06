@@ -176,7 +176,7 @@ export const updateCategoryTranslation = async (
  */
 export const deleteCategoryTranslation = async (id: string, language: string): Promise<void> => {
   const endpoint = `/categories/${id}/translations/${language}`;
-  return httpDeleteAuth(endpoint);
+  return httpDeleteAuth<void>(endpoint);
 };
 
 /**

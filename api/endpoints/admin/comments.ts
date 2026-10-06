@@ -50,7 +50,7 @@ export const commentsApi = {
   },
 
   deleteComment: (id: UUID) => {
-    return httpDeleteAuth(`/comments/${id}`);
+    return httpDeleteAuth<void>(`/comments/${id}`);
   },
 
   /**

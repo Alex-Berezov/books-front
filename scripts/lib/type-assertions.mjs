@@ -117,11 +117,13 @@ export function qualifyType(typeText, exported, ns = 'T') {
 }
 
 /**
- * Классы вызовов, до сверки не доходящих. Ключ машинный - он уезжает в снимок бюджета;
+ * Классы вызовов, до утверждения `tsc` не доходящих (`noBodyResponse` сверяется на месте -
+ * только на явный `void`). Ключ машинный - он уезжает в снимок бюджета;
  * подпись человеческая - она уезжает в сообщение об отказе.
  */
 export const OUTSIDE_KINDS = {
   noResponseSchema: 'нет схемы ответа',
+  noBodyResponse: 'ответ 204 без тела, вызов ждёт void',
   unnamedCallType: 'тип вызова не назван',
   namesOutsideBarrel: 'имена вне бареля',
 };
@@ -132,18 +134,32 @@ export const OUTSIDE_KINDS = {
  *
  * Непригодные не прячутся: каждый уносит причину, чтобы прогон мог назвать их числом
  * по классам, а не одним «остальные».
+ *
+ * Маршрут «204 без тела» (`route.noBody`) сверяется здесь же и без `tsc`: тела нет, значит
+ * вызов обязан ждать явный `void`. Любой другой тип и вызов без дженерика (правило
+ * синтаксическое: тип вызова гейт читает из текста, а не выводит) уходят в `noBodyMismatch`,
+ * и гейт краснеет (решение арбитра 06.10.2026, `T104l`). `any`, `unknown`, `undefined` за `void` не считаются.
  */
 export function selectCandidates(callSites, routeOf, exported) {
   const candidates = [];
   const skipped = [];
+  const noBodyMismatch = [];
   for (const site of callSites) {
     const route = routeOf(site);
     if (!route) continue;
+    const type = (site.type ?? '').trim();
+    if (route.noBody) {
+      if (type === 'void') {
+        skipped.push({ site, route: route.key, kind: 'noBodyResponse', reason: OUTSIDE_KINDS.noBodyResponse });
+      } else {
+        noBodyMismatch.push({ site, route: route.key, type });
+      }
+      continue;
+    }
     if (!route.hasResponseSchema) {
       skipped.push({ site, route: route.key, kind: 'noResponseSchema', reason: OUTSIDE_KINDS.noResponseSchema });
       continue;
     }
-    const type = (site.type ?? '').trim();
     // `any`, `unknown` и `object` утверждению присваиваются всегда: маршрут попал бы
     // в покрытые, не проверив ничего, а подмена точного типа на `any` осталась бы зелёной.
     if (!type || BLIND.has(type)) {
@@ -162,7 +178,7 @@ export function selectCandidates(callSites, routeOf, exported) {
     }
     candidates.push({ site, route, type });
   }
-  return { candidates, skipped };
+  return { candidates, skipped, noBodyMismatch };
 }
 
 /** Подписи всех строк снимка бюджета, включая два общих счёта. */
@@ -181,7 +197,7 @@ export const BUDGET_LABELS = {
  * напечатано как успех (класс `L-015`).
  */
 export function outsideBudget(skipped) {
-  const budget = { noResponseSchema: 0, unnamedCallType: 0, namesOutsideBarrel: 0 };
+  const budget = { noResponseSchema: 0, noBodyResponse: 0, unnamedCallType: 0, namesOutsideBarrel: 0 };
   for (const item of skipped) {
     // Класс берётся полем, а не разбором текста причины: свободный текст, переформулированный
     // в `selectCandidates`, уехал бы в чужой счётчик, гейт покраснел бы на двух классах, которых

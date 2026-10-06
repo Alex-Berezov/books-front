@@ -46,6 +46,7 @@ import {
   compareSurface,
   extractCallSites,
   indexApiPaths,
+  noBodyResponse,
   resolveUrl,
   shouldAcceptUpdate,
   successResponseSchema,
@@ -126,6 +127,7 @@ function runTypeAssertions(callSites, doc, schemaText) {
       method: site.method,
       code: success ? success.code : null,
       hasResponseSchema: asJson,
+      noBody: noBodyResponse(operation),
     };
   };
 
@@ -137,7 +139,15 @@ function runTypeAssertions(callSites, doc, schemaText) {
     ]);
   }
 
-  const { candidates, skipped } = selectCandidates(callSites, routeOf, exported);
+  const { candidates, skipped, noBodyMismatch } = selectCandidates(callSites, routeOf, exported);
+  if (noBodyMismatch.length) {
+    fail(`вызовы ручек «204 без тела» ждут не void: ${noBodyMismatch.length}`, [
+      ...noBodyMismatch.map(
+        (m) => `${m.site.file}:${m.site.line} ${m.route} - тип ${m.type ? `<${m.type}>` : 'дженерик не указан'}`,
+      ),
+      'ответ 204 тела не несёт: вызов объявляется с явным <void>',
+    ]);
+  }
   if (!candidates.length) {
     fail('слой 2 не собрал ни одного утверждения', [
       'разбор типов вызовов сломан либо барель пуст - это не «всё сходится»',

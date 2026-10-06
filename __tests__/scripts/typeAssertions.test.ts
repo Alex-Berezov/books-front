@@ -118,6 +118,36 @@ describe('selectCandidates', () => {
   });
 });
 
+describe('selectCandidates: ответ 204 без тела', () => {
+  const noBody = () => route({ hasResponseSchema: false, noBody: true, code: null });
+  const pick = (type: string) =>
+    selectCandidates([{ file: 'api/x.ts', line: 1, type }], noBody, exported);
+
+  it('явный void засчитывается в класс noBodyResponse и в утверждения не идёт', () => {
+    const { candidates, skipped, noBodyMismatch } = pick('void');
+    expect(candidates).toHaveLength(0);
+    expect(skipped.map((s: { kind: string }) => s.kind)).toEqual(['noBodyResponse']);
+    expect(noBodyMismatch).toHaveLength(0);
+  });
+
+  it('вызов без дженерика - расхождение: у httpDelete* это unknown, а не void', () => {
+    const { skipped, noBodyMismatch } = pick('');
+    expect(skipped).toHaveLength(0);
+    expect(noBodyMismatch).toEqual([
+      { site: { file: 'api/x.ts', line: 1, type: '' }, route: 'POST /uploads/presign', type: '' },
+    ]);
+  });
+
+  it.each(['PublicAuthor', 'unknown', 'any', 'undefined', 'null'])(
+    'тип %s при ответе без тела - расхождение, а не пропуск',
+    (type) => {
+      const { skipped, noBodyMismatch } = pick(type);
+      expect(skipped).toHaveLength(0);
+      expect(noBodyMismatch.map((m: { type: string }) => m.type)).toEqual([type]);
+    }
+  );
+});
+
 describe('buildAssertionSource', () => {
   const candidates = [
     { site: { file: 'api/a.ts', line: 10 }, route: route(), type: 'PublicAuthor' },
@@ -285,16 +315,24 @@ describe('coveredRoutes и compareCoverage', () => {
  * а структурные случаи снимка - тем более. Здесь они проверяются напрямую.
  */
 describe('outsideBudget', () => {
-  it('разносит пропуски по трём классам, беря класс полем, а не разбором текста', () => {
+  it('разносит пропуски по всем классам, беря класс полем, а не разбором текста', () => {
     const budget = outsideBudget([
       { kind: 'noResponseSchema' },
       { kind: 'noResponseSchema' },
+      { kind: 'noBodyResponse' },
+      { kind: 'noBodyResponse' },
+      { kind: 'noBodyResponse' },
       { kind: 'unnamedCallType' },
       { kind: 'namesOutsideBarrel' },
       { kind: 'namesOutsideBarrel' },
     ]);
 
-    expect(budget).toEqual({ noResponseSchema: 2, unnamedCallType: 1, namesOutsideBarrel: 2 });
+    expect(budget).toEqual({
+      noResponseSchema: 2,
+      noBodyResponse: 3,
+      unnamedCallType: 1,
+      namesOutsideBarrel: 2,
+    });
   });
 
   it('неизвестный класс - отказ, а не тихий счёт в соседнюю графу', () => {
@@ -305,6 +343,7 @@ describe('outsideBudget', () => {
     // Пустой объект уехал бы в снимок и сделал бы `compareBudget` слепым к появлению класса.
     expect(outsideBudget([])).toEqual({
       noResponseSchema: 0,
+      noBodyResponse: 0,
       unnamedCallType: 0,
       namesOutsideBarrel: 0,
     });

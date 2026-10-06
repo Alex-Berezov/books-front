@@ -18,6 +18,7 @@ import {
   compareSurface,
   extractCallSites,
   indexApiPaths,
+  noBodyResponse,
   normalizeApiPath,
   readArgument,
   resolveUrl,
@@ -93,6 +94,11 @@ describe('разбор вызовов http-клиента', () => {
     expect(sites).toHaveLength(1);
     expect(sites[0].type).toBe('');
     expect(urlOf(src)).toBe('/users/{p}/roles/{p}');
+  });
+
+  it('отдаёт тип void ровно строкой void - на ней стоит класс «204 без тела»', () => {
+    const [site] = extractCallSites('httpDeleteAuth< void >(`/tags/${id}`);');
+    expect(site.type).toBe('void');
   });
 
   it('не принимает упоминание имени за вызов', () => {
@@ -237,6 +243,29 @@ describe('поля ответа', () => {
       })?.code
     ).toBe(201);
     expect(successResponseSchema({ responses: { 200: { description: '' } } })).toBeNull();
+  });
+
+  it('«204 без тела» - только 204 без content и без 200/201 со схемой', () => {
+    expect(noBodyResponse({ responses: { 204: { description: '' } } })).toBe(true);
+    // 204 с объявленным телом и маршрут без 2xx остаются в «нет схемы ответа».
+    expect(
+      noBodyResponse({ responses: { 204: { content: { 'application/json': { schema: {} } } } } })
+    ).toBe(false);
+    expect(noBodyResponse({ responses: { 429: { description: '' } } })).toBe(false);
+    // 200 даже без схемы означает возможное тело - требовать `<void>` здесь нельзя.
+    expect(
+      noBodyResponse({ responses: { 200: { description: '' }, 204: { description: '' } } })
+    ).toBe(false);
+    // Пустой `content` - то же «без тела», что и его отсутствие.
+    expect(noBodyResponse({ responses: { 204: { description: '', content: {} } } })).toBe(true);
+    expect(
+      noBodyResponse({
+        responses: {
+          200: { content: { 'application/json': { schema: {} } } },
+          204: { description: '' },
+        },
+      })
+    ).toBe(false);
   });
 
   it('путь схемы приводится к той же форме, что и адрес вызова', () => {
@@ -385,6 +414,7 @@ describe('гейт целиком на испорченном входе', () =>
     callSites: 3,
     assertions: 2,
     noResponseSchema: 1,
+    noBodyResponse: 0,
     unnamedCallType: 0,
     namesOutsideBarrel: 0,
   };
@@ -634,7 +664,7 @@ describe('гейт целиком на испорченном входе', () =>
 
   it('бюджет: общий счёт ловит вызов, которого классы пропусков не двигают', () => {
     // Размен внутри класса (один вызов довели до бареля, другой добавили мимо него) оставляет
-    // все три класса на месте. Двигаются только общие счёта - ради этого они и лежат в снимке.
+    // все классы пропусков на месте. Двигаются только общие счёта - ради этого они и лежат в снимке.
     writeFileSync(
       join(box.dir, 'api/endpoints/sample.ts'),
       `${SAMPLE_SOURCE}\nexport const more = () => httpGetAuth<Other>('/other');`
@@ -707,6 +737,38 @@ describe('гейт целиком на испорченном входе', () =>
     });
     expect(run.code).toBe(1);
     expect(run.output).toContain('схема ответа');
+  });
+
+  it('вызов ручки «204 без тела» без явного <void> роняет прогон и называет место', () => {
+    // `drop` зовёт `httpDeleteAuth` без дженерика: у клиента это `unknown`, а не `void`.
+    const run = afterMutation((schema) => {
+      const doc = JSON.parse(readFileSync(schema, 'utf8'));
+      doc.paths['/thing/{id}'].delete.responses = { 204: { description: '' } };
+      writeFileSync(schema, JSON.stringify(doc));
+    });
+    expect(run.code).toBe(1);
+    expect(run.output).toContain('ждут не void: 1');
+    expect(run.output).toContain('DELETE /thing/{id}');
+  });
+
+  it('вызов ручки «204 без тела» с <void> зелёный и считается в своём классе', () => {
+    writeFileSync(
+      join(box.dir, 'api/endpoints/sample.ts'),
+      SAMPLE_SOURCE.replace('httpDeleteAuth(', 'httpDeleteAuth<void>(')
+    );
+    writeFileSync(
+      box.outside,
+      `${JSON.stringify({ ...SANDBOX_BUDGET, noResponseSchema: 0, noBodyResponse: 1 }, null, 2)}
+`,
+      'utf8'
+    );
+    const run = afterMutation((schema) => {
+      const doc = JSON.parse(readFileSync(schema, 'utf8'));
+      doc.paths['/thing/{id}'].delete.responses = { 204: { description: '' } };
+      writeFileSync(schema, JSON.stringify(doc));
+    });
+    expect(run.code).toBe(0);
+    expect(run.output).toContain('ответ 204 без тела, вызов ждёт void: 1');
   });
 
   it('снятый маршрут роняет прогон', () => {

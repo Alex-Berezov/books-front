@@ -233,7 +233,7 @@ export const exampleBookshelf = async (accessToken: string, versionId: string) =
   console.log('Bookshelf:', bookshelf);
 
   // Remove from bookshelf
-  await httpDelete(`/me/bookshelf/${versionId}`, {
+  await httpDelete<void>(`/me/bookshelf/${versionId}`, {
     accessToken,
   });
 };

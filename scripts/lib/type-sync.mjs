@@ -372,6 +372,19 @@ export function successResponseSchema(operation) {
 }
 
 /**
+ * Ответ «204 без тела»: операция объявляет 204 без содержимого (`content` нет или он пуст)
+ * и не объявляет 200/201 вовсе - 200 даже без схемы означает, что тело возможно.
+ * Схемы, против которой строить утверждение, тут нет и быть не может - сверять остаётся одно:
+ * вызов ждёт `void` (класс `noBodyResponse`, решение арбитра 06.10.2026, `T104l`).
+ */
+export function noBodyResponse(operation) {
+  const responses = operation?.responses ?? {};
+  if (responses['200'] || responses['201']) return false;
+  const response = responses['204'];
+  return Boolean(response) && Object.keys(response.content ?? {}).length === 0;
+}
+
+/**
  * Имена полей ответа списком точечных путей: `items[].bookVersion.title`.
  * Именно поля, а не форма: пропажа поля - то, ради чего заведена запись.
  */

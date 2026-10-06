@@ -383,7 +383,7 @@ export const httpPatch = async <T>(
  *
  * @example
  * ```ts
- * await httpDelete('/me/bookshelf/version-id', {
+ * await httpDelete<void>('/me/bookshelf/version-id', {
  *   accessToken: session.accessToken
  * });
  * ```

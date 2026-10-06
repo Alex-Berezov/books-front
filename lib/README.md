@@ -109,7 +109,7 @@ const progress = await httpPut<ReadingProgress>(
 
 ```typescript
 // Remove book from bookshelf
-await httpDelete('/me/bookshelf/version-id', {
+await httpDelete<void>('/me/bookshelf/version-id', {
   accessToken: session.accessToken,
 });
 ```
