@@ -110,6 +110,7 @@
   "GET /{lang}/pages/by-key/{systemKey}",
   "GET /{lang}/pages/{slug}",
   "GET /{lang}/seo/resolve",
+  "GET /{lang}/slug-redirect",
   "GET /{lang}/tags",
   "GET /{lang}/tags/{slug}/books",
   "GET /{lang}/tags/{slug}/books/cards",

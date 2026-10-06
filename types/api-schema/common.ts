@@ -95,6 +95,13 @@ export interface PaginatedResult<T, P extends PaginationInfo = PaginationInfo> {
 }
 
 /**
+ * Response of `GET /{lang}/slug-redirect`: successor slug, or `null` when there is none
+ */
+export interface SlugRedirectResponse {
+  newSlug: string | null;
+}
+
+/**
  * Import result from JSON import endpoints
  */
 export interface ImportResult {

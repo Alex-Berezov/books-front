@@ -44,6 +44,12 @@ describe('resolveRetiredSlug', () => {
     expect(await resolveRetiredSlug('category', 'en', 'never-existed')).toBeNull();
   });
 
+  // Ответ без поля (сбой формы на бэкенде) обязан дать null, а не undefined.
+  it('returns null when the answer has no newSlug field', async () => {
+    mocks.httpGet.mockResolvedValue({});
+    await expect(resolveRetiredSlug('book', 'es', 'any')).resolves.toBeNull();
+  });
+
   // 🔴 Отказ запроса не должен превращать честный 404 в 5xx: страница и так уже не
   // нашлась, и единственная потеря — редирект, которого могло и не быть.
   it('degrades to null when the lookup itself fails', async () => {

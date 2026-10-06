@@ -19,6 +19,7 @@ export type {
   PaginationMeta,
   PublicationStatus,
   RoleName,
+  SlugRedirectResponse,
   SupportedLang,
   UUID,
   VersionType,

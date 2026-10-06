@@ -20,7 +20,7 @@
 
 import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';
 import { buildLangPath, httpGet } from '@/lib/http';
-import type { SupportedLang } from '@/types/api-schema';
+import type { SlugRedirectResponse, SupportedLang } from '@/types/api-schema';
 
 /**
  * Куда вёл адрес, которого больше нет (LEGACY-062).
@@ -36,10 +36,6 @@ import type { SupportedLang } from '@/types/api-schema';
  * а условие корректности.
  */
 export type RetiredSlugEntityType = 'category' | 'tag' | 'book' | 'author';
-
-interface SlugRedirectResponse {
-  newSlug: string | null;
-}
 
 /**
  * 🔴 `LEGACY-369`. Режим кэша здесь обязателен. Next 14 кэширует `fetch` без явного
