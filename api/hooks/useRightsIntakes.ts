@@ -28,7 +28,6 @@ import {
   updateRightsAction,
 } from '@/api/endpoints/admin/rights-intakes';
 import { versionKeys } from '@/api/hooks/useBookVersions';
-import type { PaginatedResult } from '@/types/api-schema/common';
 import type {
   RightsIntake,
   RightsIntakesListResponse,
@@ -36,10 +35,7 @@ import type {
   UpdateRightsIntakeRequest,
   RightsIntakeStatus,
   GetRightsIntakesParams,
-  RightsAgentManifest,
   RightsIntakeReadiness,
-  RightsReviewImportDetail,
-  RightsReviewImportsListResponse,
   CreateRightsReviewImportRequest,
   ListRightsReviewImportsParams,
   RightsProfileDetail,
@@ -48,6 +44,12 @@ import type {
   CreateBookFromClearanceResponse,
   RightsAction,
   UpdateRightsActionRequest,
+} from '@/types/api-schema';
+import type { PaginatedResult } from '@/types/api-schema/common';
+import type {
+  RightsAgentManifest,
+  RightsReviewImportDetail,
+  RightsReviewImportsListResponse,
 } from '@/types/api-schema/rights-intake';
 
 export const rightsIntakeKeys = {

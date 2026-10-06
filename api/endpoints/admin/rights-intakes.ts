@@ -1,6 +1,5 @@
 import { LIST_FALLBACK, toPaginated } from '@/lib/api/paginated-envelope';
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
-import type { PaginatedResult } from '@/types/api-schema/common';
 import type {
   RightsIntake,
   RightsIntakesListResponse,
@@ -8,10 +7,7 @@ import type {
   UpdateRightsIntakeRequest,
   GetRightsIntakesParams,
   RightsIntakeStatus,
-  RightsAgentManifest,
   RightsIntakeReadiness,
-  RightsReviewImportDetail,
-  RightsReviewImportsListResponse,
   CreateRightsReviewImportRequest,
   ListRightsReviewImportsParams,
   RightsProfileDetail,
@@ -21,6 +17,12 @@ import type {
   CreateBookFromClearanceResponse,
   RightsAction,
   UpdateRightsActionRequest,
+} from '@/types/api-schema';
+import type { PaginatedResult } from '@/types/api-schema/common';
+import type {
+  RightsAgentManifest,
+  RightsReviewImportDetail,
+  RightsReviewImportsListResponse,
 } from '@/types/api-schema/rights-intake';
 
 export const getRightsIntakes = async (

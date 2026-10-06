@@ -300,6 +300,13 @@ export type {
   SupersedeRightsEvidenceResponse,
   RightsProfileDetail,
   RightsProfileList,
+  RightsIntakeReadiness,
+  CreateRightsReviewImportRequest,
+  ListRightsReviewImportsParams,
+  CreateBookFromClearanceRequest,
+  CreateBookFromClearanceResponse,
+  RightsAction,
+  UpdateRightsActionRequest,
 } from './rights-intake';
 
 // Rights agent tokens and notifications
