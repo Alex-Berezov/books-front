@@ -4,7 +4,7 @@ import { ReviewImportPanel } from '@/components/admin/RightsIntakeDetail/ReviewI
 import { WorkflowTimeline } from '@/components/admin/RightsIntakeDetail/WorkflowTimeline/WorkflowTimeline';
 import type {
   RightsIntake,
-  RightsReviewImportDetail,
+  RightsReviewImportRecord,
   RightsReviewImportListItem,
 } from '@/types/api-schema/rights-intake';
 
@@ -35,36 +35,36 @@ vi.mock('@/api/endpoints/admin/rights-intakes', () => ({
   getRightsReviewImport: vi.fn(),
 }));
 
-const makeDetail = (overrides: Partial<RightsReviewImportDetail> = {}): RightsReviewImportDetail =>
-  ({
-    id: 'import-1',
-    rightsIntakeId: 'intake-1',
-    schemaVersion: '1.0',
-    importStatus: 'VALIDATED',
-    isCurrent: true,
-    sourceFileName: 'report.json',
-    validationErrorsCount: 0,
-    validationWarningsCount: 1,
-    importedByUserId: null,
-    supersededAt: null,
-    createdAt: '2026-08-01T00:00:00.000Z',
-    updatedAt: '2026-08-01T00:00:00.000Z',
-    reportJson: {},
-    reportMarkdown: null,
-    rawAgentOutput: null,
-    reportJsonSha256: null,
-    reportMarkdownSha256: null,
-    rawAgentOutputSha256: null,
-    validationErrors: null,
-    validationWarnings: [
-      {
-        path: 'languageAssessments',
-        message: 'Missing language assessment for target language: "fr"',
-        code: 'MISSING_LANGUAGE_ASSESSMENT',
-      },
-    ],
-    ...overrides,
-  }) as RightsReviewImportDetail;
+// The POST answer is the stored row (`RightsReviewImportRecord`), not the card.
+const makeRecord = (
+  overrides: Partial<RightsReviewImportRecord> = {}
+): RightsReviewImportRecord => ({
+  id: 'import-1',
+  rightsIntakeId: 'intake-1',
+  schemaVersion: '1.0',
+  importStatus: 'VALIDATED',
+  isCurrent: true,
+  sourceFileName: 'report.json',
+  importedByUserId: null,
+  supersededAt: null,
+  createdAt: '2026-08-01T00:00:00.000Z',
+  updatedAt: '2026-08-01T00:00:00.000Z',
+  reportJson: {},
+  reportMarkdown: null,
+  rawAgentOutput: null,
+  reportJsonSha256: null,
+  reportMarkdownSha256: null,
+  rawAgentOutputSha256: null,
+  validationErrors: null,
+  validationWarnings: [
+    {
+      path: 'languageAssessments',
+      message: 'Missing language assessment for target language: "fr"',
+      code: 'MISSING_LANGUAGE_ASSESSMENT',
+    },
+  ],
+  ...overrides,
+});
 
 const importReport = () => {
   render(
@@ -108,7 +108,7 @@ describe('WP-G.9: предупреждение импорта не выгляд�
   });
 
   it('принятый импорт с предупреждениями прямо сообщает, что он принят', async () => {
-    mocks.createImport.mockResolvedValue(makeDetail());
+    mocks.createImport.mockResolvedValue(makeRecord());
 
     importReport();
 
@@ -121,9 +121,8 @@ describe('WP-G.9: предупреждение импорта не выгляд�
 
   it('обратная сторона: отклонённый импорт сообщает об отказе', async () => {
     mocks.createImport.mockResolvedValue(
-      makeDetail({
+      makeRecord({
         importStatus: 'VALIDATION_FAILED',
-        validationErrorsCount: 1,
         validationErrors: [
           { path: 'intakeId', message: 'intakeId mismatch', code: 'INTAKE_ID_MISMATCH' },
         ],

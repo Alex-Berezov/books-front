@@ -39,8 +39,6 @@ const makeDetail = (overrides: Partial<RightsReviewImportDetail> = {}): RightsRe
     importStatus: 'VALIDATED',
     isCurrent: true,
     sourceFileName: 'report.json',
-    validationErrorsCount: 0,
-    validationWarningsCount: 0,
     importedByUserId: null,
     supersededAt: null,
     createdAt: '2026-08-01T10:00:00.000Z',

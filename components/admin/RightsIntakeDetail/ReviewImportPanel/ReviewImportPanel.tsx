@@ -3,10 +3,8 @@
 import { useState, type FC, type ChangeEvent } from 'react';
 import { FileUp, Copy, Download } from 'lucide-react';
 import { useCreateRightsReviewImport } from '@/api/hooks/useRightsIntakes';
-import type {
-  RightsReviewImportDetail,
-  RightsReviewImportListItem,
-} from '@/types/api-schema/rights-intake';
+import type { RightsReviewImportRecord } from '@/types/api-schema';
+import type { RightsReviewImportListItem } from '@/types/api-schema/rights-intake';
 import styles from './ReviewImportPanel.module.scss';
 import { ReportPdfPanel } from '../ReportPdfPanel/ReportPdfPanel';
 import { ReviewImportHistory } from '../ReviewImportHistory/ReviewImportHistory';
@@ -26,7 +24,7 @@ export const ReviewImportPanel: FC<ReviewImportPanelProps> = ({
   const [reviewSourceFileName, setReviewSourceFileName] = useState('');
   const [reviewMarkdown, setReviewMarkdown] = useState('');
   const [rawAgentOutput, setRawAgentOutput] = useState('');
-  const [importResult, setImportResult] = useState<RightsReviewImportDetail | null>(null);
+  const [importResult, setImportResult] = useState<RightsReviewImportRecord | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
 

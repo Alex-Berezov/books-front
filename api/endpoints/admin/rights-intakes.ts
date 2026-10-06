@@ -17,13 +17,12 @@ import type {
   CreateBookFromClearanceResponse,
   RightsAction,
   UpdateRightsActionRequest,
-} from '@/types/api-schema';
-import type { PaginatedResult } from '@/types/api-schema/common';
-import type {
   RightsAgentManifest,
   RightsReviewImportDetail,
+  RightsReviewImportRecord,
   RightsReviewImportsListResponse,
-} from '@/types/api-schema/rights-intake';
+} from '@/types/api-schema';
+import type { PaginatedResult } from '@/types/api-schema/common';
 
 export const getRightsIntakes = async (
   params: GetRightsIntakesParams = {}
@@ -103,8 +102,8 @@ export const getRightsIntakeReadiness = async (id: string): Promise<RightsIntake
 export const createRightsReviewImport = async (
   id: string,
   data: CreateRightsReviewImportRequest
-): Promise<RightsReviewImportDetail> => {
-  return httpPostAuth<RightsReviewImportDetail>(
+): Promise<RightsReviewImportRecord> => {
+  return httpPostAuth<RightsReviewImportRecord>(
     `/admin/rights/intakes/${id}/review-imports`,
     data,
     { requireAuth: true }

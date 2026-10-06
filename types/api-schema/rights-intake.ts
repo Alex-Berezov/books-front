@@ -211,22 +211,26 @@ export interface ValidationIssue {
   code: string;
 }
 
-export interface RightsReviewImportListItem {
+/** Fields shared by the list item and the card; only the list item carries the issue counters. */
+export interface RightsReviewImportBase {
   id: string;
   rightsIntakeId: string;
   schemaVersion: string | null;
   importStatus: RightsReviewImportStatus;
   isCurrent: boolean;
   sourceFileName: string | null;
-  validationErrorsCount: number;
-  validationWarningsCount: number;
   importedByUserId: string | null;
   supersededAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface RightsReviewImportDetail extends RightsReviewImportListItem {
+export interface RightsReviewImportListItem extends RightsReviewImportBase {
+  validationErrorsCount: number;
+  validationWarningsCount: number;
+}
+
+export interface RightsReviewImportDetail extends RightsReviewImportBase {
   reportJson: unknown;
   reportMarkdown: string | null;
   rawAgentOutput: string | null;
@@ -237,7 +241,7 @@ export interface RightsReviewImportDetail extends RightsReviewImportListItem {
   validationWarnings: ValidationIssue[] | null;
   // WP-9.2: PDF-версия отчёта. Файл приватный — публичного URL у него нет, скачивается
   // только через `GET /admin/rights/review-imports/:importId/report-pdf`.
-  hasReportPdf?: boolean;
+  hasReportPdf: boolean;
   reportPdfSha256?: string | null;
   reportPdfFileName?: string | null;
   reportPdfContentType?: string | null;
@@ -249,6 +253,12 @@ export interface RightsReviewImportDetail extends RightsReviewImportListItem {
   promptVersion?: string | null;
   agentModel?: string | null;
 }
+
+/**
+ * `POST /admin/rights/intakes/:id/review-imports` answers with the stored row as is
+ * (`RightsReviewImportRecordDto`): no `hasReportPdf`, which only the card computes.
+ */
+export type RightsReviewImportRecord = Omit<RightsReviewImportDetail, 'hasReportPdf'>;
 
 export type RightsReviewImportsListResponse = PaginatedResult<RightsReviewImportListItem>;
 

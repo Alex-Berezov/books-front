@@ -44,13 +44,12 @@ import type {
   CreateBookFromClearanceResponse,
   RightsAction,
   UpdateRightsActionRequest,
-} from '@/types/api-schema';
-import type { PaginatedResult } from '@/types/api-schema/common';
-import type {
   RightsAgentManifest,
   RightsReviewImportDetail,
+  RightsReviewImportRecord,
   RightsReviewImportsListResponse,
-} from '@/types/api-schema/rights-intake';
+} from '@/types/api-schema';
+import type { PaginatedResult } from '@/types/api-schema/common';
 
 export const rightsIntakeKeys = {
   all: ['rights-intakes'] as const,
@@ -291,10 +290,10 @@ export const useRightsReviewImportDetail = (
 
 export const useCreateRightsReviewImport = (
   intakeId: string,
-  options?: UseMutationOptions<RightsReviewImportDetail, Error, CreateRightsReviewImportRequest>
+  options?: UseMutationOptions<RightsReviewImportRecord, Error, CreateRightsReviewImportRequest>
 ) => {
   const queryClient = useQueryClient();
-  return useMutation<RightsReviewImportDetail, Error, CreateRightsReviewImportRequest>({
+  return useMutation<RightsReviewImportRecord, Error, CreateRightsReviewImportRequest>({
     mutationFn: (data) => createRightsReviewImport(intakeId, data),
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: rightsIntakeKeys.all });
