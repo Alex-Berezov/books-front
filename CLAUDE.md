@@ -123,6 +123,7 @@ job выката не идёт. Но job `build` от гейта не завис
 | Новая страница               | `app/[lang]/`, `lib/utils/fetch-page.ts`, `lib/seo/urls.ts`, `ai-context/seo-rules.md`                    |
 | SEO, canonical, hreflang     | `lib/seo/urls.ts`, `lib/seo/hreflang-alternates.ts`, `lib/utils/seo-indexing.ts`, `lib/seo/degraded.ts`   |
 | Карта сайта и robots         | `app/sitemap.xml/`, `app/sitemaps/[filename]/`, `lib/sitemap/utils.ts`, `lib/system-pages.ts`             |
+| llms.txt                     | `app/llms.txt/`, `lib/seo/llms.ts`, `lib/seo/landing-presence.ts`                                         |
 | Вход, роли, защита маршрутов | `middleware.ts`, `lib/middleware.constants.ts`, `lib/auth/`, `ai-context/auth-and-permissions.md`         |
 | Языки и словари              | `lib/i18n/lang.ts`, `lib/i18n/locales/*.json`, `lib/i18n/dictionaries.ts`, `scripts/check-langs-sync.mjs` |
 | Новый раздел сайта           | `app/[lang]/`, `lib/constants/reserved-slugs.ts`, `scripts/check-reserved-slugs.mjs`                      |

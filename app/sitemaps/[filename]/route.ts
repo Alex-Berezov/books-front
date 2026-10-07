@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
   getPublicBooks,
-  getBookCards,
   getPublicAuthors,
   getPublicCategories,
   getPublicTags,
@@ -17,6 +16,7 @@ import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { isAuthorLinkable } from '@/lib/seo/author-linkable';
 import { buildIndexableAlternates, toAlternateCandidates } from '@/lib/seo/hreflang-alternates';
+import { loadLandingPresence } from '@/lib/seo/landing-presence';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import {
   getBaseUrl,
@@ -27,7 +27,6 @@ import {
   sitemapUnavailable,
   type SitemapItem,
 } from '@/lib/sitemap/utils';
-import { toCountResult, type CountResult } from '@/lib/utils/seo-indexing';
 import type {
   AuthorLetter,
   BookListItem,
@@ -136,39 +135,8 @@ export async function GET(request: Request, { params }: { params: { filename: st
 
   // 1. Static Sitemap
   if (filename === 'sitemap-static.xml') {
-    // A landing is dropped from the sitemap only when it is *known* to be empty.
-    // `.catch(() => null)` collapsed into `?? 0` used to silently un-list all
-    // three landings in every language whenever the API blinked during a crawl.
-    const landingCounts = new Map<
-      string,
-      { audiobooks: CountResult; popular: CountResult; new: CountResult }
-    >();
-    await Promise.all(
-      SUPPORTED_LANGS.map(async (lang) => {
-        const count = async (params: Parameters<typeof getBookCards>[3]) => {
-          try {
-            const res = await getBookCards(lang as SupportedLang, 1, 1, params);
-            return toCountResult(res?.pagination?.total ?? null);
-          } catch (error) {
-            console.error(`Error counting landing books for sitemap (${lang}):`, error);
-            return toCountResult(null);
-          }
-        };
-        const [audiobooks, popular, newest] = await Promise.all([
-          count({ type: 'audio' }),
-          count({ sort: 'popular' }),
-          count({ sort: 'new' }),
-        ]);
-        landingCounts.set(lang, { audiobooks, popular, new: newest });
-      })
-    );
-
-    /** Unknown counts as "keep": dropping a live URL costs more than listing an empty one. */
-    const hasLanding = (lang: string, key: 'audiobooks' | 'popular' | 'new'): boolean => {
-      const count = landingCounts.get(lang)?.[key];
-      if (!count || !count.ok) return true;
-      return count.total > 0;
-    };
+    // Count-gated landings: dropped only when known to be empty (see `loadLandingPresence`).
+    const hasLanding = await loadLandingPresence('sitemap');
 
     const staticRoutes: { path: string; include: (lang: string) => boolean }[] = [
       { path: '', include: () => true },

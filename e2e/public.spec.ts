@@ -71,4 +71,15 @@ test.describe('Public Area', () => {
     await expect(page).toHaveURL(/\/en\/catalog(\?|$)/);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
+
+  test('/llms.txt answers with Markdown that has a single H1', async ({ request }) => {
+    const response = await request.get('/llms.txt');
+
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toContain('text/plain');
+    const body = await response.text();
+    expect(body.match(/^# /gm)).toHaveLength(1);
+    expect(body).toContain('/en/catalog)');
+    expect(body).toContain('/sitemap.xml)');
+  });
 });
