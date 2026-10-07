@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/common/Button';
 import type { PageFormData, PageFormProps } from './PageForm.types';
 import styles from './PageForm.module.scss';
-import { pageSchema } from './PageForm.types';
+import { buildPageSchema } from './PageForm.types';
 import { BasicInfoSection } from './sections/BasicInfoSection';
 import { HomepageSectionsSection } from './sections/HomepageSectionsSection';
 import { TranslationsSection } from './sections/TranslationsSection';
@@ -55,6 +55,9 @@ export const PageForm: FC<PageFormProps> = (props) => {
       title: p.title,
     })) || initialData?.translations;
 
+  // Предел длины — только у изменённого слага: старый длинный слаг не запирает правку (`LEGACY-437`).
+  const schema = useMemo(() => buildPageSchema(initialData?.slug), [initialData?.slug]);
+
   // Initialize form with react-hook-form
   const {
     control,
@@ -65,7 +68,7 @@ export const PageForm: FC<PageFormProps> = (props) => {
     setValue,
     watch,
   } = useForm<PageFormData>({
-    resolver: zodResolver(pageSchema),
+    resolver: zodResolver(schema),
     mode: 'onSubmit', // Validation only on form submit
     defaultValues: initialData
       ? {

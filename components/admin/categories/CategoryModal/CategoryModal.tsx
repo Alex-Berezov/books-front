@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type FC } from 'react';
+import { useEffect, useMemo, type FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Select as AntdSelect } from 'antd';
 import { useForm, Controller } from 'react-hook-form';
@@ -15,7 +15,7 @@ import { getTaxonomyVisibilityStatus } from '@/lib/seo/taxonomy-visibility-statu
 import { generateSlug } from '@/lib/utils/slug';
 import styles from './CategoryModal.module.scss';
 import {
-  categorySchema,
+  buildCategorySchema,
   type CategoryFormData,
   type CategoryModalProps,
 } from './CategoryModal.types';
@@ -23,6 +23,8 @@ import {
 export const CategoryModal: FC<CategoryModalProps> = (props) => {
   const { isOpen, onClose, category, initialParentId, type } = props;
   const isEditMode = !!category;
+  // Предел длины — только у изменённого слага: старый длинный слаг не запирает правку (`LEGACY-437`).
+  const schema = useMemo(() => buildCategorySchema(category?.slug), [category?.slug]);
   const {
     register,
     handleSubmit,
@@ -33,7 +35,7 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
     setValue,
     formState: { errors },
   } = useForm<CategoryFormData>({
-    resolver: zodResolver(categorySchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       name: '',
       slug: '',

@@ -1,73 +1,81 @@
 import { z } from 'zod';
 import { httpUrlOrEmpty } from '@/lib/utils/http-url-field';
+import { isSlugLengthAllowed } from '@/lib/utils/slug';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PageResponse } from '@/types/api-schema';
 
 /**
  * Validation schema for page form
+ *
+ * @param keptSlug - слаг редактируемой страницы; на создании не задаётся, и предел длины слага
+ *   действует всегда. На правке предел — только у изменённого слага (`isSlugLengthAllowed`).
  */
-export const pageSchema = z.object({
-  /** Page language */
-  language: z.enum(['en', 'es', 'fr', 'pt', 'ru']),
-  /** Page type (required field!) */
-  type: z.enum(['generic', 'category_index', 'author_index', 'homepage']),
-  /** Page title */
-  title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
-  /** Page URL slug */
-  slug: z
-    .string()
-    .min(1, 'Slug is required')
-    .max(100, 'Slug is too long')
-    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers and hyphens'),
-  /** Page content (Markdown) */
-  content: z.string().min(1, 'Content is required'),
+export const buildPageSchema = (keptSlug?: string) =>
+  z.object({
+    /** Page language */
+    language: z.enum(['en', 'es', 'fr', 'pt', 'ru']),
+    /** Page type (required field!) */
+    type: z.enum(['generic', 'category_index', 'author_index', 'homepage']),
+    /** Page title */
+    title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
+    /** Page URL slug */
+    slug: z
+      .string()
+      .min(1, 'Slug is required')
+      .refine((slug) => isSlugLengthAllowed(slug, keptSlug), 'Slug is too long')
+      .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers and hyphens'),
+    /** Page content (Markdown) */
+    content: z.string().min(1, 'Content is required'),
 
-  // ========================================
-  // SEO Content Fields
-  // ========================================
+    // ========================================
+    // SEO Content Fields
+    // ========================================
 
-  /** H1 heading for SEO pages (overrides title) */
-  h1: z.string().max(200, 'H1 is too long').optional().or(z.literal('')),
-  /** Short description for overview/preview */
-  shortDescription: z
-    .string()
-    .max(500, 'Short description is too long')
-    .optional()
-    .or(z.literal('')),
-  /** FAQ items as array of question/answer pairs */
-  faq: z.array(z.object({ question: z.string(), answer: z.string() })),
+    /** H1 heading for SEO pages (overrides title) */
+    h1: z.string().max(200, 'H1 is too long').optional().or(z.literal('')),
+    /** Short description for overview/preview */
+    shortDescription: z
+      .string()
+      .max(500, 'Short description is too long')
+      .optional()
+      .or(z.literal('')),
+    /** FAQ items as array of question/answer pairs */
+    faq: z.array(z.object({ question: z.string(), answer: z.string() })),
 
-  /** Homepage sections configuration (JSON object with block data) */
-  sections: z.any().optional(),
+    /** Homepage sections configuration (JSON object with block data) */
+    sections: z.any().optional(),
 
-  // ========================================
-  // SEO Fields
-  // ========================================
+    // ========================================
+    // SEO Fields
+    // ========================================
 
-  // Basic Meta Tags
-  /** SEO meta title - will be sent as seo.metaTitle */
-  seoMetaTitle: z.string().max(60, 'Meta Title should be 50-60 characters'),
-  /** SEO meta description - will be sent as seo.metaDescription */
-  seoMetaDescription: z.string().max(160, 'Meta Description should be 120-160 characters'),
+    // Basic Meta Tags
+    /** SEO meta title - will be sent as seo.metaTitle */
+    seoMetaTitle: z.string().max(60, 'Meta Title should be 50-60 characters'),
+    /** SEO meta description - will be sent as seo.metaDescription */
+    seoMetaDescription: z.string().max(160, 'Meta Description should be 120-160 characters'),
 
-  // Technical SEO
-  /** Canonical URL to avoid duplicate content */
-  seoCanonicalUrl: httpUrlOrEmpty,
-  /** Robots meta tag for indexing control */
-  seoRobots: z.string(),
+    // Technical SEO
+    /** Canonical URL to avoid duplicate content */
+    seoCanonicalUrl: httpUrlOrEmpty,
+    /** Robots meta tag for indexing control */
+    seoRobots: z.string(),
 
-  // Open Graph (Facebook, LinkedIn)
-  /** OG title for social media */
-  seoOgTitle: z.string().max(60, 'OG Title is too long'),
-  /** OG description for social media */
-  seoOgDescription: z.string().max(160, 'OG Description is too long'),
-  /** OG image URL (1200x630 recommended) */
-  seoOgImageUrl: httpUrlOrEmpty,
+    // Open Graph (Facebook, LinkedIn)
+    /** OG title for social media */
+    seoOgTitle: z.string().max(60, 'OG Title is too long'),
+    /** OG description for social media */
+    seoOgDescription: z.string().max(160, 'OG Description is too long'),
+    /** OG image URL (1200x630 recommended) */
+    seoOgImageUrl: httpUrlOrEmpty,
 
-  // Twitter Card
-  /** Twitter card type (uses metaTitle and metaDescription automatically) */
-  seoTwitterCard: z.enum(['summary', 'summary_large_image', '']),
-});
+    // Twitter Card
+    /** Twitter card type (uses metaTitle and metaDescription automatically) */
+    seoTwitterCard: z.enum(['summary', 'summary_large_image', '']),
+  });
+
+/** Схема создания страницы: предел длины слага действует всегда. */
+export const pageSchema = buildPageSchema();
 
 /**
  * Form data type

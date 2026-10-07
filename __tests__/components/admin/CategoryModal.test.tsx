@@ -145,3 +145,40 @@ describe('CategoryModal — slug check that could not answer', () => {
     expect(mocks.update).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * `LEGACY-437`. Предел длины слага (100) появился позже записей: у старой категории слаг бывает
+ * длиннее. Форма обязана передать схеме исходный слаг (`category.slug`), иначе нетронутый длинный
+ * слаг запрёт правку любого поля. Изменённый слаг предел проходит как обычно.
+ */
+describe('CategoryModal — legacy slug longer than the limit (LEGACY-437)', () => {
+  const longSlug = 'a'.repeat(101);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.checkSlug.mockResolvedValue({ isUnique: true });
+    mocks.update.mockResolvedValue({});
+  });
+
+  it('saves a name change when the stored long slug is left untouched', async () => {
+    renderModal({ slug: longSlug });
+
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Victorian novels' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(1));
+    const payload = mocks.update.mock.calls[0][0] as { data: Record<string, unknown> };
+    expect(payload.data).toMatchObject({ name: 'Victorian novels', slug: longSlug });
+    expect(screen.queryByText('Slug is too long')).not.toBeInTheDocument();
+  });
+
+  it('refuses a changed slug that is over the limit', async () => {
+    renderModal({ slug: longSlug });
+
+    fireEvent.change(screen.getByLabelText('Slug'), { target: { value: 'b'.repeat(101) } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(() => expect(screen.getByText('Slug is too long')).toBeInTheDocument());
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
+});

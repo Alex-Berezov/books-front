@@ -12,7 +12,7 @@ import { Modal } from '@/components/common/Modal';
 import { SlugInput } from '@/components/common/SlugInput';
 import { generateSlug } from '@/lib/utils/slug';
 import styles from './TagModal.module.scss';
-import { tagSchema, type TagFormData, type TagModalProps } from './TagModal.types';
+import { buildTagSchema, type TagFormData, type TagModalProps } from './TagModal.types';
 
 const MESSAGES = {
   CREATE_SUCCESS: 'Tag created successfully',
@@ -43,7 +43,7 @@ export const TagModal: FC<TagModalProps> = (props) => {
     setValue,
     formState: { errors },
   } = useForm<TagFormData>({
-    resolver: zodResolver(tagSchema),
+    resolver: zodResolver(buildTagSchema(tag?.slug)),
     defaultValues: {
       name: '',
       slug: '',

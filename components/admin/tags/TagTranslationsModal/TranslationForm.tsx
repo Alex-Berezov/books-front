@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
@@ -16,7 +16,7 @@ import { Select } from '@/components/common/Select';
 import { FAQ_ANSWER_MAX_LENGTH, FAQ_QUESTION_MAX_LENGTH } from '@/lib/constants/faq';
 import { generateSlug } from '@/lib/utils/slug';
 import styles from './TagTranslationsModal.module.scss';
-import { translationSchema, type TranslationFormData } from './TagTranslationsModal.types';
+import { buildTranslationSchema, type TranslationFormData } from './TagTranslationsModal.types';
 
 interface TranslationFormProps {
   initialData?: TranslationFormData;
@@ -29,6 +29,9 @@ interface TranslationFormProps {
 
 export const TranslationForm = (props: TranslationFormProps) => {
   const { initialData, availableLanguages, isEditing, isLoading, onSubmit, onCancel } = props;
+  // Предел длины — только у изменённого слага редактируемого перевода; у нового — всегда (`LEGACY-437`).
+  const keptSlug = isEditing ? initialData?.slug : undefined;
+  const schema = useMemo(() => buildTranslationSchema(keptSlug), [keptSlug]);
 
   const {
     register,
@@ -38,7 +41,7 @@ export const TranslationForm = (props: TranslationFormProps) => {
     control,
     formState: { errors },
   } = useForm<TranslationFormData>({
-    resolver: zodResolver(translationSchema),
+    resolver: zodResolver(schema),
     defaultValues: initialData || {
       language: 'en',
       name: '',

@@ -203,8 +203,23 @@ export const getBaseSlug = (slug: string): string => {
   return slug.replace(/-\d+$/, '');
 };
 
-/** Предел длины слага книги на записи — зеркало `SLUG_MAX_LENGTH` бэкенда (`LEGACY-437`). */
-export const BOOK_SLUG_MAX_LENGTH = 100;
+/**
+ * Общий предел длины слага на записи — книги, версии, категории и её переводы, теги и их переводы,
+ * страницы. Зеркало `SLUG_MAX_LENGTH` бэкенда (`LEGACY-437`).
+ */
+export const SLUG_MAX_LENGTH = 100;
+
+/**
+ * Проходит ли слаг предел длины так, как его проверяет бэкенд (`LEGACY-437`): на создании
+ * (`keptSlug` не задан) — всегда, на правке — только изменённый слаг. Предел введён позже
+ * записей, и неизменный старый слаг длиннее него сервер пропускает; форма не должна запирать
+ * сохранение остальных полей такой записи.
+ *
+ * @param slug - слаг из формы
+ * @param keptSlug - слаг редактируемой записи; на создании не задаётся
+ */
+export const isSlugLengthAllowed = (slug: string, keptSlug?: string): boolean =>
+  slug === keptSlug || slug.length <= SLUG_MAX_LENGTH;
 
 /**
  * Checks if slug is valid

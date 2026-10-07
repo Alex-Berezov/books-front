@@ -117,3 +117,28 @@ describe('tag translation indexable switch (LEGACY-422, T73)', () => {
     expect(onSubmit.mock.calls[0]?.[0]).toMatchObject({ name: 'Poetry', indexable: false });
   });
 });
+
+// `LEGACY-437`: предел длины слага (100) появился позже записей. Форма перевода обязана передать
+// схеме исходный слаг редактируемого перевода, иначе нетронутый длинный слаг запрёт сохранение.
+describe('tag translation with a legacy slug longer than the limit (LEGACY-437)', () => {
+  beforeEach(() => {
+    updateSpy.mockClear();
+  });
+
+  it('edit keeps the untouched long slug and saves', async () => {
+    const longSlug = 'a'.repeat(101);
+    translations.current = [
+      { language: 'en', name: 'Classics', slug: longSlug, indexable: true } as TagTranslation,
+    ];
+    render(<TagTranslationsModal isOpen onClose={vi.fn()} tag={TAG} />);
+    const row = screen.getByText(longSlug).parentElement?.parentElement as HTMLElement;
+    fireEvent.click(row.querySelectorAll('button')[0] as HTMLButtonElement);
+
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Old classics' } });
+    fireEvent.click(screen.getByRole('button', { name: /update|save/i }));
+
+    await waitFor(() => expect(updateSpy).toHaveBeenCalledTimes(1));
+    expect(payloadOf(updateSpy)).toMatchObject({ name: 'Old classics', slug: longSlug });
+    expect(screen.queryByText('Slug is too long')).not.toBeInTheDocument();
+  });
+});
