@@ -375,6 +375,5 @@ const user = await httpGet<User>('/users/me', {
 ## 🔗 See Also
 
 - [HTTP Constants](./http.constants.ts) - Constants for HTTP client
-- [API Cheatsheet](../../docs/frontend-agents/api-cheatsheet.md)
-- [Backend API Reference](../../docs/frontend-agents/backend-api-reference.md)
-- [Data Fetching and Types](../../docs/frontend-agents/data-fetching-and-types.md)
+- Backend endpoints: `books-app-docs/backend/api/endpoints.md` (via `endpoints.index.md`)
+- Response contracts and `types/api-schema/` layout: `books-app-docs/ai-context/api-contracts.md`, `books-app-docs/ai-context/frontend.md`

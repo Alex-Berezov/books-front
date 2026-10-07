@@ -2,7 +2,7 @@
  * React Query hooks for audio chapters.
  *
  * Audio chapter = one audio file in a book version. See
- * `books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md` §3 for the contract.
+ * `books-app-docs/ai-context/api-contracts.md` («Chapters / Audio Chapters / Summaries») for the contract.
  */
 
 import {

@@ -223,4 +223,4 @@ components/admin/common/SeoSections/  (generic for any form)
 
 - **Pages implementation:** `components/admin/pages/PageForm/index.tsx`
 - **API types:** `types/api-schema/pages.ts` (`SeoInput`, `SeoData`)
-- **Backend guide:** `docs/PAGES_SEO_UPDATE_GUIDE.md`
+- **Backend contract:** `books-app-docs/ai-context/api-contracts.md` (nested `seo` of Pages)

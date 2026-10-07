@@ -2,7 +2,7 @@
  * Audio Chapters Endpoints
  *
  * API endpoints for audio chapters of a book version. See
- * `books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md` §3 for the full contract.
+ * `books-app-docs/ai-context/api-contracts.md` («Chapters / Audio Chapters / Summaries») for the full contract.
  *
  * - List/detail admin endpoints are used for draft versions
  *   (`/admin/versions/:id/audio-chapters`, `/admin/audio-chapters/:id`).

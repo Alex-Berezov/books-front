@@ -1,8 +1,6 @@
 # NextAuth Authorization Module
 
-> ✅ **Implemented and published.** Full NextAuth v5 auth (Credentials + Google + Facebook, JWT/session callbacks, auto-refresh, sign-in/register pages, middleware route protection). The M0.5/M1 framing below is historical; do not use milestones for planning. Systemic AI context: `books-app-docs/ai-context/auth-and-permissions.md`.
-
-> Template for integrating NextAuth into Bibliaris project
+> NextAuth v5 for Bibliaris: Credentials + Google + Facebook, JWT/session callbacks, token auto-refresh, sign-in/register pages, route protection in `middleware.ts`. Systemic context: `books-app-docs/ai-context/auth-and-permissions.md`.
 
 ## 📁 Structure
 
@@ -255,8 +253,8 @@ export default async function AdminLayout({ children, params }) {
 ## 📚 Resources
 
 - [NextAuth.js v5 Documentation](https://authjs.dev/)
-- [Backend API Reference](/docs/frontend-agents/backend-api-reference.md)
-- [Auth Integration Guide](/docs/frontend-agents/auth-next-auth.md)
+- Roles, session and route protection: `books-app-docs/ai-context/auth-and-permissions.md`
+- Backend endpoints: `books-app-docs/backend/api/endpoints.md` (via `endpoints.index.md`)
 
 ## ⚠️ Important Notes
 
@@ -285,7 +283,3 @@ This is a known compatibility issue with ESLint v8/v9. It doesn't affect project
 ### Error: "Module 'next-auth' has no exported member..."
 
 Make sure you're using `next-auth@^5.0.0-beta`.
-
-### Warning: "TODO - implement in M1"
-
-Historical note: this warning is obsolete — auth is fully implemented (see Current Status above).

@@ -7,7 +7,7 @@
  * многочастная загрузка - осталась в `api/endpoints/admin/uploads.ts`.
  *
  * Порядок варианта B описан в
- * `books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md` §4:
+ * `books-app-docs/ai-context/api-contracts.md` («Media / Uploads»):
  *
  *   POST /uploads/presign        { type, contentType, size }              → { token, url, method, key }
  *   POST /uploads/direct         (binary + Authorization + X-Upload-Token) → 201

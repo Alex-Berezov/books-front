@@ -1,8 +1,8 @@
 /**
  * Public audio endpoints.
  *
- * See books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md §3 (public list), §7.1 (`POST /views`),
- * §7.3 (`PUT /me/progress/:versionId` audio variant).
+ * See `books-app-docs/ai-context/api-contracts.md` («Chapters / Audio Chapters / Summaries»: public list; «User-facing data endpoints»: `POST /views`,
+ * `PUT /me/progress/:versionId` audio variant).
  */
 
 import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';

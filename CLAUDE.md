@@ -3,7 +3,7 @@
 ## Стек и структура
 
 Next.js 14.2 на App Router, React 18, TypeScript 5.9 в строгом режиме, SCSS-модули, react-query 5,
-next-auth v5 beta, antd 5 только в админке, vitest и playwright, yarn 1. Базовая ветка `main`.
+next-auth v5 beta, antd 5 - библиотека админки (в публичной части новых импортов нет, старые - долг `LEGACY-442`), vitest и playwright, yarn 1. Базовая ветка `main`.
 Бэкенд лежит в соседнем репозитории `books`, документация - в `books-app-docs`; работать в них
 через `git -C <путь>`, не через `cd`.
 
@@ -37,7 +37,7 @@ i18n, auth, seo, sitemap, константы и утилиты; `api/endpoints/`
 (`no-autofocus`, `click-events-have-key-events`, `no-static-element-interactions`,
 `label-has-associated-control`, `img-redundant-alt`) стоят уровнем `error` и красят прогон
 сами (сторож — `__tests__/eslintA11yRules.test.ts`). Живые предупреждения
-в дереве — это долг инлайн-стилей `LEGACY-050` и один `@next/next/no-img-element`
+в дереве — это принятый долг инлайн-стилей из `overrides` `.eslintrc.json` (`LEGACY-284`) и один `@next/next/no-img-element`
 (`components/admin/media/MediaPreviewModal.tsx`).
 
 `yarn e2e` гоняется в `ci.yml` — chromium, после `yarn build`, против `yarn start`. Апстрим — свой
@@ -232,7 +232,7 @@ job выката не идёт. Но job `build` от гейта не завис
 и понижены до `warn`. Список **только сокращается** - но держит это правило, а не машина:
 `__tests__/eslintInlineStyles.test.ts` краснеет на записи, дописанной в конфигурацию, на записи,
 которая не применяется, и на записи, под которой нарушения больше нет, однако запись, дописанную
-разом и в конфигурацию, и в эталон теста, он пропустит (`LEGACY-284`). Разбор самого долга идёт по `LEGACY-050` и попутно не делается. Класс заводится в соседнем `.module.scss`, файл начинается строкой
+разом и в конфигурацию, и в эталон теста, он пропустит (`LEGACY-284`). Сам долг принят (`LEGACY-284`; юридические страницы закрыты `LEGACY-050`) и попутно не разбирается. Класс заводится в соседнем `.module.scss`, файл начинается строкой
 `@import '@/styles/tokens.scss';` (без неё сборка падает на «Undefined variable»), значения берутся
 из `styles/tokens.scss`: `$color-*`, `$spacing-*`, `$font-size-*`, `$border-radius-*`, `$shadow-*`,
 `$breakpoint-*`. Хардкод `#1a1a1a` или `12px` в добавленных строках недопустим.

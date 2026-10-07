@@ -5,7 +5,7 @@
  * the media library. Chapters are ordered by `number` (unique within a
  * `bookVersionId`).
  *
- * Backend contract: see `books-app-docs/frontend/features/audio-feature/FRONTEND_ITER2_CONTRACT.md` §3.
+ * Backend contract: see `books-app-docs/ai-context/api-contracts.md` («Chapters / Audio Chapters / Summaries»)
  */
 
 import type { ISODate, UUID } from './common';
