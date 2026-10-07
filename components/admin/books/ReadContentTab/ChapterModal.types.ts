@@ -4,6 +4,7 @@ import type { Chapter } from '@/types/api-schema';
 export interface ChapterModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Saves the chapter. The dialog does not close itself: the caller closes it after a successful save. */
   onSubmit: (data: ChapterFormData) => Promise<void>;
   initialData?: Chapter;
   isSubmitting?: boolean;

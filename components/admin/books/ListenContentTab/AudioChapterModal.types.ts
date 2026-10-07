@@ -46,6 +46,7 @@ export type AudioChapterFormData = z.infer<typeof audioChapterSchema>;
 export interface AudioChapterModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Saves the chapter. The dialog does not close itself: the caller closes it after a successful save. */
   onSubmit: (data: AudioChapterFormData) => Promise<void>;
   initialData?: AudioChapter;
   isSubmitting?: boolean;

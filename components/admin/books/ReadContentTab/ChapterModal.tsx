@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
 import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
 import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
+import { useFollowUntilEdited } from '@/lib/hooks/useFollowUntilEdited';
+import { useOnOpen } from '@/lib/hooks/useOnOpen';
 import styles from './ChapterModal.module.scss';
 import { type ChapterFormData, type ChapterModalProps, chapterSchema } from './ChapterModal.types';
 
@@ -25,6 +26,7 @@ export const ChapterModal: FC<ChapterModalProps> = (props) => {
     handleSubmit,
     control,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<ChapterFormData>({
     resolver: zodResolver(chapterSchema),
@@ -35,21 +37,21 @@ export const ChapterModal: FC<ChapterModalProps> = (props) => {
     },
   });
 
-  // Reset form when opening or when initialData changes
-  useEffect(() => {
-    if (isOpen) {
+  useOnOpen(
+    isOpen,
+    () =>
       reset({
         title: initialData?.title || '',
         content: initialData?.content || '',
         number: initialData?.number || nextChapterNumber,
-      });
-    }
-  }, [isOpen, initialData, nextChapterNumber, reset]);
+      }),
+    initialData?.id
+  );
 
-  const handleFormSubmit = async (data: ChapterFormData) => {
-    await onSubmit(data);
-    onClose();
-  };
+  // A new chapter's number follows the refetched list until the user edits it.
+  const markNumberEdited = useFollowUntilEdited(isOpen && !initialData, nextChapterNumber, (n) =>
+    setValue('number', n)
+  );
 
   return (
     <Modal
@@ -57,7 +59,8 @@ export const ChapterModal: FC<ChapterModalProps> = (props) => {
       title={initialData ? 'Edit Chapter' : 'Add Chapter'}
       confirmText={initialData ? 'Save Changes' : 'Create Chapter'}
       cancelText="Cancel"
-      onConfirm={handleSubmit(handleFormSubmit)}
+      // The caller closes the dialog after a successful save; after a failed one it stays open.
+      onConfirm={handleSubmit(onSubmit)}
       onCancel={onClose}
       isLoading={isSubmitting}
       size="lg"
@@ -88,7 +91,7 @@ export const ChapterModal: FC<ChapterModalProps> = (props) => {
             type="number"
             fullWidth
             error={!!errors.number}
-            {...register('number', { valueAsNumber: true })}
+            {...register('number', { valueAsNumber: true, onChange: markNumberEdited })}
           />
           {errors.number && <span className={styles.error}>{errors.number.message}</span>}
         </div>

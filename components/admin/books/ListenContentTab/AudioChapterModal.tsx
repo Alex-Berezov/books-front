@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
+import { useFollowUntilEdited } from '@/lib/hooks/useFollowUntilEdited';
+import { useOnOpen } from '@/lib/hooks/useOnOpen';
 import styles from './AudioChapterModal.module.scss';
 import {
   type AudioChapterFormData,
@@ -67,25 +69,32 @@ export const AudioChapterModal: FC<AudioChapterModalProps> = (props) => {
 
   const [displayName, setDisplayName] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
+  useOnOpen(
+    isOpen,
+    () => {
+      if (initialData) {
+        reset({
+          number: initialData.number,
+          title: initialData.title,
+          audioUrl: initialData.audioUrl,
+          mediaId: initialData.mediaId,
+          duration: initialData.duration,
+          description: initialData.description ?? '',
+          transcript: initialData.transcript ?? '',
+        });
+        setDisplayName(deriveDisplayName(initialData.audioUrl));
+      } else {
+        reset(defaultValues);
+        setDisplayName(null);
+      }
+    },
+    initialData?.id
+  );
 
-    if (initialData) {
-      reset({
-        number: initialData.number,
-        title: initialData.title,
-        audioUrl: initialData.audioUrl,
-        mediaId: initialData.mediaId,
-        duration: initialData.duration,
-        description: initialData.description ?? '',
-        transcript: initialData.transcript ?? '',
-      });
-      setDisplayName(deriveDisplayName(initialData.audioUrl));
-    } else {
-      reset(defaultValues);
-      setDisplayName(null);
-    }
-  }, [isOpen, initialData, defaultValues, reset]);
+  // A new chapter's number follows the refetched list until the user edits it.
+  const markNumberEdited = useFollowUntilEdited(isOpen && !initialData, nextChapterNumber, (n) =>
+    setValue('number', n)
+  );
 
   const pickerValue: AudioPickerValue | null = audioUrl
     ? {
@@ -119,8 +128,8 @@ export const AudioChapterModal: FC<AudioChapterModalProps> = (props) => {
       transcript: data.transcript ? data.transcript : null,
       mediaId: data.mediaId ?? null,
     };
+    // The caller closes the dialog after a successful save; after a failed one it stays open.
     await onSubmit(payload);
-    onClose();
   };
 
   return (
@@ -162,7 +171,7 @@ export const AudioChapterModal: FC<AudioChapterModalProps> = (props) => {
               min={1}
               fullWidth
               error={!!errors.number}
-              {...register('number', { valueAsNumber: true })}
+              {...register('number', { valueAsNumber: true, onChange: markNumberEdited })}
             />
             {errors.number && <span className={styles.error}>{errors.number.message}</span>}
           </div>
