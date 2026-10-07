@@ -28,6 +28,12 @@ export interface SlugInputProps {
   lang?: SupportedLang;
   /** ID of edited entity (to exclude from uniqueness check) */
   excludeId?: string;
+  /**
+   * Edit mode: the slug the record was opened with. It is already stored, so it is not re-checked
+   * when longer than `SLUG_MAX_LENGTH`: the server accepts it unchanged, and `check-slug` answers 400
+   * to any slug over the limit (`LEGACY-437`) - the form would show "could not check" on an untouched field.
+   */
+  keptSlug?: string;
   /** `bookVersion` only: the version's own book - its slugs lead to the same book */
   ownBookId?: string;
   /** Disable field */

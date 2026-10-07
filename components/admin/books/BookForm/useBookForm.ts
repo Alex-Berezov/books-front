@@ -27,13 +27,11 @@ export const useBookForm = (props: UseBookFormProps) => {
 
   // Черновик сохраняется с любым наполнением; у версии, которая уже выходила наружу, нельзя
   // стереть заполненные описание и обложку. Разбор случаев — в `requiredContentFieldsFor`.
+  // Слаг, с которым форма открылась: его же получают схема и проверка занятости в поле слага.
+  const keptSlug = initialData ? versionSlugOf(initialData) : undefined;
   const schema = useMemo(
-    () =>
-      buildBookVersionSchema(
-        requiredContentFieldsFor(initialData),
-        initialData ? versionSlugOf(initialData) : undefined
-      ),
-    [initialData]
+    () => buildBookVersionSchema(requiredContentFieldsFor(initialData), keptSlug),
+    [initialData, keptSlug]
   );
 
   const form = useForm<BookFormData>({
@@ -197,5 +195,5 @@ export const useBookForm = (props: UseBookFormProps) => {
     return () => subscription.unsubscribe();
   }, [watch, setValue]);
 
-  return form;
+  return { ...form, keptSlug };
 };

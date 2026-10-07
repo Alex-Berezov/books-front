@@ -27,6 +27,8 @@ interface BasicInfoSectionProps {
   isEditMode: boolean;
   /** Id редактируемой версии: исключается из проверки слага. Нет - форма создания. */
   versionId?: string;
+  /** Слаг, с которым форма открылась: хранимый слаг длиннее предела не проверяется на занятость. */
+  keptSlug?: string;
   /** Книга версии: её собственные слаги проверка слага конфликтом не считает. */
   bookId?: string;
   existingLanguages?: SupportedLang[];
@@ -41,6 +43,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
     setValue,
     isEditMode,
     versionId,
+    keptSlug,
     bookId,
     existingLanguages = [],
   } = props;
@@ -182,6 +185,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
           error={errors.bookSlug?.message}
           excludeId={versionId}
           id="bookSlug"
+          keptSlug={keptSlug}
           lang={watch('language')}
           mode={versionId ? 'edit' : 'create'}
           ownBookId={bookId}

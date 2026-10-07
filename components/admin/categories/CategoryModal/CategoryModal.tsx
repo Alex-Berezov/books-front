@@ -12,7 +12,7 @@ import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
 import { SlugInput } from '@/components/common/SlugInput';
 import { getTaxonomyVisibilityStatus } from '@/lib/seo/taxonomy-visibility-status';
-import { generateSlug } from '@/lib/utils/slug';
+import { generateSlug, isKeptSlugOverLimit } from '@/lib/utils/slug';
 import styles from './CategoryModal.module.scss';
 import {
   buildCategorySchema,
@@ -106,16 +106,19 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
-      // Validate slug uniqueness
-      const slugCheck = await checkCategorySlugUniqueness(data.slug, category?.id);
-      // LEGACY-142: a failed check reports `isUnique: undefined`, not `false` -
-      // only a confirmed duplicate blocks the save.
-      if (slugCheck.isUnique === false) {
-        setError('slug', {
-          type: 'manual',
-          message: `Slug is already taken. Suggested: ${slugCheck.suggestedSlug}`,
-        });
-        return;
+      // Validate slug uniqueness. A stored slug over the limit is not checked: `check-slug` refuses
+      // it with 400, and the server accepts it unchanged (`LEGACY-437`).
+      if (!isKeptSlugOverLimit(data.slug, category?.slug)) {
+        const slugCheck = await checkCategorySlugUniqueness(data.slug, category?.id);
+        // LEGACY-142: a failed check reports `isUnique: undefined`, not `false` -
+        // only a confirmed duplicate blocks the save.
+        if (slugCheck.isUnique === false) {
+          setError('slug', {
+            type: 'manual',
+            message: `Slug is already taken. Suggested: ${slugCheck.suggestedSlug}`,
+          });
+          return;
+        }
       }
 
       if (isEditMode && category) {
@@ -212,6 +215,7 @@ export const CategoryModal: FC<CategoryModalProps> = (props) => {
                 // с ней же самой и сообщает «занят» (LEGACY-061). Ручная проверка в
                 // `onSubmit` id передавала правильно — расхождение и маскировало дефект.
                 excludeId={category?.id}
+                keptSlug={category?.slug}
                 mode={isEditMode ? 'edit' : 'create'}
                 // Разблокировано 09.08.2026: `SlugRedirect` появился, и смена слага
                 // теперь оставляет 308 со старого адреса (LEGACY-062). До этого поле

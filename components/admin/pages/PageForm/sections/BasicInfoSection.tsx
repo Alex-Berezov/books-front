@@ -135,6 +135,7 @@ export const BasicInfoSection: FC<BasicInfoSectionProps> = (props) => {
             error={errors.slug?.message}
             excludeId={initialData?.id}
             id="slug"
+            keptSlug={initialData?.slug}
             lang={watch('language')}
             mode={initialData?.id ? 'edit' : 'create'}
             onChange={(value) => setValue('slug', value)}

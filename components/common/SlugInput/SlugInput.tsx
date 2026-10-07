@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 import type { ChangeEvent, FC, FocusEvent } from 'react';
 import { isReservedSlug } from '@/lib/constants/reserved-slugs';
 import { useSlugValidation } from '@/lib/hooks/useSlugValidation';
-import { generateSlug, isValidSlug } from '@/lib/utils/slug';
+import { generateSlug, isKeptSlugOverLimit, isValidSlug } from '@/lib/utils/slug';
 import type { SlugInputProps } from './SlugInput.types';
 import type { SlugValidationStatus } from '@/lib/hooks/useSlugValidation';
 import styles from './SlugInput.module.scss';
@@ -51,6 +51,7 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
     error,
     excludeId,
     id = 'slug',
+    keptSlug,
     lang,
     mode,
     onChange,
@@ -112,15 +113,26 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
   }, [sourceValue, autoGenerate, autoGenerationLocked, value, onChange]);
 
   /**
+   * A stored slug over the limit (`LEGACY-437`): the server accepts it unchanged, but `check-slug`
+   * refuses any slug over the limit with 400 - checking it would show "could not check" on an
+   * untouched field. It is not checked, and no verdict about another value is shown for it.
+   */
+  const isKeptOverLimit = isKeptSlugOverLimit(value, keptSlug);
+
+  /**
    * Check uniqueness when slug changes - and when what the check depends on changes: a slug of
    * a page or a book version is unique within its language, and a version's own book is not a
    * conflict, so a verdict for another language or without the own book is stale.
    */
   useEffect(() => {
-    if (value && isValidSlug(value)) {
+    if (isKeptOverLimit) {
+      // An empty slug checks nothing, but bumps the check number: an answer still on its way
+      // (the editor typed a character and erased it) is dropped instead of landing on the kept slug.
+      validate('');
+    } else if (value && isValidSlug(value)) {
       validate(value);
     }
-  }, [value, validate, lang, excludeId, ownBookId]);
+  }, [value, validate, lang, excludeId, ownBookId, isKeptOverLimit]);
 
   /**
    * Handle manual slug change
@@ -181,7 +193,8 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
    * request goes out, and the previous answer keeps being shown for a value
    * nobody checked. Everything on screen therefore reads this, not `status`.
    */
-  const effectiveStatus: SlugValidationStatus = value && isValidSlug(value) ? status : 'idle';
+  const effectiveStatus: SlugValidationStatus =
+    value && isValidSlug(value) && !isKeptOverLimit ? status : 'idle';
 
   /**
    * Determine CSS class for status
@@ -216,10 +229,12 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
    * does not.
    */
   const isReserved =
-    entityType === 'page' && (reserved === true || (mode === 'create' && isReservedSlug(value)));
+    entityType === 'page' &&
+    ((reserved === true && !isKeptOverLimit) || (mode === 'create' && isReservedSlug(value)));
 
   // Determine whether to show duplication
-  const showDuplicateWarning = !error && !isReserved && isUnique === false && existingItem;
+  const showDuplicateWarning =
+    !error && !isReserved && !isKeptOverLimit && isUnique === false && existingItem;
 
   /**
    * Not shown next to `ReservedWarning`: that one already says the slug cannot
@@ -253,7 +268,7 @@ export const SlugInput: FC<SlugInputProps> = (props) => {
       </div>
 
       {/* Hint: URL-friendly format */}
-      {!error && !existingItem && !isReserved && !showUnknownNotice && (
+      {!error && !showDuplicateWarning && !isReserved && !showUnknownNotice && (
         <ValidationHint placeholder={placeholder} />
       )}
 

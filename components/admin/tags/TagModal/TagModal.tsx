@@ -156,6 +156,7 @@ export const TagModal: FC<TagModalProps> = (props) => {
                 // сообщает «занят» на собственном слаге. `mode` и `excludeId` — разные
                 // факты: первый управляет автогенерацией, второй проверкой уникальности.
                 excludeId={tag?.id}
+                keptSlug={tag?.slug}
                 lang={lang}
                 mode={isEditMode ? 'edit' : 'create'}
                 // Разблокировано 09.08.2026: `SlugRedirect` появился, и смена слага

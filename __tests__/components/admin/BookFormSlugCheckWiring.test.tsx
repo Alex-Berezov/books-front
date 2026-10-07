@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BookForm } from '@/components/admin/books/BookForm/BookForm';
+import { SLUG_MAX_LENGTH } from '@/lib/utils/slug';
 import type { UseSlugValidationParams } from '@/lib/hooks/useSlugValidation';
 import type { BookVersionDetail } from '@/types/api-schema';
 
@@ -12,7 +13,7 @@ import type { BookVersionDetail } from '@/types/api-schema';
  * сверяет слаг с `Book.slug`, ради чего и была эта правка.
  */
 
-const mocks = vi.hoisted(() => ({ params: [] as UseSlugValidationParams[] }));
+const mocks = vi.hoisted(() => ({ params: [] as UseSlugValidationParams[], validate: vi.fn() }));
 
 vi.mock('@/api/hooks/useAuthors', () => ({
   useAuthors: () => ({
@@ -44,7 +45,7 @@ vi.mock('@/lib/hooks/useSlugValidation', () => ({
       suggestedSlug: undefined,
       existingItem: undefined,
       reserved: undefined,
-      validate: vi.fn(),
+      validate: mocks.validate,
     };
   },
 }));
@@ -61,6 +62,7 @@ const lastParams = () => mocks.params[mocks.params.length - 1];
 describe('BookForm - проверка слага языковой версии', () => {
   beforeEach(() => {
     mocks.params = [];
+    mocks.validate.mockClear();
   });
 
   it('форма создания проверяет слаг версии в своём языке и знает свою книгу', () => {
@@ -98,5 +100,26 @@ describe('BookForm - проверка слага языковой версии',
       excludeId: 'version-1',
       ownBookId: 'book-1',
     });
+  });
+
+  // LEGACY-437: `check-slug` отвечает 400 на слаг длиннее предела; хранимый слаг версии не проверяется.
+  it('форма правки не проверяет хранимый слаг длиннее предела', () => {
+    const longSlug = 'a'.repeat(SLUG_MAX_LENGTH + 1);
+    const version = {
+      id: 'version-1',
+      bookId: 'book-1',
+      bookSlug: 'the-brothers-karamazov',
+      slug: longSlug,
+      language: 'ru',
+      title: 'Братья Карамазовы',
+      author: 'Фёдор Достоевский',
+      type: 'text',
+      isFree: true,
+      status: 'draft',
+    } as BookVersionDetail;
+
+    withQueryClient(<BookForm initialData={version} lang="ru" onSubmit={vi.fn()} />);
+
+    expect(mocks.validate).not.toHaveBeenCalledWith(longSlug);
   });
 });

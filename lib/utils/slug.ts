@@ -222,6 +222,16 @@ export const isSlugLengthAllowed = (slug: string, keptSlug?: string): boolean =>
   slug === keptSlug || slug.length <= SLUG_MAX_LENGTH;
 
 /**
+ * Хранимый слаг длиннее предела (`LEGACY-437`): сервер принимает его неизменным, а `check-slug`
+ * отвечает 400 на любой слаг длиннее предела — такой слаг на занятость не проверяется.
+ *
+ * @param slug - слаг из формы
+ * @param keptSlug - слаг редактируемой записи; на создании не задаётся
+ */
+export const isKeptSlugOverLimit = (slug: string | undefined, keptSlug?: string): boolean =>
+  !!keptSlug && slug === keptSlug && keptSlug.length > SLUG_MAX_LENGTH;
+
+/**
  * Checks if slug is valid
  *
  * Validation rules:

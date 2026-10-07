@@ -52,6 +52,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
     control,
     formState: { errors },
     handleSubmit,
+    keptSlug,
     register,
     setValue,
     watch,
@@ -118,6 +119,7 @@ export const BookForm: FC<BookFormProps> = (props) => {
         errors={errors}
         existingLanguages={existingLanguages}
         isEditMode={!!initialData}
+        keptSlug={keptSlug}
         register={register}
         setValue={setValue}
         watch={watch}

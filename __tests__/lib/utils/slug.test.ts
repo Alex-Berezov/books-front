@@ -1,6 +1,13 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { generateSlug, makeUniqueSlug, getBaseSlug, isValidSlug } from '@/lib/utils/slug';
+import {
+  SLUG_MAX_LENGTH,
+  generateSlug,
+  getBaseSlug,
+  isKeptSlugOverLimit,
+  isValidSlug,
+  makeUniqueSlug,
+} from '@/lib/utils/slug';
 
 describe('Slug Utils', () => {
   describe('generateSlug', () => {
@@ -68,6 +75,30 @@ describe('Slug Utils', () => {
 
     it('should return false for starting hyphen', () => {
       expect(isValidSlug('-invalid')).toBe(false);
+    });
+  });
+
+  // LEGACY-437: хранимый слаг длиннее предела на занятость не проверяется.
+  describe('isKeptSlugOverLimit', () => {
+    const longSlug = 'a'.repeat(SLUG_MAX_LENGTH + 1);
+
+    it('is true only for the kept slug over the limit', () => {
+      expect(isKeptSlugOverLimit(longSlug, longSlug)).toBe(true);
+    });
+
+    it('is false for a kept slug at the limit', () => {
+      const atLimit = 'a'.repeat(SLUG_MAX_LENGTH);
+      expect(isKeptSlugOverLimit(atLimit, atLimit)).toBe(false);
+    });
+
+    it('is false for a changed slug and on create', () => {
+      expect(isKeptSlugOverLimit(`${longSlug}b`, longSlug)).toBe(false);
+      expect(isKeptSlugOverLimit(longSlug)).toBe(false);
+    });
+
+    // Форма создания: ни слага, ни исходного слага ещё нет — не падает.
+    it('is false when neither slug is set', () => {
+      expect(isKeptSlugOverLimit(undefined, undefined)).toBe(false);
     });
   });
 });
