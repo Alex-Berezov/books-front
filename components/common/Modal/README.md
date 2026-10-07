@@ -185,17 +185,19 @@ export const MyComponent = () => {
 
 ## Props
 
-| Prop             | Type                                                    | Required | Default     | Description                      |
-| ---------------- | ------------------------------------------------------- | -------- | ----------- | -------------------------------- |
-| `isOpen`         | `boolean`                                               | ✅       | -           | Whether to show modal            |
-| `title`          | `string`                                                | ✅       | -           | Modal title                      |
-| `children`       | `ReactNode`                                             | ✅       | -           | Modal content                    |
-| `onConfirm`      | `() => void`                                            | ✅       | -           | Callback on confirm              |
-| `onCancel`       | `() => void`                                            | ✅       | -           | Callback on cancel/close         |
-| `confirmText`    | `string`                                                | ❌       | `'Confirm'` | Confirm button text              |
-| `cancelText`     | `string`                                                | ❌       | `'Cancel'`  | Cancel button text               |
-| `confirmVariant` | `'primary'` \| `'danger'` \| `'warning'` \| `'success'` | ❌       | `'primary'` | Confirm button style variant     |
-| `isLoading`      | `boolean`                                               | ❌       | `false`     | Loading state (disables buttons) |
+| Prop                  | Type                                                    | Required | Default     | Description                      |
+| --------------------- | ------------------------------------------------------- | -------- | ----------- | -------------------------------- |
+| `isOpen`              | `boolean`                                               | ✅       | -           | Whether to show modal            |
+| `title`               | `string`                                                | ✅       | -           | Modal title                      |
+| `children`            | `ReactNode`                                             | ✅       | -           | Modal content                    |
+| `onConfirm`           | `() => void`                                            | ✅       | -           | Callback on confirm              |
+| `onCancel`            | `() => void`                                            | ✅       | -           | Callback on cancel/close         |
+| `confirmText`         | `string`                                                | ❌       | `'Confirm'` | Confirm button text              |
+| `cancelText`          | `string`                                                | ❌       | `'Cancel'`  | Cancel button text               |
+| `confirmVariant`      | `'primary'` \| `'danger'` \| `'warning'` \| `'success'` | ❌       | `'primary'` | Confirm button style variant     |
+| `isLoading`           | `boolean`                                               | ❌       | `false`     | Loading state (disables buttons) |
+| `closeOnOverlayClick` | `boolean`                                               | ❌       | `true`      | Close on overlay click           |
+| `closeOnEscape`       | `boolean`                                               | ❌       | `true`      | Close on Escape                  |
 
 ## Button variants (`confirmVariant`)
 
@@ -212,7 +214,14 @@ Modal closes when:
 
 - Click on close button (×) in header
 - Click on cancel button (`cancelText`)
-- Click on overlay (darkened background)
+- Click on overlay (darkened background), unless `closeOnOverlayClick={false}`
+- Escape, unless `closeOnEscape={false}`
+
+Escape never leaves the dialog that received it, even when it does not close it (`closeOnEscape={false}`
+or `isLoading`): a nested dialog must not close the form under it.
+
+Turn both off for a form whose unsaved input is costly to retype: a missed click or a stray
+Escape would close it and lose the input. Such a form closes by × or Cancel only.
 
 **Important:** During loading (`isLoading=true`) closing modal is blocked to prevent accidental operation interruption.
 

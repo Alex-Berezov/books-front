@@ -133,6 +133,8 @@ export const AudioChapterModal: FC<AudioChapterModalProps> = (props) => {
       onCancel={onClose}
       isLoading={isSubmitting}
       size="lg"
+      closeOnOverlayClick={false}
+      closeOnEscape={false}
     >
       <form className={styles.form}>
         <div className={styles.row}>

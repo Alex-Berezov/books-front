@@ -24,6 +24,10 @@ export interface ModalProps {
   isConfirmDisabled?: boolean;
   /** Whether to show footer buttons (default: true) */
   showFooter?: boolean;
+  /** Close on overlay click (default: true) */
+  closeOnOverlayClick?: boolean;
+  /** Close on Escape (default: true). A nested dialog still keeps Escape to itself */
+  closeOnEscape?: boolean;
   /** Callback on confirm */
   onConfirm?: () => void;
   /** Callback on cancel/close */

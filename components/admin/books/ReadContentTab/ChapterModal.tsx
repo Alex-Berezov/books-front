@@ -61,6 +61,8 @@ export const ChapterModal: FC<ChapterModalProps> = (props) => {
       onCancel={onClose}
       isLoading={isSubmitting}
       size="lg"
+      closeOnOverlayClick={false}
+      closeOnEscape={false}
     >
       <form className={styles.form}>
         <div className={styles.field}>

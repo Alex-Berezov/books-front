@@ -20,7 +20,8 @@ import styles from './Modal.module.scss';
  * - Arbitrary content (children)
  * - Customizable footer buttons (texts and variants)
  * - Loading state support
- * - Close on overlay or cross click
+ * - Close on cross, Cancel, Escape or overlay click; overlay and Escape can be
+ *   turned off (`closeOnOverlayClick`, `closeOnEscape`) for forms with unsaved input
  * - Smooth animations
  *
  * @example
@@ -52,6 +53,8 @@ export const Modal: FC<ModalProps> = (props) => {
     isLoading = false,
     isConfirmDisabled = false,
     showFooter = true,
+    closeOnOverlayClick = true,
+    closeOnEscape = true,
     onConfirm,
     onCancel,
   } = props;
@@ -64,7 +67,7 @@ export const Modal: FC<ModalProps> = (props) => {
   useDialogFocus(dialogRef, isOpen);
 
   /**
-   * Escape закрывает окно.
+   * Escape закрывает окно, если не выключен `closeOnEscape`.
    *
    * 🔴 `stopPropagation` обязателен: вложенное окно рисуется в разметке внешнего,
    * и без остановки одно нажатие Escape закрывало оба сразу. В админке под
@@ -73,8 +76,11 @@ export const Modal: FC<ModalProps> = (props) => {
    * `reset` по `initialData`. Окно, которое Escape обработало, дальше его не пускает.
    */
   const handleDialogKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape' && !isLoading) {
-      e.stopPropagation();
+    if (e.key !== 'Escape') return;
+    // Остановка нужна и при `closeOnEscape={false}`: иначе Escape из окна, которое
+    // его не обрабатывает, дойдёт до внешнего.
+    e.stopPropagation();
+    if (closeOnEscape && !isLoading) {
       onCancel();
     }
   };
@@ -92,7 +98,7 @@ export const Modal: FC<ModalProps> = (props) => {
    * требовал клавиатурного близнеца там, где нажимать нечего (`LEGACY-041`).
    */
   const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target !== e.currentTarget) return;
+    if (!closeOnOverlayClick || e.target !== e.currentTarget) return;
     if (!isLoading) {
       onCancel();
     }
