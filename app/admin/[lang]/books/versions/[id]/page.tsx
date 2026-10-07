@@ -22,6 +22,7 @@ import { Spinner } from '@/components/admin/shared';
 import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
+import { PREVIEW_SOURCE_EDITOR, PREVIEW_SOURCE_PARAM } from './preview/preview.constants';
 import { useBookVersionLogic } from './useBookVersionLogic';
 
 interface EditBookVersionPageProps {
@@ -125,9 +126,26 @@ const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
             >
               Add Another Version
             </Button>
-            <Button variant="secondary" leftIcon={<Eye size={16} />}>
-              Preview
-            </Button>
+            {/* Preview shows the text reader: an audio or referral version has no text to show. */}
+            {version.type === 'text' && (
+              <Button
+                variant="secondary"
+                leftIcon={<Eye size={16} />}
+                onClick={() =>
+                  // A new tab keeps the editor open next to the preview: fix, switch back, look again.
+                  // No `noopener` on purpose: only a tab with an opener can be closed by the
+                  // preview's back arrow in every browser; without one it would load a second
+                  // editor of this version. The page is our own admin, same origin, and the
+                  // preview never touches `window.opener`.
+                  window.open(
+                    `/admin/${lang}/books/versions/${versionId}/preview?${PREVIEW_SOURCE_PARAM}=${PREVIEW_SOURCE_EDITOR}`,
+                    '_blank'
+                  )
+                }
+              >
+                Preview
+              </Button>
+            )}
             <Button
               type="submit"
               size="md"

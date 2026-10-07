@@ -306,6 +306,7 @@
     "signInPrompt": "Sign in to access your personal bookshelf, track your reading progress, and pick up where you left off."
   },
   "reader": {
+    "draftPreview": "Draft preview: readers will see this text only after the version is published.",
     "toc": "Table of Contents",
     "settings": "Reading Settings",
     "theme": "Theme",

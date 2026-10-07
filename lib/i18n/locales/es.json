@@ -254,6 +254,7 @@
     "signInPrompt": "Inicie sesión para acceder a su estantería personal, seguir su progreso de lectura y continuar donde lo dejó."
   },
   "reader": {
+    "draftPreview": "Vista previa del borrador: los lectores verán este texto solo después de publicar la versión.",
     "toc": "Índice",
     "settings": "Ajustes de Lectura",
     "theme": "Tema",

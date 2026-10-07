@@ -254,6 +254,7 @@
     "signInPrompt": "Connectez-vous pour accéder à votre bibliothèque personnelle, suivre votre progression de lecture et reprendre là où vous vous étiez arrêté."
   },
   "reader": {
+    "draftPreview": "Aperçu du brouillon : les lecteurs ne verront ce texte qu'après la publication de la version.",
     "toc": "Table des matières",
     "settings": "Paramètres de Lecture",
     "theme": "Thème",

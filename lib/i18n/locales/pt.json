@@ -254,6 +254,7 @@
     "signInPrompt": "Faça login para acessar sua estante pessoal, acompanhar seu progresso de leitura e continuar de onde parou."
   },
   "reader": {
+    "draftPreview": "Pré-visualização do rascunho: os leitores verão este texto somente após a publicação da versão.",
     "toc": "Sumário",
     "settings": "Ajustes de Leitura",
     "theme": "Tema",

@@ -1,5 +1,6 @@
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { notFound, redirect } from 'next/navigation';
+import { AdminChrome } from '@/components/admin/AdminShell/AdminChrome/AdminChrome';
 import { AdminSidebar } from '@/components/admin/AdminShell/AdminSidebar/AdminSidebar';
 import { AdminTopBar } from '@/components/admin/AdminShell/AdminTopBar/AdminTopBar';
 import { ADMIN_PANEL_ROLES } from '@/lib/auth/constants';
@@ -7,7 +8,6 @@ import { getCurrentUser } from '@/lib/auth/helpers';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import { AdminThemeProvider } from './AdminThemeProvider';
-import styles from '@/styles/admin-layouts.module.scss';
 
 type Props = {
   children: React.ReactNode;
@@ -56,22 +56,17 @@ export default async function AdminLayout({ children, params }: Props) {
   return (
     <AntdRegistry>
       <AdminThemeProvider>
-        <div className={styles.adminLayout}>
-          {/* Sidebar menu */}
-          <AdminSidebar lang={lang as SupportedLang} />
-
-          {/* Content on the right */}
-          <div className={styles.adminContent}>
-            {/* Top bar */}
+        <AdminChrome
+          sidebar={<AdminSidebar lang={lang as SupportedLang} />}
+          topBar={
             <AdminTopBar
               userEmail={session.user.email || undefined}
               userName={session.user.name || undefined}
             />
-
-            {/* Main page content */}
-            <main className={styles.adminMain}>{children}</main>
-          </div>
-        </div>
+          }
+        >
+          {children}
+        </AdminChrome>
       </AdminThemeProvider>
     </AntdRegistry>
   );

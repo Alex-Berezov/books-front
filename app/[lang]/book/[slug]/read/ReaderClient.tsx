@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Settings, ArrowLeft, BookOpen, List, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useUpdateTextProgress } from '@/api/hooks/useProgress';
 import { useReaderBootstrap } from '@/api/hooks/usePublic';
-import { RichTextContent } from '@/components/common/RichTextContent';
+import { ReaderView, useImmersiveBody } from '@/components/common/ReaderView';
 import { RightsBlockedNotice } from '@/components/common/RightsBlockedNotice';
 import { useSmartBack } from '@/components/public/navigation';
 import { isRightsBlockedError } from '@/lib/errors';
@@ -20,49 +19,6 @@ import {
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ReaderBootstrapChapter } from '@/types/api-schema';
 import styles from './reader.module.scss';
-
-type FontSize = 'sm' | 'md' | 'lg' | 'xl';
-type Theme = 'light' | 'sepia' | 'dark';
-
-/**
- * The seven stops the line-height slider offers. Holding them as a list rather
- * than a raw number keeps the setting in the same shape as the font size next
- * to it: a class from a map, never an inline style.
- */
-const LINE_HEIGHTS = [1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4] as const;
-
-/**
- * Index into `LINE_HEIGHTS`, spelled out so the map below is exhaustive: adding
- * an eighth stop without its class turns `className` into `"… undefined"` and
- * drops the line height to the default, with typecheck still green.
- */
-type LineHeightIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-
-/** 1.8 is the reader's default. */
-const DEFAULT_LINE_HEIGHT_INDEX: LineHeightIndex = 3;
-
-const lineHeightMap: Record<LineHeightIndex, string> = {
-  0: styles.lineHeight12,
-  1: styles.lineHeight14,
-  2: styles.lineHeight16,
-  3: styles.lineHeight18,
-  4: styles.lineHeight20,
-  5: styles.lineHeight22,
-  6: styles.lineHeight24,
-};
-
-const fontSizeMap: Record<FontSize, string> = {
-  sm: styles.fontSizeSm,
-  md: styles.fontSizeMd,
-  lg: styles.fontSizeLg,
-  xl: styles.fontSizeXl,
-};
-
-const themeMap: Record<Theme, { bg: string; text: string; label: string; class: string }> = {
-  light: { bg: '#ffffff', text: '#111827', label: 'Light', class: styles.themeLight },
-  sepia: { bg: '#fdf6e3', text: '#5c4636', label: 'Sepia', class: styles.themeSepia },
-  dark: { bg: '#111827', text: '#f9fafb', label: 'Dark', class: styles.themeDark },
-};
 
 type Props = {
   params: { lang: string; slug: string };
@@ -90,22 +46,10 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
   // scroll is locked so only the chapter text scrolls — no second scrollbar hiding the bars.
   const isImmersive = !isRightsBlockedError(error);
 
-  useEffect(() => {
-    if (!isImmersive) return;
-    document.body.dataset.immersive = 'true';
-    return () => {
-      delete document.body.dataset.immersive;
-    };
-  }, [isImmersive]);
+  useImmersiveBody(isImmersive);
 
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
-  const [fontSize, setFontSize] = useState<FontSize>('md');
-  const [lineHeightIndex, setLineHeightIndex] =
-    useState<LineHeightIndex>(DEFAULT_LINE_HEIGHT_INDEX);
-  const [theme, setTheme] = useState<Theme>('light');
-  const [showToc, setShowToc] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
 
   const { target: progressTarget, userId: progressOwnerId } = useProgressIdentity();
   const { isSettled } = useProgressSync();
@@ -203,7 +147,6 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
     }
   }, [bootstrapData, slug, lang, router]);
 
-  const contentRef = useRef<HTMLDivElement>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentChapter = chapters[currentChapterIndex];
@@ -263,13 +206,6 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
     }, 3000);
   }, []);
 
-  useEffect(() => {
-    if (contentRef.current) {
-      contentRef.current.scrollTop = 0;
-    }
-    window.scrollTo(0, 0);
-  }, [currentChapterIndex]);
-
   /**
    * 🔴 `hasRestoredProgress` в зависимостях обязателен. Эффект срабатывает при
    * монтировании, когда сохранение ещё закрыто; если слияние затянется дольше
@@ -289,14 +225,6 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
   const goToChapter = (index: number) => {
     hasUserNavigatedRef.current = true;
     setCurrentChapterIndex(index);
-  };
-
-  const goToPrevChapter = () => {
-    if (currentChapterIndex > 0) goToChapter(currentChapterIndex - 1);
-  };
-
-  const goToNextChapter = () => {
-    if (currentChapterIndex < chapters.length - 1) goToChapter(currentChapterIndex + 1);
   };
 
   // Rights blocking arrives as 451 from the reader-bootstrap request. The reader is never rendered
@@ -358,255 +286,13 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
     );
   }
 
-  const themeStyles = themeMap[theme];
-
   return (
-    <div className={`${styles.readerPage} ${themeStyles.class}`}>
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <button
-            type="button"
-            onClick={goBack}
-            className={styles.iconBtn}
-            aria-label={t('book.back')}
-          >
-            <ArrowLeft size={18} aria-hidden="true" />
-          </button>
-          <div className={styles.bookInfo}>
-            <span className={styles.bookTitle}>{bootstrapData?.title}</span>
-            {currentChapter && <span className={styles.chapterTitle}>{currentChapter.title}</span>}
-          </div>
-        </div>
-
-        <div className={styles.headerRight}>
-          <button
-            type="button"
-            title={t('reader.toc')}
-            onClick={() => setShowToc(true)}
-            className={styles.iconBtn}
-            aria-label={t('reader.toc')}
-            aria-controls="toc-drawer"
-            aria-expanded={showToc}
-          >
-            <List size={18} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            title={t('reader.settings')}
-            onClick={() => setShowSettings(true)}
-            className={styles.iconBtn}
-            aria-label={t('reader.settings')}
-            aria-controls="settings-drawer"
-            aria-expanded={showSettings}
-          >
-            <Settings size={18} aria-hidden="true" />
-          </button>
-        </div>
-      </header>
-
-      {/* TOC Drawer */}
-      {showToc && (
-        <div
-          className={styles.drawerOverlay}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowToc(false);
-          }}
-          role="presentation"
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setShowToc(false);
-          }}
-        >
-          <div
-            className={`${styles.drawerPanel} ${styles.drawerLeft}`}
-            role="dialog"
-            aria-label={t('reader.toc')}
-            id="toc-drawer"
-          >
-            <div className={styles.drawerHeader}>
-              <span className={styles.drawerTitle}>{t('reader.toc')}</span>
-              <button
-                type="button"
-                onClick={() => setShowToc(false)}
-                className={styles.drawerClose}
-                aria-label={t('a11y.close')}
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <nav className={styles.drawerBody} aria-label={t('reader.toc')}>
-              {chapters.map((ch, idx) => (
-                <button
-                  key={ch.id}
-                  onClick={() => {
-                    goToChapter(idx);
-                    setShowToc(false);
-                  }}
-                  className={`${styles.tocItem} ${
-                    idx === currentChapterIndex ? styles.activeTocItem : ''
-                  }`}
-                  aria-current={idx === currentChapterIndex ? 'location' : undefined}
-                >
-                  <span className={styles.tocNumber}>{idx + 1}.</span>
-                  <span className={styles.tocTitle}>{ch.title}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-        </div>
-      )}
-
-      {/* Settings Drawer */}
-      {showSettings && (
-        <div
-          className={styles.drawerOverlay}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowSettings(false);
-          }}
-          role="presentation"
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setShowSettings(false);
-          }}
-        >
-          <div
-            className={`${styles.drawerPanel} ${styles.drawerRight}`}
-            role="dialog"
-            aria-label={t('reader.settings')}
-            id="settings-drawer"
-          >
-            <div className={styles.drawerHeader}>
-              <span className={styles.drawerTitle}>{t('reader.settings')}</span>
-              <button
-                type="button"
-                onClick={() => setShowSettings(false)}
-                className={styles.drawerClose}
-                aria-label={t('a11y.close')}
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className={styles.drawerBody}>
-              <div className={styles.settingsSection} role="group" aria-label={t('reader.theme')}>
-                <h4 className={styles.settingsTitle}>{t('reader.theme')}</h4>
-                <div className={styles.themeSelector}>
-                  {(Object.keys(themeMap) as Theme[]).map((tKey) => (
-                    <button
-                      key={tKey}
-                      onClick={() => setTheme(tKey)}
-                      className={`${styles.themeBtn} ${styles[`themeBtn-${tKey}`]} ${
-                        theme === tKey ? styles.activeThemeBtn : ''
-                      }`}
-                      aria-pressed={theme === tKey}
-                    >
-                      {t(`reader.themes.${tKey}`)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div
-                className={styles.settingsSection}
-                role="group"
-                aria-label={t('reader.fontSize')}
-              >
-                <h4 className={styles.settingsTitle}>{t('reader.fontSize')}</h4>
-                <div className={styles.fontSizeSelector}>
-                  {(Object.keys(fontSizeMap) as FontSize[]).map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setFontSize(size)}
-                      className={`${styles.fontSizeBtn} ${
-                        fontSize === size ? styles.activeFontSizeBtn : ''
-                      }`}
-                      aria-pressed={fontSize === size}
-                    >
-                      {size.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.settingsSection}>
-                <h4 className={styles.settingsTitle}>
-                  {t('reader.lineHeight')} ({LINE_HEIGHTS[lineHeightIndex]})
-                </h4>
-                <input
-                  type="range"
-                  min={0}
-                  max={LINE_HEIGHTS.length - 1}
-                  step={1}
-                  value={lineHeightIndex}
-                  onChange={(e) => setLineHeightIndex(Number(e.target.value) as LineHeightIndex)}
-                  className={styles.nativeSlider}
-                  aria-label={t('reader.lineHeight')}
-                  aria-valuetext={String(LINE_HEIGHTS[lineHeightIndex])}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div ref={contentRef} className={styles.contentArea}>
-        <div className={styles.contentContainer}>
-          {currentChapter ? (
-            <article>
-              <h1 className={styles.chapterHeader}>{currentChapter.title}</h1>
-              <RichTextContent
-                html={currentChapter.content || ''}
-                className={`${styles.chapterBody} ${fontSizeMap[fontSize]} ${lineHeightMap[lineHeightIndex]}`}
-              />
-            </article>
-          ) : (
-            <div className={styles.emptyState}>
-              <BookOpen size={48} className={styles.emptyIcon} aria-hidden="true" />
-              <p className={styles.emptyText}>{t('reader.noChapters')}</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <footer className={styles.footer}>
-        <nav aria-label={t('a11y.footerNavigation')} style={{ display: 'contents' }}>
-          <button
-            type="button"
-            onClick={goToPrevChapter}
-            disabled={currentChapterIndex === 0}
-            className={styles.footerBtn}
-            aria-label={t('a11y.prevChapter')}
-          >
-            <ChevronLeft size={16} aria-hidden="true" /> {t('reader.prev')}
-          </button>
-
-          <div className={styles.progressContainer}>
-            <span className={styles.progressText}>
-              {chapters.length > 0
-                ? `${t('reader.chapterProgress')} ${currentChapterIndex + 1} ${t('reader.of')} ${chapters.length}`
-                : t('reader.noChaptersLabel')}
-            </span>
-            <div className={styles.progressBarBg} aria-hidden="true">
-              <div
-                className={styles.progressBarFill}
-                style={{
-                  width:
-                    chapters.length > 0
-                      ? `${((currentChapterIndex + 1) / chapters.length) * 100}%`
-                      : '0%',
-                }}
-              />
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={goToNextChapter}
-            disabled={currentChapterIndex >= chapters.length - 1}
-            className={styles.footerBtn}
-            aria-label={t('a11y.nextChapter')}
-          >
-            {t('reader.next')} <ChevronRight size={16} aria-hidden="true" />
-          </button>
-        </nav>
-      </footer>
-    </div>
+    <ReaderView
+      title={bootstrapData?.title}
+      chapters={chapters}
+      currentChapterIndex={currentChapterIndex}
+      onChapterChange={goToChapter}
+      onBack={goBack}
+    />
   );
 }
