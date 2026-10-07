@@ -61,6 +61,10 @@ export const Modal: FC<ModalProps> = (props) => {
 
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
+  // Цели `mousedown` и `mouseup` текущего клика: объявлены выше раннего `return null`,
+  // иначе сломается порядок хуков.
+  const mouseDownTargetRef = useRef<EventTarget | null>(null);
+  const mouseUpTargetRef = useRef<EventTarget | null>(null);
 
   // Фокус окна целиком — забрать, замкнуть Tab внутри, вернуть при закрытии
   // (`lib/hooks/useDialogFocus.ts`, `LEGACY-041`).
@@ -90,15 +94,33 @@ export const Modal: FC<ModalProps> = (props) => {
     return null;
   }
 
+  // Запоминают, где клик начался и где кончился: закрытие по подложке смотрит на это ниже.
+  const handleOverlayMouseDown = (e: React.MouseEvent) => {
+    mouseDownTargetRef.current = e.target;
+  };
+
+  const handleOverlayMouseUp = (e: React.MouseEvent) => {
+    mouseUpTargetRef.current = e.target;
+  };
+
   /**
    * Overlay click handler (close modal).
    *
    * Закрывает только клик по самой подложке. Раньше клик внутри модалки гасился
    * `stopPropagation` на её теле — обработчик на неинтерактивном элементе, который
    * требовал клавиатурного близнеца там, где нажимать нечего (`LEGACY-041`).
+   *
+   * 🔴 И нажатие, и отпускание должны прийти на подложку (`LEGACY-438`): выделение текста
+   * в поле, отпущенное за краем окна, даёт `click` на общем предке — подложке, и форма теряла
+   * ввод. Цели сбрасываются на каждом клике, чтобы не судить следующий по прошлому.
    */
   const handleOverlayClick = (e: React.MouseEvent) => {
-    if (!closeOnOverlayClick || e.target !== e.currentTarget) return;
+    const pressedOnOverlay =
+      mouseDownTargetRef.current === e.currentTarget &&
+      mouseUpTargetRef.current === e.currentTarget;
+    mouseDownTargetRef.current = null;
+    mouseUpTargetRef.current = null;
+    if (!closeOnOverlayClick || e.target !== e.currentTarget || !pressedOnOverlay) return;
     if (!isLoading) {
       onCancel();
     }
@@ -128,6 +150,8 @@ export const Modal: FC<ModalProps> = (props) => {
     // кнопку со склеенным содержимым окна и лишний таб-стоп перед ним.
     <div
       className={styles.overlay}
+      onMouseDown={handleOverlayMouseDown}
+      onMouseUp={handleOverlayMouseUp}
       onClick={handleOverlayClick}
       onKeyDown={handleDialogKeyDown}
       role="presentation"

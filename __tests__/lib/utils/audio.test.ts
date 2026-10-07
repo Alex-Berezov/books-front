@@ -1,5 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { formatDuration, validateUploadFile } from '@/lib/utils/audio';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  DURATION_PROBE_TIMEOUT_MS,
+  detectAudioDuration,
+  formatDuration,
+  validateUploadFile,
+} from '@/lib/utils/audio';
 
 describe('formatDuration', () => {
   it('returns placeholder for null/undefined/negative/non-finite', () => {
@@ -66,5 +71,62 @@ describe('validateUploadFile', () => {
   it('accepts files exactly at the size limit', () => {
     const exact = makeFile(2 * 1024 * 1024, 'audio/mpeg');
     expect(validateUploadFile(exact, limits)).toBeNull();
+  });
+});
+
+/**
+ * A probe that never hears `loadedmetadata` or `error` must still settle: the audio chapter
+ * dialog keeps × and Cancel disabled until it does (`LEGACY-438`).
+ */
+describe('detectAudioDuration', () => {
+  type Listener = () => void;
+  let listeners: Record<string, Listener>;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    listeners = {};
+    vi.stubGlobal(
+      'Audio',
+      class {
+        preload = '';
+        src = '';
+        duration = 61.4;
+        addEventListener(type: string, listener: Listener) {
+          listeners[type] = listener;
+        }
+      }
+    );
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:x');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('resolves null at the timeout when the browser never reports metadata', async () => {
+    let settled = false;
+    const probe = detectAudioDuration(new File([new Uint8Array(1)], 'a.mp3')).then((value) => {
+      settled = true;
+      return value;
+    });
+
+    await vi.advanceTimersByTimeAsync(DURATION_PROBE_TIMEOUT_MS - 1);
+    expect(settled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(probe).resolves.toBeNull();
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the timeout once metadata arrives', async () => {
+    const probe = detectAudioDuration(new File([new Uint8Array(1)], 'a.mp3'));
+    listeners.loadedmetadata();
+    await expect(probe).resolves.toBe(61);
+
+    await vi.advanceTimersByTimeAsync(DURATION_PROBE_TIMEOUT_MS);
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1);
   });
 });

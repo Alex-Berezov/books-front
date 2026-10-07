@@ -68,6 +68,7 @@ export const AudioChapterModal: FC<AudioChapterModalProps> = (props) => {
   const duration = watch('duration');
 
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useOnOpen(
     isOpen,
@@ -140,7 +141,7 @@ export const AudioChapterModal: FC<AudioChapterModalProps> = (props) => {
       cancelText="Cancel"
       onConfirm={handleSubmit(handleFormSubmit)}
       onCancel={onClose}
-      isLoading={isSubmitting}
+      isLoading={isSubmitting || isUploading}
       size="lg"
       closeOnOverlayClick={false}
       closeOnEscape={false}
@@ -182,7 +183,13 @@ export const AudioChapterModal: FC<AudioChapterModalProps> = (props) => {
           <Controller
             name="audioUrl"
             control={control}
-            render={() => <AudioPicker value={pickerValue} onChange={handlePickerChange} />}
+            render={() => (
+              <AudioPicker
+                value={pickerValue}
+                onChange={handlePickerChange}
+                onUploadingChange={setIsUploading}
+              />
+            )}
           />
           {errors.audioUrl && <span className={styles.error}>{errors.audioUrl.message}</span>}
           {errors.duration && <span className={styles.error}>{errors.duration.message}</span>}

@@ -176,6 +176,8 @@ describe('клавиатура в панелях прав и общей мода
     expect(onCancel).not.toHaveBeenCalled();
 
     const overlay = container.firstElementChild as HTMLElement;
+    fireEvent.mouseDown(overlay);
+    fireEvent.mouseUp(overlay);
     fireEvent.click(overlay);
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
@@ -352,6 +354,8 @@ describe('клавиатура в панелях прав и общей мода
 
     const overlay = container.firstElementChild as HTMLElement;
     fireEvent.keyDown(container.querySelector('[role="dialog"]') as HTMLElement, { key: 'Escape' });
+    fireEvent.mouseDown(overlay);
+    fireEvent.mouseUp(overlay);
     fireEvent.click(overlay);
 
     expect(onCancel).not.toHaveBeenCalled();

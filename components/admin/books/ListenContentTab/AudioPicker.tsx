@@ -1,124 +1,31 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent, FC, KeyboardEvent } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useSnackbar } from 'notistack';
-import { uploadAudioFile } from '@/api/endpoints/admin/uploads';
-import { useUploadsLimits } from '@/api/hooks';
-import { mediaKeys } from '@/api/hooks/useMedia';
 import { Button } from '@/components/common/Button';
-import { toUserMessage } from '@/lib/errors';
-import { detectAudioDuration, formatDuration, validateUploadFile } from '@/lib/utils/audio';
+import { formatDuration } from '@/lib/utils/audio';
+import type { AudioPickerProps } from './AudioPicker.types';
 import styles from './AudioPicker.module.scss';
+import { useAudioUpload } from './useAudioUpload';
 
-/**
- * Currently selected audio payload — all fields stay in sync with the form.
- */
-export interface AudioPickerValue {
-  audioUrl: string;
-  mediaId: string | null;
-  duration: number;
-  /** Human-readable display name (filename / URL suffix). Not persisted. */
-  displayName: string | null;
-}
-
-export interface AudioPickerProps {
-  value: AudioPickerValue | null;
-  onChange: (value: AudioPickerValue | null) => void;
-  /** Optional: open Media Library for picking an existing MediaAsset. */
-  onOpenMediaLibrary?: () => void;
-  disabled?: boolean;
-}
-
-const extractFilename = (file: File): string => file.name;
+export type { AudioPickerProps, AudioPickerValue } from './AudioPicker.types';
 
 export const AudioPicker: FC<AudioPickerProps> = (props) => {
-  const { value, onChange, onOpenMediaLibrary, disabled = false } = props;
-  const { enqueueSnackbar } = useSnackbar();
-  const { data: limits, isError: limitsFailed, refetch: refetchLimits } = useUploadsLimits();
-  const queryClient = useQueryClient();
+  const { value, onChange, onOpenMediaLibrary, disabled = false, onUploadingChange } = props;
+  const { limits, isUploading, progress, error, setError, setProgress, uploadFile, cancelUpload } =
+    useAudioUpload({ onChange, onUploadingChange });
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
 
   const busy = isUploading || disabled;
-
-  const handleFile = useCallback(
-    async (file: File) => {
-      setError(null);
-
-      // 🔴 Ветка «лимитов нет» до 10.09.2026 была мертва: загрузка не работала вовсе
-      // (LEGACY-372, адрес собирался в `undefined`). Теперь она живая, и пропускать файл без
-      // проверки нельзя — сервер откажет уже после того, как тело уедет по сети: размер сверх
-      // потолка даёт 413, чужой MIME — 415.
-      //
-      // Отказ и ожидание разведены намеренно: у отказавшего запроса данных нет, повторы
-      // исчерпаны, и «ещё грузятся, попробуйте позже» читалось бы как «подождите» - тогда как
-      // ждать нечего. На отказе повтор зовётся руками, по действию человека.
-      if (!limits) {
-        if (limitsFailed) {
-          setError('Upload limits are unavailable — retrying, try the file again in a moment.');
-          void refetchLimits();
-          return;
-        }
-        setError('Upload limits are still loading — try again in a moment.');
-        return;
-      }
-      const validationError = validateUploadFile(file, limits.audio);
-      if (validationError) {
-        setError(validationError);
-        return;
-      }
-
-      // 🔴 Флаг поднимается ДО пробы длительности: она асинхронная и на большом файле
-      // занимает заметное время, а весь запрет повторного броска держится на `busy`.
-      // Иначе второй бросок запускает вторую загрузку: полоса прогресса скачет от двух
-      // источников, первая завершившаяся снимает флаг у ещё идущей, а в форму садится та,
-      // что закончила последней — с `displayName` от другого файла.
-      setIsUploading(true);
-      setProgress(0);
-
-      // Probe duration locally before upload — we'll use this as the
-      // authoritative `duration` for the AudioChapter.
-      const localDuration = await detectAudioDuration(file);
-
-      try {
-        const asset = await uploadAudioFile(file, {
-          onProgress: (percent) => setProgress(percent),
-        });
-
-        const duration = localDuration ?? asset.duration ?? 0;
-        onChange({
-          audioUrl: asset.url,
-          mediaId: asset.id,
-          duration,
-          displayName: extractFilename(file),
-        });
-        // Загрузка создаёт `MediaAsset`, значит список медиатеки устарел — как и после
-        // `useUploadMedia`. Без этого админ, открывший медиатеку в течение минуты
-        // (`STALE_TIME_MS`), нового файла не увидит и загрузит его второй раз.
-        void queryClient.invalidateQueries({ queryKey: mediaKeys.lists() });
-      } catch (uploadError) {
-        const message = toUserMessage(uploadError);
-        setError(message);
-        enqueueSnackbar(message, { variant: 'error' });
-      } finally {
-        setIsUploading(false);
-      }
-    },
-    [enqueueSnackbar, limits, limitsFailed, refetchLimits, onChange, queryClient]
-  );
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     // Reset the input so selecting the same file twice still fires onChange.
     event.target.value = '';
     if (file) {
-      void handleFile(file);
+      void uploadFile(file);
     }
   };
 
@@ -144,7 +51,7 @@ export const AudioPicker: FC<AudioPickerProps> = (props) => {
     if (busy) return;
     const file = event.dataTransfer.files?.[0];
     if (file) {
-      void handleFile(file);
+      void uploadFile(file);
     }
   };
 
@@ -195,6 +102,9 @@ export const AudioPicker: FC<AudioPickerProps> = (props) => {
             <div className={styles.progressFill} style={{ width: `${progress}%` }} />
           </div>
           <span className={styles.progressLabel}>Uploading… {progress}%</span>
+          <Button variant="ghost" size="sm" onClick={cancelUpload}>
+            Cancel upload
+          </Button>
         </div>
       )}
 

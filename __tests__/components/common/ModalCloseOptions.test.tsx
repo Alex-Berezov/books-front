@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Modal } from '@/components/common/Modal';
@@ -80,4 +80,42 @@ describe('Modal close options', () => {
       expect(onCancelOuter).not.toHaveBeenCalled();
     }
   );
+});
+
+/**
+ * Selecting text in a field and releasing the mouse outside the dialog sends `click`
+ * to the common ancestor — the overlay. That must not close a form with unsaved input.
+ */
+describe('Modal overlay mousedown origin', () => {
+  it('stays open when mousedown started inside, closes when it started on the overlay', () => {
+    const onCancel = vi.fn();
+
+    render(
+      <Modal isOpen onCancel={onCancel} title="Tag" showFooter={false}>
+        <input aria-label="Field" />
+      </Modal>
+    );
+
+    const overlay = screen.getByRole('dialog').parentElement as HTMLElement;
+
+    fireEvent.mouseDown(screen.getByLabelText('Field'));
+    fireEvent.mouseUp(overlay);
+    fireEvent.click(overlay);
+    expect(onCancel).not.toHaveBeenCalled();
+
+    // Нажал на подложке, отпустил в поле — тоже не закрывает.
+    fireEvent.mouseDown(overlay);
+    fireEvent.mouseUp(screen.getByLabelText('Field'));
+    fireEvent.click(overlay);
+    expect(onCancel).not.toHaveBeenCalled();
+
+    // Клик без нажатия не судится по целям прошлого клика.
+    fireEvent.click(overlay);
+    expect(onCancel).not.toHaveBeenCalled();
+
+    fireEvent.mouseDown(overlay);
+    fireEvent.mouseUp(overlay);
+    fireEvent.click(overlay);
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
 });

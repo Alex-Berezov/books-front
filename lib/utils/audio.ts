@@ -4,6 +4,9 @@
  * All helpers are client-only (use `HTMLAudioElement` / `URL.createObjectURL`).
  */
 
+/** Ceiling for the local duration probe; past it the duration falls back to `null`. */
+export const DURATION_PROBE_TIMEOUT_MS = 15_000;
+
 /**
  * Probe the duration of an audio file in the browser.
  *
@@ -25,7 +28,15 @@ export const detectAudioDuration = (file: File): Promise<number | null> => {
     const audio = new Audio();
     audio.preload = 'metadata';
 
+    // 🔴 Без предела проба, у которой не пришло ни `loadedmetadata`, ни `error`, висела вечно,
+    // а с ней флаг загрузки, выключающий × и Cancel окна аудиоглавы (`LEGACY-438`).
+    const timer = setTimeout(() => {
+      cleanup();
+      resolve(null);
+    }, DURATION_PROBE_TIMEOUT_MS);
+
     const cleanup = () => {
+      clearTimeout(timer);
       URL.revokeObjectURL(objectUrl);
       audio.src = '';
     };
