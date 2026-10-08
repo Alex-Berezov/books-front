@@ -11,6 +11,7 @@ import {
   useResolveRightsClaim,
   useRightsClaim,
 } from '@/api/hooks/useRightsClaims';
+import { DataLink } from '@/components/admin/common/DataLink';
 import {
   CLAIMANT_TYPE_LABELS,
   CLAIM_ATTACHMENT_TYPE_LABELS,
@@ -27,6 +28,7 @@ import {
   formatClaimDate,
   formatClaimDateTime,
 } from '@/components/admin/rights-claims/claimLabels';
+import { httpUrlFormRule } from '@/lib/utils/http-url-form-rule';
 import type { RightsClaimAttachmentType, RightsClaimResolution } from '@/types/api-schema';
 import styles from './RightsClaimDetailDrawer.module.scss';
 
@@ -271,9 +273,7 @@ export const RightsClaimDetailDrawer: FC<RightsClaimDetailDrawerProps> = ({
                     {attachment.url && (
                       <>
                         {' — '}
-                        <a href={attachment.url} rel="noreferrer" target="_blank">
-                          ссылка
-                        </a>
+                        <DataLink url={attachment.url}>ссылка</DataLink>
                       </>
                     )}
                   </li>
@@ -298,7 +298,7 @@ export const RightsClaimDetailDrawer: FC<RightsClaimDetailDrawerProps> = ({
                 >
                   <Input size="small" />
                 </Form.Item>
-                <Form.Item label="URL" name="url">
+                <Form.Item label="URL" name="url" rules={[httpUrlFormRule]}>
                   <Input placeholder="https://…" size="small" />
                 </Form.Item>
                 <Form.Item label="Storage key" name="storageKey">

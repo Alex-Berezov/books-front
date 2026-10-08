@@ -2,6 +2,7 @@
 
 import type { FC } from 'react';
 import { BookOpen, ExternalLink } from 'lucide-react';
+import { DataLink } from '@/components/admin/common/DataLink';
 import type { SourceEdition } from '@/types/api-schema/rights-intake';
 import styles from './RightsTab.module.scss';
 import { TRANSLATION_ORIGIN_LABELS } from './translationOrigin';
@@ -74,14 +75,9 @@ export const RightsTabSourceEdition: FC<RightsTabSourceEditionProps> = ({ source
 
       {sourceEdition.sourceUrl && (
         <div className={styles.sourceUrlRow}>
-          <a
-            href={sourceEdition.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.externalLink}
-          >
+          <DataLink url={sourceEdition.sourceUrl} className={styles.externalLink}>
             Open Source Catalog Entry <ExternalLink size={14} />
-          </a>
+          </DataLink>
         </div>
       )}
 

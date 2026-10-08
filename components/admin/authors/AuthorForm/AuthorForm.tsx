@@ -31,6 +31,9 @@ import { ImportAuthorModal } from './ImportAuthorModal';
  */
 const SEO_URL_KEYS = ['canonicalUrl', 'ogImageUrl'] as const;
 
+/** Ссылки перевода автора: бэкенд отбивает 400 ссылку не на `http(s)` (`LEGACY-447`). */
+const LINK_KEYS = ['wikidataUrl', 'wikipediaUrl', 'photoUrl'] as const;
+
 interface AuthorFormProps {
   author?: Author | null;
   lang: string;
@@ -456,6 +459,22 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
           return;
         }
 
+        // Ссылку не на `http(s)` бэкенд отбил бы 400 — называем поле до запроса.
+        const badLinkKey = LINK_KEYS.find((k) => {
+          const raw: unknown = transData[k];
+          // JSON-импорт кладёт значение как есть: не строка — тоже негодная ссылка.
+          if (raw != null && typeof raw !== 'string') return true;
+          const value = raw?.trim();
+          return !!value && !isAbsoluteHttpUrl(value);
+        });
+        if (badLinkKey) {
+          enqueueSnackbar(
+            `${badLinkKey} must be an absolute http(s) URL (${langKey.toUpperCase()})`,
+            { variant: 'error' }
+          );
+          return;
+        }
+
         activeTranslations.push({
           language: langKey,
           slug: transData.slug.trim(),
@@ -463,7 +482,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
           biography: transData.biography.trim() || null,
           wikidataUrl: transData.wikidataUrl.trim() || null,
           wikipediaUrl: transData.wikipediaUrl.trim() || null,
-          photoUrl: transData.photoUrl || null,
+          photoUrl: (typeof transData.photoUrl === 'string' && transData.photoUrl.trim()) || null,
           quotes: transData.quotes.filter((q) => q.text.trim()) || [],
           faq: transData.faq.filter((f) => f.question.trim() && f.answer.trim()) || [],
           similarSlugs: transData.similarSlugs

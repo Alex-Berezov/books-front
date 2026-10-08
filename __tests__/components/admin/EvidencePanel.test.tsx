@@ -134,4 +134,27 @@ describe('EvidencePanel (WP-9.3)', () => {
       supersededById: 'evidence-2',
     });
   });
+
+  // 🔴 `LEGACY-447`: `url` доказательства приходит из данных; `javascript:` в `href`
+  // исполнился бы на домене админки по клику. Ссылка рендерится только для `http(s)`.
+  it('does not render a link with a non-http scheme', () => {
+    render(
+      <EvidencePanel
+        evidence={[
+          makeEvidence({ id: 'evidence-ok' }),
+          makeEvidence({ id: 'evidence-bad', title: 'Плохая', url: 'javascript:alert(1)' }),
+        ]}
+      />
+    );
+
+    expect(screen.getByRole('link', { name: 'https://example.org/law' })).toHaveAttribute(
+      'href',
+      'https://example.org/law'
+    );
+    expect(screen.queryByRole('link', { name: /javascript:/ })).not.toBeInTheDocument();
+    // Битое значение видно текстом: юрист должен знать, что ссылка есть, но негодна.
+    expect(
+      screen.getByText('javascript:alert(1) (ссылка не http(s), не открывается)')
+    ).toBeInTheDocument();
+  });
 });

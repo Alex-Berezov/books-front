@@ -7,6 +7,7 @@ import {
   useSupersedeRightsEvidence,
   useUploadRightsEvidenceArchiveCopy,
 } from '@/api/hooks/useRightsFiles';
+import { DataLink } from '@/components/admin/common/DataLink';
 import type { RightsEvidence, RightsFileMeta } from '@/types/api-schema/rights-intake';
 import styles from './EvidencePanel.module.scss';
 import { RightsFileCard } from '../RightsFileCard/RightsFileCard';
@@ -98,11 +99,7 @@ export const EvidencePanel: FC<EvidencePanelProps> = ({ evidence }) => {
             <p className={styles.title}>{item.title}</p>
             <p className={styles.authority}>{item.authority}</p>
             {item.summaryRu && <p className={styles.authority}>{item.summaryRu}</p>}
-            {item.url && (
-              <a href={item.url} target="_blank" rel="noopener noreferrer" className={styles.url}>
-                {item.url}
-              </a>
-            )}
+            <DataLink url={item.url} className={styles.url} />
 
             {isSuperseded && item.supersededById && (
               <p className={styles.replacedBy}>

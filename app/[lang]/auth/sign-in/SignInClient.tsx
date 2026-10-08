@@ -24,6 +24,7 @@ import {
   type AuthFormValues,
 } from '@/components/public/auth';
 import { authErrorDictKey } from '@/lib/auth/constants';
+import { safeCallbackUrl } from '@/lib/auth/safe-callback-url';
 import { markLoggedIn } from '@/lib/auth/sessionMarker';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './sign-in.module.scss';
@@ -44,8 +45,10 @@ const SignInClient: FC = () => {
   const { t } = useTranslation();
   const lang = (params?.lang as string) || 'en';
 
-  // Default redirect path based on lang
-  const callbackUrl = searchParams.get('callbackUrl') || `/${lang}`;
+  // Адрес возврата — только путь на нашем сайте, иначе `/${lang}` (`LEGACY-445`).
+  // Считается в обработчиках: `window` есть только в браузере.
+  const resolveCallbackUrl = (): string =>
+    safeCallbackUrl(searchParams.get('callbackUrl'), lang, window.location.origin);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +83,7 @@ const SignInClient: FC = () => {
       setIsLoading(true);
       setError(null);
 
+      const callbackUrl = resolveCallbackUrl();
       const result = await signIn('credentials', {
         redirect: false,
         email: submitted.email,
@@ -182,7 +186,7 @@ const SignInClient: FC = () => {
             // Отметку ставим до ухода на Google: вернётся браузер уже на
             // `callbackUrl`, и этот код не выполнится (LEGACY-075).
             markLoggedIn();
-            signIn('google', { callbackUrl });
+            signIn('google', { callbackUrl: resolveCallbackUrl() });
           }}
           disabled={isLoading}
         >

@@ -79,4 +79,29 @@ describe('AuthorForm: адреса вложенного seo (LEGACY-401, T75)', 
     expect(sent.data.translations[0].seo).toMatchObject({ canonicalUrl: goodUrl });
     expect(sent.data.translations[0].seo).not.toHaveProperty('ogImageUrl');
   });
+
+  // 🔴 `LEGACY-447`: ссылки перевода уходят в `href` публичной страницы автора; бэкенд
+  // отбивает не `http(s)` 400, форма называет поле до запроса.
+  it.each(['wikidataUrl', 'wikipediaUrl', 'photoUrl'])(
+    'не отправляет перевод с javascript: в %s',
+    async (key) => {
+      const author = {
+        id: 'a1',
+        translations: [
+          {
+            language: 'en',
+            name: 'Oscar Wilde',
+            slug: 'oscar-wilde',
+            [key]: 'javascript:alert(1)',
+          },
+        ],
+      } as unknown as Author;
+      render(<AuthorForm lang="en" author={author} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+      await waitFor(() => expect(enqueueSpy).toHaveBeenCalled());
+      expect(updateSpy).not.toHaveBeenCalled();
+      expect(enqueueSpy.mock.calls[0][0]).toContain(key);
+    }
+  );
 });

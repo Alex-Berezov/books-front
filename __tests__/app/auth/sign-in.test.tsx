@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import * as navigation from 'next/navigation';
 import * as nextAuth from 'next-auth/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import SignInPage from '@/app/[lang]/auth/sign-in/page';
 
 // Mock next/navigation
@@ -40,6 +40,11 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 describe('SignInPage', () => {
+  // `spyOn` модулей навигации переживал бы свой тест: следующий получил бы чужой `callbackUrl`.
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('renders login form', () => {
     render(<SignInPage />);
 
@@ -124,5 +129,86 @@ describe('SignInPage', () => {
       expect(screen.getByText(/too many requests/i)).toBeInTheDocument();
     });
     expect(screen.queryByText(/authentication failed/i)).toBeNull();
+  });
+
+  /**
+   * 🔴 `LEGACY-445`: `?callbackUrl=` из адреса уходил в `router.push` и `signIn` как есть —
+   * после настоящего входа жертва уезжала на чужой сайт. Чужой адрес заменяется на `/${lang}`
+   * и в парольном входе, и во входе через Google.
+   *
+   * Сторож краснеет на возврате `searchParams.get('callbackUrl')` без `safeCallbackUrl`.
+   */
+  it('не уводит на чужой адрес из callbackUrl', async () => {
+    vi.spyOn(navigation, 'useSearchParams').mockReturnValue({
+      get: (key: string) => (key === 'callbackUrl' ? 'https://evil.example/phish' : null),
+    } as unknown as ReturnType<typeof navigation.useSearchParams>);
+    const signInMock = vi
+      .spyOn(nextAuth, 'signIn')
+      .mockResolvedValue({ ok: true, error: undefined, status: 200, url: '', code: undefined });
+    const pushMock = vi.fn();
+    vi.spyOn(navigation, 'useRouter').mockReturnValue({
+      push: pushMock,
+      refresh: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      replace: vi.fn(),
+      prefetch: vi.fn(),
+    });
+
+    render(<SignInPage />);
+
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
+      target: { value: 'password123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(signInMock).toHaveBeenCalledWith(
+        'credentials',
+        expect.objectContaining({ callbackUrl: '/en' })
+      );
+      expect(pushMock).toHaveBeenCalledTimes(1);
+      expect(pushMock).toHaveBeenCalledWith('/en');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /google/i }));
+    expect(signInMock).toHaveBeenLastCalledWith('google', { callbackUrl: '/en' });
+  });
+
+  // Пара к тесту выше: свой путь из `callbackUrl` доходит до `signIn` и `push` как есть.
+  it('возвращает на свой путь из callbackUrl', async () => {
+    vi.spyOn(navigation, 'useSearchParams').mockReturnValue({
+      get: (key: string) => (key === 'callbackUrl' ? '/en/book/dracula?tab=reviews' : null),
+    } as unknown as ReturnType<typeof navigation.useSearchParams>);
+    const signInMock = vi
+      .spyOn(nextAuth, 'signIn')
+      .mockResolvedValue({ ok: true, error: undefined, status: 200, url: '', code: undefined });
+    const pushMock = vi.fn();
+    vi.spyOn(navigation, 'useRouter').mockReturnValue({
+      push: pushMock,
+      refresh: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      replace: vi.fn(),
+      prefetch: vi.fn(),
+    });
+
+    render(<SignInPage />);
+
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
+      target: { value: 'password123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(signInMock).toHaveBeenCalledWith(
+        'credentials',
+        expect.objectContaining({ callbackUrl: '/en/book/dracula?tab=reviews' })
+      );
+      expect(pushMock).toHaveBeenCalledTimes(1);
+      expect(pushMock).toHaveBeenCalledWith('/en/book/dracula?tab=reviews');
+    });
   });
 });

@@ -129,7 +129,8 @@ interface Session {
     roles: string[];
   };
   accessToken: string;
-  refreshToken: string;
+  // refreshToken в сессию не кладётся: она уходит в браузер (LEGACY-446),
+  // refresh живёт только в JWT-куке
   error?: 'RefreshAccessTokenError';
 }
 ```

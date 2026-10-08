@@ -3,6 +3,7 @@
  *
  * Defines JWT token structure and user session.
  * Includes fields for accessToken, refreshToken, roles, and expiration time.
+ * `refreshToken` есть у `User` и `JWT`, но не у `Session`: сессия уходит в браузер (`LEGACY-446`).
  */
 
 import type { AuthErrorType } from '@/lib/auth/constants';
@@ -23,7 +24,7 @@ declare module 'next-auth' {
   }
 
   /**
-   * Extended session with tokens and roles
+   * Extended session with the access token and roles (без refresh — `LEGACY-446`)
    */
   interface Session extends DefaultSession {
     user: {
@@ -33,7 +34,6 @@ declare module 'next-auth' {
       roles: string[];
     };
     accessToken: string;
-    refreshToken: string;
     error?: AuthErrorType;
   }
 }

@@ -5,6 +5,7 @@ import {
   useMaterializeRightsReviewImport,
   useCurrentRightsProfile,
 } from '@/api/hooks/useRightsIntakes';
+import { DataLink } from '@/components/admin/common/DataLink';
 import { ContributorsPanel } from '@/components/admin/ContributorsPanel/ContributorsPanel';
 import { ComponentTerritoryAssessmentsPanel } from '@/components/admin/RightsIntakeDetail/ComponentTerritoryAssessmentsPanel/ComponentTerritoryAssessmentsPanel';
 import { EvidencePanel } from '@/components/admin/RightsIntakeDetail/EvidencePanel/EvidencePanel';
@@ -245,14 +246,7 @@ export const RightsProfilePanel: FC<RightsProfilePanelProps> = (props) => {
                     )}
                     {currentProfile.sourceEdition.sourceUrl && (
                       <p>
-                        URL:{' '}
-                        <a
-                          href={currentProfile.sourceEdition.sourceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {currentProfile.sourceEdition.sourceUrl}
-                        </a>
+                        URL: <DataLink url={currentProfile.sourceEdition.sourceUrl} />
                       </p>
                     )}
                     {/* WP-8.3: файл источника — сумма файла входит в content hash клиренса. */}

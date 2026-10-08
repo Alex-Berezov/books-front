@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC, ReactNode } from 'react';
+import { DataLink } from '@/components/admin/common/DataLink';
 import type { RightsIntake } from '@/types/api-schema/rights-intake';
 import styles from './IntakeOverview.module.scss';
 
@@ -35,13 +36,7 @@ export const IntakeOverview: FC<IntakeOverviewProps> = ({ intake }) => {
         <DetailRow label="External ID" value={intake.sourceExternalId} />
         <DetailRow
           label="URL"
-          value={
-            intake.sourceUrl ? (
-              <a href={intake.sourceUrl} target="_blank" rel="noopener noreferrer">
-                {intake.sourceUrl}
-              </a>
-            ) : null
-          }
+          value={intake.sourceUrl ? <DataLink url={intake.sourceUrl} /> : null}
         />
         <DetailRow label="Source Title" value={intake.sourceTitle} />
         <DetailRow label="Language" value={intake.sourceLanguage} />

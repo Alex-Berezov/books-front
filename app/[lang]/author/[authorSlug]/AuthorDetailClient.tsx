@@ -24,6 +24,7 @@ import { pluralize, pluralFormsOf } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { toBookCardModelFromAuthorBook } from '@/lib/mappers/book';
 import { isOptimizableHost } from '@/lib/utils/image-host';
+import { isSafeHref } from '@/lib/utils/safe-href';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookCardModel, PublicAuthorDetail, AuthorQuote, AuthorFaq } from '@/types/api-schema';
 import styles from './author.module.scss';
@@ -157,9 +158,9 @@ export default function AuthorDetailClient({
                 </>
               )}
             </div>
-            {!isLoading && (wikipediaUrl || wikidataUrl) && (
+            {!isLoading && (isSafeHref(wikipediaUrl) || isSafeHref(wikidataUrl)) && (
               <div className={styles.externalLinks}>
-                {wikipediaUrl && (
+                {isSafeHref(wikipediaUrl) && (
                   <a
                     href={wikipediaUrl}
                     target="_blank"
@@ -169,7 +170,7 @@ export default function AuthorDetailClient({
                     Wikipedia <ExternalLink size={14} />
                   </a>
                 )}
-                {wikidataUrl && (
+                {isSafeHref(wikidataUrl) && (
                   <a
                     href={wikidataUrl}
                     target="_blank"

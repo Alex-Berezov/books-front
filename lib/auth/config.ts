@@ -352,8 +352,13 @@ export const authOptions = {
         name: legacyDisplayName(token) ?? token.name,
         roles: token.roles,
       };
+      // `refreshToken` в сессию не кладётся: `/api/auth/session` отдаёт её в браузер,
+      // и любой XSS унёс бы его на весь срок refresh (`LEGACY-446`). Он живёт только
+      // в зашифрованной JWT-куке, продление идёт на сервере в колбэке `jwt`.
+      // `accessToken` остаётся: им ходит http-клиент браузера. Срок его жизни задаёт бэкенд
+      // (`JWT_ACCESS_EXPIRES_IN`, по умолчанию 15m); перенос запросов на серверный прокси —
+      // отдельная запись (решение арбитра 08.10.2026).
       session.accessToken = token.accessToken;
-      session.refreshToken = token.refreshToken;
       session.error = token.error;
 
       return session;

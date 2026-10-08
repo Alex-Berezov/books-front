@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import type { FC } from 'react';
 import { Checkbox, Form, Input, Modal, Select, message } from 'antd';
 import { useCreateRightsLicense, useUpdateRightsLicense } from '@/api/hooks/useRightsLicenses';
+import { httpUrlFormRule } from '@/lib/utils/http-url-form-rule';
 import type {
   CreateRightsLicenseRequest,
   RightsLicenseMediaFormat,
@@ -304,7 +305,7 @@ export const LicenseFormModal: FC<LicenseFormModalProps> = ({
         </Form.Item>
 
         <div className={styles.row}>
-          <Form.Item name="documentUrl" label="Ссылка на документ">
+          <Form.Item name="documentUrl" label="Ссылка на документ" rules={[httpUrlFormRule]}>
             <Input placeholder="https://example.org/license.pdf" />
           </Form.Item>
           <Form.Item name="documentSha256" label="SHA-256 документа">

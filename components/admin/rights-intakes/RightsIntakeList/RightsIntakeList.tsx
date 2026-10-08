@@ -5,6 +5,7 @@ import { ClipboardList, Plus, AlertCircle, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useRightsIntakes } from '@/api/hooks/useRightsIntakes';
 import { Button } from '@/components/admin/common/Button';
+import { DataLink } from '@/components/admin/common/DataLink';
 import { EmptyState, Pagination } from '@/components/admin/shared';
 import { Input } from '@/components/common/Input';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -252,17 +253,10 @@ export const RightsIntakeList: FC<RightsIntakeListProps> = ({ lang }) => {
                           ? `${intake.sourceProvider}${intake.sourceExternalId ? ` #${intake.sourceExternalId}` : ''}`
                           : 'Unknown'}
                       </div>
-                      {intake.sourceUrl && (
-                        <a
-                          href={intake.sourceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={styles.cellSub}
-                        >
-                          <ExternalLink size={12} className={styles.cellLinkIcon} />
-                          Source Link
-                        </a>
-                      )}
+                      <DataLink url={intake.sourceUrl} className={styles.cellSub}>
+                        <ExternalLink size={12} className={styles.cellLinkIcon} />
+                        Source Link
+                      </DataLink>
                     </td>
                     <td>
                       <div className={styles.languages}>

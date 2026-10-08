@@ -10,6 +10,7 @@ import {
   CLAIM_SEVERITY_LABELS,
   CLAIM_TYPE_LABELS,
 } from '@/components/admin/rights-claims/claimLabels';
+import { httpUrlFormRule, httpUrlListFormRule, splitUrlList } from '@/lib/utils/http-url-form-rule';
 import type {
   CreateRightsClaimRequest,
   RightsClaim,
@@ -128,7 +129,7 @@ export const RightsClaimFormModal: FC<RightsClaimFormModalProps> = ({
     claimedWorkAuthor: emptyToUndefined(values.claimedWorkAuthor),
     descriptionRu: (values.descriptionRu as string).trim(),
     claimedRightsDescriptionRu: emptyToUndefined(values.claimedRightsDescriptionRu),
-    infringingUrls: parseList(values.infringingUrls),
+    infringingUrls: splitUrlList(values.infringingUrls),
     originalNoticeText: emptyToUndefined(values.originalNoticeText),
     originalNoticeUrl: emptyToUndefined(values.originalNoticeUrl),
     goodFaithStatement: values.goodFaithStatement === true,
@@ -262,13 +263,21 @@ export const RightsClaimFormModal: FC<RightsClaimFormModalProps> = ({
         <Form.Item label="Заявленные права" name="claimedRightsDescriptionRu">
           <Input.TextArea rows={2} />
         </Form.Item>
-        <Form.Item label="URL нарушающего контента (по одному в строке)" name="infringingUrls">
+        <Form.Item
+          label="URL нарушающего контента (по одному в строке)"
+          name="infringingUrls"
+          rules={[httpUrlListFormRule]}
+        >
           <Input.TextArea rows={2} />
         </Form.Item>
         <Form.Item label="Оригинальный текст уведомления" name="originalNoticeText">
           <Input.TextArea rows={3} />
         </Form.Item>
-        <Form.Item label="Ссылка на оригинальное уведомление" name="originalNoticeUrl">
+        <Form.Item
+          label="Ссылка на оригинальное уведомление"
+          name="originalNoticeUrl"
+          rules={[httpUrlFormRule]}
+        >
           <Input placeholder="https://…" />
         </Form.Item>
         <Form.Item name="goodFaithStatement" valuePropName="checked">
