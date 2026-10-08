@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FC } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { BookFormData, BookFormProps } from './BookForm.types';
 import type { FieldErrors } from 'react-hook-form';

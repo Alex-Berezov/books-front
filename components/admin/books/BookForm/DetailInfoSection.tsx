@@ -3,7 +3,7 @@
 import { useRef, useState, type FC } from 'react';
 import { useFieldArray } from 'react-hook-form';
 import { useThemes } from '@/api/hooks/useBooks';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import { Input } from '@/components/common/Input';
 import { FAQ_ANSWER_MAX_LENGTH, FAQ_QUESTION_MAX_LENGTH } from '@/lib/constants/faq';
 import type { BookFormData } from './BookForm.types';

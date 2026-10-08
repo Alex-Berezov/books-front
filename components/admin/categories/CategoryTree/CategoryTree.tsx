@@ -12,8 +12,8 @@ import {
 import { CategoryModal } from '@/components/admin/categories/CategoryModal';
 import { CategoryTranslationsModal } from '@/components/admin/categories/CategoryTranslationsModal';
 import { DeleteCategoryModal } from '@/components/admin/categories/DeleteCategoryModal';
+import { Button } from '@/components/admin/common/Button';
 import { ImportJsonModal, Skeleton } from '@/components/admin/shared';
-import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { getLangFromPath } from '@/lib/i18n/lang';
 import type { Category, CategoryTree as CategoryTreeType } from '@/types/api-schema';

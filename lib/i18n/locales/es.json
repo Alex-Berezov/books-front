@@ -439,6 +439,8 @@
     "unmute": "Activar sonido",
     "audioProgress": "Progreso de audio",
     "close": "Cerrar",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
     "breadcrumb": "Ruta de navegación",
     "pagination": "Paginación",
     "ratingOutOfFive": "Calificación {rating} de 5",

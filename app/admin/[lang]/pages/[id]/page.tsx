@@ -4,10 +4,10 @@ import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { usePage, useUpdatePage } from '@/api/hooks';
+import { Button } from '@/components/admin/common/Button';
 import { PageForm, type PageFormData } from '@/components/admin/pages/PageForm';
 import { PagePublishPanel } from '@/components/admin/pages/PagePublishPanel';
 import { Spinner } from '@/components/admin/shared';
-import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 

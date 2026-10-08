@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SlugInput } from '@/components/common/SlugInput/SlugInput';
+import { SlugInput } from '@/components/admin/common/SlugInput/SlugInput';
 
 const hookResult = {
   existingItem: null as unknown,

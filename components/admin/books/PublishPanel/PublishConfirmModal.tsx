@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import type { FC, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from 'react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import { useDialogFocus } from '@/lib/hooks/useDialogFocus';
 import styles from './PublishPanel.module.scss';
 
@@ -33,7 +33,7 @@ export const PublishConfirmModal: FC<PublishConfirmModalProps> = ({
   /**
    * Закрывает только клик по самой подложке. `stopPropagation` на теле окна был
    * обработчиком на неинтерактивном элементе — он требовал клавиатурного близнеца
-   * там, где нажимать нечего (`LEGACY-041`, образец — `components/common/Modal`).
+   * там, где нажимать нечего (`LEGACY-041`, образец — `components/admin/common/Modal`).
    */
   const handleOverlayClick = (e: ReactMouseEvent) => {
     if (e.target !== e.currentTarget) return;

@@ -1,4 +1,4 @@
-import { BookOutlined } from '@ant-design/icons';
+import { BookOutlinedIcon } from '@/components/common/icons/BookOutlinedIcon';
 import { TextWithBold } from '@/components/common/TextWithBold/TextWithBold';
 import { PageBackButton } from '@/components/public/navigation';
 import { getDictionary } from '@/lib/i18n/dictionaries';
@@ -40,7 +40,7 @@ export default async function DeletionPage({ params }: Props) {
       <PageBackButton lang={lang} />
 
       <div className={styles.logo}>
-        <BookOutlined className={styles.logoIcon} />
+        <BookOutlinedIcon className={styles.logoIcon} />
         <span className={styles.logoText}>BIBLIARIS</span>
       </div>
 

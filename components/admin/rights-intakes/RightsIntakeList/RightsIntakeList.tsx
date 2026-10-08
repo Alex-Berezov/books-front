@@ -4,8 +4,8 @@ import { useState, type FC } from 'react';
 import { ClipboardList, Plus, AlertCircle, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useRightsIntakes } from '@/api/hooks/useRightsIntakes';
+import { Button } from '@/components/admin/common/Button';
 import { EmptyState, Pagination } from '@/components/admin/shared';
-import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {

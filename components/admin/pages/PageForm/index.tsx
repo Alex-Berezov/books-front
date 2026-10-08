@@ -5,13 +5,13 @@ import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { usePageGroup } from '@/api/hooks/usePages';
+import { Button } from '@/components/admin/common/Button';
 import {
   SeoBasicSection,
   SeoOpenGraphSection,
   SeoTechnicalSection,
   SeoTwitterSection,
 } from '@/components/admin/common/SeoSections';
-import { Button } from '@/components/common/Button';
 import type { PageFormData, PageFormProps } from './PageForm.types';
 import styles from './PageForm.module.scss';
 import { buildPageSchema } from './PageForm.types';

@@ -27,7 +27,7 @@ Universal reusable modal component.
 
 ```tsx
 import { useState } from 'react';
-import { Modal } from '@/components/common/Modal';
+import { Modal } from '@/components/admin/common/Modal';
 
 export const MyComponent = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -63,7 +63,7 @@ export const MyComponent = () => {
 ```tsx
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Modal } from '@/components/common/Modal';
+import { Modal } from '@/components/admin/common/Modal';
 
 export const MyComponent = () => {
   const [isOpen, setIsOpen] = useState(false);

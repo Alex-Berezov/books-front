@@ -2,7 +2,7 @@
 
 import type { FC } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { PageTranslation } from '@/types/api-schema';
 import styles from '../PageForm.module.scss';

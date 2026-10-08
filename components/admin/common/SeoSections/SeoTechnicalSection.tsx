@@ -2,9 +2,9 @@
 
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
+import { Select } from '@/components/admin/common/Select';
 import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
 import type {
   Control,
   FieldErrors,

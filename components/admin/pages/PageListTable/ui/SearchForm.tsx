@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import { Input } from '@/components/common/Input';
 import type { SearchFormProps } from '../PageListTable.types';
 import styles from '../PageListTable.module.scss';

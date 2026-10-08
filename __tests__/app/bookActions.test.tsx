@@ -20,8 +20,8 @@ vi.mock('next-auth/react', () => ({
   useSession: () => ({ status: sessionStatus.value }),
 }));
 
-vi.mock('antd', () => ({
-  message: {
+vi.mock('@/lib/utils/toast', () => ({
+  toast: {
     error: (...args: unknown[]) => messageError(...args),
     success: vi.fn(),
   },

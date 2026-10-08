@@ -858,7 +858,7 @@ import { useState, useEffect } from 'react';
 import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
 
-// 2. UI libraries
+// 2. UI libraries (antd — только в админке: app/admin/**, components/admin/**)
 import { Button, Input } from 'antd';
 
 // 3. Internal components

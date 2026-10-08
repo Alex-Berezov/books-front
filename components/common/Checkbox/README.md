@@ -190,5 +190,5 @@ This component uses a native `<input type="checkbox">` instead of a library comp
 ## Related Components
 
 - [Input](/components/common/Input/README.md) - Text input component
-- [Select](/components/common/Select/README.md) - Select/dropdown component
-- [Button](/components/common/Button/README.md) - Button component
+- [Select](/components/admin/common/Select/README.md) - Select/dropdown component
+- [Button](/components/common/Button/Button.types.ts) - site button (no antd); admin forms use [the antd wrapper](/components/admin/common/Button/README.md)

@@ -1,6 +1,6 @@
 import type { FC } from 'react';
+import { Select } from '@/components/admin/common/Select';
 import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
 import styles from './BookListTable.module.scss';
 
 export type StatusFilter = 'all' | 'published' | 'draft';

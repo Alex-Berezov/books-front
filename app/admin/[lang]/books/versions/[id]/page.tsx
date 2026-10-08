@@ -18,8 +18,8 @@ import {
   TagsPanel,
   ImportModal,
 } from '@/components/admin/books';
+import { Button } from '@/components/admin/common/Button';
 import { Spinner } from '@/components/admin/shared';
-import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 import { PREVIEW_SOURCE_EDITOR, PREVIEW_SOURCE_PARAM } from './preview/preview.constants';

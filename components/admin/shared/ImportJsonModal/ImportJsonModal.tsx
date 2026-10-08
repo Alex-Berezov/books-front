@@ -3,7 +3,7 @@
 import type { FC } from 'react';
 import { useState } from 'react';
 import { Input } from 'antd';
-import { Modal } from '@/components/common/Modal';
+import { Modal } from '@/components/admin/common/Modal';
 import styles from './ImportJsonModal.module.scss';
 
 interface ImportJsonModalProps {

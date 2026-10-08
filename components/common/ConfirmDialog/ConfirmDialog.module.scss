@@ -1,0 +1,139 @@
+@import '@/styles/tokens.scss';
+@import '@/styles/antd-defaults.scss';
+
+/**
+ * Окно подтверждения сайта (`LEGACY-442`): вид `Modal.confirm` antd 5 с темой
+ * по умолчанию. Значения antd, которых нет в `styles/tokens.scss`, — ниже.
+ */
+
+$confirm-width: 416px; // нет в токенах, значение antd 5 по умолчанию
+$confirm-offset-top: 100px; // нет в токенах, значение antd 5 по умолчанию
+$confirm-padding-block: 20px; // нет в токенах, значение antd 5 по умолчанию
+$confirm-gap: 12px; // нет в токенах, значение antd 5 по умолчанию (marginSM)
+$confirm-icon-size: 22px; // нет в токенах, значение antd 5 по умолчанию
+$confirm-cancel-hover: #4096ff; // нет в токенах, значение antd 5 по умолчанию (colorPrimaryHover)
+$confirm-mask-alpha: 0.45; // нет в токенах, значение antd 5 по умолчанию (colorBgMask)
+$confirm-zoom-from: 0.2; // нет в токенах, значение antd 5 по умолчанию (zoomIn)
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: $z-index-modal;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: $confirm-offset-top $spacing-md $spacing-md;
+  background: rgba($color-text-primary, $confirm-mask-alpha);
+  animation: fadeIn $transition-fast;
+}
+
+.dialog {
+  width: $confirm-width;
+  max-width: 100%;
+  padding: $confirm-padding-block $spacing-lg;
+  background: $color-background-primary;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-lg;
+  outline: none;
+  animation: zoomIn $transition-base;
+}
+
+.body {
+  display: flex;
+  align-items: flex-start;
+  gap: $confirm-gap;
+}
+
+.icon {
+  flex: none;
+  width: $confirm-icon-size;
+  height: $confirm-icon-size;
+  color: $color-warning;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-base;
+  color: $color-text-primary;
+  word-break: break-word;
+}
+
+.content {
+  margin: $spacing-sm 0 0;
+  font-size: $font-size-sm;
+  line-height: $antd-line-height;
+  color: $color-text-primary;
+  word-break: break-word;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+  margin-top: $confirm-gap;
+}
+
+/* Окно всегда белое, как `Modal.confirm` antd, а `secondary` кнопки сайта красит текст
+   в `--public-foreground`, который в тёмной теме почти белый: «Отмена» пропадала.
+   Здесь — цвета кнопки antd по умолчанию; класс удвоен, чтобы перебить `.secondary`. */
+.cancel.cancel {
+  color: $antd-text;
+  border-color: $color-border-base;
+  background: $color-background-primary;
+
+  &:hover:not(:disabled) {
+    color: $confirm-cancel-hover;
+    border-color: $confirm-cancel-hover;
+    background: $color-background-primary;
+  }
+}
+
+/* Красная обводка, как кнопка antd с `danger` без `type="primary"`.
+   Класс удвоен, чтобы перебить `.secondary:hover` кнопки сайта. */
+.danger.danger {
+  color: $color-error;
+  border-color: $color-error;
+  background: $color-background-primary;
+
+  &:hover:not(:disabled) {
+    color: $color-error-hover;
+    border-color: $color-error-hover;
+    background: $color-background-primary;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale($confirm-zoom-from);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .dialog {
+    animation: none;
+  }
+}

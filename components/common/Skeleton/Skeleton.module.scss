@@ -1,0 +1,102 @@
+/**
+ * Заглушка загрузки (`LEGACY-442`): размеры и цвет — как у `Skeleton` antd 5
+ * с темой по умолчанию. Перелив выключается при `prefers-reduced-motion`.
+ */
+
+@import '@/styles/tokens.scss';
+@import '@/styles/antd-defaults.scss';
+
+// Нет в токенах: значения Skeleton antd 5 с темой по умолчанию.
+$antd-skeleton-highlight: rgba(0, 0, 0, 0.15);
+$antd-skeleton-avatar: 40px;
+$antd-skeleton-avatar-radius: 6px;
+$antd-skeleton-block-width: 64px;
+
+// `:where` обнуляет специфичность: класс размера со страницы перебивает базу при любом
+// порядке загрузки CSS-чанков, а не только когда модуль страницы пришёл последним.
+:where(.shimmer) {
+  display: block;
+  border-radius: $border-radius-base;
+  background: linear-gradient(
+    90deg,
+    $antd-fill-secondary 25%,
+    $antd-skeleton-highlight 37%,
+    $antd-fill-secondary 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    background: $antd-fill-secondary;
+  }
+}
+
+:where(.block) {
+  display: inline-block;
+  width: $antd-skeleton-block-width;
+  min-width: $antd-skeleton-block-width;
+  height: $spacing-xl;
+  vertical-align: top;
+}
+
+.skeleton {
+  display: table;
+  width: 100%;
+}
+
+.avatar {
+  display: table-cell;
+  width: $antd-skeleton-avatar;
+  height: $antd-skeleton-avatar;
+  border-radius: $antd-skeleton-avatar-radius;
+  vertical-align: top;
+}
+
+.skeleton > .avatar + .content {
+  padding-left: $spacing-md;
+}
+
+.content {
+  display: table-cell;
+  width: 100%;
+  vertical-align: top;
+}
+
+.title {
+  width: 38%;
+  height: $spacing-md;
+}
+
+.paragraph {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    width: 100%;
+    height: $spacing-md;
+
+    + li {
+      margin-top: $spacing-md;
+    }
+
+    &:last-child:not(:first-child) {
+      width: 61%;
+    }
+  }
+}
+
+.title + .paragraph {
+  margin-top: $spacing-lg;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0 50%;
+  }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
-import { Modal } from '@/components/common/Modal';
+import { Modal } from '@/components/admin/common/Modal';
 import type { DeleteTagModalProps } from './DeleteTagModal.types';
 import styles from './DeleteTagModal.module.scss';
 

@@ -1,0 +1,68 @@
+@import '@/styles/tokens.scss';
+@import '@/styles/antd-defaults.scss';
+
+/* Вкладки сайта (`LEGACY-442`): вид прежних `Tabs` antd 5 вместе с перекрытиями
+   полки, что стояли через `:global(.ant-tabs-*)`. Перенесены из модуля полки как есть. */
+
+$tab-divider-width: 1px; // нет в токенах, значение antd 5 по умолчанию (lineWidth)
+$tab-ink-height: 2px; // нет в токенах, значение antd 5 по умолчанию (lineWidthBold)
+$tab-inactive-opacity: 0.7; // нет в токенах, перекрытие полки поверх antd
+$tab-focus-ring: 3px; // нет в токенах, кольцо фокуса вкладки внутри её границ
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+.tabList {
+  position: relative;
+  display: flex;
+  gap: $spacing-xl;
+  margin-bottom: $spacing-xl;
+  border-bottom: $tab-divider-width solid $antd-fill-secondary;
+}
+
+.tab {
+  position: relative;
+  padding: $spacing-sm + $spacing-xs 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: $font-size-sm;
+  line-height: $antd-line-height;
+  color: var(--public-foreground);
+  opacity: $tab-inactive-opacity;
+  cursor: pointer;
+  outline: none;
+  transition:
+    color $transition-base,
+    opacity $transition-base;
+
+  &:hover {
+    color: var(--public-primary);
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: $tab-focus-ring solid var(--public-primary);
+    outline-offset: -$tab-focus-ring;
+  }
+}
+
+.tabActive {
+  color: var(--public-primary);
+  font-weight: $font-weight-semibold;
+  opacity: 1;
+
+  /* Полоса под активной вкладкой — бывший `.ant-tabs-ink-bar`, ложится на линию списка. */
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: -$tab-divider-width;
+    left: 0;
+    height: $tab-ink-height;
+    background: var(--public-primary);
+  }
+}

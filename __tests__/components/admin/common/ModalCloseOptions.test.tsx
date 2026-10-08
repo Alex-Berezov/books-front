@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { Modal } from '@/components/common/Modal';
+import { Modal } from '@/components/admin/common/Modal';
 
 /**
  * A chapter form holds long formatted text. A click that missed the dialog, or a

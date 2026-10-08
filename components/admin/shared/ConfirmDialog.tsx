@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { Modal } from '@/components/common/Modal';
+import { Modal } from '@/components/admin/common/Modal';
 
 interface ConfirmDialogProps {
   isOpen: boolean;

@@ -1,0 +1,149 @@
+@import '@/styles/tokens.scss';
+
+/*
+ * Каркас страниц входа и регистрации (`AuthLayout`): панель марки слева
+ * и колонка формы справа. Правила перенесены из модуля страницы входа как есть
+ * (`LEGACY-442`).
+ */
+
+// Значений ниже нет в токенах: оформление панели марки, взято как было.
+$auth-column-max-width: 400px;
+$sidebar-glow: rgba(200, 159, 85, 0.05);
+$logo-shadow: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+$brand-name-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--public-background);
+
+  @media (min-width: $breakpoint-sm) {
+    flex-direction: row;
+  }
+}
+
+.sidebar {
+  display: none;
+  background-color: $color-bibliaris-green;
+  color: $color-bibliaris-green-foreground;
+  padding: $spacing-xl;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 40%;
+  position: relative;
+  overflow: hidden;
+
+  @media (min-width: $breakpoint-sm) {
+    display: flex;
+  }
+
+  @media (min-width: $breakpoint-md) {
+    width: 50%;
+  }
+
+  // Elegant decorative background pattern
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, $sidebar-glow 0%, transparent 60%);
+    pointer-events: none;
+  }
+}
+
+.sidebarContent {
+  max-width: $auth-column-max-width;
+  text-align: center;
+  z-index: 1;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+.logoIcon {
+  font-size: $font-size-xxxl;
+  color: $color-gold;
+  filter: $logo-shadow;
+}
+
+.brandName {
+  font-size: $font-size-xxxl;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.1em;
+  color: $color-gold;
+  margin: 0;
+  text-shadow: $brand-name-shadow;
+}
+
+.tagline {
+  font-size: $font-size-lg;
+  line-height: $line-height-relaxed;
+  opacity: 0.85;
+  margin-bottom: $spacing-xxl;
+}
+
+.featuresList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  text-align: left;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  font-size: $font-size-base;
+  color: $color-bibliaris-green-foreground;
+
+  .checkIcon {
+    color: $color-gold;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+}
+
+.formSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl $spacing-lg;
+}
+
+.formWrapper {
+  width: 100%;
+  max-width: $auth-column-max-width;
+}
+
+.mobileHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xl;
+
+  @media (min-width: $breakpoint-sm) {
+    display: none;
+  }
+
+  .logoIcon {
+    font-size: 1.75rem;
+    color: var(--public-primary);
+  }
+
+  .brandName {
+    font-size: $font-size-xl;
+    color: var(--public-foreground);
+    letter-spacing: 0.05em;
+  }
+}

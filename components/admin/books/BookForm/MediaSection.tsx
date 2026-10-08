@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { MediaPicker } from '@/components/admin/common/MediaPicker';
+import { Select } from '@/components/admin/common/Select';
 import { Checkbox } from '@/components/common/Checkbox';
 import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
 import type { BookFormData } from './BookForm.types';
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
 import styles from './BookForm.module.scss';

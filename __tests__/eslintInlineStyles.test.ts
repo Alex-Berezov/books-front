@@ -37,12 +37,9 @@ const POSIX_ROOT = REPO_ROOT.split(BACKSLASH).join('/');
  * правило снова ничего не стережёт, ради чего запись 158 и заводилась.
  */
 const DEBT_AT_INTRODUCTION = [
-  'app/[lang]/auth/register/RegisterClient.tsx',
-  'app/[lang]/auth/sign-in/SignInClient.tsx',
   'app/[lang]/book/[slug]/listen/ListenClient.tsx',
   'app/[lang]/book/[slug]/page.tsx',
   'app/[lang]/book/[slug]/read/ReaderClient.tsx',
-  'app/[lang]/bookshelf/BookshelfClient.tsx',
   'app/[lang]/profile/ProfileClient.tsx',
   'app/admin/[lang]/error.tsx',
   'app/admin/[lang]/media/page.tsx',

@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { LayoutGrid, List as ListIcon } from 'lucide-react';
+import { Select } from '@/components/admin/common/Select';
 import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
 import type { MediaType } from '@/types/api-schema/media';
 import styles from './MediaPage.module.scss';
 

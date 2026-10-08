@@ -439,6 +439,8 @@
     "unmute": "Activer le son",
     "audioProgress": "Progression audio",
     "close": "Fermer",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "breadcrumb": "Fil d'Ariane",
     "pagination": "Pagination",
     "ratingOutOfFive": "Note {rating} sur 5",

@@ -2,8 +2,8 @@
 
 import { useState, type FC } from 'react';
 import { useAssignRole, useRevokeRole } from '@/api/hooks/useUsers';
-import { Button } from '@/components/common/Button';
-import { Select } from '@/components/common/Select';
+import { Button } from '@/components/admin/common/Button';
+import { Select } from '@/components/admin/common/Select';
 import type { RoleName } from '@/types/api-schema/common';
 import type { User } from '@/types/api-schema/user';
 import styles from './UserRoleManager.module.scss';

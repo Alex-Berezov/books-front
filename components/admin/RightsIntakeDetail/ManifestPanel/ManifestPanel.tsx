@@ -40,7 +40,7 @@ export const ManifestPanel: FC<ManifestPanelProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Фокус окна — тем же приёмом, что в `components/common/Modal` (`LEGACY-041`).
+  // Фокус окна — тем же приёмом, что в `components/admin/common/Modal` (`LEGACY-041`).
   useDialogFocus(modalRef, modalOpen);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
 

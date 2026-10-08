@@ -9,19 +9,20 @@
 
 import type { FC } from 'react';
 import { useState } from 'react';
-import {
-  LockOutlined,
-  MailOutlined,
-  BookOutlined,
-  CheckCircleOutlined,
-  GoogleOutlined,
-} from '@ant-design/icons';
-import { Form, Input, Alert, Typography } from 'antd';
+import { CircleCheck, Lock, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/common/Button';
-import { PageBackButton } from '@/components/public/navigation';
+import { GoogleIcon } from '@/components/common/icons/GoogleIcon';
+import {
+  AuthAlert,
+  AuthField,
+  AuthLayout,
+  validateEmail,
+  useAuthForm,
+  type AuthFormValues,
+} from '@/components/public/auth';
 import { markLoggedIn } from '@/lib/auth/sessionMarker';
 import { publicErrorKey } from '@/lib/errors';
 import { httpPost } from '@/lib/http';
@@ -30,13 +31,20 @@ import { logError } from '@/lib/utils/log-error';
 import type { AuthResponse } from '@/types/api-schema';
 import styles from './register.module.scss';
 
-const { Title, Text } = Typography;
+type RegisterField = 'email' | 'password' | 'confirmPassword';
+type RegisterFormValues = AuthFormValues<RegisterField>;
 
-interface RegisterFormValues {
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
+const REGISTER_FIELDS: readonly RegisterField[] = ['email', 'password', 'confirmPassword'];
+const REGISTER_INITIAL: RegisterFormValues = { email: '', password: '', confirmPassword: '' };
+
+/** Смена пароля перепроверяет подтверждение, если его уже трогали. */
+const REGISTER_DEPENDENTS = { password: ['confirmPassword'] } as const;
+
+/**
+ * Восемь, как требует бэкенд (`@MinLength(8)` на `password`):
+ * при шести форма пропускала пароль, который сервер отбивал 400.
+ */
+const PASSWORD_MIN_LENGTH = 8;
 
 /**
  * Register page component
@@ -48,23 +56,43 @@ const RegisterClient: FC = () => {
   const lang = (params?.lang as string) || 'en';
   const callbackUrl = `/${lang}`;
 
-  const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  /** Правила полей — те же, что стояли в `rules` у `Form.Item` antd. */
+  const validateField = (field: RegisterField, current: RegisterFormValues): string | undefined => {
+    if (field === 'email') {
+      return validateEmail(current.email, {
+        required: t('auth.register.emailRequired'),
+        invalid: t('auth.register.emailInvalid'),
+      });
+    }
+    if (field === 'password') {
+      if (!current.password) return t('auth.register.passwordRequired');
+      // Длина в символах, а не в кодовых единицах UTF-16 — так считал валидатор antd.
+      if (Array.from(current.password).length < PASSWORD_MIN_LENGTH) {
+        return t('auth.register.passwordLength');
+      }
+      return undefined;
+    }
+    if (!current.confirmPassword) return t('auth.register.confirmRequired');
+    if (current.password !== current.confirmPassword) return t('auth.register.confirmMatch');
+    return undefined;
+  };
+
   /**
    * Form submission handler
    */
-  const handleSubmit = async (values: RegisterFormValues) => {
+  const handleSubmit = async (submitted: RegisterFormValues) => {
     try {
       setIsLoading(true);
       setError(null);
 
       // Call backend auth register
       await httpPost<AuthResponse>('/auth/register', {
-        email: values.email,
-        password: values.password,
+        email: submitted.email,
+        password: submitted.password,
       });
 
       setIsSuccess(true);
@@ -88,213 +116,133 @@ const RegisterClient: FC = () => {
     }
   };
 
+  const form = useAuthForm<RegisterField>({
+    initial: REGISTER_INITIAL,
+    fields: REGISTER_FIELDS,
+    validate: validateField,
+    dependents: REGISTER_DEPENDENTS,
+    busy: isLoading,
+    onValid: (values) => void handleSubmit(values),
+  });
+
+  const toggleLabels = { show: t('a11y.showPassword'), hide: t('a11y.hidePassword') };
+
+  if (isSuccess) {
+    return (
+      <AuthLayout lang={lang}>
+        <div className={styles.successScreen}>
+          <CircleCheck className={styles.successIcon} size="1em" />
+          <h2 className={styles.successTitle}>{t('auth.register.successTitle')}</h2>
+          <span className={styles.successText}>{t('auth.register.successText')}</span>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            onClick={() => router.push(`/${lang}/auth/sign-in`)}
+          >
+            {t('auth.register.successBtn')}
+          </Button>
+        </div>
+      </AuthLayout>
+    );
+  }
+
   return (
-    <div className={styles.container}>
-      {/* Left Sidebar - Brand Identity */}
-      <div className={styles.sidebar}>
-        <div className={styles.sidebarContent}>
-          <div className={styles.brand}>
-            <BookOutlined className={styles.logoIcon} />
-            <span className={styles.brandName}>BIBLIARIS</span>
-          </div>
-          <p className={styles.tagline}>{t('auth.sidebar.tagline')}</p>
-          <div className={styles.featuresList}>
-            {[
-              t('auth.sidebar.feat1'),
-              t('auth.sidebar.feat2'),
-              t('auth.sidebar.feat3'),
-              t('auth.sidebar.feat4'),
-            ].map((feat) => (
-              <div key={feat} className={styles.featureItem}>
-                <CheckCircleOutlined className={styles.checkIcon} />
-                <span>{feat}</span>
-              </div>
-            ))}
-          </div>
+    <AuthLayout lang={lang}>
+      <h2 className={styles.title}>{t('auth.register.title')}</h2>
+      <span className={styles.subtitle}>{t('auth.register.subtitle')}</span>
+
+      {error && (
+        <AuthAlert
+          title={t('auth.register.errorTitle')}
+          description={error}
+          closeLabel={t('a11y.close')}
+          onClose={() => setError(null)}
+        />
+      )}
+
+      <form id="register" onSubmit={form.handleSubmit} autoComplete="off" className={styles.form}>
+        <AuthField
+          id="register_email"
+          name="email"
+          label={t('auth.register.emailLabel')}
+          icon={<Mail size="1em" />}
+          type="text"
+          value={form.values.email}
+          error={form.errors.email}
+          placeholder="you@example.com"
+          autoComplete="email"
+          onChange={form.handleChange('email')}
+        />
+
+        <AuthField
+          id="register_password"
+          name="password"
+          label={t('auth.register.passwordLabel')}
+          icon={<Lock size="1em" />}
+          type="password"
+          value={form.values.password}
+          error={form.errors.password}
+          placeholder={t('auth.register.passwordPlaceholder')}
+          autoComplete="new-password"
+          onChange={form.handleChange('password')}
+          toggleLabels={toggleLabels}
+        />
+
+        <AuthField
+          id="register_confirmPassword"
+          name="confirmPassword"
+          label={t('auth.register.confirmLabel')}
+          icon={<Lock size="1em" />}
+          type="password"
+          value={form.values.confirmPassword}
+          error={form.errors.confirmPassword}
+          placeholder={t('auth.register.confirmPlaceholder')}
+          autoComplete="new-password"
+          onChange={form.handleChange('confirmPassword')}
+          toggleLabels={toggleLabels}
+        />
+
+        <div className={styles.field}>
+          <Button
+            variant="primary"
+            type="submit"
+            loading={isLoading}
+            fullWidth
+            className={styles.submitButton}
+          >
+            {t('auth.register.submitBtn')}
+          </Button>
         </div>
+      </form>
+
+      <div className={styles.divider}>
+        <span>{t('auth.signin.or')}</span>
       </div>
 
-      {/* Right Form Section */}
-      <div className={styles.formSection}>
-        <div className={styles.formWrapper}>
-          <PageBackButton lang={lang} />
-
-          {/* Mobile Header */}
-          <div className={styles.mobileHeader}>
-            <BookOutlined className={styles.logoIcon} />
-            <span className={styles.brandName}>BIBLIARIS</span>
-          </div>
-
-          {isSuccess ? (
-            <div className={styles.successScreen}>
-              <CheckCircleOutlined className={styles.successIcon} />
-              <Title level={2} className={styles.successTitle}>
-                {t('auth.register.successTitle')}
-              </Title>
-              <Text className={styles.successText}>{t('auth.register.successText')}</Text>
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                onClick={() => router.push(`/${lang}/auth/sign-in`)}
-              >
-                {t('auth.register.successBtn')}
-              </Button>
-            </div>
-          ) : (
-            <>
-              <Title level={2} className={styles.title}>
-                {t('auth.register.title')}
-              </Title>
-              <Text className={styles.subtitle}>{t('auth.register.subtitle')}</Text>
-
-              {error && (
-                <Alert
-                  message={t('auth.register.errorTitle')}
-                  description={error}
-                  type="error"
-                  showIcon
-                  closable
-                  onClose={() => setError(null)}
-                  className={styles.alert}
-                />
-              )}
-
-              <Form
-                form={form}
-                name="register"
-                onFinish={handleSubmit}
-                autoComplete="off"
-                layout="vertical"
-                size="large"
-                className={styles.form}
-              >
-                <Form.Item noStyle shouldUpdate>
-                  {() => {
-                    const errors = form.getFieldError('email');
-                    const hasError = errors.length > 0;
-                    return (
-                      <Form.Item
-                        name="email"
-                        label={t('auth.register.emailLabel')}
-                        rules={[
-                          { required: true, message: t('auth.register.emailRequired') },
-                          { type: 'email', message: t('auth.register.emailInvalid') },
-                        ]}
-                      >
-                        <Input
-                          prefix={<MailOutlined />}
-                          placeholder="you@example.com"
-                          autoComplete="email"
-                          aria-invalid={hasError ? 'true' : 'false'}
-                          aria-describedby={hasError ? 'register_email_help' : undefined}
-                        />
-                      </Form.Item>
-                    );
-                  }}
-                </Form.Item>
-
-                <Form.Item noStyle shouldUpdate>
-                  {() => {
-                    const errors = form.getFieldError('password');
-                    const hasError = errors.length > 0;
-                    return (
-                      <Form.Item
-                        name="password"
-                        label={t('auth.register.passwordLabel')}
-                        rules={[
-                          { required: true, message: t('auth.register.passwordRequired') },
-                          // Восемь, как требует бэкенд (`@MinLength(8)` на `password`):
-                          // при шести форма пропускала пароль, который сервер отбивал 400.
-                          { min: 8, message: t('auth.register.passwordLength') },
-                        ]}
-                      >
-                        <Input.Password
-                          prefix={<LockOutlined />}
-                          placeholder={t('auth.register.passwordPlaceholder')}
-                          autoComplete="new-password"
-                          aria-invalid={hasError ? 'true' : 'false'}
-                          aria-describedby={hasError ? 'register_password_help' : undefined}
-                        />
-                      </Form.Item>
-                    );
-                  }}
-                </Form.Item>
-
-                <Form.Item noStyle shouldUpdate>
-                  {() => {
-                    const errors = form.getFieldError('confirmPassword');
-                    const hasError = errors.length > 0;
-                    return (
-                      <Form.Item
-                        name="confirmPassword"
-                        label={t('auth.register.confirmLabel')}
-                        dependencies={['password']}
-                        rules={[
-                          { required: true, message: t('auth.register.confirmRequired') },
-                          ({ getFieldValue }) => ({
-                            validator(_, value) {
-                              if (!value || getFieldValue('password') === value) {
-                                return Promise.resolve();
-                              }
-                              return Promise.reject(new Error(t('auth.register.confirmMatch')));
-                            },
-                          }),
-                        ]}
-                      >
-                        <Input.Password
-                          prefix={<LockOutlined />}
-                          placeholder={t('auth.register.confirmPlaceholder')}
-                          autoComplete="new-password"
-                          aria-invalid={hasError ? 'true' : 'false'}
-                          aria-describedby={hasError ? 'register_confirmPassword_help' : undefined}
-                        />
-                      </Form.Item>
-                    );
-                  }}
-                </Form.Item>
-
-                <Form.Item>
-                  <Button variant="primary" type="submit" loading={isLoading} fullWidth>
-                    {t('auth.register.submitBtn')}
-                  </Button>
-                </Form.Item>
-              </Form>
-
-              <div className={styles.divider}>
-                <span>{t('auth.signin.or')}</span>
-              </div>
-
-              <div
-                className={styles.socialButtons}
-                style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}
-              >
-                <Button
-                  variant="secondary"
-                  fullWidth
-                  leftIcon={<GoogleOutlined style={{ color: '#ea4335' }} />}
-                  onClick={() => {
-                    setIsLoading(true);
-                    // Отметку ставим до ухода на Google: вернётся браузер уже на
-                    // `callbackUrl`, и этот код не выполнится (LEGACY-075).
-                    markLoggedIn();
-                    signIn('google', { callbackUrl });
-                  }}
-                  disabled={isLoading}
-                >
-                  Google
-                </Button>
-              </div>
-
-              <div className={styles.footer}>
-                {t('auth.register.hasAccount')}{' '}
-                <Link href={`/${lang}/auth/sign-in`}>{t('auth.register.signinLink')}</Link>
-              </div>
-            </>
-          )}
-        </div>
+      <div className={styles.socialButtons}>
+        <Button
+          variant="secondary"
+          fullWidth
+          leftIcon={<GoogleIcon />}
+          onClick={() => {
+            setIsLoading(true);
+            // Отметку ставим до ухода на Google: вернётся браузер уже на
+            // `callbackUrl`, и этот код не выполнится (LEGACY-075).
+            markLoggedIn();
+            signIn('google', { callbackUrl });
+          }}
+          disabled={isLoading}
+        >
+          Google
+        </Button>
       </div>
-    </div>
+
+      <div className={styles.footer}>
+        {t('auth.register.hasAccount')}{' '}
+        <Link href={`/${lang}/auth/sign-in`}>{t('auth.register.signinLink')}</Link>
+      </div>
+    </AuthLayout>
   );
 };
 

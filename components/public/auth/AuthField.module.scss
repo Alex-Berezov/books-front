@@ -1,0 +1,122 @@
+@import '@/styles/tokens.scss';
+@import '@/styles/antd-defaults.scss';
+
+/*
+ * Поле формы (`AuthField`): прежние `Form.Item` + `Input` antd размера `large`
+ * с перекрытиями модуля страницы входа (`LEGACY-442`).
+ */
+$antd-input-lg-padding: 7px 11px; // нет в токенах, значение antd 5 по умолчанию
+$antd-input-border: rgba(0, 0, 0, 0.1); // нет в токенах, значение antd 5 по умолчанию
+$antd-focus-shadow: 0 0 0 2px rgba(5, 145, 255, 0.1); // нет в токенах, значение antd 5 по умолчанию
+$antd-error-border-hover: #ffa39e; // нет в токенах, значение antd 5 по умолчанию
+$antd-error-focus-shadow: 0 0 0 2px rgba(255, 38, 5, 0.06); // нет в токенах, значение antd 5 по умолчанию
+
+.field {
+  margin-bottom: $antd-form-item-gap;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding-bottom: $spacing-xs;
+  color: var(--public-foreground);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  line-height: $antd-line-height;
+
+  // Отметка обязательного поля, как `requiredMark` antd. Знак — псевдоэлементом,
+  // чтобы он не попадал в доступное имя поля.
+  &::before {
+    content: '*';
+    display: inline-block;
+    margin-inline-end: $spacing-xs;
+    color: $color-error;
+    font-family: SimSun, sans-serif;
+    font-size: $font-size-sm;
+    line-height: 1;
+  }
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: $antd-input-lg-padding;
+  background-color: $color-background-primary;
+  border: 1px solid $antd-input-border;
+  border-radius: $border-radius-lg;
+  color: $antd-text;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: var(--public-primary);
+  }
+
+  &:focus-within {
+    border-color: var(--public-primary);
+    box-shadow: $antd-focus-shadow;
+    outline: 0;
+  }
+}
+
+.inputWrapperError {
+  border-color: $color-error;
+
+  &:hover {
+    border-color: $antd-error-border-hover;
+  }
+
+  &:focus-within {
+    border-color: $color-error;
+    box-shadow: $antd-error-focus-shadow;
+  }
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+
+  &::placeholder {
+    color: $color-text-tertiary;
+  }
+}
+
+.inputPrefix {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  margin-inline-end: $spacing-xs;
+}
+
+.inputSuffix {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  margin-inline-start: $spacing-xs;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: $antd-text-secondary;
+  font-size: inherit;
+  cursor: pointer;
+  transition: color 0.3s;
+
+  &:hover {
+    color: $antd-text;
+  }
+}
+
+.fieldError {
+  color: $color-error;
+  font-size: $font-size-sm;
+  line-height: $antd-line-height;
+}

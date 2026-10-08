@@ -1,11 +1,11 @@
 'use client';
 
-import { Skeleton } from 'antd';
 import { ArrowLeft } from 'lucide-react';
 import { useBookSummary } from '@/api/hooks/useBookSummary';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import { RichTextContent } from '@/components/common/RichTextContent';
+import { Skeleton, SkeletonBlock } from '@/components/common/Skeleton';
 import { useSmartBack } from '@/components/public/navigation';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { isNotFoundError } from '@/lib/utils/content-failure';
@@ -48,8 +48,8 @@ export default function SummaryClient({ params, initialBook }: Props) {
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
-        <Skeleton.Button active style={{ width: 120, height: 32 }} />
-        <Skeleton active paragraph={{ rows: 8 }} />
+        <SkeletonBlock className={styles.skeletonBack} />
+        <Skeleton rows={8} />
       </div>
     );
   }

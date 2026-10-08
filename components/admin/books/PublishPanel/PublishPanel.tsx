@@ -2,7 +2,7 @@
 
 import type { FC } from 'react';
 import { AlertTriangle, Calendar, Loader2, PlugZap, ShieldAlert } from 'lucide-react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import type { PublishPanelProps } from './PublishPanel.types';
 import { gateReasonLabel, isOverriddenBySupervisor } from './gateReasonLabels';
 import { PublishConfirmModal } from './PublishConfirmModal';

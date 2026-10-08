@@ -1,200 +1,58 @@
 @import '@/styles/tokens.scss';
+@import '@/styles/antd-defaults.scss';
 
-.container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background-color: var(--public-background);
+/*
+ * Страницы входа и регистрации: заголовок, форма, кнопки и подвал. Каркас
+ * страницы, поле и плашка отказа — в `components/public/auth` (`LEGACY-442`).
+ */
+$antd-heading-2-line-height: 1.2667; // нет в токенах, значение antd 5 по умолчанию
+$antd-heading-2-font-size: 30px; // нет в токенах, значение antd 5 по умолчанию
+$antd-submit-padding-y: 10px; // нет в токенах, прежнее перекрытие кнопки antd этого модуля
+$divider-line: rgba(0, 0, 0, 0.1); // нет в токенах, линия разделителя «или» как была
 
-  @media (min-width: $breakpoint-sm) {
-    flex-direction: row;
-  }
-}
-
-.sidebar {
-  display: none;
-  background-color: $color-bibliaris-green;
-  color: $color-bibliaris-green-foreground;
-  padding: $spacing-xl;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 40%;
-  position: relative;
-  overflow: hidden;
-
-  @media (min-width: $breakpoint-sm) {
-    display: flex;
-  }
-
-  @media (min-width: $breakpoint-md) {
-    width: 50%;
-  }
-
-  // Elegant decorative background pattern
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(200, 159, 85, 0.05) 0%, transparent 60%);
-    pointer-events: none;
-  }
-}
-
-.sidebarContent {
-  max-width: 400px;
-  text-align: center;
-  z-index: 1;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $spacing-md;
-  margin-bottom: $spacing-xl;
-}
-
-.logoIcon {
-  font-size: 2.5rem;
-  color: $color-gold;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
-}
-
-.brandName {
-  font-size: 2.5rem;
-  font-weight: $font-weight-bold;
-  letter-spacing: 0.1em;
-  color: $color-gold;
-  margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.tagline {
-  font-size: $font-size-lg;
-  line-height: $line-height-relaxed;
-  opacity: 0.85;
-  margin-bottom: $spacing-xxl;
-}
-
-.featuresList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-  text-align: left;
-}
-
-.featureItem {
-  display: flex;
-  align-items: center;
-  gap: $spacing-md;
-  font-size: $font-size-base;
-  color: $color-bibliaris-green-foreground;
-
-  .checkIcon {
-    color: $color-gold;
-    font-size: 1.25rem;
-    flex-shrink: 0;
-  }
-}
-
-.formSection {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: $spacing-xl $spacing-lg;
-}
-
-.formWrapper {
-  width: 100%;
-  max-width: 400px;
-}
-
-.mobileHeader {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-  margin-bottom: $spacing-xl;
-
-  @media (min-width: $breakpoint-sm) {
-    display: none;
-  }
-
-  .logoIcon {
-    font-size: 1.75rem;
-    color: var(--public-primary);
-  }
-
-  .brandName {
-    font-size: 1.5rem;
-    color: var(--public-foreground);
-    letter-spacing: 0.05em;
-  }
-}
-
+// Был `Typography.Title level={2}`: от него остаётся высота строки.
 .title {
-  font-size: $font-size-xxl;
-  font-weight: $font-weight-bold;
+  // Размер и жирность — от `Typography.Title level={2}`: его селектор `h2.ant-typography`
+  // перебивал прежние значения модуля, на проде заголовок был 30px/600.
+  font-size: $antd-heading-2-font-size;
+  font-weight: $font-weight-semibold;
+  line-height: $antd-heading-2-line-height;
   color: var(--public-foreground);
-  margin-bottom: $spacing-xs !important;
+  margin-bottom: $spacing-xs;
 }
 
+// Был `Typography.Text`: от него остаются высота строки и перенос длинных слов.
 .subtitle {
   color: var(--public-foreground);
   opacity: 0.6;
   font-size: $font-size-sm;
+  line-height: $antd-line-height;
+  word-break: break-word;
   display: block;
   margin-bottom: $spacing-xl;
 }
 
-.alert {
-  margin-bottom: $spacing-lg;
+// Обёртка кнопки отправки — место прежнего `Form.Item`.
+.field {
+  margin-bottom: $antd-form-item-gap;
 }
 
-.form {
-  :global {
-    .ant-form-item {
-      margin-bottom: 12px; // Reduced from default 24px
-    }
+// Кнопка отправки: прежнее перекрытие `.ant-btn-primary` этого модуля. Тень
+// там задавалась `rgba(var(--public-primary), 0.15)` — значение невалидное,
+// и браузер тень снимал; здесь это записано прямо.
+.form .submitButton {
+  height: auto;
+  padding: $antd-submit-padding-y $spacing-lg;
+  border-radius: $border-radius-lg;
+  font-weight: $font-weight-semibold;
+  box-shadow: none;
+}
 
-    .ant-form-item-label {
-      padding-bottom: 4px !important; // Reduced from default 8px
-    }
-
-    .ant-form-item-label > label {
-      color: var(--public-foreground);
-      font-weight: $font-weight-medium;
-      height: auto !important;
-    }
-
-    .ant-input-affix-wrapper-lg {
-      border-radius: $border-radius-lg;
-      border-color: rgba(0, 0, 0, 0.1);
-
-      &:hover, &-focused {
-        border-color: var(--public-primary);
-      }
-    }
-
-    .ant-btn-primary {
-      background-color: var(--public-primary);
-      border-color: var(--public-primary);
-      border-radius: $border-radius-lg;
-      height: auto;
-      padding: 10px $spacing-lg;
-      font-weight: $font-weight-semibold;
-      box-shadow: 0 4px 12px rgba(var(--public-primary), 0.15);
-
-      &:hover {
-        background-color: var(--public-primary-hover) !important;
-        border-color: var(--public-primary-hover) !important;
-      }
-    }
-  }
+.socialButtons {
+  display: flex;
+  flex-direction: column;
+  gap: $antd-form-item-gap;
+  margin-top: $spacing-md;
 }
 
 .footer {
@@ -228,7 +86,7 @@
   &::after {
     content: '';
     flex: 1;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid $divider-line;
   }
 
   &:not(:empty)::before {
@@ -245,21 +103,29 @@
   padding: $spacing-xl 0;
 
   .successIcon {
+    display: block;
+    margin: 0 auto $spacing-xl;
     font-size: 4rem;
     color: $color-success;
-    margin-bottom: $spacing-xl;
   }
 
+  // Был `Typography.Title level={2}`.
   .successTitle {
-    font-size: $font-size-xxl;
-    font-weight: $font-weight-bold;
+    font-size: $antd-heading-2-font-size;
+    font-weight: $font-weight-semibold;
+    line-height: $antd-heading-2-line-height;
     color: var(--public-foreground);
-    margin-bottom: $spacing-sm !important;
+    margin-bottom: $spacing-sm;
   }
 
+  // Был `Typography.Text`: строчный элемент, отступ снизу на нём не работает и
+  // не работал — оставлен как был.
   .successText {
     color: var(--public-foreground);
     opacity: 0.7;
+    font-size: $font-size-sm;
+    line-height: $antd-line-height;
+    word-break: break-word;
     margin-bottom: $spacing-xxl;
   }
 }

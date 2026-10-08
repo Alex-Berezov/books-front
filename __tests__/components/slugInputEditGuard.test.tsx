@@ -1,6 +1,6 @@
 import { render, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { SlugInput } from '@/components/common/SlugInput/SlugInput';
+import { SlugInput } from '@/components/admin/common/SlugInput/SlugInput';
 
 // The path matters: an earlier version of this file mocked '@/api/hooks/…',
 // which does not exist, so the mock was inert and the real hook ran.

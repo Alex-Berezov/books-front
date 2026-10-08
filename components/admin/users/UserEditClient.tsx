@@ -3,8 +3,8 @@
 import { type FC, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useDeleteUser } from '@/api/hooks/useUsers';
+import { Button } from '@/components/admin/common/Button';
 import { Spinner } from '@/components/admin/shared';
-import { Button } from '@/components/common/Button';
 import { userDisplayName } from '@/lib/utils/user-name';
 import type { UUID } from '@/types/api-schema/common';
 import { PasswordResetModal } from './PasswordResetModal';

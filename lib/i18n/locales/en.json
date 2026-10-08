@@ -491,6 +491,8 @@
     "unmute": "Unmute",
     "audioProgress": "Audio progress",
     "close": "Close",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "breadcrumb": "Breadcrumb",
     "pagination": "Pagination",
     "ratingOutOfFive": "Rating {rating} out of 5",

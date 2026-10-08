@@ -1,45 +1,15 @@
 'use client';
 
-import { forwardRef } from 'react';
-import { Button as AntButton } from 'antd';
+import { forwardRef, type AnchorHTMLAttributes, type MouseEvent, type Ref } from 'react';
 import type { ButtonProps } from './Button.types';
-import type { ButtonType } from 'antd/es/button';
 import styles from './Button.module.scss';
 
 /**
- * Button - Wrapper over antd Button with extended API
+ * Кнопка сайта на SCSS-модуле, без antd (`LEGACY-442`).
  *
- * Features:
- * - Variants: primary, secondary, danger, success, warning, ghost, link
- * - Sizes: sm, md, lg
- * - Shapes: default, round, circle
- * - Loading state
- * - Icons (left/right)
- * - Full width
- * - Active state for toggles
- *
- * @example
- * ```tsx
- * // Primary button with loading
- * <Button type="submit" loading={isSubmitting}>
- *   Save
- * </Button>
- *
- * // Secondary button with icon
- * <Button variant="secondary" leftIcon={<Eye size={16} />}>
- *   Preview
- * </Button>
- *
- * // Danger button
- * <Button variant="danger" onClick={handleDelete}>
- *   Delete
- * </Button>
- *
- * // Ghost icon-only button
- * <Button variant="ghost" shape="circle" ariaLabel="Edit">
- *   <Edit size={16} />
- * </Button>
- * ```
+ * Повторяет вид прежней обёртки над antd: те же размеры, скругления и варианты,
+ * поэтому публичные страницы перешли на неё без правки разметки. С `href` рисуется
+ * ссылкой — так её отдаёт `next/link` в режиме `legacyBehavior`.
  */
 export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
   (props, ref) => {
@@ -49,11 +19,9 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
       shape = 'default',
       fullWidth = false,
       loading = false,
-      active = false,
       leftIcon,
       rightIcon,
       type = 'button',
-      form,
       ariaLabel,
       disabled,
       className,
@@ -62,81 +30,75 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
       href,
       target,
       rel,
+      ...rest
     } = props;
 
-    // Map our variants to antd types
-    const getAntdType = (): ButtonType => {
-      switch (variant) {
-        case 'primary':
-          return 'primary';
-        case 'ghost':
-          return 'text';
-        case 'link':
-          return 'link';
-        case 'secondary':
-        case 'danger':
-        case 'success':
-        case 'warning':
-        default:
-          return 'default';
-      }
-    };
+    const hasChildren = children !== undefined && children !== null && children !== false;
+    const iconOnly = !hasChildren && Boolean(leftIcon || rightIcon);
 
-    // Map sizes
-    const getAntdSize = () => {
-      switch (size) {
-        case 'sm':
-          return 'small' as const;
-        case 'lg':
-          return 'large' as const;
-        case 'md':
-        default:
-          return 'middle' as const;
-      }
-    };
-
-    // Map shape
-    const getAntdShape = () => {
-      if (shape === 'circle') return 'circle' as const;
-      if (shape === 'round') return 'round' as const;
-      return undefined;
-    };
-
-    // Build class names for custom styles
     const classNames = [
       styles.button,
       styles[variant],
+      styles[size],
+      shape === 'circle' && styles.circle,
+      iconOnly && styles.iconOnly,
       fullWidth && styles.fullWidth,
-      active && styles.active,
+      loading && styles.loading,
       className,
     ]
       .filter(Boolean)
       .join(' ');
 
+    const content = (
+      <>
+        {loading ? (
+          <span className={styles.spinner} aria-hidden="true" />
+        ) : (
+          leftIcon && <span className={styles.icon}>{leftIcon}</span>
+        )}
+        {hasChildren && <span>{children}</span>}
+        {rightIcon && <span className={`${styles.icon} ${styles.rightIcon}`}>{rightIcon}</span>}
+      </>
+    );
+
+    // Как у antd: нажатие во время загрузки гасится целиком. Снять `onClick` мало —
+    // у `type="submit"` осталась бы обычная отправка формы, кликом или по Enter.
+    const swallow = (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) =>
+      event.preventDefault();
+
+    if (href !== undefined) {
+      const inactive = disabled || loading;
+      return (
+        <a
+          {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)}
+          ref={ref as Ref<HTMLAnchorElement>}
+          className={classNames}
+          href={href}
+          target={target}
+          rel={rel}
+          aria-label={ariaLabel}
+          aria-disabled={inactive || undefined}
+          aria-busy={loading || undefined}
+          onClick={inactive ? swallow : onClick}
+        >
+          {content}
+        </a>
+      );
+    }
+
     return (
-      <AntButton
-        ref={ref}
-        type={getAntdType()}
-        size={getAntdSize()}
-        shape={getAntdShape()}
-        loading={loading}
-        disabled={disabled}
-        danger={variant === 'danger'}
-        block={fullWidth}
-        icon={leftIcon}
-        htmlType={type}
-        form={form}
-        onClick={onClick}
+      <button
+        {...rest}
+        ref={ref as Ref<HTMLButtonElement>}
+        type={type}
         className={classNames}
+        disabled={disabled}
         aria-label={ariaLabel}
-        href={href}
-        target={target}
-        rel={rel}
+        aria-busy={loading || undefined}
+        onClick={loading ? swallow : onClick}
       >
-        {!leftIcon && children}
-        {leftIcon && children}
-        {rightIcon && <span className={styles.rightIcon}>{rightIcon}</span>}
-      </AntButton>
+        {content}
+      </button>
     );
   }
 );

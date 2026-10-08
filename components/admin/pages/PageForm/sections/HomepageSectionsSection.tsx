@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import { Input } from '@/components/common/Input';
 import type { PageFormData } from '../PageForm.types';
 import type {

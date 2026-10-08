@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import type { FC, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { useSnackbar } from 'notistack';
 import { usePublishPage, useUnpublishPage } from '@/api/hooks';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import { useDialogFocus } from '@/lib/hooks/useDialogFocus';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PageResponse, PublicationStatus } from '@/types/api-schema';
@@ -90,7 +90,7 @@ export const PagePublishPanel: FC<PagePublishPanelProps> = (props) => {
   /**
    * Закрывает только клик по самой подложке. `stopPropagation` на теле окна был
    * обработчиком на неинтерактивном элементе — он требовал клавиатурного близнеца
-   * там, где нажимать нечего (`LEGACY-041`, образец — `components/common/Modal`).
+   * там, где нажимать нечего (`LEGACY-041`, образец — `components/admin/common/Modal`).
    */
   const handleOverlayClick = (e: ReactMouseEvent) => {
     if (e.target !== e.currentTarget) return;

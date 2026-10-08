@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { SlugInput } from '@/components/common/SlugInput/SlugInput';
+import { SlugInput } from '@/components/admin/common/SlugInput/SlugInput';
 
 const validate = vi.fn();
 const verdict = vi.hoisted(() => ({

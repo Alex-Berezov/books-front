@@ -1,6 +1,6 @@
 import type { FC, ChangeEvent } from 'react';
+import { UnknownCheckNotice } from '@/components/admin/common/SlugInput';
 import { Input } from '@/components/common/Input';
-import { UnknownCheckNotice } from '@/components/common/SlugInput';
 import type { CreateAuthorFormData } from './CreateAuthorModal.types';
 import styles from '../books/CreateBookModal/CreateBookModal.module.scss';
 

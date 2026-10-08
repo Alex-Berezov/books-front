@@ -1,8 +1,8 @@
 'use client';
 
 import type { FC } from 'react';
+import { Button } from '@/components/admin/common/Button';
 import { Spinner } from '@/components/admin/shared';
-import { Button } from '@/components/common/Button';
 import type { SummaryTabProps } from './SummaryTab.types';
 import { SummaryFormField } from './SummaryFormField';
 import styles from './SummaryTab.module.scss';

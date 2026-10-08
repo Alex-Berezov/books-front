@@ -17,8 +17,8 @@ Reusable Select component wrapping Ant Design Select with extended API for proje
 The component is part of the common components library. Import from:
 
 ```tsx
-import { Select } from '@/components/common/Select';
-import type { SelectOption } from '@/components/common/Select';
+import { Select } from '@/components/admin/common/Select';
+import type { SelectOption } from '@/components/admin/common/Select';
 ```
 
 ## Usage
@@ -41,7 +41,7 @@ import type { SelectOption } from '@/components/common/Select';
 
 ```tsx
 import { Controller } from 'react-hook-form';
-import { Select } from '@/components/common/Select';
+import { Select } from '@/components/admin/common/Select';
 
 <Controller
   name="category"
@@ -167,5 +167,5 @@ Custom classes:
 
 ## Related Components
 
-- [Button](/components/common/Button/README.md) - Similar component pattern
-- [SlugInput](/components/common/SlugInput/README.md) - Input with validation
+- [Button](/components/admin/common/Button/README.md) - Similar component pattern
+- [SlugInput](/components/admin/common/SlugInput/README.md) - Input with validation

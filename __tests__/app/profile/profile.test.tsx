@@ -122,21 +122,6 @@ vi.mock('@/lib/i18n/useTranslation', () => ({
   }),
 }));
 
-// Mock matchMedia (required for Ant Design/Skeletons)
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-});
-
 describe('ProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -157,7 +142,7 @@ describe('ProfilePage', () => {
 
     const { container } = render(<ProfilePage />);
     // Verify that the skeleton is rendered
-    expect(container.querySelector('.ant-skeleton')).toBeInTheDocument();
+    expect(container.querySelector('[data-skeleton]')).toBeInTheDocument();
   });
 
   it('renders redirect screen for unauthenticated users', () => {

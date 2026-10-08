@@ -1,5 +1,5 @@
 import { Edit, Trash2 } from 'lucide-react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { LANGUAGE_LABELS, type SupportedLang } from '@/lib/i18n/lang';
 import type { TagTranslation } from '@/types/api-schema';

@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { useParams } from 'next/navigation';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import type { Tag } from '@/types/api-schema';
 import styles from './TagsPanel.module.scss';
 

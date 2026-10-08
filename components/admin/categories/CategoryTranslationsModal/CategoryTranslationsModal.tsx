@@ -7,8 +7,8 @@ import {
   useDeleteCategoryTranslation,
   useUpdateCategoryTranslation,
 } from '@/api/hooks/useCategories';
-import { Button } from '@/components/common/Button';
-import { Modal } from '@/components/common/Modal';
+import { Button } from '@/components/admin/common/Button';
+import { Modal } from '@/components/admin/common/Modal';
 import { toUserMessage } from '@/lib/errors';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { LANGUAGE_LABELS, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';

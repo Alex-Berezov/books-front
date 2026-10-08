@@ -2,7 +2,7 @@
 
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
-import { Select } from '@/components/common/Select';
+import { Select } from '@/components/admin/common/Select';
 import type { Control, FieldErrors, FieldValues, Path, UseFormRegister } from 'react-hook-form';
 import { FormField } from './ui/FormField';
 import { SeoCollapsible } from './ui/SeoCollapsible';

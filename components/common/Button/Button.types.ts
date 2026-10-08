@@ -1,112 +1,42 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, MouseEventHandler, ReactNode } from 'react';
 
-/**
- * Button variant types for visual styling
- */
-export type ButtonVariant =
-  | 'primary'
-  | 'secondary'
-  | 'danger'
-  | 'success'
-  | 'warning'
-  | 'ghost'
-  | 'link';
+/** Вид кнопки сайта. Набор — ровно тот, что стоит на публичных страницах. */
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 
-/**
- * Button size options
- */
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
-/**
- * Button shape options (for icon-only buttons)
- */
-export type ButtonShape = 'default' | 'round' | 'circle';
+export type ButtonShape = 'default' | 'circle';
 
 /**
- * Button component props
+ * Кнопка публичной части сайта, без antd (`LEGACY-442`).
  *
- * Extends native button attributes with custom styling options
+ * Админка пользуется своей кнопкой на antd — `components/admin/common/Button`:
+ * там она связана с `Form`, `Popconfirm` и темой `ConfigProvider`.
  */
-export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
-  /**
-   * Visual variant of the button
-   * @default 'primary'
-   */
+export interface ButtonProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'type' | 'onClick'
+> {
+  /** @default 'primary' */
   variant?: ButtonVariant;
-
-  /**
-   * Size of the button
-   * @default 'md'
-   */
+  /** @default 'md' */
   size?: ButtonSize;
-
-  /**
-   * Shape of the button (for icon-only buttons)
-   * @default 'default'
-   */
+  /** @default 'default' */
   shape?: ButtonShape;
-
-  /**
-   * Whether the button should take full width of container
-   * @default false
-   */
   fullWidth?: boolean;
-
-  /**
-   * Loading state - shows indicator and disables button
-   * @default false
-   */
+  /** Показывает индикатор и не пропускает нажатия. */
   loading?: boolean;
-
-  /**
-   * Active state for toggle/filter buttons
-   * @default false
-   */
-  active?: boolean;
-
-  /**
-   * Icon to display on the left side of the text
-   */
   leftIcon?: ReactNode;
-
-  /**
-   * Icon to display on the right side of the text
-   */
   rightIcon?: ReactNode;
-
-  /**
-   * HTML button type
-   * @default 'button'
-   */
+  /** @default 'button' */
   type?: 'button' | 'submit' | 'reset';
-
-  /**
-   * Form ID to associate with (for submit buttons outside forms)
-   */
-  form?: string;
-
-  /**
-   * Accessible label for screen readers
-   */
   ariaLabel?: string;
-
+  onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
   /**
-   * Button content
-   */
-  children?: ReactNode;
-
-  /**
-   * Optional link URL. If provided, the button is rendered as an anchor (a) tag.
+   * Задан — рисуется ссылкой `<a>`. Его же подставляет `next/link`
+   * с `passHref legacyBehavior`.
    */
   href?: string;
-
-  /**
-   * Optional link target (e.g. '_blank')
-   */
   target?: string;
-
-  /**
-   * Optional link rel attribute
-   */
   rel?: string;
 }

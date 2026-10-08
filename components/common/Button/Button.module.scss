@@ -1,111 +1,165 @@
 /**
- * Button component styles (wrapper over antd Button)
+ * Кнопка сайта без antd (`LEGACY-442`).
  *
- * Custom styles for variants not available in antd
+ * Размеры, скругления и рамка повторяют кнопку antd 5 с темой по умолчанию —
+ * на публичных страницах `ConfigProvider` не стоит, — а цвета вариантов
+ * повторяют прежнюю обёртку, которая перекрывала antd через `!important`.
  */
 
 @import '@/styles/tokens.scss';
 
-/* Base overrides for antd */
+// Нет в токенах: значения кнопки antd 5 с темой по умолчанию, на которые сайт
+// опирался до LEGACY-442. Собраны здесь, чтобы не расходиться по правилам ниже.
+$antd-btn-padding-x: 15px;
+$antd-btn-padding-x-sm: 7px;
+$antd-btn-height-lg: 40px;
+$antd-btn-radius: 6px;
+$antd-btn-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
+$antd-focus-ring: #91caff;
+$antd-ease: cubic-bezier(0.645, 0.045, 0.355, 1);
+
 .button {
+  position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: $spacing-sm;
+  height: $spacing-xl;
+  padding: 0 $antd-btn-padding-x;
+  border: 1px solid transparent;
+  border-radius: $antd-btn-radius;
+  font-family: inherit;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-regular;
+  line-height: normal;
+  white-space: nowrap;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  outline: none;
+  transition: all 0.2s $antd-ease;
 
-  /* Smooth hover effect */
-  &:hover:not(:disabled) {
+  &:hover:not(:disabled, [aria-disabled='true']) {
     transform: translateY(-1px);
   }
 
-  &:active:not(:disabled) {
+  &:active:not(:disabled, [aria-disabled='true']) {
     transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 3px solid $antd-focus-ring;
+    outline-offset: 1px;
+    transition: outline-offset 0s, outline 0s;
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    cursor: not-allowed;
   }
 }
 
 /* ============================================
-   CUSTOM VARIANTS (not available in antd)
+   SIZES
    ============================================ */
 
-/* Primary variant - main actions */
-.primary {
-  background-color: var(--public-primary) !important;
-  border-color: var(--public-primary) !important;
-  color: var(--public-primary-foreground) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+.sm {
+  height: $spacing-lg;
+  padding: 0 $antd-btn-padding-x-sm;
+  border-radius: $border-radius-base;
+}
 
-  &:hover:not(:disabled) {
-    background-color: var(--public-primary-hover) !important;
-    border-color: var(--public-primary-hover) !important;
-    color: var(--public-primary-foreground) !important;
+.md {
+  height: $spacing-xl;
+}
+
+.lg {
+  height: $antd-btn-height-lg;
+  padding: 0 $antd-btn-padding-x;
+  border-radius: $border-radius-lg;
+  font-size: $font-size-base;
+}
+
+/* Круглая кнопка и кнопка из одной иконки — квадрат по высоте */
+.circle,
+.iconOnly {
+  padding-inline: 0;
+
+  &.sm {
+    width: $spacing-lg;
+  }
+
+  &.md {
+    width: $spacing-xl;
+  }
+
+  &.lg {
+    width: $antd-btn-height-lg;
   }
 }
 
-/* Secondary variant - secondary actions */
-.secondary {
-  background: transparent !important;
-  color: var(--public-foreground) !important;
-  border-color: var(--public-border) !important;
-  transition: all 0.2s ease-in-out !important;
+.circle {
+  border-radius: $border-radius-round;
+}
 
-  &:hover:not(:disabled) {
-    background: rgba(200, 159, 85, 0.08) !important; /* Gold light tint background */
-    border-color: var(--gold, #c89f55) !important;      /* Gold border */
-    color: var(--gold-foreground, #3c2a18) !important;  /* Gold dark text */
+/* ============================================
+   VARIANTS
+   ============================================ */
+
+.primary {
+  background-color: var(--public-primary);
+  border-color: var(--public-primary);
+  color: var(--public-primary-foreground);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  &:hover:not(:disabled, [aria-disabled='true']) {
+    background-color: var(--public-primary-hover);
+    border-color: var(--public-primary-hover);
+    color: var(--public-primary-foreground);
+  }
+}
+
+.secondary {
+  background: transparent;
+  color: var(--public-foreground);
+  border-color: var(--public-border);
+  box-shadow: $antd-btn-shadow;
+  transition: all 0.2s ease-in-out;
+
+  &:hover:not(:disabled, [aria-disabled='true']) {
+    background: rgba(200, 159, 85, 0.08); /* Gold light tint background */
+    border-color: var(--gold, #c89f55);
+    color: var(--gold-foreground, #3c2a18);
   }
 }
 
 :global(.dark) {
   .secondary {
-    &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.08) !important;
+    &:hover:not(:disabled, [aria-disabled='true']) {
+      background: rgba(255, 255, 255, 0.08);
     }
   }
 }
 
-/* Success variant - positive actions */
-.success {
-  background: $color-success !important;
-  color: $color-text-inverse !important;
-  border-color: $color-success !important;
-
-  &:hover:not(:disabled) {
-    background: $color-success-hover !important;
-    border-color: $color-success-hover !important;
-    color: $color-text-inverse !important;
-  }
-}
-
-/* Warning variant - cautionary actions */
-.warning {
-  background: $color-warning !important;
-  color: $color-text-inverse !important;
-  border-color: $color-warning !important;
-
-  &:hover:not(:disabled) {
-    background: $color-warning-hover !important;
-    border-color: $color-warning-hover !important;
-    color: $color-text-inverse !important;
-  }
-}
-
-/* Ghost variant - minimal styling */
 .ghost {
-  background: transparent !important;
-  color: var(--public-foreground) !important;
+  background: transparent;
+  color: var(--public-foreground);
   opacity: 0.85;
-  border-color: transparent !important;
+  border-color: transparent;
 
-  &:hover:not(:disabled) {
-    background: rgba(0, 0, 0, 0.04) !important;
-    color: var(--public-foreground) !important;
+  &:hover:not(:disabled, [aria-disabled='true']) {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--public-foreground);
     opacity: 1;
   }
 }
 
 :global(.dark) {
   .ghost {
-    &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.08) !important;
+    &:hover:not(:disabled, [aria-disabled='true']) {
+      background: rgba(255, 255, 255, 0.08);
     }
   }
 }
@@ -114,44 +168,44 @@
    STATES
    ============================================ */
 
-/* Full width */
 .fullWidth {
   width: 100%;
 }
 
-/* Active state for toggle buttons */
-.active {
-  &.secondary {
-    background: var(--public-primary) !important;
-    color: var(--public-primary-foreground) !important;
-    border-color: var(--public-primary) !important;
-
-    &:hover:not(:disabled) {
-      background: var(--public-primary-hover) !important;
-      border-color: var(--public-primary-hover) !important;
-    }
-  }
-
-  &.ghost {
-    background: rgba(0, 0, 0, 0.08) !important;
-    color: var(--public-foreground) !important;
-  }
-}
-
-:global(.dark) {
-  .active {
-    &.ghost {
-      background: rgba(255, 255, 255, 0.15) !important;
-    }
-  }
+.loading {
+  opacity: 0.65;
+  cursor: default;
 }
 
 /* ============================================
    ICONS
    ============================================ */
 
-.rightIcon {
+.icon {
   display: inline-flex;
   align-items: center;
+  line-height: 0;
+}
+
+.rightIcon {
   margin-left: $spacing-xs;
+}
+
+.spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 3s;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

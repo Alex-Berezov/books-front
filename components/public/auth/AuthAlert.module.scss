@@ -1,0 +1,74 @@
+@import '@/styles/tokens.scss';
+@import '@/styles/antd-defaults.scss';
+
+/*
+ * Плашка отказа (`AuthAlert`): прежний `Alert type="error" showIcon closable`
+ * antd с текстом (`LEGACY-442`).
+ */
+$antd-error-bg: #fff2f0; // нет в токенах, значение antd 5 по умолчанию
+$antd-error-border: #ffccc7; // нет в токенах, значение antd 5 по умолчанию
+$antd-alert-padding-y: 20px; // нет в токенах, значение antd 5 по умолчанию
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: $spacing-lg;
+  padding: $antd-alert-padding-y $spacing-lg;
+  background-color: $antd-error-bg;
+  border: 1px solid $antd-error-border;
+  border-radius: $border-radius-lg;
+  color: $antd-text;
+  font-size: $font-size-sm;
+  line-height: $antd-line-height;
+  word-wrap: break-word;
+}
+
+// Иконка antd залитая: круг цвета ошибки, крест белый.
+.alertIcon {
+  flex: none;
+  margin-inline-end: $spacing-sm + $spacing-xs;
+  font-size: $icon-size-lg;
+  line-height: 1;
+
+  circle {
+    fill: $color-error;
+    stroke: $color-error;
+  }
+
+  path {
+    stroke: $color-background-primary;
+  }
+}
+
+.alertContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.alertMessage {
+  display: block;
+  margin-bottom: $spacing-xs;
+  font-size: $font-size-base;
+}
+
+.alertDescription {
+  display: block;
+}
+
+.alertClose {
+  display: inline-flex;
+  flex: none;
+  margin-inline-start: $spacing-sm;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: $antd-text-secondary;
+  font-size: $icon-size-xs;
+  line-height: $icon-size-xs;
+  cursor: pointer;
+  transition: color 0.2s;
+
+  &:hover {
+    color: $antd-text;
+  }
+}

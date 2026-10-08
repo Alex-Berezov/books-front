@@ -1,0 +1,157 @@
+/**
+ * Button component styles (wrapper over antd Button)
+ *
+ * Custom styles for variants not available in antd
+ */
+
+@import '@/styles/tokens.scss';
+
+/* Base overrides for antd */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+
+  /* Smooth hover effect */
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   CUSTOM VARIANTS (not available in antd)
+   ============================================ */
+
+/* Primary variant - main actions */
+.primary {
+  background-color: var(--public-primary) !important;
+  border-color: var(--public-primary) !important;
+  color: var(--public-primary-foreground) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  &:hover:not(:disabled) {
+    background-color: var(--public-primary-hover) !important;
+    border-color: var(--public-primary-hover) !important;
+    color: var(--public-primary-foreground) !important;
+  }
+}
+
+/* Secondary variant - secondary actions */
+.secondary {
+  background: transparent !important;
+  color: var(--public-foreground) !important;
+  border-color: var(--public-border) !important;
+  transition: all 0.2s ease-in-out !important;
+
+  &:hover:not(:disabled) {
+    background: rgba(200, 159, 85, 0.08) !important; /* Gold light tint background */
+    border-color: var(--gold, #c89f55) !important;      /* Gold border */
+    color: var(--gold-foreground, #3c2a18) !important;  /* Gold dark text */
+  }
+}
+
+:global(.dark) {
+  .secondary {
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+  }
+}
+
+/* Success variant - positive actions */
+.success {
+  background: $color-success !important;
+  color: $color-text-inverse !important;
+  border-color: $color-success !important;
+
+  &:hover:not(:disabled) {
+    background: $color-success-hover !important;
+    border-color: $color-success-hover !important;
+    color: $color-text-inverse !important;
+  }
+}
+
+/* Warning variant - cautionary actions */
+.warning {
+  background: $color-warning !important;
+  color: $color-text-inverse !important;
+  border-color: $color-warning !important;
+
+  &:hover:not(:disabled) {
+    background: $color-warning-hover !important;
+    border-color: $color-warning-hover !important;
+    color: $color-text-inverse !important;
+  }
+}
+
+/* Ghost variant - minimal styling */
+.ghost {
+  background: transparent !important;
+  color: var(--public-foreground) !important;
+  opacity: 0.85;
+  border-color: transparent !important;
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.04) !important;
+    color: var(--public-foreground) !important;
+    opacity: 1;
+  }
+}
+
+:global(.dark) {
+  .ghost {
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+  }
+}
+
+/* ============================================
+   STATES
+   ============================================ */
+
+/* Full width */
+.fullWidth {
+  width: 100%;
+}
+
+/* Active state for toggle buttons */
+.active {
+  &.secondary {
+    background: var(--public-primary) !important;
+    color: var(--public-primary-foreground) !important;
+    border-color: var(--public-primary) !important;
+
+    &:hover:not(:disabled) {
+      background: var(--public-primary-hover) !important;
+      border-color: var(--public-primary-hover) !important;
+    }
+  }
+
+  &.ghost {
+    background: rgba(0, 0, 0, 0.08) !important;
+    color: var(--public-foreground) !important;
+  }
+}
+
+:global(.dark) {
+  .active {
+    &.ghost {
+      background: rgba(255, 255, 255, 0.15) !important;
+    }
+  }
+}
+
+/* ============================================
+   ICONS
+   ============================================ */
+
+.rightIcon {
+  display: inline-flex;
+  align-items: center;
+  margin-left: $spacing-xs;
+}

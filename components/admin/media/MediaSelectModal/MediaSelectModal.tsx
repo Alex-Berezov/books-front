@@ -3,8 +3,8 @@
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { useMediaFiles } from '@/api/hooks/useMedia';
-import { Button } from '@/components/common/Button';
-import { Modal } from '@/components/common/Modal';
+import { Button } from '@/components/admin/common/Button';
+import { Modal } from '@/components/admin/common/Modal';
 import type { MediaSelectModalProps } from './MediaSelectModal.types';
 import type { MediaFile, MediaType } from '@/types/api-schema/media';
 import { MediaGrid } from '../MediaGrid';

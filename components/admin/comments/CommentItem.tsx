@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { Eye, EyeOff, Trash2, MessageSquare } from 'lucide-react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import type { Comment } from '@/types/api-schema/comments';
 import styles from './CommentItem.module.scss';
 

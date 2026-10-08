@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
-import { Modal } from '@/components/common/Modal';
+import { Modal } from '@/components/admin/common/Modal';
 import type { DeleteBookModalProps } from './DeleteBookModal.types';
 import styles from './DeleteBookModal.module.scss';
 

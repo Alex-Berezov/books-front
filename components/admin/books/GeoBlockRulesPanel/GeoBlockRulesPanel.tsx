@@ -9,7 +9,7 @@ import {
   useGeoBlockRules,
   useVerifyGeoBlockRules,
 } from '@/api/hooks/useBookVersions';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import type {
   GeoAccessCheckResult,
   GeoBlockScope,

@@ -4,9 +4,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { AudioPicker } from '@/components/admin/books/ListenContentTab/AudioPicker';
 import { PublishConfirmModal } from '@/components/admin/books/PublishPanel/PublishConfirmModal';
 import { CategoryTreeNode } from '@/components/admin/categories/CategoryTree/CategoryTreeNode';
+import { Modal } from '@/components/admin/common/Modal';
 import { TerritoryRegionsPanel } from '@/components/admin/RightsIntakeDetail/TerritoryRegionsPanel/TerritoryRegionsPanel';
 import { TagModal } from '@/components/admin/tags/TagModal/TagModal';
-import { Modal } from '@/components/common/Modal';
 import type { TerritoryRegionSummary } from '@/types/api-schema/rights-intake';
 
 vi.mock('notistack', () => ({

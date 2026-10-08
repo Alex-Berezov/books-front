@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { ImageOff } from 'lucide-react';
-import { Modal } from '@/components/common/Modal';
+import { Modal } from '@/components/admin/common/Modal';
 import { formatFileSize } from '@/lib/admin/formatters';
 import type { MediaFile } from '@/types/api-schema/media';
 import styles from './MediaPreviewModal.module.scss';

@@ -1,6 +1,6 @@
 import type { FC } from 'react';
-import { Button } from '@/components/common/Button';
-import { Modal } from '@/components/common/Modal';
+import { Button } from '@/components/admin/common/Button';
+import { Modal } from '@/components/admin/common/Modal';
 
 interface DeleteMediaModalProps {
   isOpen: boolean;

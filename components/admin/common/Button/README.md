@@ -7,7 +7,7 @@
 Компонент уже интегрирован в проект. Импортируйте его:
 
 ```tsx
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 ```
 
 ## API

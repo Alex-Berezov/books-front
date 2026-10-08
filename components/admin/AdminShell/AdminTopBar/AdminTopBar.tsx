@@ -15,7 +15,7 @@ import { signOut } from 'next-auth/react';
 import { AdminLanguageSwitcher } from '@/components/admin/AdminShell/AdminTopBar/AdminLanguageSwitcher';
 import { RightsNotificationsBell } from '@/components/admin/AdminShell/AdminTopBar/RightsNotificationsBell/RightsNotificationsBell';
 import { PurgeCacheButton } from '@/components/admin/AdminShell/PurgeCacheButton/PurgeCacheButton';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import { clearLoggedInMarker } from '@/lib/auth/sessionMarker';
 import styles from './AdminTopBar.module.scss';
 

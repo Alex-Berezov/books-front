@@ -3,7 +3,7 @@
 ## Стек и структура
 
 Next.js 14.2 на App Router, React 18, TypeScript 5.9 в строгом режиме, SCSS-модули, react-query 5,
-next-auth v5 beta, antd 5 - библиотека админки (в публичной части новых импортов нет, старые - долг `LEGACY-442`), vitest и playwright, yarn 1. Базовая ветка `main`.
+next-auth v5 beta, antd 5 - библиотека одной админки (на сайте antd нет: импорт `antd`, `@ant-design/*` и `components/admin/**` вне `app/admin/**` и `components/admin/**` - ошибка линта, `LEGACY-442`; компоненты сайта - `components/common/`), vitest и playwright, yarn 1. Базовая ветка `main`.
 Бэкенд лежит в соседнем репозитории `books`, документация - в `books-app-docs`; работать в них
 через `git -C <путь>`, не через `cd`.
 

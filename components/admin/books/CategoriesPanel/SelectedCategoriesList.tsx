@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import type { Category } from '@/types/api-schema';
 import styles from './CategoriesPanel.module.scss';
 

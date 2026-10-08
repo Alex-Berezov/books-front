@@ -10,11 +10,11 @@ import {
   useDeleteComment,
   useReplyToComment,
 } from '@/api/hooks/useComments';
+import { Select } from '@/components/admin/common/Select';
 import { EmptyState, Skeleton } from '@/components/admin/shared';
 import { ConfirmDialog } from '@/components/admin/shared/ConfirmDialog';
 import { Pagination } from '@/components/admin/shared/Pagination';
 import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
 import type { Comment, CommentStatus } from '@/types/api-schema/comments';
 import { CommentItem } from './CommentItem';
 import styles from './CommentsList.module.scss';

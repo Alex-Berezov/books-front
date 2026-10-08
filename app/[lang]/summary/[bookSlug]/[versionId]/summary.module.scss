@@ -128,3 +128,9 @@
   text-align: center;
   gap: $spacing-md;
 }
+
+/* Заглушка кнопки «Назад» на время загрузки (LEGACY-442) */
+.skeletonBack {
+  width: 120px;
+  height: $spacing-xl;
+}

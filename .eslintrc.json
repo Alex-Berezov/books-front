@@ -109,6 +109,51 @@
         "selector": "JSXOpeningElement[name.name='script'] Property[key.name='__html']:not([value.callee.name='serializeJsonLd'])",
         "message": "Тело <script> — только прямым вызовом serializeJsonLd(...) из @/lib/utils/json-ld (LEGACY-419)."
       }
+    ],
+    // 🔴 LEGACY-442. Та же граница по настоящему пути файла, а не по строке импорта:
+    // шаблоны `no-restricted-imports` ниже видят текст `'../../admin/common/Modal'`,
+    // а этот запрет — куда он ведёт. Зона админки снимает его в override ниже.
+    "import/no-restricted-paths": [
+      "error",
+      {
+        "zones": [
+          {
+            "target": ["./app", "./components", "./lib", "./providers", "./api", "./types"],
+            "from": ["./components/admin", "./app/admin"],
+            "message": "Админские компоненты тянут antd — на сайте их не импортировать (LEGACY-442)."
+          }
+        ]
+      }
+    ],
+    // 🔴 LEGACY-442. antd — библиотека одной админки: на публичных страницах она тянула
+    // свой рантайм в клиентский бандл и расходилась со стилем сайта. Запрещены и сам antd,
+    // и админские компоненты, которые на нём построены. Разрешённая зона —
+    // override ниже (`app/admin/**`, `components/admin/**`, `providers/LazyConfigProvider.tsx`).
+    // Сторож — `__tests__/eslintAntdBoundary.test.ts`.
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["antd", "antd/*", "@ant-design/*"],
+            "message": "antd — только в админке (app/admin/**, components/admin/**). На сайте — свои компоненты из components/common и lucide-react (LEGACY-442)."
+          },
+          {
+            // Админские компоненты построены на antd: импорт их с сайта возвращает antd
+            // в публичный бандл в обход первой группы (так были устроены common/Modal
+            // и common/SlugInput до переезда в components/admin/common).
+            "group": [
+              "@/components/admin",
+              "@/components/admin/*",
+              "@/app/admin/*",
+              "**/components/admin",
+              "**/components/admin/**",
+              "**/app/admin/**"
+            ],
+            "message": "Админские компоненты тянут antd — на сайте их не импортировать. Окно сайта — components/common/ConfirmDialog, кнопка — components/common/Button (LEGACY-442)."
+          }
+        ]
+      }
     ]
   },
   // Каталоги, которых линт не касается. `next lint` фильтровал охват своим списком
@@ -155,12 +200,9 @@
       // молча; сторож `__tests__/eslintInlineStyles.test.ts` держит и это, и обратное:
       // запись, под которой нарушения больше нет, обязана быть удалена.
       "files": [
-        "app/*/auth/register/RegisterClient.tsx",
-        "app/*/auth/sign-in/SignInClient.tsx",
         "app/*/book/*/listen/ListenClient.tsx",
         "app/*/book/*/page.tsx",
         "app/*/book/*/read/ReaderClient.tsx",
-        "app/*/bookshelf/BookshelfClient.tsx",
         "app/*/profile/ProfileClient.tsx",
         "app/admin/*/error.tsx",
         "app/admin/*/media/page.tsx",
@@ -193,6 +235,31 @@
       "rules": {
         "@typescript-eslint/return-await": ["error", "in-try-catch"]
       }
+    },
+    {
+      // Тесты админки законно импортируют её код: в бандл сайта они не попадают. Запрет
+      // antd здесь остаётся тем же, снята только вторая группа (админские компоненты).
+      "files": ["__tests__/**", "e2e/**"],
+      "rules": {
+        "import/no-restricted-paths": "off",
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["antd", "antd/*", "@ant-design/*"],
+                "message": "antd — только в админке (app/admin/**, components/admin/**). На сайте — свои компоненты из components/common и lucide-react (LEGACY-442)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // Зона antd (LEGACY-442): админка и её тема. Правило снято здесь целиком, потому что
+      // других запретов импорта в проекте нет; появится второй — перенести сюда его копию.
+      "files": ["app/admin/**", "components/admin/**", "providers/LazyConfigProvider.tsx"],
+      "rules": { "no-restricted-imports": "off", "import/no-restricted-paths": "off" }
     }
   ]
 }

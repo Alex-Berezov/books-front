@@ -439,6 +439,8 @@
     "unmute": "Включить звук",
     "audioProgress": "Прогресс аудио",
     "close": "Закрыть",
+    "showPassword": "Показать пароль",
+    "hidePassword": "Скрыть пароль",
     "breadcrumb": "Хлебные крошки",
     "pagination": "Пагинация",
     "ratingOutOfFive": "Оценка {rating} из 5",

@@ -3,8 +3,8 @@
 import type { FC } from 'react';
 import { BookOpen } from 'lucide-react';
 import { CreateBookModal, DeleteBookModal } from '@/components/admin/books';
+import { Button } from '@/components/admin/common/Button';
 import { EmptyState } from '@/components/admin/shared';
-import { Button } from '@/components/common/Button';
 import type { BookListTableProps } from './BookListTable.types';
 import { BookListHeader } from './BookListHeader';
 import { BookListPagination } from './BookListPagination';

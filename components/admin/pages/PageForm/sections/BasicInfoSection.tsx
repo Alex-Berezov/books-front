@@ -3,11 +3,11 @@
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
+import { Button } from '@/components/admin/common/Button';
+import { Select } from '@/components/admin/common/Select';
 import { FormField } from '@/components/admin/common/SeoSections';
-import { Button } from '@/components/common/Button';
+import { SlugInput } from '@/components/admin/common/SlugInput';
 import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
-import { SlugInput } from '@/components/common/SlugInput';
 import { FAQ_ANSWER_MAX_LENGTH, FAQ_QUESTION_MAX_LENGTH } from '@/lib/constants/faq';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { PageFormData } from '../PageForm.types';

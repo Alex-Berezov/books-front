@@ -1,42 +1,17 @@
 @import '@/styles/tokens.scss';
 
+/* Цвета и размеры карточки, перенесённые из прежних инлайн-стилей (`LEGACY-442`). */
+$cover-placeholder-color: #4a7c59; // нет в токенах, прежний инлайн-стиль обложки без картинки
+$badge-audio-color: #c89f55; // нет в токенах точного значения: `$color-gold` — oklch, не тот же цвет
+$badge-text-color: #263f2e; // нет в токенах точного значения: `$color-bibliaris-green` — oklch
+$progress-track-alpha: 0.06; // нет в токенах, прежний инлайн-стиль полосы прогресса
+$progress-height: 6px; // нет в токенах, прежний инлайн-стиль полосы прогресса
+$progress-radius: 3px; // нет в токенах, прежний инлайн-стиль полосы прогресса
+
 .pageContainer {
   min-height: 100vh;
   padding: $spacing-xl 0;
   background-color: var(--public-background);
-
-  :global {
-    .ant-tabs-nav {
-      margin-bottom: $spacing-xl !important;
-
-      &::before {
-        border-bottom-color: rgba(0, 0, 0, 0.06) !important;
-      }
-    }
-
-    .ant-tabs-tab {
-      color: var(--public-foreground) !important;
-      opacity: 0.7;
-
-      &:hover {
-        color: var(--public-primary) !important;
-        opacity: 1;
-      }
-    }
-
-    .ant-tabs-tab-active {
-      opacity: 1;
-      
-      .ant-tabs-tab-btn {
-        color: var(--public-primary) !important;
-        font-weight: $font-weight-semibold !important;
-      }
-    }
-
-    .ant-tabs-ink-bar {
-      background: var(--public-primary) !important;
-    }
-  }
 }
 
 .container {
@@ -102,6 +77,9 @@
 }
 
 .unauthIcon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
   font-size: 3.5rem;
   color: var(--public-primary);
   opacity: 0.8;
@@ -164,6 +142,10 @@
 }
 
 .emptyIcon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
   font-size: 3rem;
   color: var(--public-foreground);
   opacity: 0.3;
@@ -242,8 +224,14 @@
   font-weight: $font-weight-bold;
   font-size: 1.5rem;
   box-shadow: $shadow-sm;
-  background-size: cover;
-  background-position: center;
+  position: relative;
+  background-color: $cover-placeholder-color;
+}
+
+/* Картинка обложки поверх заглушки — вид прежнего фона `cover` по центру. */
+.coverImage {
+  object-fit: cover;
+  object-position: center;
 }
 
 .coverLetter {
@@ -299,11 +287,32 @@
   font-weight: $font-weight-medium;
   border-radius: $border-radius-sm;
   line-height: 1.2;
+}
 
-  .anticon {
-    font-size: 11px;
-    margin-right: 0 !important;
-  }
+.badgeAudio {
+  background-color: $badge-audio-color;
+  color: $color-text-inverse;
+}
+
+.badgeText {
+  background-color: $badge-text-color;
+  color: $color-text-inverse;
+}
+
+.badgeFree {
+  background-color: $color-success;
+  color: $color-text-inverse;
+}
+
+.badgeIcon {
+  flex: none;
+  font-size: $font-size-xs - 0.0625rem; // 11px
+}
+
+/* Иконка в строке текста кнопки — как `.anticon`: опущена на 1/8 em к базовой линии. */
+.inlineIcon {
+  display: inline-block;
+  vertical-align: -0.125em;
 }
 
 .progressSection {
@@ -318,6 +327,23 @@
   color: var(--public-foreground);
   opacity: 0.6;
   margin-bottom: 4px;
+}
+
+.progressTrack {
+  display: block;
+  width: 100%;
+  height: $progress-height;
+  overflow: hidden;
+  background-color: rgba($color-text-primary, $progress-track-alpha);
+  border-radius: $progress-radius;
+}
+
+.progressFill {
+  fill: var(--public-primary);
+}
+
+.progressFillAudio {
+  fill: $badge-audio-color;
 }
 
 .actions {
@@ -371,4 +397,20 @@
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
+/* Заглушки шапки: размеры прежних `Skeleton.Button` (200×32 и 120×16). Вложены
+   в `.header`, чтобы перебить размер по умолчанию из модуля `SkeletonBlock`. */
+.header .skeletonTitle {
+  width: $spacing-md * 12.5; // 200px
+  min-width: 0;
+  height: $spacing-xl;
+}
 
+.header .skeletonSubtitle {
+  width: $spacing-md * 7.5; // 120px
+  min-width: 0;
+  height: $spacing-md;
+}
+
+.skeletonSubtitleRow {
+  margin-top: $spacing-sm;
+}

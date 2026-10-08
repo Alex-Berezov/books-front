@@ -1,6 +1,5 @@
 'use client';
 
-import { Divider, Skeleton } from 'antd';
 import {
   ChevronLeft,
   BookOpen,
@@ -18,6 +17,7 @@ import { Button } from '@/components/common/Button';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { RichTextContent } from '@/components/common/RichTextContent';
+import { Skeleton, SkeletonBlock } from '@/components/common/Skeleton';
 import { BookCard } from '@/components/public/books/BookCard';
 import { useSmartBack } from '@/components/public/navigation';
 import { pluralize, pluralFormsOf } from '@/lib/i18n/plural';
@@ -184,7 +184,7 @@ export default function AuthorDetailClient({
           </div>
         </div>
 
-        <Divider className={styles.divider} />
+        <hr className={styles.divider} />
 
         {/* About / Biography */}
         {biography && (
@@ -202,8 +202,8 @@ export default function AuthorDetailClient({
             <div className={styles.booksGrid}>
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className={styles.skeletonCard}>
-                  <Skeleton.Button active className={styles.skeletonCover} />
-                  <Skeleton active paragraph={{ rows: 2 }} title={false} />
+                  <SkeletonBlock className={styles.skeletonCover} />
+                  <Skeleton rows={2} title={false} />
                 </div>
               ))}
             </div>

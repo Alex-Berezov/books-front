@@ -5,9 +5,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useResetPassword } from '@/api/hooks/useUsers';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
+import { Modal } from '@/components/admin/common/Modal';
 import { Input } from '@/components/common/Input';
-import { Modal } from '@/components/common/Modal';
 import type { UUID } from '@/types/api-schema/common';
 import styles from './PasswordResetModal.module.scss';
 

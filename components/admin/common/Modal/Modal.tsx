@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useRef, type FC } from 'react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import { useDialogFocus } from '@/lib/hooks/useDialogFocus';
 import type { ModalProps } from './Modal.types';
 import styles from './Modal.module.scss';

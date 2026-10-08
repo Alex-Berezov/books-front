@@ -3,8 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useCreatePage } from '@/api/hooks';
+import { Button } from '@/components/admin/common/Button';
 import { PageForm, type PageFormData } from '@/components/admin/pages/PageForm';
-import { Button } from '@/components/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 

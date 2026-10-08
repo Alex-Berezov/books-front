@@ -3,16 +3,16 @@ import type { ReactNode } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
+import { Button } from '@/components/admin/common/Button';
+import { Select } from '@/components/admin/common/Select';
 import {
   SeoBasicSection,
   SeoOpenGraphSection,
   SeoTechnicalSection,
   SeoTwitterSection,
 } from '@/components/admin/common/SeoSections';
-import { Button } from '@/components/common/Button';
 import { Checkbox } from '@/components/common/Checkbox';
 import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
 import { FAQ_ANSWER_MAX_LENGTH, FAQ_QUESTION_MAX_LENGTH } from '@/lib/constants/faq';
 import { generateSlug } from '@/lib/utils/slug';
 import styles from './TagTranslationsModal.module.scss';

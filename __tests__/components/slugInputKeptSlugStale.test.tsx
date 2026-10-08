@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { SlugInput } from '@/components/common/SlugInput/SlugInput';
+import { SlugInput } from '@/components/admin/common/SlugInput/SlugInput';
 import { SLUG_MAX_LENGTH } from '@/lib/utils/slug';
 
 const mocks = vi.hoisted(() => ({ httpGetAuth: vi.fn() }));

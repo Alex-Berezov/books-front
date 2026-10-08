@@ -1,194 +1,24 @@
 'use client';
 
-import type { FC } from 'react';
-import {
-  BookOutlined,
-  BookFilled,
-  DeleteOutlined,
-  PlayCircleOutlined,
-  RightOutlined,
-} from '@ant-design/icons';
-import { Tabs, Skeleton, Modal, message } from 'antd';
-import { Headphones } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
-import { useProgress } from '@/api/hooks/useProgress';
 import { Button } from '@/components/common/Button';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { BookFilledIcon } from '@/components/common/icons/BookFilledIcon';
+import { BookOutlinedIcon } from '@/components/common/icons/BookOutlinedIcon';
+import { Skeleton, SkeletonBlock } from '@/components/common/Skeleton';
+import { Tabs, type TabItem } from '@/components/common/Tabs';
 import { PageBackButton } from '@/components/public/navigation';
 import { pluralize, pluralFormsOf } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { useProgressIdentity } from '@/lib/reading-progress';
+import { toast } from '@/lib/utils/toast';
 import type { BookshelfItemDto } from '@/types/api-schema';
 import styles from './bookshelf.module.scss';
-
-// Single item card on the bookshelf
-interface BookshelfCardProps {
-  item: BookshelfItemDto;
-  onRemove: (versionId: string, title: string) => void;
-  lang: string;
-}
-
-const BookshelfCard: FC<BookshelfCardProps> = ({ item, onRemove, lang }) => {
-  const version = item.bookVersion;
-  const bookSlug = version.slug || version.book?.slug || version.bookId;
-  const { t } = useTranslation();
-
-  // Query progress for this specific version.
-  // Владелец в ключе кэша обязателен: на общем компьютере следующий
-  // вошедший иначе увидит чужой прогресс на своей полке.
-  // 🔴 Ждём пригодной сессии, а не просто наличия версии. Пока сессия
-  // грузится, `progressOwnerId` ещё `null` — запрос ушёл бы под ключом без
-  // владельца, а после ответа сессии ключ меняется и каждая карточка
-  // запрашивала бы прогресс дважды: на полке из двадцати книг — сорок запросов.
-  const { target: progressTarget, userId: progressOwnerId } = useProgressIdentity();
-  const { data: progress } = useProgress(version.id, progressOwnerId ?? undefined, {
-    enabled: !!version.id && progressTarget === 'server',
-  });
-
-  const isAudio = version.type === 'audio';
-
-  // Calculate percentage
-  let progressPct = 0;
-  let progressLabel = '';
-
-  const chapterAbbr = t('bookshelf.card.chapterAbbr');
-
-  if (progress) {
-    if (isAudio) {
-      const minutes = Math.floor(progress.position / 60);
-      const seconds = Math.floor(progress.position % 60);
-      const duration = t('bookshelf.card.durationShort', { minutes, seconds });
-      progressLabel = progress.audioChapterNumber
-        ? `${chapterAbbr} ${progress.audioChapterNumber} • ${duration}`
-        : duration;
-      progressPct = 50; // default indicator for audiobooks in progress
-    } else {
-      const chaptersCount = version.chaptersCount || 0;
-      const chapterIndex = (progress.chapterNumber || 1) - 1;
-      const positionOffset = typeof progress.position === 'number' ? progress.position : 0;
-      progressPct =
-        chaptersCount > 0
-          ? Math.min(100, Math.round(((chapterIndex + positionOffset) / chaptersCount) * 100))
-          : 0;
-      progressLabel = progress.chapterNumber
-        ? `${chapterAbbr} ${progress.chapterNumber} • ${progressPct}%`
-        : `${progressPct}%`;
-    }
-  }
-
-  const handleRemoveClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onRemove(version.id, version.title);
-  };
-
-  return (
-    <div className={styles.card}>
-      <Link href={`/${lang}/book/${bookSlug}`} className={styles.coverLink}>
-        <div
-          className={styles.cover}
-          style={{
-            backgroundColor: '#4a7c59',
-            backgroundImage: version.coverImageUrl ? `url(${version.coverImageUrl})` : 'none',
-          }}
-        >
-          {!version.coverImageUrl && (
-            <span className={styles.coverLetter}>{version.title?.[0]}</span>
-          )}
-        </div>
-      </Link>
-
-      <div className={styles.cardInfo}>
-        <h3 className={styles.cardTitle}>
-          <Link href={`/${lang}/book/${bookSlug}`}>{version.title}</Link>
-        </h3>
-        <p className={styles.cardAuthor}>{version.author}</p>
-
-        <div className={styles.badgeGroup}>
-          {isAudio ? (
-            <span className={styles.badge} style={{ backgroundColor: '#c89f55', color: '#fff' }}>
-              <Headphones size={12} />
-              {t('bookshelf.card.audiobook')}
-            </span>
-          ) : (
-            <span className={styles.badge} style={{ backgroundColor: '#263f2e', color: '#fff' }}>
-              <BookOutlined />
-              {t('bookshelf.card.text')}
-            </span>
-          )}
-
-          {version.isFree && (
-            <span className={styles.badge} style={{ backgroundColor: '#52c41a', color: '#fff' }}>
-              {t('bookshelf.card.free')}
-            </span>
-          )}
-        </div>
-
-        {progress && (
-          <div className={styles.progressSection}>
-            <div className={styles.progressLabel}>
-              <span>{t('bookshelf.card.readingProgress')}</span>
-              <span>{progressLabel}</span>
-            </div>
-            <div
-              style={{
-                width: '100%',
-                height: 6,
-                backgroundColor: 'rgba(0,0,0,0.06)',
-                borderRadius: 3,
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  width: `${isAudio ? 100 : progressPct}%`,
-                  height: '100%',
-                  backgroundColor: isAudio ? '#c89f55' : 'var(--public-primary)',
-                  borderRadius: 3,
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        <div className={styles.actions}>
-          {isAudio ? (
-            <Link href={`/${lang}/book/${bookSlug}/listen`} passHref legacyBehavior>
-              <Button
-                variant="primary"
-                size="sm"
-                className={`${styles.actionBtn} ${styles.continueBtn}`}
-              >
-                <PlayCircleOutlined /> {t('bookshelf.card.listen')}
-              </Button>
-            </Link>
-          ) : (
-            <Link href={`/${lang}/book/${bookSlug}/read`} passHref legacyBehavior>
-              <Button
-                variant="primary"
-                size="sm"
-                className={`${styles.actionBtn} ${styles.continueBtn}`}
-              >
-                <BookOutlined />{' '}
-                {progress ? t('bookshelf.card.continue') : t('bookshelf.card.start')}
-              </Button>
-            </Link>
-          )}
-
-          <Button
-            size="sm"
-            variant="ghost"
-            leftIcon={<DeleteOutlined />}
-            className={styles.removeBtn}
-            onClick={handleRemoveClick}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
+import { BookshelfCard } from './BookshelfCard';
 
 export default function BookshelfClient() {
   const { data: session, status } = useSession();
@@ -207,22 +37,32 @@ export default function BookshelfClient() {
 
   const removeMutation = useRemoveFromBookshelf();
 
+  // Книга, удаление которой ждёт подтверждения; `null` — окно закрыто.
+  const [pendingRemoval, setPendingRemoval] = useState<{
+    versionId: string;
+    title: string;
+  } | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+
   const handleRemove = (versionId: string, title: string) => {
-    Modal.confirm({
-      title: t('bookshelf.removeTitle'),
-      content: t('bookshelf.removeConfirm', { title }),
-      okText: t('bookshelf.removeBtn'),
-      okType: 'danger',
-      cancelText: t('bookshelf.cancelBtn'),
-      onOk: async () => {
-        try {
-          await removeMutation.mutateAsync(versionId);
-          message.success(t('bookshelf.removeSuccess', { title }));
-        } catch {
-          message.error(t('bookshelf.removeFail'));
-        }
-      },
-    });
+    setPendingRemoval({ versionId, title });
+  };
+
+  // Как прежний `Modal.confirm` с асинхронным `onOk`: окно ждёт ответа и закрывается
+  // и после успеха, и после отказа — об исходе говорит тост.
+  const confirmRemove = async () => {
+    if (!pendingRemoval || isRemoving) return;
+    const { versionId, title } = pendingRemoval;
+    setIsRemoving(true);
+    try {
+      await removeMutation.mutateAsync(versionId);
+      toast.success(t('bookshelf.removeSuccess', { title }));
+    } catch {
+      toast.error(t('bookshelf.removeFail'));
+    } finally {
+      setIsRemoving(false);
+      setPendingRemoval(null);
+    }
   };
 
   // Skeletons while loading session or shelf data
@@ -232,20 +72,16 @@ export default function BookshelfClient() {
         <div className={styles.container}>
           <div className={styles.header}>
             <div>
-              <Skeleton.Button active style={{ width: 200, height: 32 }} />
-              <div style={{ marginTop: 8 }}>
-                <Skeleton.Button active style={{ width: 120, height: 16 }} />
+              <SkeletonBlock className={styles.skeletonTitle} />
+              <div className={styles.skeletonSubtitleRow}>
+                <SkeletonBlock className={styles.skeletonSubtitle} />
               </div>
             </div>
           </div>
           <div className={styles.skeletonList}>
             {[1, 2, 3].map((n) => (
               <div key={n} className={styles.skeletonCard}>
-                <Skeleton
-                  active
-                  avatar={{ size: 'large', shape: 'square' }}
-                  paragraph={{ rows: 2 }}
-                />
+                <Skeleton avatar rows={2} />
               </div>
             ))}
           </div>
@@ -262,7 +98,7 @@ export default function BookshelfClient() {
           <PageBackButton lang={lang} />
         </div>
         <div className={styles.unauthContainer}>
-          <BookFilled className={styles.unauthIcon} />
+          <BookFilledIcon className={styles.unauthIcon} />
           <h1 className={styles.unauthTitle}>{t('bookshelf.title')}</h1>
           <p className={styles.unauthText}>{t('bookshelf.signInPrompt')}</p>
           <div className={styles.unauthBtnGroup}>
@@ -294,39 +130,29 @@ export default function BookshelfClient() {
   const readingItems = items.filter((item) => item.bookVersion.type === 'text');
   const audioItems = items.filter((item) => item.bookVersion.type === 'audio');
 
-  const tabItems = [
+  const renderGrid = (tabItems: BookshelfItemDto[]) => (
+    <div className={styles.grid}>
+      {tabItems.map((item) => (
+        <BookshelfCard key={item.id} item={item} onRemove={handleRemove} lang={lang} />
+      ))}
+    </div>
+  );
+
+  const tabs: TabItem[] = [
     {
       key: 'all',
       label: `${t('bookshelf.tabs.all')} (${items.length})`,
-      children: (
-        <div className={styles.grid}>
-          {items.map((item) => (
-            <BookshelfCard key={item.id} item={item} onRemove={handleRemove} lang={lang} />
-          ))}
-        </div>
-      ),
+      children: renderGrid(items),
     },
     {
       key: 'reading',
       label: `${t('bookshelf.tabs.reading')} (${readingItems.length})`,
-      children: (
-        <div className={styles.grid}>
-          {readingItems.map((item) => (
-            <BookshelfCard key={item.id} item={item} onRemove={handleRemove} lang={lang} />
-          ))}
-        </div>
-      ),
+      children: renderGrid(readingItems),
     },
     {
       key: 'audio',
       label: `${t('bookshelf.tabs.audio')} (${audioItems.length})`,
-      children: (
-        <div className={styles.grid}>
-          {audioItems.map((item) => (
-            <BookshelfCard key={item.id} item={item} onRemove={handleRemove} lang={lang} />
-          ))}
-        </div>
-      ),
+      children: renderGrid(audioItems),
     },
   ];
 
@@ -346,14 +172,15 @@ export default function BookshelfClient() {
           </div>
           <Link href={`/${lang}/catalog`} passHref legacyBehavior>
             <Button variant="secondary" className={styles.browseBtn}>
-              {t('bookshelf.browseLibrary')} <RightOutlined />
+              {t('bookshelf.browseLibrary')}{' '}
+              <ChevronRight size="1em" className={styles.inlineIcon} aria-hidden="true" />
             </Button>
           </Link>
         </div>
 
         {items.length === 0 ? (
           <div className={styles.emptyContainer}>
-            <BookOutlined className={styles.emptyIcon} />
+            <BookOutlinedIcon className={styles.emptyIcon} />
             <h2 className={styles.emptyTitle}>{t('bookshelf.emptyTitle')}</h2>
             <p className={styles.emptyText}>{t('bookshelf.emptyText')}</p>
             <Button
@@ -366,9 +193,23 @@ export default function BookshelfClient() {
             </Button>
           </div>
         ) : (
-          <Tabs defaultActiveKey="all" items={tabItems} />
+          <Tabs items={tabs} defaultActiveKey="all" ariaLabel={t('bookshelf.title')} />
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={pendingRemoval !== null}
+        title={t('bookshelf.removeTitle')}
+        content={
+          pendingRemoval ? t('bookshelf.removeConfirm', { title: pendingRemoval.title }) : ''
+        }
+        confirmText={t('bookshelf.removeBtn')}
+        cancelText={t('bookshelf.cancelBtn')}
+        loading={isRemoving}
+        danger
+        onConfirm={confirmRemove}
+        onCancel={() => setPendingRemoval(null)}
+      />
     </div>
   );
 }

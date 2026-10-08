@@ -7,10 +7,10 @@ import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { getLangFromPath, switchLangInPath, type SupportedLang } from '@/lib/i18n/lang';
 import { getLanguageSelectOptions } from '@/lib/i18n/languageSelectOptions';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import type { SelectOption } from '@/components/common/Select/Select.types';
+import type { SelectOption } from '@/components/admin/common/Select/Select.types';
 import styles from './AdminLanguageSwitcher.module.scss';
 
-const AdminSelect = dynamic(() => import('@/components/common/Select').then((m) => m.Select));
+const AdminSelect = dynamic(() => import('@/components/admin/common/Select').then((m) => m.Select));
 
 export const AdminLanguageSwitcher = () => {
   const pathname = usePathname();

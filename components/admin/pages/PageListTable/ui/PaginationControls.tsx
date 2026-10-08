@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import type { PaginationControlsProps } from '../PageListTable.types';
 import styles from '../PageListTable.module.scss';
 

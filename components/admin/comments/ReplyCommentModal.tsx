@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Modal } from '@/components/common/Modal';
+import { Modal } from '@/components/admin/common/Modal';
 import styles from './ReplyCommentModal.module.scss';
 
 const replySchema = z.object({

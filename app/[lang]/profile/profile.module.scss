@@ -432,3 +432,9 @@
   margin: 0 0 $spacing-md 0;
   line-height: $line-height-base;
 }
+
+/* Заглушка заголовка на время загрузки (LEGACY-442) */
+.skeletonTitle {
+  width: 250px;
+  height: $spacing-xl;
+}

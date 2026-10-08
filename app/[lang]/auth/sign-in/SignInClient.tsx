@@ -9,30 +9,30 @@
 
 import type { FC } from 'react';
 import { useState } from 'react';
-import {
-  LockOutlined,
-  MailOutlined,
-  BookOutlined,
-  CheckCircleOutlined,
-  GoogleOutlined,
-} from '@ant-design/icons';
-import { Form, Input, Alert, Typography } from 'antd';
+import { Lock, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/common/Button';
-import { PageBackButton } from '@/components/public/navigation';
+import { GoogleIcon } from '@/components/common/icons/GoogleIcon';
+import {
+  AuthAlert,
+  AuthField,
+  AuthLayout,
+  validateEmail,
+  useAuthForm,
+  type AuthFormValues,
+} from '@/components/public/auth';
 import { authErrorDictKey } from '@/lib/auth/constants';
 import { markLoggedIn } from '@/lib/auth/sessionMarker';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './sign-in.module.scss';
 
-const { Title, Text } = Typography;
+type SignInField = 'email' | 'password';
+type SignInFormValues = AuthFormValues<SignInField>;
 
-interface SignInFormValues {
-  email: string;
-  password: string;
-}
+const SIGN_IN_FIELDS: readonly SignInField[] = ['email', 'password'];
+const SIGN_IN_INITIAL: SignInFormValues = { email: '', password: '' };
 
 /**
  * Sign In page component
@@ -47,9 +47,22 @@ const SignInClient: FC = () => {
   // Default redirect path based on lang
   const callbackUrl = searchParams.get('callbackUrl') || `/${lang}`;
 
-  const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * Правила полей — те же, что стояли в `rules` у `Form.Item` antd.
+   */
+  const validateField = (field: SignInField, current: SignInFormValues): string | undefined => {
+    if (field === 'email') {
+      return validateEmail(current.email, {
+        required: t('auth.signin.emailRequired'),
+        invalid: t('auth.signin.emailInvalid'),
+      });
+    }
+    if (!current.password) return t('auth.signin.passwordRequired');
+    return undefined;
+  };
 
   /**
    * Текст отказа по коду, который вернул `signIn`.
@@ -62,15 +75,15 @@ const SignInClient: FC = () => {
   /**
    * Form submission handler
    */
-  const handleSubmit = async (values: SignInFormValues) => {
+  const handleSubmit = async (submitted: SignInFormValues) => {
     try {
       setIsLoading(true);
       setError(null);
 
       const result = await signIn('credentials', {
         redirect: false,
-        email: values.email,
-        password: values.password,
+        email: submitted.email,
+        password: submitted.password,
         callbackUrl,
       });
 
@@ -92,155 +105,96 @@ const SignInClient: FC = () => {
     }
   };
 
+  const form = useAuthForm<SignInField>({
+    initial: SIGN_IN_INITIAL,
+    fields: SIGN_IN_FIELDS,
+    validate: validateField,
+    busy: isLoading,
+    onValid: (values) => void handleSubmit(values),
+  });
+
   return (
-    <div className={styles.container}>
-      {/* Left Sidebar - Brand Identity */}
-      <div className={styles.sidebar}>
-        <div className={styles.sidebarContent}>
-          <div className={styles.brand}>
-            <BookOutlined className={styles.logoIcon} />
-            <span className={styles.brandName}>BIBLIARIS</span>
-          </div>
-          <p className={styles.tagline}>{t('auth.sidebar.tagline')}</p>
-          <div className={styles.featuresList}>
-            {[
-              t('auth.sidebar.feat1'),
-              t('auth.sidebar.feat2'),
-              t('auth.sidebar.feat3'),
-              t('auth.sidebar.feat4'),
-            ].map((feat) => (
-              <div key={feat} className={styles.featureItem}>
-                <CheckCircleOutlined className={styles.checkIcon} />
-                <span>{feat}</span>
-              </div>
-            ))}
-          </div>
+    <AuthLayout lang={lang}>
+      <h2 className={styles.title}>{t('auth.signin.title')}</h2>
+      <span className={styles.subtitle}>{t('auth.signin.subtitle')}</span>
+
+      {error && (
+        <AuthAlert
+          title={t('auth.signin.errorTitle')}
+          description={error}
+          closeLabel={t('a11y.close')}
+          onClose={() => setError(null)}
+        />
+      )}
+
+      <form id="sign-in" onSubmit={form.handleSubmit} autoComplete="off" className={styles.form}>
+        <AuthField
+          id="sign-in_email"
+          name="email"
+          label={t('auth.signin.emailLabel')}
+          icon={<Mail size="1em" />}
+          type="text"
+          value={form.values.email}
+          error={form.errors.email}
+          placeholder="you@example.com"
+          autoComplete="email"
+          onChange={form.handleChange('email')}
+        />
+
+        <AuthField
+          id="sign-in_password"
+          name="password"
+          label={t('auth.signin.passwordLabel')}
+          icon={<Lock size="1em" />}
+          type="password"
+          value={form.values.password}
+          error={form.errors.password}
+          placeholder="••••••••"
+          autoComplete="current-password"
+          onChange={form.handleChange('password')}
+          toggleLabels={{ show: t('a11y.showPassword'), hide: t('a11y.hidePassword') }}
+        />
+
+        <div className={styles.field}>
+          <Button
+            variant="primary"
+            type="submit"
+            loading={isLoading}
+            fullWidth
+            className={styles.submitButton}
+          >
+            {t('auth.signin.submitBtn')}
+          </Button>
         </div>
+      </form>
+
+      <div className={styles.divider}>
+        <span>{t('auth.signin.or')}</span>
       </div>
 
-      {/* Right Form Section */}
-      <div className={styles.formSection}>
-        <div className={styles.formWrapper}>
-          <PageBackButton lang={lang} />
-
-          {/* Mobile Header */}
-          <div className={styles.mobileHeader}>
-            <BookOutlined className={styles.logoIcon} />
-            <span className={styles.brandName}>BIBLIARIS</span>
-          </div>
-
-          <Title level={2} className={styles.title}>
-            {t('auth.signin.title')}
-          </Title>
-          <Text className={styles.subtitle}>{t('auth.signin.subtitle')}</Text>
-
-          {error && (
-            <Alert
-              message={t('auth.signin.errorTitle')}
-              description={error}
-              type="error"
-              showIcon
-              closable
-              onClose={() => setError(null)}
-              className={styles.alert}
-            />
-          )}
-
-          <Form
-            form={form}
-            name="sign-in"
-            onFinish={handleSubmit}
-            autoComplete="off"
-            layout="vertical"
-            size="large"
-            className={styles.form}
-          >
-            <Form.Item noStyle shouldUpdate>
-              {() => {
-                const errors = form.getFieldError('email');
-                const hasError = errors.length > 0;
-                return (
-                  <Form.Item
-                    name="email"
-                    label={t('auth.signin.emailLabel')}
-                    rules={[
-                      { required: true, message: t('auth.signin.emailRequired') },
-                      { type: 'email', message: t('auth.signin.emailInvalid') },
-                    ]}
-                  >
-                    <Input
-                      prefix={<MailOutlined />}
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      aria-invalid={hasError ? 'true' : 'false'}
-                      aria-describedby={hasError ? 'sign-in_email_help' : undefined}
-                    />
-                  </Form.Item>
-                );
-              }}
-            </Form.Item>
-
-            <Form.Item noStyle shouldUpdate>
-              {() => {
-                const errors = form.getFieldError('password');
-                const hasError = errors.length > 0;
-                return (
-                  <Form.Item
-                    name="password"
-                    label={t('auth.signin.passwordLabel')}
-                    rules={[{ required: true, message: t('auth.signin.passwordRequired') }]}
-                  >
-                    <Input.Password
-                      prefix={<LockOutlined />}
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      aria-invalid={hasError ? 'true' : 'false'}
-                      aria-describedby={hasError ? 'sign-in_password_help' : undefined}
-                    />
-                  </Form.Item>
-                );
-              }}
-            </Form.Item>
-
-            <Form.Item>
-              <Button variant="primary" type="submit" loading={isLoading} fullWidth>
-                {t('auth.signin.submitBtn')}
-              </Button>
-            </Form.Item>
-          </Form>
-
-          <div className={styles.divider}>
-            <span>{t('auth.signin.or')}</span>
-          </div>
-
-          <div
-            className={styles.socialButtons}
-            style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}
-          >
-            <Button
-              variant="secondary"
-              fullWidth
-              leftIcon={<GoogleOutlined style={{ color: '#ea4335' }} />}
-              onClick={() => {
-                setIsLoading(true);
-                // Отметку ставим до ухода на Google: вернётся браузер уже на
-                // `callbackUrl`, и этот код не выполнится (LEGACY-075).
-                markLoggedIn();
-                signIn('google', { callbackUrl });
-              }}
-              disabled={isLoading}
-            >
-              Google
-            </Button>
-          </div>
-
-          <div className={styles.footer}>
-            {t('auth.signin.noAccount')}{' '}
-            <Link href={`/${lang}/auth/register`}>{t('auth.signin.createOne')}</Link>
-          </div>
-        </div>
+      <div className={styles.socialButtons}>
+        <Button
+          variant="secondary"
+          fullWidth
+          leftIcon={<GoogleIcon />}
+          onClick={() => {
+            setIsLoading(true);
+            // Отметку ставим до ухода на Google: вернётся браузер уже на
+            // `callbackUrl`, и этот код не выполнится (LEGACY-075).
+            markLoggedIn();
+            signIn('google', { callbackUrl });
+          }}
+          disabled={isLoading}
+        >
+          Google
+        </Button>
       </div>
-    </div>
+
+      <div className={styles.footer}>
+        {t('auth.signin.noAccount')}{' '}
+        <Link href={`/${lang}/auth/register`}>{t('auth.signin.createOne')}</Link>
+      </div>
+    </AuthLayout>
   );
 };
 

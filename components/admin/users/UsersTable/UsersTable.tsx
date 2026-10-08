@@ -3,11 +3,11 @@
 import type { FC } from 'react';
 import { Edit, Trash2, Users } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/admin/common/Button';
+import { Select } from '@/components/admin/common/Select';
 import { EmptyState, Skeleton } from '@/components/admin/shared';
 import { Pagination } from '@/components/admin/shared/Pagination';
-import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
 import { formatDate } from '@/lib/utils/date';
 import { userDisplayName } from '@/lib/utils/user-name';
 import type { UsersTableProps } from './UsersTable.types';

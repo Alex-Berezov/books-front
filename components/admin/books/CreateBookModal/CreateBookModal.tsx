@@ -9,7 +9,7 @@
 
 import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
-import { Modal } from '@/components/common/Modal';
+import { Modal } from '@/components/admin/common/Modal';
 import type { CreateBookModalProps } from './CreateBookModal.types';
 import styles from './CreateBookModal.module.scss';
 

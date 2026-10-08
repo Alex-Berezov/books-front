@@ -1,6 +1,6 @@
 import type { FC } from 'react';
-import { Select } from '@/components/common/Select';
-import type { SelectOption } from '@/components/common/Select/Select.types';
+import { Select } from '@/components/admin/common/Select';
+import type { SelectOption } from '@/components/admin/common/Select/Select.types';
 
 interface FilterDropdownProps {
   options: SelectOption[];

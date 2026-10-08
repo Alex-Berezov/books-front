@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './BookListTable.module.scss';
 

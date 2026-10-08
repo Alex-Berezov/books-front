@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Skeleton } from 'antd';
 import { User, Mail, Tag, Save, Upload, MessageSquare, Loader2, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,6 +8,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useMe, useUpdateProfile, useUserActivities, useUploadAvatar } from '@/api/hooks/useAuth';
 import { Button } from '@/components/common/Button';
+import { Skeleton, SkeletonBlock } from '@/components/common/Skeleton';
 import { PageBackButton } from '@/components/public/navigation';
 import { USER_ACTIVITIES_PAGE_SIZE } from '@/lib/constants/pagination';
 import { publicErrorKey } from '@/lib/errors';
@@ -137,14 +137,14 @@ export default function ProfileClient() {
       <div className={styles.pageContainer}>
         <div className={styles.container}>
           <div className={styles.header}>
-            <Skeleton.Button active style={{ width: 250, height: 32 }} />
+            <SkeletonBlock className={styles.skeletonTitle} />
           </div>
           <div className={styles.profileLayoutGrid}>
             <div className={styles.profileCard}>
-              <Skeleton active paragraph={{ rows: 6 }} />
+              <Skeleton rows={6} />
             </div>
             <div className={styles.activitiesCard}>
-              <Skeleton active paragraph={{ rows: 6 }} />
+              <Skeleton rows={6} />
             </div>
           </div>
         </div>

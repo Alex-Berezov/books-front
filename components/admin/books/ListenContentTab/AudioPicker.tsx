@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent, FC, KeyboardEvent } from 'react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/admin/common/Button';
 import { formatDuration } from '@/lib/utils/audio';
 import type { AudioPickerProps } from './AudioPicker.types';
 import styles from './AudioPicker.module.scss';

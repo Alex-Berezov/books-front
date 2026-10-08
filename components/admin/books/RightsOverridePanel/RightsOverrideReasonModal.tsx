@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import type { FC, ReactNode } from 'react';
-import { Modal } from '@/components/common/Modal';
+import { Modal } from '@/components/admin/common/Modal';
 import styles from './RightsOverridePanel.module.scss';
 import { OVERRIDE_REASON_MAX_LENGTH } from './rightsOverridePolicy';
 

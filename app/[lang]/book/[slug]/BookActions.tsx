@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { message } from 'antd';
 import { BookOpen, Headphones, FileText, Bookmark, BookmarkX, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { toast } from '@/lib/utils/toast';
 import type { VersionPreview } from '@/types/api-schema/books';
 import styles from './book.module.scss';
 
@@ -79,7 +79,7 @@ export default function BookActions({
       removeFromBookshelfMutation.mutate(idToRemove, {
         onError: () => {
           setOptimisticSaved(null);
-          message.error(t('bookshelf.removeFail'));
+          toast.error(t('bookshelf.removeFail'));
         },
       });
     } else {
@@ -87,7 +87,7 @@ export default function BookActions({
       addToBookshelfMutation.mutate(versionId, {
         onError: () => {
           setOptimisticSaved(null);
-          message.error(t('bookshelf.addFail'));
+          toast.error(t('bookshelf.addFail'));
         },
       });
     }

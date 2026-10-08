@@ -172,6 +172,6 @@ Custom classes:
 
 ## Related Components
 
-- [Button](/components/common/Button/README.md) - Button component
-- [Select](/components/common/Select/README.md) - Select/dropdown component
-- [SlugInput](/components/common/SlugInput/README.md) - Specialized slug input
+- [Button](/components/common/Button/Button.types.ts) - site button (no antd); admin forms use [the antd wrapper](/components/admin/common/Button/README.md)
+- [Select](/components/admin/common/Select/README.md) - Select/dropdown component
+- [SlugInput](/components/admin/common/SlugInput/README.md) - Specialized slug input

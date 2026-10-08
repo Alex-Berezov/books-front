@@ -4,9 +4,9 @@ import { Controller } from 'react-hook-form';
 import { useCategories } from '@/api/hooks/useCategories';
 import { AuthorSearchSelect } from '@/components/admin/authors/AuthorSearchSelect';
 import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
+import { Select } from '@/components/admin/common/Select';
+import { SlugInput } from '@/components/admin/common/SlugInput';
 import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
-import { SlugInput } from '@/components/common/SlugInput';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import type { BookFormData } from './BookForm.types';
 import type {
