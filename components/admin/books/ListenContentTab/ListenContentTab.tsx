@@ -23,6 +23,8 @@ export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
   const {
     audioChapters,
     isLoading,
+    hasData,
+    isRefreshing,
     error,
     isModalOpen,
     editingChapter,
@@ -41,6 +43,8 @@ export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
     isDeleting,
   } = useListenContentTab(props);
 
+  const errorText = error ? `Failed to load audio chapters: ${error.message}` : null;
+
   // Loading state
   if (isLoading) {
     return (
@@ -50,25 +54,35 @@ export const ListenContentTab: FC<ListenContentTabProps> = (props) => {
     );
   }
 
-  // Error state
-  if (error) {
+  // Full-screen error only when there is nothing to show: a failed refetch keeps the list
+  // and an open dialog with its typed input (LEGACY-440)
+  if (error && !hasData) {
     return (
       <div className={styles.container}>
-        <p className={styles.errorText}>Failed to load audio chapters: {error.message}</p>
+        <p className={styles.errorText}>{errorText}</p>
       </div>
     );
   }
 
   return (
     <div className={styles.container}>
+      {error && <p className={styles.errorText}>{errorText}</p>}
       {audioChapters.length === 0 ? (
         <>
-          <ListenContentHeader count={0} onAddChapter={handleAddAudioChapter} />
-          <ListenContentEmptyState onUploadAudio={handleUploadAudio} />
+          <ListenContentHeader
+            count={0}
+            onAddChapter={handleAddAudioChapter}
+            isAddLoading={isRefreshing}
+          />
+          <ListenContentEmptyState onUploadAudio={handleUploadAudio} isAddLoading={isRefreshing} />
         </>
       ) : (
         <>
-          <ListenContentHeader count={audioChapters.length} onAddChapter={handleAddAudioChapter} />
+          <ListenContentHeader
+            count={audioChapters.length}
+            onAddChapter={handleAddAudioChapter}
+            isAddLoading={isRefreshing}
+          />
           <ListenContentList
             chapters={audioChapters}
             totalDurationSeconds={totalDurationSeconds}

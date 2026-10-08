@@ -13,6 +13,7 @@ import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 import {
   audioChapterKeys,
+  useAllAudioChapters,
   useAudioChapter,
   useAudioChapters,
   useCreateAudioChapter,
@@ -73,6 +74,10 @@ describe('audioChapterKeys', () => {
       { page: 2, limit: 10 },
     ]);
     expect(audioChapterKeys.detail('ac-1')).toEqual(['audio-chapters', 'detail', 'ac-1']);
+    // The all-pages list lives under lists(), so every mutation invalidates it, and it never
+    // shares a cache entry with a single page (LEGACY-441).
+    expect(audioChapterKeys.listAll('ver-1')).toEqual(['audio-chapters', 'list', 'ver-1', 'all']);
+    expect(audioChapterKeys.listAll('ver-1')).not.toEqual(audioChapterKeys.list('ver-1'));
     // Distinct branches don't collide.
     expect(audioChapterKeys.list('ver-1')).not.toEqual(audioChapterKeys.detail('ac-1'));
   });
@@ -127,6 +132,30 @@ describe('useAudioChapter', () => {
 
     // Query never fetches — status remains pending but fetchStatus idle.
     expect(result.current.fetchStatus).toBe('idle');
+  });
+});
+
+describe('useAllAudioChapters', () => {
+  it('returns every page of the version (LEGACY-441)', async () => {
+    server.use(
+      http.get(`${API_BASE}/admin/versions/:id/audio-chapters`, ({ request }) => {
+        const page = Number(new URL(request.url).searchParams.get('page'));
+        const count = page === 1 ? 100 : 5;
+        const items = Array.from({ length: count }, (_, i) =>
+          makeChapter({ id: `ac-${page}-${i}`, number: (page - 1) * 100 + i + 1 })
+        );
+        return HttpResponse.json({ items, total: 105, page, limit: 100 });
+      })
+    );
+
+    const client = createClient();
+    const { result } = renderHook(() => useAllAudioChapters('ver-1'), {
+      wrapper: wrapperFor(client),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toHaveLength(105);
+    expect(Math.max(...(result.current.data ?? []).map((c) => c.number))).toBe(105);
   });
 });
 

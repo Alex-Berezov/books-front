@@ -81,6 +81,7 @@ export {
 // Audio Chapters
 export {
   audioChapterKeys,
+  useAllAudioChapters,
   useAudioChapter,
   useAudioChapters,
   useCreateAudioChapter,

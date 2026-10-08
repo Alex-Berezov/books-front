@@ -11,7 +11,11 @@
  */
 
 import { httpDeleteAuth, httpGetAuth, httpPatchAuth, httpPostAuth } from '@/lib/http-client';
+import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
+import { fetchAllPages } from '@/lib/sitemap/utils';
+import { ApiError } from '@/types/api';
 import type {
+  AudioChapter,
   AudioChapterDetail,
   AudioChaptersListResponse,
   CreateAudioChapterRequest,
@@ -37,6 +41,42 @@ export const getAudioChapters = async (
   });
   const endpoint = `/admin/versions/${bookVersionId}/audio-chapters?${queryParams.toString()}`;
   return httpGetAuth<AudioChaptersListResponse>(endpoint);
+};
+
+/** Shown when the walk itself fails: a cut page, a short walk, a malformed page, too many pages. */
+const INCOMPLETE_LIST_MESSAGE = 'the audio chapter list could not be loaded in full, try again';
+
+/**
+ * Get every audio chapter of a book version (admin) by walking all pages.
+ *
+ * The admin tab needs the whole list: the next chapter number is derived from it,
+ * and a first page of 50 would hand out an already taken number (LEGACY-441).
+ * The walk is the shared `fetchAllPages`: a cut page or a short walk throws instead of
+ * returning a partial list, and a failed page is retried once. Items are de-duplicated by id:
+ * a chapter added while the pages are walked shifts the offsets and can repeat one, so
+ * completeness is checked again on the unique rows. The walk's own diagnostics are internal
+ * (kept as `cause`); the admin sees one plain message for them. A server failure (`ApiError`)
+ * and a network failure (`TypeError` from `fetch`) keep their own cause.
+ */
+export const getAllAudioChapters = async (bookVersionId: string): Promise<AudioChapter[]> => {
+  let items: AudioChapter[];
+  let total = 0;
+  try {
+    items = await fetchAllPages(async (page) => {
+      const { items: pageItems, ...pagination } = await getAudioChapters(bookVersionId, {
+        page,
+        limit: API_MAX_PAGE_SIZE,
+      });
+      if (page === 1) total = pagination.total;
+      return { items: pageItems, pagination };
+    }, 'admin audio chapters');
+  } catch (error) {
+    if (error instanceof ApiError || error instanceof TypeError) throw error;
+    throw new Error(INCOMPLETE_LIST_MESSAGE, { cause: error });
+  }
+  const unique = [...new Map(items.map((item) => [item.id, item])).values()];
+  if (unique.length < total) throw new Error(INCOMPLETE_LIST_MESSAGE);
+  return unique;
 };
 
 /**

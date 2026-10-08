@@ -16,10 +16,12 @@ import {
   createAudioChapter,
   deleteAudioChapter,
   getAudioChapter,
+  getAllAudioChapters,
   getAudioChapters,
   reorderAudioChapters,
   updateAudioChapter,
 } from '@/api/endpoints/admin/audioChapters';
+import { staleTimeConfig } from '@/lib/queryClient';
 import type {
   AudioChapterDetail,
   AudioChaptersListResponse,
@@ -35,10 +37,22 @@ import type {
 export const audioChapterKeys = {
   all: ['audio-chapters'] as const,
   lists: () => [...audioChapterKeys.all, 'list'] as const,
+  listAll: (bookVersionId: string) => [...audioChapterKeys.lists(), bookVersionId, 'all'] as const,
   list: (bookVersionId: string, params?: GetAudioChaptersParams) =>
     [...audioChapterKeys.lists(), bookVersionId, params ?? {}] as const,
   details: () => [...audioChapterKeys.all, 'detail'] as const,
   detail: (id: string) => [...audioChapterKeys.details(), id] as const,
+};
+
+/**
+ * Hook: all audio chapters of a book version across every page (admin tab).
+ */
+export const useAllAudioChapters = (bookVersionId: string) => {
+  return useQuery({
+    queryKey: audioChapterKeys.listAll(bookVersionId),
+    queryFn: () => getAllAudioChapters(bookVersionId),
+    staleTime: staleTimeConfig.catalog,
+  });
 };
 
 /**

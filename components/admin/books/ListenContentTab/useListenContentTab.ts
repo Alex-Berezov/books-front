@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useSnackbar } from 'notistack';
 import {
-  useAudioChapters,
+  useAllAudioChapters,
   useCreateAudioChapter,
   useDeleteAudioChapter,
   useUpdateAudioChapter,
 } from '@/api/hooks';
 import { toUserMessage } from '@/lib/errors';
+import { useFreshListGuard } from '@/lib/hooks/useFreshListGuard';
 import type { AudioChapterFormData } from './AudioChapterModal.types';
 import type { ListenContentTabProps } from './ListenContentTab.types';
 import type { AudioChapter } from '@/types/api-schema';
@@ -21,15 +22,18 @@ export const useListenContentTab = (props: ListenContentTabProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingChapterId, setDeletingChapterId] = useState<string | null>(null);
 
-  // API hooks — useAudioChapters returns `{ items, total, page, limit }`
-  const { data, error, isLoading } = useAudioChapters(versionId);
-  const audioChapters = data?.items ?? [];
+  // API hooks — useAllAudioChapters walks every page and returns the whole list
+  const { data, error, isLoading, isFetching, refetch } = useAllAudioChapters(versionId);
+  // A new chapter dialog opens only over a fresh list (LEGACY-441)
+  const canOpenNew = useFreshListGuard({ isFetching, error, refetch });
+  const audioChapters = data ?? [];
 
   const createMutation = useCreateAudioChapter();
   const updateMutation = useUpdateAudioChapter();
   const deleteMutation = useDeleteAudioChapter();
 
   const handleAddAudioChapter = () => {
+    if (!canOpenNew()) return;
     setEditingChapter(undefined);
     setIsModalOpen(true);
   };
@@ -125,6 +129,8 @@ export const useListenContentTab = (props: ListenContentTabProps) => {
   return {
     audioChapters,
     isLoading,
+    hasData: data !== undefined,
+    isRefreshing: isFetching,
     error: (error as Error | null) ?? null,
     // Modal state
     isModalOpen,

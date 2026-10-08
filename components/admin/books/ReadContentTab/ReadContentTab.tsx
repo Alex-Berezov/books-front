@@ -24,6 +24,8 @@ export const ReadContentTab: FC<ReadContentTabProps> = (props) => {
   const {
     chapters,
     isLoading,
+    hasData,
+    isRefreshing,
     error,
     // Modal state
     isModalOpen,
@@ -43,6 +45,8 @@ export const ReadContentTab: FC<ReadContentTabProps> = (props) => {
     isDeleting,
   } = useReadContentTab(props);
 
+  const errorText = error ? `Failed to load chapters: ${error.message}` : null;
+
   // Loading state
   if (isLoading) {
     return (
@@ -52,25 +56,35 @@ export const ReadContentTab: FC<ReadContentTabProps> = (props) => {
     );
   }
 
-  // Error state
-  if (error) {
+  // Full-screen error only when there is nothing to show: a failed refetch keeps the list
+  // and an open dialog with its typed input (LEGACY-440)
+  if (error && !hasData) {
     return (
       <div className={styles.container}>
-        <p className={styles.errorText}>Failed to load chapters: {error.message}</p>
+        <p className={styles.errorText}>{errorText}</p>
       </div>
     );
   }
 
   return (
     <div className={styles.container}>
+      {error && <p className={styles.errorText}>{errorText}</p>}
       {chapters.length === 0 ? (
         <>
-          <ReadContentHeader count={0} onAddChapter={handleAddChapter} />
-          <ReadContentEmptyState onAddChapter={handleAddChapter} />
+          <ReadContentHeader
+            count={0}
+            onAddChapter={handleAddChapter}
+            isAddLoading={isRefreshing}
+          />
+          <ReadContentEmptyState onAddChapter={handleAddChapter} isAddLoading={isRefreshing} />
         </>
       ) : (
         <>
-          <ReadContentHeader count={chapters.length} onAddChapter={handleAddChapter} />
+          <ReadContentHeader
+            count={chapters.length}
+            onAddChapter={handleAddChapter}
+            isAddLoading={isRefreshing}
+          />
           <ReadContentList
             chapters={chapters}
             onEditChapter={handleEditChapter}

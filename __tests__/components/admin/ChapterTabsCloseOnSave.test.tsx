@@ -13,15 +13,17 @@ const mocks = vi.hoisted(() => ({
 vi.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: mocks.enqueueSnackbar }) }));
 
 vi.mock('@/api/hooks', () => {
-  const list = () => ({
-    data: { items: [{ id: 'c1', number: 1, title: 'T', duration: 60 }] },
+  const rows = [{ id: 'c1', number: 1, title: 'T', duration: 60 }];
+  const query = (data: unknown) => () => ({
+    data,
     error: null,
     isLoading: false,
+    refetch: vi.fn(),
   });
   const mutation = (mutateAsync = vi.fn()) => ({ mutateAsync, isPending: false });
   return {
-    useChapters: list,
-    useAudioChapters: list,
+    useChapters: query({ items: rows }),
+    useAllAudioChapters: query(rows),
     useCreateChapter: () => mutation(mocks.create),
     useCreateAudioChapter: () => mutation(mocks.create),
     useUpdateChapter: () => mutation(mocks.update),

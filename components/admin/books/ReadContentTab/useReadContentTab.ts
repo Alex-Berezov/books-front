@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useChapters, useCreateChapter, useDeleteChapter, useUpdateChapter } from '@/api/hooks';
 import { toUserMessage } from '@/lib/errors';
+import { useFreshListGuard } from '@/lib/hooks/useFreshListGuard';
 import type { ChapterFormData } from './ChapterModal.types';
 import type { ReadContentTabProps } from './ReadContentTab.types';
 import type { Chapter } from '@/types/api-schema';
@@ -17,7 +18,9 @@ export const useReadContentTab = (props: ReadContentTabProps) => {
   const [deletingChapterId, setDeletingChapterId] = useState<string | null>(null);
 
   // API Hooks
-  const { data, error, isLoading } = useChapters(versionId);
+  const { data, error, isLoading, isFetching, refetch } = useChapters(versionId);
+  // A new chapter dialog opens only over a fresh list (LEGACY-441)
+  const canOpenNew = useFreshListGuard({ isFetching, error, refetch });
   const chapters = data?.items;
   const createChapterMutation = useCreateChapter();
   const updateChapterMutation = useUpdateChapter();
@@ -27,6 +30,7 @@ export const useReadContentTab = (props: ReadContentTabProps) => {
    * Open modal for creating new chapter
    */
   const handleAddChapter = () => {
+    if (!canOpenNew()) return;
     setEditingChapter(undefined);
     setIsModalOpen(true);
   };
@@ -126,6 +130,8 @@ export const useReadContentTab = (props: ReadContentTabProps) => {
   return {
     chapters: chapters || [],
     isLoading,
+    hasData: data !== undefined,
+    isRefreshing: isFetching,
     error,
     // Modal state
     isModalOpen,
