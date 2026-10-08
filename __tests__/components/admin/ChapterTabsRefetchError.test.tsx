@@ -1,4 +1,4 @@
-import { act, render, renderHook, screen } from '@testing-library/react';
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ListenContentTab } from '@/components/admin/books/ListenContentTab';
@@ -116,8 +116,7 @@ describe.each([
     });
   });
 
-  it('suggests the number after the highest chapter of the loaded list', async () => {
-    const user = userEvent.setup();
+  it('suggests the number after the highest chapter of the loaded list', () => {
     const many = Array.from({ length: 120 }, (_, i) => ({
       ...items[0],
       id: `c${i}`,
@@ -126,7 +125,11 @@ describe.each([
     mocks.state = { rows: many, error: null, fetching: false };
     render(view());
 
-    await user.click(screen.getByRole('button', { name: addLabel }));
+    // Кнопка ищется по тексту, а не `getByRole(..., { name })`: роль с именем считает
+    // доступное имя каждого узла дерева из 120 строк — замер 08.10.2026: ~6 с из 6,5 с теста,
+    // клик и поиск поля — 0,2 с. Под нагрузкой раннера CI тест упирался в таймаут 15 с
+    // (решение арбитра 08.10.2026). Проверяется число в окне, а не способ найти кнопку.
+    fireEvent.click(screen.getByText(addLabel));
 
     expect(screen.getByRole('spinbutton')).toHaveValue(121);
   });
