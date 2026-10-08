@@ -14,20 +14,23 @@ import { Button } from '@/components/admin/common/Button';
 
 ### Props
 
-| Prop        | Type                                                                                  | Default     | Description                      |
-| ----------- | ------------------------------------------------------------------------------------- | ----------- | -------------------------------- |
-| `variant`   | `'primary' \| 'secondary' \| 'danger' \| 'success' \| 'warning' \| 'ghost' \| 'link'` | `'primary'` | Визуальный стиль кнопки          |
-| `size`      | `'sm' \| 'md' \| 'lg'`                                                                | `'md'`      | Размер кнопки                    |
-| `shape`     | `'default' \| 'round' \| 'circle'`                                                    | `'default'` | Форма кнопки                     |
-| `fullWidth` | `boolean`                                                                             | `false`     | Растягивает кнопку на всю ширину |
-| `loading`   | `boolean`                                                                             | `false`     | Состояние загрузки               |
-| `active`    | `boolean`                                                                             | `false`     | Активное состояние (для toggle)  |
-| `leftIcon`  | `ReactNode`                                                                           | -           | Иконка слева                     |
-| `rightIcon` | `ReactNode`                                                                           | -           | Иконка справа                    |
-| `type`      | `'button' \| 'submit' \| 'reset'`                                                     | `'button'`  | HTML type                        |
-| `form`      | `string`                                                                              | -           | ID формы для submit              |
-| `ariaLabel` | `string`                                                                              | -           | Accessibility label              |
-| `disabled`  | `boolean`                                                                             | `false`     | Отключена                        |
+| Prop        | Type                                                                                  | Default     | Description                                    |
+| ----------- | ------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------- |
+| `variant`   | `'primary' \| 'secondary' \| 'danger' \| 'success' \| 'warning' \| 'ghost' \| 'link'` | `'primary'` | Визуальный стиль кнопки                        |
+| `size`      | `'sm' \| 'md' \| 'lg'`                                                                | `'md'`      | Размер кнопки                                  |
+| `shape`     | `'default' \| 'round' \| 'circle'`                                                    | `'default'` | Форма кнопки                                   |
+| `fullWidth` | `boolean`                                                                             | `false`     | Растягивает кнопку на всю ширину               |
+| `loading`   | `boolean`                                                                             | `false`     | Состояние загрузки                             |
+| `active`    | `boolean`                                                                             | `false`     | Активное состояние (для toggle)                |
+| `leftIcon`  | `ReactNode`                                                                           | -           | Иконка слева                                   |
+| `rightIcon` | `ReactNode`                                                                           | -           | Иконка справа                                  |
+| `type`      | `'button' \| 'submit' \| 'reset'`                                                     | `'button'`  | HTML type                                      |
+| `form`      | `string`                                                                              | -           | ID формы для submit                            |
+| `ariaLabel` | `string`                                                                              | -           | Accessibility label                            |
+| `disabled`  | `boolean`                                                                             | `false`     | Отключена                                      |
+| `href`      | `string`                                                                              | -           | Если задан, кнопка рисуется ссылкой `<a>`      |
+| `target`    | `string`                                                                              | -           | Атрибут `target` ссылки (например, `'_blank'`) |
+| `rel`       | `string`                                                                              | -           | Атрибут `rel` ссылки                           |
 
 ## Примеры использования
 

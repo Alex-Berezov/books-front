@@ -5,7 +5,8 @@ import { SYSTEM_PAGE_KEYS } from '@/lib/system-pages';
 import { fetchPageBySystemKey } from '@/lib/utils/fetch-page';
 
 /**
- * A2, `books-app-docs/tasks/system-pages-slug/TASK.md`.
+ * `books-app-docs/ai-context/seo-rules.md`, раздел «SEO для статических страниц»
+ * (системные страницы по `Page.systemKey`).
  *
  * Пять страниц сайт ищет сам, и адресом служил слаг — поле, которое админка
  * генерирует из заголовка. Переименование заголовка рвало связь беззвучно:

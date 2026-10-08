@@ -26,7 +26,7 @@ Key rules:
 - ✅ All colors and spacing from **design tokens** (`styles/tokens.scss`)
 - ✅ TypeScript **without `any`**, strict typing
 - ✅ **Props destructuring** for 3+ parameters
-- ✅ Comments **in English**
+- ✅ Comments **in English** for routine code; explanations of incidents in Russian (see CODE_STYLE.md)
 - ✅ **`import type`** for type imports
 
 ## 🛠️ Tech Stack
@@ -39,7 +39,7 @@ Key rules:
 
 ### UI & Styling
 
-- **Component Library:** Ant Design 5
+- **Component Library:** Ant Design 5 — admin panel only; the public site uses its own `components/common` (enforced by ESLint)
 - **Styling:** SCSS Modules + Design Tokens
 - **CSS Preprocessor:** SASS/SCSS
 
@@ -57,31 +57,30 @@ Key rules:
 ## 📁 Project Structure
 
 ```
-books-app-front/
+books-front/
 ├── app/
-│   ├── [lang]/              # Public pages with i18n (en|es|fr|pt|ru)
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── admin/[lang]/        # Admin panel with i18n
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── (neutral)/           # Language-neutral routes
-│   ├── not-found.tsx
-│   └── error.tsx
-├── lib/
-│   └── i18n/
-│       └── lang.ts          # Language utilities
-├── providers/
-│   └── AppProviders.tsx     # React Query, AntD providers
-├── styles/
-│   └── globals.css
-└── package.json
+│   ├── [lang]/              # Public site with i18n (en|es|fr|pt|ru)
+│   ├── admin/               # Admin panel (admin/[lang]/)
+│   ├── api/                 # Next route handlers
+│   ├── llms.txt/            # llms.txt route
+│   ├── sitemap.xml/         # Sitemap index
+│   ├── sitemaps/            # Sitemap chunks
+│   └── layout.tsx, page.tsx, error.tsx, not-found.tsx, robots.ts
+├── api/                     # Request functions (endpoints/) and react-query hooks (hooks/)
+├── components/              # common/ (design system), public/, admin/
+├── lib/                     # http client, i18n, auth, seo, sitemap, utils
+├── providers/               # AppProviders: session, react-query, notifications
+├── styles/                  # Design tokens and global styles
+├── types/                   # Hand-written API types (api-schema/)
+└── __tests__/               # Mirrors the source tree
 ```
+
+Full layout and where to look for what: [CLAUDE.md](./CLAUDE.md).
 
 > **📚 Documentation:** Complete project documentation is available in a separate private repository:  
 > 👉 **[books-app-docs](https://github.com/Alex-Berezov/books-app-docs)** (requires access)
 >
-> For local development with AI agents (MCP), clone the docs repository:
+> For local development with AI agents, clone the docs repository:
 >
 > ```bash
 > git clone git@github.com:Alex-Berezov/books-app-docs.git
@@ -124,7 +123,12 @@ yarn lint         # Run ESLint
 yarn typecheck    # Run TypeScript type checking
 yarn format       # Format code with Prettier
 yarn format:check # Check code formatting
+yarn test         # Run unit tests (vitest)
+yarn e2e          # Run end-to-end tests (playwright)
+yarn ci           # Full check run, same as the CI pipeline
 ```
+
+All commands and when to run them: [CLAUDE.md](./CLAUDE.md), section «Команды проверок».
 
 ## 🌍 Internationalization
 
@@ -169,13 +173,7 @@ git clone git@github.com:Alex-Berezov/books-app-docs.git
 
 ## 🔄 Development Workflow
 
-**CRITICAL RULE:** After completing each subtask, you **MUST**:
-
-1. Run `yarn typecheck && yarn lint`
-2. Commit changes
-3. **Push to GitHub** ← DO NOT skip this!
-
-Detailed Git workflow procedures are available in the [documentation repository](https://github.com/Alex-Berezov/books-app-docs).
+Commit and release order: [CLAUDE.md](./CLAUDE.md).
 
 ## 🤝 Contributing
 
@@ -195,9 +193,8 @@ MIT
 
 ## 🔗 Related Repositories
 
-- [Backend API](https://github.com/Alex-Berezov/books-app-back) - NestJS REST API
+- [Backend API](https://github.com/Alex-Berezov/books) - NestJS REST API
 
 ---
 
-**Last Updated:** July 15, 2026  
 **Status:** Implemented and published; iterative development. Formal milestone scheme (M0–M10) is no longer tracked.

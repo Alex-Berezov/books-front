@@ -8,7 +8,7 @@
  *    sitemap. `NEXT_PUBLIC_API_BASE_URL` feeds data fetching. Mixing the two put
  *    `https://api.bibliaris.com/{lang}/tag/{slug}` into the public markup and got
  *    56 non-existent URLs discovered by Google in July 2026
- *    (books-app-docs/tasks/tz-seo-subdomain-leak.md).
+ *    (books-app-docs/ai-context/seo-rules.md, section «canonical»).
  *
  * 2. `NEXT_PUBLIC_MEDIA_CDN_URL` / `NEXT_PUBLIC_UPLOADS_BASE_URL` feed the media
  *    entry of `images.remotePatterns` (LEGACY-280). `next.config.js` drops a value

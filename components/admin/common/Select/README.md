@@ -115,28 +115,31 @@ const options: SelectOption[] = [
 
 ## Props
 
-| Prop                | Type                               | Default    | Description                |
-| ------------------- | ---------------------------------- | ---------- | -------------------------- |
-| `size`              | `'sm' \| 'md' \| 'lg'`             | `'md'`     | Size of the select         |
-| `fullWidth`         | `boolean`                          | `false`    | Whether to span full width |
-| `error`             | `boolean`                          | `false`    | Error state for validation |
-| `loading`           | `boolean`                          | `false`    | Loading state              |
-| `disabled`          | `boolean`                          | `false`    | Disabled state             |
-| `placeholder`       | `string`                           | -          | Placeholder text           |
-| `options`           | `SelectOption[]`                   | -          | Array of options           |
-| `value`             | `T \| T[]`                         | -          | Controlled value           |
-| `defaultValue`      | `T \| T[]`                         | -          | Default value              |
-| `onChange`          | `(value: T \| T[]) => void`        | -          | Change handler             |
-| `onBlur`            | `() => void`                       | -          | Blur handler               |
-| `allowClear`        | `boolean`                          | `false`    | Allow clearing selection   |
-| `showSearch`        | `boolean`                          | `false`    | Enable search              |
-| `mode`              | `'single' \| 'multiple' \| 'tags'` | `'single'` | Selection mode             |
-| `ariaLabel`         | `string`                           | -          | Accessible label           |
-| `className`         | `string`                           | -          | Additional CSS class       |
-| `name`              | `string`                           | -          | Field name                 |
-| `filterOption`      | `function \| boolean`              | -          | Custom filter function     |
-| `maxTagCount`       | `number \| 'responsive'`           | -          | Max tags to show           |
-| `getPopupContainer` | `function`                         | -          | Custom popup container     |
+| Prop                | Type                                   | Default    | Description                                                |
+| ------------------- | -------------------------------------- | ---------- | ---------------------------------------------------------- |
+| `size`              | `'sm' \| 'md' \| 'lg'`                 | `'md'`     | Size of the select                                         |
+| `fullWidth`         | `boolean`                              | `false`    | Whether to span full width                                 |
+| `error`             | `boolean`                              | `false`    | Error state for validation                                 |
+| `loading`           | `boolean`                              | `false`    | Loading state                                              |
+| `disabled`          | `boolean`                              | `false`    | Disabled state                                             |
+| `placeholder`       | `string`                               | -          | Placeholder text                                           |
+| `options`           | `SelectOption[]`                       | -          | Array of options                                           |
+| `value`             | `T \| T[]`                             | -          | Controlled value                                           |
+| `defaultValue`      | `T \| T[]`                             | -          | Default value                                              |
+| `onChange`          | `(value: T \| T[]) => void`            | -          | Change handler                                             |
+| `onBlur`            | `() => void`                           | -          | Blur handler                                               |
+| `allowClear`        | `boolean`                              | `false`    | Allow clearing selection                                   |
+| `showSearch`        | `boolean`                              | `false`    | Enable search                                              |
+| `mode`              | `'single' \| 'multiple' \| 'tags'`     | `'single'` | Selection mode                                             |
+| `ariaLabel`         | `string`                               | -          | Accessible label                                           |
+| `className`         | `string`                               | -          | Additional CSS class                                       |
+| `name`              | `string`                               | -          | Field name                                                 |
+| `filterOption`      | `function \| boolean`                  | -          | Custom filter function                                     |
+| `maxTagCount`       | `number \| 'responsive'`               | -          | Max tags to show                                           |
+| `getPopupContainer` | `function`                             | -          | Custom popup container                                     |
+| `popupRender`       | `(menu: ReactElement) => ReactElement` | -          | Custom popup render (replaces deprecated `dropdownRender`) |
+| `popupClassName`    | `string`                               | -          | Class name for the dropdown popup                          |
+| `optionLabelProp`   | `string`                               | -          | Which option prop to show in the selection box             |
 
 ## SelectOption Type
 
@@ -168,4 +171,4 @@ Custom classes:
 ## Related Components
 
 - [Button](/components/admin/common/Button/README.md) - Similar component pattern
-- [SlugInput](/components/admin/common/SlugInput/README.md) - Input with validation
+- [SlugInput](/components/admin/common/SlugInput/SlugInput.tsx) - Input with validation

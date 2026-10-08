@@ -110,7 +110,7 @@ The full task → document map is in `CLAUDE.md`. **Do not read `ai-context/` wh
 
 **New page** — `app/[lang]/` (public) or `app/admin/[lang]/`. Add `generateMetadata()`; public pages need canonical + hreflang (`ai-context/seo-rules.md`). Prefer server components for initial data fetching.
 
-**Type errors after API changes** — response types live in `types/api-schema/`, split by domain and maintained **by hand** against `https://api.bibliaris.com/docs-json`. This repo has no generation script: `yarn openapi:types:prod` in `books` writes `books/libs/api-client/src/types.ts`, which the front does not import. `types/api.ts` is hand-written too (`ApiError`, error-handling types) — **never** regenerate it. Layout of `types/api-schema/` by domain and the two-layer `yarn check:type-sync`: `ai-context/frontend.md`.
+**Type errors after API changes** — response types live in `types/api-schema/`, split by domain and maintained **by hand** against `https://api.bibliaris.com/docs-json`. This repo has no generation script; `books/libs/api-client/src/types.ts` (built from the backend contract snapshot by `yarn openapi:types:from-schema`) is not imported by the front. `types/api.ts` is hand-written too (`ApiError`, error-handling types) — **never** regenerate it. Layout of `types/api-schema/` by domain and the two-layer `yarn check:type-sync`: `ai-context/frontend.md`.
 
 ---
 

@@ -422,7 +422,7 @@ export function calculateDiscount(price: number, percent: number) {
 **When `export default` is acceptable:**
 
 - React component pages in Next.js (framework requirement)
-- Configuration files (`next.config.js`, `tailwind.config.ts`)
+- Configuration files (`next.config.js`)
 
 ---
 
@@ -1351,8 +1351,8 @@ The project is configured with the following ESLint rules:
   on an entry that does not actually apply, and on an entry whose file no longer violates
   the rule. It does **not** catch an entry added to the config and to the test's own
   reference list in one go — that is `LEGACY-284`, and the rule against it is a rule, not
-  a machine. Clearing the
-  backlog itself is `LEGACY-050`, not a side task of whatever you are doing
+  a machine. The backlog itself is accepted debt under `LEGACY-284` (the legal pages
+  were closed under `LEGACY-050`); clearing it is not a side task of whatever you are doing
 
 ### Code check before commit
 

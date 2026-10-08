@@ -1,21 +1,22 @@
 # Input Component
 
-Reusable Input component wrapping Ant Design Input with extended API for project consistency.
+Site input built on the native `<input>` element. No antd, no `@ant-design/icons` — the
+public site does not ship antd (`.eslintrc.json`, LEGACY-442). Admin forms may use it as well.
 
 ## Features
 
-- **Sizes**: `sm`, `md`, `lg` - mapped to antd small/middle/large
-- **Error State**: Visual error indication for form validation
-- **Loading State**: Shows spinner when processing
-- **Full Width**: Option to span full container width
-- **Password Type**: Built-in visibility toggle
-- **Prefix/Suffix**: Support for icons or custom elements
-- **Character Count**: Optional max length with counter
-- **react-hook-form**: Seamless integration with register or Controller
+- **Sizes**: `sm`, `md`, `lg`
+- **Error State**: visual error indication plus `aria-invalid`
+- **Loading State**: shows a spinner and disables the field
+- **Read-only**: value is shown and submitted, but cannot be edited
+- **Full Width**: option to span the full container width
+- **Password Type**: built-in visibility toggle
+- **Left Icon**: any `ReactNode` rendered before the field
+- **Clear Button**: optional, hidden when disabled, read-only or loading
+- **Character Count**: with `maxLength` and `showCount`
+- **react-hook-form**: works with `register` (forwards `ref`) or `Controller`
 
-## Installation
-
-The component is part of the common components library. Import from:
+## Import
 
 ```tsx
 import { Input } from '@/components/common/Input';
@@ -27,7 +28,7 @@ import type { InputProps } from '@/components/common/Input';
 ### Basic Usage
 
 ```tsx
-<Input placeholder="Enter text" onChange={(e) => console.log(e.target.value)} />
+<Input placeholder="Enter text" onChange={(e) => setValue(e.target.value)} />
 ```
 
 ### With react-hook-form (register)
@@ -61,32 +62,28 @@ import { Input } from '@/components/common/Input';
 />;
 ```
 
+### Read-only vs disabled
+
+```tsx
+<Input {...register('slug')} readOnly />
+```
+
+Use `readOnly`, not `disabled`, to show a value that must still be submitted:
+react-hook-form drops disabled fields from form data, so a required field with
+`disabled` fails validation and the form stops saving.
+
 ### Password with Toggle
 
 ```tsx
 <Input type="password" placeholder="Enter password" />
 ```
 
-### With Error State
+### With Left Icon
 
 ```tsx
-<Input error={!!errors.name} placeholder="Name" />
-```
+import { Search } from 'lucide-react';
 
-### With Prefix Icon
-
-```tsx
-import { SearchOutlined } from '@ant-design/icons';
-
-<Input prefix={<SearchOutlined />} placeholder="Search..." />;
-```
-
-### With Suffix Icon
-
-```tsx
-import { MailOutlined } from '@ant-design/icons';
-
-<Input suffix={<MailOutlined />} placeholder="Email" type="email" />;
+<Input leftIcon={<Search size={16} />} placeholder="Search..." />;
 ```
 
 ### Full Width with Max Length
@@ -103,75 +100,59 @@ import { MailOutlined } from '@ant-design/icons';
 <Input size="lg" placeholder="Large" />
 ```
 
-### With Loading State
+### Loading, Clear, Autocomplete
 
 ```tsx
 <Input loading={isLoading} placeholder="Loading..." />
-```
-
-### With Allow Clear
-
-```tsx
 <Input allowClear placeholder="Clearable input" />
-```
-
-### Number Input
-
-```tsx
-<Input type="number" placeholder="Enter number" />
-```
-
-### Email Input with Autocomplete
-
-```tsx
 <Input type="email" autoComplete="email" placeholder="Email address" />
 ```
 
 ## Props
 
-| Prop           | Type                                                   | Default  | Description                 |
-| -------------- | ------------------------------------------------------ | -------- | --------------------------- |
-| `size`         | `'sm' \| 'md' \| 'lg'`                                 | `'md'`   | Size of the input           |
-| `fullWidth`    | `boolean`                                              | `false`  | Whether to span full width  |
-| `error`        | `boolean`                                              | `false`  | Error state for validation  |
-| `disabled`     | `boolean`                                              | `false`  | Disabled state              |
-| `loading`      | `boolean`                                              | `false`  | Loading state               |
-| `placeholder`  | `string`                                               | -        | Placeholder text            |
-| `value`        | `string`                                               | -        | Controlled value            |
-| `defaultValue` | `string`                                               | -        | Default value               |
-| `onChange`     | `(e: ChangeEvent<HTMLInputElement>) => void`           | -        | Change handler              |
-| `onBlur`       | `() => void`                                           | -        | Blur handler                |
-| `type`         | `'text' \| 'password' \| 'email' \| 'url' \| 'number'` | `'text'` | Input type                  |
-| `prefix`       | `ReactNode`                                            | -        | Prefix icon/element         |
-| `suffix`       | `ReactNode`                                            | -        | Suffix icon/element         |
-| `allowClear`   | `boolean`                                              | `false`  | Show clear button           |
-| `maxLength`    | `number`                                               | -        | Maximum character length    |
-| `showCount`    | `boolean`                                              | `false`  | Show character count        |
-| `ariaLabel`    | `string`                                               | -        | Accessible label            |
-| `className`    | `string`                                               | -        | Additional CSS class        |
-| `name`         | `string`                                               | -        | Field name for forms        |
-| `autoComplete` | `string`                                               | -        | HTML autocomplete attribute |
+| Prop           | Type                                                   | Default  | Description                                         |
+| -------------- | ------------------------------------------------------ | -------- | --------------------------------------------------- |
+| `size`         | `'sm' \| 'md' \| 'lg'`                                 | `'md'`   | Size of the input                                   |
+| `fullWidth`    | `boolean`                                              | `false`  | Span the full container width                       |
+| `error`        | `boolean`                                              | `false`  | Error state, also sets `aria-invalid`               |
+| `disabled`     | `boolean`                                              | `false`  | Disabled state (excluded from react-hook-form data) |
+| `readOnly`     | `boolean`                                              | `false`  | Shown and submitted, not editable                   |
+| `loading`      | `boolean`                                              | `false`  | Shows spinner, disables the field                   |
+| `placeholder`  | `string`                                               | -        | Placeholder text                                    |
+| `value`        | `string`                                               | -        | Controlled value                                    |
+| `defaultValue` | `string`                                               | -        | Initial value (uncontrolled mode)                   |
+| `onChange`     | `(e: ChangeEvent<HTMLInputElement>) => void`           | -        | Change handler; clear button sends an empty value   |
+| `onBlur`       | `(e?: FocusEvent<HTMLInputElement>) => void`           | -        | Blur handler                                        |
+| `type`         | `'text' \| 'password' \| 'email' \| 'url' \| 'number'` | `'text'` | Input type                                          |
+| `allowClear`   | `boolean`                                              | `false`  | Show clear button                                   |
+| `maxLength`    | `number`                                               | -        | Maximum character length                            |
+| `showCount`    | `boolean`                                              | `false`  | Show character count (needs `maxLength`)            |
+| `ariaLabel`    | `string`                                               | -        | Accessible label (`aria-label`)                     |
+| `className`    | `string`                                               | -        | Additional class on the wrapper                     |
+| `name`         | `string`                                               | -        | Field name for forms                                |
+| `id`           | `string`                                               | `name`   | HTML id; falls back to `name`                       |
+| `autoComplete` | `string`                                               | -        | HTML autocomplete attribute                         |
+| `leftIcon`     | `ReactNode`                                            | -        | Icon rendered on the left side                      |
+
+The component forwards `ref` to the native `<input>`.
 
 ## Styling
 
-The component uses SCSS modules with design tokens from `@/styles/tokens.scss`.
+SCSS module `Input.module.scss` with design tokens from `@/styles/tokens.scss`.
 
-Custom classes:
-
-- `.input` - Base styles
-- `.fullWidth` - Full width mode
-- `.error` - Error state styling
-- `.spinner` - Loading spinner
+Main classes: `.inputWrapper`, `.input`, `.size-sm` / `.size-md` / `.size-lg`, `.fullWidth`,
+`.error`, `.disabled` (also used for read-only), `.loading`, `.spinner`, `.clearButton`,
+`.passwordToggle`, `.leftIcon`, `.hasLeftIcon`, `.charCount`.
 
 ## Accessibility
 
-- Supports `aria-label` prop for screen readers
-- Proper `id` and `name` attributes for form association
-- Keyboard navigation support
-- Focus management
+- `ariaLabel` maps to `aria-label`
+- `error` maps to `aria-invalid`
+- `id` defaults to `name` for `<label htmlFor>` association
+- Clear and password-toggle buttons have their own `aria-label`
 
 ## Related Components
 
 - [Button](/components/common/Button/Button.types.ts) - site button (no antd); admin forms use [the antd wrapper](/components/admin/common/Button/README.md)
-- [Select](/components/admin/common/Select/README.md) - Select/dropdown component
-- [SlugInput](/components/admin/common/SlugInput/README.md) - Specialized slug input
+- [Select](/components/admin/common/Select/README.md) - admin Select/dropdown component (antd)
+- [SlugInput](/components/admin/common/SlugInput/SlugInput.tsx) - admin slug input

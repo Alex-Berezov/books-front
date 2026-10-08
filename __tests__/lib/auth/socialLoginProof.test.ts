@@ -6,7 +6,8 @@ import type { Account, User } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 
 /**
- * Control landings for step 2 of tasks/auth-social/CR.md.
+ * Control landings for the social sign-in proof (LEGACY-070,
+ * books-app-docs/ai-context/legacy-warnings.md).
  *
  * The frontend used to name the account it wanted a session for — it POSTed
  * `{ email }` and the backend obliged. What has to hold now is narrower and

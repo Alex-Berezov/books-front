@@ -231,7 +231,7 @@ export const authOptions = {
     // alive for it. The backend still verifies Facebook tokens
     // (SocialIdentityService), so bringing it back is: register the provider
     // here, send account.access_token, and set AUTH_FACEBOOK_ID/SECRET on the
-    // API. See tasks/auth-social/CR.md.
+    // API. See LEGACY-070 in books-app-docs/ai-context/legacy-warnings.md.
   ],
 
   // Callbacks for JWT and session handling

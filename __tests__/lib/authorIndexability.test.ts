@@ -4,7 +4,7 @@ import { isAuthorLinkable } from '@/lib/seo/author-linkable';
 import { buildRobotsByCount, toCountResult } from '@/lib/utils/seo-indexing';
 
 /**
- * `books-app-docs/tasks/authors-indexability/TASK.md`.
+ * `books-app-docs/ai-context/seo-rules.md`, раздел «Author sitemaps».
  *
  * Авторы были единственным публичным типом страниц, целиком выпавшим из контура
  * «ссылка = sitemap = robots»: `sitemap-authors-en.xml` перечислял 10 URL из 10,

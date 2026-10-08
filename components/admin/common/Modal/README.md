@@ -185,19 +185,22 @@ export const MyComponent = () => {
 
 ## Props
 
-| Prop                  | Type                                                    | Required | Default     | Description                      |
-| --------------------- | ------------------------------------------------------- | -------- | ----------- | -------------------------------- |
-| `isOpen`              | `boolean`                                               | ✅       | -           | Whether to show modal            |
-| `title`               | `string`                                                | ✅       | -           | Modal title                      |
-| `children`            | `ReactNode`                                             | ✅       | -           | Modal content                    |
-| `onConfirm`           | `() => void`                                            | ✅       | -           | Callback on confirm              |
-| `onCancel`            | `() => void`                                            | ✅       | -           | Callback on cancel/close         |
-| `confirmText`         | `string`                                                | ❌       | `'Confirm'` | Confirm button text              |
-| `cancelText`          | `string`                                                | ❌       | `'Cancel'`  | Cancel button text               |
-| `confirmVariant`      | `'primary'` \| `'danger'` \| `'warning'` \| `'success'` | ❌       | `'primary'` | Confirm button style variant     |
-| `isLoading`           | `boolean`                                               | ❌       | `false`     | Loading state (disables buttons) |
-| `closeOnOverlayClick` | `boolean`                                               | ❌       | `true`      | Close on overlay click           |
-| `closeOnEscape`       | `boolean`                                               | ❌       | `true`      | Close on Escape                  |
+| Prop                  | Type                                                    | Required | Default     | Description                                             |
+| --------------------- | ------------------------------------------------------- | -------- | ----------- | ------------------------------------------------------- |
+| `isOpen`              | `boolean`                                               | ✅       | -           | Whether to show modal                                   |
+| `title`               | `string`                                                | ✅       | -           | Modal title                                             |
+| `children`            | `ReactNode`                                             | ✅       | -           | Modal content                                           |
+| `onCancel`            | `() => void`                                            | ✅       | -           | Callback on cancel/close                                |
+| `onConfirm`           | `() => void`                                            | ❌       | -           | Callback on confirm                                     |
+| `confirmText`         | `string`                                                | ❌       | `'Confirm'` | Confirm button text                                     |
+| `cancelText`          | `string`                                                | ❌       | `'Cancel'`  | Cancel button text                                      |
+| `confirmVariant`      | `'primary'` \| `'danger'` \| `'warning'` \| `'success'` | ❌       | `'primary'` | Confirm button style variant                            |
+| `size`                | `'sm'` \| `'md'` \| `'lg'` \| `'xl'`                    | ❌       | `'md'`      | Modal size                                              |
+| `isLoading`           | `boolean`                                               | ❌       | `false`     | Loading state (disables buttons)                        |
+| `isConfirmDisabled`   | `boolean`                                               | ❌       | `false`     | Disables the confirm button                             |
+| `showFooter`          | `boolean`                                               | ❌       | `true`      | Show footer buttons                                     |
+| `closeOnOverlayClick` | `boolean`                                               | ❌       | `true`      | Close on overlay click                                  |
+| `closeOnEscape`       | `boolean`                                               | ❌       | `true`      | Close on Escape; a nested dialog keeps Escape to itself |
 
 ## Button variants (`confirmVariant`)
 
@@ -354,11 +357,6 @@ const handleConfirm = () => {
 
 ## TODO / Future improvements
 
-- [ ] Keyboard shortcuts support (Esc to cancel, Enter to confirm)
-- [ ] Accessibility: trap focus inside modal
-- [ ] Accessibility: restore focus on close
+- [ ] Keyboard shortcut: Enter to confirm
 - [ ] Optional icon in header (info, warning, success, error)
-- [ ] Different modal sizes support (sm, md, lg, xl)
-- [ ] Optional footer (ability to hide buttons completely)
-- [ ] Tests (unit + integration + accessibility)
 - [ ] Storybook stories for all use cases

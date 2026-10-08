@@ -116,24 +116,24 @@ job выката не идёт. Но job `build` от гейта не завис
 
 ## Что читать под какую задачу
 
-| Задача                       | Файлы                                                                                                     |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Новый компонент              | `components/<область>/<Имя>/`, `styles/tokens.scss`, `CODE_STYLE.md`, `ai-context/ui-kit.md`              |
-| Вызов API                    | `api/endpoints/`, `api/hooks/`, `lib/http.ts`, `types/api-schema/`                                        |
-| Новая страница               | `app/[lang]/`, `lib/utils/fetch-page.ts`, `lib/seo/urls.ts`, `ai-context/seo-rules.md`                    |
-| SEO, canonical, hreflang     | `lib/seo/urls.ts`, `lib/seo/hreflang-alternates.ts`, `lib/utils/seo-indexing.ts`, `lib/seo/degraded.ts`   |
-| Карта сайта и robots         | `app/sitemap.xml/`, `app/sitemaps/[filename]/`, `lib/sitemap/utils.ts`, `lib/system-pages.ts`             |
-| llms.txt                     | `app/llms.txt/`, `lib/seo/llms.ts`, `lib/seo/landing-presence.ts`                                         |
-| Вход, роли, защита маршрутов | `middleware.ts`, `lib/middleware.constants.ts`, `lib/auth/`, `ai-context/auth-and-permissions.md`         |
-| Языки и словари              | `lib/i18n/lang.ts`, `lib/i18n/locales/*.json`, `lib/i18n/dictionaries.ts`, `scripts/check-langs-sync.mjs` |
-| Новый раздел сайта           | `app/[lang]/`, `lib/constants/reserved-slugs.ts`, `scripts/check-reserved-slugs.mjs`                      |
-| Кэш и react-query            | `providers/AppProviders.tsx`, `lib/queryClient.constants.ts`, `api/hooks/index.ts`                        |
-| Ошибки и деградация          | `lib/errors.ts`, `types/api.ts`, `lib/utils/content-failure.ts`, `lib/utils/log-error.ts`                 |
-| Стили и токены               | `styles/tokens.scss`, `styles/globals.css`, `CODE_STYLE.md`                                               |
-| Тесты                        | `__tests__/<зеркало пути>`, `__tests__/msw/handlers.ts`, `vitest.config.ts`, `setupTests.ts`              |
-| Переменные окружения         | `.env.example`, `scripts/check-env.mjs`, `scripts/check-site-url.mjs`                                     |
-| Перед рефакторингом          | `ai-context/legacy-warnings.md` (секцией), `ai-context/tech-debt-journal.md`                              |
-| Правила сдачи                | `ai-context/quality-gates.md`, `ai-context/definition-of-done.md`, `.claude/qa-lessons.md`                |
+| Задача                       | Файлы                                                                                                       |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Новый компонент              | `components/<область>/<Имя>/`, `styles/tokens.scss`, `CODE_STYLE.md`, `ai-context/ui-kit.md`                |
+| Вызов API                    | `api/endpoints/`, `api/hooks/`, `lib/http.ts`, `types/api-schema/`                                          |
+| Новая страница               | `app/[lang]/`, `lib/utils/fetch-page.ts`, `lib/seo/urls.ts`, `ai-context/seo-rules.md`                      |
+| SEO, canonical, hreflang     | `lib/seo/urls.ts`, `lib/seo/hreflang-alternates.ts`, `lib/utils/seo-indexing.ts`, `lib/seo/degraded.ts`     |
+| Карта сайта и robots         | `app/sitemap.xml/`, `app/sitemaps/[filename]/`, `lib/sitemap/utils.ts`, `lib/system-pages.ts`               |
+| llms.txt                     | `app/llms.txt/`, `lib/seo/llms.ts`, `lib/seo/landing-presence.ts`                                           |
+| Вход, роли, защита маршрутов | `middleware.ts`, `lib/middleware.constants.ts`, `lib/auth/`, `ai-context/auth-and-permissions.md`           |
+| Языки и словари              | `lib/i18n/lang.ts`, `lib/i18n/locales/*.json`, `lib/i18n/dictionaries.ts`, `scripts/check-langs-sync.mjs`   |
+| Новый раздел сайта           | `app/[lang]/`, `lib/constants/reserved-slugs.ts`, `scripts/check-reserved-slugs.mjs`                        |
+| Кэш и react-query            | `providers/AppProviders.tsx`, `lib/queryClient.constants.ts`, `api/hooks/index.ts`                          |
+| Ошибки и деградация          | `lib/errors.ts`, `types/api.ts`, `lib/utils/content-failure.ts`, `lib/utils/log-error.ts`                   |
+| Стили и токены               | `styles/tokens.scss`, `styles/globals.css`, `CODE_STYLE.md`                                                 |
+| Тесты                        | `__tests__/<зеркало пути>`, `__tests__/msw/handlers.ts`, `vitest.config.ts`, `setupTests.ts`                |
+| Переменные окружения         | `.env.example`, `scripts/check-env.mjs`, `scripts/check-site-url.mjs`                                       |
+| Перед рефакторингом          | `ai-context/legacy-warnings.md` (секцией), `ai-context/tech-debt-journal.md`                                |
+| Правила сдачи                | `ai-context/quality-gates.md`, `ai-context/definition-of-done.md`, `../.claude/qa-lessons.md` (общая папка) |
 
 Документ больше десяти килобайт читай секцией: `grep -nE "^## " <файл>`, потом `Read` с `offset`
 и `limit`. Заголовки и даты в шапках документов систематически расходятся с реальностью - верь

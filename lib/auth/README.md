@@ -8,7 +8,10 @@
 lib/auth/
 ├── auth.ts              # NextAuth v5 instance (auth, signIn, signOut, handlers)
 ├── config.ts            # NextAuth configuration with providers and callbacks
+├── constants.ts         # Token lifetimes, error types, roles, auth routes
 ├── helpers.ts           # Utilities for working with session on server
+├── session-utils.ts     # Access token getters for client and server requests
+├── sessionMarker.ts     # Client "probably logged in" marker for SessionProvider
 └── README.md            # This documentation
 
 app/api/auth/[...nextauth]/
@@ -30,8 +33,8 @@ types/
 - API Route Handler (`/api/auth/*`)
 - SessionProvider integrated into `AppProviders`
 - Server helpers (`getCurrentUser`, `isStaff`, `hasRole`)
-- Sign-in / register / error pages
-- Middleware protecting admin + private routes (`/read`, `/listen`, `/summary`)
+- Sign-in / register pages
+- Middleware protecting `/admin/**` only (reading, listening and summaries are public)
 
 ## 🔧 Usage
 
@@ -143,110 +146,6 @@ interface JWT {
   refreshToken: string;
   accessTokenExpires: number; // Unix timestamp
   error?: 'RefreshAccessTokenError';
-}
-```
-
-## 📋 Implementation reference (historical)
-
-> The steps below are all **implemented**. Kept as a reference of what was built.
-
-### 1. Implement Authorization
-
-**File:** `lib/auth/config.ts`
-
-- [ ] Implement `authorize()` function in CredentialsProvider
-- [ ] Call `POST /api/auth/login` with credentials
-- [ ] Handle errors (400, 401, 429)
-- [ ] Return User object with tokens
-
-### 2. Implement JWT Callback
-
-**File:** `lib/auth/config.ts`
-
-- [ ] Save tokens in JWT on login
-- [ ] Check accessToken expiration
-- [ ] Call `refreshAccessToken()` if token expired
-- [ ] Handle refresh errors
-
-### 3. Implement Session Callback
-
-**File:** `lib/auth/config.ts`
-
-- [ ] Pass data from JWT to Session
-- [ ] Add user information and roles
-- [ ] Handle refresh errors
-
-### 4. Implement Refresh Logic
-
-**File:** `lib/auth/config.ts`, function `refreshAccessToken()`
-
-- [ ] Call `POST /api/auth/refresh` with refreshToken
-- [ ] Handle successful refresh (200)
-- [ ] Handle errors (401, 403)
-- [ ] Return updated token or error
-
-### 5. Create Pages
-
-- [ ] `/[lang]/auth/sign-in/page.tsx` - login form
-- [ ] `/[lang]/auth/error/page.tsx` - error page
-- [ ] `/[lang]/auth/register/page.tsx` - registration (optional)
-
-### 6. Integrate into AppProviders
-
-**File:** `providers/AppProviders.tsx`
-
-```typescript
-import { SessionProvider } from 'next-auth/react';
-
-export function AppProviders({ children }) {
-  return (
-    <SessionProvider>
-      <QueryClientProvider client={queryClient}>
-        <ConfigProvider theme={theme}>{children}</ConfigProvider>
-      </QueryClientProvider>
-    </SessionProvider>
-  );
-}
-```
-
-### 7. Protect Admin Routes
-
-**Option 1: Middleware**
-
-```typescript
-// middleware.ts
-import { auth } from '@/lib/auth/auth';
-import { NextResponse } from 'next/server';
-
-export default auth((req) => {
-  if (req.nextUrl.pathname.startsWith('/admin')) {
-    if (!req.auth) {
-      return NextResponse.redirect(new URL('/en/auth/sign-in', req.url));
-    }
-  }
-});
-```
-
-**Option 2: Layout Check**
-
-```typescript
-// app/admin/[lang]/layout.tsx
-import { getCurrentUser, isStaff } from '@/lib/auth/helpers';
-import { redirect } from 'next/navigation';
-
-export default async function AdminLayout({ children, params }) {
-  const session = await getCurrentUser();
-
-  if (!session) {
-    redirect(`/${params.lang}/auth/sign-in`);
-  }
-
-  const hasAccess = await isStaff();
-  if (!hasAccess) {
-    redirect(`/${params.lang}`);
-  }
-
-  return <>{children}</>;
 }
 ```
 

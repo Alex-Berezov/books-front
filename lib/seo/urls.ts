@@ -4,7 +4,7 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 /**
  * Single source of truth for PUBLIC page URLs (canonical, hreflang, og:url,
  * JSON-LD, sitemap). Direct string concatenation with a host is forbidden
- * elsewhere — see tasks/tz-seo-subdomain-leak.md.
+ * elsewhere — see books-app-docs/ai-context/seo-rules.md, section «canonical».
  *
  * `NEXT_PUBLIC_API_BASE_URL` is for data fetching only and must never reach
  * this module. Service subdomains that arrive from the backend SEO payload are
