@@ -9,8 +9,7 @@ import { describe, expect, it } from 'vitest';
 
 const REPO_ROOT = resolve(__dirname, '..');
 
-// Существующие файлы: конфигурация типозависима, на пути вне программы TypeScript
-// разбор падает до правила.
+// Существующие файлы: правила берут зону (`files` в `overrides`) по пути пробы.
 const PUBLIC_PROBES = [
   'app/[lang]/book/[slug]/BookActions.tsx',
   'components/common/FaqBlock/FaqBlock.tsx',
@@ -59,8 +58,18 @@ interface EslintApi {
 }
 
 // `require`, а не `import`: `@types/eslint` в зависимостях нет (тот же приём — `eslintA11yRules.test.ts`).
+//
+// ⚠️ Разбор без типов: правилам импорта TypeScript-программа не нужна, а с ней каждый
+// `lintText` строит её заново — первая версия сторожа занимала процессор CI на полторы
+// минуты и роняла по таймауту соседние тяжёлые тесты. Снимается только `project` и
+// правило override, которому нужны типы (`return-await`; появится второе — дописать сюда); запреты импорта и их зоны — из настоящего
+// `.eslintrc.json`, как есть.
 const eslint: EslintApi = new (createRequire(resolve(REPO_ROOT, 'package.json'))('eslint').ESLint)({
   cwd: REPO_ROOT,
+  overrideConfig: {
+    parserOptions: { project: null },
+    rules: { '@typescript-eslint/return-await': 'off' },
+  },
 });
 
 const restricted = async (
@@ -69,6 +78,12 @@ const restricted = async (
   ruleId = 'no-restricted-imports'
 ): Promise<LintMessage[]> => {
   const [result] = await eslint.lintText(code, { filePath: resolve(REPO_ROOT, path) });
+  // Упавший разбор даёт сообщение без правила: отфильтрованный пустой список выглядел бы
+  // как «разрешено», хотя правило не запускалось вовсе.
+  expect(
+    result.messages.filter((message) => message.ruleId === null),
+    code
+  ).toEqual([]);
   return result.messages.filter((message) => message.ruleId === ruleId);
 };
 
@@ -86,27 +101,19 @@ const RELATIVE_ADMIN_IMPORTS: Array<[string, string]> = [
 ];
 
 describe('antd только в админке (LEGACY-442)', () => {
-  it.each(PUBLIC_PROBES)(
-    'вне админки импорт antd — ошибка линта: %s',
-    async (path) => {
-      for (const code of IMPORTS) {
-        const messages = await restricted(code, path);
-        expect(messages, code).toHaveLength(1);
-        expect(messages[0].severity).toBe(2);
-      }
-    },
-    120_000
-  );
+  it.each(PUBLIC_PROBES)('вне админки импорт antd — ошибка линта: %s', async (path) => {
+    for (const code of IMPORTS) {
+      const messages = await restricted(code, path);
+      expect(messages, code).toHaveLength(1);
+      expect(messages[0].severity).toBe(2);
+    }
+  });
 
-  it.each(ADMIN_PROBES)(
-    'в админке и её теме импорт antd разрешён: %s',
-    async (path) => {
-      for (const code of IMPORTS) {
-        expect(await restricted(code, path), code).toHaveLength(0);
-      }
-    },
-    120_000
-  );
+  it.each(ADMIN_PROBES)('в админке и её теме импорт antd разрешён: %s', async (path) => {
+    for (const code of IMPORTS) {
+      expect(await restricted(code, path), code).toHaveLength(0);
+    }
+  });
 
   it.each(PUBLIC_PROBES)(
     'вне админки импорт админских компонентов — ошибка линта: %s',
@@ -116,19 +123,14 @@ describe('antd только в админке (LEGACY-442)', () => {
         expect(messages, code).toHaveLength(1);
         expect(messages[0].severity).toBe(2);
       }
-    },
-    120_000
+    }
   );
 
-  it.each(ADMIN_PROBES)(
-    'в админке её компоненты импортируются свободно: %s',
-    async (path) => {
-      for (const code of ADMIN_IMPORTS) {
-        expect(await restricted(code, path), code).toHaveLength(0);
-      }
-    },
-    120_000
-  );
+  it.each(ADMIN_PROBES)('в админке её компоненты импортируются свободно: %s', async (path) => {
+    for (const code of ADMIN_IMPORTS) {
+      expect(await restricted(code, path), code).toHaveLength(0);
+    }
+  });
 
   it('в тестах админский код разрешён, а antd — нет', async () => {
     for (const code of ADMIN_IMPORTS) {
@@ -137,7 +139,7 @@ describe('antd только в админке (LEGACY-442)', () => {
     for (const code of IMPORTS) {
       expect(await restricted(code, TEST_PROBE), code).toHaveLength(1);
     }
-  }, 120_000);
+  });
 
   it.each(RELATIVE_ADMIN_IMPORTS)(
     'относительный импорт админки с сайта — ошибка по настоящему пути: %s',
@@ -145,8 +147,7 @@ describe('antd только в админке (LEGACY-442)', () => {
       const messages = await restricted(code, path, 'import/no-restricted-paths');
       expect(messages, code).toHaveLength(1);
       expect(messages[0].severity).toBe(2);
-    },
-    120_000
+    }
   );
 
   it('внутри админки тот же относительный импорт разрешён', async () => {
@@ -156,7 +157,7 @@ describe('antd только в админке (LEGACY-442)', () => {
       'import/no-restricted-paths'
     );
     expect(messages).toHaveLength(0);
-  }, 120_000);
+  });
 
   it('чистый импорт на сайте правило не задевает', async () => {
     const messages = await restricted(
@@ -164,5 +165,5 @@ describe('antd только в админке (LEGACY-442)', () => {
       'components/common/FaqBlock/FaqBlock.tsx'
     );
     expect(messages).toHaveLength(0);
-  }, 120_000);
+  });
 });
