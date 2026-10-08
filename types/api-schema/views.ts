@@ -9,11 +9,11 @@ import type { UUID } from './common';
 
 /**
  * View source enum (backend ENUM).
- * - `reader`   — text reader
+ * - `text`     — text reader
  * - `audio`    — audio player
  * - `referral` — referral link opened
  */
-export type ViewSource = 'reader' | 'audio' | 'referral';
+export type ViewSource = 'text' | 'audio' | 'referral';
 
 /**
  * Request body for `POST /views`.
