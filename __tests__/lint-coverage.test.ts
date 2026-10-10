@@ -249,6 +249,8 @@ describe('единственная точка входа проверок (LEGAC
    * менять можно, а вот потерять шаг — нет. Так уже уезжали релизы мимо проверки.
    */
   it.each([
+    'audit:deps:self-test',
+    'audit:deps',
     'check:env',
     'check:langs',
     'check:reserved-slugs',
@@ -257,6 +259,10 @@ describe('единственная точка входа проверок (LEGAC
     'typecheck',
     'test:coverage',
   ])('yarn ci по-прежнему включает %s', (step) => {
-    expect(packageJson().scripts.ci).toContain(step);
+    // По шагам, а не подстрокой: `audit:deps` иначе находился бы внутри `audit:deps:self-test`.
+    const steps = packageJson()
+      .scripts.ci.split('&&')
+      .map((part: string) => part.trim());
+    expect(steps).toContain(`yarn ${step}`);
   });
 });

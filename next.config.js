@@ -57,7 +57,9 @@ const nextConfig = {
     dirs: ['app', 'lib', 'components', 'api', 'providers', 'types'],
   },
   images: {
-    formats: ['image/avif', 'image/webp'],
+    // LEGACY-448: без `image/avif` — Critical RCE оптимизатора в `next` 14. Частичная мера: AVIF-исходник
+    // до `/_next/image` всё ещё доходит, закрывает переезд `T121`; вернуть формат можно только после него.
+    formats: ['image/webp'],
     imageSizes: [96, 112, 144, 176, 256, 320],
     /**
      * ⚠️ Подстановка в доменной части верхнего уровня (`**.com` и любая другая) сюда

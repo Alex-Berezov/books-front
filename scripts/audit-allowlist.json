@@ -1,0 +1,108 @@
+[
+  {
+    "id": "GHSA-h25m-26qc-wcjf",
+    "class": "достижим, принят до пачки",
+    "reason": "next 14: Next.js HTTP request deserialization can lead to DoS when using insecure React Server Components; исправление только в next >=15.5, переезд — T121",
+    "batch": "T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-q4gf-8mx6-v5v3",
+    "class": "достижим, принят до пачки",
+    "reason": "next 14: Next.js has a Denial of Service with Server Components; исправление только в next >=15.5, переезд — T121",
+    "batch": "T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-8h8q-6873-q5fj",
+    "class": "достижим, принят до пачки",
+    "reason": "next 14: Next.js Vulnerable to Denial of Service with Server Components; исправление только в next >=15.5, переезд — T121",
+    "batch": "T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-c4j6-fc7j-m34r",
+    "class": "достижим, принят до пачки",
+    "reason": "next 14: Next.js vulnerable to server-side request forgery in applications using WebSocket upgrades; исправление только в next >=15.5, переезд — T121",
+    "batch": "T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-36qx-fr4f-26g5",
+    "class": "достижим, принят до пачки",
+    "reason": "next 14: Next.js has a Middleware / Proxy bypass in Pages Router applications using i18n; исправление только в next >=15.5, переезд — T121",
+    "batch": "T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-m99w-x7hq-7vfj",
+    "class": "достижим, принят до пачки",
+    "reason": "next 14: Next.js: Denial of Service in App Router using Server Actions; исправление только в next >=15.5, переезд — T121",
+    "batch": "T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-89xv-2m56-2m9x",
+    "class": "достижим, принят до пачки",
+    "reason": "next 14: Next.js: Server-Side Request Forgery in Server Actions on custom servers; исправление только в next >=15.5, переезд — T121",
+    "batch": "T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-p9j2-gv94-2wf4",
+    "class": "достижим, принят до пачки",
+    "reason": "next 14: Next.js: Server-Side Request Forgery in rewrites via attacker-controlled destination hostname; исправление только в next >=15.5, переезд — T121",
+    "batch": "T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-6g55-p6wh-862q",
+    "class": "недостижим",
+    "reason": "postcss внутри next (PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments): вложенный postcss next зовёт только при сборке над CSS из репозитория, вход из сети не принимает; уходит вместе с переездом T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-r28c-9q8g-f849",
+    "class": "недостижим",
+    "reason": "postcss внутри next (PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure): вложенный postcss next зовёт только при сборке над CSS из репозитория, вход из сети не принимает; уходит вместе с переездом T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-p293-qw3h-jr36",
+    "class": "достижим, принят до пачки",
+    "reason": "next 14: Next.js: Unauthenticated Remote Code Execution on windows-hosted servers; исправление только в next >=15.5, переезд — T121; прод на Linux (node:22-alpine), Windows-хост не используется",
+    "batch": "T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-2xp9-vwfh-vxw4",
+    "class": "достижим, принят до пачки",
+    "reason": "next 14: Next.js: Unauthenticated Remote Code Execution in Image Optimization API when AVIF files are used; исправление только в next >=15.5, переезд — T121; выдача AVIF оптимизатором отключена в T120 — частичная мера: AVIF-исходник до /_next/image всё ещё доходит",
+    "batch": "T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-28wg-ghj8-5hjv",
+    "class": "недостижим",
+    "reason": "nanoid внутри next (nanoid: non-secure generators can loop indefinitely with negative size): вложенный postcss next зовёт только при сборке над CSS из репозитория, вход из сети не принимает; уходит вместе с переездом T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-2v37-7h3g-55p8",
+    "class": "недостижим",
+    "reason": "nanoid внутри next (nanoid: custom generators can loop indefinitely when size is zero): вложенный postcss next зовёт только при сборке над CSS из репозитория, вход из сети не принимает; уходит вместе с переездом T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-xwg4-73v4-xw9w",
+    "class": "недостижим",
+    "reason": "nanoid внутри next (nanoid: Integer Overflow or Wraparound): вложенный postcss next зовёт только при сборке над CSS из репозитория, вход из сети не принимает; уходит вместе с переездом T121",
+    "expires": "2026-11-08"
+  },
+  {
+    "id": "GHSA-68fv-2mgg-jv7q",
+    "class": "недостижим",
+    "reason": "source-map-js внутри next (source-map-js allows event-loop denial of service through indexed source-map section offsets): вложенный postcss next зовёт только при сборке над CSS из репозитория, вход из сети не принимает; уходит вместе с переездом T121",
+    "expires": "2026-11-08"
+  }
+]

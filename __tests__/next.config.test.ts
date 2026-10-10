@@ -224,3 +224,15 @@ describe('next.config.js: images.remotePatterns', () => {
     expect(isOptimizableHost('https://upload.wikimedia.org/a.jpg')).toBe(false);
   });
 });
+
+/**
+ * LEGACY-448. В `next` 14 оптимизатор картинок с AVIF — Critical RCE (исправление только в 15.5.x),
+ * поэтому `image/avif` из `images.formats` не возвращается, пока `next` не переехал (`T121`).
+ */
+describe('images.formats', () => {
+  it('не содержит image/avif', async () => {
+    vi.resetModules();
+    const config = (await import('../next.config.js')).default;
+    expect(config.images.formats).toEqual(['image/webp']);
+  });
+});
