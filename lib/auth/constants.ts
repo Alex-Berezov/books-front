@@ -14,7 +14,40 @@ export const AUTH_TOKEN_EXPIRY = {
 
   /** Refresh token is valid for 7 days (in seconds for NextAuth session) */
   REFRESH_TOKEN_SECONDS: 7 * 24 * 60 * 60,
+
+  /**
+   * Запас до `exp` access, мс: обновление начинается раньше, чем бэкенд скажет 401 —
+   * на рассинхрон часов сервера Next и бэкенда и на запрос в пути (`LEGACY-451`, `T122`).
+   *
+   * ⚠️ Больше кэша сессии в браузере (`SESSION_CACHE_TIME` = 60 с, `lib/http-client/auth.ts`):
+   * иначе браузер держит токен, который сервер уже обновил бы, и повтор `withAuthRetry`
+   * берёт ту же закэшированную сессию — второй 401 и выход.
+   */
+  ACCESS_TOKEN_SKEW_MS: 90 * 1000,
 } as const;
+
+/** Таймауты запросов авторизации к бэкенду, мс. */
+export const AUTH_REQUEST_TIMEOUTS = {
+  /** `POST /auth/logout`: повисший бэкенд не держит человека «вошедшим». */
+  LOGOUT_MS: 3 * 1000,
+
+  /**
+   * Пауза после временного отказа `/auth/refresh` (429, 5xx, сеть), мс: следующий вызов колбэка
+   * `jwt` повторит обновление не раньше неё. Окончательный отказ (400, 401) не повторяется вовсе
+   * (решение арбитра 10.10.2026, `LEGACY-451`).
+   */
+  REFRESH_RETRY_PAUSE_MS: 60 * 1000,
+} as const;
+
+/** Ответы `/auth/refresh`, после которых повторять обновление бессмысленно (`LEGACY-451`). */
+export const FINAL_REFRESH_STATUSES: ReadonlySet<number> = new Set([400, 401]);
+
+/**
+ * `refreshRetryAt` окончательного отказа — «никогда». Число, а не `Infinity`: токен уходит в куку
+ * через JSON, где `Infinity` превращается в `null`. Отличает окончательный отказ от куки до
+ * `T122`, у которой отметки нет вовсе.
+ */
+export const REFRESH_RETRY_NEVER = Number.MAX_SAFE_INTEGER;
 
 /**
  * Session polling optimization settings

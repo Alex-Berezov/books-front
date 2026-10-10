@@ -17,7 +17,15 @@ import { visitorIpHeaderFrom } from '@/lib/visitor-ip';
 import type { AuthResponse } from '@/types/api-schema';
 import type { User, Session, Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
-import { AUTH_TOKEN_EXPIRY, SESSION_SETTINGS, AuthErrorType, AUTH_ROUTES } from './constants';
+import {
+  AUTH_REQUEST_TIMEOUTS,
+  AUTH_TOKEN_EXPIRY,
+  FINAL_REFRESH_STATUSES,
+  REFRESH_RETRY_NEVER,
+  SESSION_SETTINGS,
+  AuthErrorType,
+  AUTH_ROUTES,
+} from './constants';
 
 /**
  * Отказ входа, чей код доезжает до страницы входа.
@@ -63,6 +71,41 @@ interface SessionCallbackParams {
 }
 
 /**
+ * Когда истекает access, мс: из `exp` самого токена, иначе — `ACCESS_TOKEN_MS` от «сейчас».
+ *
+ * 🔴 `LEGACY-451` (`T122`): бэкенд обрезает access до остатка жизни refresh — сессия больше
+ * не продлевается, и под конец её срок access короче константы. Срок из константы держал бы
+ * мёртвый access «живым» до 12 часов: первый же запрос получал 401 и выход посреди чтения.
+ * Срок берётся с запасом `ACCESS_TOKEN_SKEW_MS`: без него в последние секунды жизни access
+ * бэкенд уже отвечал бы 401, а колбэк `jwt` ещё отдавал бы старый токен.
+ * Подпись здесь не проверяется и не нужна — это только расписание обновления, токен проверяет
+ * бэкенд. Непрочитанный `exp` даёт прежнюю константу, а не 0 и не бесконечность (решение
+ * арбитра 10.10.2026, `decisions-log.md`).
+ */
+export function accessTokenExpiresAt(accessToken: unknown): number {
+  const now = Date.now();
+  const fallback = now + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS;
+  if (typeof accessToken !== 'string') return fallback;
+  const segment = accessToken.split('.')[1];
+  if (!segment) return fallback;
+  try {
+    const base64 = segment.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    const claims: unknown = JSON.parse(atob(padded));
+    const exp = (claims as { exp?: unknown } | null)?.exp;
+    if (typeof exp !== 'number' || !Number.isFinite(exp)) return fallback;
+    const withSkew = exp * 1000 - AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_SKEW_MS;
+    // Запас на часы и запрос в пути. Токен, живущий меньше запаса (последние секунды сессии:
+    // бэкенд обрезает access до срока refresh), получает свой точный `exp`, а не «сейчас»:
+    // иначе каждый вызов колбэка обновлял бы его по кругу до смерти refresh. Уже истёкший —
+    // в прошлом, то есть одно обновление, отказ и остановка.
+    return withSkew > now ? withSkew : exp * 1000;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
  * Refresh access token using refresh token
  *
  * Calls POST /auth/refresh to get a new pair of tokens
@@ -80,9 +123,10 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
         'Content-Type': 'application/json',
         // Адреса посетителя здесь нет: обновление токена идёт из колбэка `jwt`,
         // которому Auth.js объект запроса не передаёт. Лимит на `/auth/refresh`
-        // остаётся общим для сайта (10 в минуту). Терпимо: обновление происходит
-        // раз в 12 часов на сессию, а не на каждое действие. Если это перестанет
-        // быть правдой, адрес придётся класть в сам токен при входе (LEGACY-064).
+        // остаётся общим для сайта (10 в минуту). Терпимо, пока обновление идёт
+        // раз на срок access, а отказ не повторяется: после 401 колбэк `jwt`
+        // больше сюда не ходит (`LEGACY-451`, `T122`). Если это перестанет быть
+        // правдой, адрес придётся класть в сам токен при входе (LEGACY-064).
       },
       body: JSON.stringify({
         refreshToken: token.refreshToken,
@@ -92,10 +136,15 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
     // If refresh failed - mark token with error
     if (!response.ok) {
       console.error('Failed to refresh token:', response.status);
-      return {
-        ...token,
-        error: AuthErrorType.REFRESH_TOKEN_ERROR,
-      };
+      // 400/401 — сессия погашена или истекла, повторять бессмысленно. Остальное (429, 5xx,
+      // 403 от WAF) временное: повтор после паузы (`LEGACY-451`, решение арбитра 10.10.2026).
+      return FINAL_REFRESH_STATUSES.has(response.status)
+        ? {
+            ...token,
+            error: AuthErrorType.REFRESH_TOKEN_ERROR,
+            refreshRetryAt: REFRESH_RETRY_NEVER,
+          }
+        : retryLater(token);
     }
 
     const refreshedTokens = await response.json();
@@ -105,17 +154,34 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
       ...token,
       accessToken: refreshedTokens.accessToken,
       refreshToken: refreshedTokens.refreshToken,
-      accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
+      accessTokenExpires: accessTokenExpiresAt(refreshedTokens.accessToken),
       error: undefined, // Reset error if it was set
+      refreshRetryAt: undefined,
     };
   } catch (error) {
     console.error('Error refreshing access token:', error);
-    return {
-      ...token,
-      error: AuthErrorType.REFRESH_TOKEN_ERROR,
-    };
+    // Обрыв сети или таймаут — временный отказ.
+    return retryLater(token);
   }
 };
+
+/**
+ * Временный отказ refresh: `error` **остаётся** — по нему читалка пишет прогресс локально, а не
+ * шлёт запрос с истёкшим access (`lib/reading-progress/useProgressTarget.ts`), — и рядом
+ * отметка, когда повторить. Без паузы повтор на каждом вызове колбэка выедал бы общий лимит
+ * `/auth/refresh`; без повтора разовый сбой убивал бы сессию читателя навсегда и молча.
+ *
+ * ⚠️ Чего пауза не спасает: запрос под авторизацией в ней уходит с истёкшим access, бэкенд
+ * отвечает 401, и http-клиент делает выход (`withAuthRetry` → `handleAuthFailure`), как и до
+ * `T122`. Спасается тот, кто за паузу не сделал авторизованного запроса, — например, читатель.
+ */
+function retryLater(token: JWT): JWT {
+  return {
+    ...token,
+    error: AuthErrorType.REFRESH_TOKEN_ERROR,
+    refreshRetryAt: Date.now() + AUTH_REQUEST_TIMEOUTS.REFRESH_RETRY_PAUSE_MS,
+  };
+}
 
 /**
  * Имя из токена старого формата: `undefined`, если поля `displayName` в токене нет
@@ -255,7 +321,7 @@ export const authOptions = {
             roles: user.roles,
             accessToken: user.accessToken,
             refreshToken: user.refreshToken,
-            accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
+            accessTokenExpires: accessTokenExpiresAt(user.accessToken),
           };
         } else {
           // OAuth login. The backend is told *nothing* about who signed in —
@@ -310,7 +376,7 @@ export const authOptions = {
               roles: data.user.roles || [],
               accessToken: data.accessToken,
               refreshToken: data.refreshToken,
-              accessTokenExpires: Date.now() + AUTH_TOKEN_EXPIRY.ACCESS_TOKEN_MS,
+              accessTokenExpires: accessTokenExpiresAt(data.accessToken),
             };
           } catch (error) {
             console.error('Error in social login JWT callback:', error);
@@ -322,8 +388,25 @@ export const authOptions = {
         }
       }
 
-      // Token still valid - return as is
-      if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
+      // 🔴 После отказа refresh в `/auth/refresh` не ходим на каждом вызове колбэка (опрос
+      // сессии, фокус вкладки, `auth()` в middleware): мёртвые сессии выедали бы общий лимит
+      // (10 в минуту). Окончательный отказ не повторяется вовсе, временный — после паузы
+      // `refreshRetryAt` (`LEGACY-451`, решения арбитра 10.10.2026).
+      if (token.error === AuthErrorType.REFRESH_TOKEN_ERROR) {
+        // Без `refreshRetryAt` — кука до `T122` (тогда временный отказ ставил одну `error`) или
+        // ошибка первого входа через провайдера: один повтор, его исход и решит судьбу сессии.
+        const retryDue = token.refreshRetryAt === undefined || Date.now() >= token.refreshRetryAt;
+        if (!retryDue) return token;
+        return refreshAccessToken(token);
+      }
+
+      // Срок сверяется и с `exp` самого access, а не только с сохранённым: у куки, выданной
+      // до `T122`, сохранено «вход + 12 ч», а бэкенд теперь режет access до остатка refresh.
+      const expiresAt = Math.min(
+        token.accessTokenExpires || 0,
+        accessTokenExpiresAt(token.accessToken)
+      );
+      if (Date.now() < expiresAt) {
         return token;
       }
 

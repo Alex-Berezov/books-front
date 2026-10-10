@@ -5,10 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Search, BookOpen, User, BookMarked, Menu, Headphones, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { getBookCards } from '@/api/endpoints/public';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { clearLoggedInMarker } from '@/lib/auth/sessionMarker';
+import { signOutWithRevoke } from '@/lib/auth/sign-out';
 import { getLangFromPath, type SupportedLang } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './Header.module.scss';
@@ -124,8 +124,7 @@ export function Header() {
   );
 
   const handleSignOut = () => {
-    clearLoggedInMarker();
-    signOut({ callbackUrl: `/${lang}` });
+    void signOutWithRevoke(`/${lang}`);
   };
 
   const currentFlag =

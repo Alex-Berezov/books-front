@@ -51,5 +51,11 @@ declare module 'next-auth/jwt' {
     refreshToken: string;
     accessTokenExpires: number; // Unix timestamp in milliseconds
     error?: AuthErrorType;
+    /**
+     * Когда можно повторить refresh после отказа, мс (`LEGACY-451`): временный (429, 5xx, сеть) —
+     * «сейчас + пауза», окончательный (400, 401) — `REFRESH_RETRY_NEVER`. Нет поля при `error` —
+     * кука до `T122`: один повтор.
+     */
+    refreshRetryAt?: number;
   }
 }

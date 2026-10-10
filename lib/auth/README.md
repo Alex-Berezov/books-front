@@ -114,7 +114,7 @@ interface User {
   name?: string | null;
   roles: string[]; // ['user'] or ['admin', 'content_manager']
   accessToken: string; // JWT, 12 hours
-  refreshToken: string; // JWT, 7 days
+  refreshToken: string; // JWT, 7 days от входа — refresh срок не продлевает (LEGACY-451)
 }
 ```
 
@@ -164,8 +164,11 @@ interface JWT {
    - Refresh: 10 req/min
 
 2. **Token Lifetime:**
-   - Access Token: 12 hours
-   - Refresh Token: 7 days
+   - Access Token: срок обновления берётся из `exp` самого токена, с запасом 30 с
+   - Refresh Token: 7 days от входа; refresh срок не продлевает (LEGACY-451)
+   - Выход по кнопке гасит все сессии на бэкенде: кнопка сначала ждёт серверное действие
+     `revoke-sessions.action.ts` (refresh из серверной куки → `POST /auth/logout`), потом
+     `signOut()`. Автоматический выход по 401 бэкенд не трогает; отказ refresh не повторяется.
 
 3. **CORS:** Always include `credentials: 'include'` in fetch requests
 

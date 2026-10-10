@@ -11,12 +11,11 @@
  */
 
 import { LogOut } from 'lucide-react';
-import { signOut } from 'next-auth/react';
 import { AdminLanguageSwitcher } from '@/components/admin/AdminShell/AdminTopBar/AdminLanguageSwitcher';
 import { RightsNotificationsBell } from '@/components/admin/AdminShell/AdminTopBar/RightsNotificationsBell/RightsNotificationsBell';
 import { PurgeCacheButton } from '@/components/admin/AdminShell/PurgeCacheButton/PurgeCacheButton';
 import { Button } from '@/components/admin/common/Button';
-import { clearLoggedInMarker } from '@/lib/auth/sessionMarker';
+import { signOutWithRevoke } from '@/lib/auth/sign-out';
 import styles from './AdminTopBar.module.scss';
 
 interface AdminTopBarProps {
@@ -34,8 +33,7 @@ export const AdminTopBar = (props: AdminTopBarProps) => {
    * Logout handler
    */
   const handleLogout = async () => {
-    clearLoggedInMarker();
-    await signOut({ callbackUrl: '/en/auth/sign-in' });
+    await signOutWithRevoke('/en/auth/sign-in');
   };
 
   return (

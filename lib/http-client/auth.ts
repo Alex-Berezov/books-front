@@ -12,7 +12,8 @@ import { ApiError } from '@/types/api';
 import type { Session } from 'next-auth';
 
 // Cache settings to prevent excessive API calls
-const SESSION_CACHE_TIME = 60 * 1000; // 1 minute
+/** Сколько браузер держит сессию без перезапроса; запас `ACCESS_TOKEN_SKEW_MS` обязан быть больше (`LEGACY-451`). */
+export const SESSION_CACHE_TIME = 60 * 1000; // 1 minute
 
 // Cache state
 let cachedSession: Session | null = null;
