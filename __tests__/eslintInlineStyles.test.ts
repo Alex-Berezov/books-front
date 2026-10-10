@@ -2,7 +2,7 @@
 import { readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 /**
  * 🔴 LEGACY-158. Запрет инлайн-стилей был объявлен в AGENTS.md и CODE_STYLE.md, а
@@ -147,20 +147,33 @@ const allTsxFiles = (): string[] =>
     .filter((entry) => entry.isDirectory() && !NOT_SOURCE.has(entry.name))
     .flatMap((entry) => sourceTsxFiles(entry.name));
 
+const PROBE_TEXT = 'export const InlineStyleProbe = () => <div style={{ marginLeft: 4 }} />;';
+
 describe('запрет инлайн-стилей стережёт линт, а не один тест (LEGACY-158)', () => {
+  // Проверяется текстом, а не временным файлом: файл-проба внутри репозитория
+  // остаётся мусором при обрыве прогона и попадает под соседний тест этого же
+  // файла. Путь при этом обязан быть **существующим** — конфигурация линта
+  // типозависима (`parserOptions.project`), и на пути, которого нет в программе
+  // TypeScript, разбор падает до того, как правило успеет сработать.
+  let probePath: string | undefined;
+
+  // ⚠️ LEGACY-297 (T128): первый `lintText` строит программу TypeScript целиком, и на
+  // медленном раннере CI кейс не укладывался в 60 с. Холодный старт вынесен сюда, чтобы
+  // кейсы мерили свою работу: зависший прогрев краснеет ошибкой хука (и снимает все кейсы
+  // файла), а не таймаутом кейса 1, который выглядел бы как поломка правила.
+  // 180 с по замеру: 24.5 с в полном прогоне × 2.8 (замедление набора в CI 10.10.2026)
+  // ≈ 69 с, запас ~2.6 раза. Поднимать — только по новому замеру в теле LEGACY-297.
+  beforeAll(async () => {
+    probePath = allTsxFiles().find((file) => !DEBT_AT_INTRODUCTION.includes(file));
+    if (probePath) await eslint.lintText(PROBE_TEXT, { filePath: resolve(REPO_ROOT, probePath) });
+  }, 180_000);
+
   it('файл вне списка долга роняет линт ошибкой', async () => {
-    // Проверяется текстом, а не временным файлом: файл-проба внутри репозитория
-    // остаётся мусором при обрыве прогона и попадает под соседний тест этого же
-    // файла. Путь при этом обязан быть **существующим** — конфигурация линта
-    // типозависима (`parserOptions.project`), и на пути, которого нет в программе
-    // TypeScript, разбор падает до того, как правило успеет сработать.
-    const probePath = allTsxFiles().find((file) => !DEBT_AT_INTRODUCTION.includes(file));
     expect(probePath, 'в дереве не нашлось ни одного файла вне списка долга').toBeDefined();
 
-    const [result] = await eslint.lintText(
-      'export const InlineStyleProbe = () => <div style={{ marginLeft: 4 }} />;',
-      { filePath: resolve(REPO_ROOT, probePath as string) }
-    );
+    const [result] = await eslint.lintText(PROBE_TEXT, {
+      filePath: resolve(REPO_ROOT, probePath as string),
+    });
     const messages = result.messages.filter((message) => message.ruleId === RULE);
 
     expect(messages).toHaveLength(1);
