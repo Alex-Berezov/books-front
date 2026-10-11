@@ -4,10 +4,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Modal } from '@/components/admin/common/Modal';
+import { COMMENT_TEXT_MAX_LENGTH } from '@/lib/constants/comments';
 import styles from './ReplyCommentModal.module.scss';
 
 const replySchema = z.object({
-  content: z.string().trim().min(1, 'Reply content is required'),
+  content: z
+    .string()
+    .trim()
+    .min(1, 'Reply content is required')
+    // Длиннее предела сервер отвечает 400 (LEGACY-462); без проверки здесь модалка молча оставалась открытой.
+    .max(COMMENT_TEXT_MAX_LENGTH, `Reply must be at most ${COMMENT_TEXT_MAX_LENGTH} characters`),
 });
 
 type ReplyFormData = z.infer<typeof replySchema>;
@@ -61,6 +67,7 @@ export const ReplyCommentModal: FC<ReplyCommentModalProps> = (props) => {
           placeholder="Write your reply here..."
           aria-label="Reply content"
           aria-invalid={!!errors.content}
+          maxLength={COMMENT_TEXT_MAX_LENGTH}
           disabled={isLoading}
         />
         {errors.content && <span className={styles.errorText}>{errors.content.message}</span>}
