@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { usePage, useUpdatePage } from '@/api/hooks';
 import { Button } from '@/components/admin/common/Button';
@@ -11,21 +11,13 @@ import { Spinner } from '@/components/admin/shared';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 
-interface EditPageProps {
-  params: {
-    lang: SupportedLang;
-    id: string;
-  };
-}
-
 /**
  * CMS page edit page
  *
  * Loads existing page and allows editing its data
  */
-const EditPage: FC<EditPageProps> = (props) => {
-  const { params } = props;
-  const { lang, id: pageId } = params;
+const EditPage: FC = () => {
+  const { lang, id: pageId } = useParams<{ lang: SupportedLang; id: string }>();
 
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();

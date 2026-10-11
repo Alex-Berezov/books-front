@@ -9,7 +9,7 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 
 type Props = {
-  params: Promise<{ lang: string }> | { lang: string };
+  params: Promise<{ lang: string }>;
 };
 
 export const revalidate = 300;

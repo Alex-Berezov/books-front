@@ -1,22 +1,15 @@
 'use client';
 
 import type { FC } from 'react';
+import { useParams } from 'next/navigation';
 import { useAuthor } from '@/api/hooks/useAuthors';
 import { AuthorForm } from '@/components/admin/authors/AuthorForm/AuthorForm';
 import { Skeleton } from '@/components/admin/shared';
 import { isNotFoundError } from '@/lib/utils/content-failure';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
-interface EditAuthorPageProps {
-  params: {
-    lang: SupportedLang;
-    id: string;
-  };
-}
-
-const EditAuthorPage: FC<EditAuthorPageProps> = (props) => {
-  const { params } = props;
-  const { lang, id } = params;
+const EditAuthorPage: FC = () => {
+  const { lang, id } = useParams<{ lang: SupportedLang; id: string }>();
 
   // `GET /admin/authors/:id` — одиночное чтение вместо поиска по первой странице
   // списка (`LEGACY-352`): отказ запроса (401/403/500) и «автора действительно

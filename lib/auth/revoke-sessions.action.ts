@@ -20,7 +20,7 @@ import { visitorIpHeaderFrom } from '@/lib/visitor-ip';
  */
 export async function revokeBackendSessionsAction(): Promise<void> {
   try {
-    const requestHeaders = headers();
+    const requestHeaders = await headers();
     for (const secureCookie of [true, false]) {
       const token = await getToken({
         req: { headers: requestHeaders },

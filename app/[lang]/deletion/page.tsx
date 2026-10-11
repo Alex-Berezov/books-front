@@ -9,7 +9,7 @@ import type { Metadata } from 'next';
 import styles from '@/styles/legal.module.scss';
 
 type Props = {
-  params: Promise<{ lang: string }> | { lang: string };
+  params: Promise<{ lang: string }>;
 };
 
 const SUPPORT_EMAIL = 'support@bibliaris.com';

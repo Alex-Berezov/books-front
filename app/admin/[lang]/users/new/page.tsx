@@ -7,16 +7,17 @@ export const metadata: Metadata = {
 };
 
 interface CreateUserPageProps {
-  params: {
+  params: Promise<{
     lang: string;
-  };
+  }>;
 }
 
-export default function CreateUserPage({ params }: CreateUserPageProps) {
+export default async function CreateUserPage({ params }: CreateUserPageProps) {
+  const { lang } = await params;
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Create New User</h1>
-      <UserForm lang={params.lang} />
+      <UserForm lang={lang} />
     </div>
   );
 }

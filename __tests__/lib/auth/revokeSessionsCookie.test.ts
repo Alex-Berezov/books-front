@@ -13,6 +13,9 @@ const SECRET = 'test-secret-for-session-cookie-roundtrip';
  * `LEGACY-451`, `T122`: серверное действие выхода читает refresh из **настоящей** куки Auth.js
  * (`getToken` не подменён): имя куки, соль и расшифровка — те же, что у живой сессии.
  * Сменятся они в Auth.js — эта спека покраснеет, а не выход молча перестанет гасить сессии.
+ * `headers()` с next 15 асинхронный (`LEGACY-448`, `T121`), мок отдаёт Promise, как
+ * настоящий: без `await` в действии `getToken` получил бы Promise вместо заголовков,
+ * и отзыв молча ушёл бы в catch.
  */
 describe('отзыв сессий по настоящей куке Auth.js (LEGACY-451)', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
@@ -37,7 +40,7 @@ describe('отзыв сессий по настоящей куке Auth.js (LEGA
         secret: SECRET,
         salt: cookieName,
       });
-      headersMock.mockReturnValue(new Headers({ cookie: `${cookieName}=${cookie}` }));
+      headersMock.mockResolvedValue(new Headers({ cookie: `${cookieName}=${cookie}` }));
 
       await revokeBackendSessionsAction();
 
@@ -54,7 +57,7 @@ describe('отзыв сессий по настоящей куке Auth.js (LEGA
       secret: 'another-secret-entirely-different',
       salt: 'authjs.session-token',
     });
-    headersMock.mockReturnValue(new Headers({ cookie: `authjs.session-token=${cookie}` }));
+    headersMock.mockResolvedValue(new Headers({ cookie: `authjs.session-token=${cookie}` }));
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     await revokeBackendSessionsAction();

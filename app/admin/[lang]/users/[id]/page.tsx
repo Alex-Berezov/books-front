@@ -6,12 +6,13 @@ export const metadata: Metadata = {
 };
 
 interface EditUserPageProps {
-  params: {
+  params: Promise<{
     id: string;
     lang: string;
-  };
+  }>;
 }
 
-export default function EditUserPage({ params }: EditUserPageProps) {
-  return <UserEditClient userId={params.id} lang={params.lang} />;
+export default async function EditUserPage({ params }: EditUserPageProps) {
+  const { id, lang } = await params;
+  return <UserEditClient userId={id} lang={lang} />;
 }

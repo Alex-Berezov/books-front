@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useCreatePage } from '@/api/hooks';
 import { Button } from '@/components/admin/common/Button';
@@ -8,24 +8,14 @@ import { PageForm, type PageFormData } from '@/components/admin/pages/PageForm';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 
-interface NewPageProps {
-  params: {
-    lang: SupportedLang;
-  };
-  searchParams: {
-    translationGroupId?: string;
-    targetLang?: string;
-  };
-}
-
 /**
  * New CMS page creation page
  */
-export default function NewPage(props: NewPageProps) {
-  const { params, searchParams } = props;
-  const { lang } = params;
-  const translationGroupId = searchParams?.translationGroupId;
-  const targetLang = searchParams?.targetLang as SupportedLang | undefined;
+export default function NewPage() {
+  const { lang } = useParams<{ lang: SupportedLang }>();
+  const searchParams = useSearchParams();
+  const translationGroupId = searchParams.get('translationGroupId') ?? undefined;
+  const targetLang = (searchParams.get('targetLang') ?? undefined) as SupportedLang | undefined;
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
 

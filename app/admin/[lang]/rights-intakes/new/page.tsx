@@ -3,14 +3,14 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 
 interface NewRightsIntakePageProps {
-  params: {
+  params: Promise<{
     lang: SupportedLang;
-  };
+  }>;
 }
 
 export default async function NewRightsIntakePage(props: NewRightsIntakePageProps) {
   const { params } = props;
-  const { lang } = params;
+  const { lang } = await params;
 
   return (
     <div className={styles.container}>

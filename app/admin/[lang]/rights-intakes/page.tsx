@@ -2,14 +2,14 @@ import { RightsIntakeList } from '@/components/admin/rights-intakes/RightsIntake
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 interface RightsIntakesPageProps {
-  params: {
+  params: Promise<{
     lang: SupportedLang;
-  };
+  }>;
 }
 
 export default async function RightsIntakesPage(props: RightsIntakesPageProps) {
   const { params } = props;
-  const { lang } = params;
+  const { lang } = await params;
 
   return (
     <div className="rights-intakes-page">

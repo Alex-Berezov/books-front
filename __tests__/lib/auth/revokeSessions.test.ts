@@ -7,7 +7,7 @@ import { revokeBackendSessionsAction } from '@/lib/auth/revoke-sessions.action';
 const { getTokenMock } = vi.hoisted(() => ({ getTokenMock: vi.fn() }));
 
 vi.mock('next/headers', () => ({
-  headers: () =>
+  headers: async () =>
     new Headers({ cookie: 'authjs.session-token=opaque', 'cf-connecting-ip': '198.51.100.7' }),
 }));
 

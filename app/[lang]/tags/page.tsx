@@ -12,7 +12,7 @@ import type { TagListItem } from '@/types/api-schema';
 import type { Metadata } from 'next';
 
 type Props = {
-  params: Promise<{ lang: string }> | { lang: string };
+  params: Promise<{ lang: string }>;
 };
 
 export const revalidate = 300;

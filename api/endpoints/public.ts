@@ -5,9 +5,10 @@
  * books, pages, categories, tags, etc.
  *
  * LEGACY-145: every `httpGet`/`httpGetAuth` call here sets an explicit cache mode —
- * `next: { revalidate: N }` or `cache: 'no-store'` — never the Next.js default, which
- * is "cache forever" (`revalidate = false`) and is not undone by a consumer page's
+ * `next: { revalidate: N }` or `cache: 'no-store'` — never the Next.js default. In Next 14
+ * that default was "cache forever" (`revalidate = false`), not undone by a consumer page's
  * `dynamic = 'force-dynamic'` — see the write-up in `app/sitemaps/[filename]/route.ts`.
+ * Since Next 15 (`T121`) it is the opposite — no cache, a backend hit on every render.
  *
  * Functions whose only callers today are client hooks state their mode too: in the
  * browser the option is inert (react-query's `staleTime` decides), but the policy is

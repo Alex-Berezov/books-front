@@ -3,9 +3,9 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 
 interface TagsPageProps {
-  params: {
+  params: Promise<{
     lang: SupportedLang;
-  };
+  }>;
 }
 
 export const metadata: Metadata = {
@@ -16,9 +16,9 @@ export const metadata: Metadata = {
 /**
  * Tags management page (admin panel)
  */
-export default function TagsPage(props: TagsPageProps) {
+export default async function TagsPage(props: TagsPageProps) {
   const { params } = props;
-  const { lang } = params;
+  const { lang } = await params;
 
   return (
     <div className="tags-page">

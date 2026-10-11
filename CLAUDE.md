@@ -2,7 +2,7 @@
 
 ## Стек и структура
 
-Next.js 14.2 на App Router, React 18, TypeScript 5.9 в строгом режиме, SCSS-модули, react-query 5,
+Next.js 15.5 на App Router, React 19, TypeScript 5.9 в строгом режиме, SCSS-модули, react-query 5,
 next-auth v5 beta, antd 5 - библиотека одной админки (на сайте antd нет: импорт `antd`, `@ant-design/*` и `components/admin/**` вне `app/admin/**` и `components/admin/**` - ошибка линта, `LEGACY-442`; компоненты сайта - `components/common/`), vitest и playwright, yarn 1. Базовая ветка `main`.
 Бэкенд лежит в соседнем репозитории `books`, документация - в `books-app-docs`; работать в них
 через `git -C <путь>`, не через `cd`.
@@ -262,8 +262,9 @@ job выката не идёт. Но job `build` от гейта не завис
 (проверено 06.09.2026, `LEGACY-198`; живых вызывающих нет).
 
 **Кэш.** Настройки из `lib/queryClient.ts` в рантайме не участвуют: рабочий клиент создаётся в
-`providers/AppProviders.tsx`, менять `retry` и `staleTime` нужно там. Публичная выборка без
-`next: { revalidate: N }` застывает с данными времени сборки.
+`providers/AppProviders.tsx`, менять `retry` и `staleTime` нужно там. Публичная серверная выборка
+задаёт режим кэша явно: `next: { revalidate: N }` или `cache: 'no-store'`. Умолчание Next 15 - без кэша,
+то есть запрос в бэкенд на каждый рендер (в Next 14 было обратное - застывание навсегда, `LEGACY-145`).
 
 **Отказы.** Серверные страницы деградируют по частям: `.catch(() => null)` на каждый запрос, блок
 без данных не рисуется, страница остаётся. Клиент показывает общий тост только на 5xx, остальное

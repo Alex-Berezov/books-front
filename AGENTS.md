@@ -9,7 +9,7 @@
 
 **Bibliaris** — multilingual audiobook platform for classic literature.
 
-- **Stack:** Next.js 14 (App Router), TypeScript, Ant Design 5, React Query, NextAuth.js v5
+- **Stack:** Next.js 15 (App Router, React 19), TypeScript, Ant Design 5, React Query, NextAuth.js v5
 - **Backend API:** `https://api.bibliaris.com/api`
 - **Package manager:** Yarn (NOT npm/pnpm)
 
@@ -83,7 +83,7 @@ The full task → document map is in `CLAUDE.md`. **Do not read `ai-context/` wh
 - Language and token go through the `language` / `accessToken` options, **never** through your own `headers` — `mergeHeaders` strips `Accept-Language` and `Authorization` from it always (`LEGACY-139`).
 - Server pages call **public** functions only, or pass `accessToken` explicitly: `http*Auth` with `requireAuth` on the server fails before the network with `ServerContextAuthUnavailable` / 500, not 401 (`LEGACY-140`).
 - Handle 401 / 403 / 404 / 429 and 451 — rights blocking is its own branch (`isRightsBlockedError` in `lib/errors.ts` → `RightsBlockedNotice`), not a generic error message.
-- **Every server-side public read states its cache mode**, wherever it lives — `next: { revalidate: N }` (public ones — `PUBLIC_REVALIDATE_SECONDS` from `lib/constants/cache.ts`) or `cache: 'no-store'`. The Next 14 default is "cache forever" and a page's own `revalidate` does not undo it (`LEGACY-145`). The rule used to say "every new function in `api/endpoints/`", and a read outside that folder slipped through it — `lib/seo/retired-slug.ts` pinned `{ newSlug: null }` for the life of the deployment (`LEGACY-369`). Machine reach is `__tests__/api/endpoints/publicCacheMode.test.ts`: it walks `api/endpoints/public*.ts`, `lib/seo/**/*.ts`, `lib/utils/fetch-page.ts` and `app/[lang]/**/*.tsx`. A public read written outside those globs is on you until its folder is added there.
+- **Every server-side public read states its cache mode**, wherever it lives — `next: { revalidate: N }` (public ones — `PUBLIC_REVALIDATE_SECONDS` from `lib/constants/cache.ts`) or `cache: 'no-store'`. The Next 14 default was "cache forever" and a page's own `revalidate` did not undo it (`LEGACY-145`); Next 15 defaults to no cache, which silently turns an unmarked read into a per-request backend hit — the mode is still stated explicitly. The rule used to say "every new function in `api/endpoints/`", and a read outside that folder slipped through it — `lib/seo/retired-slug.ts` pinned `{ newSlug: null }` for the life of the deployment (`LEGACY-369`). Machine reach is `__tests__/api/endpoints/publicCacheMode.test.ts`: it walks `api/endpoints/public*.ts`, `lib/seo/**/*.ts`, `lib/utils/fetch-page.ts` and `app/[lang]/**/*.tsx`. A public read written outside those globs is on you until its folder is added there.
 - Endpoint catalog: `books-app-docs/backend/api/endpoints.index.md` (one line per endpoint, with the line in `endpoints.md`).
 
 ---

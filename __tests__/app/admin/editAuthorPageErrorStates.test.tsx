@@ -17,6 +17,11 @@ const mocks = vi.hoisted(() => ({
   useAuthor: vi.fn(),
 }));
 
+// Параметры адреса — из `useParams` (`T121`: в next 15 `params` страницы — Promise).
+vi.mock('next/navigation', () => ({
+  useParams: () => ({ lang: 'en', id: 'author-1' }),
+}));
+
 vi.mock('@/api/hooks/useAuthors', () => ({
   useAuthor: mocks.useAuthor,
 }));
@@ -38,7 +43,7 @@ describe('EditAuthorPage: отказ запроса не выглядит как
   it('показывает скелет, пока запрос не завершился', () => {
     mocks.useAuthor.mockReturnValue({ data: undefined, isLoading: true, error: null });
 
-    render(<EditAuthorPage params={{ lang: 'en', id: 'author-1' }} />);
+    render(<EditAuthorPage />);
 
     expect(screen.queryByText('Author Not Found')).toBeNull();
     expect(screen.queryByTestId('author-form')).toBeNull();
@@ -51,7 +56,7 @@ describe('EditAuthorPage: отказ запроса не выглядит как
       error: new ApiError({ message: "Author with ID 'author-1' not found", statusCode: 404 }),
     });
 
-    render(<EditAuthorPage params={{ lang: 'en', id: 'author-1' }} />);
+    render(<EditAuthorPage />);
 
     expect(screen.getByText('Author Not Found')).toBeInTheDocument();
     expect(screen.queryByTestId('author-form')).toBeNull();
@@ -64,7 +69,7 @@ describe('EditAuthorPage: отказ запроса не выглядит как
       error: new ApiError({ message: 'Internal server error', statusCode: 500 }),
     });
 
-    render(<EditAuthorPage params={{ lang: 'en', id: 'author-1' }} />);
+    render(<EditAuthorPage />);
 
     expect(screen.getByText('Failed to Load Author')).toBeInTheDocument();
     expect(screen.queryByText('Author Not Found')).toBeNull();
@@ -77,7 +82,7 @@ describe('EditAuthorPage: отказ запроса не выглядит как
       error: new ApiError({ message: 'Unauthorized', statusCode: 401 }),
     });
 
-    render(<EditAuthorPage params={{ lang: 'en', id: 'author-1' }} />);
+    render(<EditAuthorPage />);
 
     expect(screen.getByText('Failed to Load Author')).toBeInTheDocument();
   });
@@ -92,7 +97,7 @@ describe('EditAuthorPage: отказ запроса не выглядит как
       error: new ApiError({ message: 'Internal server error', statusCode: 500 }),
     });
 
-    render(<EditAuthorPage params={{ lang: 'en', id: 'author-1' }} />);
+    render(<EditAuthorPage />);
 
     expect(screen.getByTestId('author-form')).toHaveTextContent('jane-doe');
     expect(screen.queryByText('Failed to Load Author')).toBeNull();
@@ -106,7 +111,7 @@ describe('EditAuthorPage: отказ запроса не выглядит как
       error: null,
     });
 
-    render(<EditAuthorPage params={{ lang: 'en', id: 'author-1' }} />);
+    render(<EditAuthorPage />);
 
     expect(screen.getByTestId('author-form')).toHaveTextContent('jane-doe');
     expect(screen.queryByText('Author Not Found')).toBeNull();

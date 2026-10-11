@@ -1,18 +1,12 @@
 'use client';
 
 import type { FC } from 'react';
+import { useParams } from 'next/navigation';
 import { AuthorForm } from '@/components/admin/authors/AuthorForm/AuthorForm';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
-interface CreateAuthorPageProps {
-  params: {
-    lang: SupportedLang;
-  };
-}
-
-const CreateAuthorPage: FC<CreateAuthorPageProps> = (props) => {
-  const { params } = props;
-  const { lang } = params;
+const CreateAuthorPage: FC = () => {
+  const { lang } = useParams<{ lang: SupportedLang }>();
 
   return (
     <div className="max-w-5xl mx-auto py-8">

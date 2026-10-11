@@ -49,7 +49,7 @@ const linkableTerm = (slug: string, lang: string) => ({
 const callGet = async (filename: string): Promise<string> => {
   const { GET } = await import('@/app/sitemaps/[filename]/route');
   const res = await GET(new Request(`https://bibliaris.com/sitemaps/${filename}`), {
-    params: { filename },
+    params: Promise.resolve({ filename }),
   });
   return res.text();
 };

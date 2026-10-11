@@ -1,18 +1,14 @@
 'use client';
 
+import { useParams } from 'next/navigation';
 import { RightsClaimsList } from '@/components/admin/rights-claims/RightsClaimsList/RightsClaimsList';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
-interface RightsClaimsPageProps {
-  params: {
-    lang: SupportedLang;
-  };
-}
-
-export default function RightsClaimsPage({ params }: RightsClaimsPageProps) {
+export default function RightsClaimsPage() {
+  const { lang } = useParams<{ lang: SupportedLang }>();
   return (
     <div className="rights-claims-page">
-      <RightsClaimsList lang={params.lang} />
+      <RightsClaimsList lang={lang} />
     </div>
   );
 }

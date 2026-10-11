@@ -1,6 +1,9 @@
 'use client';
 
 import { type ReactNode } from 'react';
+// antd 5 на React 19: статические `message`/`Modal.confirm` рендерятся через этот патч
+// (`LEGACY-448`, `T121`). Импорт до первого использования antd — здесь, в корне админки.
+import '@ant-design/v5-patch-for-react-19';
 import { ConfigProvider } from 'antd';
 import { colors } from '@/styles/tokens';
 

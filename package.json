@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.2",
+    "@ant-design/v5-patch-for-react-19": "1.0.3",
     "@auth/core": "0.41.3",
     "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-query": "^5.90.5",
@@ -49,11 +50,11 @@
     "antd": "^5.27.5",
     "dompurify": "^3.4.16",
     "lucide-react": "^0.548.0",
-    "next": "14",
+    "next": "15.5.27",
     "next-auth": "5.0.0-beta.32",
     "notistack": "^3.0.2",
-    "react": "18",
-    "react-dom": "18",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.65.0",
     "sanitize-html": "^2.17.7",
@@ -68,6 +69,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
+    "@types/react-dom": "^19.2.0",
     "@types/sanitize-html": "^2.16.1",
     "@typescript-eslint/eslint-plugin": "^7",
     "@typescript-eslint/parser": "^7",
@@ -106,6 +108,7 @@
     "ios >= 15"
   ],
   "resolutions": {
+    "next/postcss": "^8.5.29",
     "prosemirror-view": "^1.42.3"
   }
 }

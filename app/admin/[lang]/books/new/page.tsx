@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useBook, useCreateBookVersion, useUpsertVersionSeo } from '@/api/hooks';
 import {
@@ -14,21 +14,14 @@ import type { BookFormData } from '@/components/admin/books';
 import type { ApiError } from '@/types/api';
 import styles from './page.module.scss';
 
-interface NewBookVersionPageProps {
-  params: {
-    lang: SupportedLang;
-  };
-}
-
 /**
  * New book version creation page
  *
  * Displays form for creating new version (language, title, author, etc.)
  * Can accept pre-filled title and author from URL params
  */
-const NewBookVersionPage: FC<NewBookVersionPageProps> = (props) => {
-  const { params } = props;
-  const { lang } = params;
+const NewBookVersionPage: FC = () => {
+  const { lang } = useParams<{ lang: SupportedLang }>();
 
   // Navigation hooks
   const router = useRouter();

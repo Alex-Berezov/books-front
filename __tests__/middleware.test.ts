@@ -1,3 +1,4 @@
+import { unstable_doesMiddlewareMatch } from 'next/experimental/testing/server';
 import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ADMIN_PANEL_ROLES, UserRole } from '@/lib/auth/constants';
@@ -84,6 +85,32 @@ describe('middleware matcher: охват (LEGACY-083)', () => {
       expect(matched(path)).toBe(false);
     }
   );
+});
+
+/**
+ * `T121` (`LEGACY-448`). Тесты охвата выше судят по своей модели — `config.matcher`,
+ * собранному в `RegExp` руками. Модель верна, пока Next компилирует matcher так же:
+ * регистрозависимо и по сырому, не декодированному пути. Здесь та же выборка адресов
+ * сверяется с компилятором самого Next (`unstable_doesMiddlewareMatch`): сменит он
+ * правила при обновлении — расхождение покраснеет здесь, а не у читателя с 404.
+ */
+describe('модель matcher совпадает с компилятором Next (T121)', () => {
+  it.each([
+    '/en/book/hamlet',
+    '/en/Book/Slug',
+    '/EN/book/hamlet',
+    '/en/book/hamlet/read',
+    '/ru/tag/%D1%81%D1%82%D1%80%D0%B0%D1%85',
+    '/en/some/cms/page',
+    '/_next/static/chunk.js',
+    '/api/version',
+    '/favicon.ico',
+    '/robots.txt',
+    '/covers/hamlet.png',
+    '/covers/hamlet.PNG',
+  ])('%s: Next и модель теста решают одинаково', (path) => {
+    expect(unstable_doesMiddlewareMatch({ config, url: path })).toBe(matched(path));
+  });
 });
 
 /**
@@ -377,8 +404,14 @@ describe('редирект: origin только из настроек (LEGACY-13
  * ⚠️ Кодирует адрес не карта сайта: она отдаёт слаг сырым
  * (`app/sitemaps/[filename]/route.ts` → `buildPublicUrl`, склейка строк).
  * В `%XX` путь превращают клиент и краулер при запросе, а
- * `request.nextUrl.pathname` в Next 14 его не декодирует — оттого совпадение
+ * `request.nextUrl.pathname` его не декодирует — оттого совпадение
  * и доезжало до правила 3.
+ *
+ * ⚠️ Граница посадки: тест зовёт `middleware(new NextRequest(...))` напрямую, то есть
+ * проверяет `NextRequest` установленного next, а не маршрутизацию его сервера. Начни
+ * сервер Next декодировать путь до middleware — здесь останется зелёно. На next 15.5.27
+ * (`T121`) проверено запросом к собранному приложению (`next start`): `/ru/Tag/%D1%81…` —
+ * 301 на `/ru/tag/%D1%81…` с октетами как были, `/ru/tag/%D1%81…` — без 301.
  *
  * Посадка лежит своим `describe`, а не внутри блока `LEGACY-134`: разбор чужого
  * блока целиком унёс бы её вместе с собой, а по имени записи она бы не нашлась.

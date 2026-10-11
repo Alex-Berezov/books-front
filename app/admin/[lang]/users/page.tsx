@@ -8,11 +8,12 @@ export const metadata: Metadata = {
 };
 
 interface UsersPageProps {
-  params: {
+  params: Promise<{
     lang: SupportedLang;
-  };
+  }>;
 }
 
-export default function UsersPage({ params }: UsersPageProps) {
-  return <UsersTable lang={params.lang} />;
+export default async function UsersPage({ params }: UsersPageProps) {
+  const { lang } = await params;
+  return <UsersTable lang={lang} />;
 }

@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import { BookOpen, Calendar, Globe, User, FileText } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import { permanentRedirect, notFound } from 'next/navigation';
@@ -8,7 +7,6 @@ import { RichTextContent } from '@/components/common/RichTextContent';
 import { StarRating } from '@/components/public/books/StarRating';
 import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
 import { getDictionary } from '@/lib/i18n/dictionaries';
-import { getDefaultLang } from '@/lib/i18n/lang';
 import { noteDegraded } from '@/lib/seo/degraded';
 import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
@@ -20,64 +18,11 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import { resolveAuthorHref } from './authorHref';
 import styles from './book.module.scss';
+import { BookActions, BookExtraDetails, BookRating, BookReviews } from './BookClientIslands';
 import { getCachedBookOverview, getCachedBookSeo } from './bookData';
 import { BookTaxonomyChips } from './BookTaxonomyChips';
 import DescriptionWrapper from './DescriptionWrapper';
 import { RelatedBooksSection } from './RelatedBooksSection';
-
-const ReviewsLoading = () => {
-  let text = getDictionary(getDefaultLang()).book.loadingReviews;
-  if (typeof window !== 'undefined') {
-    const segments = window.location.pathname.split('/');
-    const lang = segments[1] as SupportedLang;
-    try {
-      const dict = getDictionary(lang);
-      text = dict.book.loadingReviews || text;
-    } catch (e) {
-      console.error(e);
-    }
-  }
-  return (
-    <div
-      style={{
-        minHeight: '150px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      {text}
-    </div>
-  );
-};
-
-const BookReviews = dynamic(() => import('@/components/public/reviews/BookReviews'), {
-  ssr: false,
-  loading: ReviewsLoading,
-});
-
-const BookExtraDetails = dynamic(() => import('./BookExtraDetails'), {
-  ssr: false,
-});
-
-const BookActions = dynamic(() => import('./BookActions'), {
-  ssr: false,
-  loading: () => (
-    <div
-      style={{
-        height: '48px',
-        backgroundColor: 'var(--skeleton-bg)',
-        borderRadius: '6px',
-        width: '200px',
-        animation: 'skeletonPulse 1.5s infinite ease-in-out',
-      }}
-    />
-  ),
-});
-
-const BookRating = dynamic(() => import('./BookRating'), {
-  ssr: false,
-});
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>;

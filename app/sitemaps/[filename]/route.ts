@@ -97,8 +97,8 @@ const TAGS_TRAVERSAL_MAX_PAGES = 100;
  */
 const TAXONOMY_TRAVERSAL_MAX_PAGES = 100;
 
-export async function GET(request: Request, { params }: { params: { filename: string } }) {
-  const { filename } = params;
+export async function GET(request: Request, { params }: { params: Promise<{ filename: string }> }) {
+  const { filename } = await params;
   const cleanBaseUrl = getBaseUrl();
   const defaultLang = 'en';
 

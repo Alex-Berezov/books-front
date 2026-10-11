@@ -2,18 +2,11 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
-interface CreateBookPageProps {
-  params: {
-    lang: SupportedLang;
-  };
-}
-
-const CreateBookPage = (props: CreateBookPageProps) => {
-  const { params } = props;
-  const { lang } = params;
+const CreateBookPage = () => {
+  const { lang } = useParams<{ lang: SupportedLang }>();
   const router = useRouter();
 
   useEffect(() => {

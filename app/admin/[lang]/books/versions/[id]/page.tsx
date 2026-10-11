@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import { ArrowLeft, Eye, Plus, Save, Download } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import {
   BookForm,
   BookVersionSwitcher,
@@ -25,21 +26,13 @@ import styles from './page.module.scss';
 import { PREVIEW_SOURCE_EDITOR, PREVIEW_SOURCE_PARAM } from './preview/preview.constants';
 import { useBookVersionLogic } from './useBookVersionLogic';
 
-interface EditBookVersionPageProps {
-  params: {
-    lang: SupportedLang;
-    id: string;
-  };
-}
-
 /**
  * Book version edit page
  *
  * Loads existing version and allows editing its data
  */
-const EditBookVersionPage: FC<EditBookVersionPageProps> = (props) => {
-  const { params } = props;
-  const { lang, id: versionId } = params;
+const EditBookVersionPage: FC = () => {
+  const { lang, id: versionId } = useParams<{ lang: SupportedLang; id: string }>();
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 

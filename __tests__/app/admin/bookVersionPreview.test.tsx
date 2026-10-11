@@ -9,6 +9,8 @@ const push = vi.fn();
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/admin/ru/books/versions/v1/preview',
+  // Страница правки берёт параметры адреса из `useParams` (`T121`).
+  useParams: () => ({ lang: 'es', id: 'version-42' }),
   useRouter: () => ({ back: vi.fn(), replace: vi.fn(), push }),
 }));
 
@@ -414,7 +416,7 @@ describe('Кнопка Preview на странице версии', () => {
   });
 
   it('открывает предпросмотр этой версии в новой вкладке', () => {
-    render(<EditBookVersionPage params={{ lang: 'es', id: 'version-42' }} />);
+    render(<EditBookVersionPage />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
 
@@ -430,19 +432,22 @@ describe('Кнопка Preview на странице версии', () => {
   it.each(['audio', 'referral'])('у %s-версии кнопки нет: текста для читалки там нет', (type) => {
     editedVersion.type = type;
 
-    render(<EditBookVersionPage params={{ lang: 'es', id: 'version-42' }} />);
+    render(<EditBookVersionPage />);
 
     expect(screen.queryByRole('button', { name: 'Preview' })).not.toBeInTheDocument();
   });
 });
 
 describe('Страница предпросмотра', () => {
-  it('флаг «открыт редактором» берётся из адреса, который собирает кнопка Preview', () => {
-    const fromEditor = BookVersionPreviewPage({
-      params: { lang: 'ru', id: 'v1' },
-      searchParams: { from: 'editor' },
+  it('флаг «открыт редактором» берётся из адреса, который собирает кнопка Preview', async () => {
+    const fromEditor = await BookVersionPreviewPage({
+      params: Promise.resolve({ lang: 'ru', id: 'v1' }),
+      searchParams: Promise.resolve({ from: 'editor' }),
     });
-    const pasted = BookVersionPreviewPage({ params: { lang: 'ru', id: 'v1' }, searchParams: {} });
+    const pasted = await BookVersionPreviewPage({
+      params: Promise.resolve({ lang: 'ru', id: 'v1' }),
+      searchParams: Promise.resolve({}),
+    });
 
     expect(fromEditor.props).toMatchObject({ lang: 'ru', versionId: 'v1', openedFromEditor: true });
     expect(pasted.props.openedFromEditor).toBe(false);

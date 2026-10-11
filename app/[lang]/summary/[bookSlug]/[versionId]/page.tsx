@@ -9,9 +9,7 @@ export const metadata: Metadata = {
 };
 
 type Props = {
-  params:
-    | Promise<{ lang: string; bookSlug: string; versionId: string }>
-    | { lang: string; bookSlug: string; versionId: string };
+  params: Promise<{ lang: string; bookSlug: string; versionId: string }>;
 };
 
 const summaryUrl = (lang: string, versionId: string) => (bookSlug: string) =>

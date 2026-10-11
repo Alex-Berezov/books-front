@@ -611,6 +611,21 @@
   text-decoration: none;
 }
 
+// Заглушки клиентских островов (`BookClientIslands.tsx`), до `T121` — инлайн-стилями в `page.tsx`.
+// Не перенос один в один (решение арбитра T121): высота заглушки отзывов — кратное токена,
+// 144px вместо прежних 150px; заглушка кнопок — вид общего `SkeletonBlock`, здесь только размер.
+.reviewsLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(#{$spacing-xxl} * 3);
+}
+
+.actionsSkeleton {
+  width: calc(#{$spacing-xs} * 50);
+  height: $spacing-xxl;
+}
+
 .pulsingSkeleton {
   animation: skeletonPulse 1.5s infinite ease-in-out;
 }

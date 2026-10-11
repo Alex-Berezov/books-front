@@ -6,7 +6,7 @@
 
 ## 🚀 Project Overview
 
-Bibliaris is a modern web platform for discovering, reading, and listening to classic literature in multiple languages. Built with Next.js 14 App Router, TypeScript, and a robust backend API.
+Bibliaris is a modern web platform for discovering, reading, and listening to classic literature in multiple languages. Built with Next.js 15 App Router, TypeScript, and a robust backend API.
 
 **Supported Languages:** English, Spanish, French, Portuguese, Russian
 
@@ -33,7 +33,7 @@ Key rules:
 
 ### Core
 
-- **Framework:** Next.js 14 (App Router)
+- **Framework:** Next.js 15 (App Router, React 19)
 - **Language:** TypeScript
 - **Package Manager:** Yarn
 

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 type Props = {
-  params: Promise<{ lang: string; slug: string }> | { lang: string; slug: string };
+  params: Promise<{ lang: string; slug: string }>;
 };
 
 const readUrl = (lang: string) => (bookSlug: string) => `/${lang}/book/${bookSlug}/read`;

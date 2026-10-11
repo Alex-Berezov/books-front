@@ -16,10 +16,8 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 
 type Props = {
-  params: Promise<{ lang: string }> | { lang: string };
-  searchParams?:
-    | Promise<Record<string, string | string[] | undefined>>
-    | Record<string, string | string[] | undefined>;
+  params: Promise<{ lang: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export const revalidate = 300;
