@@ -21,6 +21,7 @@ import type { QueryClient } from '@tanstack/react-query';
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ lang: 'en' }),
+  usePathname: () => '/en',
 }));
 
 vi.mock('next-auth/react', () => ({

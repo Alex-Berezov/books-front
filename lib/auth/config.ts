@@ -18,11 +18,14 @@ import type { AuthResponse } from '@/types/api-schema';
 import type { User, Session, Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import {
+  ACCOUNT_DISABLED_API_CODE,
   AUTH_REQUEST_TIMEOUTS,
   AUTH_TOKEN_EXPIRY,
   FINAL_REFRESH_STATUSES,
   REFRESH_RETRY_NEVER,
   SESSION_SETTINGS,
+  isSessionEndedError,
+  isTokenSessionEnded,
   AuthErrorType,
   AUTH_ROUTES,
 } from './constants';
@@ -106,6 +109,24 @@ export function accessTokenExpiresAt(accessToken: unknown): number {
 }
 
 /**
+ * Ошибка отказа бэкенда: блокировка — по машинному коду в теле (`{ code: 'ACCOUNT_DISABLED' }`),
+ * иначе `fallback`. Тело может быть пустым, не JSON или от прокси; текст `message` не читается —
+ * по нему различать нельзя (`LEGACY-466`).
+ */
+async function classifyRefusal(
+  response: Response,
+  fallback: AuthErrorType
+): Promise<AuthErrorType> {
+  try {
+    const body: unknown = await response.json();
+    const code = (body as { code?: unknown } | null)?.code;
+    return code === ACCOUNT_DISABLED_API_CODE ? AuthErrorType.ACCOUNT_DISABLED : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
  * Refresh access token using refresh token
  *
  * Calls POST /auth/refresh to get a new pair of tokens
@@ -138,13 +159,15 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
       console.error('Failed to refresh token:', response.status);
       // 400/401 — сессия погашена или истекла, повторять бессмысленно. Остальное (429, 5xx,
       // 403 от WAF) временное: повтор после паузы (`LEGACY-451`, решение арбитра 10.10.2026).
-      return FINAL_REFRESH_STATUSES.has(response.status)
-        ? {
-            ...token,
-            error: AuthErrorType.REFRESH_TOKEN_ERROR,
-            refreshRetryAt: REFRESH_RETRY_NEVER,
-          }
-        : retryLater(token);
+      if (!FINAL_REFRESH_STATUSES.has(response.status)) return retryLater(token);
+      // Окончательный отказ — отдельная ошибка, не `REFRESH_TOKEN_ERROR`: по ней клиент выходит,
+      // а гейт админки не пускает (`LEGACY-466`). Блокировка отличается от истёкшей сессии
+      // только кодом в теле.
+      return {
+        ...token,
+        error: await classifyRefusal(response, AuthErrorType.SESSION_ENDED),
+        refreshRetryAt: REFRESH_RETRY_NEVER,
+      };
     }
 
     const refreshedTokens = await response.json();
@@ -255,9 +278,11 @@ export const authOptions = {
               throw new SignInCodeError(AuthErrorType.RATE_LIMIT_EXCEEDED);
             }
 
-            // Invalid credentials
+            // Invalid credentials; заблокированному — своя фраза (`LEGACY-466`)
             if (response.status === 400 || response.status === 401) {
-              throw new SignInCodeError(AuthErrorType.INVALID_CREDENTIALS);
+              throw new SignInCodeError(
+                await classifyRefusal(response, AuthErrorType.INVALID_CREDENTIALS)
+              );
             }
 
             // Other errors
@@ -340,7 +365,7 @@ export const authOptions = {
               console.error(
                 `Social login: provider "${account.provider}" returned no id_token; refusing to sign in`
               );
-              return { ...token, error: AuthErrorType.INVALID_CREDENTIALS };
+              return { ...token, error: AuthErrorType.AUTHENTICATION_FAILED };
             }
 
             const response = await fetch(`${API_BASE_URL}/auth/social`, {
@@ -360,10 +385,10 @@ export const authOptions = {
 
             if (!response.ok) {
               console.error('Failed to sync social login with backend:', response.status);
-              return {
-                ...token,
-                error: AuthErrorType.INVALID_CREDENTIALS,
-              };
+              // Отказ соцвхода — «вход не удался», а не «неверный пароль»: пароля человек не вводил.
+              // Сессии нет: токенов бэкенд не выдал (`LEGACY-466`).
+              const fallback = AuthErrorType.AUTHENTICATION_FAILED;
+              return { ...token, error: await classifyRefusal(response, fallback) };
             }
 
             const data = (await response.json()) as AuthResponse;
@@ -380,18 +405,30 @@ export const authOptions = {
             };
           } catch (error) {
             console.error('Error in social login JWT callback:', error);
+            // Не `REFRESH_TOKEN_ERROR`: токенов нет, и повтор refresh ушёл бы с пустым телом,
+            // тратя общий лимит и превращаясь в «сеанс завершён» у того, кто не входил (`LEGACY-466`).
             return {
               ...token,
-              error: AuthErrorType.REFRESH_TOKEN_ERROR,
+              error: AuthErrorType.AUTHENTICATION_FAILED,
             };
           }
         }
       }
 
+      // Сессия окончена окончательно: в `/auth/refresh` не ходим, клиент выходит по `session.error`
+      // (`LEGACY-466`). Кука до этой правки хранила окончательный отказ как `REFRESH_TOKEN_ERROR`
+      // с отметкой «никогда» — её переводим в ту же ошибку.
+      if (isTokenSessionEnded(token)) {
+        return isSessionEndedError(token.error)
+          ? token
+          : { ...token, error: AuthErrorType.SESSION_ENDED };
+      }
+
       // 🔴 После отказа refresh в `/auth/refresh` не ходим на каждом вызове колбэка (опрос
       // сессии, фокус вкладки, `auth()` в middleware): мёртвые сессии выедали бы общий лимит
-      // (10 в минуту). Окончательный отказ не повторяется вовсе, временный — после паузы
-      // `refreshRetryAt` (`LEGACY-451`, решения арбитра 10.10.2026).
+      // (10 в минуту). Окончательный отказ сюда не доходит — его отсекает `isTokenSessionEnded`
+      // выше; временный повторяется после паузы `refreshRetryAt` (`LEGACY-451`, решения арбитра
+      // 10.10.2026).
       if (token.error === AuthErrorType.REFRESH_TOKEN_ERROR) {
         // Без `refreshRetryAt` — кука до `T122` (тогда временный отказ ставил одну `error`) или
         // ошибка первого входа через провайдера: один повтор, его исход и решит судьбу сессии.
@@ -441,7 +478,11 @@ export const authOptions = {
       // `accessToken` остаётся: им ходит http-клиент браузера. Срок его жизни задаёт бэкенд
       // (`JWT_ACCESS_EXPIRES_IN`, по умолчанию 15m); перенос запросов на серверный прокси —
       // отдельная запись (решение арбитра 08.10.2026).
-      session.accessToken = token.accessToken;
+      // Мёртвой сессии токен не отдаётся: личный запрос с ним получил бы 401, и путь
+      // `withAuthRetry` → `handleAuthFailure` выбросил бы читателя на вход раньше тихого выхода.
+      // Без токена `getAccessToken` отказывает до сети, а `optionalAuth` уходит анонимно
+      // (`LEGACY-466`, решение арбитра 11.10.2026, круг 3).
+      session.accessToken = isSessionEndedError(token.error) ? undefined : token.accessToken;
       session.error = token.error;
 
       return session;

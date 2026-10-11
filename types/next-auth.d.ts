@@ -33,7 +33,8 @@ declare module 'next-auth' {
       name?: string | null;
       roles: string[];
     };
-    accessToken: string;
+    /** Нет у мёртвой сессии (`isSessionEndedError`) и у неудавшегося соцвхода (`LEGACY-466`). */
+    accessToken?: string;
     error?: AuthErrorType;
   }
 }

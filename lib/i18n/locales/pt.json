@@ -311,7 +311,9 @@
       "genericError": "Falha na autenticação",
       "invalidCredentials": "E-mail ou senha inválidos",
       "rateLimit": "Muitas solicitações. Tente novamente mais tarde.",
-      "missingCredentials": "E-mail e senha são obrigatórios"
+      "missingCredentials": "E-mail e senha são obrigatórios",
+      "accountDisabled": "Esta conta foi bloqueada. Se achar que é um erro, entre em contato com o suporte.",
+      "sessionEnded": "Sua sessão terminou. Entre novamente."
     },
     "register": {
       "successTitle": "Conta Criada!",

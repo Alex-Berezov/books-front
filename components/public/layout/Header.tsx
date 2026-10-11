@@ -8,6 +8,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getBookCards } from '@/api/endpoints/public';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { isSessionEndedError } from '@/lib/auth/constants';
 import { signOutWithRevoke } from '@/lib/auth/sign-out';
 import { getLangFromPath, type SupportedLang } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -338,7 +339,7 @@ export function Header() {
 
                 <LanguageSwitcher />
 
-                {session?.user ? (
+                {session?.user && !isSessionEndedError(session.error) ? (
                   <>
                     <button
                       type="button"

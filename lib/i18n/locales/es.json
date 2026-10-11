@@ -311,7 +311,9 @@
       "genericError": "Error de autenticación",
       "invalidCredentials": "Correo electrónico o contraseña incorrectos",
       "rateLimit": "Demasiadas solicitudes. Inténtelo de nuevo más tarde.",
-      "missingCredentials": "El correo electrónico y la contraseña son obligatorios"
+      "missingCredentials": "El correo electrónico y la contraseña son obligatorios",
+      "accountDisabled": "Esta cuenta ha sido bloqueada. Si cree que es un error, contacte con soporte.",
+      "sessionEnded": "Su sesión ha terminado. Inicie sesión de nuevo."
     },
     "register": {
       "successTitle": "¡Cuenta Creada!",

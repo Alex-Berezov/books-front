@@ -311,7 +311,9 @@
       "genericError": "Échec de l'authentification",
       "invalidCredentials": "Adresse e-mail ou mot de passe incorrect",
       "rateLimit": "Trop de tentatives. Veuillez réessayer plus tard.",
-      "missingCredentials": "L'adresse e-mail et le mot de passe sont obligatoires"
+      "missingCredentials": "L'adresse e-mail et le mot de passe sont obligatoires",
+      "accountDisabled": "Ce compte a été bloqué. Si vous pensez à une erreur, contactez l'assistance.",
+      "sessionEnded": "Votre session a expiré. Veuillez vous reconnecter."
     },
     "register": {
       "successTitle": "Compte Créé !",

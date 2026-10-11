@@ -107,7 +107,8 @@ describe('сессии после T122 (LEGACY-451)', () => {
         fetchMock.mockResolvedValue(new Response(null, { status }));
 
         const failed = await options.callbacks.jwt({ token: expired });
-        expect(failed.error).toBe(AuthErrorType.REFRESH_TOKEN_ERROR);
+        // LEGACY-466: окончательный отказ — своя ошибка, по ней клиент выходит, а не ждёт повтора.
+        expect(failed.error).toBe(AuthErrorType.SESSION_ENDED);
         expect(failed.refreshRetryAt).toBe(REFRESH_RETRY_NEVER);
         // Отметка переживает куку: JSON не превращает её в `null`, как `Infinity`.
         expect(JSON.parse(JSON.stringify(failed)).refreshRetryAt).toBe(REFRESH_RETRY_NEVER);

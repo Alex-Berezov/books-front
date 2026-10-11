@@ -92,7 +92,8 @@ describe('social login proof (CR auth-social, step 2)', () => {
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(result.error).toBe(AuthErrorType.INVALID_CREDENTIALS);
+    // LEGACY-466: отказ соцвхода — «вход не удался», а не «неверный пароль» (пароля не было).
+    expect(result.error).toBe(AuthErrorType.AUTHENTICATION_FAILED);
     expect(result.accessToken).toBeUndefined();
   });
 

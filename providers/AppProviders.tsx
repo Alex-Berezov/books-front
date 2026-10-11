@@ -13,13 +13,19 @@
  *       to keep antd off the public page initial bundle.
  */
 
-import { useEffect, useState, type ReactNode } from 'react';
-import { MutationCache, QueryCache, QueryClientProvider } from '@tanstack/react-query';
-import { useParams } from 'next/navigation';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  MutationCache,
+  QueryCache,
+  QueryClientProvider,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { useParams, usePathname } from 'next/navigation';
 import { SessionProvider, useSession } from 'next-auth/react';
 import { SnackbarProvider } from 'notistack';
 import { ToastConfigurator } from '@/components/common/ToastConfigurator';
-import { SESSION_SETTINGS } from '@/lib/auth/constants';
+import { SESSION_SETTINGS, isSessionEndedError } from '@/lib/auth/constants';
+import { endDeadSession, isAuthPagePath } from '@/lib/auth/session-end';
 import { hasLoggedInMarker } from '@/lib/auth/sessionMarker';
 import { setSession } from '@/lib/http-client/auth';
 import { getDictionary } from '@/lib/i18n/dictionaries';
@@ -56,6 +62,46 @@ const SessionCacheSync = () => {
     if (status === 'loading') return;
     setSession(data ?? null);
   }, [data, status]);
+
+  return null;
+};
+
+/**
+ * Выход по окончательному отказу сессии (`LEGACY-466`): refresh отвергнут (истёк срок, выход на
+ * другом устройстве, смена пароля или ролей) либо аккаунт заблокирован. Без него шапка
+ * показывала «вошёл», а выход случался лишь на первом 401 личной ручки. Как выходить —
+ * `lib/auth/session-end.ts` (решение арбитра 11.10.2026).
+ *
+ * - Защёлка — от повторного выхода на каждой перерисовке. Снимается, когда ошибка ушла (вошли
+ *   снова в той же вкладке без перезагрузки — следующая смерть сессии снова будет замечена),
+ *   и при отказе выхода (следующий опрос сессии попробует снова).
+ * - После выхода кэш запросов чистится целиком: страница сайта не перезагружается, а ключи
+ *   личных запросов (`me`, полка, активность) без `userId` — следующий вошедший в той же
+ *   вкладке увидел бы чужие данные.
+ * - На странице входа выход не запускается (`isAuthPagePath`).
+ */
+const SessionEndGuard = () => {
+  const { data } = useSession();
+  const queryClient = useQueryClient();
+  // Путь — в зависимостях: со страницы входа выход не запускается, и уход с неё клиентской
+  // ссылкой должен запустить его, а не ждать опроса сессии (15 мин).
+  const pathname = usePathname();
+  const started = useRef(false);
+  const error = data?.error;
+
+  useEffect(() => {
+    if (!isSessionEndedError(error)) {
+      started.current = false;
+      return;
+    }
+    if (started.current || isAuthPagePath(pathname ?? window.location.pathname)) return;
+    started.current = true;
+    endDeadSession(error)
+      .then(() => queryClient.clear())
+      .catch(() => {
+        started.current = false;
+      });
+  }, [data, error, queryClient, pathname]);
 
   return null;
 };
@@ -142,6 +188,7 @@ export const AppProviders = (props: AppProvidersProps) => {
     >
       <SessionCacheSync />
       <QueryClientProvider client={queryClient}>
+        <SessionEndGuard />
         <SnackbarProvider
           maxSnack={3}
           anchorOrigin={{

@@ -488,6 +488,63 @@ describe('гейт админки пропускает сотрудника (LEG
   });
 });
 
+describe('гейт админки не пускает мёртвую сессию (LEGACY-466)', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', SITE_URL);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  // Роль в токене остаётся прежней и после отказа refresh: без проверки `error` разжалованный
+  // или заблокированный попадал в оболочку админки.
+  it.each(['SessionEnded', 'AccountDisabled'])(
+    'токен с ролью администратора и ошибкой %s уходит на вход',
+    async (error) => {
+      getTokenMock.mockResolvedValue({ roles: ['admin'], error } as never);
+
+      const response = await middleware(
+        request(`${SITE_URL}/admin/en/dashboard`, { host: SITE_HOST })
+      );
+
+      const location = locationOf(response);
+      expect(location.pathname).toBe('/en/auth/sign-in');
+      expect(location.searchParams.get('reason')).toBe(error);
+      expect(location.searchParams.get('callbackUrl')).toBe('/admin/en/dashboard');
+    }
+  );
+
+  it('старая кука окончательного отказа (RefreshAccessTokenError + «никогда») тоже уходит на вход', async () => {
+    getTokenMock.mockResolvedValue({
+      roles: ['admin'],
+      error: 'RefreshAccessTokenError',
+      refreshRetryAt: Number.MAX_SAFE_INTEGER,
+    } as never);
+
+    const response = await middleware(
+      request(`${SITE_URL}/admin/en/dashboard`, { host: SITE_HOST })
+    );
+
+    const location = locationOf(response);
+    expect(location.pathname).toBe('/en/auth/sign-in');
+    expect(location.searchParams.get('reason')).toBe('SessionEnded');
+  });
+
+  it('временный отказ refresh сотрудника не выкидывает: роль решает как прежде', async () => {
+    getTokenMock.mockResolvedValue({
+      roles: ['admin'],
+      error: 'RefreshAccessTokenError',
+    } as never);
+
+    const response = await middleware(
+      request(`${SITE_URL}/admin/en/dashboard`, { host: SITE_HOST })
+    );
+
+    expect(response.status).toBe(200);
+  });
+});
+
 /**
  * `LEGACY-136`. Блок «DIAGNOSTIC: temporary logging» печатал на каждый запрос к
  * `/admin` почту, роли и весь объект `user`. Логи контейнера читает кто угодно.

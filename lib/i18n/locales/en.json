@@ -363,7 +363,9 @@
       "genericError": "Authentication failed",
       "invalidCredentials": "Invalid email or password",
       "rateLimit": "Too many requests. Please try again later.",
-      "missingCredentials": "Email and password are required"
+      "missingCredentials": "Email and password are required",
+      "accountDisabled": "This account has been blocked. If you think this is a mistake, contact support.",
+      "sessionEnded": "Your session has ended. Please sign in again."
     },
     "register": {
       "successTitle": "Account Created!",

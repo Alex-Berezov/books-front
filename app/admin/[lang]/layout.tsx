@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { AdminChrome } from '@/components/admin/AdminShell/AdminChrome/AdminChrome';
 import { AdminSidebar } from '@/components/admin/AdminShell/AdminSidebar/AdminSidebar';
 import { AdminTopBar } from '@/components/admin/AdminShell/AdminTopBar/AdminTopBar';
-import { ADMIN_PANEL_ROLES } from '@/lib/auth/constants';
+import { ADMIN_PANEL_ROLES, SIGN_IN_REASON_PARAM, isSessionEndedError } from '@/lib/auth/constants';
 import { getCurrentUser } from '@/lib/auth/helpers';
 import { isSupportedLang, type SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -43,6 +43,14 @@ export default async function AdminLayout({ children, params }: Props) {
   // Double-check: middleware should have redirected, but check again
   if (!session || !session.user) {
     redirect(`/${lang}/auth/sign-in?callbackUrl=/admin/${lang}`);
+  }
+
+  // `auth()` прогоняет колбэк `jwt`: здесь видно и то, что middleware по старой куке ещё не знал, —
+  // refresh, отвергнутый прямо на этом запросе (`LEGACY-466`).
+  if (isSessionEndedError(session.error)) {
+    redirect(
+      `/${lang}/auth/sign-in?callbackUrl=/admin/${lang}&${SIGN_IN_REASON_PARAM}=${session.error}`
+    );
   }
 
   // Check roles: admin, content_manager or lawyer (Phase 19).

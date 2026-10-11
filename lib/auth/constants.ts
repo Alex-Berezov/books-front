@@ -78,7 +78,51 @@ export enum AuthErrorType {
 
   /** Backend refused the login for a reason of its own */
   AUTHENTICATION_FAILED = 'AuthenticationFailed',
+
+  /** Сессия окончена бэкендом окончательно (refresh вернул 400/401): повторять нечего (`LEGACY-466`). */
+  SESSION_ENDED = 'SessionEnded',
+
+  /** Аккаунт заблокирован: бэкенд ответил 401 с кодом `ACCOUNT_DISABLED` (`LEGACY-452`, `LEGACY-466`). */
+  ACCOUNT_DISABLED = 'AccountDisabled',
 }
+
+/** Машинный признак блокировки в теле 401 бэкенда (`books/src/modules/auth/auth.service.ts`). */
+export const ACCOUNT_DISABLED_API_CODE = 'ACCOUNT_DISABLED';
+
+/**
+ * Ошибки сессии, после которых она мертва и ждёт выхода: окончательный отказ refresh, блокировка
+ * и отказ бэкенда на соцвходе (токенов у такой сессии нет вовсе). Временный отказ refresh
+ * (`REFRESH_TOKEN_ERROR` с паузой) сюда не входит: он повторяется, и сессия может ожить
+ * (`LEGACY-451`, `LEGACY-466`). Он же — белый список причин `?reason=` на странице входа.
+ */
+const SESSION_END_ERRORS: ReadonlySet<string> = new Set<string>([
+  AuthErrorType.SESSION_ENDED,
+  AuthErrorType.ACCOUNT_DISABLED,
+  AuthErrorType.INVALID_CREDENTIALS,
+  AuthErrorType.AUTHENTICATION_FAILED,
+]);
+
+export const isSessionEndedError = (error: unknown): error is AuthErrorType =>
+  typeof error === 'string' && SESSION_END_ERRORS.has(error);
+
+/**
+ * То же по сырому токену из куки (middleware читает её без колбэка `jwt`): кука до `T129` хранила
+ * окончательный отказ как `REFRESH_TOKEN_ERROR` с отметкой «никогда» (`LEGACY-466`).
+ */
+export const isTokenSessionEnded = (token: {
+  error?: unknown;
+  refreshRetryAt?: unknown;
+}): boolean =>
+  isSessionEndedError(token.error) ||
+  (token.error === AuthErrorType.REFRESH_TOKEN_ERROR &&
+    token.refreshRetryAt === REFRESH_RETRY_NEVER);
+
+/** Параметр страницы входа с причиной принудительного выхода (`/sign-in?reason=…`). */
+export const SIGN_IN_REASON_PARAM = 'reason';
+
+/** Ключ словаря причины выхода или `null`: параметр приходит из адресной строки. */
+export const sessionEndReasonDictKey = (reason: string | null | undefined): string | null =>
+  isSessionEndedError(reason) ? AUTH_ERROR_DICT_KEY[reason] : null;
 
 /**
  * Ключ словаря на каждый код отказа входа (`LEGACY-053`).
@@ -99,6 +143,8 @@ export const AUTH_ERROR_DICT_KEY: Record<AuthErrorType, string> = {
   [AuthErrorType.MISSING_CREDENTIALS]: 'auth.signin.missingCredentials',
   [AuthErrorType.REFRESH_TOKEN_ERROR]: 'auth.signin.genericError',
   [AuthErrorType.AUTHENTICATION_FAILED]: 'auth.signin.genericError',
+  [AuthErrorType.SESSION_ENDED]: 'auth.signin.sessionEnded',
+  [AuthErrorType.ACCOUNT_DISABLED]: 'auth.signin.accountDisabled',
 };
 
 /** Ключ словаря для отказа, код которого не опознан. */

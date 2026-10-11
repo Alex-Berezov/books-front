@@ -23,7 +23,11 @@ import {
   useAuthForm,
   type AuthFormValues,
 } from '@/components/public/auth';
-import { authErrorDictKey } from '@/lib/auth/constants';
+import {
+  SIGN_IN_REASON_PARAM,
+  authErrorDictKey,
+  sessionEndReasonDictKey,
+} from '@/lib/auth/constants';
 import { safeCallbackUrl } from '@/lib/auth/safe-callback-url';
 import { markLoggedIn } from '@/lib/auth/sessionMarker';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -51,7 +55,9 @@ const SignInClient: FC = () => {
     safeCallbackUrl(searchParams.get('callbackUrl'), lang, window.location.origin);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Причина принудительного выхода (`/sign-in?reason=…`): блокировка или конец сессии (`LEGACY-466`).
+  const reasonKey = sessionEndReasonDictKey(searchParams.get(SIGN_IN_REASON_PARAM));
+  const [error, setError] = useState<string | null>(() => (reasonKey ? t(reasonKey) : null));
 
   /**
    * Правила полей — те же, что стояли в `rules` у `Form.Item` antd.

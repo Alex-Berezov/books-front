@@ -22,6 +22,7 @@ const sessionState: { data: unknown; status: string } = { data: null, status: 'u
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ lang: 'en' }),
+  usePathname: () => '/en',
 }));
 
 vi.mock('next-auth/react', () => ({

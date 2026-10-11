@@ -6,11 +6,11 @@ const { signOutWithRevokeMock } = vi.hoisted(() => ({ signOutWithRevokeMock: vi.
 
 vi.mock('@/lib/auth/sign-out', () => ({ signOutWithRevoke: signOutWithRevokeMock }));
 
+const liveSession = { user: { id: 'u1', email: 'reader@example.com', roles: ['user'] } };
+const sessionState: { data: { user: object; error?: string } } = { data: liveSession };
+
 vi.mock('next-auth/react', () => ({
-  useSession: () => ({
-    data: { user: { id: 'u1', email: 'reader@example.com', roles: ['user'] } },
-    status: 'authenticated',
-  }),
+  useSession: () => ({ data: sessionState.data, status: 'authenticated' }),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -30,6 +30,7 @@ vi.mock('@/components/LanguageSwitcher', () => ({ LanguageSwitcher: () => null }
  */
 describe('выход в шапке сайта (LEGACY-451)', () => {
   beforeEach(() => {
+    sessionState.data = liveSession;
     signOutWithRevokeMock.mockReset().mockResolvedValue(undefined);
   });
 
@@ -40,5 +41,20 @@ describe('выход в шапке сайта (LEGACY-451)', () => {
 
     expect(signOutWithRevokeMock).toHaveBeenCalledTimes(1);
     expect(signOutWithRevokeMock).toHaveBeenCalledWith('/en');
+  });
+});
+
+/** `LEGACY-466`: мёртвая сессия в шапке «вошёл» не показывает, пока выход ещё в пути. */
+describe('шапка и мёртвая сессия (LEGACY-466)', () => {
+  it('сессия с SessionEnded — меню пользователя нет', () => {
+    sessionState.data = { user: { id: 'u1', roles: ['user'] }, error: 'SessionEnded' };
+    render(<Header />);
+    expect(screen.queryByRole('button', { name: 'User menu' })).toBeNull();
+  });
+
+  it('временный отказ refresh — меню на месте', () => {
+    sessionState.data = { user: { id: 'u1', roles: ['user'] }, error: 'RefreshAccessTokenError' };
+    render(<Header />);
+    expect(screen.getByRole('button', { name: 'User menu' })).toBeTruthy();
   });
 });

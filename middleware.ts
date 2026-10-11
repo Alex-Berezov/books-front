@@ -7,7 +7,13 @@
 
 import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { ADMIN_PANEL_ROLES } from '@/lib/auth/constants';
+import {
+  ADMIN_PANEL_ROLES,
+  AuthErrorType,
+  SIGN_IN_REASON_PARAM,
+  isSessionEndedError,
+  isTokenSessionEnded,
+} from '@/lib/auth/constants';
 import { DEFAULT_REDIRECT_LANG } from '@/lib/middleware.constants';
 import { getSiteUrl } from '@/lib/seo/urls';
 import type { NextRequest } from 'next/server';
@@ -288,10 +294,16 @@ export async function middleware(request: NextRequest) {
   // Check admin routes
   if (isAdminRoute(pathname)) {
     // If no session - redirect to login
-    if (!token) {
+    // Окончательный отказ сессии (refresh отвергнут, аккаунт заблокирован) — то же, что нет сессии:
+    // роли в таком токене прежние, но бэкенд данных уже не отдаст (`LEGACY-466`).
+    if (!token || isTokenSessionEnded(token)) {
       const lang = extractLangFromPath(pathname);
       const signInUrl = buildRedirectUrl(`/${lang}/auth/sign-in`);
       signInUrl.searchParams.set('callbackUrl', safePathname);
+      if (token) {
+        const reason = isSessionEndedError(token.error) ? token.error : AuthErrorType.SESSION_ENDED;
+        signInUrl.searchParams.set(SIGN_IN_REASON_PARAM, reason);
+      }
       return NextResponse.redirect(signInUrl);
     }
 
