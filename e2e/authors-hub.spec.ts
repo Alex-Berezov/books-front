@@ -54,6 +54,27 @@ test.describe('Authors hub', () => {
     await expect(page).toHaveURL(/[?&]search=/, { timeout: 5000 });
   });
 
+  // `T121` (`LEGACY-448`): на next 15.5.27 `router.replace` с `?search=` на хабе молча
+  // отбрасывался при `app/[lang]/authors/loading.tsx` (снят, решение арбитра 11.10.2026);
+  // буквенная страница живёт под тем же сегментом и проверяется отдельно. Буква берётся
+  // из указателя хаба, а не литералом: какие буквы непусты, решает сид.
+  test('typing in the search box on a letter page keeps the letter and adds ?search=', async ({
+    page,
+  }) => {
+    await page.goto('/ru/authors');
+    const letterLink = page.locator('a[href^="/ru/authors/letter/"]').first();
+    await expect(letterLink).toBeVisible();
+    const href = await letterLink.getAttribute('href');
+    expect(href).not.toBeNull();
+
+    await page.goto(href as string);
+    const searchInput = page.locator('input[type="search"]:not(#site-search)');
+    await expect(searchInput).toBeVisible();
+    await searchInput.fill('толст');
+
+    await expect(page).toHaveURL(new RegExp(`${href}\\?search=`), { timeout: 5000 });
+  });
+
   test('the paginated address answers with the hub, not an error', async ({ page }) => {
     // 🔴 Прежняя версия кликала по ссылке «Страница 2» и висла по таймауту: в каталоге
     // восемь авторов, они умещаются на одну страницу, и переключателя страниц на хабе

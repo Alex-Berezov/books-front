@@ -88,7 +88,7 @@ describe('имя роута из ключа манифеста', () => {
    * Раскладка, ошибка, загрузка и «не найдено» — куски страницы, а не первый её загруз.
    * Приняв их за роуты, снимок судил бы то, чего в таблице `next build` нет вовсе.
    */
-  it.each(['/layout', '/error', '/[lang]/authors/loading', '/admin/[lang]/not-found'])(
+  it.each(['/layout', '/error', '/admin/[lang]/loading', '/admin/[lang]/not-found'])(
     'служебный вход %s роутом не считается',
     (key) => {
       expect(routeNameFromManifestKey(key)).toBeNull();

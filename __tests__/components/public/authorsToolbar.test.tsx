@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthorsToolbar } from '@/components/public/authors/AuthorsToolbar';
@@ -180,5 +181,30 @@ describe('AuthorsToolbar', () => {
   it('caps the input at the length the backend accepts', () => {
     renderToolbar();
     expect(screen.getByRole('searchbox')).toHaveAttribute('maxlength', '100');
+  });
+
+  // 🔴 `T121` (React 19). Ввод до гидратации React 19 отдаёт `onChange` уже во время
+  // гидратации — до пассивных эффектов монтирования. Эффект отмены по смене `basePath`
+  // срабатывал и на первом монтировании и гасил только что взведённый переход: в поле
+  // текст, кнопка очистки есть, а адрес и выдача прежние (e2e `authors-hub`, CI 38147738136).
+  // Здесь тот же порядок: change из `useLayoutEffect` родителя — до эффектов тулбара.
+  it('typing that lands before mount effects still navigates', () => {
+    const TypedBeforeEffects = () => {
+      useLayoutEffect(() => {
+        typeSearch('толст');
+      }, []);
+      return null;
+    };
+
+    render(
+      <>
+        <AuthorsToolbar basePath="/ru/authors" labels={labels} search="" sort="name" />
+        <TypedBeforeEffects />
+      </>
+    );
+    vi.advanceTimersByTime(300);
+
+    expect(replace).toHaveBeenCalledTimes(1);
+    expect(replace).toHaveBeenCalledWith('/ru/authors?search=%D1%82%D0%BE%D0%BB%D1%81%D1%82');
   });
 });
