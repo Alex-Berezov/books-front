@@ -158,7 +158,7 @@ describe('check-site-url.mjs: формат медиа-переменных', () 
 
 /**
  * 🔴 Третий источник хостов `images.remotePatterns` — значение самой медиа-переменной
- * (`next.config.js:75`). Оптимизатор его принимает, `isOptimizableHost` о нём не знает,
+ * (`next.config.js:118`). Оптимизатор его принимает, `isOptimizableHost` о нём не знает,
  * и все картинки сайта уходят оригиналами без единого сигнала: сверка списков
  * в `next.config.test.ts` идёт при снятых переменных, то есть этой стороны не видит
  * по построению. Решение арбитра от 28.08.2026: отказ здесь, а не чтение переменной
@@ -234,12 +234,15 @@ describe('check-site-url.mjs: хост медиа-переменной изве�
     expect(output).toContain('whitespace only');
   });
 
-  it('пропускает http://localhost, хотя его в списке предиката нет', () => {
-    // Локальная сборка по `.env.example` обязана проходить: `localhost` разбирается
-    // предикатом отдельной веткой, а не через список хостов.
-    const { status } = run({ NEXT_PUBLIC_UPLOADS_BASE_URL: 'http://localhost:8787' });
+  it('пропускает http://localhost с предупреждением, а не как известный предикату', () => {
+    // Локальная сборка по `.env.example` обязана проходить. Но сборка идёт с
+    // `NODE_ENV=production`, где `localhost` не оптимизируется (LEGACY-456): «✓ known
+    // to the predicate» здесь было бы ложью.
+    const { status, output } = run({ NEXT_PUBLIC_UPLOADS_BASE_URL: 'http://localhost:8787' });
 
     expect(status).toBe(0);
+    expect(output).toContain('is a local http address');
+    expect(output).not.toContain('known to the predicate');
   });
 
   it('не сверяет затенённую переменную — её конфиг не читает', () => {

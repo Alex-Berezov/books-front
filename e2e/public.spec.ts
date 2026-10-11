@@ -19,6 +19,22 @@ import { test, expect } from '@playwright/test';
  * страницы.
  */
 test.describe('Public Area', () => {
+  // LEGACY-456: юнит проверяет только объект `headers()`; доезжают ли заголовки до ответа
+  // собранного `standalone`-сервера, видно только здесь.
+  test('answers with anti-framing headers and without x-powered-by', async ({ request }) => {
+    // Админка без сессии уводит на вход: проверяется страница, которую увидит браузер.
+    for (const path of ['/en', '/admin/en/dashboard']) {
+      const response = await request.get(path);
+      expect(response.ok()).toBe(true);
+      const headers = response.headers();
+
+      expect(headers['x-frame-options']).toBe('DENY');
+      expect(headers['content-security-policy']).toBe("frame-ancestors 'none'");
+      expect(headers['content-security-policy-report-only']).toContain("default-src 'self'");
+      expect(headers['x-powered-by']).toBeUndefined();
+    }
+  });
+
   test('should redirect from root to default language', async ({ page }) => {
     const response = await page.goto('/');
 

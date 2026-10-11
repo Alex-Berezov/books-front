@@ -6,6 +6,11 @@ const mediaCdnVar = process.env.NEXT_PUBLIC_MEDIA_CDN_URL
   : 'NEXT_PUBLIC_UPLOADS_BASE_URL';
 const mediaCdnUrl =
   process.env.NEXT_PUBLIC_MEDIA_CDN_URL || process.env.NEXT_PUBLIC_UPLOADS_BASE_URL;
+// LEGACY-456. `localhost` в прод-конфиге превращал `/_next/image?url=http://localhost:<порт>/...`
+// в обход во внутренние сервисы контейнера: запись стоит только вне прода. Из переменной выше
+// в проде не берётся ни один `http`-адрес (`localhost`, `127.0.0.1`, `minio:9000`): это тот же
+// обход, а предикат `lib/utils/image-host.ts` в проде по `http` и так не пропускает ничего.
+const isProduction = process.env.NODE_ENV === 'production';
 // Негодное значение переменной (без схемы, с пробелом, пустая строка) роняло бы загрузку
 // самого конфига с `TypeError: Invalid URL` — то есть и `next dev`, и `next build`, без имени
 // переменной в сообщении. Статические записи ниже дают рабочий набор и без неё.
@@ -35,12 +40,43 @@ const mediaCdn = (() => {
         'Укажи точное имя хоста.'
     );
   }
+  if (isProduction && parsed.protocol === 'http:') return undefined;
   return { hostname: parsed.hostname, protocol: parsed.protocol.replace(':', '') };
 })();
+
+// LEGACY-456. Два заголовка CSP, а не один: `frame-ancestors` в Report-Only браузер игнорирует,
+// поэтому запрет встраивания идёт отдельным действующим заголовком, а полная политика пока
+// только сообщает о нарушениях. Адреса для отчётов нет: нарушения видны в консоли браузера
+// (e2e, ручная проверка). Переход полной политики в enforce — отдельным шагом, вместе
+// с адресом для отчётов или после прогона, показавшего, что аналитика и картинки не ломаются.
+// `X-Frame-Options` дублирует `frame-ancestors` для браузеров без CSP2.
+const reportOnlyCsp = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https:",
+  "connect-src 'self' https:",
+  "frame-src 'self' https:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
+
+const securityHeaders = [
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+  { key: 'Content-Security-Policy-Report-Only', value: reportOnlyCsp },
+];
 
 const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: '/:path*', headers: securityHeaders }];
+  },
   // Главная ждёт на сборке `Retry-After` лимитера (60 с) перед повтором в `httpGet`;
   // при умолчании в 60 с Next убил бы воркер раньше повтора (LEGACY-411, решение арбитра 24.09.2026).
   // Хватает, пока главная укладывается в два окна лимитера: у неё три уровня запросов подряд,
@@ -84,10 +120,7 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'media.bibliaris.com',
       },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-      },
+      ...(isProduction ? [] : [{ protocol: 'http', hostname: 'localhost' }]),
     ],
   },
 };

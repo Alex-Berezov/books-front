@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { isOptimizableHost } from '@/lib/utils/image-host';
 
 /**
@@ -34,6 +34,16 @@ describe('isOptimizableHost', () => {
   it('accepts http only on localhost', () => {
     expect(isOptimizableHost('http://localhost:3000/a.jpg')).toBe(true);
     expect(isOptimizableHost('http://media.bibliaris.com/a.jpg')).toBe(false);
+  });
+
+  // LEGACY-456: в проде `localhost` из `remotePatterns` убран — оптимизатор ответил бы 400.
+  it('does not accept localhost in production', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    try {
+      expect(isOptimizableHost('http://localhost:3000/a.jpg')).toBe(false);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it('treats a site-relative path as our own domain', () => {

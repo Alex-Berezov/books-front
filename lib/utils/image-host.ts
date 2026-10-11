@@ -39,7 +39,10 @@ export const OPTIMIZABLE_HTTPS_HOSTS = ['api.bibliaris.com', 'media.bibliaris.co
 export const isOptimizableHost = (url: string): boolean => {
   try {
     const { hostname, protocol } = new URL(url);
-    if (protocol === 'http:') return hostname === 'localhost';
+    // LEGACY-456: в проде `localhost` из `next.config.js` убран, оптимизатор такой адрес отвергает.
+    if (protocol === 'http:') {
+      return process.env.NODE_ENV !== 'production' && hostname === 'localhost';
+    }
     return (
       protocol === 'https:' && (OPTIMIZABLE_HTTPS_HOSTS as readonly string[]).includes(hostname)
     );

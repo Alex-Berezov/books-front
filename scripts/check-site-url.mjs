@@ -139,7 +139,7 @@ if (apiBaseUrl) {
  * nothing to check" — that is the same silence LEGACY-280 was opened over, one floor up,
  * and it is what `check-langs-sync.mjs` avoids with its own `SKIPPED:` (LEGACY-156).
  *
- * A wildcard in the hostname IS refused here, even though `next.config.js:29-37` refuses it
+ * A wildcard in the hostname IS refused here, even though `next.config.js:34-42` refuses it
  * too (LEGACY-137/LEGACY-279): `prebuild` runs before the config is ever loaded, so without
  * this branch the only thing the operator would see is this guard's own "add the host to the
  * predicate" advice — pointing straight back at LEGACY-137.
@@ -170,7 +170,7 @@ const PREDICATE_FILE = 'lib/utils/image-host.ts';
  * The hosts `isOptimizableHost` accepts, read out of the predicate as text.
  *
  * 🔴 There is a THIRD source of hosts besides the two static entries and this list: the
- * value of the media variable, which `next.config.js:75` turns into a `remotePatterns`
+ * value of the media variable, which `next.config.js:118` turns into a `remotePatterns`
  * entry of its own. Point the variable at a new CDN and the optimizer accepts that host
  * while the predicate does not — every cover, portrait and avatar on the site goes out
  * `unoptimized`, original bytes with no AVIF/WebP and no resizing, and nothing says so:
@@ -298,22 +298,24 @@ for (const name of MEDIA_URL_VARS) {
 
   // Правило повторяется целиком, схемой и хостом, а не одним хостом: предикат решает
   // по паре. `http://media.bibliaris.com` — хост в списке, а `isOptimizableHost` даёт
-  // `false`, потому что по `http` он пропускает только `localhost`. Половина правила
+  // `false`, потому что по `http` он ничего не пропускает (`localhost` — только вне прода,
+  // а сборка идёт с `NODE_ENV=production`, LEGACY-456). Половина правила
   // здесь пропустила бы ровно тот разъезд, ради которого проверка и написана, да ещё
   // и с советом «допиши хост», который в этом случае не помогает.
   //
-  // `http://localhost` проходит: локальная сборка по `.env.example`
-  // (`http://localhost:8787`) обязана работать, и в конфиге он стоит статической записью.
+  // `http://localhost` предикату больше не известен: сборка всегда идёт с
+  // `NODE_ENV=production`, а в проде `localhost` не оптимизируется и в `remotePatterns`
+  // не попадает (LEGACY-456). Локальная сборка по `.env.example` (`http://localhost:8787`)
+  // проходит веткой разработческих адресов ниже (одна метка без точки) — с предупреждением.
   const predicateHosts = readPredicateHosts();
   const knownToPredicate =
-    (mediaUrl.protocol === 'http:' && mediaUrl.hostname === 'localhost') ||
-    (mediaUrl.protocol === 'https:' && predicateHosts.includes(mediaUrl.hostname));
+    mediaUrl.protocol === 'https:' && predicateHosts.includes(mediaUrl.hostname);
 
   if (!knownToPredicate) {
     const origin = `${mediaUrl.protocol}//${mediaUrl.hostname}`;
 
     // 🔴 Подстановка в имени хоста разбирается `new URL` без отказа, и совет «допиши хост
-    // в предикат» увёл бы прямо в LEGACY-137. `next.config.js:29-37` откажет по имени,
+    // в предикат» увёл бы прямо в LEGACY-137. `next.config.js:34-42` откажет по имени,
     // но до него дело не дойдёт: `prebuild` идёт ДО загрузки конфига.
     if (mediaUrl.hostname.includes('*')) {
       fail(
@@ -337,6 +339,8 @@ for (const name of MEDIA_URL_VARS) {
     // Попади он в боевую переменную — картинки не «потеряют оптимизацию молча», а не
     // загрузятся ни у кого и сразу. Молчаливый отказ, ради которого написан этот блок,
     // бывает только на публично разрешимом хосте, и такой сюда не попадает.
+    // С LEGACY-456 в прод-сборке (`NODE_ENV=production`) `next.config.js` и сам не кладёт
+    // `http`-адрес из переменной в `remotePatterns`: оптимизатор на него не откроется.
     const host = mediaUrl.hostname;
     const isPrivateIpv4 = /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
     const isDevAddress =
@@ -370,7 +374,7 @@ for (const name of MEDIA_URL_VARS) {
               '    2. a static remotePatterns entry in next.config.js (protected file — needs a line',
               '       in D:/newDev/.claude/unlock.txt).',
             ].join('\n')
-          : `  Outside localhost the predicate accepts https only — use https://${mediaUrl.hostname}.`,
+          : `  In a production build the predicate accepts https only — use https://${mediaUrl.hostname}.`,
       ].join('\n')
     );
   }

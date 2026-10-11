@@ -236,3 +236,77 @@ describe('images.formats', () => {
     expect(config.images.formats).toEqual(['image/webp']);
   });
 });
+
+/**
+ * LEGACY-456. Без этих заголовков `/admin` встраивался во фрейм чужого сайта (кликджекинг), а ответ
+ * выдавал `x-powered-by: Next.js`; `http://localhost` в прод-конфиге пускал `/_next/image`
+ * во внутренности контейнера.
+ */
+describe('security headers and localhost images (LEGACY-456)', () => {
+  // Переменные медиа-хоста снимаются: значение машины прогона (`http://localhost:8787`
+  // из `.env.example`) подложило бы свою запись в `remotePatterns`.
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_MEDIA_CDN_URL', '');
+    vi.stubEnv('NEXT_PUBLIC_UPLOADS_BASE_URL', '');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  const loadWith = async (nodeEnv: string) => {
+    vi.stubEnv('NODE_ENV', nodeEnv);
+    vi.resetModules();
+    return (await import('../next.config.js')).default;
+  };
+
+  it('запрещает встраивание действующим заголовком на всех путях', async () => {
+    const config = await loadWith('production');
+    const rules = await config.headers();
+    expect(rules).toHaveLength(1);
+    expect(rules[0].source).toBe('/:path*');
+    const byKey = new Map(
+      rules[0].headers.map((h: { key: string; value: string }) => [h.key, h.value])
+    );
+    expect(byKey.get('X-Frame-Options')).toBe('DENY');
+    expect(byKey.get('Content-Security-Policy')).toBe("frame-ancestors 'none'");
+  });
+
+  it('полная CSP идёт только в Report-Only', async () => {
+    const config = await loadWith('production');
+    const headers: { key: string; value: string }[] = (await config.headers())[0].headers;
+    const full = headers.filter((h) => h.value.includes("default-src 'self'"));
+    expect(full.map((h) => h.key)).toEqual(['Content-Security-Policy-Report-Only']);
+  });
+
+  it('не отдаёт x-powered-by', async () => {
+    expect((await loadWith('production')).poweredByHeader).toBe(false);
+  });
+
+  it('localhost в картинках — только вне прода', async () => {
+    const hosts = async (env: string) =>
+      (await loadWith(env)).images.remotePatterns.map((p: { hostname: string }) => p.hostname);
+    expect(await hosts('production')).not.toContain('localhost');
+    expect(await hosts('development')).toContain('localhost');
+  });
+
+  // Хост нарочно не `localhost`: тот стоит статической записью вне прода, и половина
+  // «в разработке есть» прошла бы без участия переменной.
+  it('http-адрес из переменной медиа-хоста в прод-конфиг не попадает', async () => {
+    vi.stubEnv('NEXT_PUBLIC_UPLOADS_BASE_URL', 'http://minio:9000');
+    const hosts = async (env: string) =>
+      (await loadWith(env)).images.remotePatterns.map((p: { hostname: string }) => p.hostname);
+    expect(await hosts('production')).not.toContain('minio');
+    expect(await hosts('development')).toContain('minio');
+  });
+
+  // Контроль: граница режет только `http`, боевой `https`-медиахост из переменной остаётся.
+  it('https-адрес из переменной медиа-хоста в прод-конфиге остаётся', async () => {
+    vi.stubEnv('NEXT_PUBLIC_UPLOADS_BASE_URL', 'https://cdn.example.test');
+    const hosts = (await loadWith('production')).images.remotePatterns.map(
+      (p: { hostname: string }) => p.hostname
+    );
+    expect(hosts).toContain('cdn.example.test');
+  });
+});
