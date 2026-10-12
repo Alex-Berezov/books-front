@@ -52,6 +52,10 @@ RUN addgroup -S app && adduser -S app -G app
 COPY --from=builder --chown=app:app /app/.next/standalone ./
 COPY --from=builder --chown=app:app /app/.next/static ./.next/static
 COPY --from=builder --chown=app:app /app/public ./public
+# Потолок приёма запроса для загрузок через серверный прокси (`LEGACY-465`): без него Node
+# обрывает тело дольше 300 с. Подключается до `server.js` ключом в `CMD`, а не `NODE_OPTIONS`:
+# переменная из env_file или compose молча заменила бы `--require`.
+COPY --from=builder --chown=app:app /app/server-timeouts.cjs ./server-timeouts.cjs
 
 USER app
 EXPOSE 3000
@@ -59,4 +63,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1
 
-CMD ["node", "server.js"]
+CMD ["node", "--require", "/app/server-timeouts.cjs", "server.js"]

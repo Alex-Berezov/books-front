@@ -93,11 +93,11 @@ describe('коды отказа отделены от текстов', () => {
     );
   });
 
-  it('отсутствие токена даёт код Unauthorized, а не фразу «Authentication required»', async () => {
-    // Зовём настоящий `getAccessToken`, а не собираем `ApiError` руками: иначе
+  it('отсутствие сессии даёт код Unauthorized, а не фразу «Authentication required»', async () => {
+    // Зовём настоящий `requireLiveSession`, а не собираем `ApiError` руками: иначе
     // возврат литерала в `lib/http-client/auth.ts` не покраснил бы ничего.
-    const { getAccessToken } = await import('@/lib/http-client/auth');
-    const error = await getAccessToken(true).catch((e: unknown) => e);
+    const { requireLiveSession } = await import('@/lib/http-client/auth');
+    const error = await requireLiveSession().catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).error).toBe(API_ERROR_TYPE.UNAUTHORIZED);

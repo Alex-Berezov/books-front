@@ -5,7 +5,8 @@ Module for working with Backend API of Bibliaris project.
 ## 📋 Features
 
 - ✅ Automatic base URL setup from environment variables
-- ✅ `Authorization` header support (Bearer token)
+- ✅ Signed-in browser requests go through the server proxy `/api/backend` — the browser holds no token (`LEGACY-465`)
+- ✅ `Authorization` header (Bearer token) for server-side calls that pass the token explicitly
 - ✅ `Accept-Language` header support for multilingual functionality
 - ✅ Typed error handling through `ApiError` class
 - ✅ JSON by default for all requests
@@ -28,9 +29,25 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
 ### Import
 
 ```typescript
+// Public endpoints, any context
 import { httpGet, httpPost, httpPatch, httpPut, httpDelete } from '@/lib/http';
+// Endpoints of a signed-in user (browser): proxy route, 401 retry, sign-out on a dead session
+import {
+  httpGetAuth,
+  httpPostAuth,
+  httpPatchAuth,
+  httpPutAuth,
+  httpDeleteAuth,
+} from '@/lib/http-client';
 import { ApiError } from '@/types/api';
 ```
+
+🔴 **The browser has no access token.** Neither `accessToken` nor `refreshToken` is in the
+session that `/api/auth/session` hands to the browser (`LEGACY-446`, `LEGACY-465`). A request of a
+signed-in user from the browser is a `http*Auth` call: it goes to the server proxy
+`app/api/backend/[...path]/route.ts`, which reads the token from the encrypted session cookie and
+adds `Authorization` itself. Uploads (`FormData`, presigned direct upload) and file downloads go
+through the same proxy. Do not read a token from `useSession()` — there is none.
 
 ### Request Examples
 
@@ -40,10 +57,8 @@ import { ApiError } from '@/types/api';
 // Simple GET request
 const books = await httpGet<Book[]>('/en/books');
 
-// GET with authorization
-const user = await httpGet<User>('/users/me', {
-  accessToken: session.accessToken,
-});
+// GET of a signed-in user (browser) — through the server proxy, no token in the browser
+const user = await httpGetAuth<User>('/users/me');
 
 // GET with language
 const page = await httpGet<Page>('/en/pages/about', {
@@ -60,58 +75,38 @@ const authResponse = await httpPost<AuthResponse>('/auth/login', {
   password: 'SecurePassword123!',
 });
 
-// Create comment with authorization
-const comment = await httpPost<Comment>(
-  '/comments',
-  {
-    text: 'Great book!',
-    bookVersionId: 'version-uuid',
-  },
-  {
-    accessToken: session.accessToken,
-  }
-);
+// Create comment as the signed-in user
+const comment = await httpPostAuth<Comment>('/comments', {
+  text: 'Great book!',
+  bookVersionId: 'version-uuid',
+});
 ```
 
 #### PATCH Request
 
 ```typescript
 // Update profile
-const updatedUser = await httpPatch<User>(
-  '/users/me',
-  {
-    name: 'New Name',
-    languagePreference: 'es',
-  },
-  {
-    accessToken: session.accessToken,
-  }
-);
+const updatedUser = await httpPatchAuth<User>('/users/me', {
+  name: 'New Name',
+  languagePreference: 'es',
+});
 ```
 
 #### PUT Request
 
 ```typescript
 // Save reading progress
-const progress = await httpPut<ReadingProgress>(
-  '/me/progress/version-id',
-  {
-    chapterNumber: 5,
-    position: 1234,
-  },
-  {
-    accessToken: session.accessToken,
-  }
-);
+const progress = await httpPutAuth<ReadingProgress>('/me/progress/version-id', {
+  chapterNumber: 5,
+  position: 1234,
+});
 ```
 
 #### DELETE Request
 
 ```typescript
 // Remove book from bookshelf
-await httpDelete<void>('/me/bookshelf/version-id', {
-  accessToken: session.accessToken,
-});
+await httpDeleteAuth<void>('/me/bookshelf/version-id');
 ```
 
 ### Usage in Server Components
@@ -175,9 +170,7 @@ export const BooksList = ({ lang }: { lang: SupportedLang }) => {
 import { ApiError } from '@/types/api';
 
 try {
-  const user = await httpGet<User>('/users/me', {
-    accessToken: session.accessToken,
-  });
+  const user = await httpGetAuth<User>('/users/me');
 } catch (error) {
   if (error instanceof ApiError) {
     // Check error type
@@ -274,7 +267,7 @@ const endpoint2 = buildLangPath('es', 'pages/about');
 
 ```typescript
 interface HttpRequestOptions extends RequestInit {
-  /** Bearer token for authorization */
+  /** Bearer token — only for a server-side call with the token read from the session cookie */
   accessToken?: string;
   /** Language for Accept-Language header */
   language?: string;
@@ -313,46 +306,34 @@ interface PaginatedResponse<T> {
 
 ## 🔐 Authorization
 
-### Getting accessToken from NextAuth Session
+### Browser: through the server proxy
+
+`http*Auth` picks the route (`resolveAuthRoute` in `lib/http-client/methods.ts`):
+
+- a signed-in user (`requireAuth`, `optionalAuth` with a live session, `FormData` bodies) — the
+  proxy `/api/backend`, no `Authorization` from the browser; the proxy adds the token from the
+  session cookie and the visitor country (`X-Visitor-Country`) for the geo block;
+- no live session with `requireAuth` — 401 before the network; with `optionalAuth` — anonymous,
+  straight to the API;
+- after a 401 from the proxy the client takes a fresh session past its cache
+  (`/api/auth/session` renews the token in the cookie) and retries once; a dead session
+  (`isLiveSession` in `lib/http-client/auth.ts`) signs out.
+
+Requests outside `http*` (XHR uploads with progress, file downloads) use `backendProxyUrl()`
+and `BACKEND_PROXY_REQUEST_HEADERS` from `lib/http.ts` after `requireLiveSession()`.
+
+### Server: explicit token from the cookie
+
+`http*Auth` with `requireAuth` on the server fails before the network
+(`ServerContextAuthUnavailable`, `LEGACY-140`). A server-side call that needs the user's token reads
+it from the session cookie with `getToken` (see `getServerAccessToken` in
+`lib/auth/session-utils.ts`) and passes it explicitly:
 
 ```typescript
-// Server Component
-import { auth } from '@/lib/auth/auth';
+const accessToken = await getServerAccessToken();
+if (!accessToken) redirect('/auth/sign-in');
 
-export default async function ProtectedPage() {
-  const session = await auth();
-
-  if (!session) {
-    redirect('/auth/sign-in');
-  }
-
-  const data = await httpGet<UserData>('/protected-endpoint', {
-    accessToken: session.accessToken,
-  });
-
-  return <div>{/* ... */}</div>;
-}
-```
-
-```typescript
-// Client Component
-'use client';
-
-import { useSession } from 'next-auth/react';
-
-export const ProtectedComponent = () => {
-  const { data: session } = useSession();
-
-  const fetchData = async () => {
-    if (!session?.accessToken) return;
-
-    const data = await httpGet<UserData>('/protected-endpoint', {
-      accessToken: session.accessToken,
-    });
-  };
-
-  // ...
-};
+const data = await httpGet<UserData>('/protected-endpoint', { accessToken });
 ```
 
 ## 🌍 Multilingual Support
@@ -366,8 +347,7 @@ const page = await httpGet<Page>('/es/pages/about', {
 });
 
 // For neutral endpoints (without /:lang in path)
-const user = await httpGet<User>('/users/me', {
-  accessToken: session.accessToken,
+const user = await httpGetAuth<User>('/users/me', {
   language: 'fr', // Backend will return data with language consideration where applicable
 });
 ```

@@ -1,5 +1,6 @@
 import { getSession, signOut } from 'next-auth/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AuthErrorType } from '@/lib/auth/constants';
 import { BACKEND_PROXY_HEADER, BACKEND_PROXY_PREFIX } from '@/lib/backend-proxy.constants';
 import { API_BASE_URL } from '@/lib/http.constants';
 import type { ApiError } from '@/types/api';
@@ -7,10 +8,10 @@ import type { Session } from 'next-auth';
 import type { MockInstance } from 'vitest';
 
 /**
- * LEGACY-465, пачка T127 (заход 1). В браузере авторизованный JSON-запрос `http*Auth`
- * идёт через серверный прокси своего домена и **без** `Authorization`: токен добавляет
- * сервер. Напрямую с токеном, как раньше, идут только тело `FormData` (загрузки — заход 2,
- * решение арбитра 12.10.2026) и запрос без авторизации.
+ * LEGACY-465, пачка T127. В браузере запрос вошедшего пользователя `http*Auth` — JSON, `FormData`
+ * и `optionalAuth` — идёт через серверный прокси своего домена и **без** `Authorization`: токен
+ * добавляет сервер, в браузерной сессии его нет (заход 2). Напрямую идут только явный
+ * `accessToken` (серверный вызов) и запрос анонима.
  *
  * Окружение jsdom: `window` есть, ветка браузера настоящая.
  */
@@ -26,7 +27,6 @@ const signOutMock = vi.mocked(signOut);
 const liveSession: Session = {
   user: { id: 'u1', email: 'reader@example.com', roles: ['user'] },
   expires: '2099-01-01T00:00:00.000Z',
-  accessToken: 'access-123',
 };
 
 const json = (status: number, body: unknown = { ok: true }) =>
@@ -81,14 +81,39 @@ describe('http*Auth в браузере: маршрут через прокси'
     expect(headers.get(BACKEND_PROXY_HEADER)).toBe('1');
   });
 
-  // Гео-зависимые ручки (`reader-bootstrap`) берут страну из `cf-ipcountry`: через прокси это была
-  // бы страна сервера фронта. `optionalAuth` идёт напрямую до захода 2 (решение арбитра 12.10.2026).
-  it('optionalAuth с сессией идёт напрямую с токеном, как до захода', async () => {
+  // Гео-зависимые ручки (`reader-bootstrap`): страну читателя прокси передаёт сам
+  // (`X-Visitor-Country`, решение арбитра 12.10.2026, заход 2).
+  it('optionalAuth с сессией идёт через прокси без токена', async () => {
     const { httpGetAuth } = await loadClient(liveSession);
     await httpGetAuth('/versions/v1/reader', { optionalAuth: true });
 
+    expect(call().url).toBe(`${BACKEND_PROXY_PREFIX}/versions/v1/reader`);
+    expect(call().headers.get('authorization')).toBeNull();
+    expect(call().headers.get(BACKEND_PROXY_HEADER)).toBe('1');
+  });
+
+  // В куке протухший токен: `OptionalJwtAuthGuard` ответил бы 401 вместо текста книги
+  // (ревью круг 3). Читатель получает ответ анонима.
+  it('optionalAuth при временном отказе продления идёт напрямую анонимом', async () => {
+    const { httpGetAuth } = await loadClient({
+      ...liveSession,
+      error: AuthErrorType.REFRESH_TOKEN_ERROR,
+    } as unknown as Session);
+    await httpGetAuth('/versions/v1/reader', { optionalAuth: true });
+
     expect(call().url).toBe(`${API_BASE_URL}/versions/v1/reader`);
-    expect(call().headers.get('authorization')).toBe('Bearer access-123');
+    expect(call().headers.get(BACKEND_PROXY_HEADER)).toBeNull();
+    expect(call().headers.get('authorization')).toBeNull();
+  });
+
+  it('optionalAuth с окончательно оконченной сессией идёт напрямую анонимом', async () => {
+    const { httpGetAuth } = await loadClient({
+      ...liveSession,
+      error: AuthErrorType.SESSION_ENDED,
+    } as unknown as Session);
+    await httpGetAuth('/versions/v1/reader', { optionalAuth: true });
+
+    expect(call().url).toBe(`${API_BASE_URL}/versions/v1/reader`);
     expect(call().headers.get(BACKEND_PROXY_HEADER)).toBeNull();
   });
 
@@ -99,15 +124,6 @@ describe('http*Auth в браузере: маршрут через прокси'
     expect(call().url).toBe(`${API_BASE_URL}/versions/v1/reader`);
     expect(call().headers.get('authorization')).toBeNull();
     expect(call().headers.get(BACKEND_PROXY_HEADER)).toBeNull();
-  });
-
-  it('viaBackendProxy из опций вызывающего не уводит загрузку в прокси', async () => {
-    const { httpPostAuth } = await loadClient(liveSession);
-    const form = new FormData();
-    form.append('file', new Blob(['x']), 'x.txt');
-    await httpPostAuth('/media/upload', form, { viaBackendProxy: true });
-
-    expect(call().url).toBe(`${API_BASE_URL}/media/upload`);
   });
 
   it('обязательная авторизация без сессии — 401 до сети', async () => {
@@ -124,7 +140,7 @@ describe('http*Auth в браузере: маршрут через прокси'
   it('401 от прокси — свежая сессия мимо кэша и повтор через прокси без токена', async () => {
     fetchSpy.mockResolvedValueOnce(json(401, { statusCode: 401, message: 'Unauthorized' }));
     const { httpGetAuth } = await loadClient(liveSession);
-    getSessionMock.mockResolvedValue({ ...liveSession, accessToken: 'renewed' });
+    getSessionMock.mockResolvedValue(liveSession);
     // Кэш сессии моложе окна свежести (5 с) раздаётся без запроса — уходим за окно.
     const realNow = Date.now();
     vi.spyOn(Date, 'now').mockReturnValue(realNow + 10_000);
@@ -189,29 +205,63 @@ describe('http*Auth в браузере: маршрут через прокси'
     expect(call().url.startsWith(API_BASE_URL)).toBe(false);
   });
 
-  it('повтор через прокси решает по живости сессии, а не по accessToken в ней', async () => {
-    fetchSpy.mockResolvedValueOnce(json(401, { statusCode: 401, message: 'Unauthorized' }));
-    const { httpGetAuth } = await loadClient(liveSession);
-    getSessionMock.mockResolvedValue({ ...liveSession, accessToken: undefined });
-    vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 10_000);
+  // Признак живой сессии один на отказ до сети и повтор (`isLiveSession`): окончательный отказ
+  // (`isSessionEndedError`) — выход без повтора и один вызов `signOut`, а не два.
+  it.each([AuthErrorType.SESSION_ENDED, AuthErrorType.ACCOUNT_DISABLED])(
+    'сессия с окончательной ошибкой %s после 401 — выход без повтора',
+    async (error) => {
+      fetchSpy.mockResolvedValueOnce(json(401, { statusCode: 401, message: 'Unauthorized' }));
+      const { httpGetAuth } = await loadClient(liveSession);
+      getSessionMock.mockResolvedValue({ ...liveSession, error } as unknown as Session);
+      vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 10_000);
 
-    await expect(httpGetAuth('/users/me')).resolves.toEqual({ ok: true });
-    expect(fetchSpy).toHaveBeenCalledTimes(2);
-    expect(signOutMock).not.toHaveBeenCalled();
-  });
+      await expect(httpGetAuth('/users/me')).rejects.toMatchObject({ statusCode: 401 });
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(signOutMock).toHaveBeenCalledTimes(1);
+    }
+  );
 
-  it('сессия с ошибкой после 401 через прокси — выход без повтора', async () => {
+  // Временный отказ продления (`LEGACY-451`): в куке тот же протухший токен — повтор бесполезен
+  // и второй раз отправил бы тело загрузки; сессия может ожить — выхода нет (решение арбитра
+  // 12.10.2026, круг 2).
+  it('временный отказ продления после 401 — 401 наружу без повтора и без выхода', async () => {
     fetchSpy.mockResolvedValueOnce(json(401, { statusCode: 401, message: 'Unauthorized' }));
-    const { httpGetAuth } = await loadClient(liveSession);
+    const { httpPostAuth } = await loadClient(liveSession);
     getSessionMock.mockResolvedValue({
       ...liveSession,
-      error: 'RefreshAccessTokenError',
+      error: AuthErrorType.REFRESH_TOKEN_ERROR,
     } as unknown as Session);
     vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 10_000);
+    const form = new FormData();
+    form.append('file', new Blob(['x']), 'x.txt');
+
+    await expect(httpPostAuth('/media/upload', form)).rejects.toMatchObject({ statusCode: 401 });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(signOutMock).toHaveBeenCalledTimes(0);
+  });
+
+  it('сбой запроса сессии после 401 — выход один раз, ошибка наружу', async () => {
+    fetchSpy.mockResolvedValueOnce(json(401, { statusCode: 401, message: 'Unauthorized' }));
+    const { httpGetAuth } = await loadClient(liveSession);
+    getSessionMock.mockRejectedValue(new TypeError('Failed to fetch'));
+    vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 10_000);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     await expect(httpGetAuth('/users/me')).rejects.toMatchObject({ statusCode: 401 });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(signOutMock).toHaveBeenCalled();
+    expect(signOutMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('5xx на повторе — ошибка наружу без выхода', async () => {
+    fetchSpy
+      .mockResolvedValueOnce(json(401, { statusCode: 401, message: 'Unauthorized' }))
+      .mockResolvedValueOnce(json(503, { statusCode: 503, message: 'Unavailable' }));
+    const { httpGetAuth } = await loadClient(liveSession);
+    getSessionMock.mockResolvedValue(liveSession);
+    vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 10_000);
+
+    await expect(httpGetAuth('/users/me')).rejects.toMatchObject({ statusCode: 503 });
+    expect(signOutMock).not.toHaveBeenCalled();
   });
 
   it('401 и после повтора — выход', async () => {
@@ -226,10 +276,10 @@ describe('http*Auth в браузере: маршрут через прокси'
     await expect(httpGetAuth('/users/me')).rejects.toMatchObject({ statusCode: 401 });
 
     expect(fetchSpy).toHaveBeenCalledTimes(2);
-    expect(signOutMock).toHaveBeenCalled();
+    expect(signOutMock).toHaveBeenCalledTimes(1);
   });
 
-  it('свежая сессия без токена после 401 — выход без повтора', async () => {
+  it('сессии нет после 401 — выход без повтора', async () => {
     fetchSpy.mockResolvedValueOnce(json(401, { statusCode: 401, message: 'Unauthorized' }));
     const { httpGetAuth } = await loadClient(liveSession);
     getSessionMock.mockResolvedValue(null);
@@ -250,15 +300,25 @@ describe('http*Auth в браузере: маршрут через прокси'
     expect(call().headers.get('authorization')).toBe('Bearer explicit');
   });
 
-  it('тело FormData идёт напрямую в API с токеном (загрузки — заход 2)', async () => {
+  it('тело FormData идёт через прокси без токена и без JSON-типа', async () => {
     const { httpPostAuth } = await loadClient(liveSession);
     const form = new FormData();
     form.append('file', new Blob(['x']), 'x.txt');
     await httpPostAuth('/media/upload', form);
 
-    expect(call().url).toBe(`${API_BASE_URL}/media/upload`);
-    expect(call().headers.get('authorization')).toBe('Bearer access-123');
-    expect(call().headers.get(BACKEND_PROXY_HEADER)).toBeNull();
+    expect(call().url).toBe(`${BACKEND_PROXY_PREFIX}/media/upload`);
+    expect(call().headers.get('authorization')).toBeNull();
+    expect(call().headers.get(BACKEND_PROXY_HEADER)).toBe('1');
+    expect(call().headers.get('content-type')).toBeNull();
+  });
+
+  it('флаг viaBackendProxy из опций вызывающего не уводит прямой вызов в прокси', async () => {
+    const { httpGetAuth } = await loadClient(liveSession);
+    await httpGetAuth('/users/me', { accessToken: 'explicit', viaBackendProxy: true } as never);
+    await httpGetAuth('/public/thing', { requireAuth: false, viaBackendProxy: true } as never);
+
+    expect(call(0).url).toBe(`${API_BASE_URL}/users/me`);
+    expect(call(1).url).toBe(`${API_BASE_URL}/public/thing`);
   });
 
   it('requireAuth: false идёт напрямую и без токена', async () => {
@@ -267,5 +327,17 @@ describe('http*Auth в браузере: маршрут через прокси'
 
     expect(call().url).toBe(`${API_BASE_URL}/public/thing`);
     expect(call().headers.get('authorization')).toBeNull();
+  });
+
+  it('401 на прямом пути — ошибка наружу, без повтора и без выхода', async () => {
+    fetchSpy.mockResolvedValueOnce(json(401, { statusCode: 401, message: 'Unauthorized' }));
+    const { httpGetAuth } = await loadClient(liveSession);
+
+    await expect(httpGetAuth('/users/me', { accessToken: 'stale' })).rejects.toMatchObject({
+      statusCode: 401,
+    });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(getSessionMock).not.toHaveBeenCalled();
+    expect(signOutMock).not.toHaveBeenCalled();
   });
 });

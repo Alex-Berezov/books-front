@@ -13,8 +13,8 @@
  */
 
 import { presignUpload, resolveUploadedUrl, sendPresignedBody } from '@/api/endpoints/uploads';
-import { getAccessToken, httpPostAuth } from '@/lib/http-client';
-import { API_BASE_URL } from '@/lib/http.constants';
+import { BACKEND_PROXY_REQUEST_HEADERS, backendProxyUrl } from '@/lib/http';
+import { httpPostAuth, requireLiveSession } from '@/lib/http-client';
 import { ApiError } from '@/types/api';
 import type { UploadProgressOptions } from '@/api/endpoints/uploads';
 import type { ConfirmUploadRequest, MediaAsset } from '@/types/api-schema';
@@ -75,16 +75,15 @@ export const uploadMediaMultipart = async (
   file: File,
   options: UploadProgressOptions = {}
 ): Promise<MediaAsset> => {
-  // Вторая копия отказа «нет токена» здесь не нужна и была недостижима:
-  // `getAccessToken(true)` без токена бросает сам (`lib/http-client/auth.ts`).
-  const token = await getAccessToken(true);
-
-  const url = `${API_BASE_URL}/media/upload`;
+  // Без живой сессии — 401 до отправки тела. Токен добавляет серверный прокси (`LEGACY-465`).
+  await requireLiveSession();
 
   return new Promise<MediaAsset>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.open('POST', backendProxyUrl('/media/upload'), true);
+    for (const [name, value] of Object.entries(BACKEND_PROXY_REQUEST_HEADERS)) {
+      xhr.setRequestHeader(name, value);
+    }
     xhr.responseType = 'json';
 
     if (options.onProgress && xhr.upload) {

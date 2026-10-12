@@ -253,13 +253,20 @@ job выката не идёт. Но job `build` от гейта не завис
 токена, дают отказ **до** обращения к сети: `ApiError` с кодом `ServerContextAuthUnavailable`
 и статусом 500, а не 401 (`LEGACY-140`). Серверные страницы поэтому зовут только публичные ручки.
 ⚠️ Это ограничение **клиента, а не платформы**: `lib/auth/session-utils.ts`
-`getServerAccessToken()` читает сессию через `auth()` и токен на сервере получает. Подключение
+`getServerAccessToken()` читает токен на сервере из JWT-куки (`getToken`, как прокси). Подключение
 этого пути к `http*Auth` - отдельная задача, не сделанная до сих пор; пока её нет, серверный
 вызов передаёт токен полем `accessToken` явно, а `requireAuth: false` / `optionalAuth: true`
 ставится только тем ручкам, которые и правда открыты анониму. ⚠️ `optionalAuth` разбирает
 **только** `httpGetAuth`; у `httpPostAuth`, `httpPatchAuth`, `httpPutAuth` и `httpDeleteAuth`
 это поле молча уезжает в `fetch` неизвестным ключом, а авторизация остаётся обязательной
 (проверено 06.09.2026, `LEGACY-198`; живых вызывающих нет).
+
+🔴 **В браузере токена нет** (`LEGACY-465`): ни `accessToken`, ни `refreshToken` в сессию
+`/api/auth/session` не кладутся. Запрос вошедшего из браузера - это `http*Auth`: он идёт через
+серверный прокси `app/api/backend/[...path]/route.ts`, который берёт токен из куки сессии, ставит
+`X-Visitor-IP` и страну посетителя `X-Visitor-Country`. Загрузки и скачивание файлов - тем же
+прокси (`backendProxyUrl`, `BACKEND_PROXY_REQUEST_HEADERS` из `lib/http.ts`). Живость сессии
+на клиенте - `isLiveSession` (`lib/http-client/auth.ts`), а не наличие токена.
 
 **Кэш.** Настройки из `lib/queryClient.ts` в рантайме не участвуют: рабочий клиент создаётся в
 `providers/AppProviders.tsx`, менять `retry` и `staleTime` нужно там. Публичная серверная выборка

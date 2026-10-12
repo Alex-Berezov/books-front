@@ -2,8 +2,9 @@
  * NextAuth type extensions for Bibliaris project
  *
  * Defines JWT token structure and user session.
- * Includes fields for accessToken, refreshToken, roles, and expiration time.
- * `refreshToken` есть у `User` и `JWT`, но не у `Session`: сессия уходит в браузер (`LEGACY-446`).
+ * `User` and `JWT` carry accessToken, refreshToken, roles and expiration time.
+ * Токены есть у `User` и `JWT`, но не у `Session`: сессия уходит в браузер (`LEGACY-446`,
+ * `LEGACY-465`); запросы браузера идут через серверный прокси, читающий токен из JWT-куки.
  */
 
 import type { AuthErrorType } from '@/lib/auth/constants';
@@ -24,7 +25,7 @@ declare module 'next-auth' {
   }
 
   /**
-   * Extended session with the access token and roles (без refresh — `LEGACY-446`)
+   * Extended session with roles — без токенов (`LEGACY-446`, `LEGACY-465`)
    */
   interface Session extends DefaultSession {
     user: {
@@ -33,8 +34,6 @@ declare module 'next-auth' {
       name?: string | null;
       roles: string[];
     };
-    /** Нет у мёртвой сессии (`isSessionEndedError`) и у неудавшегося соцвхода (`LEGACY-466`). */
-    accessToken?: string;
     error?: AuthErrorType;
   }
 }

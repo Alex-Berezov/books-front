@@ -16,10 +16,12 @@ import { ApiError } from '@/types/api';
 import { installXhrStub } from '../../../helpers/xhrStub';
 import { server } from '../../../msw/server';
 
+const getSessionMock = vi.hoisted(() =>
+  vi.fn(() => Promise.resolve({ user: { id: 'u1' }, expires: '2099-01-01' }) as Promise<unknown>)
+);
+
 vi.mock('next-auth/react', () => ({
-  getSession: vi.fn(() =>
-    Promise.resolve({ accessToken: 'test-token', user: { id: 'u1' }, expires: '2099-01-01' })
-  ),
+  getSession: getSessionMock,
   signIn: vi.fn(),
   signOut: vi.fn(),
 }));
@@ -185,13 +187,14 @@ describe('uploadAudioFile (presigned flow)', () => {
     expect(progress).toContain(50);
 
     const directXhr = xhrInstances()[0];
-    // Адрес из presign относительный, и XHR разрешил бы его от origin фронта - поэтому
-    // база API дописывается явно (LEGACY-372: до починки адрес был вообще `undefined`).
-    expect(directXhr.url).toBe(`${API_BASE}/uploads/direct`);
+    // Адрес из presign относительный и ведёт на своё API (LEGACY-372: до починки адрес был
+    // вообще `undefined`) - тело идёт через серверный прокси своего домена (LEGACY-465).
+    expect(directXhr.url).toBe('/api/backend/uploads/direct');
     expect(directXhr.method).toBe('POST');
     // 🔴 `X-Upload-Token` авторизацией не является: ручка закрыта `JwtAuthGuard` и берёт
-    // пользователя из `Authorization`. Без этого заголовка живой ответ - 401.
-    expect(directXhr.headers['authorization']).toBe('Bearer test-token');
+    // пользователя из `Authorization`. Его ставит прокси из куки сессии; браузер токена не шлёт.
+    expect(directXhr.headers['authorization']).toBeUndefined();
+    expect(directXhr.headers['x-bibliaris-proxy']).toBe('1');
     expect(directXhr.headers['x-upload-token']).toBe('upload-token');
     expect(directXhr.headers['content-type']).toBe('audio/mpeg');
   });
@@ -389,7 +392,7 @@ describe('uploadAudioFile (presigned flow)', () => {
 });
 
 describe('uploadMediaMultipart (one-step)', () => {
-  it('uses Authorization header and progresses to 100', async () => {
+  it('goes through the server proxy without a token and progresses to 100', async () => {
     xhrRespondStatus = 201;
     xhrRespondBody = {
       id: 'm-2',
@@ -417,9 +420,21 @@ describe('uploadMediaMultipart (one-step)', () => {
     expect(progress[progress.length - 1]).toBe(100);
 
     const xhr = xhrInstances()[0];
-    expect(xhr.headers['authorization']).toBe('Bearer test-token');
-    expect(xhr.url).toContain('/media/upload');
+    expect(xhr.headers['authorization']).toBeUndefined();
+    expect(xhr.headers['x-bibliaris-proxy']).toBe('1');
+    expect(xhr.url).toBe('/api/backend/media/upload');
     expect(xhr.body).toBeInstanceOf(FormData);
+  });
+
+  // LEGACY-465: без живой сессии прокси ответил бы 401 уже после отправки тела.
+  it('without a live session refuses 401 before the XHR', async () => {
+    vi.resetModules();
+    getSessionMock.mockResolvedValueOnce(null);
+    const fresh = await import('@/api/endpoints/admin/uploads');
+    const file = new File([new Uint8Array(10)], 'track.mp3', { type: 'audio/mpeg' });
+
+    await expect(fresh.uploadMediaMultipart(file)).rejects.toMatchObject({ statusCode: 401 });
+    expect(xhrInstances()).toHaveLength(0);
   });
 
   it('rejects with ApiError when server returns 5xx', async () => {

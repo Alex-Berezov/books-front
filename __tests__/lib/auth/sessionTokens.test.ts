@@ -7,8 +7,8 @@ import type { JWT } from 'next-auth/jwt';
 /**
  * `LEGACY-446`: объект колбэка `session` уходит в браузер через `/api/auth/session`.
  * `refreshToken` в нём — кража сессии на весь срок refresh одним `fetch` из любого XSS.
- * `accessToken` и `error` остаются: ими живёт http-клиент браузера (решение арбитра
- * 08.10.2026, `decisions-log.md`).
+ * `accessToken` с 12.10.2026 тоже не уходит (`LEGACY-465`, заход 2): запросы браузера идут через
+ * серверный прокси. `error` остаётся — по нему клиент узнаёт живость сессии.
  */
 
 type SessionCallback = (params: { session: Session; token: JWT }) => Promise<Session>;
@@ -18,7 +18,7 @@ const { session: sessionCallback } = (
 ).callbacks;
 
 describe('browser session tokens (LEGACY-446)', () => {
-  it('does not expose refreshToken, keeps accessToken and error', async () => {
+  it('does not expose refreshToken or accessToken, keeps error', async () => {
     const token = {
       id: 'u1',
       email: 'a@example.com',
@@ -32,7 +32,8 @@ describe('browser session tokens (LEGACY-446)', () => {
     const session = await sessionCallback({ session: { user: {} } as Session, token });
 
     expect(session).not.toHaveProperty('refreshToken');
-    expect(session.accessToken).toBe('acc');
+    // LEGACY-465: и access в браузер не уходит — запросы идут через серверный прокси.
+    expect(session).not.toHaveProperty('accessToken');
     expect(session.error).toBe('RefreshAccessTokenError');
   });
 
@@ -43,7 +44,7 @@ describe('browser session tokens (LEGACY-446)', () => {
     async (error) => {
       const token = { id: 'u1', roles: ['user'], accessToken: 'dead', error } as JWT;
       const session = await sessionCallback({ session: { user: {} } as Session, token });
-      expect(session.accessToken).toBeUndefined();
+      expect(session).not.toHaveProperty('accessToken');
       expect(session.error).toBe(error);
     }
   );

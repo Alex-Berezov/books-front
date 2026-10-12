@@ -13,6 +13,7 @@ import {
   BACKEND_PROXY_PREFIX,
 } from './backend-proxy.constants';
 import { HEADER_VALUE, HTTP_HEADER, HTTP_STATUS } from './http.constants';
+import { isUploadRoute } from './upload-routes';
 
 interface HeaderCarrier {
   get: (name: string) => string | null;
@@ -38,7 +39,7 @@ const CROSS_SITE: ProxyRefusal = { status: HTTP_STATUS.FORBIDDEN, message: 'Cros
 
 const UNSUPPORTED_BODY: ProxyRefusal = {
   status: HTTP_STATUS.UNSUPPORTED_MEDIA_TYPE,
-  message: 'Only application/json bodies are proxied',
+  message: 'A request body needs a Content-Type',
 };
 
 const BODY_TOO_LARGE: ProxyRefusal = {
@@ -150,6 +151,9 @@ export const checkProxyOrigin = (
   return null;
 };
 
+/** Заголовок схемы, по которому Auth.js выбирает имя куки сессии. */
+export const FORWARDED_PROTO_HEADER = 'x-forwarded-proto';
+
 /**
  * Имя куки сессии с префиксом `__Secure-` или без — так же, как его выбирает Auth.js без
  * `AUTH_URL`: по схеме из `x-forwarded-proto` (`@auth/core/lib/utils/env.js`; Next ставит заголовок
@@ -164,23 +168,52 @@ export const sessionCookieIsSecure = (forwardedProto: string | null, site: URL):
 };
 
 /**
- * Тип тела. Через прокси идёт только JSON: загрузки (multipart, octet-stream) ходят своими
- * путями и через прокси не пропускаются — потолок тела и буферизация рассчитаны на JSON.
- * Без типа допустимо только пустое тело: маршрут зовёт проверку до чтения (`hasBody` ложно —
- * отказ по объявленному типу) и после (`hasBody` истинно — тело без типа).
+ * Как прокси несёт тело (`LEGACY-465`, заход 2).
+ *
+ * `json` — JSON-запрос `http*Auth`: читается в память целиком под потолком 1 МБ (тот же, что
+ * у JSON-парсера бэкенда). `stream` — любой другой объявленный тип (multipart, `octet-stream`,
+ * тип файла прямой загрузки): тело идёт в API потоком без буфера, а потолок держит сама ручка
+ * бэкенда (`FileInterceptor` с `limits`, `DirectUploadBodyMiddleware` по upload-токену). Тип тела
+ * от межсайтового запроса не защищает и не обязан: это делают свой заголовок и `Sec-Fetch-Site`.
+ * Без типа тело читается как JSON-путь и допустимо только пустым (`checkProxyContentType`).
+ */
+export type ProxyBodyKind = 'json' | 'stream';
+
+const mediaTypeOf = (headers: HeaderCarrier): string | null => {
+  const contentType = headers.get(HTTP_HEADER.CONTENT_TYPE);
+  if (contentType === null) return null;
+  return contentType.split(';')[0]?.trim().toLowerCase() ?? '';
+};
+
+export const proxyBodyKind = (headers: HeaderCarrier): ProxyBodyKind => {
+  const mediaType = mediaTypeOf(headers);
+  return mediaType === null || mediaType === HEADER_VALUE.JSON ? 'json' : 'stream';
+};
+
+/**
+ * Тело без типа. Маршрут зовёт проверку после чтения JSON-пути: пустое тело без типа допустимо,
+ * непустое — отказ 415 (правило «JSON помечен своим типом» для не-браузерного клиента).
  */
 export const checkProxyContentType = (
   headers: HeaderCarrier,
   hasBody = false
 ): ProxyRefusal | null => {
-  const contentType = headers.get(HTTP_HEADER.CONTENT_TYPE);
-  if (contentType === null) return hasBody ? UNSUPPORTED_BODY : null;
-
-  const mediaType = contentType.split(';')[0]?.trim().toLowerCase();
-  if (mediaType === HEADER_VALUE.JSON) return null;
-
-  return UNSUPPORTED_BODY;
+  if (mediaTypeOf(headers) === null && hasBody) return UNSUPPORTED_BODY;
+  return null;
 };
+
+/**
+ * Тело-поток идёт только на ручку загрузки (решение арбитра 12.10.2026, ревью круг 1): на
+ * любом другом пути его потолок не держит никто, и вошедший гнал бы через фронт тело любого
+ * размера.
+ */
+export const checkStreamedRoute = (backendPath: string): ProxyRefusal | null =>
+  isUploadRoute(backendPath)
+    ? null
+    : {
+        status: HTTP_STATUS.UNSUPPORTED_MEDIA_TYPE,
+        message: 'Only upload routes take a non-JSON body',
+      };
 
 /** Заявленная длина тела больше потолка — отказ до чтения. */
 export const checkDeclaredLength = (headers: HeaderCarrier): ProxyRefusal | null => {
@@ -226,6 +259,31 @@ export const readLimitedBody = async (
   }
   return merged;
 };
+
+/**
+ * Страна посетителя для API (`LEGACY-465`, решение арбитра 12.10.2026, заход 2).
+ *
+ * Прокси ходит в API через тот же Cloudflare, и там `cf-ipcountry` — страна сервера фронта.
+ * Поэтому прокси всегда ставит `X-Visitor-Country` сам: из `cf-ipcountry` входящего запроса
+ * (его ставит Cloudflare сайта и переписывает присланное клиентом), без него — `XX`, «страна
+ * неизвестна». Присланный браузером `X-Visitor-Country` не пересылается: заголовки запроса
+ * идут белым списком. Бэкенд верит заголовку только от адреса фронта (`INTERNAL_PROXY_CIDRS`).
+ */
+export const VISITOR_COUNTRY_HEADER = 'X-Visitor-Country';
+
+const UNKNOWN_COUNTRY = 'XX';
+
+export const visitorCountryFrom = (headers: HeaderCarrier): string =>
+  headers.get('cf-ipcountry')?.trim() || UNKNOWN_COUNTRY;
+
+/**
+ * Заголовки запроса загрузки, которые доходят до API вместе с телом-потоком: разовый
+ * upload-токен прямой загрузки (`POST /uploads/direct`) и длина тела.
+ */
+export const FORWARDED_STREAM_REQUEST_HEADERS: readonly string[] = [
+  HTTP_HEADER.UPLOAD_TOKEN.toLowerCase(),
+  'content-length',
+];
 
 /**
  * Заголовки ответа API, которые доходят до браузера. Белый список, а не чёрный: всё,

@@ -28,6 +28,28 @@ import {
 } from './http.constants';
 
 /**
+ * Опции транспорта для `lib/http-client` (`LEGACY-465`): флаг `viaBackendProxy` уводит запрос
+ * в серверный прокси `/api/backend` своего домена, без `Authorization` — токен добавляет сервер
+ * из куки сессии. Его ставит только `resolveAuthRoute` (`lib/http-client/methods.ts`), поэтому
+ * флага нет в публичном `HttpRequestOptions`: вызов `http*Auth` из `api/endpoints/` не уйдёт
+ * в прокси мимо выбора маршрута и повтора после 401.
+ */
+export interface ProxiedRequestOptions extends HttpRequestOptions {
+  viaBackendProxy?: boolean;
+}
+
+/** Адрес серверного прокси для пути API: прокси отрезает свой префикс и шлёт остаток в API. */
+export const backendProxyUrl = (endpoint: string): string => `${BACKEND_PROXY_PREFIX}${endpoint}`;
+
+/**
+ * Заголовок, без которого прокси отвечает 403: простой межсайтовый запрос его не поставит.
+ * Для запросов мимо `http*` — XHR загрузки с прогрессом и скачивание файла.
+ */
+export const BACKEND_PROXY_REQUEST_HEADERS: Readonly<Record<string, string>> = {
+  [BACKEND_PROXY_HEADER]: BACKEND_PROXY_HEADER_VALUE,
+};
+
+/**
  * Base API URL from environment variables
  * In production: https://api.bibliaris.com/api
  * In development: http://localhost:5000/api
@@ -88,7 +110,7 @@ const recordClockSkew = (response: Response): void => {
  * @param isFormData - Whether the request body is FormData (don't set Content-Type)
  * @returns Ready headers for fetch
  */
-const createHeaders = (options?: HttpRequestOptions, isFormData = false): HeadersInit => {
+const createHeaders = (options?: ProxiedRequestOptions, isFormData = false): HeadersInit => {
   const headers: HeadersInit = {};
 
   if (!isFormData) {
@@ -117,19 +139,18 @@ const createHeaders = (options?: HttpRequestOptions, isFormData = false): Header
 };
 
 /**
- * Тело — загрузка файла (`FormData`): без `Content-Type: application/json` и мимо серверного
- * прокси (он принимает только JSON, `LEGACY-465`). Одно место на оба решения — сборку заголовков
- * здесь и выбор маршрута в `lib/http-client/methods.ts`.
+ * Тело — загрузка файла (`FormData`): без `Content-Type: application/json`, тип с границей частей
+ * ставит браузер. Серверный прокси несёт такое тело в API потоком (`LEGACY-465`, заход 2).
  */
-export const isFormDataBody = (body: unknown): body is FormData =>
+const isFormDataBody = (body: unknown): body is FormData =>
   typeof FormData !== 'undefined' && body instanceof FormData;
 
 /**
  * Адрес запроса: прямо в API или в серверный прокси своего домена (`LEGACY-465`).
  * Путь API в обоих случаях один и тот же — прокси отрезает свой префикс и шлёт остаток в API.
  */
-const requestUrl = (endpoint: string, options?: HttpRequestOptions): string =>
-  options?.viaBackendProxy ? `${BACKEND_PROXY_PREFIX}${endpoint}` : `${API_BASE_URL}${endpoint}`;
+const requestUrl = (endpoint: string, options?: ProxiedRequestOptions): string =>
+  options?.viaBackendProxy ? backendProxyUrl(endpoint) : `${API_BASE_URL}${endpoint}`;
 
 /**
  * Заголовки, которые собирает сам слой: вызывающий код их не заменяет.
@@ -289,12 +310,12 @@ const retryDelayMs = (response: Response): number => {
  * @example
  * ```ts
  * const user = await httpGet<User>('/users/me', {
- *   accessToken: session.accessToken,
+ *   accessToken: serverToken, // server only: `await getServerAccessToken()`, checked for null
  *   language: 'en'
  * });
  * ```
  */
-export const httpGet = async <T>(endpoint: string, options?: HttpRequestOptions): Promise<T> => {
+export const httpGet = async <T>(endpoint: string, options?: ProxiedRequestOptions): Promise<T> => {
   const url = requestUrl(endpoint, options);
   // Опции собираются на каждый вызов заново: Next при промахе кэша удаляет `next`
   // из переданного объекта (`next/dist/server/lib/patch-fetch.js`), и повтор из
@@ -347,7 +368,7 @@ export const httpGet = async <T>(endpoint: string, options?: HttpRequestOptions)
 export const httpPost = async <T>(
   endpoint: string,
   body?: unknown,
-  options?: HttpRequestOptions
+  options?: ProxiedRequestOptions
 ): Promise<T> => {
   const url = requestUrl(endpoint, options);
   const isFormData = isFormDataBody(body);
@@ -376,14 +397,14 @@ export const httpPost = async <T>(
  * const user = await httpPatch<User>('/users/me', {
  *   name: 'New Name'
  * }, {
- *   accessToken: session.accessToken
+ *   accessToken: serverToken // server only: `await getServerAccessToken()`, checked for null
  * });
  * ```
  */
 export const httpPatch = async <T>(
   endpoint: string,
   body?: unknown,
-  options?: HttpRequestOptions
+  options?: ProxiedRequestOptions
 ): Promise<T> => {
   const url = requestUrl(endpoint, options);
   const isFormData = isFormDataBody(body);
@@ -409,11 +430,14 @@ export const httpPatch = async <T>(
  * @example
  * ```ts
  * await httpDelete<void>('/me/bookshelf/version-id', {
- *   accessToken: session.accessToken
+ *   accessToken: serverToken // server only: `await getServerAccessToken()`, checked for null
  * });
  * ```
  */
-export const httpDelete = async <T>(endpoint: string, options?: HttpRequestOptions): Promise<T> => {
+export const httpDelete = async <T>(
+  endpoint: string,
+  options?: ProxiedRequestOptions
+): Promise<T> => {
   const url = requestUrl(endpoint, options);
   const headers = createHeaders(options);
 
@@ -440,14 +464,14 @@ export const httpDelete = async <T>(endpoint: string, options?: HttpRequestOptio
  *   chapterNumber: 5,
  *   position: 1234
  * }, {
- *   accessToken: session.accessToken
+ *   accessToken: serverToken // server only: `await getServerAccessToken()`, checked for null
  * });
  * ```
  */
 export const httpPut = async <T>(
   endpoint: string,
   body?: unknown,
-  options?: HttpRequestOptions
+  options?: ProxiedRequestOptions
 ): Promise<T> => {
   const url = requestUrl(endpoint, options);
   const isFormData = isFormDataBody(body);

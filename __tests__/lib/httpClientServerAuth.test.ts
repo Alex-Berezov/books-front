@@ -83,4 +83,16 @@ describe('http*Auth в серверном контексте', () => {
     const init = fetchSpy.mock.calls[0]?.[1];
     expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer server-token');
   });
+
+  // LEGACY-465: на сервере сессии нет (`hasUsableSession` — false), относительный адрес прокси
+  // здесь не разрешился бы — `optionalAuth` идёт в API анонимно.
+  it('optionalAuth на сервере идёт в API напрямую анонимом, не в прокси', async () => {
+    await httpGetAuth('/en/books/hamlet/reader-bootstrap', { optionalAuth: true });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchSpy.mock.calls[0] ?? [];
+    expect(String(url)).not.toMatch(/^\/api\/backend/);
+    expect(String(url)).toMatch(/^https?:\/\//);
+    expect(new Headers(init?.headers).get('Authorization')).toBeNull();
+  });
 });

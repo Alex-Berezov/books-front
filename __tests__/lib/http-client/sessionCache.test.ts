@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 /**
  * LEGACY-267. `getCurrentSession` кэшировал сессию по истинности `cachedSession`:
  * отрицательный ответ (аноним, `null`) не кэшировался никогда, поэтому каждый
- * вызов `getOptionalAccessToken` в читалке уходил в `getSession()` заново —
+ * вызов `hasUsableSession` (прежде `getOptionalAccessToken`) в читалке уходил в `getSession()` заново —
  * лишний поход к `/api/auth/session` перед каждой книгой. Флаг `sessionKnown`
  * отличает «не спрашивали» от «спросили, сессии нет».
  *
@@ -31,11 +31,11 @@ describe('getCurrentSession — кэш отрицательного ответа
   });
 
   it('setSession(null) кэшируется: подряд идущие вызовы не ходят в сеть', async () => {
-    const { getOptionalAccessToken, setSession } = await import('@/lib/http-client/auth');
+    const { hasUsableSession, setSession } = await import('@/lib/http-client/auth');
     setSession(null);
 
-    await getOptionalAccessToken();
-    await getOptionalAccessToken();
+    await hasUsableSession();
+    await hasUsableSession();
 
     expect(getSessionMock).not.toHaveBeenCalled();
   });

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getReaderBootstrap } from '@/api/endpoints/public';
-import { BACKEND_PROXY_PREFIX } from '@/lib/backend-proxy.constants';
+import { BACKEND_PROXY_HEADER, BACKEND_PROXY_PREFIX } from '@/lib/backend-proxy.constants';
 import { setSession } from '@/lib/http-client/auth';
 
 vi.mock('next-auth/react', () => ({
@@ -42,7 +42,7 @@ describe('getReaderBootstrap — читатель приходит токено�
 
   // 🔴 Сам дефект.
   it('никогда не кладёт userId в адрес', async () => {
-    setSession({ accessToken: 'token-1', user: { id: 'user-1' } } as never);
+    setSession({ user: { id: 'user-1' } } as never);
 
     await getReaderBootstrap('en', 'hamlet');
 
@@ -51,16 +51,17 @@ describe('getReaderBootstrap — читатель приходит токено�
     expect(url).toContain('/en/books/hamlet/reader-bootstrap');
   });
 
-  // `reader-bootstrap` гео-зависима: через серверный прокси бэкенд увидел бы страну сервера фронта.
-  // Поэтому `optionalAuth` идёт напрямую с токеном (`LEGACY-465`, решение арбитра 12.10.2026, круг 6).
-  it('прикладывает токен, когда сессия есть, и идёт в API напрямую', async () => {
-    setSession({ accessToken: 'token-1', user: { id: 'user-1' } } as never);
+  // `reader-bootstrap` гео-зависима: страну читателя серверный прокси передаёт сам
+  // (`X-Visitor-Country`, `LEGACY-465`, решение арбитра 12.10.2026, заход 2). Токена в браузере нет.
+  it('идёт через серверный прокси без токена, когда сессия есть', async () => {
+    setSession({ user: { id: 'user-1' } } as never);
 
     await getReaderBootstrap('en', 'hamlet');
 
     const [url, init] = lastCall();
-    expect(url.startsWith(BACKEND_PROXY_PREFIX)).toBe(false);
-    expect((init.headers as Record<string, string>).Authorization).toBe('Bearer token-1');
+    expect(url.startsWith(`${BACKEND_PROXY_PREFIX}/`)).toBe(true);
+    expect((init.headers as Record<string, string>).Authorization).toBeUndefined();
+    expect((init.headers as Record<string, string>)[BACKEND_PROXY_HEADER]).toBe('1');
   });
 
   /**
@@ -73,7 +74,8 @@ describe('getReaderBootstrap — читатель приходит токено�
 
     await expect(getReaderBootstrap('en', 'hamlet')).resolves.toBeDefined();
 
-    const [, init] = lastCall();
+    const [url, init] = lastCall();
+    expect(url.startsWith(BACKEND_PROXY_PREFIX)).toBe(false);
     expect((init.headers as Record<string, string>).Authorization).toBeUndefined();
   });
 });

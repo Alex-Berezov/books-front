@@ -102,6 +102,8 @@ export const HTTP_HEADER = {
   ACCEPT_LANGUAGE: 'Accept-Language',
   /** Retry-After - секунды до следующей попытки, ставит лимитер на 429 (`LEGACY-411`) */
   RETRY_AFTER: 'Retry-After',
+  /** Разовый токен прямой загрузки (`POST /uploads/direct`); прокси пересылает его с телом (`LEGACY-465`) */
+  UPLOAD_TOKEN: 'X-Upload-Token',
 } as const;
 
 /**
@@ -122,8 +124,8 @@ export const AUTH_PREFIX = {
 
 /**
  * Адрес API. Одно место на дерево намеренно: на этом значении стоит решение
- * `isOwnApiUrl` (`api/endpoints/uploads.ts`) - отдавать ли жетон пользователя тому хосту,
- * куда уходит тело файла. Копия, отставшая от `lib/http.ts`, сделала бы это решение
- * неверным молча: адрес остался бы правильным, а заголовок авторизации не поставился бы.
+ * `ownApiProxyUrl` (`api/endpoints/uploads.ts`) - своё ли это API, то есть идёт ли тело файла
+ * через серверный прокси с сессией (`LEGACY-465`). Копия, отставшая от `lib/http.ts`, сделала бы
+ * это решение неверным молча: тело ушло бы напрямую без сессии и получило 401.
  */
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';

@@ -14,9 +14,7 @@ import { installXhrStub } from '../../helpers/xhrStub';
 import { server } from '../../msw/server';
 
 vi.mock('next-auth/react', () => ({
-  getSession: vi.fn(() =>
-    Promise.resolve({ accessToken: 'test-token', user: { id: 'u1' }, expires: '2099-01-01' })
-  ),
+  getSession: vi.fn(() => Promise.resolve({ user: { id: 'u1' }, expires: '2099-01-01' })),
   signIn: vi.fn(),
   signOut: vi.fn(),
 }));
@@ -51,17 +49,19 @@ afterEach(() => {
 });
 
 describe('uploadAvatar', () => {
-  it('шлёт тело на адрес API с Authorization и разовым токеном', async () => {
+  it('шлёт тело через серверный прокси с разовым токеном и без жетона сайта', async () => {
     const file = new File([new Uint8Array(4)], 'avatar.png', { type: 'image/png' });
 
     const url = await uploadAvatar(file);
 
     expect(url).toBe('https://cdn/abc.png');
     expect(instances()).toHaveLength(1);
-    // Адрес из presign относительный: без базы API запрос ушёл бы на origin фронта.
-    expect(instances()[0].url).toBe(`${API_BASE}/uploads/direct`);
+    // Адрес из presign относительный и ведёт на своё API: тело идёт через прокси своего домена,
+    // `Authorization` ставит сервер из куки сессии (LEGACY-465).
+    expect(instances()[0].url).toBe('/api/backend/uploads/direct');
     expect(instances()[0].method).toBe('POST');
-    expect(instances()[0].headers['authorization']).toBe('Bearer test-token');
+    expect(instances()[0].headers['authorization']).toBeUndefined();
+    expect(instances()[0].headers['x-bibliaris-proxy']).toBe('1');
     expect(instances()[0].headers['x-upload-token']).toBe('upload-token');
     expect(instances()[0].headers['content-type']).toBe('image/png');
   });

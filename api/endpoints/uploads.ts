@@ -10,12 +10,13 @@
  * `books-app-docs/ai-context/api-contracts.md` («Media / Uploads»):
  *
  *   POST /uploads/presign        { type, contentType, size }              → { token, url, method, key }
- *   POST /uploads/direct         (binary + Authorization + X-Upload-Token) → 201
+ *   POST /uploads/direct         (binary + X-Upload-Token, через серверный прокси) → 201
  *   POST /uploads/confirm?key=…                                            → { key, publicUrl }
  */
 
-import { getAccessToken, httpGetAuth, httpPostAuth } from '@/lib/http-client';
-import { API_BASE_URL } from '@/lib/http.constants';
+import { backendProxyUrl, BACKEND_PROXY_REQUEST_HEADERS } from '@/lib/http';
+import { httpGetAuth, httpPostAuth, requireLiveSession } from '@/lib/http-client';
+import { API_BASE_URL, HTTP_HEADER } from '@/lib/http.constants';
 import { ApiError } from '@/types/api';
 import type {
   PresignUploadRequest,
@@ -58,21 +59,24 @@ export const absoluteUploadUrl = (url: string): string => {
 };
 
 /**
- * Ведёт ли адрес на своё API.
+ * Адрес серверного прокси для адреса своего API, `null` — адрес чужой (внешнее хранилище).
  *
- * От этого зависит, ставить ли жетон сайта: на адрес внешнего хранилища `Authorization`
- * не только бесполезен, но и отдаёт чужому хосту жетон пользователя.
+ * Своё API пользователя узнаёт по куке сессии, которую видит только прокси своего домена
+ * (`LEGACY-465`): тело идёт туда, и токен добавляет сервер. На адрес внешнего хранилища тело
+ * уходит как есть, без заголовков сайта.
  */
-const isOwnApiUrl = (url: string): boolean => {
+export const ownApiProxyUrl = (url: string): string | null => {
   try {
     const target = new URL(url);
     const base = new URL(API_BASE_URL);
-    if (target.origin !== base.origin) return false;
+    if (target.origin !== base.origin) return null;
     const basePath = base.pathname.replace(/\/+$/, '');
-    if (!basePath) return true;
-    return target.pathname === basePath || target.pathname.startsWith(`${basePath}/`);
+    const insideBase =
+      !basePath || target.pathname === basePath || target.pathname.startsWith(`${basePath}/`);
+    if (!insideBase) return null;
+    return backendProxyUrl(`${target.pathname.slice(basePath.length)}${target.search}`);
   } catch {
-    return false;
+    return null;
   }
 };
 
@@ -124,14 +128,8 @@ export const sendPresignedBody = async (
   file: File,
   options: UploadProgressOptions = {}
 ): Promise<void> => {
-  const accessToken = await getAccessToken(true);
-  if (!accessToken) {
-    throw new ApiError({
-      message: 'No access token for direct upload',
-      statusCode: 401,
-      error: 'UploadError',
-    });
-  }
+  // Без живой сессии — 401 до отправки тела: прокси ответил бы тем же, но уже после загрузки.
+  await requireLiveSession();
   await uploadBinaryWithProgress(
     {
       url: absoluteUploadUrl(presign.url),
@@ -140,7 +138,6 @@ export const sendPresignedBody = async (
       token: presign.token,
       contentType,
     },
-    accessToken,
     file,
     options
   );
@@ -168,9 +165,9 @@ export interface BinaryUploadTarget {
  * 🔴 `X-Upload-Token` авторизацией **не является**: `POST /uploads/direct` закрыт
  * `JwtAuthGuard` и берёт пользователя из `Authorization: Bearer`
  * (`books/src/modules/uploads/uploads.controller.ts:88-100`), а разовый токен лишь называет
- * загружаемый объект. Без заголовка `Authorization` ручка отвечает 401 - до 10.09.2026 это
- * было незаметно, потому что адрес собирался в `undefined` и запрос не доезжал вовсе
- * (`LEGACY-372`).
+ * загружаемый объект. `Authorization` ставит серверный прокси `/api/backend` из куки сессии
+ * (`LEGACY-465`): тело на своё API идёт через него, и без сессии прокси отвечает 401
+ * (`LEGACY-372` — тот же 401 от ручки, когда заголовка не было вовсе).
  *
  * `Content-Type` берётся тем же значением, что ушло в presign: сервер сверяет их строго
  * и отвечает 400 «Content-Type mismatch» при расхождении
@@ -188,24 +185,25 @@ export interface BinaryUploadTarget {
  */
 export const uploadBinaryWithProgress = (
   target: BinaryUploadTarget,
-  accessToken: string,
   file: File,
   options: UploadProgressOptions = {}
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open(target.method, target.url, true);
-    // 🔴 Жетон сайта уходит только на своё API. Адрес из presign может указывать на внешнее
-    // хранилище (тип допускает `PUT` и абсолютный адрес), и `Authorization` там не только
-    // бесполезен - он отдаёт чужому хосту жетон пользователя, а S3 на подписанной ссылке
-    // с лишним заголовком авторизации отвечает 400 «only one auth mechanism allowed».
-    // Сравнение разобранными адресами, а не префиксом строки: при базе без пути
-    // (`https://api.bibliaris.com`) префикс сделал бы «своим» хост
-    // `https://api.bibliaris.com.evil.com`, и жетон уехал бы туда. Путь сверяется
-    // по границе сегмента - `/api` не должен совпадать с `/apifoo`.
-    const toOwnApi = isOwnApiUrl(target.url);
+    // 🔴 Через прокси идёт только своё API. Адрес из presign может указывать на внешнее
+    // хранилище (тип допускает `PUT` и абсолютный адрес): туда тело уходит напрямую, без
+    // заголовков сайта, - S3 на подписанной ссылке с лишним заголовком авторизации отвечает 400
+    // «only one auth mechanism allowed». Сравнение разобранными адресами, а не префиксом
+    // строки: при базе без пути (`https://api.bibliaris.com`) префикс сделал бы «своим» хост
+    // `https://api.bibliaris.com.evil.com`. Путь сверяется по границе сегмента - `/api`
+    // не должен совпадать с `/apifoo`.
+    const proxyUrl = ownApiProxyUrl(target.url);
+    const toOwnApi = proxyUrl !== null;
+    xhr.open(target.method, proxyUrl ?? target.url, true);
     const ownHeaders = new Set(
-      toOwnApi ? ['authorization', 'x-upload-token', 'content-type'] : ['content-type']
+      toOwnApi
+        ? ['authorization', HTTP_HEADER.UPLOAD_TOKEN.toLowerCase(), 'content-type']
+        : ['content-type']
     );
     for (const [name, value] of Object.entries(target.headers ?? {})) {
       if (ownHeaders.has(name.toLowerCase())) continue;
@@ -216,8 +214,10 @@ export const uploadBinaryWithProgress = (
       xhr.setRequestHeader(name, value);
     }
     if (toOwnApi) {
-      xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
-      xhr.setRequestHeader('X-Upload-Token', target.token);
+      for (const [name, value] of Object.entries(BACKEND_PROXY_REQUEST_HEADERS)) {
+        xhr.setRequestHeader(name, value);
+      }
+      xhr.setRequestHeader(HTTP_HEADER.UPLOAD_TOKEN, target.token);
     }
     xhr.setRequestHeader('Content-Type', target.contentType);
 

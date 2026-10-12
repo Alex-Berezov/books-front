@@ -1,9 +1,9 @@
 /**
- * Серверный прокси авторизованных запросов браузера (`LEGACY-465`, пачка `T127`, заход 1 из 2).
+ * Серверный прокси авторизованных запросов браузера (`LEGACY-465`, пачка `T127`).
  *
- * Браузер шлёт сюда JSON-запросы `http*Auth` без токена; токен добавляется здесь из JWT-куки
- * сессии Auth.js, и запрос уходит в API. Так `accessToken` перестаёт быть нужен браузерному коду
- * (снятие его из сессии — заход 2, решения арбитра 12.10.2026 в `decisions-log.md`).
+ * Браузер шлёт сюда запросы вошедшего пользователя без токена — JSON `http*Auth`, загрузки
+ * и скачивание файлов; токен добавляется здесь из JWT-куки сессии Auth.js, и запрос уходит
+ * в API. В браузерной сессии `accessToken` нет (решения арбитра 12.10.2026, `decisions-log.md`).
  *
  * 🔴 Токен читается `getToken` — только чтение куки, без продления и без `Set-Cookie`. Ни
  * обёртки `auth(handler)`, ни `auth()` здесь нет намеренно: обёртка переиздаёт JWT-куку на каждом
@@ -11,23 +11,31 @@
  * (решение арбитра 12.10.2026). Продление живёт в одном месте — `/api/auth/session`:
  * истёкший access даёт 401 от API, и клиент (`withAuthRetry`) берёт свежую сессию и повторяет.
  *
- * Порядок отказов: путь (400, `/auth/*` — 403) → источник (403) → объявленные тип (415) и длина
- * (413) → сессия (401) → прочитанное тело (413, 415). Всё до похода в API, тело — только с сессией.
+ * Порядок отказов: путь (400, `/auth/*` — 403) → источник (403) → не-JSON тело не на путь
+ * загрузки (415, `lib/upload-routes.ts`) → объявленная длина JSON (413) →
+ * сессия (401) → прочитанное JSON-тело (413, тело без типа — 415). Всё до похода в API, тело —
+ * только с сессией. Тело не-JSON (загрузка) идёт в API потоком, потолок держит ручка бэкенда.
+ *
+ * Страну посетителя прокси ставит сам (`X-Visitor-Country`): `cf-ipcountry` на пути в API —
+ * страна сервера фронта, а гео-блок бэкенда решает по стране читателя.
  */
 
 import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
-import { isTokenSessionEnded } from '@/lib/auth/constants';
+import { readSessionAccessToken } from '@/lib/auth/session-token';
 import {
   FORWARDED_RESPONSE_HEADERS,
-  sessionCookieIsSecure,
   backendPathFrom,
   checkDeclaredLength,
   checkProxyContentType,
   checkProxyOrigin,
+  checkStreamedRoute,
+  FORWARDED_STREAM_REQUEST_HEADERS,
   isProxyRefusal,
+  proxyBodyKind,
   readLimitedBody,
   upstreamUrlFor,
+  VISITOR_COUNTRY_HEADER,
+  visitorCountryFrom,
 } from '@/lib/backend-proxy';
 import { BACKEND_PROXY_UPSTREAM_TIMEOUT_MS } from '@/lib/backend-proxy.constants';
 import {
@@ -99,27 +107,26 @@ const handler = async (req: NextRequest): Promise<Response> => {
   if (originRefusal) return refuse(originRefusal);
 
   const hasBody = METHODS_WITH_BODY.has(req.method);
-  if (hasBody) {
-    const typeRefusal = checkProxyContentType(req.headers) ?? checkDeclaredLength(req.headers);
-    if (typeRefusal) return refuse(typeRefusal);
-  }
+  const streamed = hasBody && proxyBodyKind(req.headers) === 'stream';
+  const bodyRefusal = streamed
+    ? checkStreamedRoute(backendPath)
+    : hasBody
+      ? checkDeclaredLength(req.headers)
+      : null;
+  if (bodyRefusal) return refuse(bodyRefusal);
 
   let accessToken: string;
   let body: Uint8Array<ArrayBuffer> | null = null;
   try {
     // Сессия — до чтения тела: тело до 1 МБ в памяти — единственная дорогая работа, и запрос
     // без учётки её не получает (решение арбитра 12.10.2026).
-    const token = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-      secureCookie: sessionCookieIsSecure(req.headers.get('x-forwarded-proto'), site),
-    });
     // Без access токен в API не уходит: запрос от имени вошедшего пользователя без токена
     // получил бы ответ анонима, а не 401.
-    if (!token?.accessToken || isTokenSessionEnded(token)) return refuse(NO_SESSION);
-    accessToken = token.accessToken;
+    const sessionToken = await readSessionAccessToken(req.headers, site);
+    if (!sessionToken) return refuse(NO_SESSION);
+    accessToken = sessionToken;
 
-    if (hasBody) {
+    if (hasBody && !streamed) {
       // Потолок — по прочитанным байтам: длины может не быть (chunked), или она лжёт.
       const read = await readLimitedBody(req.body);
       if (isProxyRefusal(read)) return refuse(read);
@@ -146,41 +153,69 @@ const handler = async (req: NextRequest): Promise<Response> => {
     );
   }
 
-  // Белый список, а не пересылка всех заголовков: куки фронта и присланный браузером
-  // `Authorization` в API не уходят. Других заголовков вызывающие `http*Auth` сегодня не ставят.
+  // Белый список, а не пересылка всех заголовков: куки фронта, присланный браузером
+  // `Authorization` и `X-Visitor-Country` в API не уходят. Других заголовков вызывающие
+  // `http*Auth` сегодня не ставят.
   const headers = new Headers(visitorIpHeaderFrom(req));
+  headers.set(VISITOR_COUNTRY_HEADER, visitorCountryFrom(req.headers));
   headers.set(HTTP_HEADER.AUTHORIZATION, `${AUTH_PREFIX.BEARER} ${accessToken}`);
   const language = req.headers.get(HTTP_HEADER.ACCEPT_LANGUAGE);
   if (language) headers.set(HTTP_HEADER.ACCEPT_LANGUAGE, language);
   const accept = req.headers.get('accept');
   if (accept) headers.set('Accept', accept);
-  if (body) {
+  if (streamed) {
+    // Поток бывает только с объявленным типом (`proxyBodyKind`): он и уходит в API.
+    headers.set(HTTP_HEADER.CONTENT_TYPE, req.headers.get(HTTP_HEADER.CONTENT_TYPE) as string);
+    for (const name of FORWARDED_STREAM_REQUEST_HEADERS) {
+      const value = req.headers.get(name);
+      if (value !== null) headers.set(name, value);
+    }
+  } else if (body) {
     headers.set(
       HTTP_HEADER.CONTENT_TYPE,
       req.headers.get(HTTP_HEADER.CONTENT_TYPE) ?? HEADER_VALUE.JSON
     );
   }
 
-  // Таймаут — только на ожидание ответа API (заголовков): длинный ответ, который уже идёт
-  // потоком, обрывать нельзя — браузер получил бы обрезанный JSON.
+  // Таймаут — только на ожидание ответа API (заголовков) после того, как тело ушло целиком:
+  // длинный ответ, который уже идёт потоком, обрывать нельзя — браузер получил бы обрезанный
+  // JSON, а загрузка большого файла по медленной сети длится дольше любого таймаута.
   const timeout = new AbortController();
-  const timer = setTimeout(
-    () => timeout.abort(new DOMException('Backend timed out', 'TimeoutError')),
-    BACKEND_PROXY_UPSTREAM_TIMEOUT_MS
-  );
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  // API может ответить раньше, чем ушло всё тело (401, 413): тогда `flush` придёт после `finally`
+  // и не должен взводить таймер, который оборвал бы уже идущий в браузер ответ.
+  let answered = false;
+  const armTimeout = () => {
+    if (answered) return;
+    timer = setTimeout(
+      () => timeout.abort(new DOMException('Backend timed out', 'TimeoutError')),
+      BACKEND_PROXY_UPSTREAM_TIMEOUT_MS
+    );
+  };
+  let upstreamBody: BodyInit | undefined = body ?? undefined;
+  if (streamed && req.body) {
+    upstreamBody = req.body.pipeThrough(new TransformStream({ flush: armTimeout }));
+  } else {
+    armTimeout();
+  }
+
+  const upstreamInit: RequestInit & { duplex: 'half' } = {
+    method: req.method,
+    headers,
+    body: upstreamBody,
+    // Тело-поток в Node требует полудуплекса (поле есть в undici, но не в типах DOM); буфер
+    // и пустое тело к нему безразличны.
+    duplex: 'half',
+    // Чужой хост по `Location` прокси не открывает: API на авторизованных ручках
+    // не перенаправляет, а следовать редиректу с токеном — значит отдать его.
+    redirect: 'manual',
+    cache: 'no-store',
+    signal: AbortSignal.any([req.signal, timeout.signal]),
+  };
 
   let upstream: Response;
   try {
-    upstream = await fetch(upstreamUrl, {
-      method: req.method,
-      headers,
-      body: body ?? undefined,
-      // Чужой хост по `Location` прокси не открывает: API на авторизованных ручках
-      // не перенаправляет, а следовать редиректу с токеном — значит отдать его.
-      redirect: 'manual',
-      cache: 'no-store',
-      signal: AbortSignal.any([req.signal, timeout.signal]),
-    });
+    upstream = await fetch(upstreamUrl, upstreamInit);
   } catch (error) {
     // Браузер сам отменил запрос (ушёл со страницы, react-query снял запрос): отвечать некому,
     // и сбоем API это не является.
@@ -198,6 +233,7 @@ const handler = async (req: NextRequest): Promise<Response> => {
     );
     return badGateway(HTTP_STATUS.BAD_GATEWAY, 'Backend is unreachable');
   } finally {
+    answered = true;
     clearTimeout(timer);
   }
 

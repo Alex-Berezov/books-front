@@ -12,15 +12,14 @@
  *    are fetched, wrapped into an object URL and handed to the browser as a save dialog.
  */
 
-import { getAccessToken, httpPatchAuth, httpPostAuth, httpGetAuth } from '@/lib/http-client';
+import { BACKEND_PROXY_REQUEST_HEADERS, backendProxyUrl } from '@/lib/http';
+import { httpPatchAuth, httpPostAuth, httpGetAuth, requireLiveSession } from '@/lib/http-client';
 import { ApiError } from '@/types/api';
 import type {
   RightsFileDescriptor,
   RightsFileLimits,
   SupersedeRightsEvidenceResponse,
 } from '@/types/api-schema';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
 /** Form field name expected by `FileInterceptor('file')` on the backend. */
 const UPLOAD_FIELD = 'file';
@@ -100,11 +99,12 @@ const saveBlob = (blob: Blob, fileName: string): void => {
  * so the UI can translate them instead of showing "Failed to fetch".
  */
 export const downloadRightsFile = async (endpoint: string, fallbackName: string): Promise<void> => {
-  const accessToken = await getAccessToken(true);
+  // Без живой сессии — 401 до сети. Токен добавляет серверный прокси (`LEGACY-465`).
+  await requireLiveSession();
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(backendProxyUrl(endpoint), {
     method: 'GET',
-    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    headers: BACKEND_PROXY_REQUEST_HEADERS,
   });
 
   if (!response.ok) {

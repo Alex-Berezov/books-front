@@ -10,7 +10,7 @@ lib/auth/
 ├── config.ts            # NextAuth configuration with providers and callbacks
 ├── constants.ts         # Token lifetimes, error types, roles, auth routes
 ├── helpers.ts           # Utilities for working with session on server
-├── session-utils.ts     # Access token getters for client and server requests
+├── session-utils.ts     # Server-side access token from the JWT cookie (no browser getter, LEGACY-465)
 ├── sessionMarker.ts     # Client "probably logged in" marker for SessionProvider
 └── README.md            # This documentation
 

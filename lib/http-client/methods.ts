@@ -2,84 +2,66 @@
  * HTTP methods with automatic authorization and retry
  *
  * Provides GET, POST, PATCH, DELETE methods with support for:
- * - Automatic token retrieval from NextAuth
+ * - Requests of a signed-in user through the server proxy `/api/backend` (`LEGACY-465`)
  * - 401 retry with automatic refresh
  * - Type safety
  */
 
 import type { ExtendedHttpOptions } from './types';
-import type { HttpRequestOptions } from '@/types/api';
+import type { ProxiedRequestOptions } from '../http';
 import {
   httpGet as baseHttpGet,
   httpPost as baseHttpPost,
   httpPatch as baseHttpPatch,
   httpPut as baseHttpPut,
   httpDelete as baseHttpDelete,
-  isFormDataBody,
 } from '../http';
-import { getAccessToken, getOptionalAccessToken } from './auth';
+import { hasUsableSession, requireLiveSession } from './auth';
 import { withAuthRetry } from './retry';
 
-/** Как запрос авторизуется: токеном в заголовке или через серверный прокси. */
-type AuthRoute = Pick<HttpRequestOptions, 'accessToken' | 'viaBackendProxy'>;
+/** Как запрос авторизуется: явным токеном, через серверный прокси или никак. */
+type AuthRoute = Required<Pick<ProxiedRequestOptions, 'viaBackendProxy'>> &
+  Pick<ProxiedRequestOptions, 'accessToken'>;
 
 interface AuthRouteInput {
   requireAuth: boolean;
   optionalAuth?: boolean;
   providedToken?: string;
-  body?: unknown;
 }
+
+const VIA_PROXY: AuthRoute = { viaBackendProxy: true, accessToken: undefined };
 
 /**
  * Маршрут авторизованного запроса (`LEGACY-465`, решения арбитра 12.10.2026).
  *
- * В браузере авторизованный JSON-запрос идёт через прокси `/api/backend`, и токен в нём
- * не участвует: его добавляет сервер. Запасного прямого пути на отказ прокси нет —
- * путь выбирается заранее и один. Напрямую с токеном, как раньше, идут:
- * - тело `FormData` — загрузки, прокси их не принимает (переезд — заход 2 пачки `T127`);
- * - явно переданный `accessToken` и любой вызов с сервера — там прокси не нужен;
- * - `optionalAuth` — с токеном сессии, если она есть, как до захода. Такие ручки отдают
- *   публичный текст с личной частью, и среди них есть гео-зависимые (`reader-bootstrap`):
- *   бэкенд берёт страну из `cf-ipcountry`, а через прокси Cloudflare поставил бы туда страну
- *   сервера фронта. Переезд — в заходе 2, после решения о передаче страны читателя (решение
- *   арбитра 12.10.2026);
- * - запрос без авторизации — токена в нём нет вовсе.
+ * Токена в браузере нет: запрос вошедшего пользователя идёт через прокси `/api/backend`,
+ * и токен добавляет сервер из куки сессии. Через прокси идут и загрузки (`FormData`), и
+ * `optionalAuth` — страну читателя для гео-блока прокси передаёт сам (`X-Visitor-Country`).
+ * Запасного прямого пути на отказ прокси нет — путь выбирается заранее и один. Напрямую идут:
+ * - явно переданный `accessToken` — серверный вызов с токеном из куки (`getToken`);
+ * - запрос без авторизации и `optionalAuth` без сессии, токен которой API примет (`hasUsableSession`:
+ *   при любом `error` в сессии, включая временный отказ продления), — анонимно;
+ * - обязательная авторизация с сервера — отказ 500 до сети (`LEGACY-140`), без сессии в
+ *   браузере — 401 до сети (`requireLiveSession`).
  *
- * Обязательная авторизация без сессии по-прежнему отказывает 401 до сети — той же проверкой
- * `getAccessToken`, что и прямой путь: признак живой сессии один на оба пути. Прямой маршрут
- * явно гасит `viaBackendProxy`, пришедший в опциях вызывающего: иначе спред опций увёл бы
- * серверный вызов или загрузку на относительный адрес прокси.
+ * Прямой маршрут явно гасит `viaBackendProxy`: иначе спред опций вызывающего увёл бы
+ * серверный вызов на относительный адрес прокси.
  */
 const resolveAuthRoute = async ({
   requireAuth,
   optionalAuth = false,
   providedToken,
-  body,
 }: AuthRouteInput): Promise<AuthRoute> => {
-  const isFormData = isFormDataBody(body);
-  const inBrowser = typeof window !== 'undefined';
+  if (providedToken) return { viaBackendProxy: false, accessToken: providedToken };
 
   if (optionalAuth) {
-    return {
-      accessToken: providedToken || (await getOptionalAccessToken()),
-      viaBackendProxy: false,
-    };
+    return (await hasUsableSession()) ? VIA_PROXY : { viaBackendProxy: false };
   }
-  if (providedToken || isFormData || !inBrowser || !requireAuth) {
-    return {
-      accessToken: await getAccessToken(requireAuth, providedToken),
-      viaBackendProxy: false,
-    };
-  }
+  if (!requireAuth) return { viaBackendProxy: false };
 
-  // Токен браузеру не нужен — вызов только отказывает 401 до сети, если сессии нет.
-  await getAccessToken(true);
-  return { viaBackendProxy: true };
+  await requireLiveSession();
+  return VIA_PROXY;
 };
-
-/** Токен для попытки: через прокси — никакого, иначе обновлённый после 401 или исходный. */
-const tokenFor = (route: AuthRoute, refreshedToken?: string): string | undefined =>
-  route.viaBackendProxy ? undefined : refreshedToken || route.accessToken;
 
 /**
  * Performs GET request with automatic authorization and retry
@@ -109,13 +91,11 @@ export const httpGetAuth = async <T>(
 
   // Wrap request in retry logic
   return withAuthRetry(
-    async (refreshedToken?: string) => {
-      return baseHttpGet<T>(endpoint, {
+    () =>
+      baseHttpGet<T>(endpoint, {
         ...fetchOptions,
         ...route,
-        accessToken: tokenFor(route, refreshedToken),
-      });
-    },
+      }),
     retry401,
     route.viaBackendProxy
   );
@@ -144,18 +124,15 @@ export const httpPostAuth = async <T>(
   const route = await resolveAuthRoute({
     requireAuth,
     providedToken: fetchOptions.accessToken,
-    body,
   });
 
   // Wrap request in retry logic
   return withAuthRetry(
-    async (refreshedToken?: string) => {
-      return baseHttpPost<T>(endpoint, body, {
+    () =>
+      baseHttpPost<T>(endpoint, body, {
         ...fetchOptions,
         ...route,
-        accessToken: tokenFor(route, refreshedToken),
-      });
-    },
+      }),
     retry401,
     route.viaBackendProxy
   );
@@ -184,18 +161,15 @@ export const httpPatchAuth = async <T>(
   const route = await resolveAuthRoute({
     requireAuth,
     providedToken: fetchOptions.accessToken,
-    body,
   });
 
   // Wrap request in retry logic
   return withAuthRetry(
-    async (refreshedToken?: string) => {
-      return baseHttpPatch<T>(endpoint, body, {
+    () =>
+      baseHttpPatch<T>(endpoint, body, {
         ...fetchOptions,
         ...route,
-        accessToken: tokenFor(route, refreshedToken),
-      });
-    },
+      }),
     retry401,
     route.viaBackendProxy
   );
@@ -226,13 +200,11 @@ export const httpDeleteAuth = async <T>(
 
   // Wrap request in retry logic
   return withAuthRetry(
-    async (refreshedToken?: string) => {
-      return baseHttpDelete<T>(endpoint, {
+    () =>
+      baseHttpDelete<T>(endpoint, {
         ...fetchOptions,
         ...route,
-        accessToken: tokenFor(route, refreshedToken),
-      });
-    },
+      }),
     retry401,
     route.viaBackendProxy
   );
@@ -261,18 +233,15 @@ export const httpPutAuth = async <T>(
   const route = await resolveAuthRoute({
     requireAuth,
     providedToken: fetchOptions.accessToken,
-    body,
   });
 
   // Wrap request in retry logic
   return withAuthRetry(
-    async (refreshedToken?: string) => {
-      return baseHttpPut<T>(endpoint, body, {
+    () =>
+      baseHttpPut<T>(endpoint, body, {
         ...fetchOptions,
         ...route,
-        accessToken: tokenFor(route, refreshedToken),
-      });
-    },
+      }),
     retry401,
     route.viaBackendProxy
   );

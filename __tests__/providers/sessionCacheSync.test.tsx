@@ -13,7 +13,7 @@ import { AppProviders } from '@/providers/AppProviders';
  * без перезагрузки страницы (`signIn(..., { redirect: false })` + `router.push`),
  * а `session` пропом в провайдеры не приходит вовсе. Отметка, поставленная на
  * монтировании, держала бы «сессии нет» ещё минуту после успешного входа:
- * `getAccessToken` бросал бы 401 не дойдя до сети, а слияние локального прогресса,
+ * `requireLiveSession` бросал бы 401 не дойдя до сети, а слияние локального прогресса,
  * которое запускается ровно в этот момент, пропустило бы все книги разом и за
  * визит больше не повторилось.
  */
@@ -70,7 +70,7 @@ describe('AppProviders держит кэш сессии равным насто�
   });
 
   it('появившаяся сессия доезжает до кэша — вход без перезагрузки страницы', () => {
-    sessionState.data = { accessToken: 'token-1', user: { id: 'user-1' } };
+    sessionState.data = { user: { id: 'user-1' } };
     sessionState.status = 'authenticated';
 
     render(

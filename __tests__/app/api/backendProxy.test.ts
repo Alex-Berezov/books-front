@@ -103,6 +103,12 @@ const upstreamCall = () => {
   return { url: String(url), init: init as RequestInit, headers: new Headers(init?.headers) };
 };
 
+const expectRefused = async (res: Response, status: number) => {
+  expect(res.status).toBe(status);
+  expect(res.headers.get('cache-control')).toBe('private, no-store');
+  expect(fetchMock).not.toHaveBeenCalled();
+};
+
 describe('backend proxy: what reaches the API', () => {
   it('sends the session token, not the browser cookie or a browser Authorization', async () => {
     const res = await get(
@@ -411,12 +417,6 @@ describe('backend proxy: what reaches the API', () => {
 });
 
 describe('backend proxy: refusals before the network', () => {
-  const expectRefused = async (res: Response, status: number) => {
-    expect(res.status).toBe(status);
-    expect(res.headers.get('cache-control')).toBe('private, no-store');
-    expect(fetchMock).not.toHaveBeenCalled();
-  };
-
   it('401 without a session cookie — the proxy is not an open relay', async () => {
     getTokenMock.mockResolvedValue(null);
     await expectRefused(await get(proxyRequest('/users/me')), 401);
@@ -433,14 +433,6 @@ describe('backend proxy: refusals before the network', () => {
   it('refuses on path, origin and body before reading the session', async () => {
     expect((await get(new NextRequest(`${SITE}/api/backend/users/me`))).status).toBe(403);
     expect((await get(proxyRequest('/auth/login'))).status).toBe(403);
-    const typed = await post(
-      proxyRequest('/media/upload', {
-        method: 'POST',
-        body: 'x',
-        headers: { 'content-type': 'text/plain' },
-      })
-    );
-    expect(typed.status).toBe(415);
     const large = await post(
       proxyRequest('/admin/pages', {
         method: 'POST',
@@ -541,22 +533,6 @@ describe('backend proxy: refusals before the network', () => {
     await expectRefused(await get(req), 400);
   });
 
-  it.each(['multipart/form-data; boundary=x', 'application/octet-stream', 'text/plain'])(
-    '415 on %s',
-    async (contentType) => {
-      await expectRefused(
-        await post(
-          proxyRequest('/media/upload', {
-            method: 'POST',
-            headers: { 'content-type': contentType },
-            body: 'x',
-          })
-        ),
-        415
-      );
-    }
-  );
-
   it('413 when the declared length is over the limit', async () => {
     await expectRefused(
       await post(
@@ -592,5 +568,266 @@ describe('backend proxy: refusals before the network', () => {
       ),
       413
     );
+  });
+});
+
+/**
+ * LEGACY-465, заход 2. Загрузки (multipart, `octet-stream`, тип файла прямой загрузки) идут через
+ * прокси потоком: без буфера и без потолка прокси — его держит ручка бэкенда. Сессия — до первого
+ * байта тела.
+ */
+describe('backend proxy: upload bodies stream to the API', () => {
+  const bodyText = async (init: RequestInit) =>
+    new TextDecoder().decode(await new Response(init.body as BodyInit).arrayBuffer());
+
+  it.each([
+    'multipart/form-data; boundary=x',
+    'application/octet-stream',
+    'audio/mpeg',
+    'text/plain',
+  ])('streams %s with its type, the upload token and the length', async (contentType) => {
+    const res = await post(
+      proxyRequest('/uploads/direct', {
+        method: 'POST',
+        headers: {
+          'content-type': contentType,
+          'content-length': '7',
+          'x-upload-token': 'upload-1',
+        },
+        body: 'payload',
+      })
+    );
+
+    expect(res.status).toBe(200);
+    const { headers, init } = upstreamCall();
+    expect(headers.get('content-type')).toBe(contentType);
+    expect(headers.get('x-upload-token')).toBe('upload-1');
+    expect(headers.get('content-length')).toBe('7');
+    expect(headers.get('authorization')).toBe('Bearer access-123');
+    expect(init.body).toBeInstanceOf(ReadableStream);
+    expect((init as RequestInit & { duplex?: string }).duplex).toBe('half');
+    expect(await bodyText(init)).toBe('payload');
+  });
+
+  it('has no proxy ceiling on a streamed body: the API route enforces its own', async () => {
+    const res = await post(
+      proxyRequest('/media/upload', {
+        method: 'POST',
+        headers: {
+          'content-type': 'multipart/form-data; boundary=x',
+          'content-length': String(BACKEND_PROXY_MAX_BODY_BYTES + 1),
+        },
+        body: new Uint8Array(BACKEND_PROXY_MAX_BODY_BYTES + 1),
+      })
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it('401 without a session before reading a byte of the upload', async () => {
+    getTokenMock.mockResolvedValue(null);
+    let pulls = 0;
+    const body = new ReadableStream<Uint8Array>(
+      {
+        pull(controller) {
+          pulls += 1;
+          controller.enqueue(new Uint8Array(4));
+          controller.close();
+        },
+      },
+      { highWaterMark: 0 }
+    );
+
+    const res = await post(
+      proxyRequest('/media/upload', {
+        method: 'POST',
+        headers: { 'content-type': 'multipart/form-data; boundary=x' },
+        body,
+      })
+    );
+
+    expect(res.status).toBe(401);
+    expect(pulls).toBe(0);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  // Решение арбитра 12.10.2026, ревью круг 1: поток — только на ручку загрузки.
+  it.each(['/users/me', '/comments', '/media/upload/extra'])(
+    '415 on a non-JSON body to %s, a path that is not an upload',
+    async (path) => {
+      const res = await post(
+        proxyRequest(path, {
+          method: 'POST',
+          headers: { 'content-type': 'text/plain' },
+          body: 'x'.repeat(16),
+        })
+      );
+      await expectRefused(res, 415);
+      expect(fetchMock).toHaveBeenCalledTimes(0);
+      expect(getTokenMock).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each([
+    ['cross-site', { 'sec-fetch-site': 'cross-site' }],
+    ['no proxy header', { [BACKEND_PROXY_HEADER]: '' }],
+  ])('403 on an upload stream from %s before the session is read', async (_name, extra) => {
+    const res = await post(
+      proxyRequest('/media/upload', {
+        method: 'POST',
+        headers: { 'content-type': 'multipart/form-data; boundary=x', ...extra },
+        body: 'x',
+      })
+    );
+    await expectRefused(res, 403);
+    expect(getTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('504 when the API stays silent after the whole upload body is sent', async () => {
+    vi.useFakeTimers();
+    try {
+      fetchMock.mockImplementationOnce(async (_url, init) => {
+        await new Response(init?.body as BodyInit).arrayBuffer();
+        return new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(init.signal?.reason));
+        });
+      });
+
+      const pending = post(
+        proxyRequest('/uploads/direct', {
+          method: 'POST',
+          headers: { 'content-type': 'audio/mpeg', 'x-upload-token': 'upload-1' },
+          body: 'payload',
+        })
+      );
+      await vi.advanceTimersByTimeAsync(BACKEND_PROXY_UPSTREAM_TIMEOUT_MS + 1);
+      expect((await pending).status).toBe(504);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // API ответил раньше, чем ушло всё тело (401, 413): `flush` потока приходит после ответа
+  // и не должен взводить таймер, который оборвал бы уже идущий в браузер ответ.
+  it('an early API answer is not cut by a timeout armed after it', async () => {
+    vi.useFakeTimers();
+    try {
+      let controller!: ReadableStreamDefaultController<Uint8Array>;
+      const body = new ReadableStream<Uint8Array>({
+        start(c) {
+          controller = c;
+        },
+      });
+      let upstreamSignal: AbortSignal | undefined;
+      let upstreamBody: ReadableStream<Uint8Array> | undefined;
+      fetchMock.mockImplementationOnce(async (_url, init) => {
+        upstreamSignal = init?.signal ?? undefined;
+        upstreamBody = init?.body as ReadableStream<Uint8Array>;
+        return new Response('{"statusCode":413}', {
+          status: 413,
+          headers: { 'content-type': 'application/json' },
+        });
+      });
+
+      const res = await post(
+        proxyRequest('/uploads/direct', {
+          method: 'POST',
+          headers: { 'content-type': 'audio/mpeg', 'x-upload-token': 'upload-1' },
+          body,
+        })
+      );
+      expect(res.status).toBe(413);
+
+      // Тело уходит до конца уже после ответа — `flush` срабатывает теперь.
+      const drained = new Response(upstreamBody).arrayBuffer();
+      controller.enqueue(new Uint8Array(4));
+      controller.close();
+      await drained;
+      await vi.advanceTimersByTimeAsync(BACKEND_PROXY_UPSTREAM_TIMEOUT_MS * 2);
+
+      expect(upstreamSignal?.aborted).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not forward the upload token on a JSON request', async () => {
+    await post(
+      proxyRequest('/me/bookshelf', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-upload-token': 'upload-1' },
+        body: '{}',
+      })
+    );
+    expect(upstreamCall().headers.get('x-upload-token')).toBeNull();
+  });
+
+  // Загрузка большого файла по медленной сети длится дольше таймаута: он начинается только после
+  // того, как тело ушло целиком.
+  it('arms the timeout only after the upload body has been sent', async () => {
+    vi.useFakeTimers();
+    try {
+      let controller!: ReadableStreamDefaultController<Uint8Array>;
+      const body = new ReadableStream<Uint8Array>({
+        start(c) {
+          controller = c;
+        },
+      });
+      let upstreamSignal: AbortSignal | undefined;
+      fetchMock.mockImplementationOnce(async (_url, init) => {
+        upstreamSignal = init?.signal ?? undefined;
+        await new Response(init?.body as BodyInit).arrayBuffer();
+        return new Response('{}', { status: 201, headers: { 'content-type': 'application/json' } });
+      });
+
+      const pending = post(
+        proxyRequest('/uploads/direct', {
+          method: 'POST',
+          headers: { 'content-type': 'audio/mpeg', 'x-upload-token': 'upload-1' },
+          body,
+        })
+      );
+      controller.enqueue(new Uint8Array(8));
+      await vi.advanceTimersByTimeAsync(BACKEND_PROXY_UPSTREAM_TIMEOUT_MS * 2);
+      expect(upstreamSignal?.aborted).toBe(false);
+
+      controller.close();
+      expect((await pending).status).toBe(201);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+/**
+ * LEGACY-465, заход 2 (решение арбитра 12.10.2026). Через прокси `cf-ipcountry` в API — страна
+ * сервера фронта, поэтому прокси всегда ставит страну посетителя сам, а присланную браузером
+ * не пересылает. Бэкенд верит заголовку только от адреса фронта (`INTERNAL_PROXY_CIDRS`).
+ */
+describe('backend proxy: visitor country for the geo block', () => {
+  it('passes the visitor country from cf-ipcountry', async () => {
+    await get(
+      proxyRequest('/books/hamlet/reader-bootstrap', { headers: { 'cf-ipcountry': 'DE' } })
+    );
+    expect(upstreamCall().headers.get('x-visitor-country')).toBe('DE');
+  });
+
+  it('sends XX when the visitor country is unknown', async () => {
+    await get(proxyRequest('/books/hamlet/reader-bootstrap'));
+    expect(upstreamCall().headers.get('x-visitor-country')).toBe('XX');
+  });
+
+  it('never forwards a country the browser typed', async () => {
+    await get(
+      proxyRequest('/books/hamlet/reader-bootstrap', {
+        headers: { 'x-visitor-country': 'US', 'cf-ipcountry': 'DE' },
+      })
+    );
+    expect(upstreamCall().headers.get('x-visitor-country')).toBe('DE');
+
+    fetchMock.mockClear();
+    await get(
+      proxyRequest('/books/hamlet/reader-bootstrap', { headers: { 'x-visitor-country': 'US' } })
+    );
+    expect(upstreamCall().headers.get('x-visitor-country')).toBe('XX');
   });
 });

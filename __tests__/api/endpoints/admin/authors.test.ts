@@ -7,9 +7,7 @@ import { server } from '../../../msw/server';
 // A live session lets httpXxxAuth pass its 401-before-network check; the token itself is set
 // by the server proxy (the MSW stub stands in for it), not by the browser (`LEGACY-465`).
 vi.mock('next-auth/react', () => ({
-  getSession: vi.fn(() =>
-    Promise.resolve({ accessToken: 'test-token', user: { id: 'u1' }, expires: '2099-01-01' })
-  ),
+  getSession: vi.fn(() => Promise.resolve({ user: { id: 'u1' }, expires: '2099-01-01' })),
   signIn: vi.fn(),
   signOut: vi.fn(),
 }));

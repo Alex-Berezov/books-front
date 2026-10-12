@@ -552,17 +552,11 @@ export const authOptions = {
         name: legacyDisplayName(token) ?? token.name,
         roles: token.roles,
       };
-      // `refreshToken` в сессию не кладётся: `/api/auth/session` отдаёт её в браузер,
-      // и любой XSS унёс бы его на весь срок refresh (`LEGACY-446`). Он живёт только
-      // в зашифрованной JWT-куке, продление идёт на сервере в колбэке `jwt`.
-      // `accessToken` остаётся: им ходит http-клиент браузера. Срок его жизни задаёт бэкенд
-      // (`JWT_ACCESS_EXPIRES_IN`, по умолчанию 15m); перенос запросов на серверный прокси —
-      // отдельная запись (решение арбитра 08.10.2026).
-      // Мёртвой сессии токен не отдаётся: личный запрос с ним получил бы 401, и путь
-      // `withAuthRetry` → `handleAuthFailure` выбросил бы читателя на вход раньше тихого выхода.
-      // Без токена `getAccessToken` отказывает до сети, а `optionalAuth` уходит анонимно
-      // (`LEGACY-466`, решение арбитра 11.10.2026, круг 3).
-      session.accessToken = isSessionEndedError(token.error) ? undefined : token.accessToken;
+      // Ни `refreshToken`, ни `accessToken` в сессию не кладутся: `/api/auth/session` отдаёт её
+      // в браузер, и любой XSS унёс бы токен (`LEGACY-446`, `LEGACY-465`). Оба живут только
+      // в зашифрованной JWT-куке: продление идёт здесь, в колбэке `jwt`, а запросы браузера
+      // ходят через серверный прокси `/api/backend`, который читает токен из той же куки.
+      // Живость сессии браузер узнаёт по `error` (`isLiveSession`, `LEGACY-466`).
       session.error = token.error;
 
       return session;

@@ -7,9 +7,7 @@ import { BookVersionPreviewClient } from '@/app/admin/[lang]/books/versions/[id]
 import { server } from '../../msw/server';
 
 vi.mock('next-auth/react', () => ({
-  getSession: vi.fn(() =>
-    Promise.resolve({ accessToken: 'test-token', user: { id: 'u1' }, expires: '2099-01-01' })
-  ),
+  getSession: vi.fn(() => Promise.resolve({ user: { id: 'u1' }, expires: '2099-01-01' })),
   signIn: vi.fn(),
   signOut: vi.fn(),
 }));

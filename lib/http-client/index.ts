@@ -2,7 +2,7 @@
  * Extended HTTP client with NextAuth and retry logic support
  *
  * Features:
- * - Automatic token retrieval from NextAuth
+ * - Requests of a signed-in user through the server proxy (`LEGACY-465`)
  * - 401 handling with automatic refresh
  * - Retry logic for temporary errors
  * - Language integration
@@ -11,7 +11,7 @@
  */
 
 export type { ExtendedHttpOptions } from './types';
-export { getCurrentSession, getAccessToken, handleAuthFailure } from './auth';
+export { getCurrentSession, handleAuthFailure, requireLiveSession } from './auth';
 export { withAuthRetry } from './retry';
 export { httpGetAuth, httpPostAuth, httpPatchAuth, httpPutAuth, httpDeleteAuth } from './methods';
 

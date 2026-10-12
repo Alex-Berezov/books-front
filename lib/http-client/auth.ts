@@ -1,10 +1,12 @@
 /**
  * Authorization module for HTTP client
  *
- * Handles token retrieval and authorization error processing
+ * Признак живой сессии в браузере и разбор отказа авторизации. Токена в браузере нет: его
+ * добавляет серверный прокси `/api/backend` (`LEGACY-465`).
  */
 
 import { getSession, signOut } from 'next-auth/react';
+import { isSessionEndedError } from '@/lib/auth/constants';
 import { clearLoggedInMarker } from '@/lib/auth/sessionMarker';
 import { describeApiFailure } from '@/lib/errors';
 import { API_ERROR_TYPE, HTTP_STATUS } from '@/lib/http.constants';
@@ -42,7 +44,7 @@ export const setSession = (session: Session | null) => {
 };
 
 /**
- * Get current session and access token
+ * Get current session
  *
  * @param maxAgeMs - Сколько держать полученную сессию без перезапроса (по умолчанию —
  *   `SESSION_CACHE_TIME`)
@@ -107,37 +109,35 @@ export const refreshCurrentSession = (): Promise<Session | null> =>
  */
 export const SERVER_CONTEXT_AUTH_MESSAGE =
   'Authorized HTTP client called from a server context: this client reads the NextAuth session ' +
-  'through the browser-only path, so it has no token here. A server-side token is obtainable — ' +
-  'lib/auth/session-utils.ts getServerAccessToken() reads it through auth() — but wiring it into ' +
-  'this client is a separate task (LEGACY-140), so do not read this as "impossible". Pass that ' +
-  'token explicitly as accessToken; call the endpoint with requireAuth: false / optionalAuth: ' +
-  'true only when the route is genuinely open to anonymous callers.';
+  'through the browser-only path, and the browser session carries no access token (LEGACY-465). ' +
+  'On the server the token lives in the encrypted session cookie — read it with ' +
+  'getServerAccessToken() from lib/auth/session-utils.ts (the same reader the server proxy uses) ' +
+  'and pass it explicitly as accessToken; call the endpoint with requireAuth: false / optionalAuth: true only when the ' +
+  'route is genuinely open to anonymous callers.';
 
 /** Код этой ошибки: она про неверный вызов, а не про неавторизованного посетителя. */
 export const SERVER_CONTEXT_AUTH_ERROR = 'ServerContextAuthUnavailable';
 
 /**
- * Get access token from current session
+ * Сессия пригодна для запроса от имени пользователя: она есть и не окончена окончательно.
  *
- * @param requireAuth - Whether authorization is required
- * @param providedToken - Token explicitly provided
- * @returns Access token or null
- * @throws ApiError if requireAuth = true and no token available
+ * Признак http-клиента (`LEGACY-465`, заход 2): выбор маршрута и отказ до сети; повтор после 401
+ * дополнительно требует сессии без `error` (`withAuthRetry`). Интерфейс решает строже — по любому
+ * `error` (`lib/reading-progress/useProgressTarget.ts`): при временном отказе пишет локально. Временный отказ продления (`REFRESH_TOKEN_ERROR` с паузой) сессию не убивает — она
+ * может ожить, и запрос через прокси уходит с прежним токеном, как раньше уходил из браузера.
+ * Окончательный отказ (`isSessionEndedError`: истёк срок, выход на другом устройстве,
+ * блокировка, неудавшийся соцвход) — сессии нет (`LEGACY-466`).
  */
-export const getAccessToken = async (
-  requireAuth: boolean,
-  providedToken?: string
-): Promise<string | undefined> => {
-  // Use provided token if available
-  if (providedToken) {
-    return providedToken;
-  }
+export const isLiveSession = (session: Session | null | undefined): session is Session =>
+  Boolean(session) && !isSessionEndedError(session?.error);
 
-  // If authorization not required, return undefined
-  if (!requireAuth) {
-    return undefined;
-  }
-
+/**
+ * Отказ до сети, если запрос от имени пользователя сделать нельзя.
+ *
+ * @throws ApiError 500 `ServerContextAuthUnavailable` — вызов с сервера (`LEGACY-140`)
+ * @throws ApiError 401 — нет живой сессии
+ */
+export const requireLiveSession = async (): Promise<void> => {
   // ⚠️ На сервере `getCurrentSession` всегда возвращает null, поэтому дальше по
   // коду получался бы 401 ещё до похода в сеть — и выглядел бы как отказ
   // бэкенда. В карте сайта такой 401 оседал в noteFailure и превращался в 503
@@ -152,34 +152,25 @@ export const getAccessToken = async (
     });
   }
 
-  // Get token from session
-  const session = await getCurrentSession();
-  const accessToken = session?.accessToken;
-
-  if (!accessToken) {
+  if (!isLiveSession(await getCurrentSession())) {
     throw new ApiError({
       message: describeApiFailure(HTTP_STATUS.UNAUTHORIZED, API_ERROR_TYPE.UNAUTHORIZED),
       statusCode: HTTP_STATUS.UNAUTHORIZED,
       error: API_ERROR_TYPE.UNAUTHORIZED,
     });
   }
-
-  return accessToken;
 };
 
 /**
- * Get access token for a route that works without authorization but returns a
- * personal part to the token bearer — the reader, for one (`LEGACY-088`).
- *
- * ⚠️ Unlike `getAccessToken`, a missing session is not an error here: anonymous
- * callers get the same response without the personal part. There used to be no
- * third mode — either demand a token and fail with 401, or send none at all —
- * so the reader worked around it by passing `userId` in the query string. That
- * workaround is precisely what turned out to be the leak.
+ * Есть ли сессия, токен которой API примет, — для ручки, открытой анониму, но отдающей личную
+ * часть вошедшему (читалка, `LEGACY-088`). Строже `isLiveSession`: при любом `error`, включая
+ * временный отказ продления, в куке протухший токен, и `OptionalJwtAuthGuard` ответил бы 401
+ * вместо текста книги. Тогда запрос идёт анонимно: аноним получает тот же ответ без личной части.
+ * На сервере — всегда `false`.
  */
-export const getOptionalAccessToken = async (): Promise<string | undefined> => {
+export const hasUsableSession = async (): Promise<boolean> => {
   const session = await getCurrentSession();
-  return session?.accessToken;
+  return isLiveSession(session) && !session.error;
 };
 
 /**

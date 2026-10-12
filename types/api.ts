@@ -96,15 +96,13 @@ export class ApiError extends Error {
  * Options for HTTP requests
  */
 export interface HttpRequestOptions extends RequestInit {
-  /** Bearer token for authorization */
+  /**
+   * Bearer token for authorization — только для серверного вызова с токеном из куки сессии
+   * (`getToken`). В браузере токена нет: запрос вошедшего идёт через серверный прокси (`LEGACY-465`).
+   */
   accessToken?: string;
   /** Language for Accept-Language header */
   language?: string;
-  /**
-   * Запрос идёт через серверный прокси `/api/backend` своего домена, без `Authorization`:
-   * токен добавляет сервер из сессии (`LEGACY-465`). Ставит только `lib/http-client`.
-   */
-  viaBackendProxy?: boolean;
 }
 
 /**

@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
+import type { APIRequestContext, Page } from '@playwright/test';
 import { BACKEND_PROXY_HEADER, BACKEND_PROXY_HEADER_VALUE } from '../lib/backend-proxy.constants';
 
 /**
- * LEGACY-465, пачка T127 (заход 1 из 2). Авторизованные запросы браузера идут через
- * серверный прокси `/api/backend` своего домена: токен к ним добавляет сервер Next из
- * сессии, браузер его не шлёт.
+ * LEGACY-465, пачка T127. Авторизованные запросы браузера идут через серверный прокси
+ * `/api/backend` своего домена: токен к ним добавляет сервер Next из куки сессии, браузер его
+ * не шлёт и не знает — в сессии `/api/auth/session` токена нет (заход 2). Загрузка файла
+ * (аватар профиля: presign → тело потоком → confirm) и скачивание идут тем же прокси.
  *
  * Проверяется собранное приложение — вход через Auth.js, личный запрос профиля через прокси
  * с токеном из куки, подставной 401 на первой попытке и повтор клиента через свежую сессию,
@@ -47,21 +49,16 @@ test.describe('Backend proxy', () => {
       page,
       request,
     }) => {
-      const email = `e2e-proxy-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
-      const password = 'e2e-proxy-password-1';
+      const email = await signInFreshUser(page, request);
 
-      const registered = await request.post(`${API_BASE_URL}/auth/register`, {
-        data: { email, password },
+      // В браузерной сессии токена нет: его держит только зашифрованная кука (заход 2).
+      const session = await page.evaluate(async () => {
+        const response = await fetch('/api/auth/session');
+        return (await response.json()) as Record<string, unknown>;
       });
-      expect(registered.ok(), `register: ${registered.status()}`).toBe(true);
-
-      await page.goto('/en/auth/sign-in');
-      // Форма входа — `#sign-in`: в шапке есть своя кнопка submit у поиска.
-      const form = page.locator('#sign-in');
-      await form.locator('input[name="email"]').fill(email);
-      await form.locator('input[name="password"]').fill(password);
-      await form.locator('button[type="submit"]').click();
-      await expect(page).not.toHaveURL(/\/auth\/sign-in/);
+      expect(session.user).toBeTruthy();
+      expect(session).not.toHaveProperty('accessToken');
+      expect(session).not.toHaveProperty('refreshToken');
 
       // Первая попытка получает подставной 401 — так выглядит истёкший access. Клиент обязан
       // повторить запрос через прокси же, а не выйти из аккаунта и не пойти в API напрямую.
@@ -116,5 +113,95 @@ test.describe('Backend proxy', () => {
       expect(written.status).toBe(200);
       expect(written.body.name).toBe('E2E Proxy');
     });
+
+    // Загрузка идёт настоящим клиентом: аватар в профиле — `uploadAvatar` → presign через прокси →
+    // тело XHR `uploadBinaryWithProgress` на адрес прокси (`ownApiProxyUrl`) → confirm. Браузер
+    // токена не шлёт, его ставит прокси; тело — потоком на ручку загрузки из белого списка.
+    test('the profile avatar upload goes through the proxy without a token', async ({
+      page,
+      request,
+    }) => {
+      await signInFreshUser(page, request);
+      await page.goto('/en/profile');
+
+      const directRequests: { authorization?: string; proxyHeader?: string }[] = [];
+      page.on('request', (sent) => {
+        if (!sent.url().includes('/uploads/direct')) return;
+        const headers = sent.headers();
+        directRequests.push({
+          authorization: headers.authorization,
+          proxyHeader: headers[BACKEND_PROXY_HEADER.toLowerCase()],
+        });
+      });
+      const direct = page.waitForResponse((response) => response.url().includes('/uploads/direct'));
+      const confirm = page.waitForResponse((response) =>
+        response.url().includes('/api/backend/uploads/confirm')
+      );
+
+      // PNG 1×1: ручка сверяет тип и размер с presign.
+      await page.locator('input[type="file"]').setInputFiles({
+        name: 'avatar.png',
+        mimeType: 'image/png',
+        buffer: Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+          'base64'
+        ),
+      });
+
+      const directResponse = await direct;
+      expect(new URL(directResponse.url()).pathname).toBe('/api/backend/uploads/direct');
+      expect(directResponse.status(), 'streamed body').toBeLessThan(300);
+      expect((await confirm).status(), 'confirm').toBeLessThan(300);
+      expect(directRequests).toHaveLength(1);
+      expect(directRequests[0].authorization).toBeUndefined();
+      expect(directRequests[0].proxyHeader).toBe(BACKEND_PROXY_HEADER_VALUE);
+    });
+
+    // Скачивание правового файла — путь админки: у пользователя конвейера роли нет, и бэкенд
+    // отвечает 403. Это и проверяется: запрос дошёл до API с токеном из куки (без токена был бы
+    // 401) и ответ API, а не прокси, дошёл до браузера.
+    test('a file download goes through the proxy with the session token', async ({
+      page,
+      request,
+    }) => {
+      await signInFreshUser(page, request);
+
+      const download = await page.evaluate(
+        async ({ header, value }) => {
+          const response = await fetch(
+            '/api/backend/admin/rights/review-imports/00000000-0000-0000-0000-000000000000/report-pdf',
+            { headers: { [header]: value } }
+          );
+          return {
+            status: response.status,
+            error: ((await response.json()) as { error?: string }).error,
+          };
+        },
+        { header: BACKEND_PROXY_HEADER, value: BACKEND_PROXY_HEADER_VALUE }
+      );
+
+      expect(download.status).toBe(403);
+      expect(download.error).not.toBe('BackendProxyRefused');
+    });
   });
 });
+
+/** Регистрирует пользователя с уникальным адресом прямо в API и входит им через форму сайта. */
+const signInFreshUser = async (page: Page, request: APIRequestContext): Promise<string> => {
+  const email = `e2e-proxy-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+  const password = 'e2e-proxy-password-1';
+
+  const registered = await request.post(`${API_BASE_URL}/auth/register`, {
+    data: { email, password },
+  });
+  expect(registered.ok(), `register: ${registered.status()}`).toBe(true);
+
+  await page.goto('/en/auth/sign-in');
+  // Форма входа — `#sign-in`: в шапке есть своя кнопка submit у поиска.
+  const form = page.locator('#sign-in');
+  await form.locator('input[name="email"]').fill(email);
+  await form.locator('input[name="password"]').fill(password);
+  await form.locator('button[type="submit"]').click();
+  await expect(page).not.toHaveURL(/\/auth\/sign-in/);
+  return email;
+};
