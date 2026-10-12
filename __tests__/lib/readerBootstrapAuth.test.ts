@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getReaderBootstrap } from '@/api/endpoints/public';
+import { BACKEND_PROXY_PREFIX } from '@/lib/backend-proxy.constants';
 import { setSession } from '@/lib/http-client/auth';
 
 vi.mock('next-auth/react', () => ({
@@ -50,12 +51,15 @@ describe('getReaderBootstrap — читатель приходит токено�
     expect(url).toContain('/en/books/hamlet/reader-bootstrap');
   });
 
-  it('прикладывает токен, когда сессия есть', async () => {
+  // `reader-bootstrap` гео-зависима: через серверный прокси бэкенд увидел бы страну сервера фронта.
+  // Поэтому `optionalAuth` идёт напрямую с токеном (`LEGACY-465`, решение арбитра 12.10.2026, круг 6).
+  it('прикладывает токен, когда сессия есть, и идёт в API напрямую', async () => {
     setSession({ accessToken: 'token-1', user: { id: 'user-1' } } as never);
 
     await getReaderBootstrap('en', 'hamlet');
 
-    const [, init] = lastCall();
+    const [url, init] = lastCall();
+    expect(url.startsWith(BACKEND_PROXY_PREFIX)).toBe(false);
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer token-1');
   });
 

@@ -1,6 +1,14 @@
 import { http, HttpResponse } from 'msw';
+import {
+  BACKEND_PROXY_HEADER,
+  BACKEND_PROXY_HEADER_VALUE,
+  BACKEND_PROXY_PREFIX,
+} from '@/lib/backend-proxy.constants';
 
 const API_BASE = 'http://localhost:5000/api';
+
+/** Токен, который заглушка прокси ставит «от сервера» (`LEGACY-465`). */
+export const MSW_PROXY_SESSION_TOKEN = 'msw-proxy-session-token';
 
 export const handlers = [
   // Example handler
@@ -140,4 +148,40 @@ export const handlers = [
       pendingConditions: [],
     })
   ),
+
+  // --- Серверный прокси (`LEGACY-465`) ---
+  // Браузерный `http*Auth` ходит на `/api/backend/<путь API>` своего домена. Здесь — заглушка
+  // маршрута `app/api/backend/[...path]` с его договором: без заголовка прокси — 403, токен
+  // из браузера — 400 (браузер его слать не должен), иначе префикс снимается, токен ставится
+  // «сервером» (`MSW_PROXY_SESSION_TOKEN`) и запрос уходит в обработчики выше и в
+  // `server.use(...)` тестов. Так тест эндпоинта видит в API токен сессии, только если вызов
+  // прошёл через прокси. Остальные проверки маршрута держит `__tests__/app/api/backendProxy.test.ts`.
+  // ⚠️ Заглушка строже маршрута в одном и мягче в другом, и это намеренно: на токен из браузера
+  // маршрут молча его отбрасывает, а заглушка отвечает 400 — чтобы тест увидел утечку; заголовки
+  // вызывающего она пересылает все, а маршрут — белый список (оговорка в `mergeHeaders`).
+  http.all(`*${BACKEND_PROXY_PREFIX}/*`, async ({ request }) => {
+    if (request.headers.get(BACKEND_PROXY_HEADER) !== BACKEND_PROXY_HEADER_VALUE) {
+      return HttpResponse.json(
+        { statusCode: 403, message: 'Missing proxy header' },
+        { status: 403 }
+      );
+    }
+    if (request.headers.has('authorization')) {
+      return HttpResponse.json(
+        { statusCode: 400, message: 'Browser sent a token to the proxy' },
+        { status: 400 }
+      );
+    }
+    const url = new URL(request.url);
+    const target = `${API_BASE}${url.pathname.slice(BACKEND_PROXY_PREFIX.length)}${url.search}`;
+    const headers = new Headers(request.headers);
+    headers.delete(BACKEND_PROXY_HEADER);
+    headers.set('authorization', `Bearer ${MSW_PROXY_SESSION_TOKEN}`);
+    const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
+    return fetch(target, {
+      method: request.method,
+      headers,
+      body: hasBody ? await request.arrayBuffer() : undefined,
+    });
+  }),
 ];

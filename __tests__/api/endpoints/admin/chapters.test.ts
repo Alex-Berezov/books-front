@@ -1,9 +1,11 @@
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getChapters } from '@/api/endpoints/admin/chapters';
+import { MSW_PROXY_SESSION_TOKEN } from '../../../msw/handlers';
 import { server } from '../../../msw/server';
 
-// Provide a token so httpXxxAuth doesn't try to fetch a real session.
+// A live session lets httpXxxAuth pass its 401-before-network check; the token itself is set
+// by the server proxy (the MSW stub stands in for it), not by the browser (`LEGACY-465`).
 vi.mock('next-auth/react', () => ({
   getSession: vi.fn(() =>
     Promise.resolve({ accessToken: 'test-token', user: { id: 'u1' }, expires: '2099-01-01' })
@@ -42,6 +44,8 @@ describe('admin chapters endpoints', () => {
     expect(result.items).toHaveLength(1);
     expect(seenUrl).toContain('/admin/versions/ver-42/chapters');
     expect(seenUrl).not.toContain('/api/versions/ver-42/chapters');
-    expect(seenAuth).toBe('Bearer test-token');
+    // Токен ставит серверный прокси из сессии, браузер его не шлёт (`LEGACY-465`): заглушка
+    // прокси отказывает без её заголовка и на токене из браузера.
+    expect(seenAuth).toBe(`Bearer ${MSW_PROXY_SESSION_TOKEN}`);
   });
 });

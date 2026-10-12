@@ -135,11 +135,97 @@ async function classifyRefusal(
  * @returns updated token or token with error
  */
 export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
+  // Без refresh-токена продлевать нечем — бэкенд ответил бы 400, то есть окончательным отказом.
+  // Отвечаем им сразу: иначе такие токены разных пользователей делили бы общий ключ `undefined`.
+  if (!token.refreshToken) {
+    return { ...token, error: AuthErrorType.SESSION_ENDED, refreshRetryAt: REFRESH_RETRY_NEVER };
+  }
+  const outcome = await sharedRefresh(token.refreshToken);
+
+  if (outcome.kind === 'refreshed') {
+    return {
+      ...token,
+      accessToken: outcome.accessToken,
+      refreshToken: outcome.refreshToken,
+      accessTokenExpires: accessTokenExpiresAt(outcome.accessToken),
+      error: undefined, // Reset error if it was set
+      refreshRetryAt: undefined,
+    };
+  }
+  if (outcome.kind === 'ended') {
+    return { ...token, error: outcome.error, refreshRetryAt: REFRESH_RETRY_NEVER };
+  }
+  return retryLater(token);
+};
+
+/** Исход одного обращения к `/auth/refresh` — без полей токена, его разделяют все ждущие. */
+type RefreshOutcome =
+  | { kind: 'refreshed'; accessToken: string; refreshToken: string }
+  | { kind: 'ended'; error: AuthErrorType }
+  | { kind: 'temporary' };
+
+/**
+ * Окно раздачи исхода — `AUTH_REQUEST_TIMEOUTS.REFRESH_SHARE_MS`. Запросы сессии, ушедшие из браузера
+ * до того, как он получил новую куку, несут старую. Бэкенд старый refresh не гасит до его `exp`
+ * (`books/src/modules/auth/auth.service.ts`, `refresh`), поэтому раздать им те же новые токены
+ * безопасно. Окно короткое: такие запросы приходят пачкой за секунды, а за долгое окно погашенная
+ * тем временем сессия (выход, блокировка) получала бы уже отозванные токены вместо своего отказа.
+ */
+const REFRESH_SHARE_MS = AUTH_REQUEST_TIMEOUTS.REFRESH_SHARE_MS;
+
+const refreshes = new Map<string, Promise<RefreshOutcome>>();
+
+/**
+ * Одно обращение к `/auth/refresh` на процесс для одного refresh-токена (`LEGACY-465`, `T127`).
+ *
+ * Продление идёт в колбэке `jwt`, а его зовут параллельно: несколько вкладок одного человека
+ * опрашивают `/api/auth/session`, после 401 через серверный прокси клиент берёт свежую сессию
+ * (`refreshCurrentSession`) сразу из нескольких запросов страницы, рядом работают серверные
+ * `auth()`. Каждый вызов с истёкшим access продлевал бы токен сам, а лимит `/auth/refresh` —
+ * 10 в минуту на весь сайт (адреса посетителя здесь нет): 429, за ним 401 и выход. Здесь
+ * параллельные и следующие за ними в пределах `REFRESH_SHARE_MS` вызовы ждут один и тот же
+ * ответ. Временный отказ не раздаётся после ответа: его повтор держит пауза `refreshRetryAt`.
+ *
+ * ⚠️ Сам прокси (`app/api/backend/[...path]/route.ts`) колбэк `jwt` не зовёт и токен не
+ * продлевает — он читает куку `getToken` (решение арбитра 12.10.2026).
+ */
+const sharedRefresh = (refreshToken: string): Promise<RefreshOutcome> => {
+  const existing = refreshes.get(refreshToken);
+  if (existing) return existing;
+
+  const outcome = requestRefresh(refreshToken).then((result) => {
+    if (result.kind === 'temporary') {
+      refreshes.delete(refreshToken);
+    } else {
+      // Запись живёт ровно окно раздачи: refresh-токен — долгий секрет, держать его в памяти
+      // процесса до следующего продления (а это бывает часы) незачем.
+      const timer = setTimeout(() => {
+        if (refreshes.get(refreshToken) === outcome) refreshes.delete(refreshToken);
+      }, REFRESH_SHARE_MS);
+      timer.unref?.();
+    }
+    return result;
+  });
+  refreshes.set(refreshToken, outcome);
+  return outcome;
+};
+
+/** Сбросить общий кэш обновлений — только для тестов. */
+export const resetSharedRefreshes = (): void => refreshes.clear();
+
+const requestRefresh = async (refreshToken: string): Promise<RefreshOutcome> => {
+  // Таймер, а не `AbortSignal.timeout`: обрыв по часам процесса, их же двигают тесты.
+  const timeout = new AbortController();
+  const timer = setTimeout(
+    () => timeout.abort(new DOMException('Refresh timed out', 'TimeoutError')),
+    AUTH_REQUEST_TIMEOUTS.REFRESH_MS
+  );
   try {
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
+      signal: timeout.signal,
       headers: {
         'Content-Type': 'application/json',
         // Адреса посетителя здесь нет: обновление токена идёт из колбэка `jwt`,
@@ -149,9 +235,7 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
         // больше сюда не ходит (`LEGACY-451`, `T122`). Если это перестанет быть
         // правдой, адрес придётся класть в сам токен при входе (LEGACY-064).
       },
-      body: JSON.stringify({
-        refreshToken: token.refreshToken,
-      }),
+      body: JSON.stringify({ refreshToken }),
     });
 
     // If refresh failed - mark token with error
@@ -159,32 +243,28 @@ export const refreshAccessToken = async (token: JWT): Promise<JWT> => {
       console.error('Failed to refresh token:', response.status);
       // 400/401 — сессия погашена или истекла, повторять бессмысленно. Остальное (429, 5xx,
       // 403 от WAF) временное: повтор после паузы (`LEGACY-451`, решение арбитра 10.10.2026).
-      if (!FINAL_REFRESH_STATUSES.has(response.status)) return retryLater(token);
+      if (!FINAL_REFRESH_STATUSES.has(response.status)) return { kind: 'temporary' };
       // Окончательный отказ — отдельная ошибка, не `REFRESH_TOKEN_ERROR`: по ней клиент выходит,
       // а гейт админки не пускает (`LEGACY-466`). Блокировка отличается от истёкшей сессии
       // только кодом в теле.
       return {
-        ...token,
+        kind: 'ended',
         error: await classifyRefusal(response, AuthErrorType.SESSION_ENDED),
-        refreshRetryAt: REFRESH_RETRY_NEVER,
       };
     }
 
     const refreshedTokens = await response.json();
-
-    // Return updated token
     return {
-      ...token,
+      kind: 'refreshed',
       accessToken: refreshedTokens.accessToken,
       refreshToken: refreshedTokens.refreshToken,
-      accessTokenExpires: accessTokenExpiresAt(refreshedTokens.accessToken),
-      error: undefined, // Reset error if it was set
-      refreshRetryAt: undefined,
     };
   } catch (error) {
     console.error('Error refreshing access token:', error);
     // Обрыв сети или таймаут — временный отказ.
-    return retryLater(token);
+    return { kind: 'temporary' };
+  } finally {
+    clearTimeout(timer);
   }
 };
 

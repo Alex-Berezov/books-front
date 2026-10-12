@@ -100,6 +100,11 @@ export interface HttpRequestOptions extends RequestInit {
   accessToken?: string;
   /** Language for Accept-Language header */
   language?: string;
+  /**
+   * Запрос идёт через серверный прокси `/api/backend` своего домена, без `Authorization`:
+   * токен добавляет сервер из сессии (`LEGACY-465`). Ставит только `lib/http-client`.
+   */
+  viaBackendProxy?: boolean;
 }
 
 /**

@@ -39,6 +39,10 @@ export const HTTP_STATUS = {
   NOT_FOUND: 404,
   /** 409 - Conflict */
   CONFLICT: 409,
+  /** 413 - Тело запроса больше потолка (серверный прокси, `LEGACY-465`) */
+  PAYLOAD_TOO_LARGE: 413,
+  /** 415 - Тип тела не принимается (серверный прокси пропускает только JSON, `LEGACY-465`) */
+  UNSUPPORTED_MEDIA_TYPE: 415,
   /** 422 - Unprocessable entity */
   UNPROCESSABLE_ENTITY: 422,
   /** 429 - Rate limit exceeded */

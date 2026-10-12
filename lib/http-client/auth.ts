@@ -44,9 +44,11 @@ export const setSession = (session: Session | null) => {
 /**
  * Get current session and access token
  *
+ * @param maxAgeMs - Сколько держать полученную сессию без перезапроса (по умолчанию —
+ *   `SESSION_CACHE_TIME`)
  * @returns User session or null
  */
-export const getCurrentSession = async () => {
+export const getCurrentSession = async (maxAgeMs: number = SESSION_CACHE_TIME) => {
   // Client-side only
   if (typeof window === 'undefined') {
     return null;
@@ -55,7 +57,7 @@ export const getCurrentSession = async () => {
   const now = Date.now();
 
   // Return cached session (including a cached "no session") if still valid
-  if (sessionKnown && now - lastSessionFetchTime < SESSION_CACHE_TIME) {
+  if (sessionKnown && now - lastSessionFetchTime < maxAgeMs) {
     return cachedSession;
   }
 
@@ -78,6 +80,23 @@ export const getCurrentSession = async () => {
     sessionFetchPromise = null;
   }
 };
+
+/**
+ * Окно, в котором только что полученная сессия считается свежей, мс. Несколько запросов страницы
+ * получают 401 почти разом: первый спрашивает `/api/auth/session`, остальные берут его ответ.
+ */
+const FRESH_SESSION_WINDOW_MS = 5 * 1000;
+
+/**
+ * Свежая сессия — для повтора после 401 на маршруте серверного прокси (`LEGACY-465`).
+ *
+ * Прокси токен не продлевает и кук не пишет (решение арбитра 12.10.2026): продление идёт только
+ * через `/api/auth/session`, его и зовёт `getSession()`. Кэш здесь — окно свежести в 5 с вместо
+ * минуты: идущий уже запрос сессии не дублируется, а ответ, полученный только что, раздаётся
+ * остальным запросам страницы без нового запроса.
+ */
+export const refreshCurrentSession = (): Promise<Session | null> =>
+  getCurrentSession(FRESH_SESSION_WINDOW_MS);
 
 /**
  * Текст ошибки авторизованного клиента, вызванного с сервера.

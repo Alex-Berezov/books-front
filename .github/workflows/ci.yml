@@ -370,8 +370,18 @@ jobs:
       # семейство. `next.config.js` перечитывается при `next start` и берёт из окружения
       # `NEXT_PUBLIC_MEDIA_CDN_URL` для `images.remotePatterns` — такая переменная здесь
       # работала бы. Сегодня она не нужна: тот же хост стоит в конфиге статической записью.
+      #
+      # 🔴 Секрет Auth.js и доверие к хосту — рантайм `next start`, а не сборка: без них вход
+      # в e2e падает (`MissingSecret`, `UntrustedHost`), и путь «вход → запрос через серверный
+      # прокси `/api/backend` → 401 и повтор» (`e2e/backend-proxy.spec.ts`, `LEGACY-465`, решение
+      # арбитра 12.10.2026) не проверяется вовсе. Секрет случайный на прогон, как JWT-секреты
+      # бэкенда выше: не секрет проекта, в лог не выводится.
       - name: E2E (chromium, against the app built above)
-        run: yarn e2e --project=chromium
+        run: |
+          NEXTAUTH_SECRET="$(openssl rand -hex 32)"
+          export NEXTAUTH_SECRET
+          export AUTH_TRUST_HOST=true
+          yarn e2e --project=chromium
 
       # 🔴 SEO-аудит на пути PR (`Q1`, `LEGACY-016`). До 08.09.2026 `scripts/seo-audit.mjs`
       # гонялся только после деплоя и по ночному расписанию против живого домена: контракт

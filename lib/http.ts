@@ -14,6 +14,11 @@ import { ApiError } from '@/types/api';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { HttpRequestOptions } from '@/types/api';
 import {
+  BACKEND_PROXY_HEADER,
+  BACKEND_PROXY_HEADER_VALUE,
+  BACKEND_PROXY_PREFIX,
+} from './backend-proxy.constants';
+import {
   HTTP_METHOD,
   HTTP_HEADER,
   HEADER_VALUE,
@@ -90,8 +95,10 @@ const createHeaders = (options?: HttpRequestOptions, isFormData = false): Header
     headers[HTTP_HEADER.CONTENT_TYPE] = HEADER_VALUE.JSON;
   }
 
-  // Add Authorization header if token exists
-  if (options?.accessToken) {
+  // Через прокси токен не уходит из браузера вовсе: его добавляет сервер (`LEGACY-465`).
+  if (options?.viaBackendProxy) {
+    headers[BACKEND_PROXY_HEADER] = BACKEND_PROXY_HEADER_VALUE;
+  } else if (options?.accessToken) {
     headers[HTTP_HEADER.AUTHORIZATION] = `${AUTH_PREFIX.BEARER} ${options.accessToken}`;
   }
 
@@ -108,6 +115,21 @@ const createHeaders = (options?: HttpRequestOptions, isFormData = false): Header
   // `lib/auth/config.ts` → `authorize(credentials, request)` (LEGACY-064).
   return headers;
 };
+
+/**
+ * Тело — загрузка файла (`FormData`): без `Content-Type: application/json` и мимо серверного
+ * прокси (он принимает только JSON, `LEGACY-465`). Одно место на оба решения — сборку заголовков
+ * здесь и выбор маршрута в `lib/http-client/methods.ts`.
+ */
+export const isFormDataBody = (body: unknown): body is FormData =>
+  typeof FormData !== 'undefined' && body instanceof FormData;
+
+/**
+ * Адрес запроса: прямо в API или в серверный прокси своего домена (`LEGACY-465`).
+ * Путь API в обоих случаях один и тот же — прокси отрезает свой префикс и шлёт остаток в API.
+ */
+const requestUrl = (endpoint: string, options?: HttpRequestOptions): string =>
+  options?.viaBackendProxy ? `${BACKEND_PROXY_PREFIX}${endpoint}` : `${API_BASE_URL}${endpoint}`;
 
 /**
  * Заголовки, которые собирает сам слой: вызывающий код их не заменяет.
@@ -133,6 +155,9 @@ const PROTECTED_HEADERS: readonly string[] = [
  * односторонней: запрос без `accessToken` увозил бы чужой токен из options,
  * хотя комментарий обещает обратное. Остальное (тот же `Content-Type`)
  * вызывающий волен задать сам.
+ *
+ * ⚠️ Для запроса через серверный прокси (`viaBackendProxy`, `LEGACY-465`) дополненные заголовки
+ * доходят только до прокси: в API он пересылает белый список (`app/api/backend/[...path]/route.ts`).
  *
  * Слияние идёт через `Headers`, а не спредом: `HttpRequestOptions` наследует
  * `RequestInit`, поэтому `options.headers` — это `HeadersInit`, то есть законно
@@ -270,7 +295,7 @@ const retryDelayMs = (response: Response): number => {
  * ```
  */
 export const httpGet = async <T>(endpoint: string, options?: HttpRequestOptions): Promise<T> => {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = requestUrl(endpoint, options);
   // Опции собираются на каждый вызов заново: Next при промахе кэша удаляет `next`
   // из переданного объекта (`next/dist/server/lib/patch-fetch.js`), и повтор из
   // того же объекта ушёл бы без `revalidate` и `tags`.
@@ -324,8 +349,8 @@ export const httpPost = async <T>(
   body?: unknown,
   options?: HttpRequestOptions
 ): Promise<T> => {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const url = requestUrl(endpoint, options);
+  const isFormData = isFormDataBody(body);
   const headers = createHeaders(options, isFormData);
 
   const response = await fetch(url, {
@@ -360,8 +385,8 @@ export const httpPatch = async <T>(
   body?: unknown,
   options?: HttpRequestOptions
 ): Promise<T> => {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const url = requestUrl(endpoint, options);
+  const isFormData = isFormDataBody(body);
   const headers = createHeaders(options, isFormData);
 
   const response = await fetch(url, {
@@ -389,7 +414,7 @@ export const httpPatch = async <T>(
  * ```
  */
 export const httpDelete = async <T>(endpoint: string, options?: HttpRequestOptions): Promise<T> => {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = requestUrl(endpoint, options);
   const headers = createHeaders(options);
 
   const response = await fetch(url, {
@@ -424,8 +449,8 @@ export const httpPut = async <T>(
   body?: unknown,
   options?: HttpRequestOptions
 ): Promise<T> => {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const url = requestUrl(endpoint, options);
+  const isFormData = isFormDataBody(body);
   const headers = createHeaders(options, isFormData);
 
   const response = await fetch(url, {

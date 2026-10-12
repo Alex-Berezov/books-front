@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { accessTokenExpiresAt, authOptions } from '@/lib/auth/config';
+import { accessTokenExpiresAt, authOptions, resetSharedRefreshes } from '@/lib/auth/config';
 import {
   AUTH_REQUEST_TIMEOUTS,
   AUTH_TOKEN_EXPIRY,
@@ -40,6 +40,9 @@ describe('сессии после T122 (LEGACY-451)', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    // Исход продления раздаётся тому же refresh-токену 10 с (`REFRESH_SHARE_MS`, `LEGACY-465`): тесты здесь
+    // делят токены, а ответ бэкенда у каждого свой.
+    resetSharedRefreshes();
     vi.useFakeTimers();
     vi.setSystemTime(NOW);
     fetchMock = vi.fn();

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { authOptions, refreshAccessToken } from '@/lib/auth/config';
+import { authOptions, refreshAccessToken, resetSharedRefreshes } from '@/lib/auth/config';
 import {
   AuthErrorType,
   REFRESH_RETRY_NEVER,
@@ -33,6 +33,9 @@ describe('конец сессии (LEGACY-466)', () => {
   const fetchMock = vi.fn();
 
   beforeEach(() => {
+    // Исход обновления раздаётся тому же refresh-токену 10 с (`REFRESH_SHARE_MS`, `LEGACY-465`): здесь каждый
+    // тест — свой ответ бэкенда на один и тот же токен.
+    resetSharedRefreshes();
     vi.stubGlobal('fetch', fetchMock);
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });

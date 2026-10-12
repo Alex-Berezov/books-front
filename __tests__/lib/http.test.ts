@@ -285,4 +285,28 @@ describe('HTTP Utils', () => {
       expect(received?.get('Accept-Language')).toBe('pt');
     });
   });
+
+  // LEGACY-465. Запрос через серверный прокси уходит на свой домен и без токена: даже если
+  // в опциях оказался `accessToken`, `Authorization` из браузера не уходит.
+  describe('viaBackendProxy', () => {
+    it('шлёт на прокси, ставит его заголовок и не ставит Authorization', async () => {
+      let received: Headers | undefined;
+      let url = '';
+
+      server.use(
+        http.get('*/api/backend/proxied', ({ request }) => {
+          received = request.headers;
+          url = request.url;
+          return HttpResponse.json({ ok: true });
+        })
+      );
+
+      await httpGet('/proxied', { viaBackendProxy: true, accessToken: 'leak', language: 'es' });
+
+      expect(new URL(url).pathname).toBe('/api/backend/proxied');
+      expect(received?.get('Authorization')).toBeNull();
+      expect(received?.get('X-Bibliaris-Proxy')).toBe('1');
+      expect(received?.get('Accept-Language')).toBe('es');
+    });
+  });
 });
