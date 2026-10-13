@@ -3,6 +3,7 @@ import { TextWithBold } from '@/components/common/TextWithBold/TextWithBold';
 import { PageBackButton } from '@/components/public/navigation';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getLocaleTag } from '@/lib/i18n/lang';
+import { contactGeneral } from '@/lib/site/owner-facts';
 import { getPageMetadata } from '@/lib/utils/seo';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
@@ -12,7 +13,6 @@ type Props = {
   params: Promise<{ lang: string }>;
 };
 
-const SUPPORT_EMAIL = 'support@bibliaris.com';
 const LAST_UPDATED_DATE = '2026-06-11';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -64,7 +64,7 @@ export default async function DeletionPage({ params }: Props) {
           <TextWithBold text={dict.deletion.step3} bold={dict.deletion.step3Action} />
         </li>
         <li className={styles.step}>
-          <TextWithBold text={dict.deletion.step4} bold={SUPPORT_EMAIL} />
+          <TextWithBold text={dict.deletion.step4} bold={contactGeneral} />
         </li>
       </ol>
 

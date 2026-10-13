@@ -58,8 +58,17 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './'),
-    },
+    alias: [
+      { find: '@', replacement: path.resolve(__dirname, './') },
+      // `server-only` не пакет проекта: при сборке его подставляет сам Next (там он бросает ошибку
+      // на клиентском импорте), а vitest такой модуль не находит. Заглушка действует только в тестах.
+      {
+        find: /^server-only$/,
+        replacement: path.resolve(
+          __dirname,
+          'node_modules/next/dist/compiled/server-only/empty.js'
+        ),
+      },
+    ],
   },
 });

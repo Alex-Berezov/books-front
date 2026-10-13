@@ -75,6 +75,13 @@
   margin-bottom: $spacing-sm + $spacing-xs; // 12px
 }
 
+// Адрес почты в тексте: был жирным (`TextWithBold`), стал ссылкой `mailto:` (F01-1) - жирный
+// остаётся, подчёркивание показывает, что на него можно нажать (общий `a` в globals.css его снимает).
+.mailto {
+  font-weight: $font-weight-bold;
+  text-decoration: underline;
+}
+
 .list {
   margin-bottom: $spacing-sm + $spacing-xs; // 12px
   padding-left: $spacing-md + $spacing-xs; // 20px

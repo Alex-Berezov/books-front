@@ -512,60 +512,6 @@
     "description": "No tienes permiso para acceder a esta página.",
     "adminOnly": "Solo los administradores y los gestores de contenido pueden acceder al panel de administración."
   },
-  "privacy": {
-    "metaTitle": "Política de Privacidad - Bibliaris",
-    "metaDescription": "Lee nuestra política de privacidad para saber cómo recopilamos, usamos y protegemos tus datos.",
-    "title": "Política de Privacidad",
-    "s1": {
-      "title": "1. Información que Recopilamos",
-      "body": "Cuando utilizas nuestro servicio, podemos recopilar información personal como tu nombre, tu dirección de correo electrónico y tu foto de perfil, principalmente cuando te registras o inicias sesión mediante servicios de terceros como Google o Facebook."
-    },
-    "s2": {
-      "title": "2. Cómo Usamos tu Información",
-      "lead": "Usamos la información que recopilamos para:",
-      "item1": "Proporcionar, mantener y mejorar nuestros servicios;",
-      "item2": "Personalizar tu experiencia de lectura y tu estantería;",
-      "item3": "Autenticar tu identidad mediante correo electrónico/contraseña o proveedores OAuth;",
-      "item4": "Comunicarnos contigo sobre actualizaciones, alertas de seguridad y avisos relacionados con tu cuenta."
-    },
-    "s3": {
-      "title": "3. Compartición de Datos",
-      "body": "No vendemos tus datos personales. Solo compartimos datos con proveedores de autenticación de terceros (Google, Facebook) para facilitar flujos de inicio de sesión seguros."
-    },
-    "s4": {
-      "title": "4. Eliminación y Conservación de Datos",
-      "body": "Conservamos tus datos mientras tu cuenta esté activa. Puedes solicitar la eliminación de tu cuenta y de todos los datos personales asociados en cualquier momento escribiéndonos a {b}, o siguiendo las Instrucciones de Eliminación de Datos."
-    },
-    "s5": {
-      "title": "5. Contáctanos",
-      "body": "Si tienes alguna pregunta sobre esta Política de Privacidad, contáctanos en {b}."
-    }
-  },
-  "terms": {
-    "metaTitle": "Términos de Servicio - Bibliaris",
-    "metaDescription": "Lee nuestros términos de servicio para conocer las normas y directrices de uso de nuestra biblioteca digital.",
-    "title": "Términos de Servicio",
-    "s1": {
-      "title": "1. Aceptación de los Términos",
-      "body": "Al acceder o utilizar Bibliaris, aceptas quedar vinculado por estos Términos de Servicio. Si no aceptas todos los términos, no podrás acceder ni utilizar nuestra plataforma."
-    },
-    "s2": {
-      "title": "2. Cuentas y Registro",
-      "body": "Para utilizar determinadas funciones, debes registrar una cuenta. Aceptas proporcionar información veraz y mantener seguras tus credenciales. Eres responsable de toda la actividad en tu cuenta."
-    },
-    "s3": {
-      "title": "3. Uso del Contenido",
-      "body": "Todos los libros, audiolibros, metadatos, imágenes y demás materiales de Bibliaris son propiedad intelectual de Bibliaris o de sus licenciantes. Puedes acceder a este contenido estrictamente para uso personal y no comercial."
-    },
-    "s4": {
-      "title": "4. Terminación",
-      "body": "Nos reservamos el derecho de suspender o cancelar tu cuenta o tu acceso a la plataforma a nuestra entera discreción, sin previo aviso, por conductas que consideremos que infringen estos Términos o que resultan perjudiciales para otros usuarios o para nuestros intereses comerciales."
-    },
-    "s5": {
-      "title": "5. Contáctanos",
-      "body": "Para cualquier pregunta relativa a estos Términos, ponte en contacto con nosotros en {b}."
-    }
-  },
   "deletion": {
     "metaTitle": "Instrucciones de Eliminación de Datos - Bibliaris",
     "metaDescription": "Instrucciones sobre cómo solicitar la eliminación de tu cuenta y de los datos personales asociados a Bibliaris.",
