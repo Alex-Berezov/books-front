@@ -1,4 +1,5 @@
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
+import { ConsentProvider } from '@/lib/consent/ConsentProvider';
 import { AppProviders } from '@/providers/AppProviders';
 import '@/styles/globals.css';
 import '@/styles/snackbar.scss';
@@ -17,8 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://media.bibliaris.com" crossOrigin="anonymous" />
       </head>
       <body>
-        <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
-        <AppProviders>{children}</AppProviders>
+        <ConsentProvider>
+          <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+          <AppProviders>{children}</AppProviders>
+        </ConsentProvider>
       </body>
     </html>
   );

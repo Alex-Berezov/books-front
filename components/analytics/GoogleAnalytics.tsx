@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Script from 'next/script';
+import { useConsent } from '@/lib/consent/ConsentProvider';
 
 type Props = {
   measurementId?: string;
@@ -9,8 +10,9 @@ type Props = {
 
 export function GoogleAnalytics({ measurementId }: Props) {
   const pathname = usePathname();
+  const { analyticsAllowed } = useConsent();
 
-  if (!measurementId || pathname?.startsWith('/admin')) return null;
+  if (!measurementId || !analyticsAllowed || pathname?.startsWith('/admin')) return null;
 
   return (
     <>

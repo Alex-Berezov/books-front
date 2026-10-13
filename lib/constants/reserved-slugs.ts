@@ -31,6 +31,7 @@
  */
 export const RESERVED_SLUGS = [
   '403',
+  'about',
   'audiobooks',
   'auth',
   'author',
@@ -42,7 +43,10 @@ export const RESERVED_SLUGS = [
   'category',
   'collection',
   'collections',
+  'contact',
+  'cookies',
   'deletion',
+  'editorial-policy',
   'genre',
   'genres',
   'listen',
