@@ -82,6 +82,21 @@ export const document: LegalDocument = {
       ],
     },
     {
+      id: 'translations',
+      heading: 'Traducciones',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Si se conoce al traductor de un libro, se indica en la página del libro.',
+            },
+          ],
+        },
+      ],
+    },
+    {
       id: 'corrections',
       heading: 'Correcciones',
       blocks: [
@@ -93,7 +108,10 @@ export const document: LegalDocument = {
               text: 'Si notas un error en un texto, un resumen o una descripción, avísanos en la página de ',
             },
             { kind: 'link', text: 'Contacto', href: '/contact' },
-            { kind: 'text', text: '. El error se corrige.' },
+            {
+              kind: 'text',
+              text: '. El error se corrige; si estaba en un resumen, cambia la fecha «Actualizado» de ese resumen.',
+            },
           ],
         },
       ],

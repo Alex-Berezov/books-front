@@ -80,6 +80,21 @@ export const document: LegalDocument = {
       ],
     },
     {
+      id: 'translations',
+      heading: 'Переводы',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Если переводчик книги известен, он указывается на странице книги.',
+            },
+          ],
+        },
+      ],
+    },
+    {
       id: 'corrections',
       heading: 'Исправления',
       blocks: [
@@ -91,7 +106,10 @@ export const document: LegalDocument = {
               text: 'Если вы заметили ошибку в тексте, пересказе или описании, сообщите нам на странице ',
             },
             { kind: 'link', text: 'Контакты', href: '/contact' },
-            { kind: 'text', text: '. Ошибка исправляется.' },
+            {
+              kind: 'text',
+              text: '. Ошибка исправляется; если она была в пересказе, у него меняется дата «Обновлено».',
+            },
           ],
         },
       ],

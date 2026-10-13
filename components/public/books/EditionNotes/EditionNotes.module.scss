@@ -1,0 +1,33 @@
+@import '@/styles/tokens.scss';
+
+.notes {
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $color-border-light;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+  margin-bottom: $spacing-md;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.row {
+  font-size: $font-size-base;
+  color: var(--public-foreground);
+}
+
+.link {
+  color: inherit;
+  text-decoration: underline;
+}

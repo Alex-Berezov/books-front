@@ -49,6 +49,12 @@ export interface VersionPreview {
   symbols?: { title: string; description: string }[] | null;
   coverAlt?: string | null;
   originalTitle?: string | null;
+  /**
+   * Переводчики текста книги (роль `TRANSLATOR`), не больше 10, по порядку показа, без повторов.
+   * Имя на языке запроса (`:lang`), без перевода имени - `canonicalName`. Пустой массив, когда их нет; поле необязательное,
+   * пока старый бэкенд его не отдаёт (выкат бэкенда идёт раньше фронта, но порядок не гарантия).
+   */
+  translators?: { name: string }[];
 }
 
 /**
@@ -341,6 +347,8 @@ export interface BookSummaryDetail {
   analysis?: string | null;
   /** Major themes */
   themes?: string | null;
+  /** Дата последнего изменения пересказа: подпись «Обновлено» и `dateModified` в разметке. */
+  updatedAt: ISODate;
 }
 
 /**

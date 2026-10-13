@@ -2,6 +2,7 @@ import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { LegalPage } from '@/components/public/legal/LegalPage';
 import { getLegalDocument } from '@/content/legal';
+import { getDictionary } from '@/lib/i18n/dictionaries';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import { contactGeneral } from '@/lib/site/owner-facts';
 import type { LegalDocument, LegalInline } from '@/content/legal/types';
@@ -40,14 +41,52 @@ describe('страницы доверия: состав', () => {
     expect(ids('contact')).toEqual(['general', 'corrections', 'rights', 'privacy']);
   });
 
-  it('редакционная политика: якоря без #translations и #independence', () => {
+  it('редакционная политика: якоря с #translations, без #independence', () => {
     expect(ids('editorial-policy')).toEqual([
       'who',
       'sources',
       'preparation',
       'summaries',
+      'translations',
       'corrections',
     ]);
+  });
+
+  it.each(SUPPORTED_LANGS)(
+    '%s: в #corrections сказано про дату «Обновлено» у пересказа, подпись совпадает со словарём',
+    (lang) => {
+      const doc = getLegalDocument('editorial-policy', lang);
+      const corrections = doc.sections.find((section) => section.id === 'corrections');
+      // Подпись в тексте политики - слово в кавычках; в словаре оно начинает строку «Обновлено {date}».
+      // Кавычек в разделе может быть несколько: подпись должна совпасть хотя бы с одной цитатой.
+      const quotes = Array.from(
+        JSON.stringify(corrections).matchAll(/[«“]\s?([^»”]+?)\s?[»”]/g),
+        (match) => match[1]
+      );
+      const label = getDictionary(lang).book.updatedOn;
+      expect(label).toContain('{date}');
+      // Цитата - подпись целиком (не меньше слова): за ней в словаре пробел или конец подписи.
+      expect(
+        quotes.some((quote) => quote.length >= 4 && new RegExp(`^${quote}( |$)`).test(label))
+      ).toBe(true);
+    }
+  );
+
+  it.each(SUPPORTED_LANGS)('%s: в #translations сказано, где указывается переводчик', (lang) => {
+    const section = getLegalDocument('editorial-policy', lang).sections.find(
+      (item) => item.id === 'translations'
+    );
+    const text = parts({ ...getLegalDocument('editorial-policy', lang), sections: [section!] })
+      .map((part) => part.text)
+      .join('');
+    expect(section?.heading.trim()).toBeTruthy();
+    expect(text.trim().length).toBeGreaterThan(30);
+    if (lang !== 'en') {
+      const en = getLegalDocument('editorial-policy', 'en').sections.find(
+        (item) => item.id === 'translations'
+      );
+      expect(section?.heading).not.toBe(en?.heading);
+    }
   });
 
   it.each(SUPPORTED_LANGS)('%s: ссылки между страницами ведут на существующие якоря', (lang) => {

@@ -6,9 +6,13 @@ import { useBookOverview } from '@/api/hooks/usePublic';
 import { Button } from '@/components/common/Button';
 import { RichTextContent } from '@/components/common/RichTextContent';
 import { Skeleton, SkeletonBlock } from '@/components/common/Skeleton';
+import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { useSmartBack } from '@/components/public/navigation';
+import { getLocaleTag } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { buildSummaryArticleJsonLd } from '@/lib/seo/summary-jsonld';
 import { isNotFoundError } from '@/lib/utils/content-failure';
+import { serializeJsonLd } from '@/lib/utils/json-ld';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './summary.module.scss';
@@ -91,8 +95,41 @@ export default function SummaryClient({ params, initialBook }: Props) {
     );
   }
 
+  const heading = `${book.title} — ${t('book.summaryHeading')}`;
+  const updatedDate = new Date(summaryData.updatedAt);
+  const hasUpdatedDate = !Number.isNaN(updatedDate.getTime());
+  const updatedText = hasUpdatedDate
+    ? t('book.updatedOn', {
+        date: new Intl.DateTimeFormat(getLocaleTag(supportedLang), {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          timeZone: 'UTC',
+        }).format(updatedDate),
+      })
+    : undefined;
+  // Разметка - только при известной дате изменения. Собрана до разметки страницы: при снятии
+  // `noindex` она переезжает в серверный `page.tsx` (решение арбитра `F01 | F01-5`).
+  const articleJsonLd = hasUpdatedDate
+    ? buildSummaryArticleJsonLd({
+        lang: supportedLang,
+        bookSlug,
+        versionId,
+        bookTitle: book.title,
+        headline: heading,
+        editorialTeam: t('book.editorialTeam'),
+        updatedAt: summaryData.updatedAt,
+      })
+    : null;
+
   return (
     <div className={styles.summaryPage}>
+      {articleJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(articleJsonLd) }}
+        />
+      )}
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
@@ -113,9 +150,13 @@ export default function SummaryClient({ params, initialBook }: Props) {
       {/* Main Content */}
       <div className={styles.mainContent}>
         <article className={styles.card}>
-          <h1 className={styles.title}>
-            {book.title} — {t('book.summaryHeading')}
-          </h1>
+          <h1 className={styles.title}>{heading}</h1>
+
+          <EditorialByline
+            lang={supportedLang}
+            teamLabel={t('book.editorialTeam')}
+            dateText={updatedText}
+          />
 
           {summaryData.summary && (
             <section className={styles.section}>

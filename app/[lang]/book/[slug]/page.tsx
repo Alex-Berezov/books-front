@@ -4,6 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { permanentRedirect, notFound } from 'next/navigation';
 import { RichTextContent } from '@/components/common/RichTextContent';
+import { EditionNotes } from '@/components/public/books/EditionNotes';
+import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { StarRating } from '@/components/public/books/StarRating';
 import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
 import { getDictionary } from '@/lib/i18n/dictionaries';
@@ -353,14 +355,6 @@ export default async function BookDetailPage({ params }: Props) {
                   </span>
                 </div>
               )}
-              {book.firstPublishedYear ? (
-                <div className={styles.metaItem}>
-                  <Calendar size={16} aria-hidden="true" />
-                  <span>
-                    {dict.book.firstPublished} {book.firstPublishedYear}
-                  </span>
-                </div>
-              ) : null}
               {book.editionPublishedYear ? (
                 <div className={styles.metaItem}>
                   <Calendar size={16} aria-hidden="true" />
@@ -374,22 +368,6 @@ export default async function BookDetailPage({ params }: Props) {
                   <Globe size={16} aria-hidden="true" />
                   <span>
                     {dict.book.language} {(book.language || '').toUpperCase()}
-                  </span>
-                </div>
-              )}
-              {activeVersion?.originalTitle && (
-                <div className={styles.metaItem}>
-                  <FileText size={16} aria-hidden="true" />
-                  <span>
-                    {dict.book.originalTitle}: {activeVersion.originalTitle}
-                  </span>
-                </div>
-              )}
-              {activeVersion?.originalLanguage && (
-                <div className={styles.metaItem}>
-                  <Globe size={16} aria-hidden="true" />
-                  <span>
-                    {dict.book.originalLanguage}: {activeVersion.originalLanguage}
                   </span>
                 </div>
               )}
@@ -430,7 +408,24 @@ export default async function BookDetailPage({ params }: Props) {
               <p className={styles.description}>{dict.book.noDescription}</p>
             )}
           </DescriptionWrapper>
+          {/* Подпись относится к описанию: нет описания - нет и подписи (`product.md` §1). */}
+          {book.description ? (
+            <EditorialByline
+              lang={supportedLang}
+              prefix={dict.book.editorialDescriptionBy}
+              teamLabel={dict.book.editorialTeamBy}
+            />
+          ) : null}
         </div>
+
+        {activeVersion && (
+          <EditionNotes
+            lang={supportedLang}
+            version={activeVersion}
+            firstPublishedYear={book.firstPublishedYear}
+            shownTitle={activeVersion.title || book.title}
+          />
+        )}
 
         {activeVersion && <BookExtraDetails activeVersion={activeVersion} />}
 

@@ -669,6 +669,8 @@
       "versions[].symbols[].title",
       "versions[].themes",
       "versions[].title",
+      "versions[].translators",
+      "versions[].translators[].name",
       "versions[].type",
       "versions[].updatedAt"
     ]
