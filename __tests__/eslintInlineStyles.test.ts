@@ -56,7 +56,6 @@ const DEBT_AT_INTRODUCTION = [
   'components/admin/media/UploadProgress.tsx',
   'components/admin/shared/Skeleton/Skeleton.tsx',
   'components/admin/tags/TagTranslationsModal/TranslationForm.tsx',
-  'components/public/layout/Footer.tsx',
   'components/public/layout/Header.tsx',
 ];
 

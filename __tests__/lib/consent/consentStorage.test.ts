@@ -5,6 +5,7 @@ import {
   readCachedRegion,
   readConsentChoice,
   writeCachedRegion,
+  writeConsentChoice,
 } from '@/lib/consent/consent-storage';
 import { CONSENT_POLICY_VERSION } from '@/lib/consent/consent-version';
 
@@ -89,5 +90,29 @@ describe('регион на вкладку', () => {
       throw new Error('quota');
     });
     expect(() => writeCachedRegion('required')).not.toThrow();
+  });
+});
+
+describe('writeConsentChoice', () => {
+  beforeEach(() => window.localStorage.clear());
+  afterEach(() => vi.restoreAllMocks());
+
+  it('пишет выбор с текущей версией и временем, и он читается обратно', () => {
+    const written = writeConsentChoice(true, NOW - DAY);
+    expect(written).toEqual({
+      analytics: true,
+      decidedAt: new Date(NOW - DAY).toISOString(),
+      version: CONSENT_POLICY_VERSION,
+    });
+    expect(readConsentChoice(NOW)).toEqual(written);
+    writeConsentChoice(false, NOW);
+    expect(readConsentChoice(NOW)?.analytics).toBe(false);
+  });
+
+  it('недоступное хранилище не роняет выбор: он возвращается на эту загрузку', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota');
+    });
+    expect(writeConsentChoice(false, NOW).analytics).toBe(false);
   });
 });

@@ -1,0 +1,69 @@
+@import '@/styles/tokens.scss';
+@import '@/styles/mixins.scss';
+
+// Нижняя полоса во всю ширину; на узком экране - нижний лист. `sticky`, а не `fixed`: плашка
+// стоит последней в `<body>` и держит под собой своё место, поэтому низ подвала не уходит под неё.
+// Подложки нет - страница остаётся доступной для прокрутки и кликов (`product.md` §7.2).
+.banner {
+  position: sticky;
+  bottom: 0;
+  z-index: $z-index-popover;
+  border-top: 1px solid $color-border-base;
+  background: var(--public-background, #{$color-public-background});
+  box-shadow: $shadow-lg;
+  color: var(--public-foreground, #{$color-public-foreground});
+
+  @include mobile {
+    border-radius: $border-radius-lg $border-radius-lg 0 0;
+  }
+
+  // Читалка и плеер (`data-immersive`) режут прокрутку `body`: место в конце документа там
+  // за экраном, поэтому плашка встаёт поверх, как прежде.
+  :global(body[data-immersive='true']) & {
+    position: fixed;
+    right: 0;
+    left: 0;
+  }
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  max-width: $layout-max-width-xl;
+  margin: 0 auto;
+  padding: $spacing-md;
+
+  @include mobile {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.text {
+  flex: 1;
+  font-size: $font-size-sm;
+  line-height: $line-height-base;
+}
+
+.paragraph {
+  margin: 0;
+}
+
+.current {
+  margin: $spacing-xs 0 0;
+  font-weight: $font-weight-semibold;
+}
+
+.link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+// Две колонки одной ширины: «Принять» и «Отклонить» равны по виду и размеру (`product.md` §7.2).
+.actions {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-sm;
+}

@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Script from 'next/script';
 import { useConsent } from '@/lib/consent/ConsentProvider';
+import { isAnalyticsExcludedPath } from '@/lib/consent/ga-cookies';
 
 type Props = {
   measurementId?: string;
@@ -12,7 +13,7 @@ export function GoogleAnalytics({ measurementId }: Props) {
   const pathname = usePathname();
   const { analyticsAllowed } = useConsent();
 
-  if (!measurementId || !analyticsAllowed || pathname?.startsWith('/admin')) return null;
+  if (!measurementId || !analyticsAllowed || isAnalyticsExcludedPath(pathname)) return null;
 
   return (
     <>

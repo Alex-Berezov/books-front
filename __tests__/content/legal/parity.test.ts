@@ -4,13 +4,25 @@ import { getLegalDocument } from '@/content/legal';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { LegalBlock, LegalDocument, LegalInline, LegalPageId } from '@/content/legal/types';
 
-const PAGES: LegalPageId[] = ['privacy', 'terms'];
+const PAGES: LegalPageId[] = ['privacy', 'terms', 'cookies'];
 const MIN_UNTRANSLATED_LENGTH = 40;
 
 const inlineTexts = (inline: LegalInline[]): string[] => inline.map((part) => part.text);
 
-const blockTexts = (block: LegalBlock): string[] =>
-  block.kind === 'list' ? block.items.flatMap(inlineTexts) : inlineTexts(block.content);
+const blockTexts = (block: LegalBlock): string[] => {
+  if (block.kind === 'widget') return [];
+  return block.kind === 'list' ? block.items.flatMap(inlineTexts) : inlineTexts(block.content);
+};
+
+/** Вид части и её цель: ссылки и адреса обязаны совпадать во всех языках. */
+const inlineShape = (part: LegalInline) =>
+  part.kind === 'link'
+    ? `link:${part.href}`
+    : part.kind === 'external'
+      ? `external:${part.href}`
+      : part.kind === 'mailto'
+        ? `mailto:${part.email}`
+        : part.kind;
 
 const shape = (doc: LegalDocument) =>
   doc.sections.map((section) => ({
@@ -18,9 +30,11 @@ const shape = (doc: LegalDocument) =>
     blocks: section.blocks.map((block) => ({
       kind: block.kind,
       parts:
-        block.kind === 'list'
-          ? block.items.map((item) => item.map((part) => part.kind))
-          : block.content.map((part) => part.kind),
+        block.kind === 'widget'
+          ? block.widget
+          : block.kind === 'list'
+            ? block.items.map((item) => item.map(inlineShape))
+            : block.content.map(inlineShape),
     })),
   }));
 

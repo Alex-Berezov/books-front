@@ -23,6 +23,7 @@ export default function robots(): MetadataRoute.Robots {
         '/*/author/*',
         '/*/privacy',
         '/*/terms',
+        '/*/cookies',
         '/*/deletion',
       ],
       disallow: [

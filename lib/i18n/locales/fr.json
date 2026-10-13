@@ -13,7 +13,8 @@
     "bookCountOne": "livre",
     "bookCountFew": "livres",
     "bookCountMany": "livres",
-    "anonymousUser": "Utilisateur"
+    "anonymousUser": "Utilisateur",
+    "tableOfContents": "Sommaire"
   },
   "header": {
     "popular": "Populaire",
@@ -50,7 +51,10 @@
     "browseCollections": "Parcourir les Collections",
     "browseTags": "Parcourir les Étiquettes",
     "browseAuthors": "Tous les auteurs",
-    "browseCatalog": "Catalogue"
+    "browseCatalog": "Catalogue",
+    "groupLegal": "Informations légales",
+    "cookiePolicy": "Politique relative aux cookies",
+    "cookieSettings": "Paramètres des cookies"
   },
   "home": {
     "title": "Votre bibliothèque numérique, sélectionnée pour vous",
@@ -526,5 +530,56 @@
     "step4": "Vous pouvez également envoyer un e-mail directement à {b} avec votre demande. Nous traiterons votre demande et supprimerons de notre base de données toutes les données de votre profil utilisateur (e-mail, nom, avatar et entrées personnalisées de la bibliothèque) dans un délai de 24 heures.",
     "confirmationTitle": "Confirmation de la suppression",
     "confirmationBody": "Dès réception et traitement de votre demande, nous enverrons un e-mail de confirmation à l'adresse associée à votre profil confirmant que toutes les informations personnelles ont été définitivement supprimées de nos bases de données actives."
+  },
+  "consent": {
+    "text": "Nous utilisons des cookies indispensables au fonctionnement du site et, avec votre consentement, des cookies Google Analytics pour savoir quels livres sont lus.",
+    "policyLink": "Politique relative aux cookies",
+    "accept": "Accepter",
+    "reject": "Refuser",
+    "ariaLabel": "Consentement aux cookies",
+    "choiceOn": "La mesure d’audience est activée",
+    "choiceOff": "La mesure d’audience est désactivée",
+    "turnOn": "Activer la mesure d’audience",
+    "turnOff": "Désactiver la mesure d’audience",
+    "gpcActive": "Votre navigateur envoie le signal Global Privacy Control : la mesure d’audience est donc désactivée."
+  },
+  "cookies": {
+    "table": {
+      "name": "Nom",
+      "provider": "Déposé par",
+      "purpose": "Finalité",
+      "duration": "Durée",
+      "category": "Type"
+    },
+    "provider": {
+      "bibliaris": "Bibliaris",
+      "google": "Google"
+    },
+    "category": {
+      "necessary": "Indispensable",
+      "analytics": "Mesure d’audience"
+    },
+    "inventory": {
+      "session": "Vous garde connecté",
+      "csrf": "Protège le formulaire de connexion contre les requêtes falsifiées",
+      "callbackUrl": "Vous ramène à la page où vous étiez après la connexion",
+      "signIn": "Sécurise la connexion avec Google",
+      "loginMarker": "Retient que vous êtes connecté pour que les pages affichent votre compte",
+      "consentChoice": "Retient votre choix concernant les cookies de mesure d’audience",
+      "consentRegion": "Retient si le bandeau cookies est nécessaire là où vous êtes",
+      "readingProgress": "Enregistre votre progression de lecture sur cet appareil",
+      "navigation": "Permet au bouton « Retour » de vous ramener à la page précédente du site",
+      "analytics": "Google Analytics : distingue les navigateurs par un identifiant aléatoire pour compter les pages vues"
+    },
+    "duration": {
+      "sevenDays": "7 jours",
+      "session": "Jusqu’à la fermeture du navigateur",
+      "minutes": "15 minutes",
+      "year": "1 an",
+      "consentChoice": "1 an après « Accepter » ; après « Refuser », jusqu’à ce que vous changiez votre choix",
+      "tab": "Jusqu’à la fermeture de l’onglet",
+      "untilCleared": "Jusqu’à ce que vous effaciez les données du navigateur",
+      "twoYears": "2 ans"
+    }
   }
 }

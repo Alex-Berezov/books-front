@@ -3,6 +3,7 @@
 import { BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { CookieSettingsButton } from '@/components/public/legal/CookieSettingsButton';
 import { getLangFromPath } from '@/lib/i18n/lang';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import styles from './Footer.module.scss';
@@ -29,7 +30,7 @@ export function Footer({ hasAudiobooks = true }: FooterProps) {
             <p className={styles.description}>{t('footer.description')}</p>
           </div>
 
-          <nav aria-label={t('footer.explore')} style={{ display: 'contents' }}>
+          <nav aria-label={t('footer.explore')} className={styles.navContents}>
             <div>
               <h3 className={styles.sectionTitle}>{t('footer.explore')}</h3>
               <ul className={styles.linksList}>
@@ -104,20 +105,39 @@ export function Footer({ hasAudiobooks = true }: FooterProps) {
               </ul>
             </div>
           </nav>
+
+          <nav aria-label={t('footer.groupLegal')}>
+            <h3 className={styles.sectionTitle}>{t('footer.groupLegal')}</h3>
+            <ul className={styles.linksList}>
+              <li>
+                <Link href={`/${lang}/privacy`} className={styles.link}>
+                  {t('footer.privacyPolicy')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${lang}/terms`} className={styles.link}>
+                  {t('footer.termsOfService')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${lang}/cookies`} className={styles.link}>
+                  {t('footer.cookiePolicy')}
+                </Link>
+              </li>
+              {/* Пустой `li` не выводится: кнопка решает о себе сама, после монтирования. */}
+              <CookieSettingsButton
+                label={t('footer.cookieSettings')}
+                className={styles.linkButton}
+                wrapper="li"
+              />
+            </ul>
+          </nav>
         </div>
 
         <div className={styles.bottomRow}>
           <p className={styles.copyright}>
             &copy; {new Date().getFullYear()} {t('footer.copyright')}
           </p>
-          <div className={styles.legalLinks}>
-            <Link href={`/${lang}/privacy`} className={styles.legalLink}>
-              {t('footer.privacyPolicy')}
-            </Link>
-            <Link href={`/${lang}/terms`} className={styles.legalLink}>
-              {t('footer.termsOfService')}
-            </Link>
-          </div>
         </div>
       </div>
     </footer>

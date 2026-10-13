@@ -45,6 +45,11 @@ describe('читалка, плеер и саммари: открыты крау�
   it('родительская страница книги из allow не выпала', () => {
     expect(allow).toContain('/*/book/*');
   });
+
+  it('политика cookie открыта и не закрыта запретом (F01-3)', () => {
+    expect(allow).toContain('/*/cookies');
+    expect(disallow.filter((pattern) => matchesGlob(pattern, '/en/cookies'))).toEqual([]);
+  });
 });
 
 /**

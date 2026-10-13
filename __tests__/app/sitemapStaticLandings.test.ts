@@ -56,4 +56,14 @@ describe('sitemap-static.xml: лендинги со счётчиком', () => {
     expect(xml).toContain('<loc>https://bibliaris.com/fr/new-releases</loc>');
     expect(xml).toContain('<loc>https://bibliaris.com/fr/popular-books</loc>');
   });
+
+  it('политика cookie в карте на всех пяти языках (F01-3)', async () => {
+    getBookCards.mockResolvedValue({ items: [], pagination: { total: 4 } });
+
+    const xml = await callGet('sitemap-static.xml');
+
+    for (const lang of ['en', 'es', 'fr', 'pt', 'ru']) {
+      expect(xml).toContain(`<loc>https://bibliaris.com/${lang}/cookies</loc>`);
+    }
+  });
 });

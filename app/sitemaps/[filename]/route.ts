@@ -154,6 +154,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
       { path: '/new-releases', include: (lang) => hasLanding(lang, 'new') },
       { path: '/privacy', include: () => true },
       { path: '/terms', include: () => true },
+      { path: '/cookies', include: () => true },
       { path: '/deletion', include: () => true },
     ];
     staticRoutes.forEach(({ path: route, include }) => {

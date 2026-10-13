@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { COOKIE_INVENTORY } from '@/lib/consent/cookie-inventory';
+import { dictionaries } from '@/lib/i18n/dictionaries';
 
 /**
  * Сторож перечня cookie (`F01-2`, `tech.md` §4.5). Таблица на `/cookies` строится из
@@ -31,7 +32,7 @@ const KNOWN_WRITERS: Record<string, string[]> = {
   ],
   'lib/auth/sessionMarker.ts': ['logged_in'],
   'lib/reading-progress/localProgress.ts': ['bibliaris.reading-progress.v1'],
-  'lib/consent/consent-storage.ts': ['bibliaris.consent-region.v1'],
+  'lib/consent/consent-storage.ts': ['bibliaris.consent.v1', 'bibliaris.consent-region.v1'],
   'lib/consent/ga-cookies.ts': ['_ga', '_ga_<ID>'],
 };
 
@@ -91,6 +92,30 @@ describe('перечень cookie', () => {
       for (const match of text.matchAll(STORAGE_KEY_LITERAL)) {
         if (!NOT_STORAGE_KEYS.has(match[1]) && !inventoryNames.has(match[1]))
           missing.push(`${rel}: ${match[1]}`);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it('у каждой записи есть подписи цели, срока, источника и типа на всех языках (F01-3)', () => {
+    const missing: string[] = [];
+    for (const [lang, dict] of Object.entries(dictionaries)) {
+      const labels: Record<string, Record<string, string>> = {
+        inventory: dict.cookies.inventory,
+        duration: dict.cookies.duration,
+        provider: dict.cookies.provider,
+        category: dict.cookies.category,
+      };
+      for (const entry of COOKIE_INVENTORY) {
+        const keys: [string, string][] = [
+          ['inventory', entry.purposeKey],
+          ['duration', entry.durationKey],
+          ['provider', entry.provider],
+          ['category', entry.category],
+        ];
+        for (const [group, key] of keys) {
+          if (!labels[group][key]?.trim()) missing.push(`${lang}: cookies.${group}.${key}`);
+        }
       }
     }
     expect(missing).toEqual([]);

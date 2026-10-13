@@ -1,0 +1,18 @@
+@import '@/styles/tokens.scss';
+
+.choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-sm + $spacing-xs; // 12px, как у абзаца правовой страницы
+  padding: $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+}
+
+.status {
+  flex: 1;
+  margin: 0;
+  font-weight: $font-weight-semibold;
+}

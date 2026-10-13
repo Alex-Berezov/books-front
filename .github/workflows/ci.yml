@@ -351,6 +351,10 @@ jobs:
           NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
           NEXT_PUBLIC_DEFAULT_LANG: en
           NEXT_PUBLIC_MEDIA_CDN_URL: https://media.bibliaris.com
+          # Тестовый ID GA (F01-3, решение арбитра 13.10.2026): без него `GoogleAnalytics`
+          # не рендерит ничего, и `e2e/consent.spec.ts` не увидел бы загрузку GA до согласия.
+          # Запросы к Google спек перехватывает сам; боевой образ берёт свой ID в `deploy.yml`.
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: G-E2ETEST000
 
       # 🔴 Набор e2e существовал в репозитории с февраля и не запускался нигде
       # (`LEGACY-154`): ни `ci.yml`, ни `deploy.yml` его не звали, поэтому

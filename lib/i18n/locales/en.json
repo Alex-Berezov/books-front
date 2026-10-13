@@ -13,7 +13,8 @@
     "bookCountOne": "book",
     "bookCountFew": "books",
     "bookCountMany": "books",
-    "anonymousUser": "User"
+    "anonymousUser": "User",
+    "tableOfContents": "Contents"
   },
   "header": {
     "popular": "Popular",
@@ -50,7 +51,10 @@
     "myBookshelf": "My Bookshelf",
     "copyright": "Bibliaris. All rights reserved.",
     "privacyPolicy": "Privacy Policy",
-    "termsOfService": "Terms of Service"
+    "termsOfService": "Terms of Service",
+    "groupLegal": "Legal",
+    "cookiePolicy": "Cookie Policy",
+    "cookieSettings": "Cookie Settings"
   },
   "home": {
     "title": "Your Digital Library, Curated for You",
@@ -526,5 +530,56 @@
     "step4": "Alternatively, you can send an email directly to {b} with your request. We will process your request and delete all your user profile data (email, name, avatar, and customized bookshelf entries) from our database within 24 hours.",
     "confirmationTitle": "Confirmation of Deletion",
     "confirmationBody": "Upon receiving and processing your request, we will send a confirmation email to the address associated with your profile confirming that all personal information has been permanently removed from our active databases."
+  },
+  "consent": {
+    "text": "We use essential cookies to make the site work and, with your consent, Google Analytics cookies to understand which books people read.",
+    "policyLink": "Cookie Policy",
+    "accept": "Accept",
+    "reject": "Reject",
+    "ariaLabel": "Cookie consent",
+    "choiceOn": "Analytics is on",
+    "choiceOff": "Analytics is off",
+    "turnOn": "Turn on analytics",
+    "turnOff": "Turn off analytics",
+    "gpcActive": "Your browser sends the Global Privacy Control signal, so analytics is off."
+  },
+  "cookies": {
+    "table": {
+      "name": "Name",
+      "provider": "Set by",
+      "purpose": "Purpose",
+      "duration": "Duration",
+      "category": "Type"
+    },
+    "provider": {
+      "bibliaris": "Bibliaris",
+      "google": "Google"
+    },
+    "category": {
+      "necessary": "Essential",
+      "analytics": "Analytics"
+    },
+    "inventory": {
+      "session": "Keeps you signed in",
+      "csrf": "Protects the sign-in form from forged requests",
+      "callbackUrl": "Returns you to the page you were on after signing in",
+      "signIn": "Protects signing in with Google",
+      "loginMarker": "Remembers that you are signed in, so pages show your account",
+      "consentChoice": "Remembers your choice about analytics cookies",
+      "consentRegion": "Remembers whether the cookie banner is needed where you are",
+      "readingProgress": "Saves your reading progress on this device",
+      "navigation": "Lets the “Back” button return you to the previous page of the site",
+      "analytics": "Google Analytics: tells browsers apart by a random identifier to count page views"
+    },
+    "duration": {
+      "sevenDays": "7 days",
+      "session": "Until you close the browser",
+      "minutes": "15 minutes",
+      "year": "1 year",
+      "consentChoice": "1 year after “Accept”; after “Reject”, until you change your choice",
+      "tab": "Until you close the tab",
+      "untilCleared": "Until you clear your browser data",
+      "twoYears": "2 years"
+    }
   }
 }

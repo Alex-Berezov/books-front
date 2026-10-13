@@ -18,7 +18,12 @@
   gap: $spacing-xl;
 
   @media (min-width: $breakpoint-sm) {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  // Четыре колонки: описание, «Обзор», «Аккаунт», «Правовая информация» (F01-3).
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -26,6 +31,11 @@
   @media (min-width: $breakpoint-sm) {
     grid-column: span 1;
   }
+}
+
+// Обёртка-`nav` не занимает ячейку сетки: её колонки «Обзор» и «Аккаунт» встают в сетку сами.
+.navContents {
+  display: contents;
 }
 
 .logo {
@@ -79,6 +89,21 @@
   }
 }
 
+// «Настройки cookie» - кнопка (открывает плашку), но в списке выглядит как соседние ссылки.
+.linkButton {
+  @extend .link;
+
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
 .bottomRow {
   margin-top: $spacing-xxl;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -97,20 +122,4 @@
 .copyright {
   font-size: $font-size-xs;
   color: rgba(255, 255, 255, 0.4);
-}
-
-.legalLinks {
-  display: flex;
-  gap: $spacing-md;
-}
-
-.legalLink {
-  font-size: $font-size-xs;
-  color: rgba(255, 255, 255, 0.4);
-  transition: color $transition-fast;
-  text-decoration: none;
-
-  &:hover {
-    color: rgba(255, 255, 255, 0.7);
-  }
 }

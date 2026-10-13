@@ -1,0 +1,25 @@
+@import '@/styles/tokens.scss';
+
+.toc {
+  margin-bottom: $spacing-xl;
+  padding: $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+}
+
+.title {
+  margin-bottom: $spacing-sm;
+  font-weight: $font-weight-semibold;
+}
+
+// Заголовки разделов уже несут номер («1. …»): маркер списка его бы задвоил.
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  color: inherit;
+  text-decoration: underline;
+}

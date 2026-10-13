@@ -83,7 +83,9 @@ describe('/llms.txt', () => {
   it('перечисляет каждый хаб, открытый в robots.txt', () => {
     const hubs = robotsLists()
       .allow.map((rule) => /^\/\*\/([a-z-]+)$/.exec(rule)?.[1])
-      .filter((seg): seg is string => !!seg && !['privacy', 'terms', 'deletion'].includes(seg));
+      .filter(
+        (seg): seg is string => !!seg && !['privacy', 'terms', 'cookies', 'deletion'].includes(seg)
+      );
     expect(hubs.length).toBeGreaterThan(0);
     expect(LLMS_HUBS.map((h) => h.path.slice(1))).toEqual(expect.arrayContaining(hubs));
   });

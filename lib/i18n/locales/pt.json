@@ -13,7 +13,8 @@
     "bookCountOne": "livro",
     "bookCountFew": "livros",
     "bookCountMany": "livros",
-    "anonymousUser": "Usuário"
+    "anonymousUser": "Usuário",
+    "tableOfContents": "Índice"
   },
   "header": {
     "popular": "Popular",
@@ -50,7 +51,10 @@
     "browseCollections": "Explorar Coleções",
     "browseTags": "Explorar Etiquetas",
     "browseAuthors": "Todos os autores",
-    "browseCatalog": "Catálogo"
+    "browseCatalog": "Catálogo",
+    "groupLegal": "Informações legais",
+    "cookiePolicy": "Política de Cookies",
+    "cookieSettings": "Configurações de Cookies"
   },
   "home": {
     "title": "Sua biblioteca digital, selecionada para você",
@@ -526,5 +530,56 @@
     "step4": "Como alternativa, você pode enviar um e-mail diretamente para {b} com sua solicitação. Processaremos sua solicitação e excluiremos todos os dados do seu perfil de usuário (e-mail, nome, avatar e itens personalizados da estante) do nosso banco de dados em até 24 horas.",
     "confirmationTitle": "Confirmação da Exclusão",
     "confirmationBody": "Ao receber e processar sua solicitação, enviaremos um e-mail de confirmação para o endereço associado ao seu perfil, confirmando que todas as informações pessoais foram removidas permanentemente dos nossos bancos de dados ativos."
+  },
+  "consent": {
+    "text": "Usamos cookies essenciais para que o site funcione e, com o seu consentimento, cookies do Google Analytics para entender quais livros são lidos.",
+    "policyLink": "Política de Cookies",
+    "accept": "Aceitar",
+    "reject": "Recusar",
+    "ariaLabel": "Consentimento de cookies",
+    "choiceOn": "A análise está ativada",
+    "choiceOff": "A análise está desativada",
+    "turnOn": "Ativar a análise",
+    "turnOff": "Desativar a análise",
+    "gpcActive": "O seu navegador envia o sinal Global Privacy Control, por isso a análise está desativada."
+  },
+  "cookies": {
+    "table": {
+      "name": "Nome",
+      "provider": "Quem define",
+      "purpose": "Finalidade",
+      "duration": "Duração",
+      "category": "Tipo"
+    },
+    "provider": {
+      "bibliaris": "Bibliaris",
+      "google": "Google"
+    },
+    "category": {
+      "necessary": "Essencial",
+      "analytics": "Análise"
+    },
+    "inventory": {
+      "session": "Mantém a sua sessão iniciada",
+      "csrf": "Protege o formulário de login contra solicitações forjadas",
+      "callbackUrl": "Leva você de volta à página em que estava depois do login",
+      "signIn": "Protege o login com o Google",
+      "loginMarker": "Lembra que você está conectado, para que as páginas mostrem a sua conta",
+      "consentChoice": "Lembra a sua escolha sobre os cookies de análise",
+      "consentRegion": "Lembra se o aviso de cookies é necessário onde você está",
+      "readingProgress": "Guarda o seu progresso de leitura neste dispositivo",
+      "navigation": "Permite que o botão “Voltar” leve você à página anterior do site",
+      "analytics": "Google Analytics: distingue navegadores por um identificador aleatório para contar as visualizações"
+    },
+    "duration": {
+      "sevenDays": "7 dias",
+      "session": "Até fechar o navegador",
+      "minutes": "15 minutos",
+      "year": "1 ano",
+      "consentChoice": "1 ano após “Aceitar”; após “Recusar”, até você mudar a sua escolha",
+      "tab": "Até fechar a aba",
+      "untilCleared": "Até você limpar os dados do navegador",
+      "twoYears": "2 anos"
+    }
   }
 }

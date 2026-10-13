@@ -59,3 +59,21 @@ export function writeCachedRegion(region: CachedRegion): void {
     // Хранилище недоступно: на следующей загрузке спросим сервер ещё раз.
   }
 }
+
+/**
+ * Записывает выбор посетителя с текущей версией политики и временем решения. Хранилище
+ * недоступно - выбор живёт до перезагрузки, на следующей плашка (в её регионе) спросит снова.
+ */
+export function writeConsentChoice(analytics: boolean, now: number = Date.now()): StoredConsent {
+  const choice: StoredConsent = {
+    analytics,
+    decidedAt: new Date(now).toISOString(),
+    version: CONSENT_POLICY_VERSION,
+  };
+  try {
+    window.localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(choice));
+  } catch {
+    // Приватный режим или запрет хранилища: выбор действует на эту загрузку.
+  }
+  return choice;
+}

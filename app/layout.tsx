@@ -1,5 +1,6 @@
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { ConsentProvider } from '@/lib/consent/ConsentProvider';
+import { GA_MEASUREMENT_ID } from '@/lib/consent/ga-cookies';
 import { AppProviders } from '@/providers/AppProviders';
 import '@/styles/globals.css';
 import '@/styles/snackbar.scss';
@@ -19,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <ConsentProvider>
-          <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+          <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
           <AppProviders>{children}</AppProviders>
         </ConsentProvider>
       </body>

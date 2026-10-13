@@ -13,7 +13,8 @@
     "bookCountOne": "libro",
     "bookCountFew": "libros",
     "bookCountMany": "libros",
-    "anonymousUser": "Usuario"
+    "anonymousUser": "Usuario",
+    "tableOfContents": "Contenido"
   },
   "header": {
     "popular": "Popular",
@@ -50,7 +51,10 @@
     "browseCollections": "Explorar Colecciones",
     "browseTags": "Explorar Etiquetas",
     "browseAuthors": "Todos los autores",
-    "browseCatalog": "Catálogo"
+    "browseCatalog": "Catálogo",
+    "groupLegal": "Información legal",
+    "cookiePolicy": "Política de Cookies",
+    "cookieSettings": "Configuración de Cookies"
   },
   "home": {
     "title": "Tu biblioteca digital, seleccionada para ti",
@@ -526,5 +530,56 @@
     "step4": "También puedes enviar un correo electrónico directamente a {b} con tu solicitud. Procesaremos tu solicitud y eliminaremos de nuestra base de datos todos los datos de tu perfil de usuario (correo electrónico, nombre, avatar y entradas personalizadas de la estantería) en un plazo de 24 horas.",
     "confirmationTitle": "Confirmación de la Eliminación",
     "confirmationBody": "Tras recibir y procesar tu solicitud, enviaremos un correo electrónico de confirmación a la dirección asociada a tu perfil confirmando que toda la información personal ha sido eliminada de forma permanente de nuestras bases de datos activas."
+  },
+  "consent": {
+    "text": "Usamos cookies imprescindibles para que el sitio funcione y, con tu consentimiento, cookies de Google Analytics para saber qué libros se leen.",
+    "policyLink": "Política de Cookies",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "ariaLabel": "Consentimiento de cookies",
+    "choiceOn": "La analítica está activada",
+    "choiceOff": "La analítica está desactivada",
+    "turnOn": "Activar la analítica",
+    "turnOff": "Desactivar la analítica",
+    "gpcActive": "Tu navegador envía la señal Global Privacy Control, así que la analítica está desactivada."
+  },
+  "cookies": {
+    "table": {
+      "name": "Nombre",
+      "provider": "Quién la coloca",
+      "purpose": "Para qué sirve",
+      "duration": "Duración",
+      "category": "Tipo"
+    },
+    "provider": {
+      "bibliaris": "Bibliaris",
+      "google": "Google"
+    },
+    "category": {
+      "necessary": "Imprescindible",
+      "analytics": "Analítica"
+    },
+    "inventory": {
+      "session": "Mantiene tu sesión iniciada",
+      "csrf": "Protege el formulario de inicio de sesión contra solicitudes falsificadas",
+      "callbackUrl": "Te devuelve a la página en la que estabas tras iniciar sesión",
+      "signIn": "Protege el inicio de sesión con Google",
+      "loginMarker": "Recuerda que has iniciado sesión para que las páginas muestren tu cuenta",
+      "consentChoice": "Recuerda tu elección sobre las cookies de analítica",
+      "consentRegion": "Recuerda si en tu ubicación hace falta el aviso de cookies",
+      "readingProgress": "Guarda tu progreso de lectura en este dispositivo",
+      "navigation": "Permite que el botón «Atrás» te lleve a la página anterior del sitio",
+      "analytics": "Google Analytics: distingue navegadores con un identificador aleatorio para contar las visitas"
+    },
+    "duration": {
+      "sevenDays": "7 días",
+      "session": "Hasta que cierres el navegador",
+      "minutes": "15 minutos",
+      "year": "1 año",
+      "consentChoice": "1 año tras «Aceptar»; tras «Rechazar», hasta que cambies tu elección",
+      "tab": "Hasta que cierres la pestaña",
+      "untilCleared": "Hasta que borres los datos del navegador",
+      "twoYears": "2 años"
+    }
   }
 }
