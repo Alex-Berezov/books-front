@@ -54,7 +54,11 @@
     "browseCatalog": "Каталог",
     "groupLegal": "Правовая информация",
     "cookiePolicy": "Политика cookie",
-    "cookieSettings": "Настройки cookie"
+    "cookieSettings": "Настройки cookie",
+    "about": "О нас",
+    "editorialPolicy": "Редакционная политика",
+    "contact": "Контакты",
+    "groupAbout": "О проекте"
   },
   "home": {
     "title": "Ваша цифровая библиотека, подобранная для вас",

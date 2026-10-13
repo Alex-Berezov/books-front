@@ -8,8 +8,8 @@ import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 
 /**
  * Страница `/cookies` (`F01-3`, `product.md` §8): каркас правовой страницы с оглавлением, семь
- * разделов, таблица только из перечня, блок «Ваш выбор», ссылки без `/contact` (решение арбитра
- * 13.10.2026: страница появится в F01-4).
+ * разделов, таблица только из перечня, блок «Ваш выбор», ссылка на `/contact` (решение арбитра
+ * 13.10.2026: появилась в F01-4).
  */
 
 const nav = { pathname: '/en/cookies' };
@@ -87,19 +87,16 @@ describe('/cookies', () => {
     expect(within(section5).getByTestId('consent-choice')).toBeTruthy();
   });
 
-  it.each(SUPPORTED_LANGS)(
-    '%s: ссылки - на свою /privacy, почту и Google; /contact нет',
-    (lang) => {
-      const { container } = mount(lang);
-      const hrefs = Array.from(container.querySelectorAll('a')).map((a) => a.getAttribute('href'));
-      expect(hrefs).toContain(`/${lang}/privacy`);
-      expect(hrefs).toContain('mailto:support@bibliaris.com');
-      expect(hrefs.some((href) => href?.includes('/contact'))).toBe(false);
+  it.each(SUPPORTED_LANGS)('%s: ссылки - на свои /privacy и /contact, почту и Google', (lang) => {
+    const { container } = mount(lang);
+    const hrefs = Array.from(container.querySelectorAll('a')).map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain(`/${lang}/privacy`);
+    expect(hrefs).toContain('mailto:support@bibliaris.com');
+    expect(hrefs).toContain(`/${lang}/contact`);
 
-      const external = Array.from(container.querySelectorAll('a[target="_blank"]'));
-      expect(external).toHaveLength(1);
-      expect(external[0].getAttribute('rel')).toBe('noopener noreferrer');
-      expect(external[0].getAttribute('href')).toMatch(/^https:\/\/policies\.google\.com\//);
-    }
-  );
+    const external = Array.from(container.querySelectorAll('a[target="_blank"]'));
+    expect(external).toHaveLength(1);
+    expect(external[0].getAttribute('rel')).toBe('noopener noreferrer');
+    expect(external[0].getAttribute('href')).toMatch(/^https:\/\/policies\.google\.com\//);
+  });
 });

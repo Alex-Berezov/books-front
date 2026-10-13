@@ -21,9 +21,14 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  // Четыре колонки: описание, «Обзор», «Аккаунт», «Правовая информация» (F01-3).
   @media (min-width: $breakpoint-md) {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  // Пять колонок: описание, «Обзор», «Аккаунт», «О проекте», «Правовая информация» (F01-3, F01-4);
+  // на ширине до $breakpoint-lg пятая часть строки ломает описание и длинные подписи в столбик.
+  @media (min-width: $breakpoint-lg) {
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 

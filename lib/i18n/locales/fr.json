@@ -54,7 +54,11 @@
     "browseCatalog": "Catalogue",
     "groupLegal": "Informations légales",
     "cookiePolicy": "Politique relative aux cookies",
-    "cookieSettings": "Paramètres des cookies"
+    "cookieSettings": "Paramètres des cookies",
+    "about": "À propos",
+    "editorialPolicy": "Politique éditoriale",
+    "contact": "Contact",
+    "groupAbout": "Le projet"
   },
   "home": {
     "title": "Votre bibliothèque numérique, sélectionnée pour vous",

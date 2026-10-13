@@ -106,6 +106,27 @@ export function Footer({ hasAudiobooks = true }: FooterProps) {
             </div>
           </nav>
 
+          <nav aria-label={t('footer.groupAbout')}>
+            <h3 className={styles.sectionTitle}>{t('footer.groupAbout')}</h3>
+            <ul className={styles.linksList}>
+              <li>
+                <Link href={`/${lang}/about`} className={styles.link}>
+                  {t('footer.about')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${lang}/editorial-policy`} className={styles.link}>
+                  {t('footer.editorialPolicy')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${lang}/contact`} className={styles.link}>
+                  {t('footer.contact')}
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
           <nav aria-label={t('footer.groupLegal')}>
             <h3 className={styles.sectionTitle}>{t('footer.groupLegal')}</h3>
             <ul className={styles.linksList}>

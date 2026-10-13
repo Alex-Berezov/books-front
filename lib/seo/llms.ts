@@ -36,6 +36,15 @@ export const LLMS_HUBS: readonly { path: string; label: LlmsHubLabel; landing?: 
   { path: '/authors', label: 'authors' },
 ];
 
+/**
+ * Trust pages (F01-4, `product.md` §9): `/about` and `/editorial-policy` in every language block,
+ * labels from `footer.*`. `/contact` is not listed by the spec. Not hubs.
+ */
+const LLMS_TRUST_PAGES: readonly { path: string; label: 'about' | 'editorialPolicy' }[] = [
+  { path: '/about', label: 'about' },
+  { path: '/editorial-policy', label: 'editorialPolicy' },
+];
+
 /** Link text comes from dictionaries; brackets in it would break the Markdown link. */
 const escapeLinkText = (text: string): string => text.replace(/[[\]\\]/g, (ch) => `\\${ch}`);
 
@@ -52,7 +61,7 @@ export function buildLlmsTxt(hasLanding: HasLanding): string {
     '',
     `> ${en.common.siteDescription.replace(/[.!?…\s]+$/, '')}. The site is published in ${SUPPORTED_LANGS.map((l) => ENGLISH_LANGUAGE_NAMES.of(l) ?? l).join(', ')}; each book has its own set of text and audio versions, which differ by language and region.`,
     '',
-    'The hubs below exist in every language under the `/<lang>/` prefix. Book, author and taxonomy pages have their own slug in each language, so do not swap the prefix to translate a link. Reading and listening do not require an account.',
+    'The hubs below exist in every language under the `/<lang>/` prefix; each language block ends with the About and Editorial Policy pages, which are not hubs. Book, author and taxonomy pages have their own slug in each language, so do not swap the prefix to translate a link. Reading and listening do not require an account.',
     '',
   ];
 
@@ -63,6 +72,11 @@ export function buildLlmsTxt(hasLanding: HasLanding): string {
     for (const hub of LLMS_HUBS) {
       if (hub.landing && !hasLanding(lang, hub.landing)) continue;
       lines.push(`- [${escapeLinkText(dict.header[hub.label])}](${buildLangUrl(lang, hub.path)})`);
+    }
+    for (const page of LLMS_TRUST_PAGES) {
+      lines.push(
+        `- [${escapeLinkText(dict.footer[page.label])}](${buildLangUrl(lang, page.path)})`
+      );
     }
     lines.push('');
   }

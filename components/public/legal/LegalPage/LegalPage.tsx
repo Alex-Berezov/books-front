@@ -10,6 +10,10 @@ import type { LegalPageProps } from './LegalPage.types';
 import type { LegalBlock, LegalInline, LegalWidget } from '@/content/legal/types';
 import styles from '@/styles/legal.module.scss';
 
+// Тема письма кодируется целиком: `&`, `?` и переводы строк в ней не становятся частью адреса.
+const buildMailtoHref = (email: string, subject?: string) =>
+  subject ? `mailto:${email}?subject=${encodeURIComponent(subject)}` : `mailto:${email}`;
+
 const renderInline = (inline: LegalInline, index: number, lang: SupportedLang) => {
   if (inline.kind === 'link') {
     return (
@@ -35,7 +39,7 @@ const renderInline = (inline: LegalInline, index: number, lang: SupportedLang) =
 
   if (inline.kind === 'mailto') {
     return (
-      <a key={index} href={`mailto:${inline.email}`} className={styles.mailto}>
+      <a key={index} href={buildMailtoHref(inline.email, inline.subject)} className={styles.mailto}>
         {inline.text}
       </a>
     );

@@ -75,6 +75,22 @@ describe('/llms.txt', () => {
     }
   });
 
+  it('даёт «О нас» и «Редакционную политику» на каждом языке с подписью из словаря, без «Контактов»', async () => {
+    const body = await (await GET()).text();
+    for (const lang of SUPPORTED_LANGS) {
+      const footer = getDictionary(lang).footer;
+      const trustPages = [
+        ['about', footer.about],
+        ['editorial-policy', footer.editorialPolicy],
+      ];
+      for (const [path, label] of trustPages) {
+        expect(label.trim()).not.toBe('');
+        expect(body).toContain(`- [${label}](${SITE}/${lang}/${path})`);
+      }
+      expect(body).not.toContain(`${SITE}/${lang}/contact`);
+    }
+  });
+
   /**
    * Список хабов ведётся руками рядом с меню и `robots.ts`. Первая версия файла уже потеряла
    * `/popular-books` — посадка краснеет, когда хаб открыт в robots, а в `/llms.txt` его нет.
@@ -84,7 +100,19 @@ describe('/llms.txt', () => {
     const hubs = robotsLists()
       .allow.map((rule) => /^\/\*\/([a-z-]+)$/.exec(rule)?.[1])
       .filter(
-        (seg): seg is string => !!seg && !['privacy', 'terms', 'cookies', 'deletion'].includes(seg)
+        (seg): seg is string =>
+          !!seg &&
+          // Правовые страницы и страницы доверия - не хабы; `/contact` открыт в robots, но в
+          // `/llms.txt` по спеке не входит (`product.md` F01 §9) - это проверяет тест выше.
+          ![
+            'privacy',
+            'terms',
+            'cookies',
+            'deletion',
+            'about',
+            'editorial-policy',
+            'contact',
+          ].includes(seg)
       );
     expect(hubs.length).toBeGreaterThan(0);
     expect(LLMS_HUBS.map((h) => h.path.slice(1))).toEqual(expect.arrayContaining(hubs));

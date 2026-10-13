@@ -66,4 +66,16 @@ describe('sitemap-static.xml: лендинги со счётчиком', () => {
       expect(xml).toContain(`<loc>https://bibliaris.com/${lang}/cookies</loc>`);
     }
   });
+
+  it('страницы доверия в карте на всех пяти языках (F01-4)', async () => {
+    getBookCards.mockResolvedValue({ items: [], pagination: { total: 4 } });
+
+    const xml = await callGet('sitemap-static.xml');
+
+    for (const lang of ['en', 'es', 'fr', 'pt', 'ru']) {
+      for (const page of ['about', 'editorial-policy', 'contact']) {
+        expect(xml).toContain(`<loc>https://bibliaris.com/${lang}/${page}</loc>`);
+      }
+    }
+  });
 });

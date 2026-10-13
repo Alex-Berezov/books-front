@@ -8,6 +8,7 @@ import {
   getTagBookCards,
 } from '@/api/endpoints/public';
 import { HomePageContent } from '@/components/public/home/HomePageContent/HomePageContent';
+import { OrganizationJsonLd } from '@/components/public/seo/OrganizationJsonLd';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import { pluralFormsOf } from '@/lib/i18n/plural';
@@ -226,51 +227,54 @@ export default async function PublicLangPage({ params }: Props) {
   const data = await fetchHomepageData();
 
   return (
-    <HomePageContent
-      lang={supportedLang}
-      labels={{
-        heroTitle: data.heroTitle,
-        heroText: data.heroText,
-        browseLibrary: t('home.browseLibrary'),
-        audiobooks: t('home.audiobooks'),
-        topPopular: t('home.topPopular'),
-        browseByCategory: t('home.browseByCategory'),
-        viewAll: t('home.viewAll'),
-        bookForms: pluralFormsOf(t, 'home.booksCount'),
-        genres: t('home.genres'),
-        curatedCollections: t('home.curatedCollections'),
-        newReleases: t('home.newReleases'),
-        exploreBookThemes: t('home.exploreBookThemes'),
-        classicLiterature: t('home.classicLiterature'),
-        fantasyAdventure: t('home.fantasyAdventure'),
-        authors: t('home.authors'),
-        whyBibliaris: t('home.whyBibliaris'),
-        aboutBibliaris: t('home.aboutBibliaris'),
-        faq: t('home.faq'),
-        viewMore: t('home.viewMore'),
-        readLabel: t('book.read'),
-        listenLabel: t('book.listen'),
-        newLabel: t('book.newRelease'),
-        coverAltTemplate: t('a11y.bookCover'),
-        unknownAuthor: t('book.unknownAuthor'),
-      }}
-      featuredBooks={data.featuredBooks}
-      newReleases={data.newReleases}
-      audiobooks={data.audiobooks}
-      classicBooks={data.classicBooks}
-      fantasyBooks={data.fantasyBooks}
-      featuredCategories={data.allCategories}
-      featuredGenres={data.allGenres}
-      featuredCollections={data.allCollections}
-      featuredTags={data.allTags}
-      featuredAuthors={data.allAuthors}
-      collectionSections={data.collectionSections}
-      heroStackBooks={data.heroStackBooks}
-      audiobooksCount={data.audiobooksCount}
-      faqItems={data.faqItems}
-      whyBibliaris={data.whyBibliaris}
-      aboutText={data.aboutText}
-    />
+    <>
+      <OrganizationJsonLd lang={supportedLang} />
+      <HomePageContent
+        lang={supportedLang}
+        labels={{
+          heroTitle: data.heroTitle,
+          heroText: data.heroText,
+          browseLibrary: t('home.browseLibrary'),
+          audiobooks: t('home.audiobooks'),
+          topPopular: t('home.topPopular'),
+          browseByCategory: t('home.browseByCategory'),
+          viewAll: t('home.viewAll'),
+          bookForms: pluralFormsOf(t, 'home.booksCount'),
+          genres: t('home.genres'),
+          curatedCollections: t('home.curatedCollections'),
+          newReleases: t('home.newReleases'),
+          exploreBookThemes: t('home.exploreBookThemes'),
+          classicLiterature: t('home.classicLiterature'),
+          fantasyAdventure: t('home.fantasyAdventure'),
+          authors: t('home.authors'),
+          whyBibliaris: t('home.whyBibliaris'),
+          aboutBibliaris: t('home.aboutBibliaris'),
+          faq: t('home.faq'),
+          viewMore: t('home.viewMore'),
+          readLabel: t('book.read'),
+          listenLabel: t('book.listen'),
+          newLabel: t('book.newRelease'),
+          coverAltTemplate: t('a11y.bookCover'),
+          unknownAuthor: t('book.unknownAuthor'),
+        }}
+        featuredBooks={data.featuredBooks}
+        newReleases={data.newReleases}
+        audiobooks={data.audiobooks}
+        classicBooks={data.classicBooks}
+        fantasyBooks={data.fantasyBooks}
+        featuredCategories={data.allCategories}
+        featuredGenres={data.allGenres}
+        featuredCollections={data.allCollections}
+        featuredTags={data.allTags}
+        featuredAuthors={data.allAuthors}
+        collectionSections={data.collectionSections}
+        heroStackBooks={data.heroStackBooks}
+        audiobooksCount={data.audiobooksCount}
+        faqItems={data.faqItems}
+        whyBibliaris={data.whyBibliaris}
+        aboutText={data.aboutText}
+      />
+    </>
   );
 }
 

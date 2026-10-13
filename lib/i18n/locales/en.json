@@ -54,7 +54,11 @@
     "termsOfService": "Terms of Service",
     "groupLegal": "Legal",
     "cookiePolicy": "Cookie Policy",
-    "cookieSettings": "Cookie Settings"
+    "cookieSettings": "Cookie Settings",
+    "about": "About Us",
+    "editorialPolicy": "Editorial Policy",
+    "contact": "Contact",
+    "groupAbout": "About the project"
   },
   "home": {
     "title": "Your Digital Library, Curated for You",

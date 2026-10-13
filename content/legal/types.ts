@@ -1,10 +1,17 @@
 import type { SupportedLang } from '@/lib/i18n/lang';
 
-export type LegalPageId = 'privacy' | 'terms' | 'cookies';
+export type LegalPageId =
+  | 'privacy'
+  | 'terms'
+  | 'cookies'
+  | 'about'
+  | 'contact'
+  | 'editorial-policy';
 
 export type LegalInline =
   | { kind: 'text'; text: string }
-  | { kind: 'mailto'; text: string; email: string }
+  /** `subject` - тема письма на языке страницы (`?subject=`). */
+  | { kind: 'mailto'; text: string; email: string; subject?: string }
   /** Внутренняя ссылка: `href` без языка (`/privacy`), язык подставляет страница. */
   | { kind: 'link'; text: string; href: string }
   /** Внешняя ссылка: полный адрес, открывается в новой вкладке. */

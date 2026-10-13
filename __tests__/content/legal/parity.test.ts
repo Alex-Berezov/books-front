@@ -4,10 +4,20 @@ import { getLegalDocument } from '@/content/legal';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { LegalBlock, LegalDocument, LegalInline, LegalPageId } from '@/content/legal/types';
 
-const PAGES: LegalPageId[] = ['privacy', 'terms', 'cookies'];
+const PAGES: LegalPageId[] = [
+  'privacy',
+  'terms',
+  'cookies',
+  'about',
+  'contact',
+  'editorial-policy',
+];
 const MIN_UNTRANSLATED_LENGTH = 40;
 
-const inlineTexts = (inline: LegalInline[]): string[] => inline.map((part) => part.text);
+const inlineTexts = (inline: LegalInline[]): string[] =>
+  inline.flatMap((part) =>
+    part.kind === 'mailto' && part.subject ? [part.text, part.subject] : [part.text]
+  );
 
 const blockTexts = (block: LegalBlock): string[] => {
   if (block.kind === 'widget') return [];

@@ -2,11 +2,12 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Footer } from '@/components/public/layout/Footer';
 import { ConsentProvider } from '@/lib/consent/ConsentProvider';
+import { getDictionary } from '@/lib/i18n/dictionaries';
 
 /**
  * Подвал, группа «Правовая информация» (`F01-3`, `product.md` §2): privacy, terms, cookies и кнопка
- * «Настройки cookie» по порядку; группы «О проекте» пока нет (её страницы - F01-4), `/deletion`
- * в подвал не выводится.
+ * «Настройки cookie» по порядку; группа «О проекте» (`F01-4`): О нас, Редакционная политика,
+ * Контакты по порядку; `/deletion` в подвал не выводится.
  */
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/ru/catalog' }));
@@ -21,6 +22,7 @@ const mount = () =>
     </ConsentProvider>
   );
 
+const aboutNav = () => screen.getByRole('navigation', { name: 'О проекте' });
 const legalNav = () => screen.getByRole('navigation', { name: 'Правовая информация' });
 
 describe('подвал: правовая информация', () => {
@@ -56,15 +58,42 @@ describe('подвал: правовая информация', () => {
     expect(within(legalNav()).getAllByRole('listitem')).toHaveLength(3);
   });
 
-  it('ссылок на ещё не существующие страницы и на /deletion нет', async () => {
+  it('группа «О проекте»: три ссылки по порядку', async () => {
+    vi.stubGlobal('fetch', answer(false));
+    mount();
+    const hrefs = within(aboutNav())
+      .getAllByRole('link')
+      .map((link) => link.getAttribute('href'));
+    expect(hrefs).toEqual(['/ru/about', '/ru/editorial-policy', '/ru/contact']);
+    expect(
+      within(aboutNav())
+        .getAllByRole('link')
+        .map((link) => link.textContent)
+    ).toEqual(['О нас', 'Редакционная политика', 'Контакты']);
+  });
+
+  it.each(['en', 'es', 'fr', 'pt', 'ru'] as const)(
+    '%s: подписи группы «О проекте» не пустые',
+    (lang) => {
+      const footer = getDictionary(lang).footer;
+      for (const label of [
+        footer.groupAbout,
+        footer.about,
+        footer.editorialPolicy,
+        footer.contact,
+      ]) {
+        expect(label.trim()).not.toBe('');
+      }
+    }
+  );
+
+  it('ссылки на /deletion в подвале нет', async () => {
     const fetchMock = answer(false);
     vi.stubGlobal('fetch', fetchMock);
     const { container } = mount();
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     const hrefs = Array.from(container.querySelectorAll('a')).map((a) => a.getAttribute('href'));
-    for (const page of ['about', 'contact', 'editorial-policy', 'deletion']) {
-      expect(hrefs).not.toContain(`/ru/${page}`);
-    }
+    expect(hrefs).not.toContain('/ru/deletion');
     expect(hrefs.filter((href) => href === '/ru/privacy')).toHaveLength(1);
   });
 });
