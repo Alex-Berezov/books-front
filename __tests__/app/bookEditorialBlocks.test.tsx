@@ -67,6 +67,7 @@ const overview = (versionExtra: Record<string, unknown>, top: Record<string, unk
       type: 'text',
       isFree: true,
       title: 'Преступление и наказание',
+      translators: [],
       ...versionExtra,
     },
   ],
@@ -133,7 +134,7 @@ describe('страница книги: подпись редакции и «Об
     expect(container.textContent).not.toContain('Описание подготовлено');
   });
 
-  it('старый бэкенд без translators: блок живёт на остальных строках', async () => {
+  it('переводчиков нет (translators: []): блок живёт на остальных строках', async () => {
     mocks.getCachedBookOverview.mockResolvedValue(overview({}, { firstPublishedYear: 1866 }));
 
     const { container } = await renderPage();

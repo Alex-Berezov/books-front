@@ -15,6 +15,7 @@ const version = (extra: Partial<VersionPreview> = {}): VersionPreview => ({
   type: 'text',
   isFree: true,
   title: 'Crime and Punishment',
+  translators: [],
   ...extra,
 });
 

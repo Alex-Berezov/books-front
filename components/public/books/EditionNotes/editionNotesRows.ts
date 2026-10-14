@@ -105,7 +105,7 @@ export const buildEditionNotesRows = (
     rows.push({ label: labels.originalTitle, value: originalTitle });
   }
 
-  const translators = (version.translators ?? []).map((t) => t.name.trim()).filter(Boolean);
+  const translators = version.translators.map((t) => t.name.trim()).filter(Boolean);
   if (translators.length > 0) {
     rows.push({ label: labels.translator, value: translators.join(', ') });
   }

@@ -1,21 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
+import { countGoogle } from './google';
 
 /**
- * Плашка cookie в настоящем браузере (`F01-3`, `tech.md` §4.4). Cloudflare локально нет, поэтому
- * ответ `/api/consent-region` подставляется через `page.route`. Сборка e2e в `ci.yml` идёт
- * с тестовым `NEXT_PUBLIC_GA_MEASUREMENT_ID` (решение арбитра 13.10.2026): запросы к Google
- * перехватываются и считаются здесь же, в сеть раннер не ходит.
+ * Плашка cookie в настоящем браузере (`F01-3`, `tech.md` §4.4). Блок «Cookie consent» проверяет
+ * поведение плашки и подставляет ответ `/api/consent-region` через `page.route`; блок «by visitor
+ * country» (F01-7) ответ не подставляет, а шлёт страну заголовком `cf-ipcountry`. Запросы
+ * к Google перехватываются и считаются (`e2e/google.ts`), в сеть раннер не ходит.
  */
-
-/** Считает запросы к googletagmanager.com и отвечает пустым телом, не выходя в сеть. */
-const countGoogle = async (page: Page) => {
-  const hits = { count: 0 };
-  await page.route('**/*googletagmanager.com/**', (route) => {
-    hits.count += 1;
-    return route.fulfill({ status: 200, contentType: 'application/javascript', body: '' });
-  });
-  return hits;
-};
 
 const answerRegion = (page: Page, consentRequired: boolean) =>
   page.route('**/api/consent-region', (route) =>
@@ -104,4 +95,43 @@ test.describe('Cookie consent', () => {
     expect(regionRequests).toBe(0);
     expect(google.count).toBe(0);
   });
+});
+
+/**
+ * Страны из `product.md` §14 п. 3 (пачка F01-7): ответ региона не подставляется, страна приходит
+ * заголовком `cf-ipcountry`, как от Cloudflare, и проходит настоящую цепочку
+ * `/api/consent-region` → `visitorCountryFrom` → `isConsentRequired`.
+ */
+test.describe('Cookie consent by visitor country', () => {
+  for (const country of ['DE', 'GB', 'CH', 'NO', null] as const) {
+    test.describe(country ?? 'unknown country', () => {
+      if (country) test.use({ extraHTTPHeaders: { 'cf-ipcountry': country } });
+
+      test('banner is shown and Google is not requested', async ({ page }) => {
+        const google = await countGoogle(page);
+        await page.goto('/en/cookies');
+        await expect(banner(page)).toBeVisible();
+        await page.waitForLoadState('networkidle');
+        expect(google.count).toBe(0);
+      });
+    });
+  }
+
+  for (const country of ['US', 'BR', 'RU', 'IN'] as const) {
+    test.describe(country, () => {
+      test.use({ extraHTTPHeaders: { 'cf-ipcountry': country } });
+
+      test('no banner, no "Cookie Settings", Google Analytics loads', async ({ page }) => {
+        const google = await countGoogle(page);
+        const regionAnswered = page.waitForResponse('**/api/consent-region');
+        await page.goto('/en/cookies');
+        expect(await (await regionAnswered).json()).toEqual({ consentRequired: false });
+
+        await expect(page.getByTestId('consent-choice').getByText('Analytics is on')).toBeVisible();
+        await expect(banner(page)).toBeHidden();
+        await expect(page.getByRole('button', { name: 'Cookie Settings' })).toHaveCount(0);
+        await expect.poll(() => google.count).toBeGreaterThan(0);
+      });
+    });
+  }
 });

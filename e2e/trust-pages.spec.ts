@@ -1,4 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+import { getDictionary } from '@/lib/i18n/dictionaries';
+import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { countGoogle } from './google';
 
 /**
  * Страницы доверия в настоящем браузере (`F01-4`, `product.md` §2-5, §9): переход из подвала,
@@ -13,6 +16,8 @@ test.beforeEach(async ({ page }) => {
       headers: { 'cache-control': 'private, no-store' },
     })
   );
+  // Без плашки GA грузится (сборка e2e идёт с тестовым ID): в сеть раннер не ходит.
+  await countGoogle(page);
 });
 
 test.describe('Trust pages', () => {
@@ -74,5 +79,80 @@ test.describe('Trust pages', () => {
 
       expect(types).toEqual(expect.arrayContaining(['Organization', 'WebSite']));
     });
+  }
+});
+
+/**
+ * Приёмка F01 (`product.md` §14 п. 1-2, пачка F01-7): восемь страниц на пяти языках. Английский
+ * на чужом языке ищется сверкой с отрисованной `/en/<page>`, а не с модулем `en`: модули
+ * `content/legal` под `server-only` (решение арбитра 14.10.2026, `decisions-log.md`, `F01 | F01-7`).
+ * Порог 40 символов и сравнение целых блоков — как в `__tests__/content/legal/parity.test.ts`.
+ */
+const TRUST_PAGES = [
+  'about',
+  'contact',
+  'editorial-policy',
+  'cookies',
+  'privacy',
+  'terms',
+  'legal-notice',
+  'deletion',
+] as const;
+
+const MIN_UNTRANSLATED_LENGTH = 40;
+
+const longTextBlocks = async (page: Page): Promise<Set<string>> => {
+  const texts = await page
+    .locator('#main-content')
+    .locator('h1, h2, h3, p, li, th, td')
+    .allTextContents();
+  return new Set(
+    texts
+      .map((text) => text.replace(/\s+/g, ' ').trim())
+      .filter((text) => text.length > MIN_UNTRANSLATED_LENGTH)
+  );
+};
+
+const footerHrefs = (page: Page, group: string) =>
+  page
+    .getByRole('navigation', { name: group, exact: true })
+    .getByRole('link')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+
+test.describe('Trust pages in five languages (F01-7)', () => {
+  for (const slug of TRUST_PAGES) {
+    for (const lang of SUPPORTED_LANGS) {
+      test(`/${lang}/${slug}: 200, one h1, footer links, no English blocks`, async ({ page }) => {
+        // Английский образец берётся отдельным заходом на `/en`, а не первым языком цикла:
+        // проверка не зависит от порядка `SUPPORTED_LANGS`.
+        let english = new Set<string>();
+        if (lang !== 'en') {
+          await page.goto(`/en/${slug}`);
+          english = await longTextBlocks(page);
+          expect(english.size, `/en/${slug} has no text blocks to compare with`).toBeGreaterThan(0);
+        }
+
+        const response = await page.goto(`/${lang}/${slug}`);
+        expect(response?.status()).toBe(200);
+        await expect(page.locator('h1')).toHaveCount(1);
+
+        const { footer } = getDictionary(lang);
+        expect(await footerHrefs(page, footer.groupAbout)).toEqual([
+          `/${lang}/about`,
+          `/${lang}/editorial-policy`,
+          `/${lang}/contact`,
+        ]);
+        expect(await footerHrefs(page, footer.groupLegal)).toEqual([
+          `/${lang}/privacy`,
+          `/${lang}/terms`,
+          `/${lang}/cookies`,
+          `/${lang}/legal-notice`,
+        ]);
+        await expect(page.locator(`footer a[href="/${lang}/deletion"]`)).toHaveCount(0);
+
+        const blocks = await longTextBlocks(page);
+        expect([...blocks].filter((text) => english.has(text))).toEqual([]);
+      });
+    }
   }
 });
