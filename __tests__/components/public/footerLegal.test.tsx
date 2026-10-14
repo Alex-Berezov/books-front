@@ -32,7 +32,7 @@ describe('подвал: правовая информация', () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it('страна плашки: три ссылки и кнопка «Настройки cookie» по порядку', async () => {
+  it('страна плашки: четыре ссылки и кнопка «Настройки cookie» по порядку', async () => {
     vi.stubGlobal('fetch', answer(true));
     mount();
     await waitFor(() =>
@@ -44,7 +44,13 @@ describe('подвал: правовая информация', () => {
         const link = item.querySelector('a');
         return link ? link.getAttribute('href') : `button:${item.textContent}`;
       });
-    expect(items).toEqual(['/ru/privacy', '/ru/terms', '/ru/cookies', 'button:Настройки cookie']);
+    expect(items).toEqual([
+      '/ru/privacy',
+      '/ru/terms',
+      '/ru/cookies',
+      '/ru/legal-notice',
+      'button:Настройки cookie',
+    ]);
   });
 
   it('остальные страны без выбора: кнопки нет, пустого пункта списка нет', async () => {
@@ -55,7 +61,7 @@ describe('подвал: правовая информация', () => {
     // Ответ о регионе дошёл до провайдера и отрендерен - кнопка так и не появилась.
     await act(async () => {});
     expect(within(legalNav()).queryByRole('button')).toBeNull();
-    expect(within(legalNav()).getAllByRole('listitem')).toHaveLength(3);
+    expect(within(legalNav()).getAllByRole('listitem')).toHaveLength(4);
   });
 
   it('группа «О проекте»: три ссылки по порядку', async () => {

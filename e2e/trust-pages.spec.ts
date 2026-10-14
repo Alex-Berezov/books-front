@@ -32,6 +32,25 @@ test.describe('Trust pages', () => {
     }
   });
 
+  test('legal notice opens from the footer legal group and from the contact page (F01-6)', async ({
+    page,
+  }) => {
+    await page.goto('/en/catalog');
+    await page
+      .getByRole('navigation', { name: 'Legal' })
+      .getByRole('link', { name: 'Legal Notice', exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/en\/legal-notice$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Legal Notice' })).toBeVisible();
+
+    await page.goto('/ru/contact');
+    await page.getByRole('link', { name: '«Сведения об операторе»' }).click();
+    await expect(page).toHaveURL(/\/ru\/legal-notice$/);
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Сведения об операторе' })
+    ).toBeVisible();
+  });
+
   test('contact page: corrections letter has a subject, other blocks write to the address', async ({
     page,
   }) => {

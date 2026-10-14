@@ -1,3 +1,4 @@
+import { ConsentChoice } from '@/components/public/legal/ConsentChoice';
 import { LegalPage } from '@/components/public/legal/LegalPage';
 import { getLegalDocument } from '@/content/legal';
 import { getPageMetadata } from '@/lib/utils/seo';
@@ -17,5 +18,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CookiesPage({ params }: Props) {
   const resolvedParams = await params;
 
-  return <LegalPage document={getLegalDocument('cookies', resolvedParams.lang)} />;
+  return (
+    <LegalPage
+      document={getLegalDocument('cookies', resolvedParams.lang)}
+      widgets={{ 'consent-choice': <ConsentChoice /> }}
+    />
+  );
 }

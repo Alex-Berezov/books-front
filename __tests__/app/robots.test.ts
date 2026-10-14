@@ -51,7 +51,7 @@ describe('читалка, плеер и саммари: открыты крау�
     expect(disallow.filter((pattern) => matchesGlob(pattern, '/en/cookies'))).toEqual([]);
   });
 
-  it.each(['about', 'editorial-policy', 'contact'])(
+  it.each(['about', 'editorial-policy', 'contact', 'legal-notice'])(
     'страница доверия /%s открыта и не закрыта запретом (F01-4)',
     (page) => {
       expect(allow).toContain(`/*/${page}`);

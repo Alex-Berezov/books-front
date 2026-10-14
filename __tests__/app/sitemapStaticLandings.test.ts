@@ -73,7 +73,7 @@ describe('sitemap-static.xml: лендинги со счётчиком', () => {
     const xml = await callGet('sitemap-static.xml');
 
     for (const lang of ['en', 'es', 'fr', 'pt', 'ru']) {
-      for (const page of ['about', 'editorial-policy', 'contact']) {
+      for (const page of ['about', 'editorial-policy', 'contact', 'legal-notice']) {
         expect(xml).toContain(`<loc>https://bibliaris.com/${lang}/${page}</loc>`);
       }
     }

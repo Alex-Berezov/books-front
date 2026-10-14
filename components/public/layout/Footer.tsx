@@ -145,6 +145,11 @@ export function Footer({ hasAudiobooks = true }: FooterProps) {
                   {t('footer.cookiePolicy')}
                 </Link>
               </li>
+              <li>
+                <Link href={`/${lang}/legal-notice`} className={styles.link}>
+                  {t('footer.legalNotice')}
+                </Link>
+              </li>
               {/* Пустой `li` не выводится: кнопка решает о себе сама, после монтирования. */}
               <CookieSettingsButton
                 label={t('footer.cookieSettings')}

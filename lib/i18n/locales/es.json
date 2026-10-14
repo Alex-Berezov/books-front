@@ -55,6 +55,7 @@
     "groupLegal": "Información legal",
     "cookiePolicy": "Política de Cookies",
     "cookieSettings": "Configuración de Cookies",
+    "legalNotice": "Aviso legal",
     "about": "Sobre nosotros",
     "editorialPolicy": "Política editorial",
     "contact": "Contacto",
@@ -355,7 +356,10 @@
       "checkFields": "Revisa el correo y la contraseña e inténtalo de nuevo",
       "rateLimit": "Demasiadas solicitudes. Inténtalo de nuevo más tarde.",
       "passwordPlaceholder": "Al menos 8 caracteres",
-      "confirmPlaceholder": "Repite tu contraseña"
+      "confirmPlaceholder": "Repite tu contraseña",
+      "consentLine": "Al crear una cuenta, aceptas los {terms} y confirmas que has leído la {privacy}.",
+      "consentTermsLink": "Términos de Servicio",
+      "consentPrivacyLink": "Política de Privacidad"
     }
   },
   "profile": {
@@ -539,7 +543,7 @@
     "step2": "Busca y selecciona {b}.",
     "step3": "Haz clic en el botón {b}.",
     "step3Action": "Eliminar",
-    "step4": "También puedes enviar un correo electrónico directamente a {b} con tu solicitud. Procesaremos tu solicitud y eliminaremos de nuestra base de datos todos los datos de tu perfil de usuario (correo electrónico, nombre, avatar y entradas personalizadas de la estantería) en un plazo de 24 horas.",
+    "step4": "También puedes enviar un correo electrónico directamente a {b} con tu solicitud. Procesaremos tu solicitud y eliminaremos de nuestra base de datos todos los datos de tu perfil de usuario (correo electrónico, nombre, avatar y entradas personalizadas de la estantería) en un plazo de {hours} horas.",
     "confirmationTitle": "Confirmación de la Eliminación",
     "confirmationBody": "Tras recibir y procesar tu solicitud, enviaremos un correo electrónico de confirmación a la dirección asociada a tu perfil confirmando que toda la información personal ha sido eliminada de forma permanente de nuestras bases de datos activas."
   },

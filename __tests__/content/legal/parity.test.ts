@@ -4,14 +4,17 @@ import { getLegalDocument } from '@/content/legal';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 import type { LegalBlock, LegalDocument, LegalInline, LegalPageId } from '@/content/legal/types';
 
-const PAGES: LegalPageId[] = [
-  'privacy',
-  'terms',
-  'cookies',
-  'about',
-  'contact',
-  'editorial-policy',
-];
+// Запись на каждый id: новая страница без строки здесь не соберётся, а не выпадет из сверки молча.
+const PAGE_SET: Record<LegalPageId, true> = {
+  privacy: true,
+  terms: true,
+  cookies: true,
+  about: true,
+  contact: true,
+  'editorial-policy': true,
+  'legal-notice': true,
+};
+const PAGES = Object.keys(PAGE_SET) as LegalPageId[];
 const MIN_UNTRANSLATED_LENGTH = 40;
 
 const inlineTexts = (inline: LegalInline[]): string[] =>
@@ -21,6 +24,7 @@ const inlineTexts = (inline: LegalInline[]): string[] =>
 
 const blockTexts = (block: LegalBlock): string[] => {
   if (block.kind === 'widget') return [];
+  if (block.kind === 'table') return [...block.head, ...block.rows.flat().flatMap(inlineTexts)];
   return block.kind === 'list' ? block.items.flatMap(inlineTexts) : inlineTexts(block.content);
 };
 
@@ -42,9 +46,14 @@ const shape = (doc: LegalDocument) =>
       parts:
         block.kind === 'widget'
           ? block.widget
-          : block.kind === 'list'
-            ? block.items.map((item) => item.map(inlineShape))
-            : block.content.map(inlineShape),
+          : block.kind === 'table'
+            ? {
+                columns: block.head.length,
+                rows: block.rows.map((row) => row.map((cell) => cell.map(inlineShape))),
+              }
+            : block.kind === 'list'
+              ? block.items.map((item) => item.map(inlineShape))
+              : block.content.map(inlineShape),
     })),
   }));
 
@@ -71,6 +80,17 @@ describe('legal documents: language parity', () => {
         expect(shape(doc)).toEqual(shape(en));
         expect(doc.updatedAt).toBe(en.updatedAt);
         expect(doc.toc).toBe(en.toc);
+      });
+
+      it(`${page}/${lang}: every table row has one cell per column`, () => {
+        const tables = doc.sections.flatMap((section) =>
+          section.blocks.flatMap((block) => (block.kind === 'table' ? [block] : []))
+        );
+        for (const table of tables) {
+          expect(table.rows.map((row) => row.length)).toEqual(
+            table.rows.map(() => table.head.length)
+          );
+        }
       });
 
       it(`${page}/${lang} has no empty strings`, () => {

@@ -14,9 +14,10 @@ import Link from 'next/link';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/common/Button';
-import { GoogleIcon } from '@/components/common/icons/GoogleIcon';
 import {
   AuthAlert,
+  AuthConsentLine,
+  AuthGoogleButton,
   AuthField,
   AuthLayout,
   validateEmail,
@@ -183,22 +184,14 @@ const SignInClient: FC = () => {
       </div>
 
       <div className={styles.socialButtons}>
-        <Button
-          variant="secondary"
-          fullWidth
-          leftIcon={<GoogleIcon />}
-          onClick={() => {
-            setIsLoading(true);
-            // Отметку ставим до ухода на Google: вернётся браузер уже на
-            // `callbackUrl`, и этот код не выполнится (LEGACY-075).
-            markLoggedIn();
-            signIn('google', { callbackUrl: resolveCallbackUrl() });
-          }}
+        <AuthGoogleButton
           disabled={isLoading}
-        >
-          Google
-        </Button>
+          onStart={() => setIsLoading(true)}
+          getCallbackUrl={resolveCallbackUrl}
+        />
       </div>
+
+      <AuthConsentLine />
 
       <div className={styles.footer}>
         {t('auth.signin.noAccount')}{' '}

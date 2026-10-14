@@ -1,6 +1,6 @@
+import { Fragment } from 'react';
 import Link from 'next/link';
 import { BookOutlinedIcon } from '@/components/common/icons/BookOutlinedIcon';
-import { ConsentChoice } from '@/components/public/legal/ConsentChoice';
 import { CookieTable } from '@/components/public/legal/CookieTable';
 import { LegalToc } from '@/components/public/legal/LegalToc';
 import { PageBackButton } from '@/components/public/navigation';
@@ -49,12 +49,21 @@ const renderInline = (inline: LegalInline, index: number, lang: SupportedLang) =
 };
 
 // Исчерпывающий выбор: новый вид вставки без ветки здесь не соберётся (`never`), а не покажет чужой блок.
-const renderWidget = (widget: LegalWidget, index: number, lang: SupportedLang) => {
+// Клиентская вставка приходит от страницы: не передана - ошибка, при статической сборке это красный build.
+const renderWidget = (
+  widget: LegalWidget,
+  index: number,
+  lang: SupportedLang,
+  widgets: LegalPageProps['widgets']
+) => {
   switch (widget) {
     case 'cookie-table':
       return <CookieTable key={index} lang={lang} />;
-    case 'consent-choice':
-      return <ConsentChoice key={index} />;
+    case 'consent-choice': {
+      const node = widgets?.[widget];
+      if (!node) throw new Error(`Legal widget "${widget}" is not passed to LegalPage`);
+      return <Fragment key={index}>{node}</Fragment>;
+    }
     default: {
       const unknownWidget: never = widget;
       throw new Error(`Unknown legal widget: ${String(unknownWidget)}`);
@@ -62,10 +71,45 @@ const renderWidget = (widget: LegalWidget, index: number, lang: SupportedLang) =
   }
 };
 
-const renderBlock = (block: LegalBlock, index: number, lang: SupportedLang) => {
+const renderBlock = (
+  block: LegalBlock,
+  index: number,
+  lang: SupportedLang,
+  widgets: LegalPageProps['widgets']
+) => {
   const inline = (part: LegalInline, partIndex: number) => renderInline(part, partIndex, lang);
 
-  if (block.kind === 'widget') return renderWidget(block.widget, index, lang);
+  if (block.kind === 'widget') return renderWidget(block.widget, index, lang, widgets);
+
+  // Подпись колонки дублируется в `data-label`: на узком экране строка становится карточкой.
+  if (block.kind === 'table') {
+    return (
+      <div key={index} className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              {block.head.map((cell, cellIndex) => (
+                <th key={cellIndex} scope="col">
+                  {cell}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {block.rows.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {row.map((cell, cellIndex) => (
+                  <td key={cellIndex} data-label={block.head[cellIndex]}>
+                    {cell.map(inline)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
 
   if (block.kind === 'list') {
     return (
@@ -84,7 +128,7 @@ const renderBlock = (block: LegalBlock, index: number, lang: SupportedLang) => {
   );
 };
 
-export const LegalPage = ({ document }: LegalPageProps) => {
+export const LegalPage = ({ document, widgets }: LegalPageProps) => {
   const { lang } = document;
   const dict = getDictionary(lang);
 
@@ -116,7 +160,7 @@ export const LegalPage = ({ document }: LegalPageProps) => {
           <h2 id={section.id} className={styles.sectionTitle}>
             {section.heading}
           </h2>
-          {section.blocks.map((block, index) => renderBlock(block, index, lang))}
+          {section.blocks.map((block, index) => renderBlock(block, index, lang, widgets))}
         </section>
       ))}
     </div>

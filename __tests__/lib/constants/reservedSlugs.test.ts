@@ -31,12 +31,15 @@ describe('RESERVED_SLUGS: имена, пережившие свой маршру
 });
 
 /**
- * F01-2. Слаги будущих страниц доверия (`about`, `contact`, `cookies`,
- * `editorial-policy`) резервируются раньше самих маршрутов: имя без маршрута
- * сторож пропускает, маршрут без имени — нет. Страницы заведут F01-3 и F01-4.
+ * F01-2, F01-6. Слаги страниц доверия и правовых страниц (`about`, `contact`, `cookies`,
+ * `editorial-policy`, `legal-notice`): имя без маршрута сторож пропускает, маршрут без
+ * имени — нет, а удаление имени из списка ловит только этот тест.
  */
 describe('RESERVED_SLUGS: слаги страниц доверия (F01-2)', () => {
-  it.each(['about', 'contact', 'cookies', 'editorial-policy'])('%s зарезервирован', (slug) => {
-    expect(isReservedSlug(slug)).toBe(true);
-  });
+  it.each(['about', 'contact', 'cookies', 'editorial-policy', 'legal-notice'])(
+    '%s зарезервирован',
+    (slug) => {
+      expect(isReservedSlug(slug)).toBe(true);
+    }
+  );
 });

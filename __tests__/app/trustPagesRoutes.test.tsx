@@ -20,6 +20,7 @@ const routes = {
   about: () => import('@/app/[lang]/about/page'),
   contact: () => import('@/app/[lang]/contact/page'),
   'editorial-policy': () => import('@/app/[lang]/editorial-policy/page'),
+  'legal-notice': () => import('@/app/[lang]/legal-notice/page'),
 } as const;
 
 const ldTypes = (container: HTMLElement) =>

@@ -1,5 +1,10 @@
 import 'server-only';
-import { contactGeneral, contactPrivacy, contactRights } from '@/lib/site/owner-facts';
+import {
+  contactGeneral,
+  contactPrivacy,
+  contactResponseDays,
+  contactRights,
+} from '@/lib/site/owner-facts';
 import type { LegalDocument } from '../types';
 
 export const document: LegalDocument = {
@@ -9,7 +14,7 @@ export const document: LegalDocument = {
   metaDescription:
     'Comment joindre Bibliaris : questions générales et assistance, erreur dans un texte ou un résumé, message d’un titulaire de droits et demandes concernant les données personnelles.',
   title: 'Contact',
-  updatedAt: '2026-10-13',
+  updatedAt: '2026-10-14',
   toc: false,
   sections: [
     {
@@ -95,6 +100,23 @@ export const document: LegalDocument = {
             { kind: 'link', text: 'Politique de Confidentialité', href: '/privacy' },
             { kind: 'text', text: ' et la page de ' },
             { kind: 'link', text: 'suppression des données', href: '/deletion' },
+            { kind: 'text', text: '.' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'response',
+      heading: 'Délai de réponse et éditeur du site',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: `Nous répondons dans un délai de ${contactResponseDays} jours. L’éditeur du site et son adresse postale figurent dans les `,
+            },
+            { kind: 'link', text: 'Mentions légales', href: '/legal-notice' },
             { kind: 'text', text: '.' },
           ],
         },

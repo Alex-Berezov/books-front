@@ -6,51 +6,7 @@
 }
 
 .table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: $font-size-sm;
-
-  th,
-  td {
-    padding: $spacing-sm;
-    border-bottom: 1px solid $color-border-base;
-    text-align: left;
-    vertical-align: top;
-  }
-
-  th {
-    font-weight: $font-weight-semibold;
-  }
-
-  // Узкий экран: строка - карточка, подпись колонки берётся из `data-label` (`product.md` §1).
-  @include mobile {
-    thead {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0 0 0 0);
-    }
-
-    tr {
-      display: block;
-      margin-bottom: $spacing-md;
-      border: 1px solid $color-border-base;
-      border-radius: $border-radius-base;
-    }
-
-    td {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-      gap: $spacing-sm;
-      border-bottom: none;
-
-      &::before {
-        content: attr(data-label);
-        font-weight: $font-weight-semibold;
-      }
-    }
-  }
+  @include legal-table;
 }
 
 // Имена cookie длинные и без пробелов: переносим, иначе 360 px дают горизонтальную прокрутку.

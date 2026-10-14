@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ConsentChoice } from '@/components/public/legal/ConsentChoice';
 import { LegalPage } from '@/components/public/legal/LegalPage';
 import { getLegalDocument } from '@/content/legal';
 import { ConsentProvider } from '@/lib/consent/ConsentProvider';
@@ -22,7 +23,10 @@ const mount = (lang: SupportedLang) => {
   nav.pathname = `/${lang}/cookies`;
   return render(
     <ConsentProvider>
-      <LegalPage document={getLegalDocument('cookies', lang)} />
+      <LegalPage
+        document={getLegalDocument('cookies', lang)}
+        widgets={{ 'consent-choice': <ConsentChoice /> }}
+      />
     </ConsentProvider>
   );
 };
@@ -98,5 +102,18 @@ describe('/cookies', () => {
     expect(external).toHaveLength(1);
     expect(external[0].getAttribute('rel')).toBe('noopener noreferrer');
     expect(external[0].getAttribute('href')).toMatch(/^https:\/\/policies\.google\.com\//);
+  });
+});
+
+describe('/cookies: страница передаёт блок «Ваш выбор» слотом (F01-6)', () => {
+  it('маршрут рисует ConsentChoice, хотя LegalPage его не импортирует', async () => {
+    const { default: CookiesPage } = await import('@/app/[lang]/cookies/page');
+    nav.pathname = '/en/cookies';
+    render(
+      <ConsentProvider>
+        {await CookiesPage({ params: Promise.resolve({ lang: 'en' }) })}
+      </ConsentProvider>
+    );
+    expect(screen.getByTestId('consent-choice')).toBeTruthy();
   });
 });

@@ -108,6 +108,7 @@ describe('/llms.txt', () => {
             'privacy',
             'terms',
             'cookies',
+            'legal-notice',
             'deletion',
             'about',
             'editorial-policy',

@@ -1,0 +1,26 @@
+import { LegalPage } from '@/components/public/legal/LegalPage';
+import { getLegalDocument } from '@/content/legal';
+import { getPageMetadata } from '@/lib/utils/seo';
+import type { Metadata } from 'next';
+
+type Props = {
+  params: Promise<{ lang: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const resolvedParams = await params;
+  const document = getLegalDocument('legal-notice', resolvedParams.lang);
+
+  return getPageMetadata(
+    document.lang,
+    '/legal-notice',
+    document.metaTitle,
+    document.metaDescription
+  );
+}
+
+export default async function LegalNoticePage({ params }: Props) {
+  const resolvedParams = await params;
+
+  return <LegalPage document={getLegalDocument('legal-notice', resolvedParams.lang)} />;
+}

@@ -1,77 +1,122 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { LegalPage } from '@/components/public/legal/LegalPage';
 import { getLegalDocument } from '@/content/legal';
+import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
   usePathname: () => '/en/privacy',
 }));
 
-// Snapshot of the visible structure that the dictionaries rendered before the move (F01-1):
-// the same h1, the same h2 in order and the four list items of section 2.
-const PRIVACY = {
-  en: {
-    h1: 'Privacy Policy',
-    h2: [
-      '1. Information We Collect',
-      '2. How We Use Your Information',
-      '3. Data Sharing',
-      '4. Data Deletion and Retention',
-      '5. Contact Us',
-    ],
-    items: [
-      'Provide, maintain, and improve our services;',
-      'Personalize your reading experience and bookshelf;',
-      'Authenticate your identity via email/password or OAuth providers;',
-      'Communicate with you regarding updates, security alerts, and account-related notices.',
-    ],
-  },
-  ru: {
-    h1: 'Политика конфиденциальности',
-    h2: [
-      '1. Информация, которую мы собираем',
-      '2. Как мы используем вашу информацию',
-      '3. Передача данных',
-      '4. Удаление и хранение данных',
-      '5. Свяжитесь с нами',
-    ],
-    items: [
-      'Предоставлять, поддерживать и улучшать наши сервисы;',
-      'Персонализировать ваш опыт чтения и вашу книжную полку;',
-      'Подтверждать вашу личность через электронную почту/пароль или OAuth-провайдеров;',
-      'Информировать вас об обновлениях, предупреждениях безопасности и уведомлениях, связанных с аккаунтом.',
-    ],
-  },
-};
+/**
+ * Privacy и terms после F01-6 (`product.md` §10, §11): разделы по спецификации и в её порядке,
+ * оглавление, таблица «цель - основание - данные». Порядок якорей во всех языках сверяет тест паритета.
+ */
+const PRIVACY_SECTIONS = [
+  'who',
+  'data',
+  'purposes',
+  'recipients',
+  'transfers',
+  'retention',
+  'rights',
+  'regions',
+  'children',
+  'cookies',
+  'security',
+  'changes',
+];
+const TERMS_SECTIONS = [
+  'operator',
+  'service',
+  'account',
+  'use',
+  'content',
+  'comments',
+  'availability',
+  'rights-holders',
+  'liability',
+  'law',
+  'changes',
+  'contact',
+];
 
-describe('real legal documents', () => {
-  it.each(['en', 'ru'] as const)(
-    'privacy/%s renders the pre-move headings and list items',
+const ids = (page: 'privacy' | 'terms') =>
+  getLegalDocument(page, 'en').sections.map((section) => section.id);
+
+const sectionText = (page: 'privacy' | 'terms', lang: string, id: string) =>
+  JSON.stringify(getLegalDocument(page, lang).sections.find((section) => section.id === id));
+
+describe('privacy и terms (F01-6)', () => {
+  it('privacy: двенадцать разделов по product.md §10, с оглавлением', () => {
+    expect(ids('privacy')).toEqual(PRIVACY_SECTIONS);
+    expect(getLegalDocument('privacy', 'en').toc).toBe(true);
+  });
+
+  it('terms: двенадцать разделов по product.md §11, с оглавлением', () => {
+    expect(ids('terms')).toEqual(TERMS_SECTIONS);
+    expect(getLegalDocument('terms', 'en').toc).toBe(true);
+  });
+
+  it('privacy: таблица «цель - основание - данные» рисуется таблицей с подписями ячеек', () => {
+    render(<LegalPage document={getLegalDocument('privacy', 'en')} />);
+
+    const table = screen.getByRole('table');
+    expect(
+      within(table)
+        .getAllByRole('columnheader')
+        .map((th) => th.textContent)
+    ).toEqual(['Purpose', 'Legal basis', 'Data']);
+    const firstRow = within(table).getAllByRole('row')[1];
+    expect(
+      within(firstRow)
+        .getAllByRole('cell')
+        .map((td) => td.dataset.label)
+    ).toEqual(['Purpose', 'Legal basis', 'Data']);
+  });
+
+  it('terms/ru: доступность по странам - ровно утверждённая фраза (product.md §1, D6)', () => {
+    const availability = getLegalDocument('terms', 'ru').sections.find(
+      (section) => section.id === 'availability'
+    );
+    expect(availability?.blocks).toEqual([
+      {
+        kind: 'paragraph',
+        content: [{ kind: 'text', text: 'Книга может быть недоступна в некоторых странах.' }],
+      },
+    ]);
+  });
+
+  it.each(SUPPORTED_LANGS)(
+    '%s: в privacy нет Sentry, почтового сервиса и раздела про 152-ФЗ (owner-facts, D7)',
     (lang) => {
-      render(<LegalPage document={getLegalDocument('privacy', lang)} />);
-
-      expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(PRIVACY[lang].h1);
-      expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(
-        PRIVACY[lang].h2
-      );
-      expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual(
-        PRIVACY[lang].items
-      );
-      expect(screen.getAllByRole('link', { name: 'support@bibliaris.com' })).toHaveLength(2);
+      const text = JSON.stringify(getLegalDocument('privacy', lang));
+      expect(text).not.toMatch(/sentry|152-ФЗ|152-FZ|Роскомнадзор/i);
     }
   );
 
-  it('terms renders five sections', () => {
-    for (const doc of [getLegalDocument('terms', 'en'), getLegalDocument('terms', 'ru')]) {
-      const { unmount } = render(<LegalPage document={doc} />);
-      expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(5);
-      unmount();
+  it.each(SUPPORTED_LANGS)(
+    '%s: передача за рубеж - «надлежащие гарантии» (ст. 45/46), без названия механизма (решения арбитра 14.10.2026)',
+    (lang) => {
+      const transfers = sectionText('privacy', lang, 'transfers');
+      expect(transfers).toMatch(
+        /(Articles|artículos|articles|artigos|статьи) 45 (and|y|et|e|и) 46/
+      );
+      // DPF и стандартные договорные условия не названы ни для одного обработчика, на всех языках.
+      expect(transfers).not.toMatch(
+        /Privacy Framework|Privacidad de Datos|protection des données UE|DPF|SCC|contractual clauses|cláusulas contractuales|clauses contractuelles|cláusulas contratuais|договорн/i
+      );
+      const recipients = sectionText('privacy', lang, 'recipients');
+      for (const company of ['Namecheap, Inc.', 'Cloudflare', 'Google']) {
+        expect(recipients).toContain(company);
+      }
     }
-  });
+  );
 
   it('an unknown language falls back to the default document, as the dictionaries did', () => {
     expect(getLegalDocument('privacy', 'xx')).toBe(getLegalDocument('privacy', 'en'));
     expect(getLegalDocument('terms', 'de')).toBe(getLegalDocument('terms', 'en'));
+    expect(getLegalDocument('legal-notice', 'de')).toBe(getLegalDocument('legal-notice', 'en'));
   });
 });

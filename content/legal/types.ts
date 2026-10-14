@@ -6,7 +6,8 @@ export type LegalPageId =
   | 'cookies'
   | 'about'
   | 'contact'
-  | 'editorial-policy';
+  | 'editorial-policy'
+  | 'legal-notice';
 
 export type LegalInline =
   | { kind: 'text'; text: string }
@@ -20,9 +21,17 @@ export type LegalInline =
 /** Вставки правовой страницы: таблица из перечня cookie (серверная) и блок «Ваш выбор» (клиентский). */
 export type LegalWidget = 'cookie-table' | 'consent-choice';
 
+/**
+ * Клиентские вставки приходят от страницы слотом (`LegalPage` `widgets`), а не импортом в `LegalPage`:
+ * иначе их код уезжает в бандл каждой правовой страницы (решение арбитра 14.10.2026, F01-6).
+ */
+export type LegalClientWidget = Extract<LegalWidget, 'consent-choice'>;
+
 export type LegalBlock =
   | { kind: 'paragraph'; content: LegalInline[] }
   | { kind: 'list'; items: LegalInline[][] }
+  /** Таблица: `head` - подписи колонок, `rows` - строки из ячеек; число ячеек равно числу колонок. */
+  | { kind: 'table'; head: string[]; rows: LegalInline[][][] }
   | { kind: 'widget'; widget: LegalWidget };
 
 export type LegalSection = { id: string; heading: string; blocks: LegalBlock[] };

@@ -159,3 +159,48 @@
     border-radius: $border-radius-base;
   }
 }
+
+// Таблица правовой страницы: таблица cookie (`CookieTable`) и таблицы в тексте (`LegalPage`, F01-6).
+// Узкий экран: строка - карточка, подпись колонки берётся из `data-label` ячейки (`product.md` §1).
+@mixin legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+
+  th,
+  td {
+    padding: $spacing-sm;
+    border-bottom: 1px solid $color-border-base;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    font-weight: $font-weight-semibold;
+  }
+
+  @include mobile {
+    thead {
+      @include visually-hidden;
+    }
+
+    tr {
+      display: block;
+      margin-bottom: $spacing-md;
+      border: 1px solid $color-border-base;
+      border-radius: $border-radius-base;
+    }
+
+    td {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: $spacing-sm;
+      border-bottom: none;
+
+      &::before {
+        content: attr(data-label);
+        font-weight: $font-weight-semibold;
+      }
+    }
+  }
+}

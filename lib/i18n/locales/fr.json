@@ -55,6 +55,7 @@
     "groupLegal": "Informations légales",
     "cookiePolicy": "Politique relative aux cookies",
     "cookieSettings": "Paramètres des cookies",
+    "legalNotice": "Mentions légales",
     "about": "À propos",
     "editorialPolicy": "Politique éditoriale",
     "contact": "Contact",
@@ -355,7 +356,10 @@
       "checkFields": "Vérifiez l’adresse e-mail et le mot de passe, puis réessayez",
       "rateLimit": "Trop de requêtes. Veuillez réessayer plus tard.",
       "passwordPlaceholder": "Au moins 8 caractères",
-      "confirmPlaceholder": "Répétez votre mot de passe"
+      "confirmPlaceholder": "Répétez votre mot de passe",
+      "consentLine": "En créant un compte, vous acceptez les {terms} et confirmez avoir pris connaissance de la {privacy}.",
+      "consentTermsLink": "Conditions d'utilisation",
+      "consentPrivacyLink": "Politique de Confidentialité"
     }
   },
   "profile": {
@@ -539,7 +543,7 @@
     "step2": "Trouvez et sélectionnez {b}.",
     "step3": "Cliquez sur le bouton {b}.",
     "step3Action": "Supprimer",
-    "step4": "Vous pouvez également envoyer un e-mail directement à {b} avec votre demande. Nous traiterons votre demande et supprimerons de notre base de données toutes les données de votre profil utilisateur (e-mail, nom, avatar et entrées personnalisées de la bibliothèque) dans un délai de 24 heures.",
+    "step4": "Vous pouvez également envoyer un e-mail directement à {b} avec votre demande. Nous traiterons votre demande et supprimerons de notre base de données toutes les données de votre profil utilisateur (e-mail, nom, avatar et entrées personnalisées de la bibliothèque) dans un délai de {hours} heures.",
     "confirmationTitle": "Confirmation de la suppression",
     "confirmationBody": "Dès réception et traitement de votre demande, nous enverrons un e-mail de confirmation à l'adresse associée à votre profil confirmant que toutes les informations personnelles ont été définitivement supprimées de nos bases de données actives."
   },

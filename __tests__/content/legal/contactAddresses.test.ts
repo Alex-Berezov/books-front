@@ -8,7 +8,8 @@ import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
  * владельца. Сегодня все три равны общему, поэтому подмена здесь разводит их - иначе перепутанные
  * константы неотличимы, пока владелец не заполнит отдельные адреса.
  */
-vi.mock('@/lib/site/owner-facts', () => ({
+vi.mock('@/lib/site/owner-facts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/site/owner-facts')>()),
   contactGeneral: 'general@test.invalid',
   contactRights: 'rights@test.invalid',
   contactPrivacy: 'privacy@test.invalid',
@@ -29,6 +30,7 @@ describe('контакты: адрес блока - из своей конста
       corrections: ['general@test.invalid'],
       rights: ['rights@test.invalid'],
       privacy: ['privacy@test.invalid'],
+      response: [],
     });
   });
 });

@@ -23,6 +23,7 @@ const parts = (doc: LegalDocument): LegalInline[] =>
   doc.sections.flatMap((section) =>
     section.blocks.flatMap((block) => {
       if (block.kind === 'widget') return [];
+      if (block.kind === 'table') return block.rows.flat(2);
       return block.kind === 'list' ? block.items.flat() : block.content;
     })
   );
@@ -37,8 +38,8 @@ describe('страницы доверия: состав', () => {
     expect(ids('about')).toEqual(['what', 'readers', 'who', 'how', 'contact']);
   });
 
-  it('контакты: четыре блока по порядку', () => {
-    expect(ids('contact')).toEqual(['general', 'corrections', 'rights', 'privacy']);
+  it('контакты: четыре блока и срок ответа со ссылкой на сведения об операторе (F01-6)', () => {
+    expect(ids('contact')).toEqual(['general', 'corrections', 'rights', 'privacy', 'response']);
   });
 
   it('редакционная политика: якоря с #translations, без #independence', () => {
@@ -95,6 +96,7 @@ describe('страницы доверия: состав', () => {
       '/editorial-policy#corrections',
       '/privacy',
       '/deletion',
+      '/legal-notice',
     ]);
     expect(links(getLegalDocument('editorial-policy', lang))).toEqual(['/contact']);
     expect(ids('editorial-policy')).toContain('corrections');

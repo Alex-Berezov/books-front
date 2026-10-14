@@ -75,4 +75,58 @@ describe('LegalPage', () => {
 
     expect(screen.getByText(/11 июня 2026/)).toBeInTheDocument();
   });
+
+  it('renders a table block with column labels on every cell', () => {
+    render(
+      <LegalPage
+        document={{
+          ...document,
+          sections: [
+            {
+              id: 't',
+              heading: 'Table',
+              blocks: [
+                {
+                  kind: 'table',
+                  head: ['A', 'B'],
+                  rows: [
+                    [
+                      [{ kind: 'text', text: 'a1' }],
+                      [{ kind: 'link', text: 'b1', href: '/terms' }],
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+        }}
+      />
+    );
+
+    expect(screen.getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['A', 'B']);
+    expect(screen.getAllByRole('cell').map((td) => td.dataset.label)).toEqual(['A', 'B']);
+    expect(screen.getByRole('link', { name: 'b1' })).toHaveAttribute('href', '/en/terms');
+  });
+
+  it('renders a client widget passed by the page and fails loudly when it is missing', () => {
+    const withWidget: LegalDocument = {
+      ...document,
+      sections: [{ id: 'w', heading: 'W', blocks: [{ kind: 'widget', widget: 'consent-choice' }] }],
+    };
+
+    render(
+      <LegalPage
+        document={withWidget}
+        widgets={{ 'consent-choice': <div data-testid="slot">slot</div> }}
+      />
+    );
+    expect(screen.getByTestId('slot')).toBeInTheDocument();
+
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(() => render(<LegalPage document={withWidget} />)).toThrow(/consent-choice/);
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });

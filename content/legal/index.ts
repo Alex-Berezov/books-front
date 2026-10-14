@@ -20,6 +20,11 @@ import { document as editorialPolicyEs } from './editorial-policy/es';
 import { document as editorialPolicyFr } from './editorial-policy/fr';
 import { document as editorialPolicyPt } from './editorial-policy/pt';
 import { document as editorialPolicyRu } from './editorial-policy/ru';
+import { document as legalNoticeEn } from './legal-notice/en';
+import { document as legalNoticeEs } from './legal-notice/es';
+import { document as legalNoticeFr } from './legal-notice/fr';
+import { document as legalNoticePt } from './legal-notice/pt';
+import { document as legalNoticeRu } from './legal-notice/ru';
 import { document as privacyEn } from './privacy/en';
 import { document as privacyEs } from './privacy/es';
 import { document as privacyFr } from './privacy/fr';
@@ -44,6 +49,13 @@ const documents: Record<LegalPageId, Record<SupportedLang, LegalDocument>> = {
     ru: editorialPolicyRu,
   },
   cookies: { en: cookiesEn, es: cookiesEs, fr: cookiesFr, pt: cookiesPt, ru: cookiesRu },
+  'legal-notice': {
+    en: legalNoticeEn,
+    es: legalNoticeEs,
+    fr: legalNoticeFr,
+    pt: legalNoticePt,
+    ru: legalNoticeRu,
+  },
 };
 
 // Незнакомый язык получает документ языка по умолчанию - так же, как словарь в `getDictionary`.

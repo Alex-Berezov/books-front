@@ -55,6 +55,7 @@
     "groupLegal": "Informações legais",
     "cookiePolicy": "Política de Cookies",
     "cookieSettings": "Configurações de Cookies",
+    "legalNotice": "Aviso legal",
     "about": "Sobre nós",
     "editorialPolicy": "Política editorial",
     "contact": "Contato",
@@ -355,7 +356,10 @@
       "checkFields": "Verifique o e-mail e a senha e tente novamente",
       "rateLimit": "Muitas solicitações. Tente novamente mais tarde.",
       "passwordPlaceholder": "Pelo menos 8 caracteres",
-      "confirmPlaceholder": "Repita sua senha"
+      "confirmPlaceholder": "Repita sua senha",
+      "consentLine": "Ao criar uma conta, você aceita os {terms} e confirma que leu a {privacy}.",
+      "consentTermsLink": "Termos de Serviço",
+      "consentPrivacyLink": "Política de Privacidade"
     }
   },
   "profile": {
@@ -539,7 +543,7 @@
     "step2": "Encontre e selecione {b}.",
     "step3": "Clique no botão {b}.",
     "step3Action": "Remover",
-    "step4": "Como alternativa, você pode enviar um e-mail diretamente para {b} com sua solicitação. Processaremos sua solicitação e excluiremos todos os dados do seu perfil de usuário (e-mail, nome, avatar e itens personalizados da estante) do nosso banco de dados em até 24 horas.",
+    "step4": "Como alternativa, você pode enviar um e-mail diretamente para {b} com sua solicitação. Processaremos sua solicitação e excluiremos todos os dados do seu perfil de usuário (e-mail, nome, avatar e itens personalizados da estante) do nosso banco de dados em até {hours} horas.",
     "confirmationTitle": "Confirmação da Exclusão",
     "confirmationBody": "Ao receber e processar sua solicitação, enviaremos um e-mail de confirmação para o endereço associado ao seu perfil, confirmando que todas as informações pessoais foram removidas permanentemente dos nossos bancos de dados ativos."
   },

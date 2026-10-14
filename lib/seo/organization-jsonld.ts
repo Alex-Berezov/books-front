@@ -1,5 +1,5 @@
 import { buildLangUrl, buildPublicUrl } from '@/lib/seo/urls';
-import { contactGeneral } from '@/lib/site/owner-facts';
+import { contactGeneral } from '@/lib/site/owner-contacts';
 
 const SITE_NAME = 'Bibliaris';
 

@@ -49,6 +49,7 @@ export const RESERVED_SLUGS = [
   'editorial-policy',
   'genre',
   'genres',
+  'legal-notice',
   'listen',
   'new-releases',
   'popular-books',

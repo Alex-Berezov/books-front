@@ -1,5 +1,10 @@
 import 'server-only';
-import { contactGeneral, contactPrivacy, contactRights } from '@/lib/site/owner-facts';
+import {
+  contactGeneral,
+  contactPrivacy,
+  contactResponseDays,
+  contactRights,
+} from '@/lib/site/owner-facts';
 import type { LegalDocument } from '../types';
 
 export const document: LegalDocument = {
@@ -9,7 +14,7 @@ export const document: LegalDocument = {
   metaDescription:
     'How to reach Bibliaris: general questions and support, mistakes in a text or summary, a message from a rights holder, and personal data requests.',
   title: 'Contact',
-  updatedAt: '2026-10-13',
+  updatedAt: '2026-10-14',
   toc: false,
   sections: [
     {
@@ -93,6 +98,23 @@ export const document: LegalDocument = {
             { kind: 'text', text: ' and the ' },
             { kind: 'link', text: 'data deletion page', href: '/deletion' },
             { kind: 'text', text: '.' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'response',
+      heading: 'Response time and site operator',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: `We reply within ${contactResponseDays} days. Who runs the site and its postal address are on the `,
+            },
+            { kind: 'link', text: 'Legal Notice', href: '/legal-notice' },
+            { kind: 'text', text: ' page.' },
           ],
         },
       ],

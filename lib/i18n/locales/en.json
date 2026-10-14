@@ -55,6 +55,7 @@
     "groupLegal": "Legal",
     "cookiePolicy": "Cookie Policy",
     "cookieSettings": "Cookie Settings",
+    "legalNotice": "Legal Notice",
     "about": "About Us",
     "editorialPolicy": "Editorial Policy",
     "contact": "Contact",
@@ -407,7 +408,10 @@
       "checkFields": "Check the email and password and try again",
       "rateLimit": "Too many requests. Please try again later.",
       "passwordPlaceholder": "At least 8 characters",
-      "confirmPlaceholder": "Repeat your password"
+      "confirmPlaceholder": "Repeat your password",
+      "consentLine": "By creating an account, you accept the {terms} and confirm that you have read the {privacy}.",
+      "consentTermsLink": "Terms of Service",
+      "consentPrivacyLink": "Privacy Policy"
     }
   },
   "profile": {
@@ -539,7 +543,7 @@
     "step2": "Find and select {b}.",
     "step3": "Click the {b} button.",
     "step3Action": "Remove",
-    "step4": "Alternatively, you can send an email directly to {b} with your request. We will process your request and delete all your user profile data (email, name, avatar, and customized bookshelf entries) from our database within 24 hours.",
+    "step4": "Alternatively, you can send an email directly to {b} with your request. We will process your request and delete all your user profile data (email, name, avatar, and customized bookshelf entries) from our database within {hours} hours.",
     "confirmationTitle": "Confirmation of Deletion",
     "confirmationBody": "Upon receiving and processing your request, we will send a confirmation email to the address associated with your profile confirming that all personal information has been permanently removed from our active databases."
   },

@@ -1,4 +1,5 @@
 @import '@/styles/tokens.scss';
+@import '@/styles/mixins.scss';
 
 // Общие стили юридических страниц: `privacy`, `terms`, `cookies`, `deletion`.
 // Файл один на все такие страницы потому, что разметка у них совпадает блок в блок;
@@ -107,4 +108,18 @@
 
 .step {
   margin-bottom: $spacing-sm + $spacing-xs; // 12px
+}
+
+// Таблица в тексте (F01-6, privacy «цель - основание - данные»): вид общий с таблицей cookie -
+// миксин `legal-table`.
+.tableWrapper {
+  margin-bottom: $spacing-sm + $spacing-xs; // 12px, как у абзаца
+}
+
+.table {
+  @include legal-table;
+
+  td {
+    overflow-wrap: anywhere;
+  }
 }
