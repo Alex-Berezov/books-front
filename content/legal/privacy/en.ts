@@ -1,12 +1,13 @@
 import 'server-only';
 import { countryName } from '@/lib/i18n/countryName';
+import { pluralize } from '@/lib/i18n/plural';
 import {
   contactPrivacy,
   contactResponseDays,
   minimumAge,
   operatorCountry,
   operatorLegalName,
-  retentionAnalyticsMaxMonths,
+  retentionAnalyticsMonths,
   retentionBackupsMonths,
   retentionDeletionHours,
   retentionServerLogsDays,
@@ -271,7 +272,7 @@ export const document: LegalDocument = {
             [
               {
                 kind: 'text',
-                text: `Google Analytics data: no longer than ${retentionAnalyticsMaxMonths} months.`,
+                text: `Google Analytics data about individual visitors and their actions: up to ${retentionAnalyticsMonths} ${pluralize(retentionAnalyticsMonths, 'en', { one: 'month', few: 'months', many: 'months' })} after your last visit. Aggregated visit statistics without identifiers are kept longer.`,
               },
             ],
             [

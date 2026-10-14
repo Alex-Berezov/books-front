@@ -27,9 +27,10 @@ export const governingLawCountry = 'AM';
 /** Минимальный возраст для аккаунта (`terms.minimumAge`). */
 export const minimumAge = 16;
 
-// Сроки хранения (`retention.*`). Резервные копии и аналитика - решения арбитра 14.10.2026 (F01-6).
+// Сроки хранения (`retention.*`). Резервные копии - решение арбитра 14.10.2026 (F01-6); аналитика -
+// настройка GA, подтверждена владельцем 14.10.2026 (вместо «не дольше 14 месяцев»).
 // Удаление из рабочей базы по запросу: `/deletion` (`deletion.step4`, `{hours}`) и privacy.
 export const retentionDeletionHours = 24;
 export const retentionServerLogsDays = 30;
 export const retentionBackupsMonths = 12;
-export const retentionAnalyticsMaxMonths = 14;
+export const retentionAnalyticsMonths = 2;

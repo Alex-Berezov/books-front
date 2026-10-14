@@ -114,6 +114,34 @@ describe('privacy и terms (F01-6)', () => {
     }
   );
 
+  it.each([
+    [
+      'en',
+      'Google Analytics data about individual visitors and their actions: up to 2 months after your last visit. Aggregated visit statistics without identifiers are kept longer.',
+    ],
+    [
+      'es',
+      'Datos de Google Analytics sobre visitantes concretos y sus acciones: hasta 2 meses después de tu última visita. Las estadísticas agregadas de visitas, sin identificadores, se conservan más tiempo.',
+    ],
+    [
+      'fr',
+      'Données de Google Analytics sur chaque visiteur et ses actions : jusqu’à 2 mois après votre dernière visite. Les statistiques de visite agrégées, sans identifiant, sont conservées plus longtemps.',
+    ],
+    [
+      'pt',
+      'Dados do Google Analytics sobre cada visitante e suas ações: até 2 meses após a sua última visita. As estatísticas agregadas de visitas, sem identificadores, são mantidas por mais tempo.',
+    ],
+    [
+      'ru',
+      'Данные Google Analytics о конкретных посетителях и их действиях: до 2 месяцев после вашего последнего визита. Сводная статистика посещений без идентификаторов хранится дольше.',
+    ],
+  ] as const)(
+    '%s: срок данных GA - 2 месяца в верной форме слова (подтверждено владельцем 14.10.2026)',
+    (lang, line) => {
+      expect(sectionText('privacy', lang, 'retention')).toContain(line);
+    }
+  );
+
   it('an unknown language falls back to the default document, as the dictionaries did', () => {
     expect(getLegalDocument('privacy', 'xx')).toBe(getLegalDocument('privacy', 'en'));
     expect(getLegalDocument('terms', 'de')).toBe(getLegalDocument('terms', 'en'));

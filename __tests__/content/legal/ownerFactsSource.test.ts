@@ -26,7 +26,7 @@ vi.mock('@/lib/site/owner-facts', () => ({
   minimumAge: 9002,
   retentionServerLogsDays: 9003,
   retentionBackupsMonths: 9004,
-  retentionAnalyticsMaxMonths: 9005,
+  retentionAnalyticsMonths: 9005,
   retentionDeletionHours: 9006,
   // Второй статус: текст обязан смениться во всех 15 модулях (решение арбитра 14.10.2026).
   operatorStatus: 'sole-proprietor',
