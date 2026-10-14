@@ -14,15 +14,15 @@ import { describe, expect, it } from 'vitest';
  * «do NOT generate from display name»), но текстом в комментарии он держался ровно до
  * следующего, кто его не прочитал. Здесь он машинный.
  *
- * Сторож сканирует **исходник**: обе точки — асинхронный серверный компонент с сетевыми
- * запросами и маппер, вызываемый из клиентского компонента; рендер-тест потребовал бы
+ * Сторож сканирует **исходник**: точки — асинхронный серверный компонент с сетевыми
+ * запросами и клиентский компонент страницы автора; рендер-тест потребовал бы
  * мокать весь слой данных ради одной строки адреса. Тот же приём, что и в
  * `__tests__/eslintInlineStyles.test.ts` и `__tests__/app/bookCopyrightStatusHidden.test.ts`.
  *
  * ⚠️ Границы сторожа. Он стережёт **отсутствие слагификации** в двух названных файлах.
  * Того, что слаг доехал с бэкенда и верен, он не проверяет — это делают спеки бэкенда
- * (`books/src/modules/book/book.service.spec.ts`, `seo.service.spec.ts`) и тест маппера
- * (`__tests__/lib/mappers/bookCardModel.test.ts`).
+ * (`books/src/modules/book/book.service.spec.ts`, `seo.service.spec.ts`,
+ * `author/author.service.spec.ts`).
  */
 
 /** Цепочка, которой слаг собирался из имени. Пробельный класс пишется врозь, иначе сторож найдёт сам себя. */
@@ -60,8 +60,10 @@ describe('LEGACY-006: адрес автора берётся с сервера, 
     expect(source).toContain('encodeURIComponent(authorSlug)');
   });
 
-  it('маппер карточек автора не собирает слаг из имени', () => {
-    const source = readRepoCode('lib/mappers/book.ts');
+  // F02-1: маппера карточек автора больше нет — книга приходит готовой карточкой со слагом
+  // автора с бэкенда. Сторож переходит на страницу автора, которая эти карточки выводит.
+  it('страница автора не собирает слаг из имени', () => {
+    const source = readRepoCode('app/[lang]/author/[authorSlug]/AuthorDetailClient.tsx');
 
     expect(source).not.toContain(SLUGIFY_CALL);
   });

@@ -1,4 +1,5 @@
-import type { PublicationStatus, SupportedLang, UUID } from './common';
+import type { BookCardModel } from './books';
+import type { SupportedLang, UUID } from './common';
 import type { SeoData } from './pages';
 
 export interface AuthorQuote {
@@ -96,35 +97,35 @@ export interface PublicAuthorDetail {
   quotes?: AuthorQuote[] | null;
   faq?: AuthorFaq[] | null;
   seo?: SeoData | null;
-  similarAuthors: { name: string; slug: string }[];
   /**
-   * Узкая форма: ручка собирает книгу автора поимённо из одиннадцати полей
-   * (`books/src/modules/author/author.service.ts`, `getPublicBySlug`), а не отдаёт
-   * общий обзор книги. До 10.09.2026 здесь стоял `BookOverview`, обещавший язык,
-   * категории, теги и даты, которых в ответе нет.
+   * Похожие авторы: слаг ищется на любом языке и приводится к переводу на языке страницы.
+   * `slug: null` — перевода на этот язык нет, имя показывается текстом без ссылки.
    */
+  similarAuthors: { name: string; slug: string | null }[];
+  /**
+   * Переводы автора для `hreflang`; `indexable` — опубликованных книг на языке больше нуля,
+   * то же правило, что у карты сайта. Необязательно: ответ бэкенда до F02-1 поля не несёт.
+   */
+  alternates?: PublicAuthorAlternate[];
+  /** Опубликованных книг автора на языке — отдельным счётом. До F02-1 поля нет. */
+  booksTotal?: number;
+  /** Книги автора: общая карточка (`BookCard`) плюс год; порядок — по году, без года в конце. */
   books: PublicAuthorBook[];
 }
 
-/** Книга на странице автора (`PublicAuthorBookDto`). */
-export interface PublicAuthorBook {
-  id: UUID;
-  bookId: UUID;
+/** Перевод автора для кластера `hreflang` (`PublicAuthorAlternateDto`). */
+export interface PublicAuthorAlternate {
+  lang: SupportedLang;
   slug: string;
-  title: string;
-  author: string;
-  coverImageUrl: string;
-  coverUrl?: string | null;
-  type: string;
-  isFree: boolean;
-  rating?: number | null;
-  versions: {
-    language: SupportedLang;
-    status: PublicationStatus;
-    type: string;
-    coverImageUrl: string;
-    coverUrl: string;
-  }[];
+  indexable: boolean;
+}
+
+/**
+ * Книга на странице автора (`PublicAuthorBookDto`): та же карточка, что отдаёт
+ * `/{lang}/authors/{slug}/books/cards`, и год первой публикации.
+ */
+export interface PublicAuthorBook extends BookCardModel {
+  firstPublishedYear: number | null;
 }
 
 export interface CreateAuthorRequest {

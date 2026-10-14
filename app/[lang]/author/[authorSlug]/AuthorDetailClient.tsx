@@ -1,16 +1,8 @@
 'use client';
 
-import {
-  ChevronLeft,
-  BookOpen,
-  User,
-  Quote,
-  HelpCircle,
-  AudioLines,
-  Users,
-  ExternalLink,
-} from 'lucide-react';
+import { ChevronLeft, BookOpen, User, Quote, HelpCircle, Users, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePublicAuthor } from '@/api/hooks/useAuthors';
 import { Button } from '@/components/common/Button';
@@ -18,11 +10,12 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { RichTextContent } from '@/components/common/RichTextContent';
 import { Skeleton, SkeletonBlock } from '@/components/common/Skeleton';
+import { authorsBasePath } from '@/components/public/authors/authors-href';
 import { BookCard } from '@/components/public/books/BookCard';
+import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
 import { useSmartBack } from '@/components/public/navigation';
 import { pluralize, pluralFormsOf } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { toBookCardModelFromAuthorBook } from '@/lib/mappers/book';
 import { isOptimizableHost } from '@/lib/utils/image-host';
 import { isSafeHref } from '@/lib/utils/safe-href';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -70,18 +63,19 @@ export default function AuthorDetailClient({
   let biography = '';
   let quotes: { text: string; source?: string }[] = [];
   let faq: { question: string; answer: string }[] = [];
-  let similarAuthors: { name: string; slug: string }[] = [];
+  let similarAuthors: { name: string; slug: string | null }[] = [];
   let photoUrl: string | null = null;
   let wikidataUrl: string | null = null;
   let wikipediaUrl: string | null = null;
 
+  let booksTotal: number | undefined;
+
   if (dbAuthor) {
     finalDisplayName = dbAuthor.name;
-    // LEGACY-006: слаг автора берётся из адреса страницы — это книги именно этого автора,
-    // и выводить его из отображаемого имени нельзя (адрес бывает транслитерацией).
-    authorBooks = (dbAuthor.books || []).map((book) =>
-      toBookCardModelFromAuthorBook(book, authorSlug)
-    );
+    // Книга приходит готовой карточкой — той же, что у `/books/cards`, со слагом автора
+    // на языке страницы (LEGACY-006: из отображаемого имени слаг не выводится).
+    authorBooks = dbAuthor.books || [];
+    booksTotal = dbAuthor.booksTotal;
     biography = dbAuthor.biography || '';
     quotes = (dbAuthor.quotes as AuthorQuote[]) || [];
     faq = (dbAuthor.faq as AuthorFaq[]) || [];
@@ -94,10 +88,9 @@ export default function AuthorDetailClient({
     finalDisplayName = authorBooks.length > 0 ? authorBooks[0].author : displayName;
   }
 
-  const totalBooks = authorBooks.length;
-  const audioBooks = authorBooks.filter((b) => b.hasAudio === true);
-
-  const hasAudiobooks = audioBooks.length > 0;
+  // Счёт — от `booksTotal`, а не от длины списка: с F02-3 страница отдаёт порцию.
+  const totalBooks = booksTotal ?? authorBooks.length;
+  const hasAudiobooks = authorBooks.some((b) => b.hasAudio);
   const ratings = authorBooks
     .map((b) => b.rating)
     .filter((r): r is number => typeof r === 'number');
@@ -118,6 +111,16 @@ export default function AuthorDetailClient({
         >
           {t('author.back')}
         </Button>
+
+        {/* Разметку `BreadcrumbList` выводит страница (`page.tsx`) — здесь только видимые крошки. */}
+        <Breadcrumbs
+          items={[
+            { label: t('breadcrumb.home'), href: `/${supportedLang}` },
+            { label: t('breadcrumb.authors'), href: authorsBasePath(supportedLang, null) },
+            { label: finalDisplayName },
+          ]}
+          emitJsonLd={false}
+        />
 
         {/* Author Hero */}
         <div className={styles.authorHero}>
@@ -226,21 +229,6 @@ export default function AuthorDetailClient({
           )}
         </section>
 
-        {/* Audiobooks Section */}
-        {!isLoading && hasAudiobooks && (
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>
-              <AudioLines size={20} className={styles.iconTitle} />
-              {t('author.audio')}
-            </h2>
-            <div className={styles.booksGrid}>
-              {audioBooks.map((book) => (
-                <BookCard key={book.id} book={book} size="md" />
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* Quotes Section */}
         {quotes.length > 0 && (
           <QuotesBlock items={quotes} title={t('author.quotes')} icon={<Quote size={20} />} />
@@ -254,16 +242,23 @@ export default function AuthorDetailClient({
               {t('author.similar')}
             </h2>
             <div className={styles.similarGrid}>
-              {similarAuthors.map((sa, idx) => (
-                <Button
-                  key={idx}
-                  variant="ghost"
-                  onClick={() => router.push(`/${supportedLang}/author/${sa.slug}`)}
-                  className={styles.similarBtn}
-                >
-                  {sa.name}
-                </Button>
-              ))}
+              {/* Настоящие ссылки, а не кнопки: поисковик ходит по `href`. Автор без перевода
+                  на язык страницы (`slug: null`) — имя текстом. */}
+              {similarAuthors.map((sa, idx) =>
+                sa.slug ? (
+                  <Link
+                    key={sa.slug}
+                    href={`/${supportedLang}/author/${sa.slug}`}
+                    className={styles.similarLink}
+                  >
+                    {sa.name}
+                  </Link>
+                ) : (
+                  <span key={`text-${idx}`} className={styles.similarName}>
+                    {sa.name}
+                  </span>
+                )
+              )}
             </div>
           </section>
         )}

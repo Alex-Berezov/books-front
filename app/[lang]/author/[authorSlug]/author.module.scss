@@ -197,9 +197,24 @@
   flex-wrap: wrap;
 }
 
-.similarBtn {
-  border-radius: $border-radius-round !important;
-  font-size: $font-size-sm !important;
+.similarLink,
+.similarName {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-full;
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+}
+
+.similarLink {
+  text-decoration: none;
+
+  &:hover {
+    color: var(--public-primary);
+    border-color: var(--public-primary);
+  }
 }
 
 .externalLinks {
@@ -221,4 +236,3 @@
     text-decoration: underline;
   }
 }
-

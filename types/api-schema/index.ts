@@ -285,6 +285,7 @@ export type {
   AuthorListTranslation,
   AuthorQuote,
   AuthorTranslation,
+  PublicAuthorAlternate,
   PublicAuthorBook,
   PublicAuthorDetail,
   CreateAuthorRequest,
