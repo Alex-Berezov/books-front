@@ -67,7 +67,7 @@ export const SeoOpenGraphSection = <TFormData extends FieldValues>(
 
   return (
     <SeoCollapsible
-      title="Open Graph - Social Media (Facebook, LinkedIn) (required)"
+      title="Open Graph - Social Media (required)"
       forceOpen={Boolean(
         errors[ogTitleField] ||
         errors[ogDescriptionField] ||
@@ -82,7 +82,7 @@ export const SeoOpenGraphSection = <TFormData extends FieldValues>(
       <FormField
         error={errors[ogTitleField]?.message as string | undefined}
         footer={<CharCounter current={(watch(ogTitleField) as string)?.length || 0} max={60} />}
-        hint="Title shown when shared on Facebook, LinkedIn."
+        hint="Title shown when the page is shared on social media."
         id={ogTitleField}
         label="OG Title"
         required

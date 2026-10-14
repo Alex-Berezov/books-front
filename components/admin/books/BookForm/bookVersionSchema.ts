@@ -58,7 +58,7 @@ export const bookVersionBaseSchema = z.object({
   /** Robots meta tag for indexing control */
   seoRobots: z.string(),
 
-  // Open Graph (Facebook, LinkedIn)
+  // Open Graph
   /** OG title for social media */
   seoOgTitle: z.string().max(60, 'OG Title is too long'),
   /** OG description for social media */

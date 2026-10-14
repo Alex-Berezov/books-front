@@ -1,6 +1,6 @@
 # NextAuth Authorization Module
 
-> NextAuth v5 for Bibliaris: Credentials + Google + Facebook, JWT/session callbacks, token auto-refresh, sign-in/register pages, route protection in `middleware.ts`. Systemic context: `books-app-docs/ai-context/auth-and-permissions.md`.
+> NextAuth v5 for Bibliaris: Credentials + Google, JWT/session callbacks, token auto-refresh, sign-in/register pages, route protection in `middleware.ts`. Systemic context: `books-app-docs/ai-context/auth-and-permissions.md`.
 
 ## 📁 Structure
 
@@ -28,7 +28,7 @@ types/
 - NextAuth v5 instance (`auth`, `signIn`, `signOut`, `handlers`)
 - Types for User, Session, JWT (with roles, tokens)
 - Credentials Provider with full `authorize()` against `POST /auth/login`
-- Google + Facebook OAuth providers (sync via `POST /auth/social`)
+- Google OAuth provider (sync via `POST /auth/social`)
 - JWT + Session callbacks with automatic token refresh (`refreshAccessToken`)
 - API Route Handler (`/api/auth/*`)
 - SessionProvider integrated into `AppProviders`

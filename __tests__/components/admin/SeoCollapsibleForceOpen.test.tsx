@@ -97,7 +97,7 @@ describe('секции SEO раскрываются по ошибке своег
     const { container } = renderHarness({});
     expect(openBySummary(container)).toEqual({
       'Technical SEO (required)': false,
-      'Open Graph - Social Media (Facebook, LinkedIn) (required)': false,
+      'Open Graph - Social Media (required)': false,
     });
   });
 
@@ -105,7 +105,7 @@ describe('секции SEO раскрываются по ошибке своег
     const { container } = renderHarness({ seoCanonicalUrl: error });
     expect(openBySummary(container)).toEqual({
       'Technical SEO (required)': true,
-      'Open Graph - Social Media (Facebook, LinkedIn) (required)': false,
+      'Open Graph - Social Media (required)': false,
     });
   });
 
@@ -115,7 +115,7 @@ describe('секции SEO раскрываются по ошибке своег
       const { container } = renderHarness({ [field]: error });
       expect(openBySummary(container)).toEqual({
         'Technical SEO (required)': false,
-        'Open Graph - Social Media (Facebook, LinkedIn) (required)': true,
+        'Open Graph - Social Media (required)': true,
       });
     }
   );

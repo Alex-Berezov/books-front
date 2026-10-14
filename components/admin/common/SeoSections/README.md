@@ -9,7 +9,7 @@ components/admin/common/SeoSections/
 ├── index.ts                      # Re-exports all components
 ├── SeoBasicSection.tsx           # Meta Title & Meta Description
 ├── SeoTechnicalSection.tsx       # Canonical URL & Robots
-├── SeoOpenGraphSection.tsx       # Open Graph (Facebook, LinkedIn)
+├── SeoOpenGraphSection.tsx       # Open Graph
 ├── SeoTwitterSection.tsx         # Twitter Card
 └── ui/
     ├── CharCounter.tsx           # Character counter for fields

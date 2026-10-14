@@ -394,15 +394,8 @@ export const authOptions = {
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
     }),
-    // Facebook is deliberately absent. It was configured but never finished, and
-    // no button ever called it — yet registering the provider kept
-    // /api/auth/signin/facebook reachable by URL. Facebook has no OIDC id_token
-    // (only an access_token), so such a sign-in could not present the proof the
-    // backend now requires and would have had to keep the unverified e-mail path
-    // alive for it. The backend still verifies Facebook tokens
-    // (SocialIdentityService), so bringing it back is: register the provider
-    // here, send account.access_token, and set AUTH_FACEBOOK_ID/SECRET on the
-    // API. See LEGACY-070 in books-app-docs/ai-context/legacy-warnings.md.
+    // Google is the only social provider: the backend takes `provider: 'google'` only on
+    // POST /auth/social and requires a provider-signed id_token (LEGACY-070).
   ],
 
   // Callbacks for JWT and session handling

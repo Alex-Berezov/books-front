@@ -13,7 +13,7 @@ type Props = {
   params: Promise<{ lang: string }>;
 };
 
-const LAST_UPDATED_DATE = '2026-06-11';
+const LAST_UPDATED_DATE = '2026-10-14';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
@@ -55,19 +55,10 @@ export default async function DeletionPage({ params }: Props) {
 
       <ol className={styles.steps}>
         <li className={styles.step}>
-          <TextWithBold text={dict.deletion.step1} bold={dict.deletion.step1Path} />
+          <TextWithBold text={dict.deletion.step1} bold={contactGeneral} />
         </li>
         <li className={styles.step}>
-          <TextWithBold text={dict.deletion.step2} bold="Bibliaris" />
-        </li>
-        <li className={styles.step}>
-          <TextWithBold text={dict.deletion.step3} bold={dict.deletion.step3Action} />
-        </li>
-        <li className={styles.step}>
-          <TextWithBold
-            text={dict.deletion.step4.replace('{hours}', String(retentionDeletionHours))}
-            bold={contactGeneral}
-          />
+          {dict.deletion.step2.replace('{hours}', String(retentionDeletionHours))}
         </li>
       </ol>
 
