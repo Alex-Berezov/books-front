@@ -35,6 +35,8 @@ describe('sanitizeRichHtml, Node branch', () => {
         'br',
         'code',
         'em',
+        'figcaption',
+        'figure',
         'h1',
         'h2',
         'h3',

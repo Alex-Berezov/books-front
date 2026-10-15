@@ -24,6 +24,9 @@ export const RICH_HTML_ALLOWED_TAGS: readonly string[] = [
   'hr',
   'a',
   'img',
+  // F02-2: цитата-эпиграф в биографии автора (`tech.md` §2); пара — `books/src/shared/sanitize/rich-html.ts`.
+  'figure',
+  'figcaption',
 ];
 
 export const RICH_HTML_ALLOWED_ATTRIBUTES: Readonly<Record<string, readonly string[]>> = {

@@ -136,23 +136,6 @@
   margin-top: $spacing-sm;
 }
 
-.subItemRow {
-  display: flex;
-  gap: $spacing-sm;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.quoteText {
-  flex: 3;
-  min-width: 200px;
-}
-
-.quoteSource {
-  flex: 1;
-  min-width: 120px;
-}
-
 .faqBlock {
   display: flex;
   gap: $spacing-sm;
@@ -228,4 +211,41 @@
   margin-top: $spacing-lg;
   border-top: 1px solid $color-border-light;
   padding-top: $spacing-md;
+}
+
+.jsonTextarea {
+  font-family: $font-family-mono;
+  font-size: $font-size-sm;
+}
+
+.textareaError {
+  border-color: $color-error;
+}
+
+.issueList {
+  margin: 0;
+  padding-left: $spacing-md;
+  color: $color-error;
+  font-size: $font-size-sm;
+}
+
+.hint {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.factsFieldset {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-lg;
+  padding: $spacing-md;
+  margin: 0;
+}
+
+.notice {
+  margin: 0;
+  padding-left: $spacing-md;
 }

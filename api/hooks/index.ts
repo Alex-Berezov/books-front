@@ -195,6 +195,7 @@ export {
   authorKeys,
   useAuthors,
   useAuthor,
+  useAuthorPromptInputs,
   usePublicAuthor,
   useCreateAuthor,
   useUpdateAuthor,

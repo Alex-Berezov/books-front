@@ -13,7 +13,10 @@ const { updateSpy, enqueueSpy } = vi.hoisted(() => ({
   enqueueSpy: vi.fn(),
 }));
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/admin/en/authors/a1/edit',
+}));
 
 vi.mock('notistack', async (importOriginal) => {
   const actual = await importOriginal<typeof import('notistack')>();
@@ -26,6 +29,7 @@ vi.mock('notistack', async (importOriginal) => {
 vi.mock('@/api/hooks/useAuthors', () => ({
   useCreateAuthor: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateAuthor: () => ({ mutateAsync: updateSpy, isPending: false }),
+  useAuthorPromptInputs: () => ({ refetch: vi.fn(), isFetching: false }),
 }));
 
 vi.mock('@/components/admin/common/AdminRichTextEditor', () => ({

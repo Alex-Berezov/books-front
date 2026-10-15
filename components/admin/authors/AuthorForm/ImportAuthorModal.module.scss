@@ -1,3 +1,5 @@
+@import '@/styles/tokens.scss';
+
 .container {
   display: flex;
   flex-direction: column;
@@ -21,4 +23,18 @@
   font-size: 13px;
   font-weight: 500;
   margin-top: 4px;
+}
+
+.warning {
+  color: $color-text-primary;
+  background-color: $color-background-secondary;
+  border-left: 3px solid $color-warning;
+  border-radius: $border-radius-sm;
+  padding: $spacing-xs $spacing-sm;
+  font-size: $font-size-sm;
+}
+
+.issueList {
+  margin: $spacing-xs 0 0;
+  padding-left: $spacing-md;
 }

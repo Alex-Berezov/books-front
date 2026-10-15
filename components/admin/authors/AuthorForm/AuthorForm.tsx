@@ -1,55 +1,74 @@
 'use client';
 
-import { useEffect, useState, type FC } from 'react';
-import { Download } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FC, type ReactNode } from 'react';
+import { ClipboardCopy, Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
-import { useCreateAuthor, useUpdateAuthor } from '@/api/hooks/useAuthors';
+import { useAuthorPromptInputs, useCreateAuthor, useUpdateAuthor } from '@/api/hooks/useAuthors';
 import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
 import { Button } from '@/components/admin/common/Button';
 import { MediaPicker } from '@/components/admin/common/MediaPicker/MediaPicker';
 import { SlugInput } from '@/components/admin/common/SlugInput';
 import { Input } from '@/components/common/Input';
+import {
+  applyPhotoChange,
+  emptyAuthorForm,
+  photoCreditToForm,
+  translationToForm,
+  type AuthorFactsForm,
+  type AuthorGeneralForm,
+  type AuthorPhotoCreditForm,
+  type AuthorTranslationForm,
+} from '@/lib/admin/author-form-state';
+import { mergeAuthorImport } from '@/lib/admin/author-import';
+import {
+  AUTHOR_BLOCK_KEYS,
+  AUTHOR_PAGE_LIMITS,
+  formatAuthorDataIssue,
+  type AuthorBlockKey,
+} from '@/lib/admin/author-page-blocks';
+import { buildPromptInputsText } from '@/lib/admin/author-prompt-inputs';
+import { buildAuthorRequest } from '@/lib/admin/author-request';
+import { copyDeferredText } from '@/lib/admin/copy-deferred-text';
+import { loadAuthorValidation, type AuthorValidation } from '@/lib/admin/load-author-validation';
 import { FAQ_ANSWER_MAX_LENGTH, FAQ_QUESTION_MAX_LENGTH } from '@/lib/constants/faq';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
-import { isAbsoluteHttpUrl } from '@/lib/utils/http-url';
-import type {
-  Author,
-  AuthorTranslation,
-  AuthorQuote,
-  AuthorFaq,
-  SeoData,
-} from '@/types/api-schema';
+import { ApiError } from '@/types/api';
+import type { AuthorImportData } from '@/lib/admin/author-page-blocks.schema';
+import type { Author, AuthorSlugWarning, SeoData } from '@/types/api-schema';
+import { AuthorBlockEditor } from './AuthorBlockEditor';
+import { AuthorFactsFields } from './AuthorFactsFields';
 import styles from './AuthorForm.module.scss';
 import { ImportAuthorModal } from './ImportAuthorModal';
 
-/**
- * Адреса `seo`, у которых в форме есть поле ввода: бэкенд принимает в них только абсолютный
- * http(s) (`UpdateSeoDto`). Ключи без поля в форме не проверяются — иначе сохранение упиралось
- * бы в значение, которое админ не может исправить.
- */
-const SEO_URL_KEYS = ['canonicalUrl', 'ogImageUrl'] as const;
+/** Поля подписи портрета в порядке вывода (решение арбитра В3: рядом с `MediaPicker`). */
+const PHOTO_CREDIT_FIELDS = [
+  ['author', 'Photo author'],
+  ['license', 'License'],
+  ['licenseUrl', 'License URL'],
+  ['sourceUrl', 'Source URL'],
+] as const satisfies ReadonlyArray<readonly [keyof AuthorPhotoCreditForm, string]>;
 
-/** Ссылки перевода автора: бэкенд отбивает 400 ссылку не на `http(s)` (`LEGACY-447`). */
-const LINK_KEYS = ['wikidataUrl', 'wikipediaUrl', 'photoUrl'] as const;
+/** Подписи JSON-редакторов блоков страницы автора. */
+const BLOCK_LABELS: Record<AuthorBlockKey, string> = {
+  notableWorks: 'Notable works',
+  startHere: 'Start here',
+  timeline: 'Timeline',
+  influences: 'Influences',
+  awards: 'Awards',
+  adaptations: 'Adaptations',
+  funFacts: 'Fun facts',
+  sources: 'Sources',
+  quotes: 'Quotes',
+};
+
+/** Предупреждения о ненайденных слагах висят дольше обычного: их надо успеть прочитать. */
+const SLUG_WARNINGS_DURATION_MS = 20_000;
 
 interface AuthorFormProps {
   author?: Author | null;
   lang: string;
-}
-
-interface FormTranslationState {
-  name: string;
-  slug: string;
-  biography: string;
-  wikidataUrl: string;
-  wikipediaUrl: string;
-  photoUrl: string | null;
-  quotes: AuthorQuote[];
-  faq: AuthorFaq[];
-  similarSlugs: string;
-  seo: Partial<SeoData>;
 }
 
 export const AuthorForm: FC<AuthorFormProps> = (props) => {
@@ -60,6 +79,7 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
 
   const createMutation = useCreateAuthor();
   const updateMutation = useUpdateAuthor();
+  const promptInputsQuery = useAuthorPromptInputs(author?.id ?? '');
 
   // Active tab state: 'general' | SupportedLang
   const [activeTab, setActiveTab] = useState<string>('general');
@@ -72,164 +92,66 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
     ru: false,
   });
 
-  // Global life dates
-  const [birthDate, setBirthDate] = useState('');
-  const [deathDate, setDeathDate] = useState('');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-
+  // Кнопка «Вводных» занята, пока идут запрос и запись в буфер.
+  const [isCopyingPrompt, setIsCopyingPrompt] = useState(false);
+  // Общие поля автора (даты, имя на родном языке, подпись портрета) — одни на все языки.
+  const [general, setGeneral] = useState<AuthorGeneralForm>(() => emptyAuthorForm().general);
   // Translations states containing all localized fields
-  const [translations, setTranslations] = useState<Record<SupportedLang, FormTranslationState>>({
-    en: {
-      name: '',
-      slug: '',
-      biography: '',
-      wikidataUrl: '',
-      wikipediaUrl: '',
-      photoUrl: null,
-      quotes: [],
-      faq: [],
-      similarSlugs: '',
-      seo: { robots: 'index, follow', twitterCard: 'summary' },
+  const [translations, setTranslations] = useState<Record<SupportedLang, AuthorTranslationForm>>(
+    () => emptyAuthorForm().translations
+  );
+
+  // Проверки на `zod` грузятся лениво (бюджет бандла роутов авторов, решение арбитра F02-2):
+  // при открытии окна импорта, первой правке JSON-редактора и сохранении.
+  const [validation, setValidation] = useState<AuthorValidation | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
+
+  const ensureValidation = useCallback(async () => {
+    const loaded = await loadAuthorValidation();
+    setValidation(() => loaded);
+    return loaded;
+  }, []);
+
+  // Один тост на один сбой: правки, ждавшие ту же загрузку, получают один и тот же отказ.
+  const reportedLoadFailure = useRef<unknown>(null);
+  const reportValidationLoadFailure = useCallback(
+    (error: unknown) => {
+      if (reportedLoadFailure.current === error) return;
+      reportedLoadFailure.current = error;
+      enqueueSnackbar('Could not load data validation, try again', { variant: 'error' });
     },
-    es: {
-      name: '',
-      slug: '',
-      biography: '',
-      wikidataUrl: '',
-      wikipediaUrl: '',
-      photoUrl: null,
-      quotes: [],
-      faq: [],
-      similarSlugs: '',
-      seo: { robots: 'index, follow', twitterCard: 'summary' },
-    },
-    fr: {
-      name: '',
-      slug: '',
-      biography: '',
-      wikidataUrl: '',
-      wikipediaUrl: '',
-      photoUrl: null,
-      quotes: [],
-      faq: [],
-      similarSlugs: '',
-      seo: { robots: 'index, follow', twitterCard: 'summary' },
-    },
-    pt: {
-      name: '',
-      slug: '',
-      biography: '',
-      wikidataUrl: '',
-      wikipediaUrl: '',
-      photoUrl: null,
-      quotes: [],
-      faq: [],
-      similarSlugs: '',
-      seo: { robots: 'index, follow', twitterCard: 'summary' },
-    },
-    ru: {
-      name: '',
-      slug: '',
-      biography: '',
-      wikidataUrl: '',
-      wikipediaUrl: '',
-      photoUrl: null,
-      quotes: [],
-      faq: [],
-      similarSlugs: '',
-      seo: { robots: 'index, follow', twitterCard: 'summary' },
-    },
-  });
+    [enqueueSnackbar]
+  );
+
+  // Окно импорта: сбой загрузки — текст ошибки и повтор, а не вечная «загрузка».
+  const [importLoadFailed, setImportLoadFailed] = useState(false);
+  const loadForImport = useCallback(() => {
+    setImportLoadFailed(false);
+    ensureValidation().catch(() => setImportLoadFailed(true));
+  }, [ensureValidation]);
+
+  useEffect(() => {
+    if (isImportModalOpen) loadForImport();
+  }, [isImportModalOpen, loadForImport]);
 
   // Load initial data
   useEffect(() => {
     if (author) {
-      setBirthDate(author.birthDate || '');
-      setDeathDate(author.deathDate || '');
+      const initial = emptyAuthorForm();
+      setGeneral({
+        birthDate: author.birthDate || '',
+        deathDate: author.deathDate || '',
+        nativeName: author.nativeName || '',
+        photoCredit: photoCreditToForm(author.photoCredit),
+      });
 
-      const mappedTrans: Record<SupportedLang, FormTranslationState> = {
-        en: {
-          name: '',
-          slug: '',
-          biography: '',
-          wikidataUrl: '',
-          wikipediaUrl: '',
-          photoUrl: null,
-          quotes: [],
-          faq: [],
-          similarSlugs: '',
-          seo: { robots: 'index, follow', twitterCard: 'summary' },
-        },
-        es: {
-          name: '',
-          slug: '',
-          biography: '',
-          wikidataUrl: '',
-          wikipediaUrl: '',
-          photoUrl: null,
-          quotes: [],
-          faq: [],
-          similarSlugs: '',
-          seo: { robots: 'index, follow', twitterCard: 'summary' },
-        },
-        fr: {
-          name: '',
-          slug: '',
-          biography: '',
-          wikidataUrl: '',
-          wikipediaUrl: '',
-          photoUrl: null,
-          quotes: [],
-          faq: [],
-          similarSlugs: '',
-          seo: { robots: 'index, follow', twitterCard: 'summary' },
-        },
-        pt: {
-          name: '',
-          slug: '',
-          biography: '',
-          wikidataUrl: '',
-          wikipediaUrl: '',
-          photoUrl: null,
-          quotes: [],
-          faq: [],
-          similarSlugs: '',
-          seo: { robots: 'index, follow', twitterCard: 'summary' },
-        },
-        ru: {
-          name: '',
-          slug: '',
-          biography: '',
-          wikidataUrl: '',
-          wikipediaUrl: '',
-          photoUrl: null,
-          quotes: [],
-          faq: [],
-          similarSlugs: '',
-          seo: { robots: 'index, follow', twitterCard: 'summary' },
-        },
-      };
-
+      const mappedTrans = initial.translations;
       if (author.translations) {
         author.translations.forEach((t) => {
           const l = t.language as SupportedLang;
           if (mappedTrans[l]) {
-            mappedTrans[l] = {
-              name: t.name,
-              slug: t.slug,
-              biography: t.biography || '',
-              wikidataUrl: t.wikidataUrl || '',
-              wikipediaUrl: t.wikipediaUrl || '',
-              photoUrl: t.photoUrl || null,
-              quotes: (t.quotes as AuthorQuote[]) || [],
-              faq: (t.faq as AuthorFaq[]) || [],
-              similarSlugs: ((t.similarSlugs as string[]) || []).join(', '),
-              seo: {
-                robots: 'index, follow',
-                twitterCard: 'summary',
-                ...t.seo,
-              },
-            };
+            mappedTrans[l] = translationToForm(t);
           }
         });
       }
@@ -237,23 +159,17 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
     }
   }, [author]);
 
-  // Sync photo across all languages if set in one
+  // Портрет один на все языки; в og не копируется (решение арбитра В6).
   const handlePhotoChange = (newPhotoUrl: string | null) => {
-    setTranslations((prev) => {
-      const updated = { ...prev };
-      SUPPORTED_LANGS.forEach((l) => {
-        updated[l] = {
-          ...updated[l],
-          photoUrl: newPhotoUrl,
-        };
-        // Always update SEO ogImageUrl to match the photo URL
-        updated[l].seo = {
-          ...updated[l].seo,
-          ogImageUrl: newPhotoUrl || '',
-        };
-      });
-      return updated;
-    });
+    setTranslations((prev) => applyPhotoChange(prev, newPhotoUrl));
+  };
+
+  const handleGeneralChange = (field: 'birthDate' | 'deathDate' | 'nativeName', value: string) => {
+    setGeneral((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePhotoCreditChange = (field: keyof AuthorPhotoCreditForm, value: string) => {
+    setGeneral((prev) => ({ ...prev, photoCredit: { ...prev.photoCredit, [field]: value } }));
   };
 
   // Translation helpers
@@ -279,6 +195,77 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
     });
   };
 
+  const handleFactsChange = <K extends keyof AuthorFactsForm>(
+    langKey: SupportedLang,
+    field: K,
+    value: AuthorFactsForm[K]
+  ) => {
+    setTranslations((prev) => ({
+      ...prev,
+      [langKey]: { ...prev[langKey], facts: { ...prev[langKey].facts, [field]: value } },
+    }));
+  };
+
+  // Проверка текста редактора по последнему тексту в состоянии: пока модуль грузился,
+  // владелец мог напечатать ещё. Ошибка не затирает прежнее значение блока (решение арбитра В3).
+  const checkDraft = (
+    prev: Record<SupportedLang, AuthorTranslationForm>,
+    langKey: SupportedLang,
+    key: AuthorBlockKey,
+    checker: AuthorValidation
+  ): Record<SupportedLang, AuthorTranslationForm> => {
+    const current = prev[langKey];
+    const { text } = current.drafts[key];
+    const result = checker.applyBlockText(key, text, langKey);
+    return {
+      ...prev,
+      [langKey]: {
+        ...current,
+        drafts: { ...current.drafts, [key]: { text, issues: result.issues } },
+        blocks: 'value' in result ? { ...current.blocks, [key]: result.value } : current.blocks,
+      },
+    };
+  };
+
+  const handleBlockChange = (langKey: SupportedLang, key: AuthorBlockKey, text: string) => {
+    setTranslations((prev) => {
+      const current = prev[langKey];
+      const next = {
+        ...prev,
+        [langKey]: {
+          ...current,
+          drafts: {
+            ...current.drafts,
+            [key]: { text, issues: current.drafts[key].issues, checking: !validation },
+          },
+        },
+      };
+      return validation ? checkDraft(next, langKey, key, validation) : next;
+    });
+    if (validation) return;
+    ensureValidation()
+      .then((loaded) =>
+        setTranslations((prev) =>
+          prev[langKey].drafts[key].checking ? checkDraft(prev, langKey, key, loaded) : prev
+        )
+      )
+      .catch((error: unknown) => {
+        // Текст остаётся непроверенным: его заново проверит сохранение (и не отправит, пока
+        // модуль не загрузится), а «Checking…» не висит вечно.
+        setTranslations((prev) => {
+          const current = prev[langKey];
+          return {
+            ...prev,
+            [langKey]: {
+              ...current,
+              drafts: { ...current.drafts, [key]: { ...current.drafts[key], checking: false } },
+            },
+          };
+        });
+        reportValidationLoadFailure(error);
+      });
+  };
+
   const handleSeoChange = (langKey: SupportedLang, field: keyof SeoData, value: string) => {
     setTranslations((prev) => {
       const updatedSeo = {
@@ -302,76 +289,56 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
     });
   };
 
-  const handleImportJson = (jsonDataString: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data = JSON.parse(jsonDataString) as any;
+  const analyzeImport = useMemo(
+    () =>
+      validation
+        ? (jsonText: string) => validation.analyzeAuthorImport({ general, translations }, jsonText)
+        : null,
+    [validation, general, translations]
+  );
 
-    if (data.birthDate !== undefined) {
-      setBirthDate(data.birthDate || '');
-    }
-    if (data.deathDate !== undefined) {
-      setDeathDate(data.deathDate || '');
-    }
+  // Слияние по T5: ключа нет — поле не трогается, `null`/`[]` — очищается.
+  const handleImport = (data: AuthorImportData) => {
+    const merged = mergeAuthorImport({ general, translations }, data);
+    setGeneral(merged.general);
+    setTranslations(merged.translations);
+    enqueueSnackbar('Data imported', { variant: 'success' });
+  };
 
-    if (data.translations) {
-      // Find a shared photoUrl across all translations if present
-      const jsonPhotoUrl =
-        SUPPORTED_LANGS.map((l) => data.translations?.[l]?.photoUrl).find(Boolean) || null;
-
-      setTranslations((prev) => {
-        const updated = { ...prev };
-        SUPPORTED_LANGS.forEach((l) => {
-          const trans = data.translations[l];
-          if (trans) {
-            const photoVal = trans.photoUrl || jsonPhotoUrl || prev[l].photoUrl;
-            updated[l] = {
-              name: trans.name || prev[l].name || '',
-              slug: trans.slug || prev[l].slug || '',
-              biography: trans.biography || prev[l].biography || '',
-              wikidataUrl: trans.wikidataUrl || prev[l].wikidataUrl || '',
-              wikipediaUrl: trans.wikipediaUrl || prev[l].wikipediaUrl || '',
-              photoUrl: photoVal,
-              quotes: Array.isArray(trans.quotes) ? trans.quotes : prev[l].quotes || [],
-              faq: Array.isArray(trans.faq) ? trans.faq : prev[l].faq || [],
-              similarSlugs:
-                typeof trans.similarSlugs === 'string'
-                  ? trans.similarSlugs
-                  : Array.isArray(trans.similarSlugs)
-                    ? trans.similarSlugs.join(', ')
-                    : prev[l].similarSlugs || '',
-              seo: {
-                robots: 'index, follow',
-                twitterCard: 'summary',
-                ...prev[l].seo,
-                ...(trans.seo || {}),
-                ogTitle:
-                  trans.seo?.ogTitle ||
-                  trans.seo?.metaTitle ||
-                  trans.metaTitle ||
-                  prev[l].seo.ogTitle ||
-                  '',
-                ogDescription:
-                  trans.seo?.ogDescription ||
-                  trans.seo?.metaDescription ||
-                  trans.metaDescription ||
-                  prev[l].seo.ogDescription ||
-                  '',
-                ogImageUrl: trans.seo?.ogImageUrl || photoVal || prev[l].seo.ogImageUrl || '',
-                canonicalUrl:
-                  trans.seo?.canonicalUrl ||
-                  (trans.slug
-                    ? `https://bibliaris.com/${l}/author/${trans.slug}`
-                    : prev[l].seo.canonicalUrl || ''),
-              },
-            };
-          }
-        });
-        return updated;
-      });
-      enqueueSnackbar('Data imported successfully!', { variant: 'success' });
-    } else {
-      throw new Error('No translations found in JSON.');
-    }
+  // Без `async`/`await` до записи: запись в буфер должна начаться в самом обработчике клика,
+  // иначе Safari теряет жест пользователя (`copyDeferredText`).
+  const handleCopyPromptInputs = () => {
+    setIsCopyingPrompt(true);
+    let truncated = false;
+    let loadFailed = false;
+    let serverFailed = false;
+    const text = promptInputsQuery.refetch().then((result) => {
+      if (result.isError || !result.data) {
+        loadFailed = true;
+        // 5xx показывает общий тост клиента; свой — только на 4xx и сбой сети.
+        serverFailed = result.error instanceof ApiError && result.error.statusCode >= 500;
+        throw new Error('Could not load prompt inputs');
+      }
+      truncated = result.data.authorsTruncated;
+      return buildPromptInputsText(result.data);
+    });
+    copyDeferredText(text)
+      .then(() => {
+        enqueueSnackbar('Prompt inputs copied to the clipboard', { variant: 'success' });
+        if (truncated) {
+          enqueueSnackbar('The author list is incomplete: the site has more authors than fit', {
+            variant: 'warning',
+          });
+        }
+      })
+      .catch(() => {
+        if (serverFailed) return;
+        enqueueSnackbar(
+          loadFailed ? 'Could not load prompt inputs' : 'Could not copy to the clipboard',
+          { variant: 'error' }
+        );
+      })
+      .finally(() => setIsCopyingPrompt(false));
   };
 
   const toggleSeo = (langKey: SupportedLang) => {
@@ -379,28 +346,6 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
       ...prev,
       [langKey]: !prev[langKey],
     }));
-  };
-
-  const handleAddQuote = (langKey: SupportedLang) => {
-    const list = [...translations[langKey].quotes, { text: '', source: '' }];
-    handleTranslationChange(langKey, 'quotes', list);
-  };
-
-  const handleRemoveQuote = (langKey: SupportedLang, idx: number) => {
-    const list = translations[langKey].quotes.filter((_, i) => i !== idx);
-    handleTranslationChange(langKey, 'quotes', list);
-  };
-
-  const handleQuoteChange = (
-    langKey: SupportedLang,
-    idx: number,
-    field: 'text' | 'source',
-    value: string
-  ) => {
-    const list = translations[langKey].quotes.map((q, i) =>
-      i === idx ? { ...q, [field]: value } : q
-    );
-    handleTranslationChange(langKey, 'quotes', list);
   };
 
   const handleAddFaq = (langKey: SupportedLang) => {
@@ -425,101 +370,88 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
     handleTranslationChange(langKey, 'faq', list);
   };
 
+  const issuesMessage = (title: string, lines: string[]): ReactNode => (
+    <div>
+      {title}
+      <ul className={styles.notice}>
+        {lines.map((line, idx) => (
+          <li key={idx}>{line}</li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  // Ненайденный слаг — предупреждение, не отказ; `null` — проверка не удалась (не «всё найдено»).
+  const notifySlugWarnings = (warnings: AuthorSlugWarning[] | null | undefined) => {
+    if (warnings === undefined) return;
+    if (warnings === null) {
+      enqueueSnackbar('Could not check the links to books and authors', { variant: 'warning' });
+      return;
+    }
+    if (warnings.length === 0) return;
+    enqueueSnackbar(
+      issuesMessage(
+        'Not found on the site, will be shown without a link:',
+        warnings.map((w) => `${w.lang} → ${w.path} → ${w.slug}`)
+      ),
+      { variant: 'warning', autoHideDuration: SLUG_WARNINGS_DURATION_MS }
+    );
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Filter translations to only save languages that have a name and a slug filled
-    const activeTranslations: AuthorTranslation[] = [];
-    for (const langKey of SUPPORTED_LANGS) {
-      const transData = translations[langKey];
-      if (transData.name.trim()) {
-        if (!transData.slug.trim()) {
-          enqueueSnackbar(`Slug is required for language ${langKey.toUpperCase()}`, {
-            variant: 'error',
-          });
-          return;
-        }
-
-        const seoData: Record<string, string | number> = {};
-        const excludedSeoKeys = ['id', 'createdAt', 'updatedAt', 'seoId', 'authorTranslationId'];
-        Object.entries(transData.seo).forEach(([k, v]) => {
-          if (!excludedSeoKeys.includes(k) && v !== undefined && v !== null && v !== '') {
-            seoData[k] = v;
-          }
-        });
-
-        const badUrlKey = SEO_URL_KEYS.find(
-          (k) => typeof seoData[k] === 'string' && !isAbsoluteHttpUrl(seoData[k] as string)
-        );
-        if (badUrlKey) {
-          enqueueSnackbar(
-            `SEO ${badUrlKey} must be an absolute http(s) URL (${langKey.toUpperCase()})`,
-            { variant: 'error' }
-          );
-          return;
-        }
-
-        // Ссылку не на `http(s)` бэкенд отбил бы 400 — называем поле до запроса.
-        const badLinkKey = LINK_KEYS.find((k) => {
-          const raw: unknown = transData[k];
-          // JSON-импорт кладёт значение как есть: не строка — тоже негодная ссылка.
-          if (raw != null && typeof raw !== 'string') return true;
-          const value = raw?.trim();
-          return !!value && !isAbsoluteHttpUrl(value);
-        });
-        if (badLinkKey) {
-          enqueueSnackbar(
-            `${badLinkKey} must be an absolute http(s) URL (${langKey.toUpperCase()})`,
-            { variant: 'error' }
-          );
-          return;
-        }
-
-        activeTranslations.push({
-          language: langKey,
-          slug: transData.slug.trim(),
-          name: transData.name.trim(),
-          biography: transData.biography.trim() || null,
-          wikidataUrl: transData.wikidataUrl.trim() || null,
-          wikipediaUrl: transData.wikipediaUrl.trim() || null,
-          photoUrl: (typeof transData.photoUrl === 'string' && transData.photoUrl.trim()) || null,
-          quotes: transData.quotes.filter((q) => q.text.trim()) || [],
-          faq: transData.faq.filter((f) => f.question.trim() && f.answer.trim()) || [],
-          similarSlugs: transData.similarSlugs
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean),
-          seo: Object.keys(seoData).length > 0 ? (seoData as unknown as SeoData) : undefined,
-        });
-      }
+    // Непроверенное не отправляется: сохранение ждёт модуль проверки.
+    let checker: AuthorValidation;
+    setIsValidating(true);
+    try {
+      checker = await ensureValidation();
+    } catch (error) {
+      reportValidationLoadFailure(error);
+      return;
+    } finally {
+      setIsValidating(false);
     }
 
-    if (activeTranslations.length === 0) {
-      enqueueSnackbar('At least one translation with a name is required', { variant: 'error' });
+    const existingLangs = new Set(
+      (author?.translations ?? []).map((t) => t.language as SupportedLang)
+    );
+    const request = buildAuthorRequest({ general, translations }, existingLangs, checker);
+    if (request.kind === 'error') {
+      enqueueSnackbar(request.message, { variant: 'error' });
       return;
     }
-
-    const payload = {
-      birthDate: birthDate || null,
-      deathDate: deathDate || null,
-      translations: activeTranslations,
-    };
+    if (request.kind === 'issues') {
+      enqueueSnackbar(
+        issuesMessage(
+          'Fix the errors before saving:',
+          request.issues.map((issue) => formatAuthorDataIssue(issue))
+        ),
+        { variant: 'error' }
+      );
+      return;
+    }
+    const payload = request.payload;
 
     try {
       if (isEditMode && author) {
-        await updateMutation.mutateAsync({ id: author.id, data: payload });
+        const saved = await updateMutation.mutateAsync({ id: author.id, data: payload });
         enqueueSnackbar('Author updated successfully', { variant: 'success' });
+        notifySlugWarnings(saved?.warnings);
       } else {
-        await createMutation.mutateAsync(payload);
+        const saved = await createMutation.mutateAsync(payload);
         enqueueSnackbar('Author created successfully', { variant: 'success' });
+        notifySlugWarnings(saved?.warnings);
       }
       router.push(`/admin/${lang}/authors`);
     } catch (error) {
+      // 5xx показывает общий тост клиента; свой — только на 4xx и сбой сети.
+      if (error instanceof ApiError && error.statusCode >= 500) return;
       enqueueSnackbar((error as Error).message || 'Failed to save author', { variant: 'error' });
     }
   };
 
-  const isLoading = createMutation.isPending || updateMutation.isPending;
+  const isLoading = isValidating || createMutation.isPending || updateMutation.isPending;
 
   // Global shared photoUrl (retrieved from any language translation, or default null)
   const sharedPhotoUrl = SUPPORTED_LANGS.map((l) => translations[l].photoUrl).find(Boolean) || null;
@@ -551,6 +483,18 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
             );
           })}
         </div>
+        {isEditMode && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            leftIcon={<ClipboardCopy size={14} />}
+            loading={isCopyingPrompt || promptInputsQuery.isFetching}
+            onClick={handleCopyPromptInputs}
+          >
+            Prompt inputs
+          </Button>
+        )}
         <Button
           type="button"
           variant="secondary"
@@ -565,7 +509,10 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
       <ImportAuthorModal
         isOpen={isImportModalOpen}
         onCancel={() => setIsImportModalOpen(false)}
-        onImport={handleImportJson}
+        analyze={analyzeImport}
+        loadFailed={importLoadFailed}
+        onRetryLoad={loadForImport}
+        onImport={handleImport}
       />
 
       <form onSubmit={handleSave} className={styles.form}>
@@ -581,27 +528,58 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
               />
             </div>
 
+            <fieldset className={styles.factsFieldset}>
+              <legend className={styles.label}>Portrait credit (one for all languages)</legend>
+              <div className={styles.row}>
+                {PHOTO_CREDIT_FIELDS.map(([field, label]) => (
+                  <div key={field} className={styles.field}>
+                    <label htmlFor={`photoCredit-${field}`} className={styles.label}>
+                      {label}
+                    </label>
+                    <Input
+                      id={`photoCredit-${field}`}
+                      value={general.photoCredit[field]}
+                      onChange={(e) => handlePhotoCreditChange(field, e.target.value)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </fieldset>
+
+            <div className={styles.field}>
+              <label htmlFor="nativeName" className={styles.label}>
+                Name in the native language
+              </label>
+              <Input
+                id="nativeName"
+                value={general.nativeName}
+                maxLength={AUTHOR_PAGE_LIMITS.nativeName}
+                onChange={(e) => handleGeneralChange('nativeName', e.target.value)}
+                placeholder="Лев Николаевич Толстой"
+              />
+            </div>
+
             <div className={styles.row}>
               <div className={styles.field}>
                 <label htmlFor="birthDate" className={styles.label}>
-                  Birth Date (e.g. 1854-10-16)
+                  Birth Date (YYYY-MM-DD or YYYY)
                 </label>
                 <Input
                   id="birthDate"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  placeholder="YYYY-MM-DD"
+                  value={general.birthDate}
+                  onChange={(e) => handleGeneralChange('birthDate', e.target.value)}
+                  placeholder="YYYY-MM-DD or YYYY"
                 />
               </div>
               <div className={styles.field}>
                 <label htmlFor="deathDate" className={styles.label}>
-                  Death Date (e.g. 1900-11-30)
+                  Death Date (YYYY-MM-DD or YYYY)
                 </label>
                 <Input
                   id="deathDate"
-                  value={deathDate}
-                  onChange={(e) => setDeathDate(e.target.value)}
-                  placeholder="YYYY-MM-DD"
+                  value={general.deathDate}
+                  onChange={(e) => handleGeneralChange('deathDate', e.target.value)}
+                  placeholder="YYYY-MM-DD or YYYY"
                 />
               </div>
             </div>
@@ -640,6 +618,18 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
                     lang={langKey}
                     mode={isEditMode ? 'edit' : 'create'}
                     autoGenerate={!isEditMode || !trans.slug}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label htmlFor={`tagline-${langKey}`} className={styles.label}>
+                    Tagline (up to {AUTHOR_PAGE_LIMITS.tagline} characters)
+                  </label>
+                  <Input
+                    id={`tagline-${langKey}`}
+                    value={trans.tagline}
+                    maxLength={AUTHOR_PAGE_LIMITS.tagline}
+                    onChange={(e) => handleTranslationChange(langKey, 'tagline', e.target.value)}
                   />
                 </div>
 
@@ -683,43 +673,29 @@ export const AuthorForm: FC<AuthorFormProps> = (props) => {
                   />
                 </div>
 
+                <AuthorFactsFields
+                  lang={langKey}
+                  facts={trans.facts}
+                  onChange={(field, value) => handleFactsChange(langKey, field, value)}
+                />
+
                 <div className={styles.field}>
                   <div className={styles.sectionHeader}>
-                    <span className={styles.label}>Quotes</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      type="button"
-                      onClick={() => handleAddQuote(langKey)}
-                    >
-                      + Add Quote
-                    </Button>
+                    <span className={styles.label}>Page blocks (JSON)</span>
                   </div>
-                  {trans.quotes.map((q, idx) => (
-                    <div key={idx} className={styles.subItemRow}>
-                      <Input
-                        value={q.text}
-                        onChange={(e) => handleQuoteChange(langKey, idx, 'text', e.target.value)}
-                        placeholder="Quote text"
-                        className={styles.quoteText}
-                      />
-                      <Input
-                        value={q.source || ''}
-                        onChange={(e) => handleQuoteChange(langKey, idx, 'source', e.target.value)}
-                        placeholder="Source (optional)"
-                        className={styles.quoteSource}
-                      />
-                      <Button
-                        variant="ghost"
-                        type="button"
-                        onClick={() => handleRemoveQuote(langKey, idx)}
-                        className={styles.removeBtn}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
+                  <p className={styles.hint}>
+                    Each block is replaced as a whole. Empty field means no block.
+                  </p>
                 </div>
+                {AUTHOR_BLOCK_KEYS.map((key) => (
+                  <AuthorBlockEditor
+                    key={key}
+                    id={`block-${key}-${langKey}`}
+                    label={BLOCK_LABELS[key]}
+                    draft={trans.drafts[key]}
+                    onChange={(text) => handleBlockChange(langKey, key, text)}
+                  />
+                ))}
 
                 <div className={styles.field}>
                   <div className={styles.sectionHeader}>

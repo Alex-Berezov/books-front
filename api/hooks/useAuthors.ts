@@ -15,11 +15,14 @@ import {
   createAuthor,
   updateAuthor,
   deleteAuthor,
+  getAuthorPromptInputs,
   type GetAuthorsParams,
 } from '@/api/endpoints/admin/authors';
 import { getPublicAuthorBySlug } from '@/api/endpoints/public';
 import type {
   Author,
+  AuthorPromptInputs,
+  AuthorSaveResponse,
   CreateAuthorRequest,
   UpdateAuthorRequest,
   PublicAuthorDetail,
@@ -42,6 +45,7 @@ export const authorKeys = {
    * схлопывался бы в префикс `details()` целиком.
    */
   detailById: (id: string) => [...authorKeys.details(), 'by-id', id] as string[],
+  promptInputs: (id: string) => [...authorKeys.all, 'prompt-inputs', id] as string[],
 };
 
 export const useAuthors = (
@@ -79,11 +83,28 @@ export const usePublicAuthor = (
   });
 };
 
+/**
+ * Вводные для промпта (F02-2). Запрос по кнопке: `enabled: false`, данные берёт `refetch`,
+ * чтобы в буфер ушёл свежий список книг и авторов, а не кэш.
+ */
+export const useAuthorPromptInputs = (
+  id: string,
+  options?: Omit<UseQueryOptions<AuthorPromptInputs, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<AuthorPromptInputs, Error>({
+    queryKey: authorKeys.promptInputs(id),
+    queryFn: () => getAuthorPromptInputs(id),
+    enabled: false,
+    staleTime: 0,
+    ...options,
+  });
+};
+
 export const useCreateAuthor = (
-  options?: UseMutationOptions<Author, Error, CreateAuthorRequest>
+  options?: UseMutationOptions<AuthorSaveResponse, Error, CreateAuthorRequest>
 ) => {
   const queryClient = useQueryClient();
-  return useMutation<Author, Error, CreateAuthorRequest>({
+  return useMutation<AuthorSaveResponse, Error, CreateAuthorRequest>({
     mutationFn: createAuthor,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: authorKeys.lists() });
@@ -98,10 +119,10 @@ export const useCreateAuthor = (
 };
 
 export const useUpdateAuthor = (
-  options?: UseMutationOptions<Author, Error, { id: string; data: UpdateAuthorRequest }>
+  options?: UseMutationOptions<AuthorSaveResponse, Error, { id: string; data: UpdateAuthorRequest }>
 ) => {
   const queryClient = useQueryClient();
-  return useMutation<Author, Error, { id: string; data: UpdateAuthorRequest }>({
+  return useMutation<AuthorSaveResponse, Error, { id: string; data: UpdateAuthorRequest }>({
     mutationFn: ({ id, data }) => updateAuthor(id, data),
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: authorKeys.all });

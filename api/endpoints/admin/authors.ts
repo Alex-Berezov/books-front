@@ -9,6 +9,8 @@ import { httpDeleteAuth, httpGetAuth, httpPostAuth, httpPutAuth } from '@/lib/ht
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   Author,
+  AuthorPromptInputs,
+  AuthorSaveResponse,
   CreateAuthorRequest,
   UpdateAuthorRequest,
   CheckAuthorSlugResponse,
@@ -47,14 +49,23 @@ export const getAuthorById = async (id: string): Promise<Author> => {
   return httpGetAuth<Author>(endpoint, { requireAuth: true });
 };
 
-export const createAuthor = async (data: CreateAuthorRequest): Promise<Author> => {
+export const createAuthor = async (data: CreateAuthorRequest): Promise<AuthorSaveResponse> => {
   const endpoint = '/admin/authors';
-  return httpPostAuth<Author>(endpoint, data, { requireAuth: true });
+  return httpPostAuth<AuthorSaveResponse>(endpoint, data, { requireAuth: true });
 };
 
-export const updateAuthor = async (id: string, data: UpdateAuthorRequest): Promise<Author> => {
+export const updateAuthor = async (
+  id: string,
+  data: UpdateAuthorRequest
+): Promise<AuthorSaveResponse> => {
   const endpoint = `/admin/authors/${id}`;
-  return httpPutAuth<Author>(endpoint, data, { requireAuth: true });
+  return httpPutAuth<AuthorSaveResponse>(endpoint, data, { requireAuth: true });
+};
+
+/** Вводные для промпта данных автора (F02-2): книги автора на сайте и все авторы сайта. */
+export const getAuthorPromptInputs = async (id: string): Promise<AuthorPromptInputs> => {
+  const endpoint = `/admin/authors/${id}/prompt-inputs`;
+  return httpGetAuth<AuthorPromptInputs>(endpoint, { requireAuth: true });
 };
 
 export const deleteAuthor = async (id: string): Promise<void> => {

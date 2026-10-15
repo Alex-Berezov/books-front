@@ -16,6 +16,7 @@
   "GET /admin/authors",
   "GET /admin/authors/check-slug",
   "GET /admin/authors/{id}",
+  "GET /admin/authors/{id}/prompt-inputs",
   "GET /admin/books/{bookId}/rights-override",
   "GET /admin/books/{id}/rights-claims",
   "GET /admin/categories",

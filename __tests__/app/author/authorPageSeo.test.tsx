@@ -60,6 +60,20 @@ const fullAuthor = (over: Partial<PublicAuthorDetail> = {}): PublicAuthorDetail 
   ],
   booksTotal: 2,
   books: [],
+  // Блоки F02-2: бэкенд отдаёт их всегда, пустые — `[]` или `null`.
+  nativeName: null,
+  photoCredit: null,
+  tagline: null,
+  facts: null,
+  notableWorks: [],
+  startHere: [],
+  timeline: [],
+  influences: null,
+  awards: [],
+  adaptations: [],
+  funFacts: [],
+  sources: [],
+  updatedAt: '2026-10-01T00:00:00.000Z',
   ...over,
 });
 

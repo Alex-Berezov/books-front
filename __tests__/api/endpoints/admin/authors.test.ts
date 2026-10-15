@@ -1,6 +1,11 @@
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { checkAuthorSlug, getAuthorById, getAuthors } from '@/api/endpoints/admin/authors';
+import {
+  checkAuthorSlug,
+  getAuthorById,
+  getAuthorPromptInputs,
+  getAuthors,
+} from '@/api/endpoints/admin/authors';
 import { MSW_PROXY_SESSION_TOKEN } from '../../../msw/handlers';
 import { server } from '../../../msw/server';
 
@@ -104,5 +109,35 @@ describe('admin authors endpoints', () => {
     expect(params.get('slug')).toBe('leo-tolstoy');
     expect(params.get('lang')).toBe('ru');
     expect(params.get('excludeId')).toBe('author-1');
+  });
+
+  // F02-2: «Вводные для промпта» — GET по id автора, с авторизацией через прокси.
+  it('getAuthorPromptInputs: GET /admin/authors/:id/prompt-inputs', async () => {
+    let seen = { method: '', path: '', auth: '' };
+    server.use(
+      http.all(`${API_BASE}/admin/authors/:id/prompt-inputs`, ({ request }) => {
+        seen = {
+          method: request.method,
+          path: new URL(request.url).pathname,
+          auth: request.headers.get('authorization') ?? '',
+        };
+        return HttpResponse.json({
+          id: 'a-1',
+          birthDate: null,
+          deathDate: null,
+          names: [],
+          books: [],
+          authors: [],
+          authorsTruncated: false,
+        });
+      })
+    );
+
+    const result = await getAuthorPromptInputs('a-1');
+
+    expect(seen.method).toBe('GET');
+    expect(seen.path).toBe('/api/admin/authors/a-1/prompt-inputs');
+    expect(seen.auth).toBe(`Bearer ${MSW_PROXY_SESSION_TOKEN}`);
+    expect(result.authorsTruncated).toBe(false);
   });
 });

@@ -7,7 +7,8 @@ export const EDITOR_HTML =
   '<pre><code class="language-ts">x</code></pre><ol start="3"><li>a</li></ol>' +
   '<p><a href="https://e.com" target="_blank" rel="noopener noreferrer">l</a> ' +
   '<a href="mailto:a@example.com">m</a> <a href="/ru/book/x">r</a></p>' +
-  '<p><img src="https://cdn.example.com/a.png" alt="A" width="10" height="20"></p><blockquote><p>q</p></blockquote><hr>';
+  '<p><img src="https://cdn.example.com/a.png" alt="A" width="10" height="20"></p><blockquote><p>q</p></blockquote><hr>' +
+  '<figure><blockquote><p>e</p></blockquote><figcaption>c</figcaption></figure>';
 
 export const DANGEROUS: ReadonlyArray<[string, string, string]> = [
   ['event handler on an image', '<img src="https://e.com/x.png" onerror="alert(1)">', 'onerror'],
@@ -56,6 +57,9 @@ export function describeSanitizeContract(): void {
     expect(out).toContain('width="10"');
     expect(out).toContain('<blockquote><p>q</p></blockquote>');
     expect(out).toContain('<hr');
+    expect(out).toContain(
+      '<figure><blockquote><p>e</p></blockquote><figcaption>c</figcaption></figure>'
+    );
   });
 
   it.each(DANGEROUS)('strips %s', (_name, html, needle) => {
