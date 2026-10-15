@@ -1,0 +1,47 @@
+@import '@/styles/tokens.scss';
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin: 0;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+}
+
+.icon {
+  color: var(--public-primary);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.link,
+.name {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-full;
+  font-size: $font-size-sm;
+  color: var(--public-foreground);
+}
+
+.link {
+  text-decoration: none;
+
+  &:hover {
+    color: var(--public-primary);
+    border-color: var(--public-primary);
+  }
+}

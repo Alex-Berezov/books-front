@@ -1,5 +1,4 @@
 @import '@/styles/tokens.scss';
-@import '@/styles/antd-defaults.scss';
 
 .authorPage {
   min-height: 100vh;
@@ -7,232 +6,28 @@
   background-color: var(--public-background);
 }
 
+// Блоки страницы в одну колонку с общим шагом; на мобильном — без горизонтальной прокрутки.
 .container {
-  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xxl;
+  max-width: $layout-max-width-lg;
   margin: 0 auto;
-  padding: 0 $spacing-lg;
-}
+  padding: 0 $spacing-md;
 
-.backBtn {
-  margin-bottom: $spacing-lg;
-  color: var(--public-foreground);
-  opacity: 0.7;
-
-  &:hover {
-    color: var(--public-primary) !important;
-    opacity: 1;
+  @media (min-width: $breakpoint-sm) {
+    padding: 0 $spacing-lg;
   }
 }
 
-.authorHero {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: $spacing-md;
-  margin-bottom: $spacing-lg;
-
-  @media (min-width: 576px) {
-    flex-direction: row;
-    align-items: center;
-    gap: $spacing-xl;
-  }
-}
-
-.avatar {
-  width: 150px;
-  height: 150px;
-  border-radius: $border-radius-round;
-  background-color: var(--public-background);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: $shadow-sm;
-  position: relative;
-  overflow: hidden;
-}
-
-.avatarIcon {
-  color: var(--public-foreground);
-  opacity: 0.4;
-}
-
-.photo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: $border-radius-round;
-}
-
-.heroInfo {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-}
-
-.name {
-  font-size: $font-size-xxl;
-  font-weight: $font-weight-bold;
-  color: var(--public-foreground);
-  margin: 0;
-  line-height: $line-height-tight;
-}
-
-.stats {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: $spacing-md;
-  font-size: $font-size-sm;
-  color: var(--public-foreground);
-  opacity: 0.7;
-}
-
-.statItem {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.audioAvailable {
-  color: var(--public-primary);
-  font-weight: $font-weight-medium;
-}
-
-.divider {
-  width: 100%;
-  margin: $spacing-lg 0 $spacing-xl 0;
-  border: 0;
-  border-top: 1px solid $antd-fill-secondary;
-}
-
-.booksSection {
-  display: flex;
-  flex-direction: column;
-}
-
-.sectionTitle {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  margin-bottom: $spacing-xl;
-  color: var(--public-foreground);
-}
-
-.booksGrid {
+// Широкий экран: сводка фактов справа от шапки, как карточка в Википедии (`product.md` §1 п.5).
+.top {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: $spacing-xl;
-}
 
-.empty {
-  text-align: center;
-  padding: $spacing-xxl $spacing-md;
-  border: 1px dashed rgba(0, 0, 0, 0.1);
-  border-radius: $border-radius-lg;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $spacing-md;
-  max-width: 400px;
-  margin: $spacing-xxl auto;
-}
-
-.emptyIcon {
-  color: var(--public-foreground);
-  opacity: 0.3;
-}
-
-.emptyTitle {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: var(--public-foreground);
-  margin: 0;
-}
-
-.emptyText {
-  font-size: $font-size-sm;
-  color: var(--public-foreground);
-  opacity: 0.6;
-  margin: 0;
-}
-
-// Skeleton loading
-.skeletonCard {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-}
-
-.skeletonCover {
-  width: 100%;
-  height: 208px;
-  border-radius: $border-radius-lg;
-}
-
-.section {
-  margin-top: $spacing-xxl;
-  display: flex;
-  flex-direction: column;
-}
-
-.biographyContent {
-  font-size: $font-size-base;
-  color: var(--public-foreground);
-  line-height: $line-height-relaxed;
-  white-space: pre-line;
-  opacity: 0.85;
-}
-
-.iconTitle {
-  margin-right: $spacing-xs;
-  color: var(--public-primary);
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.similarGrid {
-  display: flex;
-  gap: $spacing-sm;
-  flex-wrap: wrap;
-}
-
-.similarLink,
-.similarName {
-  display: inline-flex;
-  align-items: center;
-  padding: $spacing-xs $spacing-md;
-  border: 1px solid var(--public-border);
-  border-radius: $border-radius-full;
-  font-size: $font-size-sm;
-  color: var(--public-foreground);
-}
-
-.similarLink {
-  text-decoration: none;
-
-  &:hover {
-    color: var(--public-primary);
-    border-color: var(--public-primary);
-  }
-}
-
-.externalLinks {
-  display: flex;
-  gap: $spacing-md;
-  margin-top: $spacing-sm;
-}
-
-.linkItem {
-  font-size: $font-size-sm;
-  color: var(--public-primary);
-  text-decoration: none;
-  font-weight: $font-weight-medium;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-
-  &:hover {
-    text-decoration: underline;
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+    align-items: start;
   }
 }

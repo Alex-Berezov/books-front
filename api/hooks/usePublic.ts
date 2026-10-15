@@ -11,6 +11,7 @@ import { queryKeys, staleTimeConfig } from '@/lib/queryClient';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ApiError } from '@/types/api';
 import type {
+  BookCardModel,
   BookListItem,
   BookOverview,
   PageResponse,
@@ -286,5 +287,44 @@ export const usePublicTags = (
     queryFn: () => publicApi.getPublicTags(lang, params),
     staleTime: staleTimeConfig.catalog,
     ...options,
+  });
+};
+
+/** Страница догрузки «Показать все»: потолок `/books/cards` — 48 (`book-cards-query.dto.ts`). */
+const AUTHOR_ALL_BOOKS_PAGE_SIZE = 48;
+
+/**
+ * Все книги автора для «Показать все» на его странице (F02-3): страницы `/books/cards` по 48,
+ * число страниц — от `total` страницы (решение арбитра 15.10.2026, `F02 | F02-3`, Р2). Ответ
+ * насчитал книг больше, чем покрывают страницы (опубликовали новую, пока страница в ISR), —
+ * догружаются недостающие страницы. Упала хоть одна — ошибка целиком: неполный список
+ * не выдаётся за полный. `total` в ключе: другой счёт — другой набор страниц. Запрос — по нажатию.
+ */
+export const useAuthorAllBookCards = (
+  lang: SupportedLang,
+  slug: string,
+  total: number,
+  enabled: boolean
+): UseQueryResult<BookCardModel[], ApiError> => {
+  return useQuery<BookCardModel[], ApiError>({
+    queryKey: queryKeys.authorAllBookCards(lang, slug, total),
+    queryFn: async () => {
+      const fetchPages = (from: number, to: number) =>
+        Promise.all(
+          Array.from({ length: to - from + 1 }, (_, index) =>
+            publicApi.getAuthorBookCards(lang, slug, from + index, AUTHOR_ALL_BOOKS_PAGE_SIZE)
+          )
+        );
+      const pages = Math.max(1, Math.ceil(total / AUTHOR_ALL_BOOKS_PAGE_SIZE));
+      const responses = await fetchPages(1, pages);
+      const actualPages = Math.ceil(
+        (responses[0]?.pagination.total ?? 0) / AUTHOR_ALL_BOOKS_PAGE_SIZE
+      );
+      if (actualPages > pages) responses.push(...(await fetchPages(pages + 1, actualPages)));
+      return responses.flatMap((response) => response.items);
+    },
+    enabled,
+    staleTime: staleTimeConfig.catalog,
+    retry: false,
   });
 };

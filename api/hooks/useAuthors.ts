@@ -18,16 +18,13 @@ import {
   getAuthorPromptInputs,
   type GetAuthorsParams,
 } from '@/api/endpoints/admin/authors';
-import { getPublicAuthorBySlug } from '@/api/endpoints/public';
 import type {
   Author,
   AuthorPromptInputs,
   AuthorSaveResponse,
   CreateAuthorRequest,
   UpdateAuthorRequest,
-  PublicAuthorDetail,
   PaginatedResult,
-  SupportedLang,
 } from '@/types/api-schema';
 
 export const authorKeys = {
@@ -35,14 +32,11 @@ export const authorKeys = {
   lists: () => [...authorKeys.all, 'list'] as const,
   list: (params: GetAuthorsParams) => [...authorKeys.lists(), params] as const,
   details: () => [...authorKeys.all, 'detail'] as const,
-  detail: (slug: string, lang?: string) =>
-    [...authorKeys.details(), slug, lang].filter(Boolean) as string[],
   /**
-   * Отдельный ключ для админского чтения по `id` (`LEGACY-352`). Через `detail`
-   * его строить нельзя: у того `lang` необязателен, и `detail(slug)` без языка
-   * дал бы ключ той же формы, что `detail(id)`, — публичный `PublicAuthorDetail`
-   * и админский `Author` полезли бы в одну ячейку кэша. Плюс `detail('')`
-   * схлопывался бы в префикс `details()` целиком.
+   * Отдельный ключ для админского чтения по `id` (`LEGACY-352`). Ключа вида
+   * `detail(slug, lang?)` здесь нет и заводить его нельзя: без языка он дал бы ключ той же
+   * формы, что `detail(id)`, — публичный `PublicAuthorDetail` и админский `Author` полезли
+   * бы в одну ячейку кэша. Публичную деталь автора страница читает на сервере (F02-3).
    */
   detailById: (id: string) => [...authorKeys.details(), 'by-id', id] as string[],
   promptInputs: (id: string) => [...authorKeys.all, 'prompt-inputs', id] as string[],
@@ -67,18 +61,6 @@ export const useAuthor = (
     queryKey: authorKeys.detailById(id),
     queryFn: () => getAuthorById(id),
     enabled: Boolean(id),
-    ...options,
-  });
-};
-
-export const usePublicAuthor = (
-  lang: SupportedLang,
-  slug: string,
-  options?: Omit<UseQueryOptions<PublicAuthorDetail, Error>, 'queryKey' | 'queryFn'>
-) => {
-  return useQuery<PublicAuthorDetail, Error>({
-    queryKey: authorKeys.detail(slug, lang),
-    queryFn: () => getPublicAuthorBySlug(lang, slug),
     ...options,
   });
 };

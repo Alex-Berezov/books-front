@@ -313,6 +313,8 @@
       "biography",
       "birthDate",
       "books",
+      "booksAvgRating",
+      "booksHasAudio",
       "booksTotal",
       "books[].author",
       "books[].authorSlug",

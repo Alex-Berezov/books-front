@@ -15,9 +15,14 @@ interface BookCardProps {
   book: BookCardModel;
   size?: 'sm' | 'md' | 'lg';
   priority?: boolean;
+  /**
+   * Лента поверх обложки вместо «Новинки» — например «Главное» на странице автора (F02-3).
+   * Без неё карточка такая же, как везде.
+   */
+  highlightLabel?: string;
 }
 
-export function BookCard({ book, size = 'md', priority = false }: BookCardProps) {
+export function BookCard({ book, size = 'md', priority = false, highlightLabel }: BookCardProps) {
   const pathname = usePathname();
   const lang = getLangFromPath(pathname);
   const { t } = useTranslation();
@@ -77,7 +82,11 @@ export function BookCard({ book, size = 'md', priority = false }: BookCardProps)
             )}
           </div>
         </Link>
-        {isNewRelease && <span className={styles.ribbon}>{t('book.newRelease')}</span>}
+        {highlightLabel ? (
+          <span className={styles.ribbon}>{highlightLabel}</span>
+        ) : (
+          isNewRelease && <span className={styles.ribbon}>{t('book.newRelease')}</span>
+        )}
       </div>
 
       {/* Book Metadata */}

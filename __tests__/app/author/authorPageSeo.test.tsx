@@ -5,9 +5,10 @@ import { getSiteUrl } from '@/lib/seo/urls';
 import type { PublicAuthorDetail } from '@/types/api-schema';
 
 /**
- * F02-1: метаданные и разметка страницы автора — hreflang по слагам языков, картинка
- * для соцсетей из портрета, описание из биографии, счёт от `booksTotal`, `Person` всегда
- * с тем же `@id`, что у разметки книг, и крошки из трёх звеньев.
+ * F02-1, F02-3: метаданные и разметка страницы автора — hreflang по слагам языков, картинка
+ * для соцсетей из портрета, описание: своё → `tagline` → биография, счёт от `booksTotal`,
+ * один `@graph`: `WebPage` → `Person` с тем же `@id`, что у разметки книг, `ItemList`
+ * книг и крошки из трёх звеньев.
  */
 
 const mocks = vi.hoisted(() => ({
@@ -24,10 +25,6 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/lib/seo/retired-slug', () => ({ resolveRetiredSlug: vi.fn() }));
 vi.mock('@/api/endpoints/public', () => ({
   getPublicAuthorBySlug: mocks.getPublicAuthorBySlug,
-}));
-// Клиентская часть страницы здесь не рендерится — проверяются метаданные и разметка.
-vi.mock('@/app/[lang]/author/[authorSlug]/AuthorDetailClient', () => ({
-  default: () => null,
 }));
 
 type PageModule = typeof import('@/app/[lang]/author/[authorSlug]/page');
@@ -77,7 +74,10 @@ const fullAuthor = (over: Partial<PublicAuthorDetail> = {}): PublicAuthorDetail 
   ...over,
 });
 
-/** Тексты всех `<script type="application/ld+json">` из дерева страницы. */
+/**
+ * Тексты всех `<script type="application/ld+json">` из дерева страницы. Компоненты блоков
+ * здесь не исполняются — обходится только разметка самой страницы.
+ */
 function jsonLdOf(node: ReactNode): Record<string, unknown>[] {
   const out: Record<string, unknown>[] = [];
   const walk = (n: ReactNode) => {
@@ -95,6 +95,14 @@ function jsonLdOf(node: ReactNode): Record<string, unknown>[] {
   };
   walk(node);
   return out;
+}
+
+/** Узлы единственного `@graph` страницы. */
+async function graphOf(): Promise<Record<string, unknown>[]> {
+  const blocks = jsonLdOf(await pageModule.default({ params }));
+  expect(blocks).toHaveLength(1);
+  expect(blocks[0]['@context']).toBe('https://schema.org');
+  return blocks[0]['@graph'] as Record<string, unknown>[];
 }
 
 describe('страница автора: метаданные (F02-1)', () => {
@@ -147,6 +155,17 @@ describe('страница автора: метаданные (F02-1)', () => {
       { url: 'https://media.bibliaris.com/authors/wilde.jpg' },
     ]);
     expect(meta.description).toBe('Оскар Уайльд — ирландский писатель и драматург.');
+  });
+
+  // F02-3, `product.md` §18: описание без своего — из `tagline`, и только потом из биографии.
+  it('описание — tagline раньше биографии', async () => {
+    mocks.getPublicAuthorBySlug.mockResolvedValue(
+      fullAuthor({ tagline: 'Ирландский писатель, автор «Портрета Дориана Грея»' })
+    );
+
+    const meta = await pageModule.generateMetadata({ params });
+
+    expect(meta.description).toBe('Ирландский писатель, автор «Портрета Дориана Грея»');
   });
 
   it('своя картинка из SEO важнее портрета', async () => {
@@ -216,7 +235,7 @@ describe('страница автора: метаданные (F02-1)', () => {
   });
 });
 
-describe('страница автора: разметка (F02-1)', () => {
+describe('страница автора: разметка (F02-1, F02-3)', () => {
   beforeEach(() => {
     mocks.getPublicAuthorBySlug.mockReset();
   });
@@ -229,11 +248,9 @@ describe('страница автора: разметка (F02-1)', () => {
     mocks.getPublicAuthorBySlug.mockResolvedValue(fullAuthor());
     const base = getSiteUrl();
 
-    const blocks = jsonLdOf(await pageModule.default({ params }));
-    const person = blocks.find((b) => b['@type'] === 'Person');
+    const person = (await graphOf()).find((b) => b['@type'] === 'Person');
 
     expect(person).toEqual({
-      '@context': 'https://schema.org',
       '@type': 'Person',
       '@id': `${base}/ru/author/oskar-uajld#person`,
       name: 'Оскар Уайльд',
@@ -251,9 +268,9 @@ describe('страница автора: разметка (F02-1)', () => {
       fullAuthor({ seo: { metaDescription: 'Своё описание' } } as Partial<PublicAuthorDetail>)
     );
 
-    const blocks = jsonLdOf(await pageModule.default({ params }));
-
-    expect(blocks.find((b) => b['@type'] === 'Person')?.description).toBe('Своё описание');
+    expect((await graphOf()).find((b) => b['@type'] === 'Person')?.description).toBe(
+      'Своё описание'
+    );
   });
 
   it('Person выводится и у минимального автора — без дат и ссылок', async () => {
@@ -268,10 +285,7 @@ describe('страница автора: разметка (F02-1)', () => {
     );
     const base = getSiteUrl();
 
-    const blocks = jsonLdOf(await pageModule.default({ params }));
-
-    expect(blocks.find((b) => b['@type'] === 'Person')).toEqual({
-      '@context': 'https://schema.org',
+    expect((await graphOf()).find((b) => b['@type'] === 'Person')).toEqual({
       '@type': 'Person',
       '@id': `${base}/ru/author/oskar-uajld#person`,
       name: 'Оскар Уайльд',
@@ -283,9 +297,7 @@ describe('страница автора: разметка (F02-1)', () => {
     mocks.getPublicAuthorBySlug.mockResolvedValue(fullAuthor());
     const base = getSiteUrl();
 
-    const crumbs = jsonLdOf(await pageModule.default({ params })).filter(
-      (b) => b['@type'] === 'BreadcrumbList'
-    );
+    const crumbs = (await graphOf()).filter((b) => b['@type'] === 'BreadcrumbList');
 
     expect(crumbs).toHaveLength(1);
     expect(crumbs[0].itemListElement).toEqual([

@@ -1,0 +1,50 @@
+@import '@/styles/tokens.scss';
+
+.facts {
+  padding: $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-lg;
+  background-color: var(--public-background);
+}
+
+.title {
+  margin: 0 0 $spacing-sm;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  margin: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: $spacing-sm;
+  font-size: $font-size-sm;
+}
+
+.label {
+  font-weight: $font-weight-medium;
+  color: var(--public-foreground);
+  opacity: 0.7;
+}
+
+.value {
+  margin: 0;
+  color: var(--public-foreground);
+  overflow-wrap: anywhere;
+
+  a {
+    color: var(--public-primary);
+  }
+}
+
+.works {
+  margin: 0;
+  padding-left: $spacing-md;
+}

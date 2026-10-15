@@ -284,7 +284,14 @@ export interface PublicAuthorDetail {
   alternates?: PublicAuthorAlternate[];
   /** Опубликованных книг автора на языке — отдельным счётом. До F02-1 поля нет. */
   booksTotal?: number;
-  /** Книги автора: общая карточка (`BookCard`) плюс год; порядок — по году, без года в конце. */
+  /** Есть ли аудио у любой книги автора на языке — по всем книгам, не по `books`. До F02-3 поля нет. */
+  booksHasAudio?: boolean;
+  /** Среднее средних оценок книг автора на языке; `null` — оценок нет. До F02-3 поля нет. */
+  booksAvgRating?: number | null;
+  /**
+   * Первые 12 книг автора (F02-3): общая карточка (`BookCard`) плюс год; порядок — по году,
+   * без года в конце. Остальные — `/{lang}/authors/{slug}/books/cards` тем же порядком.
+   */
   books: PublicAuthorBook[];
 }
 

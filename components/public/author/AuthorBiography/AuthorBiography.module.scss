@@ -1,0 +1,99 @@
+@import '@/styles/tokens.scss';
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+}
+
+.tocTitle {
+  margin: 0 0 $spacing-xs;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+  cursor: default;
+}
+
+.tocList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin: 0;
+  padding-left: $spacing-lg;
+  font-size: $font-size-sm;
+
+  a {
+    color: var(--public-primary);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// Широкий экран — оглавление открыто; узкий — свёрнуто в `details` (`product.md` F02, §8).
+.tocWide {
+  display: none;
+  padding: $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-lg;
+
+  @media (min-width: $breakpoint-sm) {
+    display: block;
+  }
+}
+
+.tocNarrow {
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-lg;
+
+  .tocTitle {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .tocList {
+    margin-top: $spacing-sm;
+  }
+
+  @media (min-width: $breakpoint-sm) {
+    display: none;
+  }
+}
+
+.content {
+  font-size: $font-size-base;
+  line-height: $line-height-relaxed;
+  color: var(--public-foreground);
+
+  :global(h3) {
+    margin: $spacing-xl 0 $spacing-sm;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    scroll-margin-top: $spacing-xxl;
+  }
+
+  :global(figure) {
+    margin: $spacing-lg 0;
+  }
+
+  :global(figcaption) {
+    margin-top: $spacing-xs;
+    font-size: $font-size-xs;
+    color: var(--public-foreground);
+    opacity: 0.7;
+  }
+}
+
+.plain {
+  white-space: pre-line;
+}

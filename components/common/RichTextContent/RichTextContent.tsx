@@ -27,11 +27,16 @@ import styles from './RichTextContent.module.scss';
  * ```
  */
 export const RichTextContent: FC<RichTextContentProps> = (props) => {
-  const { html, className, id } = props;
+  const { html, className, id, transformSafeHtml } = props;
 
   const classes = className ? `${styles.content} ${className}` : styles.content;
   // Чистка длинной главы дорогая: без мемо читалка гоняла бы её на каждом ререндере от настроек и оглавления.
-  const safeHtml = useMemo(() => sanitizeRichHtml(html), [html]);
+  // Преобразование — после чистки: то, что оно добавляет (якоря `id` у разделов), строит наш код,
+  // а белый список санитайзера такого не пропускает (решение арбитра 15.10.2026, `F02 | F02-3`, Р1).
+  const safeHtml = useMemo(() => {
+    const clean = sanitizeRichHtml(html);
+    return transformSafeHtml ? transformSafeHtml(clean) : clean;
+  }, [html, transformSafeHtml]);
 
   return <div id={id} className={classes} dangerouslySetInnerHTML={{ __html: safeHtml }} />;
 };

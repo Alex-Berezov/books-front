@@ -1,24 +1,35 @@
+import { HelpCircle, Quote } from 'lucide-react';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { getPublicAuthorBySlug } from '@/api/endpoints/public';
+import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
+import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
+import { AuthorBiography } from '@/components/public/author/AuthorBiography/AuthorBiography';
+import { AuthorBooks } from '@/components/public/author/AuthorBooks/AuthorBooks';
+import { AuthorFacts } from '@/components/public/author/AuthorFacts/AuthorFacts';
+import { AuthorHero } from '@/components/public/author/AuthorHero/AuthorHero';
+import { AuthorSimilar } from '@/components/public/author/AuthorSimilar/AuthorSimilar';
+import { AuthorStartHere } from '@/components/public/author/AuthorStartHere/AuthorStartHere';
+import { authorsBasePath } from '@/components/public/authors/authors-href';
+import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
+import { toAuthorQuoteItems } from '@/lib/author/author-quotes';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import {
   authorFallbackMeta,
-  authorUrl,
+  authorNameFromSlug,
   buildAuthorHreflang,
-  buildAuthorPersonJsonLd,
-  describeFromBiography,
+  buildAuthorPageGraph,
+  describeAuthor,
 } from '@/lib/seo/author-page';
 import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
-import { buildLangUrl } from '@/lib/seo/urls';
 import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
-import { buildBreadcrumbJsonLd, serializeJsonLd } from '@/lib/utils/json-ld';
+import { serializeJsonLd } from '@/lib/utils/json-ld';
 import { getPageMetadata } from '@/lib/utils/seo';
 import { buildRobotsByCount, toCountResult } from '@/lib/utils/seo-indexing';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { CountResult } from '@/lib/utils/seo-indexing';
-import type { BookCardModel, PublicAuthorDetail } from '@/types/api-schema';
+import type { PublicAuthorDetail } from '@/types/api-schema';
 import type { Metadata } from 'next';
-import AuthorDetailClient from './AuthorDetailClient';
+import styles from './author.module.scss';
 
 export const revalidate = 300;
 
@@ -26,26 +37,10 @@ type Props = {
   params: Promise<{ lang: string; authorSlug: string }>;
 };
 
-function decodeAuthorSlug(slug: string): string {
-  try {
-    return decodeURIComponent(slug).replace(/-/g, ' ');
-  } catch {
-    return slug.replace(/-/g, ' ');
-  }
-}
-
-function toTitleCase(str: string) {
-  return str.replace(
-    /\w\S*/g,
-    (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
-  );
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, authorSlug } = await params;
   const supportedLang = lang as SupportedLang;
-  const searchName = decodeAuthorSlug(authorSlug ?? '');
-  let displayName = toTitleCase(searchName);
+  let displayName = authorNameFromSlug(authorSlug ?? '');
 
   let seoDataFromDb: PublicAuthorDetail['seo'] = null;
   let author: PublicAuthorDetail | null = null;
@@ -89,11 +84,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   );
 
   const title = seoDataFromDb?.metaTitle || fallbackTitle;
-  // Своё описание → начало биографии (≤ 160) → шаблон (решение арбитра 14.10.2026, F02-1).
-  const description =
-    seoDataFromDb?.metaDescription ||
-    describeFromBiography(author?.biography) ||
-    fallbackDescription;
+  // Своё описание → `tagline` (F02-3) → начало биографии (≤ 160) → шаблон (`product.md` §18).
+  const description = (author && describeAuthor(author)) || fallbackDescription;
   // Картинка для соцсетей: своя из SEO, иначе портрет автора.
   const ogImageUrl = seoDataFromDb?.ogImageUrl || author?.photoUrl || null;
 
@@ -165,11 +157,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function AuthorDetailPage({ params }: Props) {
   const { lang, authorSlug } = await params;
   const supportedLang = lang as SupportedLang;
-  const searchName = decodeAuthorSlug(authorSlug ?? '');
-  const displayName = toTitleCase(searchName);
 
   let author: PublicAuthorDetail | null = null;
-  const initialBooks: BookCardModel[] = [];
 
   try {
     author = await getPublicAuthorBySlug(supportedLang, authorSlug);
@@ -212,37 +201,48 @@ export default async function AuthorDetailPage({ params }: Props) {
     notFound();
   }
 
-  const pageUrl = authorUrl(supportedLang, author.slug);
-  const jsonLd = buildAuthorPersonJsonLd(supportedLang, author);
-
   const dictionary = getDictionary(supportedLang);
-  const breadcrumbJsonLd = buildBreadcrumbJsonLd(
-    [
-      { name: dictionary.breadcrumb.home, url: buildLangUrl(supportedLang) },
-      { name: dictionary.breadcrumb.authors, url: buildLangUrl(supportedLang, '/authors') },
-      { name: author.name || displayName, url: pageUrl },
-    ],
-    pageUrl
-  );
+  // Один `@graph`: WebPage → Person, Person, книги, крошки (`tech.md` F02, §7). `FAQPage` —
+  // отдельным блоком `FaqBlock` (решение арбитра 15.10.2026, `F02 | F02-3`, Р5).
+  const jsonLd = buildAuthorPageGraph(supportedLang, author, {
+    home: dictionary.breadcrumb.home,
+    authors: dictionary.breadcrumb.authors,
+  });
+  const faq = author.faq ?? [];
+  const quotes = toAuthorQuoteItems(supportedLang, author.quotes);
 
+  // Порядок блоков — `product.md` F02, §2. Каждый блок сам не выводится без данных. Кнопки
+  // «Назад» нет: путь назад дают видимые крошки (решение арбитра 15.10.2026, `F02 | F02-3`, Р4).
   return (
-    <>
+    <div className={styles.authorPage}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
-      />
-      <AuthorDetailClient
-        lang={lang}
-        authorSlug={authorSlug}
-        displayName={author?.name || displayName}
-        authorData={author}
-        isFallback={false}
-        initialBooks={initialBooks}
-      />
-    </>
+      <div className={styles.container}>
+        <Breadcrumbs
+          items={[
+            { label: dictionary.breadcrumb.home, href: `/${supportedLang}` },
+            { label: dictionary.breadcrumb.authors, href: authorsBasePath(supportedLang, null) },
+            { label: author.name },
+          ]}
+          emitJsonLd={false}
+        />
+        <div className={styles.top}>
+          <AuthorHero lang={supportedLang} author={author} />
+          <AuthorFacts lang={supportedLang} author={author} />
+        </div>
+        <AuthorStartHere lang={supportedLang} items={author.startHere} />
+        <AuthorBooks lang={supportedLang} author={author} />
+        <AuthorBiography lang={supportedLang} biography={author.biography} />
+        {quotes.length > 0 && (
+          <QuotesBlock items={quotes} title={dictionary.author.quotes} icon={<Quote size={20} />} />
+        )}
+        <AuthorSimilar lang={supportedLang} authors={author.similarAuthors} />
+        {faq.length > 0 && (
+          <FaqBlock items={faq} title={dictionary.author.faq} icon={<HelpCircle size={20} />} />
+        )}
+      </div>
+    </div>
   );
 }

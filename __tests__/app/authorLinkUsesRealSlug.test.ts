@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { resolve, sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -15,11 +15,11 @@ import { describe, expect, it } from 'vitest';
  * следующего, кто его не прочитал. Здесь он машинный.
  *
  * Сторож сканирует **исходник**: точки — асинхронный серверный компонент с сетевыми
- * запросами и клиентский компонент страницы автора; рендер-тест потребовал бы
+ * запросами и блоки страницы автора; рендер-тест потребовал бы
  * мокать весь слой данных ради одной строки адреса. Тот же приём, что и в
  * `__tests__/eslintInlineStyles.test.ts` и `__tests__/app/bookCopyrightStatusHidden.test.ts`.
  *
- * ⚠️ Границы сторожа. Он стережёт **отсутствие слагификации** в двух названных файлах.
+ * ⚠️ Границы сторожа. Он стережёт **отсутствие слагификации** в названных файлах.
  * Того, что слаг доехал с бэкенда и верен, он не проверяет — это делают спеки бэкенда
  * (`books/src/modules/book/book.service.spec.ts`, `seo.service.spec.ts`,
  * `author/author.service.spec.ts`).
@@ -61,12 +61,27 @@ describe('LEGACY-006: адрес автора берётся с сервера, 
   });
 
   // F02-1: маппера карточек автора больше нет — книга приходит готовой карточкой со слагом
-  // автора с бэкенда. Сторож переходит на страницу автора, которая эти карточки выводит.
-  it('страница автора не собирает слаг из имени', () => {
-    const source = readRepoCode('app/[lang]/author/[authorSlug]/AuthorDetailClient.tsx');
+  // автора с бэкенда. F02-3: страница собрана из серверных блоков — сторож идёт по странице
+  // и по **каждому** файлу каталога блоков: новый блок попадает под него сам.
+  const authorBlockFiles = readdirSync(resolve(__dirname, '../../components/public/author'), {
+    recursive: true,
+  })
+    .map(String)
+    .filter((file) => file.endsWith('.tsx'))
+    .map((file) => `components/public/author/${file.split(sep).join('/')}`);
 
-    expect(source).not.toContain(SLUGIFY_CALL);
+  it('каталог блоков страницы автора не пуст — сторожу есть что читать', () => {
+    expect(authorBlockFiles.length).toBeGreaterThanOrEqual(7);
   });
+
+  it.each(['app/[lang]/author/[authorSlug]/page.tsx', ...authorBlockFiles])(
+    'страница автора не собирает слаг из имени: %s',
+    (file) => {
+      const source = readRepoCode(file);
+
+      expect(source).not.toContain(SLUGIFY_CALL);
+    }
+  );
 
   it('контракт по-прежнему запрещает выводить слаг из отображаемого имени', () => {
     // Комментарий — не украшение: он единственное место, где сказано, **почему**

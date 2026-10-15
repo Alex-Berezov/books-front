@@ -185,6 +185,7 @@ export {
   useSeoResolve,
   useReaderBootstrap,
   usePublicTags,
+  useAuthorAllBookCards,
 } from './usePublic';
 
 // Bookshelf
@@ -196,7 +197,6 @@ export {
   useAuthors,
   useAuthor,
   useAuthorPromptInputs,
-  usePublicAuthor,
   useCreateAuthor,
   useUpdateAuthor,
   useDeleteAuthor,

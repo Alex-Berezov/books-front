@@ -19,6 +19,8 @@ interface BookCardServerProps {
   };
   size?: 'sm' | 'md' | 'lg';
   priority?: boolean;
+  /** Лента вместо «Новинки» — «Главное» на странице автора (F02-3); без неё карточка как везде. */
+  highlightLabel?: string;
 }
 
 function buildCoverAlt(
@@ -36,6 +38,7 @@ export function BookCardServer({
   labels,
   size = 'md',
   priority = false,
+  highlightLabel,
 }: BookCardServerProps) {
   const slug = book.slug || book.id;
   const hasText = book.hasText;
@@ -85,7 +88,11 @@ export function BookCardServer({
             )}
           </div>
         </Link>
-        {isNewRelease && <span className={styles.ribbon}>{labels.newLabel}</span>}
+        {highlightLabel ? (
+          <span className={styles.ribbon}>{highlightLabel}</span>
+        ) : (
+          isNewRelease && <span className={styles.ribbon}>{labels.newLabel}</span>
+        )}
       </div>
 
       <div className={styles.metadata}>

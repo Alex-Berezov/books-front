@@ -158,6 +158,10 @@ export const queryKeys = {
   publicTags: (lang: string, params?: { page?: number; limit?: number }) =>
     ['publicTags', lang, params || {}] as const,
 
+  /** All books of an author for «Show all»: ['authorAllBookCards', lang, slug, total] */
+  authorAllBookCards: (lang: string, slug: string, total: number) =>
+    ['authorAllBookCards', lang, slug, total] as const,
+
   /** User bookshelf: ['bookshelf', page, limit] */
   bookshelf: (page?: number, limit?: number) => ['bookshelf', { page, limit }] as const,
 } as const;
