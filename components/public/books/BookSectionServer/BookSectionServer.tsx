@@ -1,7 +1,5 @@
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { getDictionary } from '@/lib/i18n/dictionaries';
-import { isSupportedLang } from '@/lib/i18n/lang';
 import type { BookCardModel } from '@/types/api-schema';
 import { BookCardServer } from '../BookCardServer/BookCardServer';
 import styles from '../BookSection.module.scss';
@@ -36,7 +34,11 @@ export function BookSectionServer({
   size = 'md',
   priorityCount = 0,
 }: BookSectionServerProps) {
-  const dict = getDictionary(isSupportedLang(lang) ? lang : 'en');
+  // Раздел без книг не рисуется вовсе: главная собирается с `.catch(() => null)` на каждый
+  // запрос и кэшируется на 5 минут (`app/[lang]/page.tsx`, `revalidate = 300`), и при отказе
+  // бэкенда, например на перезапуске при выкате, «Top Popular» висел пустым заголовком
+  // с «книг не найдено» до следующей перегенерации.
+  if (books.length === 0) return null;
 
   return (
     <section className={styles.section}>
@@ -53,20 +55,16 @@ export function BookSectionServer({
       </div>
 
       <div className={styles.carousel}>
-        {books.length > 0 ? (
-          books.map((book, idx) => (
-            <BookCardServer
-              key={book.id}
-              book={book}
-              lang={lang}
-              labels={labels.bookCardLabels}
-              size={size}
-              priority={idx < priorityCount}
-            />
-          ))
-        ) : (
-          <div className={styles.empty}>{dict.catalog.noBooksFound}</div>
-        )}
+        {books.map((book, idx) => (
+          <BookCardServer
+            key={book.id}
+            book={book}
+            lang={lang}
+            labels={labels.bookCardLabels}
+            size={size}
+            priority={idx < priorityCount}
+          />
+        ))}
       </div>
     </section>
   );

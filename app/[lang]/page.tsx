@@ -118,6 +118,15 @@ export default async function PublicLangPage({ params }: Props) {
       getPageBySystemKey(supportedLang, 'homepage').catch(() => null as PageResponse | null),
     ]);
 
+    // 🔴 Отказали оба запроса книг (`null` - это отказ, пустой список - это ответ): страница
+    // не собирается вовсе. При фоновой пересборке ISR (`revalidate` выше) ошибка оставляет
+    // в выдаче прошлую целую главную, а не кэширует на 5 минут неполную - без «Top Popular»,
+    // «New Releases» и обложек шапки. Так было при перезапуске бэкенда на выкате 16.10.2026.
+    // Решение арбитра 16.10.2026 (`decisions-log.md`, `2026-10-16-home-empty-sections`).
+    if (popularRes === null && newRes === null) {
+      throw new Error('Homepage: both book list requests failed, keeping the previous page');
+    }
+
     const featuredBooks = popularRes?.items || [];
     const newReleases = newRes?.items || [];
     const audiobooks = audioRes?.items || [];
