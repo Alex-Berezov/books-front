@@ -9,6 +9,7 @@ import { analyzeAuthorImport, checkAuthorImport } from '@/lib/admin/author-valid
 import { authorUrl } from '@/lib/seo/author-page';
 import type { AuthorImportData } from '@/lib/admin/author-page-blocks.schema';
 import example from '../../fixtures/example-author.json';
+import exampleBiography from '../../fixtures/example-biography.json';
 
 // T5 (`tech.md` §0): ключа нет — поле не трогается; `null`/`[]` (у строки — и `''`) — очищается.
 
@@ -267,5 +268,52 @@ describe('analyzeAuthorImport', () => {
       'en → funFacts[0].sourceUrl',
     ]);
     expect(result.cleared).toEqual([]);
+  });
+});
+
+// F02-5, `product.md` §20 п.8: оба эталона из `prompts/` (копии в `__tests__/fixtures/`, менять
+// вместе с эталоном docs) принимаются импортом без ошибок и неизвестных ключей, а второй импорт
+// не стирает данные первого — в любом порядке.
+describe('эталоны промптов № 1 и № 2 (F02-5)', () => {
+  it('оба разбираются без ошибок и без неизвестных ключей', () => {
+    for (const json of [example, exampleBiography]) {
+      const analysis = analyzeAuthorImport(emptyAuthorForm(), JSON.stringify(json));
+      expect(analysis.errors).toEqual([]);
+      expect(analysis.unknownKeys).toEqual([]);
+      expect(analysis.data).not.toBeNull();
+    }
+  });
+
+  it.each([
+    ['данные, потом биография', [example, exampleBiography]],
+    ['биография, потом данные', [exampleBiography, example]],
+  ])('%s: ни один язык не теряет ни поля первого импорта, ни биографию', (_name, order) => {
+    const merged = order.reduce<AuthorFormValues>(
+      (form, json) => mergeAuthorImport(form, parse(json)),
+      emptyAuthorForm()
+    );
+
+    // Эталон: каждый JSON по отдельности. Слияние обоих обязано совпасть с импортом данных
+    // во всём, кроме биографии, а биография - с импортом второго промпта: ни одно поле
+    // первого импорта (факты, цитаты, премии, источники, общие поля) не стёрто.
+    const dataOnly = mergeAuthorImport(emptyAuthorForm(), parse(example));
+    const bioOnly = mergeAuthorImport(emptyAuthorForm(), parse(exampleBiography));
+
+    expect(merged.general).toEqual(dataOnly.general);
+    for (const lang of ['en', 'es', 'fr', 'pt', 'ru'] as const) {
+      const { biography, ...rest } = merged.translations[lang];
+      const { biography: _dataBio, ...dataRest } = dataOnly.translations[lang];
+      expect(rest).toEqual(dataRest);
+      expect(biography).toBe(bioOnly.translations[lang].biography);
+      expect(biography).toContain('<h3>');
+    }
+  });
+
+  it('импорт биографии поверх данных не помечает ни одно поле к очистке', () => {
+    const afterData = mergeAuthorImport(emptyAuthorForm(), parse(example));
+    expect(collectClearedFields(afterData, parse(exampleBiography))).toEqual([]);
+    // И в обратном порядке: данные поверх биографии её не очищают.
+    const afterBio = mergeAuthorImport(emptyAuthorForm(), parse(exampleBiography));
+    expect(collectClearedFields(afterBio, parse(example))).toEqual([]);
   });
 });

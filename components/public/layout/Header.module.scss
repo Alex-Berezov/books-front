@@ -13,14 +13,27 @@
 .container {
   max-width: $layout-max-width-xl;
   margin: 0 auto;
-  padding: 0 $spacing-md;
+  // Узкий экран: поля шапки уже, чтобы кнопка входа на es/fr («Iniciar Sesión»,
+  // «Se Connecter») влезала целиком и на 360 px (F02-5, приёмка §20 п.4).
+  padding: 0 $spacing-sm;
+
+  @media (min-width: $breakpoint-sm) {
+    padding: 0 $spacing-md;
+  }
 }
 
 .topRow {
   display: flex;
   height: 56px;
   align-items: center;
-  gap: $spacing-md;
+  // Узкий экран: на es/fr кнопка входа («Iniciar Sesión», «Se Connecter») с отступами
+  // широкого выходила за 375 px на 28 px и обрезалась (F02-5, приёмка §20 п.4); на 360 px
+  // ей не хватало ещё 11 px.
+  gap: $spacing-xs;
+
+  @media (min-width: $breakpoint-sm) {
+    gap: $spacing-md;
+  }
 }
 
 .logo {
@@ -106,6 +119,7 @@
   display: flex;
   align-items: center;
   gap: $spacing-xs;
+  min-width: 0;
 }
 
 .btnBase {
@@ -157,18 +171,29 @@
 
 .signInBtn {
   height: 32px;
-  padding: 0 $spacing-md;
+  // Узкий экран: мельче шрифт и отступ, чтобы «Iniciar Sesión» и «Se Connecter» влезали
+  // целиком и на 360 px. Ещё уже (320) подпись сжимается с многоточием, а не выталкивает
+  // шапку за край - там её обрезал бы `overflow-x: clip` у страницы.
+  padding: 0 $spacing-xs;
   background-color: var(--gold);
   border: 1px solid var(--gold);
   border-radius: $border-radius-base;
   color: var(--gold-foreground);
-  font-size: $font-size-sm;
+  font-size: $font-size-xs;
   font-weight: $font-weight-medium;
   cursor: pointer;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &:hover {
     opacity: 0.9;
+  }
+
+  @media (min-width: $breakpoint-sm) {
+    padding: 0 $spacing-md;
+    font-size: $font-size-sm;
   }
 }
 

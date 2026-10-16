@@ -314,6 +314,51 @@ jobs:
           done
           echo "таксономия наполнена: четыре вида хабов на пяти языках"
 
+          # 🔴 Третья половина пробы - авторы приёмки страницы автора (`F02-5`,
+          # `e2e/author-page.spec.ts`): полный Верн, минимальный Дюма и «старый» Киплинг на пяти
+          # языках плюс Стивенсон, у которого перевод только на `en`. Их заводит
+          # `books/prisma/seed-authors.ts`. Образ старше релиза с этим файлом авторов не создаст,
+          # и спека покраснела бы строкой «404» на первой же странице, а причина лежала бы
+          # в чужом репозитории. Пары «язык/слаг» - ровно те, что открывает спека (`AUTHOR_SLUG`
+          # и `STEVENSON`): правишь там, правь и здесь. Ручка - `/api/:lang/authors/:slug`
+          # (`books/src/modules/public/public.controller.ts`, маршрут `authors/:slug`).
+          for pair in en/jules-verne ru/zhyul-vern es/julio-verne fr/jules-verne pt/julio-verne \
+                      en/alexandre-dumas ru/aleksandr-dyuma es/alejandro-dumas fr/alexandre-dumas pt/alexandre-dumas \
+                      en/rudyard-kipling ru/redyard-kipling es/rudyard-kipling fr/rudyard-kipling pt/rudyard-kipling \
+                      en/robert-louis-stevenson; do
+            url="http://127.0.0.1:5000/api/${pair%%/*}/authors/${pair#*/}"
+            code=$(curl -sS -o /dev/null -w '%{http_code}' "$url") || code="нет ответа"
+            if [ "$code" != "200" ]; then
+              echo "::error::Автор приёмки ${pair} не отдаётся: ${url} ответил ${code}."
+              echo "Похоже, образ ghcr.io/alex-berezov/books:latest старше релиза, добавившего авторов страницы автора в prisma/seed-authors.ts (F02-5)."
+              exit 1
+            fi
+          done
+          # Отрицательные предусловия спеки: у Стивенсона нет перевода на `es` (в «Похожих» он
+          # там именем без ссылки), а у Верна в данных есть автор и книга, которых на сайте нет.
+          # Сид другой ревизии отдал бы 200 на все пары выше и покраснил бы спеку чужой причиной.
+          for pair in ru/zhyul-vern es/julio-verne fr/jules-verne pt/julio-verne; do
+            if ! curl -fsS "http://127.0.0.1:5000/api/${pair%%/*}/authors/${pair#*/}" -o "$RUNNER_TEMP/verne-similar.json" \
+              || ! jq -e '[.similarAuthors[] | select(.name == "Robert Louis Stevenson" and .slug == null)] | length == 1' \
+                   "$RUNNER_TEMP/verne-similar.json" > /dev/null; then
+              echo "::error::В «Похожих» Верна на ${pair%%/*} Стивенсон ожидался без слага (перевод у него только на en)."
+              echo "Сид books/prisma/seed-authors.ts разошёлся со спекой e2e/author-page.spec.ts (F02-5)."
+              exit 1
+            fi
+          done
+          if ! curl -fsS "http://127.0.0.1:5000/api/en/authors/jules-verne" -o "$RUNNER_TEMP/verne.json"; then
+            echo "::error::/api/en/authors/jules-verne не ответил 200."
+            exit 1
+          fi
+          if ! jq -e '([.influences.influencedBy[] | select(.authorSlug == "no-such-author" and .author == null)] | length == 1)
+                      and ([.timeline[] | select(.bookSlug == "five-weeks-in-a-balloon" and .book == null)] | length == 1)' \
+                      "$RUNNER_TEMP/verne.json" > /dev/null; then
+            echo "::error::В данных Верна нет ненайденных слагов no-such-author (влияния) и five-weeks-in-a-balloon (хронология)."
+            echo "Сид books/prisma/seed-authors.ts разошёлся со спекой e2e/author-page.spec.ts (F02-5)."
+            exit 1
+          fi
+          echo "авторы приёмки страницы автора на месте"
+
       # Сборка здесь потому, что lint, typecheck и тесты её не заменяют.
       # 08.08.2026 импорт `next/headers` в файл, общий для сервера и клиента,
       # прошёл все три проверки зелёными и упал только в деплое: запрет на такой
