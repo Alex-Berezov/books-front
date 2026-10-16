@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'Where the texts on Bibliaris come from, who writes the summaries and descriptions, how book texts are prepared, and how mistakes are corrected.',
   title: 'Editorial Policy',
-  updatedAt: '2026-10-13',
+  updatedAt: '2026-10-16',
   toc: false,
   sections: [
     {
@@ -90,6 +90,29 @@ export const document: LegalDocument = {
               kind: 'text',
               text: 'If the translator of a book is known, the translator is named on the book page.',
             },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'authors',
+      heading: 'Author pages',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'The information on author pages — dates and places of life, the timeline, influences, awards, adaptations and interesting facts — is gathered from open sources. When sources are given, they are listed at the bottom of the author page.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            { kind: 'text', text: 'You can report a mistake on an author page on the ' },
+            { kind: 'link', text: 'Contact', href: '/contact' },
+            { kind: 'text', text: ' page, as described under “Corrections”.' },
           ],
         },
       ],

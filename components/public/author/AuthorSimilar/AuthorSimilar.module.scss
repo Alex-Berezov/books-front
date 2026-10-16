@@ -1,19 +1,12 @@
 @import '@/styles/tokens.scss';
+@import '@/styles/mixins.scss';
 
 .section {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-lg;
+  @include author-section;
 }
 
 .title {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-  margin: 0;
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--public-foreground);
+  @include author-section-title;
 }
 
 .icon {
@@ -21,27 +14,73 @@
 }
 
 .list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-sm;
-}
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 
-.link,
-.name {
-  display: inline-flex;
-  align-items: center;
-  padding: $spacing-xs $spacing-md;
-  border: 1px solid var(--public-border);
-  border-radius: $border-radius-full;
-  font-size: $font-size-sm;
-  color: var(--public-foreground);
-}
-
-.link {
-  text-decoration: none;
-
-  &:hover {
-    color: var(--public-primary);
-    border-color: var(--public-primary);
+  @media (min-width: $breakpoint-sm) {
+    grid-template-columns: 1fr 1fr 1fr;
   }
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  height: 100%;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-lg;
+  color: var(--public-foreground);
+  text-decoration: none;
+}
+
+a.card:hover {
+  border-color: var(--public-primary);
+
+  .name {
+    color: var(--public-primary);
+  }
+}
+
+.avatar {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: $spacing-xxl + $spacing-md;
+  height: $spacing-xxl + $spacing-md;
+  overflow: hidden;
+  border-radius: $border-radius-full;
+  background-color: var(--public-border);
+}
+
+.photo {
+  object-fit: cover;
+}
+
+.avatarIcon {
+  color: var(--public-foreground);
+  opacity: 0.5;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  min-width: 0;
+}
+
+.name {
+  font-weight: $font-weight-medium;
+  overflow-wrap: anywhere;
+}
+
+.years {
+  font-size: $font-size-sm;
+  opacity: 0.7;
 }

@@ -1,17 +1,12 @@
-import { HelpCircle, Quote } from 'lucide-react';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { getPublicAuthorBySlug } from '@/api/endpoints/public';
-import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
-import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
-import { AuthorBiography } from '@/components/public/author/AuthorBiography/AuthorBiography';
 import { AuthorBooks } from '@/components/public/author/AuthorBooks/AuthorBooks';
 import { AuthorFacts } from '@/components/public/author/AuthorFacts/AuthorFacts';
 import { AuthorHero } from '@/components/public/author/AuthorHero/AuthorHero';
-import { AuthorSimilar } from '@/components/public/author/AuthorSimilar/AuthorSimilar';
+import { AuthorPageLower } from '@/components/public/author/AuthorPageLower/AuthorPageLower';
 import { AuthorStartHere } from '@/components/public/author/AuthorStartHere/AuthorStartHere';
 import { authorsBasePath } from '@/components/public/authors/authors-href';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
-import { toAuthorQuoteItems } from '@/lib/author/author-quotes';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import {
   authorFallbackMeta,
@@ -208,8 +203,6 @@ export default async function AuthorDetailPage({ params }: Props) {
     home: dictionary.breadcrumb.home,
     authors: dictionary.breadcrumb.authors,
   });
-  const faq = author.faq ?? [];
-  const quotes = toAuthorQuoteItems(supportedLang, author.quotes);
 
   // Порядок блоков — `product.md` F02, §2. Каждый блок сам не выводится без данных. Кнопки
   // «Назад» нет: путь назад дают видимые крошки (решение арбитра 15.10.2026, `F02 | F02-3`, Р4).
@@ -234,14 +227,7 @@ export default async function AuthorDetailPage({ params }: Props) {
         </div>
         <AuthorStartHere lang={supportedLang} items={author.startHere} />
         <AuthorBooks lang={supportedLang} author={author} />
-        <AuthorBiography lang={supportedLang} biography={author.biography} />
-        {quotes.length > 0 && (
-          <QuotesBlock items={quotes} title={dictionary.author.quotes} icon={<Quote size={20} />} />
-        )}
-        <AuthorSimilar lang={supportedLang} authors={author.similarAuthors} />
-        {faq.length > 0 && (
-          <FaqBlock items={faq} title={dictionary.author.faq} icon={<HelpCircle size={20} />} />
-        )}
+        <AuthorPageLower lang={supportedLang} author={author} />
       </div>
     </div>
   );

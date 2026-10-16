@@ -1,4 +1,4 @@
-import { getLocaleTag } from '@/lib/i18n/lang';
+import { formatLongDateUtc } from '@/lib/utils/date';
 
 /**
  * Даты страницы автора (F02-3, `product.md` §4, §5). В данных дата — строка `YYYY`
@@ -37,12 +37,7 @@ export function formatAuthorDate(value: string | null | undefined, lang: string)
   const date = new Date(Date.UTC(2000, m - 1, d));
   date.setUTCFullYear(y);
   if (date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) return null;
-  return new Intl.DateTimeFormat(getLocaleTag(lang), {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(date);
+  return formatLongDateUtc(date, lang);
 }
 
 /**
@@ -70,4 +65,15 @@ export function formatLifeYears(
   if (died !== null) return `? — ${died}`;
   if (born === null) return null;
   return currentYear - born <= LIVING_AUTHOR_MAX_AGE ? `${bornPrefix} ${born}` : `${born} — ?`;
+}
+
+/**
+ * Дата изменения из ISO-отметки (`updatedAt` ответа, с временем) — день, месяц и год по правилам
+ * языка страницы, в UTC. Нераспознанная строка — `null`: подпись выводится без даты.
+ */
+export function formatUpdatedDate(value: string | null | undefined, lang: string): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return formatLongDateUtc(date, lang);
 }

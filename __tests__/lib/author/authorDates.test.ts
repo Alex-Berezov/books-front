@@ -4,6 +4,7 @@ import {
   formatAuthorDate,
   formatBlockYear,
   formatLifeYears,
+  formatUpdatedDate,
 } from '@/lib/author/author-dates';
 
 /** F02-3: даты страницы автора — `YYYY` и `YYYY-MM-DD` по правилам языка страницы. */
@@ -75,5 +76,38 @@ describe('formatBlockYear', () => {
   it('год до н. э. (отрицательный в данных) — числом с подписью, а не «-500»', () => {
     expect(formatBlockYear(-500, 'до н. э.')).toBe('500 до н. э.');
     expect(formatBlockYear(1869, 'до н. э.')).toBe('1869');
+  });
+});
+
+// F02-4: «Обновлено {дата}» в подписи редакции — `updatedAt` перевода (ISO со временем).
+describe('formatUpdatedDate', () => {
+  it('день, месяц словом и год на пяти языках', () => {
+    const iso = '2026-10-15T08:30:00.000Z';
+    expect(formatUpdatedDate(iso, 'ru')).toMatch(/^15 октября 2026/);
+    expect(formatUpdatedDate(iso, 'en')).toBe('October 15, 2026');
+    expect(formatUpdatedDate(iso, 'fr')).toBe('15 octobre 2026');
+    expect(formatUpdatedDate(iso, 'es')).toBe('15 de octubre de 2026');
+    expect(formatUpdatedDate(iso, 'pt')).toBe('15 de outubro de 2026');
+  });
+
+  // 🔴 Отметка поздним вечером по UTC в поясе восточнее Гринвича не уезжает на следующий день.
+  it('день — по UTC, а не по поясу машины', () => {
+    const original = process.env.TZ;
+    process.env.TZ = 'Asia/Tokyo';
+    try {
+      // Контроль: пояс действительно применился — по местному времени это уже 16-е.
+      expect(new Date('2026-10-15T23:30:00.000Z').getDate()).toBe(16);
+      expect(formatUpdatedDate('2026-10-15T23:30:00.000Z', 'en')).toBe('October 15, 2026');
+    } finally {
+      if (original === undefined) delete process.env.TZ;
+      else process.env.TZ = original;
+    }
+  });
+
+  it('пусто или не дата — null', () => {
+    expect(formatUpdatedDate(null, 'en')).toBeNull();
+    expect(formatUpdatedDate(undefined, 'en')).toBeNull();
+    expect(formatUpdatedDate('', 'en')).toBeNull();
+    expect(formatUpdatedDate('not-a-date', 'en')).toBeNull();
   });
 });

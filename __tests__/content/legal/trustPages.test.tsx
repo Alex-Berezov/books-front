@@ -42,15 +42,32 @@ describe('страницы доверия: состав', () => {
     expect(ids('contact')).toEqual(['general', 'corrections', 'rights', 'privacy', 'response']);
   });
 
-  it('редакционная политика: якоря с #translations, без #independence', () => {
+  it('редакционная политика: якоря с #translations и #authors, без #independence', () => {
     expect(ids('editorial-policy')).toEqual([
       'who',
       'sources',
       'preparation',
       'summaries',
       'translations',
+      'authors',
       'corrections',
     ]);
+  });
+
+  // F02-4 (решение арбитра 16.10.2026, `F02 | F02-4`, Р1): раздел о страницах авторов говорит,
+  // откуда сведения, и не утверждает ни «пишут люди», ни «проверяется редакцией» (README F02).
+  it.each(SUPPORTED_LANGS)('%s: #authors есть, без «пишут люди» и «проверяется»', (lang) => {
+    const doc = getLegalDocument('editorial-policy', lang);
+    const section = doc.sections.find((s) => s.id === 'authors');
+    expect(section).toBeDefined();
+    const text = parts({ ...doc, sections: section ? [section] : [] })
+      .map((part) => part.text)
+      .join(' ');
+    expect(text).toMatch(/\S/);
+    // «пишут люди» и «проверяет редакция» на пяти языках — корнями слов, без общих слов вроде «check».
+    expect(text).not.toMatch(
+      /люд|человек|провер|human|humain|humano|people|personne|pessoa|verif|vérif|comprob|reviewed/iu
+    );
   });
 
   it.each(SUPPORTED_LANGS)(
@@ -98,7 +115,8 @@ describe('страницы доверия: состав', () => {
       '/deletion',
       '/legal-notice',
     ]);
-    expect(links(getLegalDocument('editorial-policy', lang))).toEqual(['/contact']);
+    // #authors и #corrections — обе ведут на «Контакты» (Р1, Р12 `F02 | F02-4`).
+    expect(links(getLegalDocument('editorial-policy', lang))).toEqual(['/contact', '/contact']);
     expect(ids('editorial-policy')).toContain('corrections');
   });
 });

@@ -204,3 +204,20 @@
     }
   }
 }
+
+// Author page block (F02-4): a column section and its `h2` with an optional icon.
+// Shared by the blocks added in F02-4 and `AuthorSimilar`; the F02-3 blocks keep their own styles.
+@mixin author-section {
+  @include flex-column;
+  gap: $spacing-lg;
+}
+
+@mixin author-section-title {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin: 0;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: var(--public-foreground);
+}

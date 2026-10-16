@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'D’où viennent les textes de Bibliaris, qui écrit les résumés et les descriptions, comment les textes des livres sont préparés et comment les erreurs sont corrigées.',
   title: 'Politique éditoriale',
-  updatedAt: '2026-10-13',
+  updatedAt: '2026-10-16',
   toc: false,
   sections: [
     {
@@ -92,6 +92,32 @@ export const document: LegalDocument = {
               kind: 'text',
               text: 'Si le traducteur d’un livre est connu, il est indiqué sur la page du livre.',
             },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'authors',
+      heading: 'Pages des auteurs',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Les informations des pages d’auteurs — dates et lieux de vie, chronologie, influences, prix, adaptations et faits intéressants — proviennent de sources ouvertes. Lorsque des sources sont indiquées, elles sont citées en bas de la page de l’auteur.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Vous pouvez signaler une erreur sur la page d’un auteur sur la page ',
+            },
+            { kind: 'link', text: 'Contact', href: '/contact' },
+            { kind: 'text', text: ', comme décrit dans « Corrections ».' },
           ],
         },
       ],

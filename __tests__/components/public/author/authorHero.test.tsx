@@ -117,40 +117,32 @@ describe('AuthorHero', () => {
     expect(container.querySelector('figcaption')).toBeNull();
   });
 
-  // 🔴 `LEGACY-447`: адреса Википедии и Wikidata пишет контент-менеджер, в `href` — только http(s).
-  it('не рендерит javascript: и рендерит соседнюю https-ссылку', () => {
-    render(
-      <AuthorHero
-        lang="en"
-        author={fullAuthor({
-          wikipediaUrl: 'javascript:alert(1)',
-          wikidataUrl: 'https://www.wikidata.org/wiki/Q7243',
-        })}
-      />
-    );
+  // Ссылки Википедии и Wikidata переехали в «Источники» (`product.md` §4, §16; F02-4);
+  // их проверка `LEGACY-447` — в `authorSources.test.tsx`.
+  it('ссылок Википедии и Wikidata в шапке нет', () => {
+    render(<AuthorHero lang="en" author={fullAuthor()} />);
 
-    expect(screen.queryByRole('link', { name: /Wikipedia/ })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Wikidata/ })).toHaveAttribute(
-      'href',
-      'https://www.wikidata.org/wiki/Q7243'
-    );
+    expect(screen.queryByRole('link', { name: /Wikipedia|Wikidata/ })).not.toBeInTheDocument();
   });
 
-  it('не рендерит блок ссылок, когда обе небезопасны; небезопасная лицензия — текстом', () => {
+  // 🔴 `LEGACY-447`: адреса подписи портрета пишет контент-менеджер, в `href` — только http(s).
+  it('небезопасная лицензия и источник портрета — без ссылок, лицензия текстом', () => {
     render(
       <AuthorHero
         lang="en"
         author={fullAuthor({
-          wikipediaUrl: 'javascript:alert(1)',
-          wikidataUrl: 'data:text/html,x',
-          photoCredit: { author: 'X', license: 'CC BY', licenseUrl: 'javascript:alert(1)' },
+          photoCredit: {
+            author: 'X',
+            license: 'CC BY',
+            licenseUrl: 'javascript:alert(1)',
+            sourceUrl: 'data:text/html,x',
+          },
         })}
       />
     );
 
-    expect(
-      screen.queryByRole('link', { name: /Wikipedia|Wikidata|CC BY/ })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /CC BY/ })).not.toBeInTheDocument();
+    expect(screen.queryAllByRole('link')).toHaveLength(0);
     expect(screen.getByText(/CC BY/)).toBeInTheDocument();
   });
 });

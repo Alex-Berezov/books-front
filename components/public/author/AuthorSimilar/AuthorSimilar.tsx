@@ -1,5 +1,7 @@
 import { Users } from 'lucide-react';
 import Link from 'next/link';
+import { AuthorPortrait } from '@/components/public/author/AuthorPortrait/AuthorPortrait';
+import { formatLifeYears } from '@/lib/author/author-dates';
 import { createTranslator } from '@/lib/i18n/translate';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PublicSimilarAuthor } from '@/types/api-schema';
@@ -11,13 +13,16 @@ interface AuthorSimilarProps {
 }
 
 /**
- * Похожие авторы (F02-1): настоящие ссылки, а не кнопки — поисковик ходит по `href`.
- * Автор без перевода на язык страницы (`slug: null`) — имя текстом. Карточки — F02-4.
+ * Похожие авторы (`product.md` F02, §15): карточки с портретом и годами жизни — теми же
+ * `formatLifeYears`, что в шапке (решение арбитра 15.10.2026, `F02 | F02-3`, Р8), а не годами
+ * карточки хаба. Ссылка — настоящий `href`; автор без перевода на язык страницы (`slug: null`) —
+ * карточка без ссылки.
  */
 export function AuthorSimilar({ lang, authors }: AuthorSimilarProps) {
   const list = authors ?? [];
   if (list.length === 0) return null;
   const t = createTranslator(lang);
+  const bornPrefix = t('authors.bornPrefix');
 
   return (
     <section className={styles.section} aria-labelledby="author-similar-title">
@@ -25,19 +30,40 @@ export function AuthorSimilar({ lang, authors }: AuthorSimilarProps) {
         <Users size={20} className={styles.icon} aria-hidden="true" />
         {t('author.similar')}
       </h2>
-      <div className={styles.list}>
-        {list.map((author, index) =>
-          author.slug ? (
-            <Link key={author.slug} href={`/${lang}/author/${author.slug}`} className={styles.link}>
-              {author.name}
-            </Link>
-          ) : (
-            <span key={`text-${index}`} className={styles.name}>
-              {author.name}
-            </span>
-          )
-        )}
-      </div>
+      <ul className={styles.list}>
+        {list.map((author, index) => {
+          const years = formatLifeYears(author.birthDate, author.deathDate, bornPrefix);
+          const body = (
+            <>
+              <span className={styles.avatar}>
+                <AuthorPortrait
+                  photoUrl={author.photoUrl}
+                  alt=""
+                  sizes="64px"
+                  iconSize={28}
+                  photoClassName={styles.photo}
+                  iconClassName={styles.avatarIcon}
+                />
+              </span>
+              <span className={styles.info}>
+                <span className={styles.name}>{author.name}</span>
+                {years && <span className={styles.years}>{years}</span>}
+              </span>
+            </>
+          );
+          return (
+            <li key={`${author.slug ?? 'text'}-${index}`}>
+              {author.slug ? (
+                <Link href={`/${lang}/author/${author.slug}`} className={styles.card}>
+                  {body}
+                </Link>
+              ) : (
+                <div className={styles.card}>{body}</div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'De dónde salen los textos de Bibliaris, quién escribe los resúmenes y las descripciones, cómo se preparan los textos de los libros y cómo se corrigen los errores.',
   title: 'Política editorial',
-  updatedAt: '2026-10-13',
+  updatedAt: '2026-10-16',
   toc: false,
   sections: [
     {
@@ -92,6 +92,32 @@ export const document: LegalDocument = {
               kind: 'text',
               text: 'Si se conoce al traductor de un libro, se indica en la página del libro.',
             },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'authors',
+      heading: 'Páginas de autores',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'La información de las páginas de autores — fechas y lugares de su vida, cronología, influencias, premios, adaptaciones y datos curiosos — se recopila de fuentes abiertas. Cuando se indican las fuentes, aparecen al final de la página del autor.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Puedes avisar de un error en la página de un autor en la página ',
+            },
+            { kind: 'link', text: 'Contacto', href: '/contact' },
+            { kind: 'text', text: ', como se describe en «Correcciones».' },
           ],
         },
       ],

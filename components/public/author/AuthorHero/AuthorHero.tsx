@@ -1,10 +1,12 @@
-import { BookOpen, ExternalLink, User } from 'lucide-react';
-import Image from 'next/image';
+import { BookOpen } from 'lucide-react';
+import {
+  AuthorPhotoCredit,
+  shownPhotoCredit,
+} from '@/components/public/author/AuthorPhotoCredit/AuthorPhotoCredit';
+import { AuthorPortrait } from '@/components/public/author/AuthorPortrait/AuthorPortrait';
 import { formatLifeYears } from '@/lib/author/author-dates';
 import { pluralFormsOf, pluralize } from '@/lib/i18n/plural';
 import { createTranslator } from '@/lib/i18n/translate';
-import { isOptimizableHost } from '@/lib/utils/image-host';
-import { isSafeHref } from '@/lib/utils/safe-href';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PublicAuthorDetail } from '@/types/api-schema';
 import styles from './AuthorHero.module.scss';
@@ -20,8 +22,6 @@ interface AuthorHeroProps {
     | 'birthDate'
     | 'deathDate'
     | 'tagline'
-    | 'wikipediaUrl'
-    | 'wikidataUrl'
     | 'booksTotal'
     | 'booksHasAudio'
     | 'booksAvgRating'
@@ -44,46 +44,25 @@ export function AuthorHero({ lang, author }: AuthorHeroProps) {
   const nativeName =
     author.nativeName && author.nativeName.trim() !== author.name ? author.nativeName.trim() : null;
   const years = formatLifeYears(author.birthDate, author.deathDate, t('authors.bornPrefix'));
-  const credit = author.photoUrl ? author.photoCredit : null;
-  const licenseHref = credit && isSafeHref(credit.licenseUrl) ? credit.licenseUrl : null;
-  const sourceHref = credit && isSafeHref(credit.sourceUrl) ? credit.sourceUrl : null;
+  const credit = shownPhotoCredit(author.photoUrl, author.photoCredit);
 
   return (
     <header className={styles.hero}>
       <figure className={styles.portrait}>
         <div className={styles.avatar}>
-          {author.photoUrl ? (
-            <Image
-              src={author.photoUrl}
-              alt={author.name}
-              className={styles.photo}
-              fill
-              sizes="150px"
-              priority
-              unoptimized={!isOptimizableHost(author.photoUrl)}
-            />
-          ) : (
-            <User size={40} className={styles.avatarIcon} aria-hidden="true" />
-          )}
+          <AuthorPortrait
+            photoUrl={author.photoUrl}
+            alt={author.name}
+            sizes="150px"
+            iconSize={40}
+            priority
+            photoClassName={styles.photo}
+            iconClassName={styles.avatarIcon}
+          />
         </div>
         {credit && (
           <figcaption className={styles.credit}>
-            {t('author.photoCredit')} {credit.author},{' '}
-            {licenseHref ? (
-              <a href={licenseHref} target="_blank" rel="noopener noreferrer">
-                {credit.license}
-              </a>
-            ) : (
-              credit.license
-            )}
-            {sourceHref && (
-              <>
-                ,{' '}
-                <a href={sourceHref} target="_blank" rel="noopener noreferrer">
-                  {hostOf(sourceHref)}
-                </a>
-              </>
-            )}
+            <AuthorPhotoCredit lang={lang} credit={credit} />
           </figcaption>
         )}
       </figure>
@@ -109,32 +88,6 @@ export function AuthorHero({ lang, author }: AuthorHeroProps) {
             )}
           </div>
         )}
-
-        {/* Ссылки Википедии и Wikidata переезжают в «Источники» в F02-4 (`product.md` §4). */}
-        {(isSafeHref(author.wikipediaUrl) || isSafeHref(author.wikidataUrl)) && (
-          <div className={styles.externalLinks}>
-            {isSafeHref(author.wikipediaUrl) && (
-              <a
-                href={author.wikipediaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.linkItem}
-              >
-                Wikipedia <ExternalLink size={14} aria-hidden="true" />
-              </a>
-            )}
-            {isSafeHref(author.wikidataUrl) && (
-              <a
-                href={author.wikidataUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.linkItem}
-              >
-                Wikidata <ExternalLink size={14} aria-hidden="true" />
-              </a>
-            )}
-          </div>
-        )}
       </div>
     </header>
   );
@@ -150,12 +103,4 @@ function averageRating(
   return ratings.length > 0
     ? (ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1)
     : null;
-}
-
-function hostOf(href: string): string {
-  try {
-    return new URL(href).hostname.replace(/^www\./, '');
-  } catch {
-    return href;
-  }
 }

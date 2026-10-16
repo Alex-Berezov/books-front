@@ -35,4 +35,19 @@ describe('EditorialByline', () => {
     const noDate = render(<EditorialByline lang="ru" teamLabel="Редакция Bibliaris" />);
     expect(noDate.container.textContent).toBe('Редакция Bibliaris');
   });
+
+  // F02-4, решение арбитра 16.10.2026 (`F02 | F02-4`, Р2): автор ведёт в `#authors`, книга — на `#who`.
+  it('якорь: по умолчанию #who, страница автора — #authors', () => {
+    const book = render(<EditorialByline lang="ru" teamLabel="Редакция Bibliaris" />);
+    expect(book.container.querySelector('a')?.getAttribute('href')).toBe(
+      '/ru/editorial-policy#who'
+    );
+    book.unmount();
+    const author = render(
+      <EditorialByline lang="ru" teamLabel="Редакция Bibliaris" anchor="authors" />
+    );
+    expect(author.container.querySelector('a')?.getAttribute('href')).toBe(
+      '/ru/editorial-policy#authors'
+    );
+  });
 });

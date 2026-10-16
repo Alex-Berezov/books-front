@@ -222,7 +222,25 @@
     "factLanguage": "Язык творчества",
     "factPseudonyms": "Псевдонимы",
     "factNotableWorks": "Главные произведения",
-    "bce": "до н. э."
+    "bce": "до н. э.",
+    "timeline": "Хронология",
+    "influences": "Влияния",
+    "influencedBy": "Кто повлиял на автора",
+    "influenced": "На кого повлиял автор",
+    "awards": "Премии и награды",
+    "nomination": "номинация",
+    "adaptations": "Экранизации и постановки",
+    "basedOn": "по книге",
+    "adaptationKind": {
+      "film": "фильм",
+      "series": "сериал",
+      "animation": "мультфильм",
+      "play": "спектакль",
+      "opera": "опера",
+      "other": "другое"
+    },
+    "funFacts": "Интересные факты",
+    "sources": "Источники"
   },
   "authors": {
     "title": "Авторы",

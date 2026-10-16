@@ -274,7 +274,25 @@
     "factLanguage": "Language",
     "factPseudonyms": "Pen names",
     "factNotableWorks": "Notable works",
-    "bce": "BC"
+    "bce": "BC",
+    "timeline": "Timeline",
+    "influences": "Influences",
+    "influencedBy": "Influenced by",
+    "influenced": "Influenced",
+    "awards": "Awards and honors",
+    "nomination": "nomination",
+    "adaptations": "Adaptations",
+    "basedOn": "based on",
+    "adaptationKind": {
+      "film": "film",
+      "series": "TV series",
+      "animation": "animated film",
+      "play": "stage play",
+      "opera": "opera",
+      "other": "other"
+    },
+    "funFacts": "Interesting facts",
+    "sources": "Sources"
   },
   "authors": {
     "title": "Authors",

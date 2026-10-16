@@ -109,24 +109,3 @@
   font-weight: $font-weight-medium;
   color: var(--public-primary);
 }
-
-.externalLinks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-md;
-  margin-top: $spacing-sm;
-}
-
-.linkItem {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  color: var(--public-primary);
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}

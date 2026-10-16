@@ -222,7 +222,25 @@
     "factLanguage": "Idioma",
     "factPseudonyms": "Pseudônimos",
     "factNotableWorks": "Obras principais",
-    "bce": "a.C."
+    "bce": "a.C.",
+    "timeline": "Cronologia",
+    "influences": "Influências",
+    "influencedBy": "Influências recebidas",
+    "influenced": "Influência sobre outros autores",
+    "awards": "Prêmios e distinções",
+    "nomination": "indicação",
+    "adaptations": "Adaptações",
+    "basedOn": "a partir do livro",
+    "adaptationKind": {
+      "film": "filme",
+      "series": "série",
+      "animation": "animação",
+      "play": "peça de teatro",
+      "opera": "ópera",
+      "other": "outro"
+    },
+    "funFacts": "Curiosidades",
+    "sources": "Fontes"
   },
   "authors": {
     "title": "Autores",

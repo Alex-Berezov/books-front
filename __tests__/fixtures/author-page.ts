@@ -1,4 +1,9 @@
-import type { BookCardModel, PublicAuthorDetail, PublicAuthorPageBook } from '@/types/api-schema';
+import type {
+  AuthorAdaptationKind,
+  BookCardModel,
+  PublicAuthorDetail,
+  PublicAuthorPageBook,
+} from '@/types/api-schema';
 import example from './example-author.json';
 
 /**
@@ -81,12 +86,27 @@ export function fullAuthor(over: Partial<PublicAuthorDetail> = {}): PublicAuthor
       const book = siteBook(s.bookSlug);
       return book ? [{ bookSlug: s.bookSlug, reason: s.reason, book }] : [];
     }),
-    timeline: [],
-    influences: null,
+    timeline: ru.timeline.map((e) => ({
+      year: e.year,
+      text: e.text,
+      ...(e.bookSlug ? { bookSlug: e.bookSlug } : {}),
+      book: siteBook(e.bookSlug),
+    })),
+    influences: {
+      influencedBy: ru.influences.influencedBy.map((r) => ({ name: r.name, author: null })),
+      influenced: ru.influences.influenced.map((r) => ({ name: r.name, author: null })),
+    },
     awards: ru.awards,
-    adaptations: [],
-    funFacts: [],
-    sources: [],
+    adaptations: ru.adaptations.map((a) => ({
+      title: a.title,
+      year: a.year,
+      kind: a.kind as AuthorAdaptationKind,
+      basedOn: a.basedOn,
+      bookSlug: a.bookSlug,
+      book: siteBook(a.bookSlug),
+    })),
+    funFacts: ru.funFacts,
+    sources: ru.sources,
     quotes: ru.quotes.map((q) => ({ ...q, book: siteBook(q.bookSlug) })),
     faq: [],
     seo: null,
@@ -124,7 +144,12 @@ export function minimalAuthor(over: Partial<PublicAuthorDetail> = {}): PublicAut
     facts: null,
     notableWorks: [],
     startHere: [],
+    timeline: [],
+    influences: null,
     awards: [],
+    adaptations: [],
+    funFacts: [],
+    sources: [],
     quotes: [],
     booksTotal: 1,
     booksHasAudio: false,

@@ -4,7 +4,7 @@ import type { PublicAuthorDetail } from '@/types/api-schema';
 import { fullAuthor, minimalAuthor } from '../../fixtures/author-page';
 
 /**
- * Страница автора целиком (F02-1, F02-3): видимые крошки, порядок блоков (`product.md` §2),
+ * Страница автора целиком (F02-1, F02-3, F02-4): видимые крошки, порядок блоков (`product.md` §2),
  * похожие авторы — настоящие ссылки, минимальный автор — без пустых блоков, отдельного блока
  * «Аудиокниги» и кнопки «Назад» нет.
  */
@@ -58,10 +58,22 @@ describe('страница автора: блоки (F02-3)', () => {
       'С чего начать',
       'Лев Толстой: книги на Bibliaris',
       'Биография',
+      'Хронология',
       'Цитаты',
+      'Влияния',
+      'Премии и награды',
+      'Экранизации и постановки',
+      'Интересные факты',
       'Похожие авторы',
       'Часто задаваемые вопросы',
+      'Источники',
     ]);
+    // Подпись редакции — последней строкой страницы, после источников (§2, §16).
+    const team = screen.getByRole('link', { name: 'Редакция Bibliaris' });
+    expect(team).toHaveAttribute('href', '/ru/editorial-policy#authors');
+    const sources = screen.getByRole('heading', { level: 2, name: 'Источники' });
+    expect(sources.compareDocumentPosition(team) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(team.closest('footer')?.lastElementChild).toBe(team.parentElement);
   });
 
   it('минимальный автор: крошки, шапка и книги — пустых блоков нет', async () => {
@@ -69,6 +81,8 @@ describe('страница автора: блоки (F02-3)', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Лев Толстой' })).toBeInTheDocument();
     expect(h2s()).toEqual(['Лев Толстой: книги на Bibliaris']);
+    // §1 п.1: у минимального автора подпись внизу есть, заголовка «Источники» нет (Р4).
+    expect(screen.getByRole('link', { name: 'Редакция Bibliaris' })).toBeInTheDocument();
   });
 
   // Решение арбитра 15.10.2026, `F02 | F02-3`, Р4: путь назад дают видимые крошки.
