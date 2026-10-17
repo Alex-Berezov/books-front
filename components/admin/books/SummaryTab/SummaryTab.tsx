@@ -11,10 +11,8 @@ import { useSummaryTab } from './useSummaryTab';
 /**
  * Tab for managing book summary
  *
- * Allows editing:
- * - Summary text - the plot retelling shown on the public page `/{lang}/book/{slug}/summary`
- * - Key takeaways and Themes & Analysis - stored, but not shown on the summary page:
- *   analysis belongs to its own section (owner decision 17.10.2026)
+ * One field: the plot retelling shown on the public page `/{lang}/book/{slug}/summary`.
+ * Key takeaways and themes belong to the future «Analysis» section (owner decision 17.10.2026).
  */
 export const SummaryTab: FC<SummaryTabProps> = (props) => {
   const { formData, handleFieldChange, handleSave, isLoading, isSaving } = useSummaryTab(props);
@@ -37,28 +35,8 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
         label="Summary"
         onChange={handleFieldChange}
         placeholder="Retell the plot of the book in order..."
-        rows={8}
+        rows={24}
         value={formData.summaryText}
-      />
-
-      <SummaryFormField
-        hint="Not shown on the summary page"
-        id="keyTakeaways"
-        label="Key Takeaways"
-        onChange={handleFieldChange}
-        placeholder="List the main takeaways from the book..."
-        rows={6}
-        value={formData.keyTakeaways}
-      />
-
-      <SummaryFormField
-        hint="Not shown on the summary page"
-        id="themes"
-        label="Themes & Analysis"
-        onChange={handleFieldChange}
-        placeholder="Describe the main themes and provide analysis..."
-        rows={6}
-        value={formData.themes}
       />
 
       <Button onClick={handleSave} loading={isSaving} disabled={isSaving}>

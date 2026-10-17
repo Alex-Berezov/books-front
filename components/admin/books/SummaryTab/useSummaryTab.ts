@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useBookSummary, useUpsertBookSummary } from '@/api/hooks';
 import { htmlToPlainText } from '@/lib/utils/html-text';
@@ -6,8 +6,6 @@ import type { SummaryFormData, SummaryTabProps } from './SummaryTab.types';
 
 const EMPTY_FORM: SummaryFormData = {
   summaryText: '',
-  keyTakeaways: '',
-  themes: '',
 };
 
 export const useSummaryTab = (props: SummaryTabProps) => {
@@ -20,18 +18,14 @@ export const useSummaryTab = (props: SummaryTabProps) => {
   // Local state for summary fields
   const [formData, setFormData] = useState<SummaryFormData>(EMPTY_FORM);
 
-  // Hydrate form once existing summary is loaded from the server
+  // Форма заполняется с сервера один раз на версию. Повторная подстановка после сохранения
+  // (сброс кэша перечитывает пересказ) затёрла бы текст, набранный, пока шло сохранение.
+  const hydratedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (existingSummary) {
-      setFormData({
-        summaryText: existingSummary.summary ?? '',
-        keyTakeaways: existingSummary.analysis ?? '',
-        themes: existingSummary.themes ?? '',
-      });
-    } else {
-      setFormData(EMPTY_FORM);
-    }
-  }, [existingSummary]);
+    if (isLoading || hydratedFor.current === versionId) return;
+    hydratedFor.current = versionId;
+    setFormData(existingSummary ? { summaryText: existingSummary.summary ?? '' } : EMPTY_FORM);
+  }, [existingSummary, isLoading, versionId]);
 
   /**
    * Update form field handler
@@ -52,18 +46,10 @@ export const useSummaryTab = (props: SummaryTabProps) => {
       return;
     }
 
-    const analysis = formData.keyTakeaways.trim();
-    const themes = formData.themes.trim();
-
+    // Поля `analysis`/`themes` в форме нет (решение владельца 17.10.2026: они - для будущего
+    // раздела «Разбор и анализ»). Их не шлём - сервер обновляет только переданное, сохранённое не теряется.
     upsertMutation.mutate(
-      {
-        versionId,
-        data: {
-          summary,
-          analysis: analysis || undefined,
-          themes: themes || undefined,
-        },
-      },
+      { versionId, data: { summary } },
       {
         onSuccess: () => {
           enqueueSnackbar('Summary saved', { variant: 'success' });

@@ -10,10 +10,6 @@ export interface SummaryTabProps {
  * Summary form data structure
  */
 export interface SummaryFormData {
-  /** Brief overview of the book */
+  /** Plot retelling shown on `/{lang}/book/{slug}/summary` */
   summaryText: string;
-  /** Main lessons or insights */
-  keyTakeaways: string;
-  /** Major themes and deeper analysis */
-  themes: string;
 }
