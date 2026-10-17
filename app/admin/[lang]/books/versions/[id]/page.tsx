@@ -16,6 +16,7 @@ import {
   RightsOverridePanel,
   RightsTab,
   SummaryTab,
+  AnalysisTab,
   TagsPanel,
   ImportModal,
 } from '@/components/admin/books';
@@ -180,6 +181,7 @@ const EditBookVersionPage: FC = () => {
             rightsContent={<RightsTab versionId={versionId} bookId={version.bookId} lang={lang} />}
             readContent={<ReadContentTab versionId={versionId} />}
             summaryContent={<SummaryTab versionId={versionId} />}
+            analysisContent={<AnalysisTab versionId={versionId} version={version} />}
           />
         </div>
 

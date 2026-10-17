@@ -482,6 +482,34 @@ export type {
   VersionRecheckEvaluation,
 } from './rights-recheck';
 
+// Book analysis (F03-1, 17.10.2026)
+export type {
+  BookAnalysisAdaptation,
+  BookAnalysisAdaptationKind,
+  BookAnalysisBlocks,
+  BookAnalysisCharacter,
+  BookAnalysisDetail,
+  BookAnalysisFacts,
+  BookAnalysisFaq,
+  BookAnalysisKeyQuote,
+  BookAnalysisMisreading,
+  BookAnalysisQuote,
+  BookAnalysisRelation,
+  BookAnalysisRole,
+  BookAnalysisSaveResponse,
+  BookAnalysisSource,
+  BookAnalysisStyle,
+  BookAnalysisSymbol,
+  BookAnalysisTheme,
+  BookAnalysisThemeQuote,
+  BookAnalysisTimelineEvent,
+  BookAnalysisTimelineKind,
+  BookAnalysisWarning,
+  BookAnalysisWarningCode,
+  ChapterTitle,
+  SaveBookAnalysisRequest,
+} from './book-analysis';
+
 // Rights publication override (admin last resort, 27.09.2026)
 export type {
   GrantRightsOverrideRequest,

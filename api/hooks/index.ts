@@ -68,6 +68,12 @@ export {
 
 // Book Summaries
 export { summaryKeys, useBookSummary, useUpsertBookSummary } from './useBookSummary';
+export {
+  analysisKeys,
+  useBookAnalysis,
+  useChapterTitles,
+  useSaveBookAnalysis,
+} from './useBookAnalysis';
 
 // Chapters
 export {

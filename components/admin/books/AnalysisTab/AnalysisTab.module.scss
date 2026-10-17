@@ -1,0 +1,121 @@
+@import '@/styles/tokens';
+
+/**
+ * Styles for AnalysisTab (F03-1)
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.sectionTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.factsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  gap: $spacing-sm;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.label {
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+}
+
+.input,
+.textarea {
+  padding: $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-base;
+  font-family: $font-family-base;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: $shadow-focus;
+  }
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.jsonTextarea {
+  font-family: monospace;
+  font-size: $font-size-sm;
+}
+
+.textareaError {
+  border-color: $color-error;
+}
+
+.hint {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.status {
+  border-left: $border-radius-sm solid $color-warning;
+  background-color: $color-background-secondary;
+  border-radius: $border-radius-sm;
+  padding: $spacing-xs $spacing-sm;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.statusOk {
+  border-left-color: $color-success;
+}
+
+.error {
+  color: $color-error;
+  font-size: $font-size-sm;
+}
+
+.issueList {
+  margin: $spacing-xs 0 0;
+  padding-left: $spacing-md;
+}

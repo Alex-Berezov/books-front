@@ -20,6 +20,8 @@ export { ListenContentTab } from './ListenContentTab';
 export type { ListenContentTabProps } from './ListenContentTab';
 export { SummaryTab } from './SummaryTab';
 export type { SummaryTabProps } from './SummaryTab';
+export { AnalysisTab } from './AnalysisTab';
+export type { AnalysisTabProps } from './AnalysisTab';
 export { PublishPanel } from './PublishPanel';
 export type { PublishPanelProps } from './PublishPanel';
 export { GeoBlockRulesPanel } from './GeoBlockRulesPanel';

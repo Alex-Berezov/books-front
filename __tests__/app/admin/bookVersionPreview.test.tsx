@@ -84,6 +84,7 @@ vi.mock('@/components/admin/books', () => {
     RightsOverridePanel: Stub,
     RightsTab: Stub,
     SummaryTab: Stub,
+    AnalysisTab: Stub,
     TagsPanel: Stub,
     ImportModal: Stub,
   };

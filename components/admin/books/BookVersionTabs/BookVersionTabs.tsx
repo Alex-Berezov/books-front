@@ -15,10 +15,12 @@ export type { BookVersionTabsProps, TabType } from './BookVersionTabs.types';
  * - Read Content: Text content (chapters)
  * - Audio Content: Audio content
  * - Summary: Brief summary and conclusions
+ * - Analysis: «Разбор и анализ» blocks (F03-1)
  */
 export const BookVersionTabs: FC<BookVersionTabsProps> = (props) => {
   const {
     activeTab,
+    analysisContent,
     listenContent,
     onTabChange,
     overviewContent,
@@ -42,6 +44,8 @@ export const BookVersionTabs: FC<BookVersionTabsProps> = (props) => {
         return listenContent;
       case 'summary':
         return summaryContent;
+      case 'analysis':
+        return analysisContent;
       default:
         return overviewContent;
     }

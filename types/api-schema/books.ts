@@ -56,12 +56,14 @@ export interface VersionPreview {
   translators: { name: string }[];
   /**
    * Счётчики содержимого версии: ручка обзора книги отдаёт их у каждой версии
-   * (`_count.chapters/audioChapters/summaries`). В других ответах с этим типом их нет.
+   * (`_count.chapters/audioChapters/summaries/analyses`). В других ответах с этим типом их нет.
    */
   _count?: {
     chapters: number;
     audioChapters: number;
     summaries: number;
+    /** Анализ с заполненным ядром (F03): 0 или 1. */
+    analyses: number;
   };
 }
 
@@ -444,6 +446,8 @@ export interface BookListVersion extends BookContainerVersion {
     chapters: number;
     audioChapters: number;
     summaries: number;
+    /** Анализ с заполненным ядром (F03): по нему карта сайта строит адреса анализа. */
+    analyses: number;
   };
   tags: { tag: Tag }[];
 }

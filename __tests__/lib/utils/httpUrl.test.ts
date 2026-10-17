@@ -4,7 +4,11 @@ import { bookVersionBaseSchema } from '@/components/admin/books/BookForm/bookVer
 import { translationSchema as categorySchema } from '@/components/admin/categories/CategoryTranslationsModal/CategoryTranslationsModal.types';
 import { pageSchema } from '@/components/admin/pages/PageForm/PageForm.types';
 import { translationSchema as tagSchema } from '@/components/admin/tags/TagTranslationsModal/TagTranslationsModal.types';
-import { isAbsoluteHttpUrl, isAbsoluteHttpUrlOrRootPath } from '@/lib/utils/http-url';
+import {
+  isAbsoluteHttpsUrl,
+  isAbsoluteHttpUrl,
+  isAbsoluteHttpUrlOrRootPath,
+} from '@/lib/utils/http-url';
 import { httpUrlOrEmpty } from '@/lib/utils/http-url-field';
 
 // Второй ряд — то, что пропускает `new URL`, а `isURL` бэкенда отбивает (ревью `T75`).
@@ -143,5 +147,27 @@ describe('поле authorPageUrl формы версии', () => {
 
   it.each(['javascript:alert(1)', 'wikipedia.org/wiki/X'])('отбивает %j', (value) => {
     expect(shape.safeParse(value).success).toBe(false);
+  });
+});
+
+describe('isAbsoluteHttpsUrl (зеркало IsAbsoluteHttpsUrl бэкенда)', () => {
+  it.each([
+    ['https://en.wikipedia.org/wiki/Crime_and_Punishment', true],
+    ['https://example.com:8443/path?q=1#x', true],
+    ['https://user@example.com/x', true],
+    ['https://93.184.216.34/x', true],
+    ['https://xn--d1acufc.xn--p1ai/', true],
+    ['https://intranet/x', false],
+    // IP-хост бэкенд (`isURL`, `require_tld`) пропускает: проверка домена к адресу IP не применяется.
+    ['https://[2001:db8::1]/x', true],
+    ['HTTPS://example.com/x', true],
+    ['javascript:alert(1)', false],
+    ['https://ru.wikipedia.org/wiki/%D0%9F', true],
+    ['http://en.wikipedia.org/wiki/X', false],
+    ['https://localhost:5000/x', false],
+    ['ftp://example.com', false],
+    ['https://', false],
+  ])('%s → %s', (url, ok) => {
+    expect(isAbsoluteHttpsUrl(url)).toBe(ok);
   });
 });

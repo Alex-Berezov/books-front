@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 /**
  * Tab type
  */
-export type TabType = 'overview' | 'rights' | 'read' | 'listen' | 'summary';
+export type TabType = 'overview' | 'rights' | 'read' | 'listen' | 'summary' | 'analysis';
 
 /**
  * Interface for single tab
@@ -31,4 +31,6 @@ export interface BookVersionTabsProps {
   listenContent: ReactNode;
   /** Content for Summary tab */
   summaryContent: ReactNode;
+  /** Content for Analysis tab (F03-1) */
+  analysisContent: ReactNode;
 }

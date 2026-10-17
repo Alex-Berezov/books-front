@@ -68,6 +68,7 @@
   "GET /admin/rights/review-imports/{importId}",
   "GET /admin/tags",
   "GET /admin/versions/{bookVersionId}/audio-chapters",
+  "GET /admin/versions/{bookVersionId}/chapter-titles",
   "GET /admin/versions/{bookVersionId}/chapters",
   "GET /admin/versions/{id}",
   "GET /admin/versions/{id}/contributors",
@@ -99,6 +100,7 @@
   "GET /users/me",
   "GET /users/me/activities",
   "GET /users/{id}",
+  "GET /versions/{bookVersionId}/analysis",
   "GET /versions/{bookVersionId}/audio-chapters",
   "GET /versions/{bookVersionId}/chapters",
   "GET /versions/{bookVersionId}/summary",
@@ -243,6 +245,7 @@
   "POST /views",
   "PUT /admin/authors/{id}",
   "PUT /me/progress/{versionId}",
+  "PUT /versions/{bookVersionId}/analysis",
   "PUT /versions/{bookVersionId}/seo",
   "PUT /versions/{bookVersionId}/summary"
 ]

@@ -12,7 +12,7 @@ import { useSummaryTab } from './useSummaryTab';
  * Tab for managing book summary
  *
  * One field: the plot retelling shown on the public page `/{lang}/book/{slug}/summary`.
- * Key takeaways and themes belong to the future «Analysis» section (owner decision 17.10.2026).
+ * Key takeaways and themes live in the «Analysis» tab (own `BookAnalysis` record, F03).
  */
 export const SummaryTab: FC<SummaryTabProps> = (props) => {
   const { formData, handleFieldChange, handleSave, isLoading, isSaving } = useSummaryTab(props);

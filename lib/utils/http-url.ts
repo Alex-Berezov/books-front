@@ -119,3 +119,19 @@ function isRootPath(value: string): boolean {
 export function isAbsoluteHttpUrlOrRootPath(value: string): boolean {
   return isRootPath(value) || isAbsoluteHttpUrl(value);
 }
+
+/**
+ * Зеркало `@IsAbsoluteHttpsUrl()` бэкенда — источник анализа книги (F03, `tech.md` §3):
+ * только `https://` и хост с доменом верхнего уровня (`require_tld: true`), либо IP.
+ */
+export function isAbsoluteHttpsUrl(value: string): boolean {
+  if (!isAbsoluteHttpUrl(value) || !/^https:\/\//i.test(value)) return false;
+  const authority = value.slice('https://'.length).split(/[/?#]/)[0]!;
+  const hostPort = authority.split('@').pop()!;
+  if (hostPort.startsWith('[')) return true;
+  const host = hostPort.split(':')[0]!;
+  if (IPV4.test(host)) return true;
+  const labels = host.split('.');
+  const tld = labels[labels.length - 1]!;
+  return labels.length > 1 && /^([a-z¡-￿]{2,}|xn[a-z0-9-]{2,})$/i.test(tld);
+}
