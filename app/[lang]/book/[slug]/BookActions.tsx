@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { summaryPath } from '@/lib/seo/summary-path';
 import { toast } from '@/lib/utils/toast';
 import type { VersionPreview } from '@/types/api-schema/books';
 import styles from './book.module.scss';
@@ -132,7 +133,7 @@ export default function BookActions({
 
       {hasSummary && versionId && (
         <Link
-          href={`/${lang}/book/${slug}#summary`}
+          href={`/${lang}${summaryPath(slug)}`}
           className={`${styles.ctaBase} ${styles.ctaTertiary}`}
         >
           <FileText size={18} aria-hidden="true" />

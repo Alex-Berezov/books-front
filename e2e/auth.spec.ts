@@ -26,6 +26,7 @@ test.describe('Auth & Admin', () => {
   test('content routes stay open to anonymous visitors', async ({ page }) => {
     for (const path of [
       '/en/summary/some-book/00000000-0000-0000-0000-000000000000',
+      '/en/book/hamlet/summary',
       '/en/book/hamlet/read',
       '/en/book/hamlet/listen',
     ]) {

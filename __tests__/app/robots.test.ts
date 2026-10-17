@@ -2,14 +2,14 @@
 import { describe, it, expect } from 'vitest';
 import { metadata as listenMetadata } from '@/app/[lang]/book/[slug]/listen/page';
 import { metadata as readMetadata } from '@/app/[lang]/book/[slug]/read/page';
-import { metadata as summaryMetadata } from '@/app/[lang]/summary/[bookSlug]/[versionId]/page';
 import robots from '@/app/robots';
 
 /**
- * Читалка, плеер и саммари открыты анониму с 22.08.2026 и при этом не
+ * Читалка и плеер открыты анониму с 22.08.2026 и при этом не
  * индексируются. Держит их вне выдачи ровно один механизм — `noindex, follow`
  * в метаданных страницы, и работает он, только если краулер до страницы
- * доходит.
+ * доходит. Пересказ с 17.10.2026 индексируется (решение владельца): его адрес
+ * `/book/{slug}/summary` и старый `/summary/...` в robots тоже не закрыты.
  *
  * 🔴 Отсюда посадка из двух половин. Вернуть запрет в `robots.txt` — значит
  * закрыть краулеру доступ к метатегу: адрес, на который ведут ссылки с
@@ -17,7 +17,7 @@ import robots from '@/app/robots';
  * со страницы — значит пустить в индекс весь текст книги. Каждая половина по
  * отдельности выглядит безобидно, поэтому проверяются обе.
  */
-describe('читалка, плеер и саммари: открыты краулеру, закрыты для индекса', () => {
+describe('читалка и плеер: открыты краулеру, закрыты для индекса; пересказ открыт', () => {
   const rules = robots().rules;
   const disallow = Array.isArray(rules) ? [] : ((rules.disallow as string[]) ?? []);
   const allow = Array.isArray(rules) ? [] : ((rules.allow as string[]) ?? []);
@@ -26,6 +26,7 @@ describe('читалка, плеер и саммари: открыты крау�
     '/en/book/hamlet/read',
     '/en/book/hamlet/listen',
     '/en/summary/hamlet/v1',
+    '/en/book/hamlet/summary',
     '/en/read/hamlet',
     '/en/listen/hamlet',
   ])('адрес %s ни под один запрет не подпадает', (path) => {
@@ -37,7 +38,6 @@ describe('читалка, плеер и саммари: открыты крау�
   it.each([
     ['читалка', readMetadata],
     ['плеер', listenMetadata],
-    ['саммари', summaryMetadata],
   ])('%s помечена noindex', (_name, metadata) => {
     expect(metadata.robots).toBe('noindex, follow');
   });

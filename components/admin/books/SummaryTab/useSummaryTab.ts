@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useBookSummary, useUpsertBookSummary } from '@/api/hooks';
+import { htmlToPlainText } from '@/lib/utils/html-text';
 import type { SummaryFormData, SummaryTabProps } from './SummaryTab.types';
 
 const EMPTY_FORM: SummaryFormData = {
@@ -44,7 +45,9 @@ export const useSummaryTab = (props: SummaryTabProps) => {
    */
   const handleSave = () => {
     const summary = formData.summaryText.trim();
-    if (!summary) {
+    // То же правило, что у сервера (`@RichHtmlHasText`): пустой редактор отдаёт `<p></p>`.
+    // Санитайзер сюда не тянется (+12 кБ в бандл админки): вырезанное им сервер отобьёт 400.
+    if (!htmlToPlainText(summary)) {
       enqueueSnackbar('Summary text is required', { variant: 'warning' });
       return;
     }

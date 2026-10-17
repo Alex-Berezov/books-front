@@ -9,6 +9,7 @@ import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { StarRating } from '@/components/public/books/StarRating';
 import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
 import { getDictionary } from '@/lib/i18n/dictionaries';
+import { pickSummaryVersion, summaryPath } from '@/lib/seo/book-summary';
 import { noteDegraded } from '@/lib/seo/degraded';
 import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
@@ -197,13 +198,9 @@ export default async function BookDetailPage({ params }: Props) {
   // Правило выбора между `authorPageUrl` и слагом и проверка сохранённого адреса — `authorHref.ts`.
   const authorHref = resolveAuthorHref(activeVersion?.authorPageUrl, authorSlug, supportedLang);
 
-  const textHasSummary = textVersion
-    ? ((textVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0
-    : false;
-  const audioHasSummary = audioVersion
-    ? ((audioVersion as unknown as { _count?: { summaries: number } })._count?.summaries || 0) > 0
-    : false;
-  const hasSummary = textHasSummary || audioHasSummary;
+  // Пересказ - версии языка страницы, по тому же правилу, что и сама страница пересказа:
+  // версия с откатом на другой язык дала бы кнопку, ведущую в 404.
+  const hasSummary = pickSummaryVersion(book, supportedLang) !== null;
   const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
 
   const fallbackHref = (() => {
@@ -415,6 +412,12 @@ export default async function BookDetailPage({ params }: Props) {
               prefix={dict.book.editorialDescriptionBy}
               teamLabel={dict.book.editorialTeamBy}
             />
+          ) : null}
+          {/* Серверная ссылка на пересказ: кнопки рисует клиентский остров, краулер их не видит. */}
+          {hasSummary ? (
+            <Link href={`/${supportedLang}${summaryPath(slug)}`} className={styles.summaryLink}>
+              {dict.book.summaryLinkOnBook.replace('{title}', activeVersion?.title || book.title)}
+            </Link>
           ) : null}
         </div>
 

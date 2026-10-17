@@ -176,68 +176,79 @@ describe('player route — 404 честный, а не общий с «нет а
   });
 });
 
-describe('summary route — 404 честный на несуществующую книгу и на чужой versionId', () => {
+describe('summary: старый адрес /summary/{slug}/{versionId}', () => {
   const run = (bookSlug: string, versionId: string) =>
     import('@/app/[lang]/summary/[bookSlug]/[versionId]/page').then((m) =>
       m.default({ params: Promise.resolve({ lang: 'en', bookSlug, versionId }) })
     );
 
-  it('отдаёт настоящий 404, когда книги нет и преемника у слага нет', async () => {
-    mocks.getBookOverview.mockRejectedValue(notFoundError());
+  // Страница переехала на `/{lang}/book/{slug}/summary` (решение владельца 17.10.2026): 308 ведёт
+  // на пересказ версии из адреса - её язык и слаг.
+  it('уводит 308 на пересказ версии из адреса, на её языке и слаге', async () => {
+    mocks.getBookOverview.mockResolvedValue({
+      slug: 'hamlet',
+      versions: [
+        { id: 'v-en', language: 'en', slug: 'hamlet', _count: { summaries: 1 } },
+        { id: 'v-ru', language: 'ru', slug: 'gamlet', _count: { summaries: 1 } },
+      ],
+    });
 
-    await expect(run('never-existed', 'v1')).rejects.toThrow('NEXT_NOT_FOUND');
+    await expect(run('hamlet', 'v-ru')).rejects.toThrow('NEXT_PERMANENT_REDIRECT');
+    expect(mocks.permanentRedirect).toHaveBeenCalledWith('/ru/book/gamlet/summary');
   });
 
-  it('уводит 308 на преемника, сохраняя versionId', async () => {
-    mocks.getBookOverview.mockRejectedValue(notFoundError());
-    mocks.resolveRetiredSlug.mockResolvedValue('hamlet-new');
-
-    await expect(run('hamlet-old', 'v1')).rejects.toThrow('NEXT_PERMANENT_REDIRECT');
-    expect(mocks.permanentRedirect).toHaveBeenCalledWith('/en/summary/hamlet-new/v1');
-  });
-
-  it('отдаёт 404, когда versionId в адресе не принадлежит этой книге', async () => {
-    mocks.getBookOverview.mockResolvedValue({ slug: 'hamlet', versions: [{ id: 'v1' }] });
+  it('версия не принадлежит книге - 404, а не 308 в никуда', async () => {
+    mocks.getBookOverview.mockResolvedValue({ slug: 'hamlet', versions: [{ id: 'v-en' }] });
 
     await expect(run('hamlet', 'v-stale')).rejects.toThrow('NEXT_NOT_FOUND');
     expect(mocks.permanentRedirect).not.toHaveBeenCalled();
-    expect(mocks.redirect).not.toHaveBeenCalled();
   });
 
-  // 🔴 Отсутствие самого поля `versions` — отказ, а не отрицательный ответ:
-  // иначе сужение белого списка на стороне `books` похоронило бы весь раздел
-  // `/{lang}/summary/**` под кэшируемым 404 при зелёных тестах.
-  it('не выдаёт отсутствие поля versions за отсутствие версии', async () => {
+  it('книги нет - 404; нет поля versions - отказ, а не 404', async () => {
+    mocks.getBookOverview.mockRejectedValue(notFoundError());
+    await expect(run('never-existed', 'v1')).rejects.toThrow('NEXT_NOT_FOUND');
+
     mocks.getBookOverview.mockResolvedValue({ slug: 'hamlet' });
-
     await expect(run('hamlet', 'v1')).rejects.toThrow(/carries no versions array/);
-    expect(mocks.notFound).not.toHaveBeenCalled();
   });
 
-  it('пробрасывает сбой API наверх', async () => {
-    mocks.getBookOverview.mockRejectedValue(outageError());
-
-    await expect(run('hamlet', 'v1')).rejects.toThrow('Too many requests');
-    expect(mocks.notFound).not.toHaveBeenCalled();
-  });
-
-  it('канонизирует слаг переходом 307, а не 308', async () => {
+  it('у версии нет пересказа - 404, а не 308 в 404', async () => {
     mocks.getBookOverview.mockResolvedValue({
-      slug: 'hamlet-canonical',
-      versions: [{ id: 'v1' }],
+      slug: 'hamlet',
+      versions: [{ id: 'v-en', language: 'en', slug: 'hamlet', _count: { summaries: 0 } }],
     });
 
-    await expect(run('hamlet-other-language', 'v1')).rejects.toThrow('NEXT_REDIRECT');
-    expect(mocks.redirect).toHaveBeenCalledWith('/en/summary/hamlet-canonical/v1');
+    await expect(run('hamlet', 'v-en')).rejects.toThrow('NEXT_NOT_FOUND');
     expect(mocks.permanentRedirect).not.toHaveBeenCalled();
   });
 
-  it('рендерит саммари, когда versionId принадлежит книге', async () => {
-    const book = { slug: 'hamlet', versions: [{ id: 'v1' }] };
-    mocks.getBookOverview.mockResolvedValue(book);
+  it('у версии нет языка и слага - язык пути и слаг книги', async () => {
+    mocks.getBookOverview.mockResolvedValue({
+      slug: 'hamlet',
+      versions: [{ id: 'v-x', _count: { summaries: 1 } }],
+    });
 
-    const el = await run('hamlet', 'v1');
+    await expect(run('hamlet', 'v-x')).rejects.toThrow('NEXT_PERMANENT_REDIRECT');
+    expect(mocks.permanentRedirect).toHaveBeenCalledWith('/en/book/hamlet/summary');
+  });
+
+  it('переименованный слаг - 308 на старый адрес преемника, сбой API - наверх', async () => {
+    mocks.getBookOverview.mockRejectedValue(notFoundError());
+    mocks.resolveRetiredSlug.mockResolvedValue('hamlet-new');
+    await expect(run('hamlet-old', 'v1')).rejects.toThrow('NEXT_PERMANENT_REDIRECT');
+    expect(mocks.permanentRedirect).toHaveBeenCalledWith('/en/summary/hamlet-new/v1');
+
+    mocks.getBookOverview.mockRejectedValue(outageError());
+    await expect(run('hamlet', 'v1')).rejects.toThrow('Too many requests');
+  });
+
+  it('нет счётчика пересказов у версии - отказ, а не кэшируемый 404', async () => {
+    mocks.getBookOverview.mockResolvedValue({
+      slug: 'hamlet',
+      versions: [{ id: 'v-en', language: 'en', slug: 'hamlet' }],
+    });
+
+    await expect(run('hamlet', 'v-en')).rejects.toThrow(/carries no summary count/);
     expect(mocks.notFound).not.toHaveBeenCalled();
-    expect(el.props.initialBook).toBe(book);
   });
 });

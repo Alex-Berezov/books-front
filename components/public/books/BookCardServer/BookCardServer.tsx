@@ -2,6 +2,7 @@ import { BookOpen, Headphones } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { isSupportedLang } from '@/lib/i18n/lang';
+import { summaryPath } from '@/lib/seo/summary-path';
 import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { BookCardModel } from '@/types/api-schema';
 import styles from '../BookCard.module.scss';
@@ -21,6 +22,11 @@ interface BookCardServerProps {
   priority?: boolean;
   /** Лента вместо «Новинки» — «Главное» на странице автора (F02-3); без неё карточка как везде. */
   highlightLabel?: string;
+  /**
+   * Куда ведут обложка и название: страница книги (по умолчанию) или её пересказ — блок
+   * «Похожие пересказы» под пересказом (показывает только карточки с `hasSummary`).
+   */
+  linkTarget?: 'book' | 'summary';
 }
 
 function buildCoverAlt(
@@ -39,8 +45,14 @@ export function BookCardServer({
   size = 'md',
   priority = false,
   highlightLabel,
+  linkTarget = 'book',
 }: BookCardServerProps) {
   const slug = book.slug || book.id;
+  // Пересказ ищется только по слагу: без слага ссылка ведёт на страницу книги, а не в 404 по id.
+  const mainHref =
+    linkTarget === 'summary' && book.slug
+      ? `/${lang}${summaryPath(book.slug)}`
+      : `/${lang}/book/${slug}`;
   const hasText = book.hasText;
   const hasAudio = book.hasAudio;
 
@@ -63,7 +75,7 @@ export function BookCardServer({
   return (
     <article className={`${styles.card} ${cardClass}`}>
       <div className={styles.cardCoverWrap}>
-        <Link href={`/${lang}/book/${slug}`} className={styles.coverLink}>
+        <Link href={mainHref} className={styles.coverLink}>
           <div className={`${styles.coverContainer} ${coverClass}`}>
             {coverUrl ? (
               <Image
@@ -96,7 +108,7 @@ export function BookCardServer({
       </div>
 
       <div className={styles.metadata}>
-        <Link href={`/${lang}/book/${slug}`} className={`${styles.title} ${textClass}`}>
+        <Link href={mainHref} className={`${styles.title} ${textClass}`}>
           {title}
         </Link>
 

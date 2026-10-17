@@ -1,3 +1,4 @@
+import { summaryPath } from '@/lib/seo/book-summary';
 import { buildOrganizationJsonLd } from '@/lib/seo/organization-jsonld';
 import { buildLangUrl } from '@/lib/seo/urls';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -5,7 +6,6 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 type SummaryJsonLdInput = {
   lang: SupportedLang;
   bookSlug: string;
-  versionId: string;
   bookTitle: string;
   headline: string;
   /** Имя редакции на языке страницы (`book.editorialTeam`). */
@@ -21,7 +21,7 @@ type SummaryJsonLdInput = {
  * арбитра `F01 | F01-5`). `dateModified` - дата изменения пересказа, `about` - книга.
  */
 export function buildSummaryArticleJsonLd(input: SummaryJsonLdInput) {
-  const { lang, bookSlug, versionId, bookTitle, headline, editorialTeam, updatedAt } = input;
+  const { lang, bookSlug, bookTitle, headline, editorialTeam, updatedAt } = input;
   const organization = buildOrganizationJsonLd();
 
   return {
@@ -29,7 +29,7 @@ export function buildSummaryArticleJsonLd(input: SummaryJsonLdInput) {
     '@type': 'Article',
     headline,
     inLanguage: lang,
-    url: buildLangUrl(lang, `/summary/${bookSlug}/${versionId}`),
+    url: buildLangUrl(lang, summaryPath(bookSlug)),
     dateModified: updatedAt,
     author: {
       '@type': 'Organization',

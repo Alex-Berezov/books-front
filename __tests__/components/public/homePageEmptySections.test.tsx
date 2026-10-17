@@ -49,6 +49,7 @@ const book: BookCardModel = {
   ratingsCount: 0,
   hasText: true,
   hasAudio: false,
+  hasSummary: false,
   publishedAt: null,
   categoryIds: [],
 };

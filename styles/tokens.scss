@@ -59,6 +59,12 @@ $layout-max-width-sm: 600px;
 $layout-max-width-md: 800px;
 $layout-max-width-lg: 1200px;
 $layout-max-width-xl: 1400px;
+// Боковая колонка рядом с текстом длинной статьи (пересказ книги).
+$layout-sidebar-width: 280px;
+// Миниатюра обложки в шапке подстраницы книги; пропорции - как у обложки на странице книги.
+$cover-thumb-width: 120px;
+$cover-thumb-width-sm: 84px;
+$cover-aspect-ratio: unquote('200 / 290');
 
 // Icon Sizes - Icon sizes
 $icon-size-xs: 12px;

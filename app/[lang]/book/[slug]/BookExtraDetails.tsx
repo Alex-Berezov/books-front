@@ -5,6 +5,7 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { BookOverview } from '@/types/api-schema';
+import { BOOK_ANCHORS } from './bookAnchors';
 import styles from './BookExtraDetails.module.scss';
 
 interface BookExtraDetailsProps {
@@ -18,9 +19,10 @@ export default function BookExtraDetails({ activeVersion }: BookExtraDetailsProp
 
   return (
     <>
-      {/* Symbols Section */}
+      {/* Symbols Section. Якоря `symbols`, `characters`, `quotes` - цели ссылок «Узнать больше
+          о книге» со страницы пересказа. */}
       {activeVersion.symbols && activeVersion.symbols.length > 0 && (
-        <section className={styles.detailSection}>
+        <section id={BOOK_ANCHORS.symbols} className={styles.detailSection}>
           <h2 className={styles.detailTitle}>{t('book.symbols')}</h2>
           <div className={styles.symbolsGrid}>
             {activeVersion.symbols.map((symbol) => (
@@ -35,7 +37,7 @@ export default function BookExtraDetails({ activeVersion }: BookExtraDetailsProp
 
       {/* Characters Section */}
       {activeVersion.characters && activeVersion.characters.length > 0 && (
-        <section className={styles.detailSection}>
+        <section id={BOOK_ANCHORS.characters} className={styles.detailSection}>
           <h2 className={styles.detailTitle}>{t('book.mainCharacters')}</h2>
           <div className={styles.charactersGrid}>
             {activeVersion.characters.map((char) => (
@@ -50,7 +52,9 @@ export default function BookExtraDetails({ activeVersion }: BookExtraDetailsProp
 
       {/* Quotes Section */}
       {activeVersion.quotes && activeVersion.quotes.length > 0 && (
-        <QuotesBlock items={activeVersion.quotes} title={t('book.quotes')} />
+        <div id={BOOK_ANCHORS.quotes}>
+          <QuotesBlock items={activeVersion.quotes} title={t('book.quotes')} />
+        </div>
       )}
 
       {/* FAQ Section */}

@@ -1,0 +1,41 @@
+@import '@/styles/tokens.scss';
+
+.nav {
+  margin-bottom: $spacing-lg;
+  border-bottom: 1px solid var(--public-border);
+  overflow-x: auto;
+}
+
+.list {
+  display: flex;
+  gap: $spacing-xs;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: inline-block;
+  padding: $spacing-sm $spacing-md;
+  border-bottom: 2px solid transparent;
+  color: var(--public-foreground);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: var(--public-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: -2px;
+  }
+}
+
+.active {
+  border-bottom-color: var(--public-primary);
+  color: var(--public-primary);
+}

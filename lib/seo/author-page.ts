@@ -1,5 +1,5 @@
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
-import { decodeEntities } from '@/lib/utils/html-entities';
+import { htmlToPlainText, truncateAtWord } from '@/lib/utils/html-text';
 import { isSafeHref } from '@/lib/utils/safe-href';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { PublicAuthorAlternate, PublicAuthorDetail } from '@/types/api-schema';
@@ -55,16 +55,7 @@ export function describeFromBiography(
   max = 160
 ): string | undefined {
   if (!html) return undefined;
-  const text = decodeEntities(html.replace(/<[^>]*>/g, ' '))
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (!text) return undefined;
-  if (text.length <= max) return text;
-
-  const cut = text.slice(0, max - 1);
-  const lastSpace = cut.lastIndexOf(' ');
-  const head = lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut;
-  return `${head.replace(/[\s,;:.—–-]+$/, '')}…`;
+  return truncateAtWord(htmlToPlainText(html), max);
 }
 
 /**

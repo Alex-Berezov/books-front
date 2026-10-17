@@ -45,3 +45,37 @@ describe('highlightLabel карточки книги', () => {
     expect(screen.getByText('Новинка')).toBeInTheDocument();
   });
 });
+
+/** Блок «Похожие пересказы» под пересказом: карточка ведёт сразу на пересказ книги. */
+describe('linkTarget карточки книги', () => {
+  const hrefs = (container: HTMLElement) =>
+    [...container.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+
+  it('summary: обложка и название ведут на /book/{slug}/summary', () => {
+    const { container } = render(
+      <BookCardServer book={fresh} lang="ru" labels={labels} linkTarget="summary" />
+    );
+    expect(hrefs(container).filter((h) => h?.endsWith('/summary'))).toEqual([
+      '/ru/book/voyna-i-mir/summary',
+      '/ru/book/voyna-i-mir/summary',
+    ]);
+  });
+
+  it('по умолчанию - страница книги', () => {
+    const { container } = render(<BookCardServer book={fresh} lang="ru" labels={labels} />);
+    expect(hrefs(container).some((h) => h?.endsWith('/summary'))).toBe(false);
+    expect(hrefs(container)).toContain('/ru/book/voyna-i-mir');
+  });
+
+  it('summary без слага - ссылка на страницу книги, а не на пересказ по id', () => {
+    const { container } = render(
+      <BookCardServer
+        book={{ ...fresh, slug: '' }}
+        lang="ru"
+        labels={labels}
+        linkTarget="summary"
+      />
+    );
+    expect(hrefs(container).some((h) => h?.endsWith('/summary'))).toBe(false);
+  });
+});

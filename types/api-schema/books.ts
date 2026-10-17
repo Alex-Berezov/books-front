@@ -54,6 +54,15 @@ export interface VersionPreview {
    * Имя на языке запроса (`:lang`), без перевода имени - `canonicalName`. Пустой массив, когда их нет.
    */
   translators: { name: string }[];
+  /**
+   * Счётчики содержимого версии: ручка обзора книги отдаёт их у каждой версии
+   * (`_count.chapters/audioChapters/summaries`). В других ответах с этим типом их нет.
+   */
+  _count?: {
+    chapters: number;
+    audioChapters: number;
+    summaries: number;
+  };
 }
 
 /**
@@ -81,6 +90,8 @@ export interface BookCardModel {
   ratingsCount: number;
   hasText: boolean;
   hasAudio: boolean;
+  /** Есть пересказ этой версии: карточка «Похожие пересказы» ведёт на `/book/{slug}/summary`. */
+  hasSummary: boolean;
   publishedAt: ISODate | null;
   /** Stable category IDs attached to this book (for homepage category-based filtering). */
   categoryIds: string[];
@@ -341,6 +352,8 @@ export interface BookSummaryDetail {
   id: UUID;
   /** Brief overview / summary text */
   summary: string;
+  /** В `summary` есть видимый текст (бэкенд, `richHtmlText`): по нему считается `hasSummary`. */
+  hasText: boolean;
   /** Analysis / key takeaways */
   /** Колонка `String?`: приходит `null`, а не отсутствие ключа. */
   analysis?: string | null;

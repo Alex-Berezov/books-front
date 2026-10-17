@@ -12,6 +12,7 @@ import {
 } from '@/lib/i18n/lang';
 import { getLanguageSelectOptions } from '@/lib/i18n/languageSelectOptions';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { versionHasSummary } from '@/lib/seo/summary-path';
 import styles from './LanguageSwitcher.module.scss';
 
 function PublicLanguageSelect({
@@ -127,13 +128,18 @@ export const LanguageSwitcher = () => {
     router.push(newPath);
   };
 
+  // Страница пересказа `/{lang}/book/{slug}/summary` есть только у языков с пересказом: другой
+  // язык отвечает 404. Правило то же, что у hreflang страницы (`versionHasSummary`).
+  const isSummaryPage = parts[2] === 'book' && parts[4] === 'summary';
   const availableLangs = new Set<string>();
   if (book && book.versions) {
     book.versions.forEach((v) => {
-      if (v.language) {
+      if (v.language && (!isSummaryPage || versionHasSummary(v))) {
         availableLangs.add(v.language);
       }
     });
+    // Счётчиков нет (неизвестно, у каких языков есть пересказ) - только текущий язык, а не все.
+    if (isSummaryPage && availableLangs.size === 0) availableLangs.add(currentLang);
   }
 
   const allOptions = getLanguageSelectOptions();

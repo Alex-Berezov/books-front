@@ -50,6 +50,7 @@ export const authorBook = (
   ratingsCount: 0,
   hasText: true,
   hasAudio: false,
+  hasSummary: false,
   publishedAt: null,
   categoryIds: [],
   firstPublishedYear: 1869,

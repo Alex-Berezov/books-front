@@ -164,4 +164,30 @@ describe('страница книги: подпись редакции и «Об
     expect(container.querySelector('section[aria-labelledby="edition-notes-title"]')).toBeNull();
     expect(container.querySelector('a[href="/ru/editorial-policy#who"]')).not.toBeNull();
   });
+
+  // Серверная ссылка на пересказ (17.10.2026): только пересказ версии языка страницы - пересказ
+  // другого языка дал бы ссылку на `/ru/.../summary`, отвечающую 404.
+  it('ссылка на пересказ ведёт на /book/{slug}/summary, когда пересказ есть на языке страницы', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview({ language: 'ru', _count: { chapters: 1, audioChapters: 0, summaries: 1 } })
+    );
+
+    const { container } = await renderPage();
+
+    const link = container.querySelector('a[href="/ru/book/crime/summary"]');
+    expect(link?.textContent).toBe('Краткое содержание «Преступление и наказание»');
+  });
+
+  it('пересказ только на другом языке - ссылки нет', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview(
+        { language: 'en', _count: { chapters: 1, audioChapters: 0, summaries: 1 } },
+        { versionIds: { text: 'v1' } }
+      )
+    );
+
+    const { container } = await renderPage();
+
+    expect(container.querySelector('a[href$="/summary"]')).toBeNull();
+  });
 });

@@ -26,6 +26,7 @@ import type {
   BookCardsResponse,
   BookListItem,
   BookOverview,
+  BookSummaryDetail,
   CategoryBookCardsResponse,
   CategoryBooksResponse,
   CategoryTree,
@@ -75,6 +76,22 @@ export const getBookOverview = async (lang: SupportedLang, slug: string): Promis
     language: lang,
     next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
   });
+};
+
+/**
+ * Пересказ версии для публичной страницы `/{lang}/book/{slug}/summary`, серверный рендер.
+ *
+ * Без токена: черновик анониму не отдаётся (`LEGACY-090`), значит на публичную страницу
+ * попадает только пересказ опубликованной версии. `null` (пустое тело) - пересказа нет.
+ * Админская вкладка ходит через `getBookSummary` с `optionalAuth`, чтобы видеть черновик.
+ */
+export const getPublicBookSummary = async (
+  versionId: string
+): Promise<BookSummaryDetail | null> => {
+  const summary = await httpGet<BookSummaryDetail | null>(`/versions/${versionId}/summary`, {
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  });
+  return summary ?? null;
 };
 
 /**

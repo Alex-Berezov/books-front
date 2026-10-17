@@ -46,4 +46,18 @@ describe('anchorHeadings', () => {
     const source = '<p>Старая биография без разделов.</p>';
     expect(anchorHeadings(source, 'bio')).toEqual({ html: source, anchors: [] });
   });
+
+  // Пересказ книги: разделы - `h2`, `h3` внутри раздела якоря не получают.
+  it('tag h2: якоря только у h2', () => {
+    const { html, anchors } = anchorHeadings(
+      '<h2>Акт I</h2><h3>Сцена</h3><h2>Акт II</h2>',
+      'part',
+      'h2'
+    );
+
+    expect(anchors.map((a) => a.id)).toEqual(['part-akt-i', 'part-akt-ii']);
+    expect(html).toBe(
+      '<h2 id="part-akt-i">Акт I</h2><h3>Сцена</h3><h2 id="part-akt-ii">Акт II</h2>'
+    );
+  });
 });

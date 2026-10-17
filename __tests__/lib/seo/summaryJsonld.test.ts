@@ -11,7 +11,6 @@ describe('buildSummaryArticleJsonLd', () => {
   const ld = buildSummaryArticleJsonLd({
     lang: 'ru',
     bookSlug: 'crime',
-    versionId: 'v-1',
     bookTitle: 'Преступление и наказание',
     headline: 'Преступление и наказание — пересказ',
     editorialTeam: 'Редакция Bibliaris',
@@ -33,7 +32,7 @@ describe('buildSummaryArticleJsonLd', () => {
     expect(ld['@type']).toBe('Article');
     expect(ld.dateModified).toBe('2026-10-12T10:00:00.000Z');
     expect(ld.inLanguage).toBe('ru');
-    expect(ld.url).toBe(buildLangUrl('ru', '/summary/crime/v-1'));
+    expect(ld.url).toBe(buildLangUrl('ru', '/book/crime/summary'));
     expect(ld.about).toEqual({ '@type': 'Book', name: 'Преступление и наказание' });
     expect(ld.headline).toBe('Преступление и наказание — пересказ');
   });

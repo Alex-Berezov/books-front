@@ -641,3 +641,21 @@
     opacity: 0.4;
   }
 }
+
+.summaryLink {
+  display: inline-block;
+  margin-top: $spacing-md;
+  color: var(--public-primary);
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+    border-radius: $border-radius-sm;
+  }
+}

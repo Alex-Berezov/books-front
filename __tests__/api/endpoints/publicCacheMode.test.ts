@@ -68,6 +68,8 @@ const ANCHORS = [
  * and so must a silent shrink. Measured, not guessed — 42 blocks on 22.09.2026, down
  * from 45 on 13.09.2026: three inline `httpGet` reads of `/categories` on the taxonomy
  * pages collapsed into calls to the existing `getPublicCategories` helper (`LEGACY-387`).
+ * 43 on 17.10.2026: `getPublicBookSummary` - server read of the summary for the indexable
+ * page `/{lang}/book/{slug}/summary`.
  *
  * 🔴 Сверка точная (`toBe`), а не «не меньше», — решение арбитра 22.09.2026
  * (`books-app-docs/ai-context/decisions-log.md`). Односторонний порог не ловил тихую
@@ -79,7 +81,7 @@ const ANCHORS = [
  * прогона. Снимка в отдельном файле и автообновления у него нет нарочно: менять его
  * должно быть ровно так же заметно, как и всё остальное в этом файле.
  */
-const EXPECTED_BLOCKS = 42;
+const EXPECTED_BLOCKS = 43;
 
 /** `httpGet<...>(` / `httpGetAuth<...>(` — the call site, not the import line. */
 const CALL_SITE = /\bhttpGet(?:Auth)?</g;

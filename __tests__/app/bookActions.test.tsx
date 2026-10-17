@@ -35,7 +35,7 @@ vi.mock('@/api/hooks/useBookshelf', () => ({
 
 const textVersion = { id: 'v-text', isFree: true } as unknown as VersionPreview;
 
-const renderActions = (audioVersion: VersionPreview | null = null) =>
+const renderActions = (audioVersion: VersionPreview | null = null, hasSummary = false) =>
   render(
     <BookActions
       slug="dracula"
@@ -44,7 +44,7 @@ const renderActions = (audioVersion: VersionPreview | null = null) =>
       versionId="v-text"
       textVersion={textVersion}
       audioVersion={audioVersion}
-      hasSummary={false}
+      hasSummary={hasSummary}
     />
   );
 
@@ -157,5 +157,14 @@ describe('BookActions — CTA hierarchy and bookshelf toggle', () => {
 
     expect(push).toHaveBeenCalledWith('/en/auth/sign-in?callbackUrl=/en/book/dracula');
     expect(addMutate).not.toHaveBeenCalled();
+  });
+
+  // С 17.10.2026 пересказ - своя страница, а не якорь `#summary` на странице книги.
+  it('кнопка пересказа ведёт на /{lang}/book/{slug}/summary', () => {
+    renderActions(null, true);
+
+    expect(screen.getByRole('link', { name: /summary/i }).getAttribute('href')).toBe(
+      '/en/book/dracula/summary'
+    );
   });
 });

@@ -12,9 +12,9 @@ import { useSummaryTab } from './useSummaryTab';
  * Tab for managing book summary
  *
  * Allows editing:
- * - Summary text (brief overview)
- * - Key takeaways (main conclusions)
- * - Themes and analysis (themes and analysis)
+ * - Summary text - the plot retelling shown on the public page `/{lang}/book/{slug}/summary`
+ * - Key takeaways and Themes & Analysis - stored, but not shown on the summary page:
+ *   analysis belongs to its own section (owner decision 17.10.2026)
  */
 export const SummaryTab: FC<SummaryTabProps> = (props) => {
   const { formData, handleFieldChange, handleSave, isLoading, isSaving } = useSummaryTab(props);
@@ -32,17 +32,17 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
       <h2 className={styles.title}>Book Summary</h2>
 
       <SummaryFormField
-        hint="Brief overview of the book"
+        hint="Plot only, including the ending; use Heading 2 for parts or chapters. Public page: /book/<slug>/summary"
         id="summaryText"
         label="Summary"
         onChange={handleFieldChange}
-        placeholder="Write a concise summary of the book..."
+        placeholder="Retell the plot of the book in order..."
         rows={8}
         value={formData.summaryText}
       />
 
       <SummaryFormField
-        hint="Main lessons or insights"
+        hint="Not shown on the summary page"
         id="keyTakeaways"
         label="Key Takeaways"
         onChange={handleFieldChange}
@@ -52,7 +52,7 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
       />
 
       <SummaryFormField
-        hint="Major themes and deeper analysis"
+        hint="Not shown on the summary page"
         id="themes"
         label="Themes & Analysis"
         onChange={handleFieldChange}

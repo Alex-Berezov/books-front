@@ -15,6 +15,7 @@ import {
 import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { isAuthorLinkable } from '@/lib/seo/author-linkable';
+import { buildSummaryAlternates, summaryPath, versionHasSummary } from '@/lib/seo/book-summary';
 import { buildIndexableAlternates, toAlternateCandidates } from '@/lib/seo/hreflang-alternates';
 import { loadLandingPresence } from '@/lib/seo/landing-presence';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
@@ -259,6 +260,32 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
         alternates: {
           languages: alternates,
         },
+      });
+
+      // Пересказ - отдельный индексируемый адрес (решение владельца 17.10.2026), в том же файле:
+      // счётчик пересказов уже приехал в этой выдаче, второго обхода каталога не нужно.
+      // Кластер - тем же `buildSummaryAlternates`, что у страницы. `lastmod` не ставится: даты
+      // правки пересказа в списке книг нет, а дата книги о пересказе ничего не говорит.
+      // Редакторский noindex книги список не отдаёт - карта его не видит и для адреса самой
+      // книги; страница пересказа такой книги отвечает noindex (`summaryMetadata.ts`).
+      // Счётчика нет - неизвестно, есть ли пересказ: отказ файла (503), а не похудевшая карта.
+      if (typeof currentVersion._count?.summaries !== 'number') {
+        noteFailure(
+          `books ${lang} file${pageNumber}`,
+          new Error('version carries no summary count')
+        );
+        return;
+      }
+      if (!versionHasSummary(currentVersion)) return;
+      const summaryAlternates = buildSummaryAlternates(
+        publishedVersions,
+        (language, slug) => `${cleanBaseUrl}/${language}${summaryPath(slug)}`
+      );
+      sitemapItems.push({
+        url: `${cleanBaseUrl}/${lang}${summaryPath(currentVersion.slug)}`,
+        changeFrequency: 'weekly',
+        priority: 0.7,
+        ...(summaryAlternates ? { alternates: { languages: summaryAlternates } } : {}),
       });
     });
   }

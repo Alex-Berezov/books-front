@@ -15,6 +15,7 @@ export type DegradedSurface =
   | 'taxonomy-detail'
   | 'tag-detail'
   | 'book-detail'
+  | 'book-summary'
   | 'sitemap-index'
   | 'sitemap-file';
 
