@@ -92,6 +92,42 @@ describe('LanguageSwitcher', () => {
     expect(screen.queryByText(/ES/)).not.toBeInTheDocument();
   });
 
+  // F03-2: страница анализа - только языки с анализом (`product.md` §1.2), пересказ не в счёт.
+  it('на странице анализа предлагает только языки с анализом', () => {
+    vi.spyOn(navigation, 'usePathname').mockReturnValue('/en/book/hamlet/analysis');
+    overview.data = {
+      versions: [
+        { language: 'en', slug: 'hamlet', _count: { summaries: 1, analyses: 1 } },
+        { language: 'es', slug: 'hamlet-es', _count: { summaries: 1, analyses: 0 } },
+        { language: 'fr', slug: 'hamlet-fr', _count: { summaries: 0, analyses: 1 } },
+      ],
+    };
+
+    render(<LanguageSwitcher />);
+    fireEvent.click(screen.getByLabelText('Select language'));
+
+    expect(screen.getByText(/FR/)).toBeInTheDocument();
+    expect(screen.queryByText(/ES/)).not.toBeInTheDocument();
+  });
+
+  // Счётчик языка страницы 0 при открытой странице (блок по другой стране): свой язык не пропадает.
+  it('на странице анализа текущий язык есть и при нулевом счётчике', () => {
+    vi.spyOn(navigation, 'usePathname').mockReturnValue('/en/book/hamlet/analysis');
+    overview.data = {
+      versions: [
+        { language: 'en', slug: 'hamlet', _count: { summaries: 1, analyses: 0 } },
+        { language: 'fr', slug: 'hamlet-fr', _count: { summaries: 0, analyses: 1 } },
+      ],
+    };
+
+    render(<LanguageSwitcher />);
+    fireEvent.click(screen.getByLabelText('Select language'));
+
+    const options = screen.getAllByRole('option').map((o) => o.textContent ?? '');
+    expect(options.some((text) => /EN/.test(text))).toBe(true);
+    expect(options.some((text) => /FR/.test(text))).toBe(true);
+  });
+
   it('на странице книги - все языки версий', () => {
     vi.spyOn(navigation, 'usePathname').mockReturnValue('/en/book/hamlet');
     overview.data = {

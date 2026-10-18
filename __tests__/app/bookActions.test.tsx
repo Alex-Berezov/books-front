@@ -35,7 +35,11 @@ vi.mock('@/api/hooks/useBookshelf', () => ({
 
 const textVersion = { id: 'v-text', isFree: true } as unknown as VersionPreview;
 
-const renderActions = (audioVersion: VersionPreview | null = null, hasSummary = false) =>
+const renderActions = (
+  audioVersion: VersionPreview | null = null,
+  hasSummary = false,
+  hasAnalysis = false
+) =>
   render(
     <BookActions
       slug="dracula"
@@ -45,6 +49,7 @@ const renderActions = (audioVersion: VersionPreview | null = null, hasSummary = 
       textVersion={textVersion}
       audioVersion={audioVersion}
       hasSummary={hasSummary}
+      hasAnalysis={hasAnalysis}
     />
   );
 
@@ -166,5 +171,17 @@ describe('BookActions — CTA hierarchy and bookshelf toggle', () => {
     expect(screen.getByRole('link', { name: /summary/i }).getAttribute('href')).toBe(
       '/en/book/dracula/summary'
     );
+  });
+
+  // F03-2: кнопка анализа есть, только когда анализ версии языка подтверждён счётчиком.
+  it('кнопка анализа ведёт на /{lang}/book/{slug}/analysis и без анализа не рисуется', () => {
+    const { unmount } = renderActions(null, false, true);
+    expect(screen.getByRole('link', { name: /^analysis$/i }).getAttribute('href')).toBe(
+      '/en/book/dracula/analysis'
+    );
+    unmount();
+
+    renderActions(null, false, false);
+    expect(screen.queryByRole('link', { name: /^analysis$/i })).toBeNull();
   });
 });

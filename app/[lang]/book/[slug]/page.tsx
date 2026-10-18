@@ -8,7 +8,9 @@ import { EditionNotes } from '@/components/public/books/EditionNotes';
 import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { StarRating } from '@/components/public/books/StarRating';
 import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
+import { analysisSectionFlags } from '@/lib/book-analysis/format';
 import { getDictionary } from '@/lib/i18n/dictionaries';
+import { analysisPath, pickAnalysisVersion } from '@/lib/seo/book-analysis';
 import { pickSummaryVersion, summaryPath } from '@/lib/seo/book-summary';
 import { noteDegraded } from '@/lib/seo/degraded';
 import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
@@ -17,8 +19,11 @@ import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failu
 import { isOptimizableHost } from '@/lib/utils/image-host';
 import { serializeJsonLd } from '@/lib/utils/json-ld';
 import { logError } from '@/lib/utils/log-error';
+import type { AnalysisSectionLinks } from './BookExtraDetails';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
+import { ANALYSIS_ANCHORS } from './analysis/analysisAnchors';
+import { getCachedBookAnalysis } from './analysis/analysisData';
 import { resolveAuthorHref } from './authorHref';
 import styles from './book.module.scss';
 import { BookActions, BookExtraDetails, BookRating, BookReviews } from './BookClientIslands';
@@ -201,6 +206,32 @@ export default async function BookDetailPage({ params }: Props) {
   // Пересказ - версии языка страницы, по тому же правилу, что и сама страница пересказа:
   // версия с откатом на другой язык дала бы кнопку, ведущую в 404.
   const hasSummary = pickSummaryVersion(book, supportedLang) !== null;
+  // Анализ - по тому же правилу, что сама страница анализа (F03-2). Ссылки «Разбор» у блоков
+  // ставятся только на разделы, которые в анализе есть (`product.md` §1.4, §22): символы в ядро не
+  // входят. Анализ не прочитался - ссылок «Разбор» нет, страница книги от этого не падает.
+  const analysisVersion = pickAnalysisVersion(book, supportedLang);
+  const analysisHref = analysisVersion ? `/${supportedLang}${analysisPath(slug)}` : null;
+  const analysisForLinks = analysisVersion
+    ? await getCachedBookAnalysis(analysisVersion.id).catch((error: unknown) => {
+        logError('Error loading book analysis for section links:', error);
+        return null;
+      })
+    : null;
+  const analysisSections = analysisForLinks?.hasCore
+    ? analysisSectionFlags(analysisForLinks)
+    : null;
+  const analysisLinks: AnalysisSectionLinks | null =
+    analysisHref && analysisSections
+      ? {
+          characters: analysisSections.characters
+            ? `${analysisHref}#${ANALYSIS_ANCHORS.characters}`
+            : null,
+          symbols: analysisSections.symbols ? `${analysisHref}#${ANALYSIS_ANCHORS.symbols}` : null,
+          quotes: analysisSections.keyQuotes
+            ? `${analysisHref}#${ANALYSIS_ANCHORS.keyQuotes}`
+            : null,
+        }
+      : null;
   const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
 
   const fallbackHref = (() => {
@@ -337,6 +368,7 @@ export default async function BookDetailPage({ params }: Props) {
               textVersion={textVersion}
               audioVersion={audioVersion}
               hasSummary={hasSummary}
+              hasAnalysis={analysisHref !== null}
             />
 
             <BookTaxonomyChips lang={supportedLang} terms={book.tags ?? []} variant="tags" />
@@ -419,6 +451,11 @@ export default async function BookDetailPage({ params }: Props) {
               {dict.book.summaryLinkOnBook.replace('{title}', activeVersion?.title || book.title)}
             </Link>
           ) : null}
+          {analysisHref ? (
+            <Link href={analysisHref} className={styles.summaryLink}>
+              {dict.book.analysisLinkOnBook.replace('{title}', activeVersion?.title || book.title)}
+            </Link>
+          ) : null}
         </div>
 
         {activeVersion && (
@@ -430,7 +467,9 @@ export default async function BookDetailPage({ params }: Props) {
           />
         )}
 
-        {activeVersion && <BookExtraDetails activeVersion={activeVersion} />}
+        {activeVersion && (
+          <BookExtraDetails activeVersion={activeVersion} analysisLinks={analysisLinks} />
+        )}
 
         {versionId && (
           <BookReviews

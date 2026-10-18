@@ -54,3 +54,10 @@
   font-size: $font-size-sm;
   color: var(--public-foreground);
 }
+
+.comment {
+  margin: 0;
+  font-size: $font-size-sm;
+  line-height: $line-height-relaxed;
+  color: var(--public-foreground);
+}

@@ -18,6 +18,7 @@ import {
 } from '@/lib/reading-progress';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ReaderBootstrapChapter } from '@/types/api-schema';
+import { parseChapterParam, readerChapterQuery, withoutChapterParam } from './chapterParam';
 import styles from './reader.module.scss';
 
 type Props = {
@@ -77,6 +78,34 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
   const persistedChapterRef = useRef<number | null>(null);
 
   /**
+   * Глава открыта по ссылке `?chapter=N` (F03-2: ссылки «глава N» со страницы анализа).
+   *
+   * 🔴 Пока читатель сам не перешёл по главам, место в книге не пишется. Ссылка - это заглянуть
+   * в главу, а не переложить закладку: без этого через три секунды отложенное сохранение
+   * записало бы главу из ссылки поверх сохранённой двенадцатой, и читатель потерял бы место
+   * переходом со страницы анализа. `persistedChapterRef` для этого не подменяется - у него
+   * другой смысл («что уже записано»).
+   */
+  const openedFromLinkRef = useRef(false);
+
+  /**
+   * Номер главы из адреса - читается один раз, **в эффекте**, объявленном раньше эффектов
+   * восстановления и смены слага (эффекты идут в порядке объявления).
+   *
+   * 🔴 Не во время рендера: при переходе по `next/link` Next меняет адрес в `useInsertionEffect`
+   * той же фиксации, уже после рендера, - рендер увидел бы ещё адрес страницы анализа без
+   * `?chapter`. И не в каждом эффекте заново: восстановление снимает параметр с адреса, а эффект
+   * смены слага в той же фиксации прочитал бы его уже без главы.
+   */
+  const linkedChapterRef = useRef<number | null>(null);
+  const linkedChapterReadRef = useRef(false);
+  useEffect(() => {
+    if (linkedChapterReadRef.current) return;
+    linkedChapterReadRef.current = true;
+    linkedChapterRef.current = parseChapterParam(window.location.search);
+  }, []);
+
+  /**
    * Восстановление позиции — ровно один раз за открытие книги.
    *
    * 🔴 Ждём `isSettled`. Пока идёт слияние локального прогресса с серверным,
@@ -98,6 +127,27 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
     if (hasRestoredProgress || !isSettled || chapters.length === 0 || !versionId) return;
 
     if (hasUserNavigatedRef.current) {
+      setHasRestoredProgress(true);
+      return;
+    }
+
+    // Глава из ссылки важнее сохранённого места; номер не целый или главы нет - обычное
+    // восстановление. Параметр читается из адреса, а не из `searchParams` страницы: та
+    // от этого стала бы динамической.
+    const linkedChapter = linkedChapterRef.current;
+    const linkedIdx =
+      linkedChapter === null ? -1 : chapters.findIndex((c) => c.number === linkedChapter);
+    if (linkedIdx !== -1) {
+      setCurrentChapterIndex(linkedIdx);
+      openedFromLinkRef.current = true;
+      // Глава из ссылки применяется один раз: оставь параметр в адресе - перезагрузка снова
+      // увела бы читателя с его места на главу из ссылки, и первый же переход записал бы её.
+      const { pathname, search, hash } = window.location;
+      window.history.replaceState(
+        window.history.state,
+        '',
+        `${pathname}${withoutChapterParam(search)}${hash}`
+      );
       setHasRestoredProgress(true);
       return;
     }
@@ -143,7 +193,11 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
    */
   useEffect(() => {
     if (bootstrapData && bootstrapData.slug && bootstrapData.slug !== slug) {
-      router.replace(`/${lang}/book/${bootstrapData.slug}/read`);
+      // Строка запроса сохраняется: `?chapter=N` из ссылки анализа иначе терялся бы при смене слага.
+      const linked = linkedChapterRef.current;
+      router.replace(
+        `/${lang}/book/${bootstrapData.slug}/read${linked ? readerChapterQuery(linked) : ''}`
+      );
     }
   }, [bootstrapData, slug, lang, router]);
 
@@ -167,6 +221,8 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
   const saveProgress = useCallback(
     (chapter: ReaderBootstrapChapter) => {
       if (!versionId || !hasRestoredProgress) return;
+      // Глава из ссылки, а читатель ещё никуда не переходил - см. `openedFromLinkRef`.
+      if (openedFromLinkRef.current && !hasUserNavigatedRef.current) return;
       // Глава уже записана — см. `persistedChapterRef`.
       if (persistedChapterRef.current === chapter.number) return;
 

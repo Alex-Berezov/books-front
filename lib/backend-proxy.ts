@@ -11,6 +11,8 @@ import {
   BACKEND_PROXY_HEADER_VALUE,
   BACKEND_PROXY_MAX_BODY_BYTES,
   BACKEND_PROXY_PREFIX,
+  UNKNOWN_COUNTRY,
+  VISITOR_COUNTRY_HEADER,
 } from './backend-proxy.constants';
 import { HEADER_VALUE, HTTP_HEADER, HTTP_STATUS } from './http.constants';
 import { isUploadRoute } from './upload-routes';
@@ -260,6 +262,9 @@ export const readLimitedBody = async (
   return merged;
 };
 
+// Константы страны живут в `backend-proxy.constants.ts` (их читает и серверная выборка анализа).
+export { UNKNOWN_COUNTRY, VISITOR_COUNTRY_HEADER };
+
 /**
  * Страна посетителя для API (`LEGACY-465`, решение арбитра 12.10.2026, заход 2).
  *
@@ -269,10 +274,6 @@ export const readLimitedBody = async (
  * неизвестна». Присланный браузером `X-Visitor-Country` не пересылается: заголовки запроса
  * идут белым списком. Бэкенд верит заголовку только от адреса фронта (`INTERNAL_PROXY_CIDRS`).
  */
-export const VISITOR_COUNTRY_HEADER = 'X-Visitor-Country';
-
-const UNKNOWN_COUNTRY = 'XX';
-
 export const visitorCountryFrom = (headers: HeaderCarrier): string =>
   headers.get('cf-ipcountry')?.trim() || UNKNOWN_COUNTRY;
 

@@ -15,10 +15,12 @@ import {
 import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { isAuthorLinkable } from '@/lib/seo/author-linkable';
+import { analysisPath, buildAnalysisAlternates, versionHasAnalysis } from '@/lib/seo/book-analysis';
 import { buildSummaryAlternates, summaryPath, versionHasSummary } from '@/lib/seo/book-summary';
 import { buildIndexableAlternates, toAlternateCandidates } from '@/lib/seo/hreflang-alternates';
 import { loadLandingPresence } from '@/lib/seo/landing-presence';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
+import { buildLangUrl } from '@/lib/seo/urls';
 import {
   getBaseUrl,
   buildUrlSetXml,
@@ -276,16 +278,37 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
         );
         return;
       }
-      if (!versionHasSummary(currentVersion)) return;
-      const summaryAlternates = buildSummaryAlternates(
-        publishedVersions,
-        (language, slug) => `${cleanBaseUrl}/${language}${summaryPath(slug)}`
-      );
+      if (versionHasSummary(currentVersion)) {
+        const summaryAlternates = buildSummaryAlternates(
+          publishedVersions,
+          (language, slug) => `${cleanBaseUrl}/${language}${summaryPath(slug)}`
+        );
+        sitemapItems.push({
+          url: `${cleanBaseUrl}/${lang}${summaryPath(currentVersion.slug)}`,
+          changeFrequency: 'weekly',
+          priority: 0.7,
+          ...(summaryAlternates ? { alternates: { languages: summaryAlternates } } : {}),
+        });
+      }
+
+      // Анализ (F03-2) - рядом с пересказом и по тому же устройству: счётчик `_count.analyses`
+      // (ядро и не закрыт окончённой претензией) уже в этой выдаче, кластер - тем же
+      // `buildAnalysisAlternates`, что у страницы. Счётчика нет - отказ файла (503).
+      if (typeof currentVersion._count?.analyses !== 'number') {
+        noteFailure(
+          `books ${lang} file${pageNumber}`,
+          new Error('version carries no analysis count')
+        );
+        return;
+      }
+      if (!versionHasAnalysis(currentVersion)) return;
+      // Адрес и кластер - через `buildLangUrl`, как у меты страницы (правило «Публичные адреса»).
+      const analysisAlternates = buildAnalysisAlternates(publishedVersions);
       sitemapItems.push({
-        url: `${cleanBaseUrl}/${lang}${summaryPath(currentVersion.slug)}`,
+        url: buildLangUrl(lang, analysisPath(currentVersion.slug)),
         changeFrequency: 'weekly',
         priority: 0.7,
-        ...(summaryAlternates ? { alternates: { languages: summaryAlternates } } : {}),
+        ...(analysisAlternates ? { alternates: { languages: analysisAlternates } } : {}),
       });
     });
   }

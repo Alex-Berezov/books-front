@@ -27,6 +27,7 @@ test.describe('Auth & Admin', () => {
     for (const path of [
       '/en/summary/some-book/00000000-0000-0000-0000-000000000000',
       '/en/book/hamlet/summary',
+      '/en/book/hamlet/analysis',
       '/en/book/hamlet/read',
       '/en/book/hamlet/listen',
     ]) {

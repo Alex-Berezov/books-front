@@ -1,8 +1,9 @@
 import Link from 'next/link';
+import { analysisPath } from '@/lib/seo/analysis-path';
 import { summaryPath } from '@/lib/seo/summary-path';
 import styles from './BookSectionNav.module.scss';
 
-export type BookSectionKey = 'book' | 'read' | 'listen' | 'summary';
+export type BookSectionKey = 'book' | 'read' | 'listen' | 'summary' | 'analysis';
 
 export interface BookSectionNavItem {
   key: BookSectionKey;
@@ -22,10 +23,11 @@ interface BookSectionNavLabels {
   read: string;
   listen: string;
   summary: string;
+  analysis: string;
 }
 
 /**
- * Пункты навигации книги - одна сборка на все подстраницы (пересказ, позже разбор и анализ):
+ * Пункты навигации книги - одна сборка на все подстраницы (пересказ, разбор и анализ):
  * раздел есть у книги - пункт есть, нет - пункта нет. Новый раздел добавляется здесь, а не
  * в каждой подстранице.
  */
@@ -35,9 +37,11 @@ export function buildBookSectionNavItems(input: {
   hasText: boolean;
   hasAudio: boolean;
   hasSummary: boolean;
+  /** Анализ версии языка страницы - по тому же правилу, что сама страница (`pickAnalysisVersion`). */
+  hasAnalysis: boolean;
   labels: BookSectionNavLabels;
 }): BookSectionNavItem[] {
-  const { lang, bookSlug, hasText, hasAudio, hasSummary, labels } = input;
+  const { lang, bookSlug, hasText, hasAudio, hasSummary, hasAnalysis, labels } = input;
   const bookHref = `/${lang}/book/${bookSlug}`;
   return [
     { key: 'book', label: labels.book, href: bookHref },
@@ -54,13 +58,22 @@ export function buildBookSectionNavItems(input: {
           },
         ]
       : []),
+    ...(hasAnalysis
+      ? [
+          {
+            key: 'analysis' as const,
+            label: labels.analysis,
+            href: `/${lang}${analysisPath(bookSlug)}`,
+          },
+        ]
+      : []),
   ];
 }
 
 /**
- * Навигация по разделам одной книги: страница книги, чтение, аудио, пересказ. Серверная -
- * ссылки видны краулеру. Список собирает страница; новый раздел (разбор и анализ) - новый
- * пункт списка, а не правка компонента.
+ * Навигация по разделам одной книги: страница книги, чтение, аудио, пересказ, анализ.
+ * Серверная - ссылки видны краулеру. Список собирает страница; новый раздел - новый пункт
+ * списка, а не правка компонента.
  */
 export function BookSectionNav({ items, active, ariaLabel }: BookSectionNavProps) {
   if (items.length < 2) return null;

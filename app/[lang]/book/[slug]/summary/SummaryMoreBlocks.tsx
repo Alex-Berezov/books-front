@@ -5,16 +5,19 @@ import { BOOK_ANCHORS } from '../bookAnchors';
 import styles from './summary.module.scss';
 
 /**
- * «Узнать больше о книге»: только материалы, которые у книги есть, - разделы её страницы.
- * Пустые разделы ссылкой не становятся (заглушек нет).
+ * «Узнать больше о книге»: только материалы, которые у книги есть, - разделы её страницы
+ * и анализ (`product.md` F03 §22). Пустые разделы ссылкой не становятся (заглушек нет);
+ * `analysisHref` - `null`, когда анализа на языке страницы нет.
  */
 export function buildExploreLinks(
   bookHref: string,
   version: Pick<VersionPreview, 'characters' | 'symbols' | 'quotes'>,
-  labels: { about: string; characters: string; symbols: string; quotes: string }
+  analysisHref: string | null,
+  labels: { about: string; analysis: string; characters: string; symbols: string; quotes: string }
 ): { href: string; label: string }[] {
   return [
     { href: bookHref, label: labels.about },
+    ...(analysisHref ? [{ href: analysisHref, label: labels.analysis }] : []),
     ...(version.characters?.length
       ? [{ href: `${bookHref}#${BOOK_ANCHORS.characters}`, label: labels.characters }]
       : []),

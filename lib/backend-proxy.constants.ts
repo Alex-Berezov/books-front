@@ -36,3 +36,12 @@ export const BACKEND_PROXY_MAX_BODY_BYTES = 1024 * 1024;
  * чем прокси — понятный JSON 504.
  */
 export const BACKEND_PROXY_UPSTREAM_TIMEOUT_MS = 90_000;
+
+/**
+ * Заголовок страны посетителя для API и значение «страна неизвестна» (`LEGACY-465`). Лежат здесь,
+ * а не в `backend-proxy.ts`: их импортирует и серверная выборка `getPublicBookAnalysis`
+ * (`api/endpoints/public.ts`), чей модуль тянет клиентский бандл (F03-2).
+ */
+export const VISITOR_COUNTRY_HEADER = 'X-Visitor-Country';
+
+export const UNKNOWN_COUNTRY = 'XX';

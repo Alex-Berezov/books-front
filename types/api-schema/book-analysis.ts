@@ -131,6 +131,11 @@ export interface BookAnalysisDetail extends BookAnalysisBlocks {
   language: SupportedLang;
   /** Ядро заполнено (считает бэкенд): по нему страница, кнопка и карта сайта. */
   hasCore: boolean;
+  /**
+   * Номера глав версии по возрастанию (F03-2): ссылка «глава N» ставится только на номер
+   * из этого списка; у версии без текста список пуст и ссылок нет (`product.md` §1.6).
+   */
+  chapterNumbers: number[];
   createdAt: ISODate;
   updatedAt: ISODate;
 }
@@ -158,4 +163,22 @@ export interface BookAnalysisSaveResponse {
 export interface ChapterTitle {
   number: number;
   title: string;
+}
+
+/**
+ * Где анализ закрыт блоком окончённой претензии — `GET analyses/claim-closures` (F03-2, решение
+ * арбитра `F03 | F03-2`). Читает только middleware: закрывает `/analysis` в стране блока.
+ */
+export interface BookAnalysisClaimClosure {
+  /** Слаги, по которым открывается страница: слаг книги и слаги версий. */
+  slugs: string[];
+  /** Язык закрытой версии; `null` — все языки книги. */
+  language: SupportedLang | null;
+  /** Страна (ISO, верхний регистр); `null` — весь мир. */
+  countryCode: string | null;
+  expiresAt: ISODate | null;
+}
+
+export interface BookAnalysisClaimClosures {
+  items: BookAnalysisClaimClosure[];
 }

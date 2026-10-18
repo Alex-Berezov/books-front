@@ -1,0 +1,302 @@
+@import '@/styles/tokens.scss';
+
+.analysisPage {
+  min-height: 100vh;
+  padding: $spacing-xl 0;
+  background-color: var(--public-background);
+  color: var(--public-foreground);
+}
+
+.container {
+  max-width: $layout-max-width-lg;
+  margin: 0 auto $spacing-xl;
+  padding: 0 $spacing-md;
+}
+
+.content {
+  max-width: $layout-max-width-md;
+  min-width: 0;
+}
+
+.section {
+  margin-top: $spacing-xl;
+  scroll-margin-top: $spacing-xxl;
+}
+
+.sectionTitle {
+  margin: 0 0 $spacing-md;
+  font-size: $font-size-xl;
+  line-height: $line-height-tight;
+}
+
+.text {
+  font-size: $font-size-lg;
+  line-height: $line-height-relaxed;
+
+  p {
+    margin: 0 0 $spacing-sm;
+    overflow-wrap: anywhere;
+  }
+}
+
+.mainIdea {
+  margin: 0;
+  padding: $spacing-md;
+  border-left: $spacing-xs solid var(--public-primary);
+  border-radius: $border-radius-lg;
+  font-size: $font-size-lg;
+  line-height: $line-height-relaxed;
+
+  p {
+    margin: 0 0 $spacing-sm;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: $spacing-xs $spacing-md;
+  margin: 0;
+  padding: $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-lg;
+  font-size: $font-size-sm;
+}
+
+// Пара «параметр - значение» обёрнута в `div` (так разрешает `dl`), строка сетки - по паре.
+.fact {
+  display: contents;
+
+  dt {
+    opacity: 0.7;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.factActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  align-items: center;
+  margin-top: $spacing-md;
+}
+
+.textLink {
+  color: var(--public-primary);
+
+  &:hover {
+    color: var(--public-primary-hover);
+  }
+}
+
+.toc {
+  margin-top: $spacing-lg;
+  padding: $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-lg;
+}
+
+.tocTitle {
+  margin: 0 0 $spacing-sm;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+}
+
+.tocList {
+  margin: 0;
+  padding-left: $spacing-md;
+  font-size: $font-size-sm;
+  line-height: $line-height-base;
+
+  a {
+    color: var(--public-foreground);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--public-primary);
+    }
+  }
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $spacing-md;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  min-width: 0;
+  padding: $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-lg;
+}
+
+// Карточка темы: полоса слева цветом темы (`--theme-color` ставит класс `.themeN`).
+.themeCard {
+  border-left: $spacing-xs solid var(--theme-color, var(--public-border));
+}
+
+.cardTitle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  align-items: baseline;
+  margin: 0 0 $spacing-sm;
+  font-size: $font-size-lg;
+  line-height: $line-height-tight;
+}
+
+.role {
+  padding: 0 $spacing-sm;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+.arc {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: $spacing-xs $spacing-sm;
+  margin: $spacing-sm 0;
+  font-size: $font-size-sm;
+}
+
+.quote {
+  margin: $spacing-sm 0;
+  padding-left: $spacing-md;
+  border-left: 2px solid var(--public-border);
+  font-style: italic;
+  overflow-wrap: anywhere;
+
+  p {
+    margin: 0;
+  }
+}
+
+.quoteMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-xs;
+  font-size: $font-size-sm;
+  font-style: normal;
+  opacity: 0.85;
+}
+
+.chapters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs $spacing-sm;
+  margin: $spacing-sm 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: $font-size-sm;
+}
+
+.chaptersLabel {
+  opacity: 0.7;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin: $spacing-sm 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Метка темы: точка цветом темы и текст цветом страницы - контраст текста не зависит от палитры.
+.tag {
+  display: inline-flex;
+  gap: $spacing-xs;
+  align-items: center;
+  padding: 0 $spacing-sm;
+  border: 1px solid var(--theme-color, var(--public-border));
+  border-radius: $border-radius-full;
+  font-size: $font-size-xs;
+
+  &::before {
+    content: '';
+    width: $spacing-sm;
+    height: $spacing-sm;
+    border-radius: $border-radius-round;
+    background-color: var(--theme-color, var(--public-border));
+  }
+}
+
+@each $color in $color-analysis-themes {
+  $i: index($color-analysis-themes, $color) - 1;
+
+  .theme#{$i} {
+    --theme-color: #{$color};
+  }
+}
+
+.spoiler {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: flex-start;
+  margin: 0 0 $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid var(--public-border);
+  border-left: $spacing-xs solid $color-warning;
+  border-radius: $border-radius-lg;
+  font-size: $font-size-sm;
+
+  svg {
+    flex-shrink: 0;
+    margin-top: $border-radius-sm;
+    color: $color-warning;
+  }
+}
+
+.ctaPrimary,
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $border-radius-lg;
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+  transition: background-color $transition-fast;
+}
+
+.ctaPrimary {
+  color: var(--brand-ink);
+  background-color: var(--brand-gold);
+  border: 1px solid var(--brand-gold-hover);
+
+  &:hover {
+    background-color: var(--brand-gold-hover);
+  }
+}
+
+.ctaSecondary {
+  color: var(--brand-paper);
+  background-color: var(--brand-ink);
+  border: 1px solid var(--brand-ink);
+
+  &:hover {
+    background-color: var(--brand-ink-hover);
+  }
+}
+
+// Ключевые цитаты рисует общий `QuotesBlock`: отступ и якорь - как у разделов страницы.
+.quotesSection {
+  margin: $spacing-xl 0 0;
+  scroll-margin-top: $spacing-xxl;
+}

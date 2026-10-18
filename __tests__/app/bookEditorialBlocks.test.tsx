@@ -10,6 +10,8 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getCachedBookOverview: vi.fn(),
   getCachedBookSeo: vi.fn(),
+  getCachedBookAnalysis: vi.fn(),
+  extraDetailsProps: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -30,9 +32,16 @@ vi.mock('@/app/[lang]/book/[slug]/bookData', () => ({
 
 vi.mock('@/lib/seo/retired-slug', () => ({ resolveRetiredSlug: vi.fn() }));
 
+vi.mock('@/app/[lang]/book/[slug]/analysis/analysisData', () => ({
+  getCachedBookAnalysis: mocks.getCachedBookAnalysis,
+}));
+
 vi.mock('@/app/[lang]/book/[slug]/BookClientIslands', () => ({
   BookActions: () => null,
-  BookExtraDetails: () => null,
+  BookExtraDetails: (props: unknown) => {
+    mocks.extraDetailsProps(props);
+    return null;
+  },
   BookRating: () => null,
   BookReviews: () => null,
 }));
@@ -83,6 +92,9 @@ describe('страница книги: подпись редакции и «Об
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Реализация от прошлого теста не переезжает в следующий: по умолчанию анализа нет.
+    mocks.getCachedBookAnalysis.mockReset();
+    mocks.getCachedBookAnalysis.mockResolvedValue(null);
     mocks.getCachedBookSeo.mockResolvedValue(null);
   });
 
@@ -189,5 +201,71 @@ describe('страница книги: подпись редакции и «Об
     const { container } = await renderPage();
 
     expect(container.querySelector('a[href$="/summary"]')).toBeNull();
+  });
+
+  // F03-2: серверная ссылка на анализ и ссылки «Разбор» у блоков - только на разделы, которые
+  // в анализе языка страницы есть (`product.md` §1.4, §22).
+  it('ссылка на анализ и «Разбор» - на существующие разделы анализа', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview({
+        language: 'ru',
+        _count: { chapters: 1, audioChapters: 0, summaries: 0, analyses: 1 },
+      })
+    );
+    mocks.getCachedBookAnalysis.mockResolvedValue({
+      hasCore: true,
+      characters: [{ key: 'r', name: 'R', role: 'main' }],
+      keyQuotes: [{ text: 'Q' }],
+      symbols: null,
+    });
+
+    const { container } = await renderPage();
+
+    const link = container.querySelector('a[href="/ru/book/crime/analysis"]');
+    expect(link?.textContent).toBe('Анализ и разбор «Преступление и наказание»');
+    expect(mocks.getCachedBookAnalysis).toHaveBeenCalledWith('v1');
+    expect(mocks.extraDetailsProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        analysisLinks: {
+          characters: '/ru/book/crime/analysis#characters',
+          symbols: null,
+          quotes: '/ru/book/crime/analysis#key-quotes',
+        },
+      })
+    );
+  });
+
+  it('анализа нет на языке страницы - ни ссылки, ни «Разбор», анализ не запрашивается', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview({
+        language: 'ru',
+        _count: { chapters: 1, audioChapters: 0, summaries: 0, analyses: 0 },
+      })
+    );
+
+    const { container } = await renderPage();
+
+    expect(container.querySelector('a[href$="/analysis"]')).toBeNull();
+    expect(mocks.getCachedBookAnalysis).not.toHaveBeenCalled();
+    expect(mocks.extraDetailsProps).toHaveBeenCalledWith(
+      expect.objectContaining({ analysisLinks: null })
+    );
+  });
+
+  it('анализ не прочитался - кнопка-ссылка есть, «Разбор» нет, страница книги не падает', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview({
+        language: 'ru',
+        _count: { chapters: 1, audioChapters: 0, summaries: 0, analyses: 1 },
+      })
+    );
+    mocks.getCachedBookAnalysis.mockRejectedValue(new Error('down'));
+
+    const { container } = await renderPage();
+
+    expect(container.querySelector('a[href="/ru/book/crime/analysis"]')).not.toBeNull();
+    expect(mocks.extraDetailsProps).toHaveBeenCalledWith(
+      expect.objectContaining({ analysisLinks: null })
+    );
   });
 });

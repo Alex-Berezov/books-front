@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -8,11 +9,22 @@ import type { BookOverview } from '@/types/api-schema';
 import { BOOK_ANCHORS } from './bookAnchors';
 import styles from './BookExtraDetails.module.scss';
 
-interface BookExtraDetailsProps {
-  activeVersion: BookOverview['versions'][0] | null;
+/**
+ * Ссылки «Разбор» на разделы анализа (F03-2, `product.md` §22): адрес раздела или `null`, когда
+ * в анализе языка страницы такого блока нет - ссылка в никуда хуже отсутствующей.
+ */
+export interface AnalysisSectionLinks {
+  characters: string | null;
+  symbols: string | null;
+  quotes: string | null;
 }
 
-export default function BookExtraDetails({ activeVersion }: BookExtraDetailsProps) {
+interface BookExtraDetailsProps {
+  activeVersion: BookOverview['versions'][0] | null;
+  analysisLinks?: AnalysisSectionLinks | null;
+}
+
+export default function BookExtraDetails({ activeVersion, analysisLinks }: BookExtraDetailsProps) {
   const { t } = useTranslation();
 
   if (!activeVersion) return null;
@@ -24,6 +36,11 @@ export default function BookExtraDetails({ activeVersion }: BookExtraDetailsProp
       {activeVersion.symbols && activeVersion.symbols.length > 0 && (
         <section id={BOOK_ANCHORS.symbols} className={styles.detailSection}>
           <h2 className={styles.detailTitle}>{t('book.symbols')}</h2>
+          {analysisLinks?.symbols ? (
+            <Link href={analysisLinks.symbols} className={styles.analysisLink}>
+              {t('book.analysisBreakdown')}
+            </Link>
+          ) : null}
           <div className={styles.symbolsGrid}>
             {activeVersion.symbols.map((symbol) => (
               <div key={symbol.title} className={styles.symbolCard}>
@@ -39,6 +56,11 @@ export default function BookExtraDetails({ activeVersion }: BookExtraDetailsProp
       {activeVersion.characters && activeVersion.characters.length > 0 && (
         <section id={BOOK_ANCHORS.characters} className={styles.detailSection}>
           <h2 className={styles.detailTitle}>{t('book.mainCharacters')}</h2>
+          {analysisLinks?.characters ? (
+            <Link href={analysisLinks.characters} className={styles.analysisLink}>
+              {t('book.analysisBreakdown')}
+            </Link>
+          ) : null}
           <div className={styles.charactersGrid}>
             {activeVersion.characters.map((char) => (
               <div key={char.name} className={styles.characterCard}>
@@ -54,6 +76,11 @@ export default function BookExtraDetails({ activeVersion }: BookExtraDetailsProp
       {activeVersion.quotes && activeVersion.quotes.length > 0 && (
         <div id={BOOK_ANCHORS.quotes}>
           <QuotesBlock items={activeVersion.quotes} title={t('book.quotes')} />
+          {analysisLinks?.quotes ? (
+            <Link href={analysisLinks.quotes} className={styles.analysisLink}>
+              {t('book.analysisBreakdown')}
+            </Link>
+          ) : null}
         </div>
       )}
 

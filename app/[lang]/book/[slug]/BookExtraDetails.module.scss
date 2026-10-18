@@ -75,4 +75,14 @@
   line-height: 1.4;
 }
 
+// Ссылка «Разбор» на раздел анализа (F03-2): под заголовком блока, цветом ссылки сайта.
+.analysisLink {
+  display: inline-block;
+  margin: 0 0 $spacing-sm;
+  font-size: $font-size-sm;
+  color: var(--public-primary);
 
+  &:hover {
+    color: var(--public-primary-hover);
+  }
+}

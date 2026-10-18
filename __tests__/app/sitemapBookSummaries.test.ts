@@ -21,7 +21,7 @@ vi.mock('@/api/endpoints/public', () => ({
   getAuthorLetters: vi.fn(),
 }));
 
-const listVersion = (language: string, slug: string, summaries: number) => ({
+const listVersion = (language: string, slug: string, summaries: number, analyses = 0) => ({
   id: `v-${slug}`,
   bookId: 'b',
   language,
@@ -35,7 +35,8 @@ const listVersion = (language: string, slug: string, summaries: number) => ({
   isFree: true,
   createdAt: '2026-10-01T00:00:00.000Z',
   updatedAt: '2026-10-01T00:00:00.000Z',
-  _count: { chapters: 1, audioChapters: 0, summaries },
+  // Список книг отдаёт и счётчик анализа (F03): без него файл книг отвечает отказом.
+  _count: { chapters: 1, audioChapters: 0, summaries, analyses },
   tags: [],
 });
 

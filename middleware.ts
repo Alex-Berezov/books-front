@@ -8,12 +8,20 @@
 import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import {
+  buildAnalysisClosedResponse,
+  isAnalysisClosed,
+  loadClaimClosures,
+  matchAnalysisPath,
+} from '@/lib/analysis-claim-closures';
+import {
   ADMIN_PANEL_ROLES,
   AuthErrorType,
   SIGN_IN_REASON_PARAM,
   isSessionEndedError,
   isTokenSessionEnded,
 } from '@/lib/auth/constants';
+import { UNKNOWN_COUNTRY, visitorCountryFrom } from '@/lib/backend-proxy';
+import { API_BASE_URL } from '@/lib/http.constants';
 import { DEFAULT_REDIRECT_LANG } from '@/lib/middleware.constants';
 import { getSiteUrl } from '@/lib/seo/urls';
 import type { NextRequest } from 'next/server';
@@ -272,6 +280,19 @@ export async function middleware(request: NextRequest) {
 
     if (redirectUrl.toString() !== currentUrl) {
       return NextResponse.redirect(redirectUrl, 301);
+    }
+  }
+
+  // F03-2, решение арбитра `F03 | F03-2`: анализ, закрытый блоком окончённой претензии по стране
+  // посетителя, - 451 здесь. Статичная страница страну не знает и закрывается только блоком на
+  // весь мир; список и правила отказа - `lib/analysis-claim-closures.ts`.
+  const analysisTarget = matchAnalysisPath(pathname);
+  if (analysisTarget) {
+    const visitorCountry = visitorCountryFrom(request.headers).toUpperCase();
+    const country = visitorCountry === UNKNOWN_COUNTRY ? null : visitorCountry;
+    const closures = await loadClaimClosures(API_BASE_URL);
+    if (isAnalysisClosed(closures, analysisTarget, country)) {
+      return buildAnalysisClosedResponse(analysisTarget);
     }
   }
 

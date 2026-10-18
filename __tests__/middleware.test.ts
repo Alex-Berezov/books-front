@@ -1,6 +1,7 @@
 import { unstable_doesMiddlewareMatch } from 'next/experimental/testing/server';
 import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { resetClaimClosuresCache } from '@/lib/analysis-claim-closures';
 import { ADMIN_PANEL_ROLES, UserRole } from '@/lib/auth/constants';
 import { config, middleware, STATIC_ASSET_EXTENSIONS, STATIC_ASSET_PATTERN } from '@/middleware';
 
@@ -75,7 +76,9 @@ describe('middleware matcher: охват (LEGACY-083)', () => {
     // Живые читалка и плеер — гейт до них доходит только через matcher.
     '/en/book/hamlet/read',
     '/en/book/hamlet/listen',
-  ])('личный маршрут %s из охвата не выпал', (path) => {
+    // Анализ (F03-2): закрытие по стране блока окончённой претензии живёт здесь.
+    '/en/book/hamlet/analysis',
+  ])('маршрут %s из охвата не выпал', (path) => {
     expect(matched(path)).toBe(true);
   });
 
@@ -122,6 +125,19 @@ describe('модель matcher совпадает с компилятором Ne
  * то, что важно продукту: аноним доходит до страницы, а не до формы входа.
  */
 describe('контентные маршруты открыты анониму', () => {
+  // Анализ ходит за списком закрытий (F03-2): в этом наборе бэкенда нет - список пуст, без сети.
+  beforeEach(() => {
+    resetClaimClosuresCache();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('{"items":[]}', { status: 200 }))
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it.each([
     // Живые читалка и плеер.
     '/en/book/hamlet/read',
@@ -138,6 +154,8 @@ describe('контентные маршруты открыты анониму', 
     '/en/summary/hamlet/v1',
     // Родительская страница книги публична и была публичной раньше.
     '/en/book/hamlet',
+    // Анализ (F03-2) открыт анониму, как пересказ.
+    '/en/book/hamlet/analysis',
   ])('аноним на %s не уходит на форму входа', async (path) => {
     const response = await middleware(request(`${REQ}${path}`, { host: SITE_HOST }));
 
@@ -627,5 +645,89 @@ describe('middleware не печатает персональные данные
     // возврате дефекта.
     expect(printed).not.toContain('"admin"');
     expect(printed).not.toContain('u-1');
+  });
+});
+
+/**
+ * F03-2, решение арбитра `F03 | F03-2`: анализ, закрытый блоком окончённой претензии по стране,
+ * отвечает 451 посетителю из этой страны; другим странам, неизвестной стране и при сбое бэкенда
+ * без прежнего списка - открыт. Блок на весь мир закрывает всех.
+ */
+describe('анализ: закрытие по стране блока окончённой претензии', () => {
+  const closures = {
+    items: [
+      { slugs: ['hamlet', 'gamlet'], language: 'en', countryCode: 'GB', expiresAt: null },
+      { slugs: ['emma'], language: null, countryCode: null, expiresAt: null },
+      {
+        slugs: ['carol'],
+        language: 'en',
+        countryCode: 'DE',
+        expiresAt: '2000-01-01T00:00:00.000Z',
+      },
+    ],
+  };
+  const fetchMock = vi.fn();
+
+  const open = (path: string, country?: string) =>
+    middleware(
+      request(`${REQ}${path}`, {
+        host: SITE_HOST,
+        ...(country ? { 'cf-ipcountry': country } : {}),
+      })
+    );
+
+  beforeEach(() => {
+    resetClaimClosuresCache();
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(closures), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('посетитель из страны блока - 451 без претензии и причины, не кэшируется', async () => {
+    const response = await open('/en/book/hamlet/analysis', 'GB');
+
+    expect(response.status).toBe(451);
+    expect(response.headers.get('cache-control')).toBe('private, no-store');
+    const html = await response.text();
+    expect(html).toContain('Not available in your region');
+    expect(html).toContain('href="/en/book/hamlet"');
+    expect(html).toContain('noindex');
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/analyses\/claim-closures$/);
+  });
+
+  it.each([
+    ['другая страна', '/en/book/hamlet/analysis', 'US'],
+    ['страна неизвестна', '/en/book/hamlet/analysis', undefined],
+    ['другой язык книги', '/fr/book/hamlet/analysis', 'GB'],
+    ['истёкший блок', '/en/book/carol/analysis', 'DE'],
+    ['страница книги, а не анализ', '/en/book/hamlet', 'GB'],
+  ])('%s - открыто', async (_name, path, country) => {
+    const response = await open(path, country);
+    expect(response.status).not.toBe(451);
+  });
+
+  it('страна в нижнем регистре сверяется как в верхнем; XX - страна неизвестна', async () => {
+    expect((await open('/en/book/hamlet/analysis', 'gb')).status).toBe(451);
+    resetClaimClosuresCache();
+    expect((await open('/en/book/hamlet/analysis', 'XX')).status).not.toBe(451);
+  });
+
+  it('блок на весь мир и на все языки - 451 и без страны', async () => {
+    expect((await open('/ru/book/emma/analysis')).status).toBe(451);
+  });
+
+  it('список один на окно кэша: второй заход не ходит в бэкенд', async () => {
+    await open('/en/book/hamlet/analysis', 'GB');
+    await open('/en/book/hamlet/analysis', 'US');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('бэкенд не ответил и списка не было - открыто', async () => {
+    fetchMock.mockRejectedValue(new Error('down'));
+    expect((await open('/en/book/hamlet/analysis', 'GB')).status).not.toBe(451);
   });
 });

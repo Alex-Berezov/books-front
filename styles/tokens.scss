@@ -146,6 +146,20 @@ $color-gold-ink: #8c5300;
 $color-public-background: oklch(0.98 0.008 75);
 $color-public-foreground: oklch(0.2 0.02 60);
 
+// Палитра тем страницы анализа (F03, T8): цвет темы - по её порядку в данных, один во всех блоках.
+// Средняя светлота: цвет идёт полосой и точкой рядом с текстом, а не фоном под ним, поэтому
+// читается и на светлой, и на тёмной теме. Число цветов - `THEME_COLOR_COUNT` (`lib/book-analysis/format.ts`).
+$color-analysis-themes: (
+  oklch(0.6 0.14 30),
+  oklch(0.6 0.12 145),
+  oklch(0.6 0.13 250),
+  oklch(0.7 0.14 85),
+  oklch(0.58 0.14 330),
+  oklch(0.62 0.1 200),
+  oklch(0.64 0.14 55),
+  oklch(0.56 0.13 290)
+);
+
 // Dark Mode overrides for public site (used via custom selectors/classes)
 $color-public-primary-dark: oklch(0.65 0.14 70);
 $color-bibliaris-green-dark: oklch(0.22 0.04 140);

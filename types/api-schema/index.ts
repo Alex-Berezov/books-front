@@ -488,6 +488,8 @@ export type {
   BookAnalysisAdaptationKind,
   BookAnalysisBlocks,
   BookAnalysisCharacter,
+  BookAnalysisClaimClosure,
+  BookAnalysisClaimClosures,
   BookAnalysisDetail,
   BookAnalysisFacts,
   BookAnalysisFaq,

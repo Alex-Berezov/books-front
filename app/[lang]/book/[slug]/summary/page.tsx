@@ -6,6 +6,7 @@ import { RichTextContent } from '@/components/common/RichTextContent';
 import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
 import { getDictionary } from '@/lib/i18n/dictionaries';
+import { analysisPath, pickAnalysisVersion } from '@/lib/seo/book-analysis';
 import { readingMinutes, summaryPath } from '@/lib/seo/book-summary';
 import { buildSummaryArticleJsonLd } from '@/lib/seo/summary-jsonld';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
@@ -86,6 +87,10 @@ export default async function BookSummaryPage({ params }: Props) {
   const genre = book.primaryCategory?.name ?? null;
   const readHref = book.versionIds?.text ? `${bookHref}/read` : null;
   const listenHref = book.versionIds?.audio ? `${bookHref}/listen` : null;
+  const analysisHref =
+    pickAnalysisVersion(book, supportedLang) !== null
+      ? `/${supportedLang}${analysisPath(bookSlug)}`
+      : null;
 
   const { anchors } = anchorHeadings(
     demoteH1(sanitizeRichHtml(summary.summary)),
@@ -99,16 +104,19 @@ export default async function BookSummaryPage({ params }: Props) {
     hasText: Boolean(readHref),
     hasAudio: Boolean(listenHref),
     hasSummary: true,
+    hasAnalysis: Boolean(analysisHref),
     labels: {
       book: dict.book.bookNavBook,
       read: dict.book.read,
       listen: dict.book.listen,
       summary: dict.book.summary,
+      analysis: dict.book.analysis,
     },
   });
 
-  const exploreLinks = buildExploreLinks(bookHref, version, {
+  const exploreLinks = buildExploreLinks(bookHref, version, analysisHref, {
     about: dict.book.summaryExploreAbout,
+    analysis: dict.book.analysisExploreLink,
     characters: dict.book.mainCharacters,
     symbols: dict.book.symbols,
     quotes: dict.book.quotes,

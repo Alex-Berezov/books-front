@@ -1,12 +1,21 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Headphones, FileText, Bookmark, BookmarkX, Check } from 'lucide-react';
+import {
+  BookOpen,
+  Headphones,
+  FileText,
+  Lightbulb,
+  Bookmark,
+  BookmarkX,
+  Check,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from '@/api/hooks/useBookshelf';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { analysisPath } from '@/lib/seo/analysis-path';
 import { summaryPath } from '@/lib/seo/summary-path';
 import { toast } from '@/lib/utils/toast';
 import type { VersionPreview } from '@/types/api-schema/books';
@@ -20,6 +29,8 @@ interface BookActionsProps {
   textVersion: VersionPreview | null;
   audioVersion: VersionPreview | null;
   hasSummary: boolean;
+  /** Анализ версии языка страницы - то же правило, что у страницы анализа (`pickAnalysisVersion`). */
+  hasAnalysis: boolean;
 }
 
 export default function BookActions({
@@ -30,6 +41,7 @@ export default function BookActions({
   textVersion,
   audioVersion,
   hasSummary,
+  hasAnalysis,
 }: BookActionsProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -138,6 +150,16 @@ export default function BookActions({
         >
           <FileText size={18} aria-hidden="true" />
           {t('book.summary')}
+        </Link>
+      )}
+
+      {hasAnalysis && versionId && (
+        <Link
+          href={`/${lang}${analysisPath(slug)}`}
+          className={`${styles.ctaBase} ${styles.ctaTertiary}`}
+        >
+          <Lightbulb size={18} aria-hidden="true" />
+          {t('book.analysis')}
         </Link>
       )}
 

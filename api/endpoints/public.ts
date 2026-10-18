@@ -15,6 +15,7 @@
  * then already chosen for the first server caller instead of being picked by default.
  */
 
+import { UNKNOWN_COUNTRY, VISITOR_COUNTRY_HEADER } from '@/lib/backend-proxy.constants';
 import { PUBLIC_REVALIDATE_SECONDS } from '@/lib/constants/cache';
 import { httpGet, buildLangPath } from '@/lib/http';
 import { httpGetAuth } from '@/lib/http-client';
@@ -25,6 +26,7 @@ import type {
   AuthorListItem,
   BookCardsResponse,
   BookListItem,
+  BookAnalysisDetail,
   BookOverview,
   BookSummaryDetail,
   CategoryBookCardsResponse,
@@ -92,6 +94,27 @@ export const getPublicBookSummary = async (
     next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
   });
   return summary ?? null;
+};
+
+/**
+ * Анализ версии для публичной страницы `/{lang}/book/{slug}/analysis`, серверный рендер (F03-2).
+ *
+ * Без токена: ручка отдаёт редактору черновик и анализ без ядра, и такой ответ попал бы в общий
+ * ISR-кэш (`tech.md` §6). `null` (пустое тело) — анализа с ядром нет.
+ *
+ * 🔴 Страна — «неизвестна» (`X-Visitor-Country: XX`) по доверенному пути `LEGACY-465`, а не
+ * `cf-ipcountry`: запрос идёт с сервера фронта, и без заголовка бэкенд взял бы страну сервера —
+ * блок претензии по этой стране закрыл бы страницу для всего мира. На кэшируемой странице закрывает
+ * только блок на весь мир; блок по стране закрывает middleware (решение арбитра `F03 | F03-2`).
+ */
+export const getPublicBookAnalysis = async (
+  versionId: string
+): Promise<BookAnalysisDetail | null> => {
+  const analysis = await httpGet<BookAnalysisDetail | null>(`/versions/${versionId}/analysis`, {
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+    headers: { [VISITOR_COUNTRY_HEADER]: UNKNOWN_COUNTRY },
+  });
+  return analysis ?? null;
 };
 
 /**

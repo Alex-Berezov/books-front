@@ -1,3 +1,4 @@
+import { useInsertionEffect } from 'react';
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import ReaderClient from '@/app/[lang]/book/[slug]/read/ReaderClient';
@@ -28,9 +29,11 @@ const readerBootstrapResult = {
   error: null as unknown,
 };
 
+const routerReplace = vi.fn();
+
 vi.mock('next/navigation', () => ({
   usePathname: () => '/ru/book/hamlet/read',
-  useRouter: () => ({ back: vi.fn(), replace: vi.fn(), push: vi.fn() }),
+  useRouter: () => ({ back: vi.fn(), replace: routerReplace, push: vi.fn() }),
 }));
 
 vi.mock('next-auth/react', () => ({
@@ -314,4 +317,151 @@ describe('ReaderClient: куда уходит прогресс', () => {
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Первая');
   });
+});
+
+/**
+ * F03-2: ссылка «глава N» со страницы анализа открывает читалку на этой главе
+ * (`/{lang}/book/{slug}/read?chapter=N`, `tech.md` §1). Глава из ссылки важнее сохранённого
+ * места, но место не перезаписывается, пока читатель сам не перейдёт по главам.
+ */
+describe('ReaderClient: глава из адреса ?chapter=N', () => {
+  const threeChapters = {
+    versionId: 'v1',
+    slug: 'hamlet',
+    title: 'Hamlet',
+    chapters: [
+      { id: 'c1', number: 1, title: 'Первая', content: '<p>1</p>' },
+      { id: 'c2', number: 2, title: 'Вторая', content: '<p>2</p>' },
+      { id: 'c3', number: 3, title: 'Третья', content: '<p>3</p>' },
+    ],
+  };
+
+  const openWith = (search: string) => {
+    window.history.replaceState(null, '', `/ru/book/hamlet/read${search}`);
+    render(<ReaderClient params={{ lang: 'ru', slug: 'hamlet' }} />);
+  };
+
+  const wait = (ms: number) =>
+    act(() => {
+      vi.advanceTimersByTime(ms);
+    });
+
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    mutate.mockClear();
+    clearLocalProgress();
+    syncState.isSettled = true;
+    readerBootstrapResult.data = threeChapters;
+    readerBootstrapResult.isLoading = false;
+    readerBootstrapResult.error = null;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearLocalProgress();
+    window.history.replaceState(null, '', '/');
+  });
+
+  it('у читателя без прогресса открывает главу из параметра и снимает параметр с адреса', () => {
+    sessionState.data = null;
+    sessionState.status = 'unauthenticated';
+
+    openWith('?chapter=2&utm=x');
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Вторая');
+    // Перезагрузка не должна снова увести с места на главу из ссылки.
+    expect(window.location.search).toBe('?utm=x');
+  });
+
+  // 🔴 Возврат дефекта: снять запрет сохранения - глава 2 из ссылки ляжет поверх сохранённой 3-й.
+  it('сохранённый прогресс на другой главе не перезаписан, пока читатель сам не перешёл', () => {
+    sessionState.data = { user: { id: 'u1' } };
+    sessionState.status = 'authenticated';
+    readerBootstrapResult.data = {
+      ...threeChapters,
+      lastProgress: { chapterNumber: 3, position: 0 },
+    };
+
+    openWith('?chapter=2');
+    wait(4000);
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Вторая');
+    expect(mutate).toHaveBeenCalledTimes(0);
+
+    // Сам перешёл - с этого места прогресс пишется как обычно.
+    fireEvent.click(screen.getByLabelText('Следующая глава'));
+    wait(4000);
+    expect(mutate).toHaveBeenCalledTimes(1);
+    expect(mutate).toHaveBeenCalledWith({ chapterNumber: 3, position: 0 });
+  });
+
+  it('аноним: локальная закладка не перезаписана главой из ссылки', () => {
+    sessionState.data = null;
+    sessionState.status = 'unauthenticated';
+    saveLocalProgress({
+      versionId: 'v1',
+      ownerId: null,
+      kind: 'text',
+      chapterNumber: 3,
+      position: 0,
+    });
+
+    openWith('?chapter=1');
+    wait(4000);
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Первая');
+    expect(readLocalProgress('v1')?.text).toMatchObject({ chapterNumber: 3 });
+  });
+
+  // Ссылка анализа на старый слаг (окно ISR после переименования): читалка уходит на новый слаг
+  // и несёт главу с собой - эффект восстановления к этому моменту уже снял параметр с адреса.
+  it('смена слага сохраняет главу из ссылки', () => {
+    sessionState.data = null;
+    sessionState.status = 'unauthenticated';
+    routerReplace.mockClear();
+    readerBootstrapResult.data = { ...threeChapters, slug: 'hamlet-new' };
+
+    openWith('?chapter=2');
+
+    expect(routerReplace).toHaveBeenCalledWith('/ru/book/hamlet-new/read?chapter=2');
+  });
+
+  // Переход по `next/link`: Next меняет адрес в `useInsertionEffect` той же фиксации, уже после
+  // рендера. Читалка, читающая параметр во время рендера, видела бы старый адрес без главы.
+  it('переход внутри сайта: адрес с главой появляется после рендера - глава всё равно открыта', () => {
+    sessionState.data = null;
+    sessionState.status = 'unauthenticated';
+    window.history.replaceState(null, '', '/ru/book/hamlet/analysis');
+
+    const HistoryUpdater = () => {
+      useInsertionEffect(() => {
+        window.history.replaceState(null, '', '/ru/book/hamlet/read?chapter=2');
+      });
+      return null;
+    };
+    render(
+      <>
+        <HistoryUpdater />
+        <ReaderClient params={{ lang: 'ru', slug: 'hamlet' }} />
+      </>
+    );
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Вторая');
+  });
+
+  it.each(['abc', '0', '2.5', '-1', '99', ''])(
+    'неверный номер (%s) игнорируется - обычное восстановление',
+    (raw) => {
+      sessionState.data = { user: { id: 'u1' } };
+      sessionState.status = 'authenticated';
+      readerBootstrapResult.data = {
+        ...threeChapters,
+        lastProgress: { chapterNumber: 3, position: 0 },
+      };
+
+      openWith(`?chapter=${raw}`);
+
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Третья');
+    }
+  );
 });

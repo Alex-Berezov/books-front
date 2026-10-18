@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildLangUrl } from '@/lib/seo/urls';
 import { ApiError } from '@/types/api';
@@ -246,6 +246,30 @@ describe('страница пересказа: содержимое', () => {
     ].map((a) => a.getAttribute('href'));
     expect(hrefs).toEqual(['/en/book/hamlet', '/en/book/hamlet#characters']);
   });
+  // F03-2: пересказ ссылается на анализ - в навигации и в «узнать больше» (`product.md` F03 §22).
+  it('анализ на языке страницы - пункт навигации и ссылка в «узнать больше»', async () => {
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        versions: [
+          version('en', 'hamlet', 1, {
+            _count: { chapters: 3, audioChapters: 0, summaries: 1, analyses: 1 },
+          }),
+        ],
+      })
+    );
+    await renderPage();
+
+    const nav = screen.getByRole('navigation', { name: 'Book sections' });
+    expect(within(nav).getByRole('link', { name: 'Analysis' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/analysis'
+    );
+    const hrefs = [
+      ...document.querySelectorAll('section[aria-labelledby="summary-explore"] a'),
+    ].map((a) => a.getAttribute('href'));
+    expect(hrefs).toEqual(['/en/book/hamlet', '/en/book/hamlet/analysis']);
+  });
+
   it('блок «читать или слушать» и «узнать больше» - по тому, что у книги есть', async () => {
     mocks.getBookOverview.mockResolvedValue(
       makeBook({

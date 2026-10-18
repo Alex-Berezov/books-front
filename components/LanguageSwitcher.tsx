@@ -12,6 +12,7 @@ import {
 } from '@/lib/i18n/lang';
 import { getLanguageSelectOptions } from '@/lib/i18n/languageSelectOptions';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { versionHasAnalysis } from '@/lib/seo/analysis-path';
 import { versionHasSummary } from '@/lib/seo/summary-path';
 import styles from './LanguageSwitcher.module.scss';
 
@@ -128,18 +129,29 @@ export const LanguageSwitcher = () => {
     router.push(newPath);
   };
 
-  // Страница пересказа `/{lang}/book/{slug}/summary` есть только у языков с пересказом: другой
-  // язык отвечает 404. Правило то же, что у hreflang страницы (`versionHasSummary`).
+  // Страницы пересказа `/{lang}/book/{slug}/summary` и анализа `/{lang}/book/{slug}/analysis`
+  // есть только у языков с пересказом и анализом: другой язык отвечает 404. Правило то же, что
+  // у hreflang страницы (`versionHasSummary`, `versionHasAnalysis`).
   const isSummaryPage = parts[2] === 'book' && parts[4] === 'summary';
+  const isAnalysisPage = parts[2] === 'book' && parts[4] === 'analysis';
+  const sectionFilter = isSummaryPage
+    ? versionHasSummary
+    : isAnalysisPage
+      ? versionHasAnalysis
+      : null;
   const availableLangs = new Set<string>();
   if (book && book.versions) {
     book.versions.forEach((v) => {
-      if (v.language && (!isSummaryPage || versionHasSummary(v))) {
+      if (v.language && (!sectionFilter || sectionFilter(v))) {
         availableLangs.add(v.language);
       }
     });
-    // Счётчиков нет (неизвестно, у каких языков есть пересказ) - только текущий язык, а не все.
-    if (isSummaryPage && availableLangs.size === 0) availableLangs.add(currentLang);
+    // Счётчиков нет (неизвестно, у каких языков есть раздел) - только текущий язык, а не все.
+    // На странице анализа текущий язык есть всегда: страница открыта, хотя счётчик её языка
+    // может быть 0 (блок окончённой претензии по другой стране, решение арбитра `F03 | F03-2`).
+    if ((sectionFilter && availableLangs.size === 0) || isAnalysisPage) {
+      availableLangs.add(currentLang);
+    }
   }
 
   const allOptions = getLanguageSelectOptions();
