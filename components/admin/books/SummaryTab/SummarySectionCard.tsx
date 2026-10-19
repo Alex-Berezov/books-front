@@ -46,7 +46,6 @@ export const SummarySectionCard: FC<SummarySectionCardProps> = (props) => {
   const [open, setOpen] = useState(false);
   const {
     data: full,
-    isLoading,
     isError,
     error: loadError,
     refetch,
@@ -73,6 +72,9 @@ export const SummarySectionCard: FC<SummarySectionCardProps> = (props) => {
     setSeenUpdatedAt(row.updatedAt);
     setFilledFrom(row.updatedAt);
     setDirty(false);
+    // Черновик взят из свежего ответа: прежний отказ устаревшей вкладке к нему уже не относится.
+    setError(null);
+    setStale(false);
   };
 
   // Раздел перечитывается при каждом раскрытии: свежий ответ заменяет нетронутый черновик (иначе
@@ -166,14 +168,15 @@ export const SummarySectionCard: FC<SummarySectionCardProps> = (props) => {
       </div>
 
       {!open && <SectionWarnings warnings={warnings} />}
-      {open && isError && !draft && (
+      {/* Ошибка перечитывания видна и над черновиком: раздел мог удалить другой редактор. */}
+      {open && isError && !stale && (
         <p className={styles.error} role="alert">
           {isStaleSectionError(loadError)
             ? STALE_TAB_MESSAGE
             : loadError?.message || 'Failed to load the section'}
         </p>
       )}
-      {open && !isError && (isLoading || !draft) && <Spinner size="sm" />}
+      {open && !isError && !draft && <Spinner size="sm" />}
       {open && draft && (
         <div className={styles.sectionBody}>
           <label className={styles.label} htmlFor={`${id}-title`}>

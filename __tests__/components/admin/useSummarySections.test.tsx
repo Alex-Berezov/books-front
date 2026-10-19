@@ -271,6 +271,53 @@ describe('useSummarySections', () => {
     expect(result.current.sections.map((s) => s.id)).toEqual(['a', 'b', 'c']);
   });
 
+  it('ответ удаления не затирается перечитыванием списка, начатым до него', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const Wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    const { result } = renderHook(() => useSummarySections('v1'), { wrapper: Wrapper });
+    await waitFor(() => expect(result.current.sections).toHaveLength(3));
+    // Перечитывание в полёте вернёт старый порядок.
+    let finishRefetch: (value: BookSummarySectionList) => void = () => undefined;
+    api.getBookSummarySections.mockReturnValue(new Promise((resolve) => (finishRefetch = resolve)));
+    void client.refetchQueries({ queryKey: summaryKeys.sections('v1') }).catch(() => undefined);
+    api.deleteBookSummarySection.mockResolvedValue(list(item('a', 1), item('c', 2)));
+    act(() => result.current.requestDelete('b'));
+    await act(() => result.current.confirmPending());
+    act(() => finishRefetch(list(item('a', 1), item('b', 2), item('c', 3))));
+    await flush();
+    expect(result.current.sections.map((s) => s.id)).toEqual(['a', 'c']);
+  });
+
+  it('сохранение раздела во время перечитывания списка — список перечитывается заново', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const Wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    const { result } = renderHook(() => useSummarySections('v1'), { wrapper: Wrapper });
+    await waitFor(() => expect(result.current.sections).toHaveLength(3));
+    expect(api.getBookSummarySections).toHaveBeenCalledTimes(1);
+    // Перечитывание в полёте (например, после 409) — чужое удаление раздела «b».
+    api.getBookSummarySections.mockReturnValueOnce(new Promise(() => undefined));
+    void client.refetchQueries({ queryKey: summaryKeys.sections('v1') }).catch(() => undefined);
+    await waitFor(() => expect(api.getBookSummarySections).toHaveBeenCalledTimes(2));
+    api.getBookSummarySections.mockResolvedValue(list(item('a', 1), item('c', 2)));
+    api.updateBookSummarySection.mockResolvedValue({
+      section: { ...admin('a', 1), updatedAt: '2026-10-19T11:00:00.000Z' },
+      warnings: [],
+    } satisfies BookSummarySectionUpdateResponse);
+    await act(async () => {
+      await result.current.saveSection(
+        'a',
+        { title: 'T', text: '<p>x</p>', readerChapter: '' },
+        '2026-10-19T10:00:01.000Z'
+      );
+    });
+    await waitFor(() => expect(api.getBookSummarySections).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(result.current.sections.map((s) => s.id)).toEqual(['a', 'c']));
+  });
+
   it('два сохранения подряд: второе — с updatedAt из ответа первого', async () => {
     const { result } = await mount();
     const res = (updatedAt: string) =>
@@ -349,7 +396,7 @@ describe('useSummarySections', () => {
 
 describe('SummarySections', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     api.getBookSummarySections.mockResolvedValue(list(item('a', 1), item('b', 2)));
   });
 
@@ -382,6 +429,39 @@ describe('SummarySections', () => {
       sectionId: 'a',
       from: ['a', 'b'],
     });
+  });
+
+  it('пока идёт удаление, «Add section» заблокирована', async () => {
+    let finish: (value: BookSummarySectionList) => void = () => undefined;
+    api.deleteBookSummarySection.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    renderTab();
+    await screen.findByRole('button', { name: '1. Part 1' });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Delete' })[0]);
+    const dialogButtons = await screen.findAllByRole('button', { name: 'Delete' });
+    fireEvent.click(dialogButtons[dialogButtons.length - 1]);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add section' })).toBeDisabled());
+    await act(async () => {
+      finish(list(item('b', 1)));
+    });
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Add section' })).not.toBeDisabled()
+    );
+  });
+
+  it('пока идёт перестановка, «Add section» заблокирована', async () => {
+    let finish: (value: BookSummarySectionList) => void = () => undefined;
+    api.reorderBookSummarySections.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    renderTab();
+    await screen.findByRole('button', { name: '1. Part 1' });
+    fireEvent.click(screen.getByRole('button', { name: 'Move section 1 down' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Move' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add section' })).toBeDisabled());
+    await act(async () => {
+      finish(list(item('b', 1), item('a', 2)));
+    });
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Add section' })).not.toBeDisabled()
+    );
   });
 
   it('предупреждение после добавления видно у формы', async () => {
@@ -543,6 +623,56 @@ describe('SummarySectionCard', () => {
     expect(screen.getByDisplayValue('Mine')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent(STALE_TAB_MESSAGE);
     expect(screen.getByRole('button', { name: 'Reload section' })).toBeInTheDocument();
+  });
+
+  it('раздел удалён, пока карточка свёрнута: ошибка перечитывания видна и над черновиком', async () => {
+    renderCard(vi.fn());
+    const toggle = screen.getByRole('button', { name: '1. Part 1' });
+    fireEvent.click(toggle);
+    await screen.findByDisplayValue('Part 1');
+    fireEvent.click(toggle);
+    api.getBookSummarySection.mockRejectedValue(apiError(404));
+    fireEvent.click(toggle);
+    expect(await screen.findByRole('alert')).toHaveTextContent(STALE_TAB_MESSAGE);
+    expect(screen.getByDisplayValue('Part 1')).toBeInTheDocument();
+  });
+
+  it('раздел удалён после ошибки проверки: при раскрытии видна просьба обновить вкладку', async () => {
+    const onSave = vi.fn().mockResolvedValue({ error: 'Title is required' });
+    renderCard(onSave);
+    const toggle = screen.getByRole('button', { name: '1. Part 1' });
+    fireEvent.click(toggle);
+    await screen.findByDisplayValue('Part 1');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Title is required');
+    fireEvent.click(toggle);
+    api.getBookSummarySection.mockRejectedValue(apiError(404));
+    fireEvent.click(toggle);
+    await waitFor(() =>
+      expect(screen.getAllByRole('alert').map((a) => a.textContent)).toContain(STALE_TAB_MESSAGE)
+    );
+  });
+
+  it('после 409 без правок свежий раздел снимает просьбу обновить вкладку', async () => {
+    const onSave = vi.fn().mockResolvedValue({ error: STALE_TAB_MESSAGE, stale: true });
+    renderCard(onSave);
+    const toggle = screen.getByRole('button', { name: '1. Part 1' });
+    fireEvent.click(toggle);
+    await screen.findByDisplayValue('Part 1');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(STALE_TAB_MESSAGE);
+
+    // Перечитанный раздел другого редактора приходит в нетронутый черновик.
+    fireEvent.click(toggle);
+    api.getBookSummarySection.mockResolvedValue({
+      ...admin('a', 1),
+      title: 'Theirs',
+      updatedAt: '2026-10-19T12:00:00.000Z',
+    });
+    fireEvent.click(toggle);
+    expect(await screen.findByDisplayValue('Theirs')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reload section' })).not.toBeInTheDocument();
   });
 
   it('устаревшая вкладка при сохранении — «Reload section» берёт раздел с сервера заново', async () => {

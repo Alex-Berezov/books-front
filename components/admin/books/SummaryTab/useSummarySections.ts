@@ -249,6 +249,9 @@ export const useSummarySections = (versionId: string) => {
     addSection,
     saveSection,
     isAdding: create.isPending,
+    // Пока идут удаление или перестановка, добавление ждёт: его ответ и ответ порядка легли бы в
+    // список вперемешку, а `from` следующего действия разошёлся бы с сервером.
+    isReordering: remove.isPending || reorder.isPending,
     // Пока идёт добавление, порядок тоже меняется: удаление и перестановка ушли бы без нового раздела.
     isChangingOrder: create.isPending || remove.isPending || reorder.isPending,
   };

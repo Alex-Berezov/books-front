@@ -114,7 +114,7 @@ export const SummarySections: FC<{ versionId: string }> = ({ versionId }) => {
           </p>
         )}
         <SectionWarnings warnings={tab.addWarnings} />
-        <Button onClick={add} loading={tab.isAdding} disabled={tab.isAdding}>
+        <Button onClick={add} loading={tab.isAdding} disabled={tab.isAdding || tab.isReordering}>
           Add section
         </Button>
       </div>

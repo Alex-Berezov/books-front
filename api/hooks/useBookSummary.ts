@@ -141,17 +141,21 @@ export const useBookSummarySection = (sectionId: string, enabled: boolean) =>
  */
 export const useBookSummarySectionMutations = (versionId: string) => {
   const queryClient = useQueryClient();
-  const setList = (data: BookSummarySectionList) =>
+  // Идущее перечитывание списка отменяется до записи ответа: иначе оно приходит позже и возвращает
+  // старый порядок (удалённый раздел, прежние номера), а следующий `from` получает 409.
+  const setList = async (data: BookSummarySectionList) => {
+    await queryClient.cancelQueries({ queryKey: summaryKeys.sections(versionId) });
     queryClient.setQueryData<BookSummarySectionList>(summaryKeys.sections(versionId), {
       sections: data.sections,
     });
+  };
 
   const create = useMutation({
     mutationFn: (data: CreateBookSummarySectionRequest) =>
       createBookSummarySection(versionId, data),
-    onSuccess: (res) => {
-      setList(res);
+    onSuccess: async (res) => {
       queryClient.setQueryData(summaryKeys.section(res.section.id), res.section);
+      await setList(res);
     },
   });
   const update = useMutation({
@@ -162,9 +166,14 @@ export const useBookSummarySectionMutations = (versionId: string) => {
       sectionId: string;
       data: UpdateBookSummarySectionRequest;
     }) => updateBookSummarySection(sectionId, data),
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       queryClient.setQueryData(summaryKeys.section(res.section.id), res.section);
-      queryClient.setQueryData<BookSummarySectionList>(summaryKeys.sections(versionId), (prev) =>
+      // Ответ правки несёт один раздел, а не порядок: отменённое перечитывание списка (например,
+      // после 409) ему не заменить. Шло перечитывание — после подстановки оно запускается заново.
+      const listKey = summaryKeys.sections(versionId);
+      const wasFetching = queryClient.isFetching({ queryKey: listKey }) > 0;
+      await queryClient.cancelQueries({ queryKey: listKey });
+      queryClient.setQueryData<BookSummarySectionList>(listKey, (prev) =>
         prev
           ? {
               sections: prev.sections.map((s) =>
@@ -181,6 +190,7 @@ export const useBookSummarySectionMutations = (versionId: string) => {
             }
           : prev
       );
+      if (wasFetching) void queryClient.invalidateQueries({ queryKey: listKey });
     },
   });
   const remove = useMutation({
