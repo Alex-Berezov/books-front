@@ -75,12 +75,18 @@ export default function BookExtraDetails({ activeVersion, analysisLinks }: BookE
       {/* Quotes Section */}
       {activeVersion.quotes && activeVersion.quotes.length > 0 && (
         <div id={BOOK_ANCHORS.quotes}>
-          <QuotesBlock items={activeVersion.quotes} title={t('book.quotes')} />
-          {analysisLinks?.quotes ? (
-            <Link href={analysisLinks.quotes} className={styles.analysisLink}>
-              {t('book.analysisBreakdown')}
-            </Link>
-          ) : null}
+          {/* «Разбор» - под заголовком, как у символов и персонажей (F03-3). */}
+          <QuotesBlock
+            items={activeVersion.quotes}
+            title={t('book.quotes')}
+            titleExtra={
+              analysisLinks?.quotes ? (
+                <Link href={analysisLinks.quotes} className={styles.analysisLink}>
+                  {t('book.analysisBreakdown')}
+                </Link>
+              ) : null
+            }
+          />
         </div>
       )}
 

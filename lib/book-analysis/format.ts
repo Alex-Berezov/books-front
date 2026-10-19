@@ -52,7 +52,21 @@ export function themeColorIndex(themeIndex: number): number {
 export function analysisSectionFlags(
   analysis: Pick<
     BookAnalysisBlocks,
-    'themes' | 'characters' | 'symbols' | 'keyQuotes' | 'titleMeaning' | 'endingMeaning'
+    | 'themes'
+    | 'characters'
+    | 'symbols'
+    | 'keyQuotes'
+    | 'titleMeaning'
+    | 'endingMeaning'
+    | 'context'
+    | 'timeline'
+    | 'style'
+    | 'reception'
+    | 'adaptations'
+    | 'misreadings'
+    | 'discussionQuestions'
+    | 'faq'
+    | 'sources'
   >
 ) {
   return {
@@ -62,5 +76,60 @@ export function analysisSectionFlags(
     keyQuotes: (analysis.keyQuotes?.length ?? 0) > 0,
     titleMeaning: hasText(analysis.titleMeaning),
     endingMeaning: hasText(analysis.endingMeaning),
+    // Контекст (§13): текст или лента, а лента - только от трёх событий.
+    context: hasText(analysis.context) || hasTimeline(analysis.timeline),
+    // Элемент без текста не выводится (§1.4) - и раздел из одних таких элементов тоже.
+    style: (analysis.style ?? []).some(isStyleItem),
+    reception: hasText(analysis.reception),
+    adaptations: (analysis.adaptations?.length ?? 0) > 0,
+    misreadings: (analysis.misreadings?.length ?? 0) > 0,
+    discussion: (analysis.discussionQuestions ?? []).some(hasText),
+    faq: (analysis.faq ?? []).some(isFaqItem),
+    sources: (analysis.sources ?? []).some(isSourceItem),
   };
+}
+
+/**
+ * Выводится ли элемент блока: одно правило на флаг раздела и на сам список - разойдутся,
+ * и над пустым списком останется заголовок с пунктом оглавления (§1.4).
+ */
+export function isStyleItem(item: { device: string }): boolean {
+  return hasText(item.device);
+}
+
+export function isSourceItem(item: { title: string }): boolean {
+  return hasText(item.title);
+}
+
+/** Вопрос FAQ выводится, только когда есть и вопрос, и ответ. */
+export function isFaqItem(item: { question: string; answer: string }): boolean {
+  return hasText(item.question) && hasText(item.answer);
+}
+
+/** Меньше скольких событий лента таймлайна не рисуется (`product.md` §13). */
+const TIMELINE_MIN_EVENTS = 3;
+
+export function hasTimeline(timeline: readonly unknown[] | null | undefined): boolean {
+  return (timeline?.length ?? 0) >= TIMELINE_MIN_EVENTS;
+}
+
+/** Отрезок подряд идущих номеров глав: `from === to` - одна глава. */
+export interface ChapterRange {
+  from: number;
+  to: number;
+}
+
+/**
+ * Номера глав отрезками по возрастанию (текстовый дубль полосы темы, `product.md` §9):
+ * `[9, 1, 3, 7, 8, 3]` - `1, 3, 7–9`. Повторы и порядок входа на результат не влияют.
+ */
+export function toChapterRanges(chapters: readonly number[]): ChapterRange[] {
+  const sorted = [...new Set(chapters)].sort((a, b) => a - b);
+  const ranges: ChapterRange[] = [];
+  for (const n of sorted) {
+    const last = ranges[ranges.length - 1];
+    if (last && n === last.to + 1) last.to = n;
+    else ranges.push({ from: n, to: n });
+  }
+  return ranges;
 }

@@ -279,12 +279,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
         return;
       }
       if (versionHasSummary(currentVersion)) {
-        const summaryAlternates = buildSummaryAlternates(
-          publishedVersions,
-          (language, slug) => `${cleanBaseUrl}/${language}${summaryPath(slug)}`
-        );
+        // Адрес и кластер - через `buildLangUrl`, как у меты страницы (правило «Публичные адреса»).
+        const summaryAlternates = buildSummaryAlternates(publishedVersions);
         sitemapItems.push({
-          url: `${cleanBaseUrl}/${lang}${summaryPath(currentVersion.slug)}`,
+          url: buildLangUrl(lang, summaryPath(currentVersion.slug)),
           changeFrequency: 'weekly',
           priority: 0.7,
           ...(summaryAlternates ? { alternates: { languages: summaryAlternates } } : {}),

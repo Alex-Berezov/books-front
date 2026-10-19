@@ -49,5 +49,13 @@ describe('EditorialByline', () => {
     expect(author.container.querySelector('a')?.getAttribute('href')).toBe(
       '/ru/editorial-policy#authors'
     );
+    author.unmount();
+    // F03-3 (решение арбитра `F03 | F03-3`, В5): подпись анализа - на раздел об анализе.
+    const analysis = render(
+      <EditorialByline lang="ru" teamLabel="Редакция Bibliaris" anchor="analysis" />
+    );
+    expect(analysis.container.querySelector('a')?.getAttribute('href')).toBe(
+      '/ru/editorial-policy#analysis'
+    );
   });
 });

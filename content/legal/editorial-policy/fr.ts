@@ -6,9 +6,9 @@ export const document: LegalDocument = {
   lang: 'fr',
   metaTitle: 'Politique éditoriale - Bibliaris',
   metaDescription:
-    'D’où viennent les textes de Bibliaris, qui écrit les résumés et les descriptions, comment les textes des livres sont préparés et comment les erreurs sont corrigées.',
+    'D’où viennent les textes de Bibliaris, qui écrit les résumés et les descriptions, comment sont rédigées les analyses de livres, comment les textes des livres sont préparés et comment les erreurs sont corrigées.',
   title: 'Politique éditoriale',
-  updatedAt: '2026-10-16',
+  updatedAt: '2026-10-19',
   toc: false,
   sections: [
     {
@@ -20,7 +20,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Les résumés et les descriptions des livres, ainsi que les analyses de personnages, de symboles et de citations sur les pages des livres, sont écrits et révisés par des personnes : la rédaction de Bibliaris.',
+              text: 'Les résumés et les descriptions des livres, ainsi que les analyses de personnages, de symboles et de citations dans les blocs des pages des livres, sont écrits et révisés par des personnes : la rédaction de Bibliaris. Les analyses de livres sont préparées autrement : voir « Comment sont préparées les analyses de livres » ci-dessous.',
             },
           ],
         },
@@ -77,6 +77,65 @@ export const document: LegalDocument = {
             ],
             [{ kind: 'text', text: 'Un résumé peut dévoiler l’intrigue.' }],
             [{ kind: 'text', text: 'Un résumé est vérifié par rapport au texte du livre.' }],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'analysis',
+      heading: 'Comment sont préparées les analyses de livres',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Les pages d’analyse sont préparées par la Rédaction de Bibliaris.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Le brouillon de chaque analyse est rédigé à l’aide d’un modèle de langage selon les consignes de la rédaction. Le modèle reçoit des informations sur cette version du livre sur le site, notamment le titre, l’auteur, la langue et la liste des chapitres. La rédaction importe et publie le brouillon.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'L’analyse dans chaque langue est rédigée séparément pour les lecteurs de cette langue, et non traduite d’une autre ; les rubriques peuvent donc varier d’une langue à l’autre.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Les consignes exigent que les citations soient reproduites mot pour mot d’après l’édition du livre publiée sur Bibliaris. Le numéro de chapitre à côté d’une citation est celui du chapitre de cette version sur le site ; il renvoie à ce chapitre dans la liseuse seulement si le chapitre existe. Lors de l’import d’une analyse, les numéros de chapitre sont vérifiés automatiquement : si un chapitre n’existe pas dans cette version, la rédaction voit un avertissement.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Les consignes interdisent d’inclure des dates, des faits biographiques, des adaptations ou des sources incertains, et demandent de présenter les interprétations comme des interprétations. Lorsque des sources sont indiquées, elles sont citées en bas de la page d’analyse.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            { kind: 'text', text: 'Vous pouvez signaler une erreur dans une analyse sur la page ' },
+            { kind: 'link', text: 'Contact', href: '/contact' },
+            { kind: 'text', text: ', comme décrit dans « Corrections ».' },
           ],
         },
       ],

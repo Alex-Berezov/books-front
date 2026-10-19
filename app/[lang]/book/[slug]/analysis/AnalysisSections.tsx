@@ -1,5 +1,6 @@
-import { Fragment, type ReactNode } from 'react';
+import { Fragment } from 'react';
 import { analysisSectionFlags } from '@/lib/book-analysis/format';
+import { buildRelationMap } from '@/lib/book-analysis/relation-map';
 import type { AnalysisStrings } from '@/lib/i18n/analysisStrings';
 import type { BookAnalysisDetail } from '@/types/api-schema';
 import styles from './analysis.module.scss';
@@ -15,20 +16,31 @@ import {
   ThemesList,
   type ChapterLinker,
 } from './AnalysisBlocks';
+import { buildLowerSections, type AnalysisSection } from './AnalysisLowerSections';
+import { RelationMap } from './RelationMap';
 
 interface AnalysisSectionsProps {
   analysis: BookAnalysisDetail;
   linker: ChapterLinker;
   strings: AnalysisStrings;
   tocTitle: string;
+  /** Заголовок FAQ - тот же, что у пересказа (`book.faqTitle`, §19). */
+  faqTitle: string;
 }
 
 /**
- * Оглавление и разделы под главной мыслью (`product.md` §3, блоки 6-12): темы, персонажи,
- * символы, ключевые цитаты, смысл названия и финала. Раздел без данных не выводится вовсе (§1.4),
- * оглавление строится из того же списка, что и разделы. Блоки §13-§20 добавляет F03-3.
+ * Оглавление и разделы под главной мыслью (`product.md` §3, блоки 6-20): темы с полосой глав,
+ * персонажи с картой отношений, символы, ключевые цитаты, смысл названия и финала, контекст,
+ * стиль, восприятие, экранизации, ошибки понимания, вопросы, FAQ, источники. Раздел без данных
+ * не выводится вовсе (§1.4), оглавление строится из того же списка, что и разделы.
  */
-export function AnalysisSections({ analysis, linker, strings, tocTitle }: AnalysisSectionsProps) {
+export function AnalysisSections({
+  analysis,
+  linker,
+  strings,
+  tocTitle,
+  faqTitle,
+}: AnalysisSectionsProps) {
   const themes = analysis.themes ?? [];
   const characters = analysis.characters ?? [];
   const symbols = analysis.symbols ?? [];
@@ -36,14 +48,25 @@ export function AnalysisSections({ analysis, linker, strings, tocTitle }: Analys
   const themeIndex = buildThemeIndex(themes);
   const has = analysisSectionFlags(analysis);
   const speakers = new Map(characters.map((c) => [c.key, c.name]));
+  const relationMap = has.characters ? buildRelationMap(characters) : null;
 
   // `standalone` - раздел рисует свой заголовок сам (общий `QuotesBlock`).
-  const sections: { id: string; title: string; body: ReactNode; standalone?: boolean }[] = [];
+  const sections: AnalysisSection[] = [];
   if (has.themes) {
     sections.push({
       id: ANALYSIS_ANCHORS.themes,
       title: strings.analysisThemesTitle,
-      body: <ThemesList themes={themes} linker={linker} />,
+      body: (
+        <ThemesList
+          themes={themes}
+          linker={linker}
+          chapterNumbers={analysis.chapterNumbers}
+          stripLabels={{
+            strip: strings.analysisThemeStripLabel,
+            chapters: strings.analysisChapters,
+          }}
+        />
+      ),
     });
   }
   if (has.characters) {
@@ -51,21 +74,26 @@ export function AnalysisSections({ analysis, linker, strings, tocTitle }: Analys
       id: ANALYSIS_ANCHORS.characters,
       title: strings.analysisCharactersTitle,
       body: (
-        <CharactersList
-          characters={characters}
-          themes={themeIndex}
-          linker={linker}
-          labels={{
-            roles: {
-              main: strings.analysisRoleMain,
-              secondary: strings.analysisRoleSecondary,
-              minor: strings.analysisRoleMinor,
-            },
-            arcFrom: strings.analysisArcFrom,
-            arcTo: strings.analysisArcTo,
-            themeTags: strings.analysisThemeTags,
-          }}
-        />
+        <>
+          {relationMap ? (
+            <RelationMap map={relationMap} title={strings.analysisRelationsTitle} />
+          ) : null}
+          <CharactersList
+            characters={characters}
+            themes={themeIndex}
+            linker={linker}
+            labels={{
+              roles: {
+                main: strings.analysisRoleMain,
+                secondary: strings.analysisRoleSecondary,
+                minor: strings.analysisRoleMinor,
+              },
+              arcFrom: strings.analysisArcFrom,
+              arcTo: strings.analysisArcTo,
+              themeTags: strings.analysisThemeTags,
+            }}
+          />
+        </>
       ),
     });
   }
@@ -121,6 +149,8 @@ export function AnalysisSections({ analysis, linker, strings, tocTitle }: Analys
       ),
     });
   }
+
+  sections.push(...buildLowerSections({ analysis, linker, strings, faqTitle, has }));
 
   if (sections.length === 0) return null;
 

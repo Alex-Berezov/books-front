@@ -1,5 +1,5 @@
 import { Fragment, type ReactNode } from 'react';
-import { AlertTriangle, BookOpen, Headphones } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { QuotesBlock, type QuoteItem } from '@/components/common/QuotesBlock/QuotesBlock';
 import { sortCharacters, splitParagraphs, themeColorIndex } from '@/lib/book-analysis/format';
@@ -12,6 +12,7 @@ import type {
   BookAnalysisTheme,
 } from '@/types/api-schema';
 import styles from './analysis.module.scss';
+import { ThemeStrip } from './ThemeStrip';
 
 /**
  * Блоки верха страницы анализа (F03-2, `product.md` §4-§8, §11, §12). Серверные: весь текст -
@@ -110,7 +111,8 @@ export function ThemeTags({
   );
 }
 
-function QuoteBlock({
+/** Цитата из книги с главой (§1.6): темы, герои, символы и пример приёма (§14). */
+export function QuoteBlock({
   quote,
   linker,
   extra,
@@ -160,12 +162,23 @@ function ChapterList({
   );
 }
 
+/** Подписи полосы темы (§9): `aria-label` клеток и слово перед номерами глав. */
+export interface ThemeStripLabels {
+  strip: string;
+  chapters: string;
+}
+
 export function ThemesList({
   themes,
   linker,
+  chapterNumbers,
+  stripLabels,
 }: {
   themes: readonly BookAnalysisTheme[];
   linker: ChapterLinker;
+  /** Номера глав версии: по ним полоса «где звучит тема» (F03-3, §9). */
+  chapterNumbers: readonly number[];
+  stripLabels: ThemeStripLabels;
 }) {
   return (
     <ul className={styles.cards}>
@@ -178,6 +191,13 @@ export function ThemesList({
           <div className={styles.text}>
             <Paragraphs text={theme.interpretation} />
           </div>
+          <ThemeStrip
+            themeChapters={theme.chapters}
+            chapterNumbers={chapterNumbers}
+            linker={linker}
+            label={stripLabels.strip}
+            chaptersLabel={stripLabels.chapters}
+          />
           {(theme.quotes ?? []).slice(0, 3).map((q, qi) => (
             <QuoteBlock key={qi} quote={q} linker={linker} />
           ))}
@@ -323,45 +343,6 @@ export function SpoilerNote({ text }: { text: string }) {
 export interface FactRow {
   label: string;
   value: string;
-}
-
-export interface CtaLink {
-  href: string;
-  label: string;
-}
-
-/** Кнопки «Читать» и «Слушать» и ссылка на пересказ - только те, что у книги есть (§4). */
-export function FactActions({
-  read,
-  listen,
-  summary,
-}: {
-  read: CtaLink | null;
-  listen: CtaLink | null;
-  summary: CtaLink | null;
-}) {
-  if (!read && !listen && !summary) return null;
-  return (
-    <div className={styles.factActions}>
-      {read && (
-        <Link href={read.href} className={styles.ctaPrimary}>
-          <BookOpen size={18} aria-hidden="true" />
-          {read.label}
-        </Link>
-      )}
-      {listen && (
-        <Link href={listen.href} className={styles.ctaSecondary}>
-          <Headphones size={18} aria-hidden="true" />
-          {listen.label}
-        </Link>
-      )}
-      {summary && (
-        <Link href={summary.href} className={styles.textLink}>
-          {summary.label}
-        </Link>
-      )}
-    </div>
-  );
 }
 
 /**

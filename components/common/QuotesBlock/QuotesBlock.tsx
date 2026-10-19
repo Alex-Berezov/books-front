@@ -21,6 +21,8 @@ export interface QuotesBlockProps {
   icon?: ReactNode;
   /** `id` секции - якорь для ссылок на блок (раздел «Ключевые цитаты» анализа, F03-2). */
   id?: string;
+  /** Под заголовком, до цитат (ссылка «Разбор» на странице книги, F03-3) - как у соседних разделов. */
+  titleExtra?: ReactNode;
 }
 
 export const QuotesBlock: FC<QuotesBlockProps> = ({
@@ -29,6 +31,7 @@ export const QuotesBlock: FC<QuotesBlockProps> = ({
   className = '',
   icon,
   id,
+  titleExtra,
 }) => {
   if (!items || items.length === 0) return null;
 
@@ -38,6 +41,7 @@ export const QuotesBlock: FC<QuotesBlockProps> = ({
         {icon && <span className={styles.icon}>{icon}</span>}
         {title}
       </h2>
+      {titleExtra}
       <div className={styles.grid}>
         {items.map((item, index) => (
           <blockquote key={index} className={styles.card}>

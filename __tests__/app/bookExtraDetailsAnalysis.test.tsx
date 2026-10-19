@@ -34,6 +34,28 @@ describe('BookExtraDetails: ссылки «Разбор»', () => {
     ).toEqual(['/en/book/hamlet/analysis#characters', '/en/book/hamlet/analysis#key-quotes']);
   });
 
+  // F03-3: у цитат ссылка - под заголовком, как у символов и персонажей, а не под блоком.
+  it('у всех трёх блоков ссылка «Разбор» идёт сразу после заголовка', () => {
+    const { container } = render(
+      <BookExtraDetails
+        activeVersion={version}
+        analysisLinks={{
+          characters: '/en/book/hamlet/analysis#characters',
+          symbols: '/en/book/hamlet/analysis#symbols',
+          quotes: '/en/book/hamlet/analysis#key-quotes',
+        }}
+      />
+    );
+
+    const headings = [...container.querySelectorAll('h2')];
+    expect(headings).toHaveLength(3);
+    for (const h2 of headings) {
+      const next = h2.nextElementSibling;
+      expect(next?.tagName).toBe('A');
+      expect(next?.textContent).toBe('Analysis');
+    }
+  });
+
   it('анализа нет - ссылок «Разбор» нет', () => {
     render(<BookExtraDetails activeVersion={version} analysisLinks={null} />);
     expect(screen.queryByRole('link', { name: 'Analysis' })).toBeNull();

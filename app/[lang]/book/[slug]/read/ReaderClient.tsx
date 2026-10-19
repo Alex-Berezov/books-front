@@ -132,8 +132,8 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
     }
 
     // Глава из ссылки важнее сохранённого места; номер не целый или главы нет - обычное
-    // восстановление. Параметр читается из адреса, а не из `searchParams` страницы: та
-    // от этого стала бы динамической.
+    // восстановление. Страница читает параметр только для серверного редиректа на канонический
+    // слаг (решение арбитра `F03 | F03-3`, В2), место в книге по нему ставит клиент.
     const linkedChapter = linkedChapterRef.current;
     const linkedIdx =
       linkedChapter === null ? -1 : chapters.findIndex((c) => c.number === linkedChapter);

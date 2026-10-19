@@ -1,7 +1,7 @@
-import { BookOpen, Headphones } from 'lucide-react';
 import Link from 'next/link';
 import type { VersionPreview } from '@/types/api-schema';
 import { BOOK_ANCHORS } from '../bookAnchors';
+import { BookContinueBlock, BookSubpageSection, type BookCtaLink } from '../BookSubpageActions';
 import styles from './summary.module.scss';
 
 /**
@@ -35,8 +35,8 @@ interface SummaryMoreBlocksProps {
   /** Только материалы, которые у книги есть: пустых ссылок и заглушек блок не рисует. */
   exploreLinks: { href: string; label: string }[];
   continueTitle: string;
-  read: { href: string; label: string } | null;
-  listen: { href: string; label: string } | null;
+  read: BookCtaLink | null;
+  listen: BookCtaLink | null;
 }
 
 /** Блоки сразу после пересказа: «узнать больше о книге» и переход к чтению или аудио. */
@@ -50,10 +50,7 @@ export function SummaryMoreBlocks({
   return (
     <>
       {exploreLinks.length > 0 && (
-        <section className={styles.block} aria-labelledby="summary-explore">
-          <h2 id="summary-explore" className={styles.blockTitle}>
-            {exploreTitle}
-          </h2>
+        <BookSubpageSection id="summary-explore" title={exploreTitle}>
           <ul className={styles.linkList}>
             {exploreLinks.map((link) => (
               <li key={link.href}>
@@ -61,30 +58,10 @@ export function SummaryMoreBlocks({
               </li>
             ))}
           </ul>
-        </section>
+        </BookSubpageSection>
       )}
 
-      {(read || listen) && (
-        <section className={styles.block} aria-labelledby="summary-continue">
-          <h2 id="summary-continue" className={styles.blockTitle}>
-            {continueTitle}
-          </h2>
-          <div className={styles.actions}>
-            {read && (
-              <Link href={read.href} className={styles.ctaPrimary}>
-                <BookOpen size={18} aria-hidden="true" />
-                {read.label}
-              </Link>
-            )}
-            {listen && (
-              <Link href={listen.href} className={styles.ctaSecondary}>
-                <Headphones size={18} aria-hidden="true" />
-                {listen.label}
-              </Link>
-            )}
-          </div>
-        </section>
-      )}
+      <BookContinueBlock id="summary-continue" title={continueTitle} read={read} listen={listen} />
     </>
   );
 }

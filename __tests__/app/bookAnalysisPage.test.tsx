@@ -232,6 +232,10 @@ describe('страница анализа: содержимое', () => {
       'href',
       '/en/book/hamlet/summary'
     );
+    // Кнопки под таблицей фактов - со своим отступом от рамки (F03-3, ревью круг 1).
+    expect(within(facts).getByRole('link', { name: 'Summary' }).parentElement?.className).toContain(
+      'factActions'
+    );
   });
 
   it('глава - ссылка в читалку, только если глава есть в версии; иначе номер текстом', async () => {
@@ -510,5 +514,329 @@ describe('страница анализа: мета', () => {
     const meta = await metadataFor();
     expect(meta.robots).toEqual({ index: false, follow: true });
     expect(meta.alternates?.languages).toBeUndefined();
+  });
+});
+
+// F03-3 (`product.md` §9, §10, §13-§20): блоки низа страницы - есть данные / нет данных, полоса
+// «где звучит тема», карта отношений, FAQ без FAQPage, подпись на раздел редполитики об анализе.
+describe('страница анализа: низ страницы', () => {
+  const LOWER = {
+    ...FULL,
+    themes: [
+      { ...CORE.themes[0], chapters: [1, 2, 9] },
+      { ...CORE.themes[1], chapters: [9] },
+    ],
+    characters: [
+      {
+        key: 'hamlet',
+        name: 'Prince Hamlet',
+        role: 'main',
+        description: 'Delays.',
+        relations: [
+          { to: 'ophelia', label: 'loves' },
+          { to: 'claudius', label: 'nephew' },
+          { to: 'gravedigger', label: 'jokes with' },
+        ],
+      },
+      {
+        key: 'ophelia',
+        name: 'Ophelia',
+        role: 'secondary',
+        description: 'Breaks.',
+        relations: [{ to: 'hamlet', label: 'loves' }],
+      },
+      { key: 'claudius', name: 'Claudius', role: 'secondary', description: 'Usurper.' },
+      { key: 'gravedigger', name: 'Gravedigger', role: 'minor', description: 'Digs.' },
+    ],
+    context: 'Written around 1600.\n\nElizabethan stage.',
+    timeline: [
+      { year: '1564', event: 'Shakespeare is born', kind: 'author' },
+      { year: '1599', event: 'Globe opens', kind: 'epoch' },
+      { year: '1603', event: 'First quarto', kind: 'book' },
+    ],
+    style: [
+      {
+        device: 'Soliloquy',
+        explanation: 'Thinking aloud.',
+        example: { text: 'O, that this too too solid flesh', chapter: 2 },
+      },
+      { device: 'Wordplay', explanation: 'Puns.' },
+    ],
+    reception: 'Most-performed tragedy.',
+    adaptations: [
+      { title: 'Hamlet', year: 1948, kind: 'film', differences: 'Cuts Rosencrantz.' },
+      { title: 'Opera Hamlet', kind: 'other' },
+      { title: 'Hamlet (series)', year: 2009, kind: 'series' },
+      { title: 'Hamlet on stage', kind: 'stage' },
+    ],
+    misreadings: [{ myth: 'Hamlet is mad.', explanation: 'He feigns madness.' }],
+    discussionQuestions: ['Why does Hamlet delay?', '  '],
+    faq: [
+      { question: 'Is Hamlet mad?', answer: 'Debated.' },
+      { question: 'Empty answer?', answer: '  ' },
+    ],
+    sources: [
+      { title: 'Folger', url: 'https://www.folger.edu/hamlet' },
+      { title: 'Bad', url: 'javascript:alert(1)' },
+    ],
+  };
+
+  it('все блоки есть: заголовки и оглавление по порядку §3, «Дальше» последним', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue(LOWER);
+    await renderPage();
+
+    expect(h2Texts()).toEqual([
+      'About the work',
+      'Main idea',
+      'Themes',
+      'Characters',
+      'Symbols and motifs',
+      'Key quotes',
+      'Meaning of the title',
+      'Meaning of the ending',
+      'Context and background',
+      'Style and techniques',
+      'Reception and criticism',
+      'Adaptations and how they differ from the book',
+      'Common misreadings',
+      'Discussion questions',
+      'Frequently Asked Questions',
+      'Sources',
+      'Read or listen to the full book',
+    ]);
+    const toc = screen.getByRole('navigation', { name: 'Contents' });
+    expect(
+      within(toc)
+        .getAllByRole('link')
+        .map((a) => a.getAttribute('href'))
+    ).toEqual([
+      '#themes',
+      '#characters',
+      '#symbols',
+      '#key-quotes',
+      '#title-meaning',
+      '#ending',
+      '#context',
+      '#style',
+      '#reception',
+      '#adaptations',
+      '#misreadings',
+      '#discussion-questions',
+      '#faq',
+      '#sources',
+    ]);
+    expect(document.getElementById('faq')).not.toBeNull();
+    // Блок «Дальше» - со своим якорем, а не с чужим якорем пересказа.
+    expect(document.getElementById('analysis-continue')).not.toBeNull();
+    expect(document.getElementById('summary-continue')).toBeNull();
+  });
+
+  it('нет данных низа - ни заголовков, ни пунктов оглавления (FULL без блоков §13-§20)', async () => {
+    await renderPage();
+
+    for (const title of [
+      'Context and background',
+      'Style and techniques',
+      'Reception and criticism',
+      'Adaptations and how they differ from the book',
+      'Common misreadings',
+      'Discussion questions',
+      'Frequently Asked Questions',
+      'Sources',
+    ]) {
+      expect(h2Texts()).not.toContain(title);
+    }
+    expect(screen.queryByText('Character relationships')).toBeNull();
+  });
+
+  it('пустые строки и списки низа - блоков нет', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      ...FULL,
+      context: '  ',
+      timeline: [],
+      style: [],
+      reception: '\n\n',
+      adaptations: [],
+      misreadings: [],
+      discussionQuestions: ['   '],
+      faq: [],
+      sources: [],
+    });
+    await renderPage();
+
+    expect(h2Texts()).toEqual([
+      'About the work',
+      'Main idea',
+      'Themes',
+      'Characters',
+      'Symbols and motifs',
+      'Key quotes',
+      'Meaning of the title',
+      'Meaning of the ending',
+      'Read or listen to the full book',
+    ]);
+  });
+
+  it('таймлайн: 3 события - лента с метками вида; 2 - ленты нет, текст контекста на месте', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue(LOWER);
+    const { container, unmount } = await renderPage();
+    const context = container.querySelector('#context') as HTMLElement;
+    expect(within(context).getByRole('heading', { name: 'Timeline' })).toBeInTheDocument();
+    expect(within(context).getByText('Author’s life')).toBeInTheDocument();
+    expect(within(context).getByText('The era')).toBeInTheDocument();
+    expect(within(context).getByText('The book')).toBeInTheDocument();
+    expect(within(context).getByText('Globe opens')).toBeInTheDocument();
+    unmount();
+
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      ...LOWER,
+      timeline: LOWER.timeline.slice(0, 2),
+    });
+    const second = await renderPage();
+    const context2 = second.container.querySelector('#context') as HTMLElement;
+    expect(within(context2).queryByRole('heading', { name: 'Timeline' })).toBeNull();
+    expect(within(context2).queryByText('Globe opens')).toBeNull();
+    expect(within(context2).getByText('Elizabethan stage.')).toBeInTheDocument();
+  });
+
+  it('только таймлайн от трёх событий без текста - раздел контекста есть', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue({ ...LOWER, context: null });
+    await renderPage();
+    expect(h2Texts()).toContain('Context and background');
+  });
+
+  it('стиль: пример - цитатой с главой; экранизации: год и вид, у other метки нет', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue(LOWER);
+    const { container } = await renderPage();
+
+    const style = container.querySelector('#style') as HTMLElement;
+    expect(within(style).getByText('O, that this too too solid flesh')).toBeInTheDocument();
+    expect(within(style).getByRole('link', { name: 'Chapter 2' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/read?chapter=2'
+    );
+    const adaptations = container.querySelector('#adaptations') as HTMLElement;
+    expect(within(adaptations).getByText('1948 · Film')).toBeInTheDocument();
+    expect(within(adaptations).getByText('Cuts Rosencrantz.')).toBeInTheDocument();
+    const other = within(adaptations).getByText('Opera Hamlet').closest('li') as HTMLElement;
+    expect(other.textContent).toBe('Opera Hamlet');
+    expect(within(adaptations).getByText('2009 · TV series')).toBeInTheDocument();
+    expect(within(adaptations).getByText('Stage production')).toBeInTheDocument();
+  });
+
+  it('ошибки понимания - пара мнение / разбор; вопросы - нумерованным списком без пустых', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue(LOWER);
+    const { container } = await renderPage();
+
+    const misreadings = container.querySelector('#misreadings') as HTMLElement;
+    expect(within(misreadings).getByText('Common view')).toBeInTheDocument();
+    expect(within(misreadings).getByText('What the text shows')).toBeInTheDocument();
+    expect(within(misreadings).getByText('He feigns madness.')).toBeInTheDocument();
+    const questions = container.querySelectorAll('#discussion-questions ol > li');
+    expect([...questions].map((li) => li.textContent)).toEqual(['Why does Hamlet delay?']);
+  });
+
+  it('FAQ - без FAQPage: на странице только Article и крошки', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue(LOWER);
+    const html = renderToStaticMarkup(await pageElement());
+
+    expect(html).toContain('Is Hamlet mad?');
+    expect(html).toContain('Debated.');
+    expect(html).not.toContain('FAQPage');
+    // Вопрос без ответа не выводится (§1.4).
+    expect(html).not.toContain('Empty answer?');
+  });
+
+  it('источники: ссылка наружу с rel; небезопасный адрес - название текстом', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue(LOWER);
+    const { container } = await renderPage();
+
+    const sources = container.querySelector('#sources') as HTMLElement;
+    const folger = within(sources).getByRole('link', { name: 'Folger' });
+    expect(folger).toHaveAttribute('href', 'https://www.folger.edu/hamlet');
+    expect(folger).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(within(sources).queryByRole('link', { name: 'Bad' })).toBeNull();
+    expect(within(sources).getByText('Bad')).toBeInTheDocument();
+  });
+
+  it('подпись: «Редакция» ведёт на раздел редполитики об анализе, с датой; есть и без источников', async () => {
+    await renderPage();
+
+    const team = screen.getByRole('link', { name: 'Bibliaris Editorial Team' });
+    expect(team).toHaveAttribute('href', '/en/editorial-policy#analysis');
+    expect(team.parentElement?.textContent).toContain('Updated');
+    expect(team.parentElement?.textContent).toContain('2026');
+  });
+
+  it('полоса темы: клетка на главу версии, отмечены только существующие главы, подпись совпадает', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue(LOWER);
+    const { container } = await renderPage();
+
+    const cards = [
+      ...(container.querySelector('#themes')?.querySelectorAll(':scope ul > li') ?? []),
+    ];
+    const revenge = cards[0] as HTMLElement;
+    const cells = revenge.querySelectorAll('ol > li');
+    // Глав в версии три (1, 2, 5): клеток три, отмечены 1 и 2; главы 9 в версии нет.
+    expect(cells).toHaveLength(3);
+    expect([...revenge.querySelectorAll('ol a')].map((a) => a.getAttribute('href'))).toEqual([
+      '/en/book/hamlet/read?chapter=1',
+      '/en/book/hamlet/read?chapter=2',
+    ]);
+    expect(revenge.querySelector('p[class*="stripText"]')?.textContent).toBe('Chapters: 1–2');
+    // Вторая тема отмечена только несуществующей главой - полосы нет.
+    expect((cards[1] as HTMLElement).querySelector('ol')).toBeNull();
+  });
+
+  it('полоса темы: версия без глав - ни клеток, ни подписи', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue({ ...LOWER, chapterNumbers: [] });
+    const { container } = await renderPage();
+
+    const themes = container.querySelector('#themes') as HTMLElement;
+    expect(themes.querySelector('ol')).toBeNull();
+    expect(themes.textContent).not.toContain('Chapters:');
+  });
+
+  it('полоса темы: 120 глав - клетки; 121 - только подпись со ссылками (В4)', async () => {
+    const chapters = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
+    mocks.getPublicBookAnalysis.mockResolvedValue({ ...LOWER, chapterNumbers: chapters(120) });
+    const first = await renderPage();
+    const card = first.container.querySelector('#themes ul > li') as HTMLElement;
+    expect(card.querySelectorAll('ol > li')).toHaveLength(120);
+    first.unmount();
+
+    mocks.getPublicBookAnalysis.mockResolvedValue({ ...LOWER, chapterNumbers: chapters(121) });
+    const second = await renderPage();
+    const card2 = second.container.querySelector('#themes ul > li') as HTMLElement;
+    expect(card2.querySelector('ol')).toBeNull();
+    expect(card2.textContent).toContain('Chapters: 1–2, 9');
+    expect(within(card2).getByRole('link', { name: '9' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/read?chapter=9'
+    );
+  });
+
+  it('карта отношений: SVG и список связей в HTML сервера, эпизодического героя нет', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue(LOWER);
+    const html = renderToStaticMarkup(await pageElement());
+
+    expect(html).toContain('Character relationships');
+    expect(html).toContain('<svg');
+    expect(html).toContain('Prince Hamlet → loves → Ophelia');
+    expect(html).toContain('Ophelia → loves → Prince Hamlet');
+    expect(html).toContain('Prince Hamlet → nephew → Claudius');
+    expect(html).not.toContain('jokes with');
+  });
+
+  it('карта отношений: меньше двух линий - блока нет', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      ...LOWER,
+      characters: LOWER.characters.map((c) =>
+        c.key === 'hamlet' ? { ...c, relations: [{ to: 'ophelia', label: 'loves' }] } : c
+      ),
+    });
+    const { container } = await renderPage();
+    expect(container.querySelector('svg[role="img"]')).toBeNull();
+    expect(screen.queryByText('Character relationships')).toBeNull();
   });
 });

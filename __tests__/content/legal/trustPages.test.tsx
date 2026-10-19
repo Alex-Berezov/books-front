@@ -42,12 +42,14 @@ describe('страницы доверия: состав', () => {
     expect(ids('contact')).toEqual(['general', 'corrections', 'rights', 'privacy', 'response']);
   });
 
-  it('редакционная политика: якоря с #translations и #authors, без #independence', () => {
+  // F03-3: раздел об анализе книг (решение арбитра `F03 | F03-3`, В5) - цель подписи страницы анализа.
+  it('редакционная политика: якоря с #analysis, #translations и #authors, без #independence', () => {
     expect(ids('editorial-policy')).toEqual([
       'who',
       'sources',
       'preparation',
       'summaries',
+      'analysis',
       'translations',
       'authors',
       'corrections',
@@ -69,6 +71,38 @@ describe('страницы доверия: состав', () => {
       /люд|человек|провер|human|humain|humano|people|personne|pessoa|verif|vérif|comprob|reviewed/iu
     );
   });
+
+  // F03-3 (В5): черновик анализа составляет модель - раздел об этом говорит, не обещает ручной сверки
+  // и называет автоматическую проверку номеров глав;
+  // строка #who оговаривает, что «пишут люди» - про блоки на странице книги, а анализ готовится иначе.
+  it.each(SUPPORTED_LANGS)(
+    '%s: #analysis - о языковой модели, без «пишут люди» и сверки',
+    (lang) => {
+      const doc = getLegalDocument('editorial-policy', lang);
+      const sectionParts = (id: string) =>
+        parts({ ...doc, sections: doc.sections.filter((s) => s.id === id) });
+      const text = (id: string) =>
+        sectionParts(id)
+          .map((part) => part.text)
+          .join(' ');
+      const analysis = text('analysis');
+      expect(analysis).toMatch(/модел|model|modelo|modèle/iu);
+      expect(analysis).not.toMatch(
+        /люд|человек|human|humain|humano|people|personne|pessoa|сверя|вручную|manual/iu
+      );
+      // Проверка, которая есть, - автоматическая проверка номеров глав при загрузке (§21.3, ревью F03-3 круг 2).
+      expect(analysis).toMatch(
+        /автоматически|automatically|automáticamente|automatiquement|automaticamente/iu
+      );
+      expect(sectionParts('analysis').find((part) => part.kind === 'link')).toMatchObject({
+        href: '/contact',
+      });
+      // Отсылка из #who к разделу анализа - его заголовком.
+      const heading = doc.sections.find((s) => s.id === 'analysis')?.heading ?? '';
+      expect(heading).not.toBe('');
+      expect(text('who')).toContain(heading);
+    }
+  );
 
   it.each(SUPPORTED_LANGS)(
     '%s: в #corrections сказано про дату «Обновлено» у пересказа, подпись совпадает со словарём',
@@ -115,8 +149,13 @@ describe('страницы доверия: состав', () => {
       '/deletion',
       '/legal-notice',
     ]);
-    // #authors и #corrections — обе ведут на «Контакты» (Р1, Р12 `F02 | F02-4`).
-    expect(links(getLegalDocument('editorial-policy', lang))).toEqual(['/contact', '/contact']);
+    // #analysis, #authors и #corrections — все ведут на «Контакты» (Р1, Р12 `F02 | F02-4`;
+    // раздел об анализе — П6 брифа F03-3, решение арбитра `F03 | F03-3`, В5).
+    expect(links(getLegalDocument('editorial-policy', lang))).toEqual([
+      '/contact',
+      '/contact',
+      '/contact',
+    ]);
     expect(ids('editorial-policy')).toContain('corrections');
   });
 });

@@ -131,6 +131,44 @@ describe('reader route — 404 честный, а не общий с «нет г
   });
 });
 
+// F03-3, решение арбитра `F03 | F03-3`, В2: ссылка «глава N» не теряет номер главы на переходе
+// читалки - ни на канонический слаг (307), ни по истории слагов (308).
+describe('reader route - номер главы на переходах', () => {
+  const run = (slug: string, search: Record<string, string | string[] | undefined>) =>
+    import('@/app/[lang]/book/[slug]/read/page').then((m) =>
+      m.default({
+        params: Promise.resolve({ lang: 'en', slug }),
+        searchParams: Promise.resolve(search),
+      })
+    );
+
+  it('307 на канонический слаг переносит ?chapter=N', async () => {
+    mocks.getBookOverview.mockResolvedValue({ slug: 'hamlet-canonical', versions: [] });
+
+    await expect(run('hamlet-old', { chapter: '3' })).rejects.toThrow('NEXT_REDIRECT');
+    expect(mocks.redirect).toHaveBeenCalledWith('/en/book/hamlet-canonical/read?chapter=3');
+  });
+
+  it('308 по истории слагов переносит ?chapter=N', async () => {
+    mocks.getBookOverview.mockRejectedValue(notFoundError());
+    mocks.resolveRetiredSlug.mockResolvedValue('hamlet-new');
+
+    await expect(run('hamlet-old', { chapter: '12' })).rejects.toThrow('NEXT_PERMANENT_REDIRECT');
+    expect(mocks.permanentRedirect).toHaveBeenCalledWith('/en/book/hamlet-new/read?chapter=12');
+  });
+
+  it('мусорный номер и прочие параметры не переносятся', async () => {
+    mocks.getBookOverview.mockResolvedValue({ slug: 'hamlet-canonical', versions: [] });
+
+    await expect(run('hamlet-old', { chapter: 'abc', utm: 'x' })).rejects.toThrow('NEXT_REDIRECT');
+    expect(mocks.redirect).toHaveBeenCalledWith('/en/book/hamlet-canonical/read');
+
+    mocks.redirect.mockClear();
+    await expect(run('hamlet-old', { chapter: ['2', '3'] })).rejects.toThrow('NEXT_REDIRECT');
+    expect(mocks.redirect).toHaveBeenCalledWith('/en/book/hamlet-canonical/read');
+  });
+});
+
 describe('player route — 404 честный, а не общий с «нет аудио»', () => {
   const run = (slug: string) =>
     import('@/app/[lang]/book/[slug]/listen/page').then((m) =>

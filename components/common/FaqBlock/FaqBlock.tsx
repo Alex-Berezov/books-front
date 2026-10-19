@@ -16,6 +16,8 @@ export interface FaqBlockProps {
   showJsonLd?: boolean;
   className?: string;
   icon?: ReactNode;
+  /** `id` секции - якорь раздела (FAQ страницы анализа и его пункт оглавления, F03-3). */
+  id?: string;
 }
 
 export const FaqBlock: FC<FaqBlockProps> = ({
@@ -24,13 +26,14 @@ export const FaqBlock: FC<FaqBlockProps> = ({
   showJsonLd = true,
   className = '',
   icon,
+  id,
 }) => {
   const { t } = useTranslation();
 
   if (!items || items.length === 0) return null;
 
   return (
-    <section className={`${styles.faqBlock} ${className}`.trim()}>
+    <section id={id} className={`${styles.faqBlock} ${className}`.trim()}>
       {showJsonLd && (
         <script
           type="application/ld+json"

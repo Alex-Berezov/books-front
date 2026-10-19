@@ -6,9 +6,9 @@ export const document: LegalDocument = {
   lang: 'es',
   metaTitle: 'Política editorial - Bibliaris',
   metaDescription:
-    'De dónde salen los textos de Bibliaris, quién escribe los resúmenes y las descripciones, cómo se preparan los textos de los libros y cómo se corrigen los errores.',
+    'De dónde salen los textos de Bibliaris, quién escribe los resúmenes y las descripciones, cómo se elaboran los análisis de libros, cómo se preparan los textos de los libros y cómo se corrigen los errores.',
   title: 'Política editorial',
-  updatedAt: '2026-10-16',
+  updatedAt: '2026-10-19',
   toc: false,
   sections: [
     {
@@ -20,7 +20,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Los resúmenes y las descripciones de los libros, y los análisis de personajes, símbolos y citas de las páginas de los libros, los escriben y los editan personas: la redacción de Bibliaris.',
+              text: 'Los resúmenes y las descripciones de los libros, y los análisis de personajes, símbolos y citas de los bloques de las páginas de los libros, los escriben y los editan personas: la redacción de Bibliaris. Los análisis de libros se preparan de otra manera: consulta «Cómo se preparan los análisis de libros» más abajo.',
             },
           ],
         },
@@ -77,6 +77,65 @@ export const document: LegalDocument = {
             ],
             [{ kind: 'text', text: 'Un resumen puede revelar la trama.' }],
             [{ kind: 'text', text: 'Un resumen se contrasta con el texto del libro.' }],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'analysis',
+      heading: 'Cómo se preparan los análisis de libros',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Las páginas de análisis las prepara la Redacción de Bibliaris.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'El borrador de cada análisis se elabora con un modelo de lenguaje siguiendo las instrucciones de la redacción. El modelo recibe información sobre esta versión del libro en el sitio, entre ella el título, el autor, el idioma y la lista de capítulos. La redacción carga y publica el borrador.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'El análisis en cada idioma se escribe por separado para los lectores de ese idioma, no se traduce de otro; por eso las secciones pueden variar de un idioma a otro.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Las instrucciones exigen citar literalmente la edición del libro publicada en Bibliaris. El número de capítulo junto a una cita es el número del capítulo de esta versión en el sitio; enlaza a ese capítulo en el lector solo si el capítulo existe. Al cargar el análisis, los números de capítulo se comprueban automáticamente: si un capítulo no existe en esta versión, la redacción ve un aviso.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Las instrucciones prohíben incluir fechas, datos biográficos, adaptaciones o fuentes sobre los que no haya certeza, y exigen presentar las interpretaciones como interpretaciones. Cuando se indican las fuentes, aparecen al final de la página del análisis.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            { kind: 'text', text: 'Puedes avisar de un error en un análisis en la página ' },
+            { kind: 'link', text: 'Contacto', href: '/contact' },
+            { kind: 'text', text: ', como se describe en «Correcciones».' },
           ],
         },
       ],

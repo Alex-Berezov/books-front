@@ -23,7 +23,7 @@ import { logError } from '@/lib/utils/log-error';
 import type { AnalysisSectionLinks } from './BookExtraDetails';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
-import { ANALYSIS_ANCHORS } from './analysis/analysisAnchors';
+import { buildAnalysisSectionLinks } from './analysis/analysisAnchors';
 import { getCachedBookAnalysis } from './analysis/analysisData';
 import { resolveAuthorHref } from './authorHref';
 import styles from './book.module.scss';
@@ -223,15 +223,7 @@ export default async function BookDetailPage({ params }: Props) {
     : null;
   const analysisLinks: AnalysisSectionLinks | null =
     analysisHref && analysisSections
-      ? {
-          characters: analysisSections.characters
-            ? `${analysisHref}#${ANALYSIS_ANCHORS.characters}`
-            : null,
-          symbols: analysisSections.symbols ? `${analysisHref}#${ANALYSIS_ANCHORS.symbols}` : null,
-          quotes: analysisSections.keyQuotes
-            ? `${analysisHref}#${ANALYSIS_ANCHORS.keyQuotes}`
-            : null,
-        }
+      ? buildAnalysisSectionLinks(analysisHref, analysisSections)
       : null;
   const versionId = textVersion?.id || audioVersion?.id || book.versions?.[0]?.id;
 

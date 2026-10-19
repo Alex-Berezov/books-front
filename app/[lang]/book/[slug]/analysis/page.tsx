@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { buildEditionNotesRows } from '@/components/public/books/EditionNotes/editionNotesRows';
+import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
 import { hasText } from '@/lib/book-analysis/format';
 import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
@@ -9,21 +11,22 @@ import { buildAnalysisArticleJsonLd } from '@/lib/seo/analysis-jsonld';
 import { analysisPath } from '@/lib/seo/book-analysis';
 import { pickSummaryVersion, summaryPath } from '@/lib/seo/book-summary';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
+import { formatLongDateUtc } from '@/lib/utils/date';
 import { serializeJsonLd } from '@/lib/utils/json-ld';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import { resolveAuthorHref } from '../authorHref';
 import { BookSectionNav, buildBookSectionNavItems } from '../BookSectionNav';
+import { BookContinueBlock, BookCtaButtons } from '../BookSubpageActions';
 import { BookSubpageHero } from '../BookSubpageHero';
 import { RelatedBooksSection } from '../RelatedBooksSection';
 import styles from './analysis.module.scss';
 import { ANALYSIS_ANCHORS } from './analysisAnchors';
-import { FactActions, FactsCard, Paragraphs, Section, type ChapterLinker } from './AnalysisBlocks';
+import { FactsCard, Paragraphs, Section, type ChapterLinker } from './AnalysisBlocks';
 import { loadAnalysisOrNotFound } from './analysisData';
 import { buildAnalysisMetadata } from './analysisMetadata';
 import { AnalysisSections } from './AnalysisSections';
 import { readerChapterHref } from '../read/chapterParam';
-import { SummaryMoreBlocks } from '../summary/SummaryMoreBlocks';
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>;
@@ -129,6 +132,12 @@ export default async function BookAnalysisPage({ params }: Props) {
     { label: t.editionOriginalLanguage, value: editionValue(t.editionOriginalLanguage) },
   ].filter((row): row is { label: string; value: string } => hasText(row.value));
 
+  // Подпись (§20) - всегда: страница есть только при ядре; дата - при разборчивой дате изменения.
+  const updatedAt = new Date(analysis.updatedAt);
+  const updatedDate = Number.isNaN(updatedAt.getTime())
+    ? null
+    : formatLongDateUtc(updatedAt, supportedLang);
+
   const jsonLd = buildAnalysisArticleJsonLd({
     lang: supportedLang,
     pageSlug: bookSlug,
@@ -175,7 +184,15 @@ export default async function BookAnalysisPage({ params }: Props) {
             id={ANALYSIS_ANCHORS.facts}
             title={analysisT.analysisFactsTitle}
             rows={factRows}
-            actions={<FactActions read={read} listen={listen} summary={summary} />}
+            actions={
+              <BookCtaButtons read={read} listen={listen} className={styles.factActions}>
+                {summary ? (
+                  <Link href={summary.href} className={styles.textLink}>
+                    {summary.label}
+                  </Link>
+                ) : null}
+              </BookCtaButtons>
+            }
           />
 
           <Section id={ANALYSIS_ANCHORS.mainIdea} title={analysisT.analysisMainIdeaTitle}>
@@ -189,13 +206,21 @@ export default async function BookAnalysisPage({ params }: Props) {
             linker={linker}
             strings={analysisT}
             tocTitle={dict.common.tableOfContents}
+            faqTitle={t.faqTitle}
           />
 
-          {/* «Дальше» (§3 п.21) - тот же блок, что у пересказа; «Узнать больше» здесь не нужен. */}
-          <SummaryMoreBlocks
-            exploreTitle=""
-            exploreLinks={[]}
-            continueTitle={t.summaryContinueTitle}
+          {/* Подпись ведёт на раздел редполитики об анализе (решение арбитра `F03 | F03-3`, В5). */}
+          <EditorialByline
+            lang={supportedLang}
+            teamLabel={t.editorialTeam}
+            anchor="analysis"
+            dateText={updatedDate ? t.updatedOn.replace('{date}', updatedDate) : undefined}
+          />
+
+          {/* «Дальше» (§3 п.21) - тот же блок, что у пересказа. */}
+          <BookContinueBlock
+            id={ANALYSIS_ANCHORS.continue}
+            title={t.summaryContinueTitle}
             read={read}
             listen={listen}
           />
