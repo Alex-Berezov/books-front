@@ -8,11 +8,21 @@ import { SummaryTab } from '@/components/admin/books/SummaryTab';
  * редактор не видел, а поздний ответ затёр бы набранное.
  */
 
-const mocks = vi.hoisted(() => ({ isError: false, existing: null as unknown }));
+const mocks = vi.hoisted(() => ({
+  isError: false,
+  paused: false,
+  refetching: false,
+  existing: null as unknown,
+}));
 
 vi.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: vi.fn() }) }));
 vi.mock('@/api/hooks', () => ({
-  useBookSummary: () => ({ data: mocks.existing, isLoading: false, isError: mocks.isError }),
+  useBookSummary: () => ({
+    data: mocks.existing,
+    isError: mocks.isError,
+    status: mocks.isError ? 'error' : mocks.paused ? 'pending' : 'success',
+    fetchStatus: mocks.paused ? 'paused' : mocks.refetching ? 'fetching' : 'idle',
+  }),
   useUpsertBookSummary: () => ({ mutate: vi.fn(), isPending: false }),
   useUpsertBookSummaryBrief: () => ({ mutate: vi.fn(), isPending: false }),
 }));
@@ -28,6 +38,8 @@ vi.mock('@/components/admin/common/AdminRichTextEditor', () => ({
 describe('SummaryTab: отказ загрузки пересказа', () => {
   beforeEach(() => {
     mocks.isError = false;
+    mocks.paused = false;
+    mocks.refetching = false;
     mocks.existing = null;
   });
 
@@ -48,5 +60,17 @@ describe('SummaryTab: отказ загрузки пересказа', () => {
     expect(screen.getByTestId('summaryText')).toBeInTheDocument();
     expect(screen.getByTestId('briefText')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save Very Short Summary' })).toBeDisabled();
+  });
+
+  it('запрос на паузе офлайн — полей и кнопок сохранения нет', () => {
+    mocks.paused = true;
+    mocks.existing = undefined;
+    render(<SummaryTab versionId="v1" />);
+    expect(screen.queryByTestId('briefText')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('summaryText')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Save/ })).not.toBeInTheDocument();
+    // Это ожидание, а не отказ: спиннер, без ошибки загрузки.
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });

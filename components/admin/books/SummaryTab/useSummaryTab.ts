@@ -22,7 +22,7 @@ export const useSummaryTab = (props: SummaryTabProps) => {
   const { versionId } = props;
   const { enqueueSnackbar } = useSnackbar();
 
-  const { data: existingSummary, isLoading, isError } = useBookSummary(versionId);
+  const { data: existingSummary, status, fetchStatus, isError } = useBookSummary(versionId);
   const upsertMutation = useUpsertBookSummary();
   const briefMutation = useUpsertBookSummaryBrief();
 
@@ -35,17 +35,20 @@ export const useSummaryTab = (props: SummaryTabProps) => {
   // и стёрло бы текст, которого редактор не видел; вкладка вместо полей показывает ошибку загрузки,
   // а заполнит форму пришедший позже ответ. Признак заполнения — состоянием: от него зависит
   // разметка (кнопка очень краткого, ошибка), а ref в рендере перерисовку не вызывает.
+  // Заполняет только свежий удачный ответ (`status === 'success'` и запрос не в полёте): запрос на
+  // паузе офлайн не «загружается» и не «отказал», а данных у него нет — пустая форма стёрла бы бриф;
+  // а устаревший кэш при перечитывании отдал бы старый текст, и Save затёр бы чужую правку.
   const [hydratedFor, setHydratedFor] = useState<string | null>(null);
   const hydrated = hydratedFor === versionId;
   useEffect(() => {
-    if (isLoading || isError || hydratedFor === versionId) return;
+    if (status !== 'success' || fetchStatus !== 'idle' || hydratedFor === versionId) return;
     setHydratedFor(versionId);
     setFormData(
       existingSummary
         ? { summaryText: existingSummary.summary ?? '', briefText: existingSummary.brief ?? '' }
         : EMPTY_FORM
     );
-  }, [existingSummary, isLoading, isError, hydratedFor, versionId]);
+  }, [existingSummary, status, fetchStatus, hydratedFor, versionId]);
 
   /**
    * Update form field handler
@@ -58,6 +61,8 @@ export const useSummaryTab = (props: SummaryTabProps) => {
    * Summary save handler
    */
   const handleSave = () => {
+    // До заполнения с сервера в поле не то, что сохранено: такая запись затёрла бы пересказ.
+    if (!hydrated) return;
     const summary = formData.summaryText.trim();
     // То же правило, что у сервера (`@RichHtmlHasText`): пустой редактор отдаёт `<p></p>`.
     // Санитайзер сюда не тянется (+12 кБ в бандл админки): вырезанное им сервер отобьёт 400.
@@ -120,7 +125,8 @@ export const useSummaryTab = (props: SummaryTabProps) => {
     // Пересказ не загрузился, а форма ещё не заполнялась: полей нет, сохранять нечего.
     loadFailed: isError && !hydrated,
     briefMinutes: readingMinutes(htmlToPlainText(formData.briefText)),
-    isLoading,
+    // Ждём ответа, в том числе на паузе офлайн: полей нет, пока форма не заполнена.
+    isLoading: !hydrated && !isError,
     isSaving: upsertMutation.isPending,
     isSavingBrief: briefMutation.isPending,
   };

@@ -13,12 +13,19 @@ const mocks = vi.hoisted(() => ({
   mutateBrief: vi.fn(),
   existing: null as unknown,
   isError: false,
+  paused: false,
+  refetching: false,
 }));
 
 vi.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: mocks.enqueueSnackbar }) }));
 
 vi.mock('@/api/hooks', () => ({
-  useBookSummary: () => ({ data: mocks.existing, isLoading: false, isError: mocks.isError }),
+  useBookSummary: () => ({
+    data: mocks.existing,
+    isError: mocks.isError,
+    status: mocks.isError ? 'error' : mocks.paused ? 'pending' : 'success',
+    fetchStatus: mocks.paused ? 'paused' : mocks.refetching ? 'fetching' : 'idle',
+  }),
   useUpsertBookSummary: () => ({ mutate: mocks.mutate, isPending: false }),
   useUpsertBookSummaryBrief: () => ({ mutate: mocks.mutateBrief, isPending: false }),
 }));
@@ -28,6 +35,8 @@ describe('useSummaryTab: сохранение', () => {
     vi.clearAllMocks();
     mocks.existing = null;
     mocks.isError = false;
+    mocks.paused = false;
+    mocks.refetching = false;
   });
 
   it.each(['<p></p>', '<p><br></p>', '<p>&nbsp;</p>', '   '])(
@@ -96,6 +105,8 @@ describe('useSummaryTab: очень краткий пересказ (F04)', () =
     vi.clearAllMocks();
     mocks.existing = null;
     mocks.isError = false;
+    mocks.paused = false;
+    mocks.refetching = false;
   });
 
   it('без полного пересказа сохранить нельзя: кнопка выключена, запрос не уходит', () => {
@@ -201,5 +212,53 @@ describe('useSummaryTab: очень краткий пересказ (F04)', () =
     act(() => result.current.handleFieldChange('briefText', '<p><br></p>'));
     act(() => result.current.handleSaveBrief());
     expect(mocks.mutateBrief.mock.calls[1][0]).toEqual({ versionId: 'v1', brief: null });
+  });
+
+  it('запрос на паузе офлайн: форма не заполняется, сохранения не уходят; ответ после сети заполняет', () => {
+    mocks.paused = true;
+    mocks.existing = undefined;
+    const { result, rerender } = renderHook(() => useSummaryTab({ versionId: 'v1' }));
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.hasFullSummary).toBe(false);
+    act(() => result.current.handleFieldChange('summaryText', '<p>Typed.</p>'));
+    act(() => result.current.handleSave());
+    act(() => result.current.handleSaveBrief());
+    expect(mocks.mutate).not.toHaveBeenCalled();
+    expect(mocks.mutateBrief).not.toHaveBeenCalled();
+
+    mocks.paused = false;
+    mocks.refetching = false;
+    mocks.existing = {
+      id: 's1',
+      summary: '<p>Plot.</p>',
+      hasText: true,
+      brief: '<p>Saved brief.</p>',
+      briefHasText: true,
+      updatedAt: '2026-10-19',
+    };
+    rerender();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.formData.briefText).toBe('<p>Saved brief.</p>');
+  });
+
+  it('устаревший кэш при перечитывании форму не заполняет — заполняет свежий ответ', () => {
+    mocks.refetching = true;
+    mocks.existing = {
+      id: 's1',
+      summary: '<p>Plot.</p>',
+      hasText: true,
+      brief: '<p>Old cached.</p>',
+      briefHasText: true,
+      updatedAt: '2026-10-19',
+    };
+    const { result, rerender } = renderHook(() => useSummaryTab({ versionId: 'v1' }));
+    expect(result.current.isLoading).toBe(true);
+    act(() => result.current.handleSaveBrief());
+    expect(mocks.mutateBrief).not.toHaveBeenCalled();
+
+    mocks.refetching = false;
+    mocks.existing = { ...(mocks.existing as object), brief: '<p>Fresh.</p>' };
+    rerender();
+    expect(result.current.formData.briefText).toBe('<p>Fresh.</p>');
   });
 });
