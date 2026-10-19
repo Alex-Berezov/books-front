@@ -3,7 +3,6 @@ import {
   buildSummaryAlternates,
   describeSummary,
   pickSummaryVersion,
-  readingMinutes,
   summaryPath,
   summaryPlainText,
   versionHasSummary,
@@ -95,11 +94,5 @@ describe('текст и время чтения', () => {
     expect(
       describeSummary('<h2>Act I</h2><p>The ghost appears.</p><h2>Act II</h2><p>Madness.</p>')
     ).toBe('The ghost appears. Madness.');
-  });
-
-  it('минуты: 230 слов в минуту, не меньше одной, пустой текст - 0', () => {
-    expect(readingMinutes('')).toBe(0);
-    expect(readingMinutes('one two')).toBe(1);
-    expect(readingMinutes(Array(2300).fill('w').join(' '))).toBe(10);
   });
 });

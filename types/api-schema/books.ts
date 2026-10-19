@@ -64,6 +64,11 @@ export interface VersionPreview {
     summaries: number;
     /** Анализ с заполненным ядром (F03): 0 или 1. */
     analyses: number;
+    /**
+     * Разделы пересказа, открытые читателю (F04): у полного пересказа есть текст и версию не закрывает
+     * окончённая претензия ни в одной стране. Только в обзоре книги; до выката бэкенда поля нет.
+     */
+    summarySections?: number;
   };
 }
 
@@ -361,6 +366,13 @@ export interface BookSummaryDetail {
   analysis?: string | null;
   /** Major themes */
   themes?: string | null;
+  /**
+   * Очень краткий пересказ (F04, rich HTML). Пишется своей ручкой `PUT …/summary/brief`.
+   * Необязательный: до выката бэкенда поля в ответе нет.
+   */
+  brief?: string | null;
+  /** В `brief` есть видимый текст: блок «Очень кратко» выводится только тогда. */
+  briefHasText?: boolean;
   /** Дата последнего изменения пересказа: подпись «Обновлено» и `dateModified` в разметке. */
   updatedAt: ISODate;
 }
@@ -376,6 +388,104 @@ export interface UpsertBookSummaryRequest {
   analysis?: string;
   /** Major themes */
   themes?: string;
+}
+
+/** Тело `PUT /versions/{id}/summary/brief`: ключ обязателен, `null` и `""` очищают. */
+export interface UpsertBookSummaryBriefRequest {
+  brief: string | null;
+}
+
+/** Предупреждение записи раздела: раздел сохранён, но ссылки «Читать эту главу» не будет. */
+export interface BookSummarySectionWarning {
+  code: 'chapter_not_found';
+  /** Путь поля: `readerChapter`. */
+  path: string;
+  message: string;
+}
+
+/** Раздел пересказа в оглавлении и в списке админки — без текста (F04). */
+export interface BookSummarySectionListItem {
+  id: UUID;
+  /** Номер раздела = адрес `/summary/{number}`; ставит сервер, подряд с 1. */
+  number: number;
+  title: string;
+  /** Глава читалки для ссылки «Читать эту главу». */
+  readerChapter: number | null;
+  /** Дата правки текста раздела: её вкладка шлёт в `expectedUpdatedAt`. */
+  updatedAt: ISODate;
+}
+
+/** `GET /versions/{id}/summary-sections`, а также ответ удаления и перестановки. */
+export interface BookSummarySectionList {
+  sections: BookSummarySectionListItem[];
+}
+
+/** Раздел для админки по `id` (`GET /summary-sections/{id}`). */
+export interface BookSummarySectionAdmin extends BookSummarySectionListItem {
+  /** Rich HTML. */
+  text: string;
+  /** Дата адреса раздела: позднейшая из правки текста и смены номера. */
+  contentDate: ISODate;
+}
+
+/** Публичная страница раздела (`GET /versions/{id}/summary-sections/{number}`). */
+export interface BookSummarySectionPage {
+  id: UUID;
+  number: number;
+  title: string;
+  text: string;
+  readerChapter: number | null;
+  readerChapterExists: boolean;
+  contentDate: ISODate;
+  sections: { number: number; title: string }[];
+  briefHasText: boolean;
+}
+
+/** Тело добавления раздела: номера нет — его ставит сервер. */
+export interface CreateBookSummarySectionRequest {
+  title: string;
+  text: string;
+  readerChapter?: number | null;
+}
+
+/**
+ * Тело правки раздела по `id`: раздел пишется целиком — `readerChapter` обязателен (`null` снимает связь
+ * с главой, без ключа сервер ответит 400); `expectedUpdatedAt` — `updatedAt`, который видела вкладка (иначе 409).
+ */
+export interface UpdateBookSummarySectionRequest extends CreateBookSummarySectionRequest {
+  readerChapter: number | null;
+  expectedUpdatedAt: ISODate;
+}
+
+/** Ответ добавления раздела. */
+export interface BookSummarySectionCreateResponse {
+  section: BookSummarySectionAdmin;
+  sections: BookSummarySectionListItem[];
+  warnings: BookSummarySectionWarning[];
+}
+
+/** Ответ правки раздела. */
+export interface BookSummarySectionUpdateResponse {
+  section: BookSummarySectionAdmin;
+  warnings: BookSummarySectionWarning[];
+}
+
+/** Тело удаления: `from` — порядок разделов, который видела вкладка (иначе 409). */
+export interface DeleteBookSummarySectionRequest {
+  sectionId: UUID;
+  from: UUID[];
+}
+
+/** Тело перестановки: `from` — порядок, который видела вкладка, `to` — новый. */
+export interface ReorderBookSummarySectionsRequest {
+  from: UUID[];
+  to: UUID[];
+}
+
+/** Элемент ручки карты разделов `GET /{lang}/summary-sections/sitemap`: версия со своими разделами. */
+export interface BookSummarySectionsSitemapItem {
+  slug: string;
+  sections: { number: number; lastmod: ISODate }[];
 }
 
 /**

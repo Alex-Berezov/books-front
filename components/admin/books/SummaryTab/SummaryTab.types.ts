@@ -12,4 +12,6 @@ export interface SummaryTabProps {
 export interface SummaryFormData {
   /** Plot retelling shown on `/{lang}/book/{slug}/summary` */
   summaryText: string;
+  /** Very short summary (F04): the "In brief" block at the top of `/summary` */
+  briefText: string;
 }

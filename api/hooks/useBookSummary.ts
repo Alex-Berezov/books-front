@@ -11,8 +11,26 @@ import {
   type UseMutationOptions,
   type UseQueryOptions,
 } from '@tanstack/react-query';
-import { getBookSummary, upsertBookSummary } from '@/api/endpoints/admin/bookSummaries';
-import type { BookSummaryDetail, UpsertBookSummaryRequest } from '@/types/api-schema';
+import {
+  createBookSummarySection,
+  deleteBookSummarySection,
+  getBookSummary,
+  getBookSummarySection,
+  getBookSummarySections,
+  reorderBookSummarySections,
+  updateBookSummarySection,
+  upsertBookSummary,
+  upsertBookSummaryBrief,
+} from '@/api/endpoints/admin/bookSummaries';
+import type {
+  BookSummaryDetail,
+  BookSummarySectionList,
+  CreateBookSummarySectionRequest,
+  DeleteBookSummarySectionRequest,
+  ReorderBookSummarySectionsRequest,
+  UpdateBookSummarySectionRequest,
+  UpsertBookSummaryRequest,
+} from '@/types/api-schema';
 
 /**
  * Query keys for book summaries
@@ -24,6 +42,10 @@ export const summaryKeys = {
   details: () => [...summaryKeys.all, 'detail'] as const,
   /** Summary by version ID */
   detail: (versionId: string) => [...summaryKeys.details(), versionId] as const,
+  /** Список разделов версии (F04) */
+  sections: (versionId: string) => [...summaryKeys.all, 'sections', versionId] as const,
+  /** Раздел с текстом по `id` */
+  section: (sectionId: string) => [...summaryKeys.all, 'section', sectionId] as const,
 };
 
 /**
@@ -72,4 +94,104 @@ export const useUpsertBookSummary = (
       );
     },
   });
+};
+
+/** Очень краткий пересказ (F04): своя ручка; ответ — запись пересказа целиком. */
+export const useUpsertBookSummaryBrief = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ versionId, brief }: { versionId: string; brief: string | null }) =>
+      upsertBookSummaryBrief(versionId, { brief }),
+    // Идущее перечитывание пересказа (его запускает «Save Summary») отменяется: иначе его старый
+    // `brief` лёг бы в кэш поверх ответа, и форма при возврате на вкладку заполнилась бы старым текстом.
+    // Ответ очень краткого может нести полный пересказ старше записанного «Save Summary» (сервер
+    // разводит записи замком в любом порядке), поэтому после него — свежее перечитывание.
+    onSuccess: async (data, { versionId }) => {
+      await queryClient.cancelQueries({ queryKey: summaryKeys.detail(versionId) });
+      queryClient.setQueryData(summaryKeys.detail(versionId), data);
+      void queryClient.invalidateQueries({ queryKey: summaryKeys.detail(versionId) });
+    },
+  });
+};
+
+/** Разделы пересказа версии без текстов (админка, по токену модератора). */
+export const useBookSummarySections = (versionId: string) =>
+  useQuery({
+    queryKey: summaryKeys.sections(versionId),
+    queryFn: () => getBookSummarySections(versionId),
+    staleTime: 30 * 1000,
+  });
+
+/**
+ * Текст раздела по `id` — грузится, когда карточка раскрыта, и перечитывается при каждом новом
+ * раскрытии: другой редактор мог поправить раздел, а карточка взяла бы из кэша старый `updatedAt`
+ * и получила 409. Свежий ответ заменяет только нетронутый черновик карточки, набранное не затирает.
+ */
+export const useBookSummarySection = (sectionId: string, enabled: boolean) =>
+  useQuery({
+    queryKey: summaryKeys.section(sectionId),
+    queryFn: () => getBookSummarySection(sectionId),
+    enabled,
+    staleTime: 0,
+  });
+
+/**
+ * Мутации разделов. Новый порядок из ответа кладётся в кэш списка: из него вкладка берёт следующий
+ * `from`, и одинокий редактор не получает 409 на своё же прошлое действие (`tech.md` §4).
+ */
+export const useBookSummarySectionMutations = (versionId: string) => {
+  const queryClient = useQueryClient();
+  const setList = (data: BookSummarySectionList) =>
+    queryClient.setQueryData<BookSummarySectionList>(summaryKeys.sections(versionId), {
+      sections: data.sections,
+    });
+
+  const create = useMutation({
+    mutationFn: (data: CreateBookSummarySectionRequest) =>
+      createBookSummarySection(versionId, data),
+    onSuccess: (res) => {
+      setList(res);
+      queryClient.setQueryData(summaryKeys.section(res.section.id), res.section);
+    },
+  });
+  const update = useMutation({
+    mutationFn: ({
+      sectionId,
+      data,
+    }: {
+      sectionId: string;
+      data: UpdateBookSummarySectionRequest;
+    }) => updateBookSummarySection(sectionId, data),
+    onSuccess: (res) => {
+      queryClient.setQueryData(summaryKeys.section(res.section.id), res.section);
+      queryClient.setQueryData<BookSummarySectionList>(summaryKeys.sections(versionId), (prev) =>
+        prev
+          ? {
+              sections: prev.sections.map((s) =>
+                s.id === res.section.id
+                  ? {
+                      id: s.id,
+                      number: s.number,
+                      title: res.section.title,
+                      readerChapter: res.section.readerChapter,
+                      updatedAt: res.section.updatedAt,
+                    }
+                  : s
+              ),
+            }
+          : prev
+      );
+    },
+  });
+  const remove = useMutation({
+    mutationFn: (data: DeleteBookSummarySectionRequest) =>
+      deleteBookSummarySection(versionId, data),
+    onSuccess: setList,
+  });
+  const reorder = useMutation({
+    mutationFn: (data: ReorderBookSummarySectionsRequest) =>
+      reorderBookSummarySections(versionId, data),
+    onSuccess: setList,
+  });
+  return { create, update, remove, reorder };
 };

@@ -67,7 +67,15 @@ export {
 } from './usePersons';
 
 // Book Summaries
-export { summaryKeys, useBookSummary, useUpsertBookSummary } from './useBookSummary';
+export {
+  summaryKeys,
+  useBookSummary,
+  useBookSummarySection,
+  useBookSummarySectionMutations,
+  useBookSummarySections,
+  useUpsertBookSummary,
+  useUpsertBookSummaryBrief,
+} from './useBookSummary';
 export {
   analysisKeys,
   useBookAnalysis,

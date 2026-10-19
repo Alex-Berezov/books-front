@@ -504,6 +504,7 @@
       "items[].versions[]._count.audioChapters",
       "items[].versions[]._count.chapters",
       "items[].versions[]._count.summaries",
+      "items[].versions[]._count.summarySections",
       "items[].versions[].author",
       "items[].versions[].authorId",
       "items[].versions[].bookId",
@@ -723,6 +724,7 @@
       "versions[]._count.audioChapters",
       "versions[]._count.chapters",
       "versions[]._count.summaries",
+      "versions[]._count.summarySections",
       "versions[].alternativeTitles",
       "versions[].author",
       "versions[].authorId",
@@ -6345,6 +6347,7 @@
       "items[].versions[]._count.audioChapters",
       "items[].versions[]._count.chapters",
       "items[].versions[]._count.summaries",
+      "items[].versions[]._count.summarySections",
       "items[].versions[].author",
       "items[].versions[].authorId",
       "items[].versions[].bookId",
@@ -6742,6 +6745,19 @@
     ]
   },
   {
+    "route": "GET /summary-sections/{sectionId}",
+    "hasResponseSchema": true,
+    "fields": [
+      "contentDate",
+      "id",
+      "number",
+      "readerChapter",
+      "text",
+      "title",
+      "updatedAt"
+    ]
+  },
+  {
     "route": "GET /tags/{id}/translations",
     "hasResponseSchema": true,
     "fields": [
@@ -7071,12 +7087,26 @@
     "fields": [
       "analysis",
       "bookVersionId",
+      "brief",
+      "briefHasText",
       "createdAt",
       "hasText",
       "id",
       "summary",
       "themes",
       "updatedAt"
+    ]
+  },
+  {
+    "route": "GET /versions/{bookVersionId}/summary-sections",
+    "hasResponseSchema": true,
+    "fields": [
+      "sections",
+      "sections[].id",
+      "sections[].number",
+      "sections[].readerChapter",
+      "sections[].title",
+      "sections[].updatedAt"
     ]
   },
   {
@@ -13719,6 +13749,42 @@
     ]
   },
   {
+    "route": "POST /versions/{bookVersionId}/summary-sections",
+    "hasResponseSchema": true,
+    "fields": [
+      "section",
+      "section.contentDate",
+      "section.id",
+      "section.number",
+      "section.readerChapter",
+      "section.text",
+      "section.title",
+      "section.updatedAt",
+      "sections",
+      "sections[].id",
+      "sections[].number",
+      "sections[].readerChapter",
+      "sections[].title",
+      "sections[].updatedAt",
+      "warnings",
+      "warnings[].code",
+      "warnings[].message",
+      "warnings[].path"
+    ]
+  },
+  {
+    "route": "POST /versions/{bookVersionId}/summary-sections/delete",
+    "hasResponseSchema": true,
+    "fields": [
+      "sections",
+      "sections[].id",
+      "sections[].number",
+      "sections[].readerChapter",
+      "sections[].title",
+      "sections[].updatedAt"
+    ]
+  },
+  {
     "route": "POST /versions/{id}/categories",
     "hasResponseSchema": true,
     "fields": [
@@ -13875,6 +13941,24 @@
     ]
   },
   {
+    "route": "PUT /summary-sections/{sectionId}",
+    "hasResponseSchema": true,
+    "fields": [
+      "section",
+      "section.contentDate",
+      "section.id",
+      "section.number",
+      "section.readerChapter",
+      "section.text",
+      "section.title",
+      "section.updatedAt",
+      "warnings",
+      "warnings[].code",
+      "warnings[].message",
+      "warnings[].path"
+    ]
+  },
+  {
     "route": "PUT /versions/{bookVersionId}/analysis",
     "hasResponseSchema": true,
     "fields": [
@@ -14006,6 +14090,36 @@
     "fields": [
       "analysis",
       "bookVersionId",
+      "brief",
+      "briefHasText",
+      "createdAt",
+      "hasText",
+      "id",
+      "summary",
+      "themes",
+      "updatedAt"
+    ]
+  },
+  {
+    "route": "PUT /versions/{bookVersionId}/summary-sections/order",
+    "hasResponseSchema": true,
+    "fields": [
+      "sections",
+      "sections[].id",
+      "sections[].number",
+      "sections[].readerChapter",
+      "sections[].title",
+      "sections[].updatedAt"
+    ]
+  },
+  {
+    "route": "PUT /versions/{bookVersionId}/summary/brief",
+    "hasResponseSchema": true,
+    "fields": [
+      "analysis",
+      "bookVersionId",
+      "brief",
+      "briefHasText",
       "createdAt",
       "hasText",
       "id",

@@ -5,8 +5,20 @@
  * (краткий пересказ / выжимка).
  */
 
-import { httpGetAuth, httpPutAuth } from '@/lib/http-client';
-import type { BookSummaryDetail, UpsertBookSummaryRequest } from '@/types/api-schema';
+import { httpGetAuth, httpPostAuth, httpPutAuth } from '@/lib/http-client';
+import type {
+  BookSummaryDetail,
+  BookSummarySectionAdmin,
+  BookSummarySectionCreateResponse,
+  BookSummarySectionList,
+  BookSummarySectionUpdateResponse,
+  CreateBookSummarySectionRequest,
+  DeleteBookSummarySectionRequest,
+  ReorderBookSummarySectionsRequest,
+  UpdateBookSummarySectionRequest,
+  UpsertBookSummaryBriefRequest,
+  UpsertBookSummaryRequest,
+} from '@/types/api-schema';
 
 /**
  * Get book summary for a version.
@@ -41,3 +53,53 @@ export const upsertBookSummary = async (
   const endpoint = `/versions/${versionId}/summary`;
   return httpPutAuth<BookSummaryDetail>(endpoint, data);
 };
+
+/**
+ * Очень краткий пересказ (F04): своя ручка, `PUT summary` его не знает. Без полного пересказа — 409.
+ */
+export const upsertBookSummaryBrief = async (
+  versionId: string,
+  data: UpsertBookSummaryBriefRequest
+): Promise<BookSummaryDetail> =>
+  httpPutAuth<BookSummaryDetail>(`/versions/${versionId}/summary/brief`, data);
+
+/**
+ * Разделы пересказа версии без текстов. Админке — все и без полного пересказа (по токену модератора).
+ */
+export const getBookSummarySections = async (versionId: string): Promise<BookSummarySectionList> =>
+  httpGetAuth<BookSummarySectionList>(`/versions/${versionId}/summary-sections`);
+
+/** Раздел с текстом по `id` — только модератору. */
+export const getBookSummarySection = async (sectionId: string): Promise<BookSummarySectionAdmin> =>
+  httpGetAuth<BookSummarySectionAdmin>(`/summary-sections/${sectionId}`);
+
+/** Раздел в конец; номер ставит сервер. */
+export const createBookSummarySection = async (
+  versionId: string,
+  data: CreateBookSummarySectionRequest
+): Promise<BookSummarySectionCreateResponse> =>
+  httpPostAuth<BookSummarySectionCreateResponse>(`/versions/${versionId}/summary-sections`, data);
+
+/** Правка раздела по `id`; устаревший `expectedUpdatedAt` — 409, раздела нет — 404. */
+export const updateBookSummarySection = async (
+  sectionId: string,
+  data: UpdateBookSummarySectionRequest
+): Promise<BookSummarySectionUpdateResponse> =>
+  httpPutAuth<BookSummarySectionUpdateResponse>(`/summary-sections/${sectionId}`, data);
+
+/**
+ * Удаление раздела со сдвигом следующих. `POST …/delete`, а не `DELETE`: `httpDelete` тела не несёт,
+ * а сервер сверяет `from` с текущим порядком (409).
+ */
+export const deleteBookSummarySection = async (
+  versionId: string,
+  data: DeleteBookSummarySectionRequest
+): Promise<BookSummarySectionList> =>
+  httpPostAuth<BookSummarySectionList>(`/versions/${versionId}/summary-sections/delete`, data);
+
+/** Перестановка разделов; устаревший `from` — 409. */
+export const reorderBookSummarySections = async (
+  versionId: string,
+  data: ReorderBookSummarySectionsRequest
+): Promise<BookSummarySectionList> =>
+  httpPutAuth<BookSummarySectionList>(`/versions/${versionId}/summary-sections/order`, data);
