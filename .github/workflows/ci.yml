@@ -359,6 +359,48 @@ jobs:
           fi
           echo "авторы приёмки страницы автора на месте"
 
+          # 🔴 Четвёртая часть пробы - книги приёмки раздела «Разбор и анализ» (`F03-4`,
+          # `e2e/book-analysis.spec.ts`). Их заводит `books/prisma/seed-analyses.ts`; образ старше
+          # релиза с этим файлом их не создаст, и спека покраснела бы «404» на первой странице.
+          # Счётчик `_count.analyses` версии (ручка `/api/:lang/books/:slug/overview`) - это ядро
+          # анализа: 1 - страница есть, 0 - нет. Тройки «язык/слаг/счётчик» - ровно те, что
+          # открывает спека (`SLUG`): правишь там, правь и здесь.
+          for triple in en/analysis-acceptance-full/1 es/analysis-acceptance-full/1 \
+                        fr/analysis-acceptance-full/1 pt/analysis-acceptance-full/1 ru/analysis-acceptance-full/1 \
+                        en/analysis-acceptance-minimal/1 en/analysis-acceptance-no-core/0 ru/analysis-acceptance-no-core/0 \
+                        en/analysis-acceptance-two-langs/1 fr/analysis-acceptance-two-langs/1 es/analysis-acceptance-two-langs/0 \
+                        en/analysis-acceptance-no-chapters/1; do
+            lang=${triple%%/*}; rest=${triple#*/}; slug=${rest%%/*}; want=${rest#*/}
+            if ! curl -fsS "http://127.0.0.1:5000/api/${lang}/books/${slug}/overview" -o "$RUNNER_TEMP/analysis-book.json" \
+              || ! jq -e --arg lang "$lang" --argjson want "$want" \
+                   '[.versions[] | select(.language == $lang) | ._count.analyses] == [$want]' \
+                   "$RUNNER_TEMP/analysis-book.json" > /dev/null; then
+              echo "::error::Книга приёмки анализа ${lang}/${slug}: ожидался счётчик анализов ${want}."
+              echo "Похоже, образ ghcr.io/alex-berezov/books:latest старше релиза с books/prisma/seed-analyses.ts (F03-4)."
+              exit 1
+            fi
+          done
+          # Отрицательное предусловие §24 п.5: у версии без глав номеров глав нет, у полной - 1..4.
+          for pair in analysis-acceptance-no-chapters/0 analysis-acceptance-full/4; do
+            slug=${pair%%/*}; want=${pair#*/}
+            # Сбой overview отдельной веткой: иначе пустой id ушёл бы в /versions//analysis, и ошибка
+            # назвала бы расхождение сида со спекой вместо недоступной книги.
+            if ! curl -fsS "http://127.0.0.1:5000/api/en/books/${slug}/overview" -o "$RUNNER_TEMP/analysis-book.json" \
+              || ! id=$(jq -er '.versions[] | select(.language == "en") | .id' "$RUNNER_TEMP/analysis-book.json"); then
+              echo "::error::Книга приёмки анализа en/${slug} не отдаётся или у неё нет версии en."
+              echo "Похоже, образ ghcr.io/alex-berezov/books:latest старше релиза с books/prisma/seed-analyses.ts (F03-4)."
+              exit 1
+            fi
+            if ! curl -fsS "http://127.0.0.1:5000/api/versions/${id}/analysis" -o "$RUNNER_TEMP/analysis.json" \
+              || ! jq -e --argjson want "$want" '.hasCore == true and (.chapterNumbers | length) == $want' \
+                   "$RUNNER_TEMP/analysis.json" > /dev/null; then
+              echo "::error::Анализ ${slug}: ожидались ядро и ${want} номеров глав."
+              echo "Сид books/prisma/seed-analyses.ts разошёлся со спекой e2e/book-analysis.spec.ts (F03-4)."
+              exit 1
+            fi
+          done
+          echo "книги приёмки анализа на месте"
+
       # Сборка здесь потому, что lint, typecheck и тесты её не заменяют.
       # 08.08.2026 импорт `next/headers` в файл, общий для сервера и клиента,
       # прошёл все три проверки зелёными и упал только в деплое: запрет на такой

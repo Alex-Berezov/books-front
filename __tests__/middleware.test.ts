@@ -3,6 +3,9 @@ import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { resetClaimClosuresCache } from '@/lib/analysis-claim-closures';
 import { ADMIN_PANEL_ROLES, UserRole } from '@/lib/auth/constants';
+import { getDictionary } from '@/lib/i18n/dictionaries';
+import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { decodeEntities } from '@/lib/utils/html-entities';
 import { config, middleware, STATIC_ASSET_EXTENSIONS, STATIC_ASSET_PATTERN } from '@/middleware';
 
 vi.mock('next-auth/jwt', () => ({
@@ -208,6 +211,8 @@ describe('middleware matcher: точка в адресе (LEGACY-135)', () => {
     '/googleA1b2C3d4.html',
     '/yandex_A1B2.html',
     '/site.webmanifest',
+    // Стили экрана 451 закрытого анализа (F03-4, В2): попади под middleware - редирект на язык.
+    '/rights-blocked.css',
   ])('статика %s по-прежнему исключена', (path) => {
     expect(matched(path)).toBe(false);
   });
@@ -696,7 +701,29 @@ describe('анализ: закрытие по стране блока оконч
     expect(html).toContain('Not available in your region');
     expect(html).toContain('href="/en/book/hamlet"');
     expect(html).toContain('noindex');
+    // F03-4, В2: оформление - статикой с адреса сайта, без инлайн-стилей и без нового маршрута.
+    expect(html).toContain('<link rel="stylesheet" href="/rights-blocked.css">');
+    expect(html).not.toMatch(/style=|<style/);
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/analyses\/claim-closures$/);
+  });
+
+  // F03-4: экран на языке страницы - на всех пяти, а не только на en.
+  it.each(SUPPORTED_LANGS)('%s: экран 451 на языке страницы', async (lang) => {
+    const response = await open(`/${lang}/book/emma/analysis`);
+    const html = await response.text();
+    // Сверяется видимый текст, а не копия экранирования из кода: разметка раскодируется.
+    const text = decodeEntities(html);
+    const { title, analysisMessage } = getDictionary(lang).rightsBlocked;
+    // Пустая строка словаря дала бы toContain('') - всегда истину.
+    expect(title.trim()).not.toBe('');
+    expect(analysisMessage.trim()).not.toBe('');
+
+    expect(response.status).toBe(451);
+    expect(html).toContain(`<html lang="${lang}">`);
+    expect(text).toContain(`>${title}</h1>`);
+    expect(text).toContain(analysisMessage);
+    expect(html).toContain(`href="/${lang}/book/emma"`);
+    expect(html).toContain(`href="/${lang}/catalog"`);
   });
 
   it.each([

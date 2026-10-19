@@ -345,7 +345,7 @@
   "rightsBlocked": {
     "title": "Indisponible dans votre région",
     "message": "La lecture et l'écoute de ce livre ne sont pas disponibles dans votre pays en raison de restrictions de droits. La page du livre reste accessible et les autres livres du catalogue le sont également.",
-    "analysisMessage": "L’analyse de ce livre n’est pas disponible dans votre pays en raison de restrictions de droits d’auteur. La page du livre reste ouverte, et les autres livres du catalogue sont disponibles comme d’habitude.",
+    "analysisMessage": "L'analyse de ce livre n'est pas disponible dans votre pays en raison de restrictions de droits. La page du livre reste accessible et les autres livres du catalogue le sont également.",
     "backToBook": "Revenir au livre",
     "browseCatalog": "Parcourir le catalogue"
   },

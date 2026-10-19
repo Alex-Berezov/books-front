@@ -1,0 +1,87 @@
+/*
+ * Экран 451 закрытого анализа (lib/analysis-claim-closures.ts). Ответ отдаёт middleware строкой
+ * HTML, сборка Next его не видит, поэтому стили - статикой. Значения в :root - копия токенов
+ * styles/tokens.scss под теми же именами; сверку держит __tests__/public/rightsBlockedCss.test.ts.
+ * Вне :root - только ключевые слова, 0 и var(): своих чисел и цветов здесь нет (решение арбитра
+ * F03 | F03-4, В2).
+ */
+:root {
+  --color-primary: #b05b35;
+  --color-primary-hover: #c07a55;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f0f0f0;
+  --color-text-primary: #000000d9;
+  --color-text-secondary: #00000099;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-xl: 2rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-weight-semibold: 600;
+  --line-height-base: 1.5;
+  --border-radius-base: 4px;
+  --breakpoint-xs: 480px;
+  --font-family-base:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text-primary);
+  background: var(--color-background-primary);
+}
+
+.rb-header {
+  padding: var(--spacing-md);
+  background: var(--color-background-secondary);
+}
+
+.rb-brand {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.rb-main {
+  box-sizing: border-box;
+  max-width: var(--breakpoint-xs);
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-md);
+  text-align: center;
+}
+
+.rb-title {
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--font-size-xl);
+}
+
+.rb-message {
+  margin: 0 0 var(--spacing-xl);
+  color: var(--color-text-secondary);
+}
+
+.rb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  justify-content: center;
+}
+
+.rb-action {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: thin solid var(--color-primary);
+  border-radius: var(--border-radius-base);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.rb-action:hover,
+.rb-action:focus-visible {
+  border-color: var(--color-primary-hover);
+  color: var(--color-primary-hover);
+}

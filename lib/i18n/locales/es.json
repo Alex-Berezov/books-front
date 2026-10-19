@@ -344,8 +344,8 @@
   },
   "rightsBlocked": {
     "title": "No disponible en tu región",
-    "message": "La lectura y la escucha de este libro no están disponibles en tu país debido a restricciones de derechos de autor. La página del libro sigue abierta y los demás libros del catálogo están disponibles como siempre.",
-    "analysisMessage": "El análisis de este libro no está disponible en tu país por restricciones de derechos de autor. La página del libro sigue abierta y los demás libros del catálogo están disponibles como siempre.",
+    "message": "La lectura y la escucha de este libro no están disponibles en tu país debido a restricciones de derechos. La página del libro sigue abierta y los demás libros del catálogo están disponibles como siempre.",
+    "analysisMessage": "El análisis de este libro no está disponible en tu país debido a restricciones de derechos. La página del libro sigue abierta y los demás libros del catálogo están disponibles como siempre.",
     "backToBook": "Volver al libro",
     "browseCatalog": "Ir al catálogo"
   },

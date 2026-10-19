@@ -162,6 +162,85 @@ describe('конвейер CI: e2e гоняются против своего б
   });
 
   /**
+   * F03-4: проба проверяет ровно те тройки «язык/книга/счётчик анализов», которые открывает
+   * спека (таблица `OPENED`). Тройка спеки без пары в пробе - на устаревшем образе спека
+   * покраснела бы «404» с причиной в чужом репозитории; расхождение счётчика - проба красила бы
+   * исправный образ или пропускала бы отсутствие данных.
+   */
+  describe('проба = тройки приёмки анализа из e2e/book-analysis.spec.ts', () => {
+    const spec = readFileSync(resolve(__dirname, '..', 'e2e', 'book-analysis.spec.ts'), 'utf8');
+    const probe = stepBody('The seeded data actually arrived') ?? '';
+
+    const specTriples = (source: string) => {
+      const slugs = Object.fromEntries(
+        [...source.matchAll(/^ {2}(\w+): '(analysis-acceptance-[a-z-]+)',$/gm)].map(
+          ([, key, slug]) => [key, slug]
+        )
+      );
+      const table = source.slice(
+        source.indexOf('const OPENED'),
+        source.indexOf('];', source.indexOf('const OPENED'))
+      );
+      return [...table.matchAll(/\['(\w{2})', SLUG\.(\w+), ([01])\]/g)]
+        .map(([, lang, key, count]) => `${lang}/${slugs[key]}/${count}`)
+        .sort();
+    };
+    const probeTriples = (source: string) =>
+      [...source.matchAll(/\b([a-z]{2})\/(analysis-acceptance-[a-z-]+)\/([01])\b/g)]
+        .map(([, lang, slug, count]) => `${lang}/${slug}/${count}`)
+        .sort();
+
+    it('чистый вход: тройки совпадают', () => {
+      expect(specTriples(spec).length).toBeGreaterThan(0);
+      expect(specTriples(spec).every((t) => !t.includes('undefined'))).toBe(true);
+      expect(probeTriples(probe)).toEqual(specTriples(spec));
+    });
+
+    it.each([
+      [
+        'счётчик',
+        (s: string) =>
+          s.replace('es/analysis-acceptance-two-langs/0', 'es/analysis-acceptance-two-langs/1'),
+      ],
+      [
+        'язык',
+        (s: string) =>
+          s.replace('ru/analysis-acceptance-no-core/0', 'pt/analysis-acceptance-no-core/0'),
+      ],
+      ['пропущенная тройка', (s: string) => s.replace('en/analysis-acceptance-minimal/1 ', '')],
+    ])('испорченная проба (%s) - расхождение видно', (_name, spoil) => {
+      const spoiled = spoil(probe);
+      expect(spoiled).not.toBe(probe);
+      expect(probeTriples(spoiled)).not.toEqual(specTriples(spec));
+    });
+
+    // Вторая половина пробы - число номеров глав анализа; в спеке те же числа (`CHAPTERS`).
+    const specChapters = (source: string) => {
+      const table = source.match(/const CHAPTERS = \{ full: (\d+), noChapters: (\d+) \}/);
+      return table
+        ? [`analysis-acceptance-full/${table[1]}`, `analysis-acceptance-no-chapters/${table[2]}`]
+        : [];
+    };
+    const probeChapters = (source: string) =>
+      (source.match(/for pair in ((?:analysis-acceptance-[a-z-]+\/\d+ ?)+); do/)?.[1] ?? '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .sort();
+
+    it('чистый вход: число глав в пробе = CHAPTERS спеки', () => {
+      expect(specChapters(spec)).toHaveLength(2);
+      expect(probeChapters(probe)).toEqual([...specChapters(spec)].sort());
+    });
+
+    it('испорченная проба (число глав) - расхождение видно', () => {
+      const spoiled = probe.replace('analysis-acceptance-full/4', 'analysis-acceptance-full/3');
+      expect(spoiled).not.toBe(probe);
+      expect(probeChapters(spoiled)).not.toEqual([...specChapters(spec)].sort());
+    });
+  });
+
+  /**
    * Порядок шагов, а не только их наличие. Сид до готовности бэкенда упадёт на
    * неподнятом контейнере, а после сборки — не повлияет на пререндер, который ходит
    * в API на том же прогоне.

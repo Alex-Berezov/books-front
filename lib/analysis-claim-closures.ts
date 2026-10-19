@@ -111,7 +111,8 @@ const escapeHtml = (value: string) =>
 /**
  * Ответ 451 для закрытого анализа: тот же смысл, что экран читалки при 451, - без претензии,
  * заявителя и причины (ADR-012), с дорогой обратно на страницу книги. Личный и не кэшируется:
- * посетителю из другой страны этот ответ отдавать нельзя.
+ * посетителю из другой страны этот ответ отдавать нельзя. Оформление - статикой public/rights-blocked.css:
+ * строку HTML сборка Next не видит, а инлайн-стиль и rewrite на маршрут отвергнуты (F03 | F03-4, В2).
  */
 export function buildAnalysisClosedResponse(target: { lang: string; slug: string }): Response {
   const lang = isSupportedLang(target.lang) ? target.lang : 'en';
@@ -124,13 +125,17 @@ export function buildAnalysisClosedResponse(target: { lang: string; slug: string
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, follow">
 <title>${escapeHtml(dict.rightsBlocked.title)}</title>
+<link rel="stylesheet" href="/rights-blocked.css">
 </head>
 <body>
-<main>
-<h1>${escapeHtml(dict.rightsBlocked.title)}</h1>
-<p>${escapeHtml(dict.rightsBlocked.analysisMessage)}</p>
-<p><a href="${escapeHtml(bookHref)}">${escapeHtml(dict.rightsBlocked.backToBook)}</a></p>
-<p><a href="/${lang}/catalog">${escapeHtml(dict.rightsBlocked.browseCatalog)}</a></p>
+<header class="rb-header"><a class="rb-brand" href="/${lang}">Bibliaris</a></header>
+<main class="rb-main">
+<h1 class="rb-title">${escapeHtml(dict.rightsBlocked.title)}</h1>
+<p class="rb-message">${escapeHtml(dict.rightsBlocked.analysisMessage)}</p>
+<p class="rb-actions">
+<a class="rb-action" href="${escapeHtml(bookHref)}">${escapeHtml(dict.rightsBlocked.backToBook)}</a>
+<a class="rb-action" href="/${lang}/catalog">${escapeHtml(dict.rightsBlocked.browseCatalog)}</a>
+</p>
 </main>
 </body>
 </html>`;

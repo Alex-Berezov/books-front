@@ -396,8 +396,8 @@
   },
   "rightsBlocked": {
     "title": "Not available in your region",
-    "message": "Reading and listening to this book are unavailable in your country because of copyright restrictions. The book page stays open, and other books in the catalogue are available as usual.",
-    "analysisMessage": "The analysis of this book is unavailable in your country because of copyright restrictions. The book page stays open, and other books in the catalogue are available as usual.",
+    "message": "Reading and listening to this book are unavailable in your country because of rights restrictions. The book page stays open, and other books in the catalogue are available as usual.",
+    "analysisMessage": "The analysis of this book is unavailable in your country because of rights restrictions. The book page stays open, and other books in the catalogue are available as usual.",
     "backToBook": "Back to the book",
     "browseCatalog": "Browse the catalogue"
   },
