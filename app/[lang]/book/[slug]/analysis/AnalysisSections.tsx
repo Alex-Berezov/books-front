@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from 'react';
 import { analysisSectionFlags } from '@/lib/book-analysis/format';
-import type { Dictionary } from '@/lib/i18n/dictionaries';
+import type { AnalysisStrings } from '@/lib/i18n/analysisStrings';
 import type { BookAnalysisDetail } from '@/types/api-schema';
 import styles from './analysis.module.scss';
 import { ANALYSIS_ANCHORS } from './analysisAnchors';
@@ -19,7 +19,7 @@ import {
 interface AnalysisSectionsProps {
   analysis: BookAnalysisDetail;
   linker: ChapterLinker;
-  t: Dictionary['book'];
+  strings: AnalysisStrings;
   tocTitle: string;
 }
 
@@ -28,7 +28,7 @@ interface AnalysisSectionsProps {
  * символы, ключевые цитаты, смысл названия и финала. Раздел без данных не выводится вовсе (§1.4),
  * оглавление строится из того же списка, что и разделы. Блоки §13-§20 добавляет F03-3.
  */
-export function AnalysisSections({ analysis, linker, t, tocTitle }: AnalysisSectionsProps) {
+export function AnalysisSections({ analysis, linker, strings, tocTitle }: AnalysisSectionsProps) {
   const themes = analysis.themes ?? [];
   const characters = analysis.characters ?? [];
   const symbols = analysis.symbols ?? [];
@@ -42,14 +42,14 @@ export function AnalysisSections({ analysis, linker, t, tocTitle }: AnalysisSect
   if (has.themes) {
     sections.push({
       id: ANALYSIS_ANCHORS.themes,
-      title: t.analysisThemesTitle,
+      title: strings.analysisThemesTitle,
       body: <ThemesList themes={themes} linker={linker} />,
     });
   }
   if (has.characters) {
     sections.push({
       id: ANALYSIS_ANCHORS.characters,
-      title: t.analysisCharactersTitle,
+      title: strings.analysisCharactersTitle,
       body: (
         <CharactersList
           characters={characters}
@@ -57,13 +57,13 @@ export function AnalysisSections({ analysis, linker, t, tocTitle }: AnalysisSect
           linker={linker}
           labels={{
             roles: {
-              main: t.analysisRoleMain,
-              secondary: t.analysisRoleSecondary,
-              minor: t.analysisRoleMinor,
+              main: strings.analysisRoleMain,
+              secondary: strings.analysisRoleSecondary,
+              minor: strings.analysisRoleMinor,
             },
-            arcFrom: t.analysisArcFrom,
-            arcTo: t.analysisArcTo,
-            themeTags: t.analysisThemeTags,
+            arcFrom: strings.analysisArcFrom,
+            arcTo: strings.analysisArcTo,
+            themeTags: strings.analysisThemeTags,
           }}
         />
       ),
@@ -72,24 +72,26 @@ export function AnalysisSections({ analysis, linker, t, tocTitle }: AnalysisSect
   if (has.symbols) {
     sections.push({
       id: ANALYSIS_ANCHORS.symbols,
-      title: t.analysisSymbolsTitle,
-      body: <SymbolsList symbols={symbols} linker={linker} chaptersLabel={t.analysisChapters} />,
+      title: strings.analysisSymbolsTitle,
+      body: (
+        <SymbolsList symbols={symbols} linker={linker} chaptersLabel={strings.analysisChapters} />
+      ),
     });
   }
   if (has.keyQuotes) {
     sections.push({
       id: ANALYSIS_ANCHORS.keyQuotes,
-      title: t.analysisKeyQuotesTitle,
+      title: strings.analysisKeyQuotesTitle,
       standalone: true,
       body: (
         <KeyQuotesSection
           id={ANALYSIS_ANCHORS.keyQuotes}
-          title={t.analysisKeyQuotesTitle}
+          title={strings.analysisKeyQuotesTitle}
           quotes={keyQuotes}
           speakers={speakers}
           themes={themeIndex}
           linker={linker}
-          themeTagsLabel={t.analysisThemeTags}
+          themeTagsLabel={strings.analysisThemeTags}
         />
       ),
     });
@@ -97,7 +99,7 @@ export function AnalysisSections({ analysis, linker, t, tocTitle }: AnalysisSect
   if (has.titleMeaning) {
     sections.push({
       id: ANALYSIS_ANCHORS.titleMeaning,
-      title: t.analysisTitleMeaningTitle,
+      title: strings.analysisTitleMeaningTitle,
       body: (
         <div className={styles.text}>
           <Paragraphs text={analysis.titleMeaning} />
@@ -108,10 +110,10 @@ export function AnalysisSections({ analysis, linker, t, tocTitle }: AnalysisSect
   if (has.endingMeaning) {
     sections.push({
       id: ANALYSIS_ANCHORS.endingMeaning,
-      title: t.analysisEndingMeaningTitle,
+      title: strings.analysisEndingMeaningTitle,
       body: (
         <>
-          <SpoilerNote text={t.analysisEndingSpoiler} />
+          <SpoilerNote text={strings.analysisEndingSpoiler} />
           <div className={styles.text}>
             <Paragraphs text={analysis.endingMeaning} />
           </div>

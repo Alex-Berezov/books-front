@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { buildEditionNotesRows } from '@/components/public/books/EditionNotes/editionNotesRows';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
 import { hasText } from '@/lib/book-analysis/format';
+import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { buildAnalysisArticleJsonLd } from '@/lib/seo/analysis-jsonld';
 import { analysisPath } from '@/lib/seo/book-analysis';
@@ -57,10 +58,11 @@ export default async function BookAnalysisPage({ params }: Props) {
 
   const dict = getDictionary(supportedLang);
   const t = dict.book;
+  const analysisT = getAnalysisStrings(supportedLang);
   const bookSlug = book.slug || slug;
   const bookHref = `/${supportedLang}/book/${bookSlug}`;
   const title = version.title || book.title;
-  const pageTitle = t.analysisPageTitle.replace('{title}', title);
+  const pageTitle = analysisT.analysisPageTitle.replace('{title}', title);
   const authorName = version.author || book.author || t.unknownAuthor;
   const authorHref = resolveAuthorHref(version.authorPageUrl, book.authorSlug ?? null, lang);
   const year = book.firstPublishedYear ? String(book.firstPublishedYear) : null;
@@ -76,7 +78,7 @@ export default async function BookAnalysisPage({ params }: Props) {
   // Ссылка «глава N» - только на главу, которая есть в версии (§1.6); у версии без текста номеров нет.
   const chapterNumbers = new Set(analysis.chapterNumbers);
   const linker: ChapterLinker = {
-    label: (n) => t.analysisChapter.replace('{n}', String(n)),
+    label: (n) => analysisT.analysisChapter.replace('{n}', String(n)),
     href: (n) => (chapterNumbers.has(n) ? readerChapterHref(bookHref, n) : null),
   };
 
@@ -117,13 +119,13 @@ export default async function BookAnalysisPage({ params }: Props) {
   const editionValue = (label: string) => editionRows.find((r) => r.label === label)?.value;
   const factRows = [
     { label: t.summaryGenre, value: facts.genre },
-    { label: t.analysisFactMovement, value: facts.movement },
-    { label: t.analysisFactWrittenYears, value: facts.writtenYears },
+    { label: analysisT.analysisFactMovement, value: facts.movement },
+    { label: analysisT.analysisFactWrittenYears, value: facts.writtenYears },
     { label: t.editionFirstPublished, value: editionValue(t.editionFirstPublished) },
-    { label: t.analysisFactSettingPlace, value: facts.settingPlace },
-    { label: t.analysisFactSettingTime, value: facts.settingTime },
-    { label: t.analysisFactNarrator, value: facts.narrator },
-    { label: t.analysisFactStructure, value: facts.structure },
+    { label: analysisT.analysisFactSettingPlace, value: facts.settingPlace },
+    { label: analysisT.analysisFactSettingTime, value: facts.settingTime },
+    { label: analysisT.analysisFactNarrator, value: facts.narrator },
+    { label: analysisT.analysisFactStructure, value: facts.structure },
     { label: t.editionOriginalLanguage, value: editionValue(t.editionOriginalLanguage) },
   ].filter((row): row is { label: string; value: string } => hasText(row.value));
 
@@ -158,7 +160,7 @@ export default async function BookAnalysisPage({ params }: Props) {
         <BookSubpageHero
           bookHref={bookHref}
           coverUrl={book.coverUrl}
-          kicker={t.analysisPageSubtitle}
+          kicker={analysisT.analysisPageSubtitle}
           title={pageTitle}
           byLabel={t.by}
           authorName={authorName}
@@ -171,12 +173,12 @@ export default async function BookAnalysisPage({ params }: Props) {
         <div className={styles.content}>
           <FactsCard
             id={ANALYSIS_ANCHORS.facts}
-            title={t.analysisFactsTitle}
+            title={analysisT.analysisFactsTitle}
             rows={factRows}
             actions={<FactActions read={read} listen={listen} summary={summary} />}
           />
 
-          <Section id={ANALYSIS_ANCHORS.mainIdea} title={t.analysisMainIdeaTitle}>
+          <Section id={ANALYSIS_ANCHORS.mainIdea} title={analysisT.analysisMainIdeaTitle}>
             <div className={styles.mainIdea}>
               <Paragraphs text={analysis.mainIdea} />
             </div>
@@ -185,7 +187,7 @@ export default async function BookAnalysisPage({ params }: Props) {
           <AnalysisSections
             analysis={analysis}
             linker={linker}
-            t={t}
+            strings={analysisT}
             tocTitle={dict.common.tableOfContents}
           />
 

@@ -338,6 +338,75 @@ describe('страница анализа: содержимое', () => {
   });
 });
 
+// F03-2s: строки страницы - серверный модуль `lib/i18n/analysisStrings.ts`, а не словарь. Ожидания -
+// литералы прежних `locales/*.json`: перепутанный язык или потерянная строка краснеют здесь.
+describe('страница анализа: строки на пяти языках', () => {
+  const EXPECTED = {
+    en: {
+      h1: 'Hamlet: Analysis and Interpretation',
+      facts: 'About the work',
+      role: 'Main character',
+      spoiler: 'Spoiler warning: the ending is revealed below.',
+      quotes: 'Key quotes',
+      meta: 'Hamlet: Analysis and Interpretation — William Shakespeare',
+    },
+    es: {
+      h1: 'Hamlet: análisis e interpretación',
+      facts: 'Sobre la obra',
+      role: 'Personaje principal',
+      spoiler: 'Aviso de spoiler: a continuación se revela el final.',
+      quotes: 'Citas clave',
+      meta: 'Hamlet: análisis e interpretación — William Shakespeare',
+    },
+    fr: {
+      h1: 'Hamlet : analyse et interprétation',
+      facts: 'À propos de l’œuvre',
+      role: 'Personnage principal',
+      spoiler: 'Attention, spoiler : la fin est dévoilée ci-dessous.',
+      quotes: 'Citations clés',
+      meta: 'Hamlet : analyse et interprétation — William Shakespeare',
+    },
+    pt: {
+      h1: 'Hamlet: análise e interpretação',
+      facts: 'Sobre a obra',
+      role: 'Personagem principal',
+      spoiler: 'Alerta de spoiler: o final é revelado a seguir.',
+      quotes: 'Citações-chave',
+      meta: 'Hamlet: análise e interpretação — William Shakespeare',
+    },
+    ru: {
+      h1: 'Гамлет: анализ и разбор',
+      facts: 'О произведении',
+      role: 'Главный герой',
+      spoiler: 'Дальше раскрывается финал.',
+      quotes: 'Ключевые цитаты',
+      meta: 'Гамлет: анализ и разбор — William Shakespeare',
+    },
+  } as const;
+
+  for (const [lang, expected] of Object.entries(EXPECTED)) {
+    it(`${lang}: заголовок, раздел и title - строки своего языка`, async () => {
+      // Слаг у всех версий один: неканонический слаг языка уводит в редирект, а не в рендер.
+      const slug = 'hamlet';
+      mocks.pathname = `/${lang}/book/${slug}/analysis`;
+      mocks.getBookOverview.mockResolvedValue(
+        makeBook({
+          versions: ['en', 'es', 'fr', 'pt', 'ru'].map((l) => version(l, 'hamlet', 1)),
+        })
+      );
+
+      await renderPage(lang, slug);
+
+      expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(expected.h1);
+      expect(h2Texts()).toContain(expected.quotes);
+      expect(h2Texts()).toContain(expected.facts);
+      expect(document.body.textContent).toContain(expected.role);
+      expect(document.body.textContent).toContain(expected.spoiler);
+      expect((await metadataFor(lang, slug)).title).toBe(expected.meta);
+    });
+  }
+});
+
 describe('страница анализа: когда страницы нет', () => {
   it('нет версии языка страницы - 404 без запроса анализа', async () => {
     mocks.getBookOverview.mockResolvedValue(makeBook({ slug: 'hamlet-es' }));

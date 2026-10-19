@@ -5,6 +5,7 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { RichTextContent } from '@/components/common/RichTextContent';
 import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
+import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { analysisPath, pickAnalysisVersion } from '@/lib/seo/book-analysis';
 import { readingMinutes, summaryPath } from '@/lib/seo/book-summary';
@@ -116,7 +117,7 @@ export default async function BookSummaryPage({ params }: Props) {
 
   const exploreLinks = buildExploreLinks(bookHref, version, analysisHref, {
     about: dict.book.summaryExploreAbout,
-    analysis: dict.book.analysisExploreLink,
+    analysis: getAnalysisStrings(supportedLang).analysisExploreLink,
     characters: dict.book.mainCharacters,
     symbols: dict.book.symbols,
     quotes: dict.book.quotes,

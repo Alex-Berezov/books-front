@@ -268,6 +268,11 @@ describe('страница пересказа: содержимое', () => {
       ...document.querySelectorAll('section[aria-labelledby="summary-explore"] a'),
     ].map((a) => a.getAttribute('href'));
     expect(hrefs).toEqual(['/en/book/hamlet', '/en/book/hamlet/analysis']);
+    // Подпись ссылки - серверная строка анализа (`lib/i18n/analysisStrings.ts`, F03-2s).
+    expect(
+      document.querySelector('section[aria-labelledby="summary-explore"] a[href$="/analysis"]')
+        ?.textContent
+    ).toBe('Analysis and interpretation');
   });
 
   it('блок «читать или слушать» и «узнать больше» - по тому, что у книги есть', async () => {

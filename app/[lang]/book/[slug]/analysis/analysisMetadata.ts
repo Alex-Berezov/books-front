@@ -1,3 +1,4 @@
+import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import {
   analysisPath,
@@ -37,9 +38,8 @@ export async function buildAnalysisMetadata(
 
     const title = version.title || book.title;
     const author = version.author || book.author || dict.book.unknownAuthor;
-    const metaTitle = dict.book.analysisMetaTitle
-      .replace('{title}', title)
-      .replace('{author}', author);
+    const { analysisMetaTitle } = getAnalysisStrings(supportedLang);
+    const metaTitle = analysisMetaTitle.replace('{title}', title).replace('{author}', author);
     const description = describeAnalysis(analysis.mainIdea);
     const canonical = buildLangUrl(supportedLang, analysisPath(book.slug || slug));
     const cover = book.coverUrl;

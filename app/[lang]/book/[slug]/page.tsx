@@ -9,6 +9,7 @@ import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { StarRating } from '@/components/public/books/StarRating';
 import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
 import { analysisSectionFlags } from '@/lib/book-analysis/format';
+import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { analysisPath, pickAnalysisVersion } from '@/lib/seo/book-analysis';
 import { pickSummaryVersion, summaryPath } from '@/lib/seo/book-summary';
@@ -248,6 +249,7 @@ export default async function BookDetailPage({ params }: Props) {
   })();
 
   const dict = getDictionary(supportedLang);
+  const { analysisLinkOnBook } = getAnalysisStrings(supportedLang);
   const authorName = authorSource.author || dict.book.unknownAuthor;
   const descriptionTitle = dict.book.aboutBook.replace(
     '{title}',
@@ -453,7 +455,7 @@ export default async function BookDetailPage({ params }: Props) {
           ) : null}
           {analysisHref ? (
             <Link href={analysisHref} className={styles.summaryLink}>
-              {dict.book.analysisLinkOnBook.replace('{title}', activeVersion?.title || book.title)}
+              {analysisLinkOnBook.replace('{title}', activeVersion?.title || book.title)}
             </Link>
           ) : null}
         </div>
