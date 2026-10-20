@@ -23,20 +23,24 @@ import type {
 /**
  * Get book summary for a version.
  *
- * Returns `null` if no summary is stored yet.
+ * Returns `null` if no summary is stored yet: the server answers 200 with an empty body, the
+ * client turns it into `undefined`, and for react-query 5 `undefined` from a query is a failure -
+ * the Summary tab of a version without a summary did not open at all (20.10.2026).
  *
- * @param versionId - Book version ID
- * @returns Summary data or null
- */
-/**
  * ⚠️ `optionalAuth`, а не `requireAuth: false`. Один и тот же адрес обслуживает
  * публичную страницу саммари и админскую вкладку, где редактор пишет текст **до**
  * публикации. С 10.08.2026 черновик отдаётся только по токену (`LEGACY-090`);
  * без него редактор увидел бы 404 на собственной незавершённой работе.
+ *
+ * @param versionId - Book version ID
+ * @returns Summary data or null
  */
 export const getBookSummary = async (versionId: string): Promise<BookSummaryDetail | null> => {
   const endpoint = `/versions/${versionId}/summary`;
-  return httpGetAuth<BookSummaryDetail | null>(endpoint, { optionalAuth: true });
+  const summary = await httpGetAuth<BookSummaryDetail | null | undefined>(endpoint, {
+    optionalAuth: true,
+  });
+  return summary ?? null;
 };
 
 /**
