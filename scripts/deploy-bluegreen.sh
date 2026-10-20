@@ -51,7 +51,59 @@ PUBLIC_URL="${PUBLIC_URL:-https://bibliaris.com}"
 VERIFY_ATTEMPTS="${VERIFY_ATTEMPTS:-15}"
 VERIFY_INTERVAL="${VERIFY_INTERVAL:-2}"
 
+# Сколько последних образов фронта держать на машине: запас на несколько выкатов подряд
+# за день. Образ прошлого цвета уборка не снимет при любом запасе — его держит остановленный
+# контейнер, а `docker rmi` без `-f` занятый образ не удаляет.
+KEEP_IMAGES="${KEEP_IMAGES:-5}"
+IMAGE_REPO="${IMAGE_REPO:-ghcr.io/${GHCR_OWNER:-bibliaris}/bibliaris-frontend}"
+
 cd "$COMPOSE_DIR"
+
+# 🔴 Раньше здесь стоял один `docker image prune -f`. Он снимает только образы без тега,
+# а у каждого образа фронта тег — коммит, поэтому не удалялся ни один: к 20.10.2026
+# на машине лежало 206 образов, и вместе с бэкендом диск был занят на 85 %.
+#
+# Старшинство — по дате сборки, отсортированной здесь же: порядок вывода `docker images`
+# не обещан. `latest` не трогается. Отказ уборки выкат не валит — трафик уже переведён,
+# а образ может быть занят контейнером, — но и не глушится: Docker называет каждый
+# неудалённый образ, а скрипт пишет предупреждение.
+cleanup_old_images() {
+  # Нечисловой запас `awk` сравнил бы строкой и снял бы почти всё.
+  if [[ ! "$KEEP_IMAGES" =~ ^[0-9]+$ ]]; then
+    echo "[deploy] KEEP_IMAGES='$KEEP_IMAGES' не число — уборка пропущена" >&2
+    return 0
+  fi
+
+  local all='' old=''
+  if ! all="$(docker images "$IMAGE_REPO" --format '{{.CreatedAt}}	{{.Repository}}:{{.Tag}}')"; then
+    echo "[deploy] не удалось перечислить образы $IMAGE_REPO — уборка пропущена" >&2
+    return 0
+  fi
+  all="$(printf '%s\n' "$all" | LC_ALL=C sort -r | cut -f2)"
+  old="$(printf '%s\n' "$all" | awk -v keep="$KEEP_IMAGES" 'NF && $0 !~ /:(<none>|latest)$/ && ++n > keep')"
+
+  # Ноль образов сразу после выката — не «убирать нечего», а уборка смотрит не туда:
+  # `IMAGE_REPO` разошёлся с образом, который поднял compose. Так образы копились бы молча.
+  local found removing
+  found="$(printf '%s' "$all" | awk 'NF { n++ } END { print n + 0 }')"
+  removing="$(printf '%s' "$old" | awk 'NF { n++ } END { print n + 0 }')"
+  if [[ "$found" == 0 ]]; then
+    echo "[deploy] образов $IMAGE_REPO на машине не найдено — проверь IMAGE_REPO и GHCR_OWNER, уборка ничего не сняла" >&2
+  else
+    echo "[deploy] образов $IMAGE_REPO: $found, к удалению: $removing"
+  fi
+
+  # Одним вызовом: `docker rmi` снимает всё, что может, и называет каждый отказ сам.
+  # shellcheck disable=SC2086 # ссылки на образы без пробелов, нужен разбор по словам
+  if [[ "$removing" != 0 ]] && ! docker rmi $old > /dev/null; then
+    echo "[deploy] не все старые образы удалены (заняты контейнером?)" >&2
+  fi
+
+  # Бэкенд чистит образы на той же машине, и параллельный `prune` Docker отклоняет.
+  if ! docker image prune -f; then
+    echo "[deploy] docker image prune не прошёл — образы без тега остались" >&2
+  fi
+}
 
 #
 # ⚠️ Диапазон сужен до `300[12]` — тех двух портов, которыми оперирует сам выкат. Caddy
@@ -299,5 +351,5 @@ echo "[deploy] draining frontend-$CURRENT for ${DRAIN_SECONDS}s"
 sleep "$DRAIN_SECONDS"
 docker compose -f "$COMPOSE_FILE" stop "frontend-$CURRENT" || true
 
-docker image prune -f
+cleanup_old_images
 echo "[deploy] done: $TARGET is live"

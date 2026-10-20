@@ -34,7 +34,11 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
  *   state/reload_plan      — по знаку на вызов reload: `1` применяет конфиг, `0` завершается
  *                            кодом 0, не применив; последний знак повторяется;
  *   state/admin_fail       — сколько ближайших запросов к admin API оборвутся;
- *   state/public_down      — публичная страница не отвечает, даже когда контейнер жив.
+ *   state/public_down      — публичная страница не отвечает, даже когда контейнер жив;
+ *   state/images           — вывод `docker images` (от новых к старым), по образу на строку;
+ *   state/busy_images      — образы, на которых `docker rmi` отказывает (заняты контейнером);
+ *   state/images_fail      — `docker images` завершается ошибкой;
+ *   state/prune_fail       — `docker image prune` завершается ошибкой.
  */
 const SCRIPT = resolve(__dirname, '..', '..', 'scripts', 'deploy-bluegreen.sh');
 
@@ -45,6 +49,9 @@ const TARGET_PORT = '3001';
 let root = '';
 /** Сценарный флаг текущего кейса: на какой команде `caddy` завершается ненулём. */
 let caddyFailsOnCurrent: Scenario['caddyFailsOn'];
+/** Окружение выката текущего кейса; пустое значение скрипт читает как незаданное. */
+let ghcrOwnerCurrent = '';
+let keepImagesCurrent = '';
 
 const state = (name: string): string => join(root, 'state', name);
 
@@ -73,6 +80,17 @@ type Scenario = {
   publicDown?: boolean;
   /** Файла upstream до выката нет — откатывать некуда. */
   noUpstreamFile?: boolean;
+  /** Образы фронта на машине, от новых к старым, как их отдаёт `docker images`. */
+  images?: string[];
+  /** Образы, удаление которых отказывает: заняты контейнером. */
+  busyImages?: string[];
+  /** `docker images` завершается ошибкой. */
+  imagesFail?: boolean;
+  /** `docker image prune` завершается ошибкой (параллельный prune с выкатом бэкенда). */
+  pruneFail?: boolean;
+  /** Окружение выката: владелец образа в реестре и сколько образов держать. */
+  ghcrOwner?: string;
+  keepImages?: string;
 };
 
 const setUpStubs = ({
@@ -81,6 +99,12 @@ const setUpStubs = ({
   adminFailures = 0,
   publicDown = false,
   noUpstreamFile = false,
+  images = [],
+  busyImages = [],
+  imagesFail = false,
+  pruneFail = false,
+  ghcrOwner = '',
+  keepImages = '',
 }: Scenario = {}): void => {
   mkdirSync(join(root, 'bin'), { recursive: true });
   mkdirSync(join(root, 'state'), { recursive: true });
@@ -101,7 +125,18 @@ const setUpStubs = ({
   writeFileSync(state('reload_plan'), reloadPlan, 'utf8');
   writeFileSync(state('admin_fail'), String(adminFailures), 'utf8');
   if (publicDown) writeFileSync(state('public_down'), '1', 'utf8');
+  // Дата сборки — по месту в списке (первый — самый новый), а отдаётся список от старых
+  // к новым: старшинство обязан установить сам скрипт, а не порядок вывода `docker images`.
+  const imageLines = images.map(
+    (ref, i) => `2026-10-${String(30 - i).padStart(2, '0')} 10:00:00 +0000 UTC\t${ref}\n`
+  );
+  writeFileSync(state('images'), imageLines.reverse().join(''), 'utf8');
+  writeFileSync(state('busy_images'), busyImages.map((ref) => `${ref}\n`).join(''), 'utf8');
+  if (imagesFail) writeFileSync(state('images_fail'), '1', 'utf8');
+  if (pruneFail) writeFileSync(state('prune_fail'), '1', 'utf8');
   caddyFailsOnCurrent = caddyFailsOn;
+  ghcrOwnerCurrent = ghcrOwner;
+  keepImagesCurrent = keepImages;
 
   // `sudo` прав не добавляет, а просто исполняет дальше: на сервере у деплой-пользователя
   // `(ALL) NOPASSWD: ALL`, то есть разницы в поведении команд он не создаёт.
@@ -132,7 +167,11 @@ const setUpStubs = ({
     'docker',
     [
       'printf "%s\\n" "$*" >> "$STATE/docker.log"',
-      'if [ "$1" = "image" ]; then exit 0; fi',
+      'if [ "$1" = "image" ]; then [ -f "$STATE/prune_fail" ] && exit 1; exit 0; fi',
+      // Образы отдаются только на ожидаемое имя: опечатка в `IMAGE_REPO` должна давать
+      // пустоту, как на машине, а не тот же список.
+      'if [ "$1" = "images" ]; then [ -f "$STATE/images_fail" ] && exit 1; [ "$2" = "$EXPECT_REPO" ] && cat "$STATE/images"; exit 0; fi',
+      'if [ "$1" = "rmi" ]; then rc=0; shift; for r in "$@"; do grep -qxF "$r" "$STATE/busy_images" && rc=1; done; exit $rc; fi',
       `port=${TARGET_PORT}`,
       `case "$*" in *green*) port=${PREVIOUS_PORT} ;; esac`,
       'case "$*" in',
@@ -180,6 +219,10 @@ const runDeploy = (): { status: number | null; out: string } => {
       CADDYFILE: join(root, 'Caddyfile'),
       CADDY_ADMIN_URL: 'http://stub-admin.invalid:2019',
       CADDY_FAILS_ON: caddyFailsOnCurrent ?? '',
+      GHCR_OWNER: ghcrOwnerCurrent,
+      KEEP_IMAGES: keepImagesCurrent,
+      IMAGE_REPO: '',
+      EXPECT_REPO: `ghcr.io/${ghcrOwnerCurrent || 'bibliaris'}/bibliaris-frontend`,
       PUBLIC_URL: 'http://deploy-stub.invalid',
       READY_ATTEMPTS: '2',
       READY_INTERVAL: '0',
@@ -198,6 +241,12 @@ const dockerLog = (): string =>
 /** Погашен ли прежний контейнер — тот самый шаг, который 15.09.2026 уронил сайт. */
 const previousStopped = (): boolean => /stop frontend-green/.test(dockerLog());
 const targetStopped = (): boolean => /stop frontend-blue/.test(dockerLog());
+/** Образы, которые выкат пытался удалить, в порядке вызовов `docker rmi`. */
+const removedImages = (): string[] =>
+  dockerLog()
+    .split('\n')
+    .filter((line) => line.startsWith('rmi '))
+    .flatMap((line) => line.slice('rmi '.length).split(' '));
 const loadedPort = (): string => readFileSync(state('loaded_port'), 'utf8').trim();
 
 beforeEach(() => {
@@ -328,5 +377,148 @@ describe('выкат фронта: переключение подтвержда
     expect(status, out).not.toBe(0);
     expect(out).toContain('Откатывать некуда');
     expect(previousStopped()).toBe(false);
+  });
+});
+
+/**
+ * Уборка образов после выката. 🔴 До 20.10.2026 здесь стоял один `docker image prune -f`:
+ * он снимает только образы без тега, а у каждого образа фронта тег — коммит. Не удалялся
+ * ни один, и на машине накопилось 206 образов. Верни голый `prune` — первый кейс покраснеет:
+ * `docker rmi` не будет вызван ни разу.
+ */
+describe('выкат фронта: уборка старых образов', () => {
+  const REPO = 'ghcr.io/bibliaris/bibliaris-frontend';
+  const ref = (tag: string): string => `${REPO}:${tag}`;
+  /** Восемь релизов от нового к старому плюс `latest` и безымянный образ в середине. */
+  const IMAGES = [
+    ref('latest'),
+    ref('c8'),
+    ref('c7'),
+    ref('c6'),
+    `${REPO}:<none>`,
+    ref('c5'),
+    ref('c4'),
+    ref('c3'),
+    ref('c2'),
+    ref('c1'),
+  ];
+
+  it('держит пять последних релизов и удаляет остальные', () => {
+    setUpStubs({ images: IMAGES });
+
+    const { status, out } = runDeploy();
+
+    expect(status, out).toBe(0);
+    expect(removedImages()).toEqual([ref('c3'), ref('c2'), ref('c1')]);
+    expect(dockerLog()).toMatch(/^image prune -f$/m);
+    expect(out).toContain(`образов ${REPO}: 10, к удалению: 3`);
+  });
+
+  it('образов под ожидаемым именем нет — предупреждение в логе, выкат доходит до конца', () => {
+    setUpStubs({ images: [] });
+
+    const { status, out } = runDeploy();
+
+    expect(status, out).toBe(0);
+    expect(out).toContain('не найдено — проверь IMAGE_REPO и GHCR_OWNER');
+    expect(out).toContain('done: blue is live');
+  });
+
+  it('latest и образ без тега не удаляются, даже если старше пяти последних', () => {
+    setUpStubs({ images: [...IMAGES.slice(1), ref('latest')] });
+
+    const { status, out } = runDeploy();
+
+    expect(status, out).toBe(0);
+    expect(removedImages()).toEqual([ref('c3'), ref('c2'), ref('c1')]);
+  });
+
+  it('спрашивает образы того владельца, которого передал конвейер, и держит KEEP_IMAGES', () => {
+    const owner = 'alex-berezov';
+    const repo = `ghcr.io/${owner}/bibliaris-frontend`;
+    setUpStubs({
+      ghcrOwner: owner,
+      keepImages: '2',
+      images: [`${repo}:c3`, `${repo}:c2`, `${repo}:c1`],
+    });
+
+    const { status, out } = runDeploy();
+
+    expect(status, out).toBe(0);
+    expect(dockerLog()).toContain(`images ${repo} --format`);
+    expect(removedImages()).toEqual([`${repo}:c1`]);
+  });
+
+  it('KEEP_IMAGES не число — уборка пропущена, выкат доходит до конца', () => {
+    setUpStubs({ images: IMAGES, keepImages: 'five' });
+
+    const { status, out } = runDeploy();
+
+    expect(status, out).toBe(0);
+    expect(removedImages()).toEqual([]);
+    expect(out).toContain("KEEP_IMAGES='five' не число");
+    expect(out).toContain('done: blue is live');
+  });
+
+  it('docker images упал — уборка пропущена, выкат доходит до конца', () => {
+    setUpStubs({ images: IMAGES, imagesFail: true });
+
+    const { status, out } = runDeploy();
+
+    expect(status, out).toBe(0);
+    expect(removedImages()).toEqual([]);
+    expect(out).toContain('уборка пропущена');
+    expect(out).toContain('done: blue is live');
+  });
+
+  it('docker image prune упал — выкат доходит до конца, отказ назван в логе', () => {
+    setUpStubs({ images: IMAGES, pruneFail: true });
+
+    const { status, out } = runDeploy();
+
+    expect(status, out).toBe(0);
+    expect(removedImages()).toEqual([ref('c3'), ref('c2'), ref('c1')]);
+    expect(out).toContain('docker image prune не прошёл');
+    expect(out).toContain('done: blue is live');
+  });
+
+  it('образов не больше пяти — ничего не удаляется', () => {
+    setUpStubs({ images: [ref('latest'), ref('c2'), ref('c1')] });
+
+    const { status, out } = runDeploy();
+
+    expect(status, out).toBe(0);
+    expect(removedImages()).toEqual([]);
+  });
+
+  it('занятый образ не валит выкат: остальные удаляются, отказ назван в логе', () => {
+    setUpStubs({ images: IMAGES, busyImages: [ref('c2')] });
+
+    const { status, out } = runDeploy();
+
+    expect(status, out).toBe(0);
+    expect(removedImages()).toEqual([ref('c3'), ref('c2'), ref('c1')]);
+    expect(out).toContain('не все старые образы удалены');
+    expect(out).toContain('done: blue is live');
+  });
+
+  it('выкат, покрасневший до переключения, образы не трогает', () => {
+    setUpStubs({ images: IMAGES, reloadPlan: '0' });
+
+    const { status, out } = runDeploy();
+
+    expect(status, out).not.toBe(0);
+    expect(out).toContain('Traffic was NOT switched');
+    expect(removedImages()).toEqual([]);
+  });
+
+  it('выкат, откатившийся после переключения, образы не трогает', () => {
+    setUpStubs({ images: IMAGES, publicDown: true });
+
+    const { status, out } = runDeploy();
+
+    expect(status, out).not.toBe(0);
+    expect(out).toContain('снаружи сайт не отвечает');
+    expect(removedImages()).toEqual([]);
   });
 });
