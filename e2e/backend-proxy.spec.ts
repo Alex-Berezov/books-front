@@ -82,8 +82,11 @@ test.describe('Backend proxy', () => {
         await route.continue();
       });
 
+      // Точный путь: страница профиля параллельно грузит `/users/me/activities`, и его ответ 200
+      // без `email` иначе успевал раньше повтора `/users/me`.
       const profile = page.waitForResponse(
-        (response) => response.url().includes('/api/backend/users/me') && response.status() === 200
+        (response) =>
+          new URL(response.url()).pathname === '/api/backend/users/me' && response.status() === 200
       );
       await page.goto('/en/profile');
       const body = (await (await profile).json()) as { email?: string };
