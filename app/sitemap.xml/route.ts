@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getPublicBooks } from '@/api/endpoints/public';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
+import {
+  fetchSummarySectionsTotal,
+  SUMMARY_SECTIONS_SITEMAP_PAGE_SIZE,
+  SUMMARY_SECTIONS_SITEMAP_PREFIX,
+} from '@/lib/sitemap/summary-sections';
 import { getBaseUrl, getBookSitemapUrls, buildSitemapIndexXml } from '@/lib/sitemap/utils';
 
 export const dynamic = 'force-dynamic';
@@ -24,11 +29,21 @@ async function fetchBooksTotal(lang: string): Promise<number | null> {
 export async function GET() {
   const cleanBaseUrl = getBaseUrl();
 
+  // Разделы пересказа (F04-3) - своими файлами по тому же правилу счёта (`LEGACY-082`).
+  // Два счёта по очереди, а не десять запросов разом: лимитер отбивает параллельный всплеск
+  // с одного IP (`LEGACY-064`), а неизвестный счёт оставляет в индексе только файл 1.
   const bookSitemapUrls = await getBookSitemapUrls(cleanBaseUrl, SUPPORTED_LANGS, fetchBooksTotal);
+  const summarySectionSitemapUrls = await getBookSitemapUrls(
+    cleanBaseUrl,
+    SUPPORTED_LANGS,
+    fetchSummarySectionsTotal,
+    { prefix: SUMMARY_SECTIONS_SITEMAP_PREFIX, pageSize: SUMMARY_SECTIONS_SITEMAP_PAGE_SIZE }
+  );
 
   const sitemaps = [
     `${cleanBaseUrl}/sitemaps/sitemap-static.xml`,
     ...bookSitemapUrls,
+    ...summarySectionSitemapUrls,
     ...SUPPORTED_LANGS.flatMap((lang) => [
       `${cleanBaseUrl}/sitemaps/sitemap-categories-${lang}.xml`,
       `${cleanBaseUrl}/sitemaps/sitemap-genres-${lang}.xml`,

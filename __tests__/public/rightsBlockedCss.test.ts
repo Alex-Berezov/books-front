@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { buildAnalysisClosedResponse } from '@/lib/analysis-claim-closures';
+import { buildClaimClosedResponse } from '@/lib/claim-closures';
 
 // Решение арбитра F03 | F03-4, В2: экран 451 закрытого анализа оформлен статическим
 // public/rights-blocked.css, а его значения - копия styles/tokens.scss. Копия дрейфует молча:
@@ -57,10 +57,14 @@ describe('public/rights-blocked.css - копия токенов', () => {
     expect(used.filter((name) => !declared.has(name))).toEqual([]);
   });
 
-  // Разметку экрана собирает строка в lib/analysis-claim-closures.ts, стили - этот файл:
+  // Разметку экрана собирает строка в lib/claim-closures.ts, стили - этот файл:
   // класс, переименованный с одной стороны, оставил бы экран без оформления при зелёных тестах.
   it('каждый класс разметки экрана 451 определён в CSS', async () => {
-    const html = await buildAnalysisClosedResponse({ lang: 'en', slug: 'hamlet' }).text();
+    const html = await buildClaimClosedResponse({
+      lang: 'en',
+      slug: 'hamlet',
+      kind: 'analysis',
+    }).text();
     const classes = [...html.matchAll(/class="([^"]+)"/g)].flatMap(([, list]) => list.split(/\s+/));
     const defined = (name: string) => new RegExp(`\\.${name}(?![\\w-])`).test(rules);
     expect(classes.length).toBeGreaterThan(0);

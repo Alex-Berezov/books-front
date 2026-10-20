@@ -1,10 +1,11 @@
 import { unstable_doesMiddlewareMatch } from 'next/experimental/testing/server';
 import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { resetClaimClosuresCache } from '@/lib/analysis-claim-closures';
 import { ADMIN_PANEL_ROLES, UserRole } from '@/lib/auth/constants';
+import { resetClaimClosuresCache } from '@/lib/claim-closures';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { summarySectionClosedStrings } from '@/lib/i18n/summarySectionClosedStrings';
 import { decodeEntities } from '@/lib/utils/html-entities';
 import { config, middleware, STATIC_ASSET_EXTENSIONS, STATIC_ASSET_PATTERN } from '@/middleware';
 
@@ -756,5 +757,53 @@ describe('анализ: закрытие по стране блока оконч
   it('бэкенд не ответил и списка не было - открыто', async () => {
     fetchMock.mockRejectedValue(new Error('down'));
     expect((await open('/en/book/hamlet/analysis', 'GB')).status).not.toBe(451);
+  });
+
+  // F04-3 (D4, решение арбитра `F04 | F04-3`): разделы пересказа закрыты тем же списком, что анализ,
+  // со своим заголовком и текстом (`product.md` §5а), без «в вашей стране».
+  describe('раздел пересказа /summary/{n}', () => {
+    it('страна блока - 451 своим экраном, номер без раздела тоже, не кэшируется', async () => {
+      for (const path of ['/en/book/hamlet/summary/1', '/en/book/hamlet/summary/7']) {
+        const response = await open(path, 'GB');
+        expect(response.status).toBe(451);
+        expect(response.headers.get('cache-control')).toBe('private, no-store');
+        const text = decodeEntities(await response.text());
+        expect(text).toContain('<title>Section unavailable</title>');
+        expect(text).toContain('>Section unavailable</h1>');
+        expect(text).toContain(
+          'This section summary is unavailable because of rights restrictions. The book page stays open.'
+        );
+        expect(text).not.toContain(getDictionary('en').rightsBlocked.title);
+        expect(text).toContain('href="/en/book/hamlet"');
+        expect(text).toContain('href="/en/catalog"');
+      }
+    });
+
+    it.each(SUPPORTED_LANGS)('%s: экран 451 раздела на языке страницы', async (lang) => {
+      const response = await open(`/${lang}/book/emma/summary/2`);
+      const text = decodeEntities(await response.text());
+      const strings = summarySectionClosedStrings[lang];
+      expect(strings.summarySectionClosedTitle.trim()).not.toBe('');
+      expect(response.status).toBe(451);
+      expect(text).toContain(`<html lang="${lang}">`);
+      expect(text).toContain(`>${strings.summarySectionClosedTitle}</h1>`);
+      expect(text).toContain(strings.summarySectionClosedMessage);
+    });
+
+    it.each([
+      ['сам пересказ', '/en/book/hamlet/summary', 'GB'],
+      ['кривой номер abc', '/en/book/hamlet/summary/abc', 'GB'],
+      ['кривой номер 01', '/en/book/hamlet/summary/01', 'GB'],
+      ['глубже номера', '/en/book/hamlet/summary/1/x', 'GB'],
+      ['другая страна', '/en/book/hamlet/summary/1', 'US'],
+      ['истёкший блок', '/en/book/carol/summary/1', 'DE'],
+    ])('%s - открыто', async (_name, path, country) => {
+      const response = await open(path, country);
+      expect(response.status).not.toBe(451);
+    });
+
+    it('блок на весь мир - 451 и без страны', async () => {
+      expect((await open('/ru/book/emma/summary/1')).status).toBe(451);
+    });
   });
 });

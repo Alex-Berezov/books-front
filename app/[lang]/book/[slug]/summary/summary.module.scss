@@ -94,6 +94,33 @@
   line-height: $line-height-tight;
 }
 
+// Оглавление «Краткое содержание по главам» (F04-3): на `/summary` - блоком над полным пересказом.
+.sections {
+  margin: 0 0 $spacing-xl;
+}
+
+.sectionList {
+  margin: 0;
+  padding-left: $spacing-lg;
+  line-height: $line-height-base;
+
+  li + li {
+    margin-top: $spacing-xs;
+  }
+
+  a {
+    color: var(--public-foreground);
+
+    &:hover {
+      color: var(--public-primary);
+    }
+  }
+
+  [aria-current='page'] {
+    font-weight: $font-weight-semibold;
+  }
+}
+
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -176,4 +203,47 @@
       border-color: var(--public-primary);
     }
   }
+}
+
+// Страница раздела пересказа (F04-3): время чтения раздела, ссылка в читалку, пред./след.
+.sectionReading {
+  display: flex;
+  gap: $spacing-xs;
+  align-items: center;
+  margin: 0 0 $spacing-md;
+  font-size: $font-size-sm;
+  opacity: 0.7;
+}
+
+.readChapter {
+  margin: $spacing-lg 0 0;
+  font-weight: $font-weight-semibold;
+}
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm $spacing-md;
+  justify-content: space-between;
+  margin: $spacing-xl 0;
+  padding: $spacing-md 0;
+  border-top: 1px solid var(--public-border);
+  border-bottom: 1px solid var(--public-border);
+
+  a {
+    color: var(--public-foreground);
+
+    &:hover {
+      color: var(--public-primary);
+    }
+  }
+}
+
+.pagerNext {
+  margin-left: auto;
+  text-align: right;
+}
+
+.pagerPrev {
+  text-align: left;
 }

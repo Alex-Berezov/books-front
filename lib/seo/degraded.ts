@@ -16,6 +16,10 @@ export type DegradedSurface =
   | 'tag-detail'
   | 'book-detail'
   | 'book-summary'
+  /** Страница раздела пересказа `/summary/{n}` (F04-3). */
+  | 'book-summary-section'
+  /** Оглавление разделов на `/summary` (F04-3): отказ снимает блок, страница открыта. */
+  | 'book-summary-sections-toc'
   | 'book-analysis'
   | 'sitemap-index'
   | 'sitemap-file';
@@ -36,7 +40,7 @@ export interface DegradedEvent {
   lang?: string;
   slug?: string;
   /** What the caller did about it — so the log says the outcome, not just the cause. */
-  outcome: 'noindex' | 'threw-5xx' | 'kept-url';
+  outcome: 'noindex' | 'threw-5xx' | 'kept-url' | 'dropped-block';
 }
 
 const counters = new Map<string, number>();

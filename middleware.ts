@@ -8,12 +8,6 @@
 import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import {
-  buildAnalysisClosedResponse,
-  isAnalysisClosed,
-  loadClaimClosures,
-  matchAnalysisPath,
-} from '@/lib/analysis-claim-closures';
-import {
   ADMIN_PANEL_ROLES,
   AuthErrorType,
   SIGN_IN_REASON_PARAM,
@@ -21,6 +15,12 @@ import {
   isTokenSessionEnded,
 } from '@/lib/auth/constants';
 import { UNKNOWN_COUNTRY, visitorCountryFrom } from '@/lib/backend-proxy';
+import {
+  buildClaimClosedResponse,
+  isClaimClosed,
+  loadClaimClosures,
+  matchClaimClosedPath,
+} from '@/lib/claim-closures';
 import { API_BASE_URL } from '@/lib/http.constants';
 import { DEFAULT_REDIRECT_LANG } from '@/lib/middleware.constants';
 import { getSiteUrl } from '@/lib/seo/urls';
@@ -283,16 +283,16 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // F03-2, решение арбитра `F03 | F03-2`: анализ, закрытый блоком окончённой претензии по стране
-  // посетителя, - 451 здесь. Статичная страница страну не знает и закрывается только блоком на
-  // весь мир; список и правила отказа - `lib/analysis-claim-closures.ts`.
-  const analysisTarget = matchAnalysisPath(pathname);
-  if (analysisTarget) {
+  // F03-2 и F04-3 (решения арбитра `F03 | F03-2`, `F04 | F04-3`): анализ и раздел пересказа,
+  // закрытые блоком окончённой претензии по стране посетителя, - 451 здесь. Статичная страница
+  // страну не знает и закрывается только блоком на весь мир; список и правила - `lib/claim-closures.ts`.
+  const closedTarget = matchClaimClosedPath(pathname);
+  if (closedTarget) {
     const visitorCountry = visitorCountryFrom(request.headers).toUpperCase();
     const country = visitorCountry === UNKNOWN_COUNTRY ? null : visitorCountry;
     const closures = await loadClaimClosures(API_BASE_URL);
-    if (isAnalysisClosed(closures, analysisTarget, country)) {
-      return buildAnalysisClosedResponse(analysisTarget);
+    if (isClaimClosed(closures, closedTarget, country)) {
+      return buildClaimClosedResponse(closedTarget);
     }
   }
 

@@ -8,7 +8,6 @@ import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
 import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getSummaryStrings } from '@/lib/i18n/summaryStrings';
-import { analysisPath, pickAnalysisVersion } from '@/lib/seo/book-analysis';
 import { summaryPath } from '@/lib/seo/book-summary';
 import { buildSummaryArticleJsonLd } from '@/lib/seo/summary-jsonld';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
@@ -19,15 +18,16 @@ import { readingMinutes } from '@/lib/utils/reading-time';
 import { sanitizeRichHtml } from '@/lib/utils/rich-html';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
-import { resolveAuthorHref } from '../authorHref';
-import { BookSectionNav, buildBookSectionNavItems } from '../BookSectionNav';
+import { BookSectionNav } from '../BookSectionNav';
 import { BookSubpageHero } from '../BookSubpageHero';
 import { RelatedBooksSection } from '../RelatedBooksSection';
 import styles from './summary.module.scss';
+import { buildSummaryBookContext } from './summaryBookContext';
 import { SummaryBrief } from './SummaryBrief';
 import { loadSummaryOrNotFound } from './summaryData';
 import { buildSummaryMetadata } from './summaryMetadata';
 import { buildExploreLinks, SummaryMoreBlocks } from './SummaryMoreBlocks';
+import { SummarySectionsToc } from './SummarySectionsToc';
 import { SummarySidebar } from './SummarySidebar';
 
 type Props = {
@@ -68,7 +68,7 @@ export default async function BookSummaryPage({ params }: Props) {
     redirect(summaryUrl(lang)(book.slug));
   }
 
-  const { version, summary, plainText, brief } = await loadSummaryOrNotFound(
+  const { version, summary, plainText, brief, sections } = await loadSummaryOrNotFound(
     book,
     supportedLang,
     slug
@@ -76,46 +76,30 @@ export default async function BookSummaryPage({ params }: Props) {
 
   const dict = getDictionary(supportedLang);
   const summaryStrings = getSummaryStrings(supportedLang);
-  const bookSlug = book.slug || slug;
-  const bookHref = `/${supportedLang}/book/${bookSlug}`;
-  const title = version.title || book.title;
+  const {
+    bookSlug,
+    bookHref,
+    title,
+    authorName,
+    authorHref,
+    year,
+    genre,
+    readHref,
+    listenHref,
+    analysisHref,
+    navItems,
+  } = buildSummaryBookContext({ book, version, lang: supportedLang, slug, dict });
   const pageTitle = dict.book.summaryPageTitle.replace('{title}', title);
   const readingTime = dict.book.summaryReadingTime.replace(
     '{minutes}',
     String(readingMinutes(plainText))
   );
-  const authorName = version.author || book.author || dict.book.unknownAuthor;
-  const authorHref = resolveAuthorHref(version.authorPageUrl, book.authorSlug ?? null, lang);
-  const year = book.firstPublishedYear ? String(book.firstPublishedYear) : null;
-  const genre = book.primaryCategory?.name ?? null;
-  const readHref = book.versionIds?.text ? `${bookHref}/read` : null;
-  const listenHref = book.versionIds?.audio ? `${bookHref}/listen` : null;
-  const analysisHref =
-    pickAnalysisVersion(book, supportedLang) !== null
-      ? `/${supportedLang}${analysisPath(bookSlug)}`
-      : null;
 
   const { anchors } = anchorHeadings(
     demoteH1(sanitizeRichHtml(summary.summary)),
     SUMMARY_ANCHOR_PREFIX,
     'h2'
   );
-
-  const navItems = buildBookSectionNavItems({
-    lang: supportedLang,
-    bookSlug,
-    hasText: Boolean(readHref),
-    hasAudio: Boolean(listenHref),
-    hasSummary: true,
-    hasAnalysis: Boolean(analysisHref),
-    labels: {
-      book: dict.book.bookNavBook,
-      read: dict.book.read,
-      listen: dict.book.listen,
-      summary: dict.book.summary,
-      analysis: dict.book.analysis,
-    },
-  });
 
   const exploreLinks = buildExploreLinks(bookHref, version, analysisHref, {
     about: dict.book.summaryExploreAbout,
@@ -203,9 +187,18 @@ export default async function BookSummaryPage({ params }: Props) {
                 html={brief.html}
                 plainText={brief.plainText}
                 title={summaryStrings.summaryBriefTitle}
-                fullTitle={summaryStrings.summaryFullTitle}
                 readingTimeTemplate={dict.book.summaryReadingTime}
               />
+            )}
+            <SummarySectionsToc
+              lang={supportedLang}
+              bookSlug={bookSlug}
+              title={summaryStrings.summarySectionsTitle}
+              sections={sections}
+            />
+            {/* Над полным - только когда выше есть другой блок (`product.md` §4 п.5). */}
+            {(brief || sections.length > 0) && (
+              <h2 className={styles.blockTitle}>{summaryStrings.summaryFullTitle}</h2>
             )}
             <RichTextContent
               html={summary.summary}

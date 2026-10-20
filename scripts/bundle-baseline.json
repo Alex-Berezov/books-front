@@ -16,6 +16,7 @@
   "/[lang]/book/[slug]/listen": 177749,
   "/[lang]/book/[slug]/read": 184218,
   "/[lang]/book/[slug]/summary": 152896,
+  "/[lang]/book/[slug]/summary/[n]": 152117,
   "/[lang]/bookshelf": 177186,
   "/[lang]/catalog": 155120,
   "/[lang]/catalog/[categorySlug]": 107025,

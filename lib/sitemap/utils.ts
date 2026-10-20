@@ -50,12 +50,20 @@ export type GetTotalBooksFn = (lang: string) => Promise<number | null>;
 export async function getBookSitemapUrls(
   cleanBaseUrl: string,
   supportedLangs: readonly string[],
-  getTotalBooks: GetTotalBooksFn
+  getTotalBooks: GetTotalBooksFn,
+  /**
+   * Семейство файлов: книги (по умолчанию) или разделы пересказа (F04 T10) - одно правило
+   * «неизвестный счёт - файл 1 остаётся» на оба, второй реализации `LEGACY-082` нет.
+   */
+  files: { prefix: string; pageSize: number } = {
+    prefix: 'sitemap-books',
+    pageSize: BOOKS_SITEMAP_PAGE_SIZE,
+  }
 ): Promise<string[]> {
   const results = await Promise.all(
     supportedLangs.map(async (lang) => {
       const fileUrl = (index: number) =>
-        `${cleanBaseUrl}/sitemaps/sitemap-books-${lang}-${index}.xml`;
+        `${cleanBaseUrl}/sitemaps/${files.prefix}-${lang}-${index}.xml`;
 
       let total: number | null = null;
       try {
@@ -74,7 +82,7 @@ export async function getBookSitemapUrls(
         return [fileUrl(1)];
       }
 
-      const pages = Math.ceil(total / BOOKS_SITEMAP_PAGE_SIZE);
+      const pages = Math.ceil(total / files.pageSize);
       return Array.from({ length: pages }, (_, index) => fileUrl(index + 1));
     })
   );

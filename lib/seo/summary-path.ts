@@ -12,6 +12,11 @@ export function summaryPath(bookSlug: string): string {
   return `/book/${bookSlug}/summary`;
 }
 
+/** Путь страницы раздела пересказа без языка: `/book/{slug}/summary/{n}` (F04, D1). */
+export function summarySectionPath(bookSlug: string, n: number): string {
+  return `${summaryPath(bookSlug)}/${n}`;
+}
+
 /**
  * Есть ли у версии пересказ: обзор книги и список книг отдают счётчик `_count.summaries`.
  * Счётчика нет - пересказ не подтверждён, ссылку на него не ставим.

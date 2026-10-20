@@ -1,5 +1,6 @@
 import { summaryPath } from '@/lib/seo/book-summary';
 import { buildOrganizationJsonLd } from '@/lib/seo/organization-jsonld';
+import { summarySectionPath } from '@/lib/seo/summary-path';
 import { buildLangUrl } from '@/lib/seo/urls';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
@@ -38,5 +39,26 @@ export function buildSummaryArticleJsonLd(input: SummaryJsonLdInput) {
       parentOrganization: { '@id': organization['@id'] },
     },
     about: { '@type': 'Book', name: bookTitle },
+  };
+}
+
+type SummarySectionJsonLdInput = Omit<SummaryJsonLdInput, 'updatedAt'> & {
+  /** Номер раздела - его адрес `/summary/{n}`. */
+  number: number;
+  /** Дата раздела по этому адресу (`contentDate`): правка текста или смена номера. */
+  contentDate: string;
+};
+
+/**
+ * Разметка страницы раздела пересказа (F04-3, `product.md` §6 п.3): та же статья редакции, что
+ * у пересказа, и `isPartOf` на сам пересказ. `BreadcrumbList` ставят видимые крошки.
+ */
+export function buildSummarySectionJsonLd(input: SummarySectionJsonLdInput) {
+  const { lang, bookSlug, number, contentDate } = input;
+  const article = buildSummaryArticleJsonLd({ ...input, updatedAt: contentDate });
+  return {
+    ...article,
+    url: buildLangUrl(lang, summarySectionPath(bookSlug, number)),
+    isPartOf: { '@type': 'Article', url: article.url },
   };
 }

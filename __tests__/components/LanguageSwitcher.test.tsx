@@ -183,4 +183,36 @@ describe('LanguageSwitcher', () => {
 
     expect(screen.queryByText(/FR/)).not.toBeInTheDocument();
   });
+
+  // F04-3 `product.md` §5: раздел пересказа ведёт на `/summary` другого языка - пары разделов нет.
+  it.each([
+    ['со слагом целевой версии', 'hamlet-fr', '/fr/book/hamlet-fr/summary'],
+    ['без слага целевой версии', undefined, '/fr/book/hamlet/summary'],
+  ])(
+    'со страницы раздела /summary/3 - на /summary другого языка, %s',
+    (_name, frSlug, expected) => {
+      const pushMock = vi.fn();
+      vi.spyOn(navigation, 'useRouter').mockReturnValue({
+        push: pushMock,
+        refresh: vi.fn(),
+        back: vi.fn(),
+        forward: vi.fn(),
+        replace: vi.fn(),
+        prefetch: vi.fn(),
+      });
+      vi.spyOn(navigation, 'usePathname').mockReturnValue('/en/book/hamlet/summary/3');
+      overview.data = {
+        versions: [
+          { language: 'en', slug: 'hamlet', _count: { summaries: 1 } },
+          { language: 'fr', slug: frSlug, _count: { summaries: 1 } },
+        ],
+      };
+
+      render(<LanguageSwitcher />);
+      fireEvent.click(screen.getByLabelText('Select language'));
+      fireEvent.click(screen.getByText(/FR/));
+
+      expect(pushMock).toHaveBeenCalledWith(expected);
+    }
+  );
 });

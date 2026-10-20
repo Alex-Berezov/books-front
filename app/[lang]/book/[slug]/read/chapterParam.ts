@@ -1,3 +1,5 @@
+import { parseOrdinal } from '@/lib/utils/ordinal-param';
+
 /** Параметр адреса читалки с номером главы: `/{lang}/book/{slug}/read?chapter=N` (F03-2). */
 export const CHAPTER_PARAM = 'chapter';
 
@@ -7,9 +9,7 @@ export const CHAPTER_PARAM = 'chapter';
  * восстановление места (`tech.md` §1).
  */
 export function parseChapterParam(search: string): number | null {
-  const raw = new URLSearchParams(search).get(CHAPTER_PARAM);
-  if (raw === null || !/^[1-9]\d{0,5}$/.test(raw)) return null;
-  return Number(raw);
+  return parseOrdinal(new URLSearchParams(search).get(CHAPTER_PARAM));
 }
 
 /** Строка запроса читалки на главе `n`: `?chapter=n`. */

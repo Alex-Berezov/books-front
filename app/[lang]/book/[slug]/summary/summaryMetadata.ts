@@ -6,6 +6,7 @@ import {
   summaryPath,
 } from '@/lib/seo/book-summary';
 import { noteDegraded } from '@/lib/seo/degraded';
+import { robotsHasNoindex } from '@/lib/seo/robots-noindex';
 import { buildLangUrl } from '@/lib/seo/urls';
 import { isNotFoundError } from '@/lib/utils/content-failure';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -41,7 +42,7 @@ export async function buildSummaryMetadata(
     const canonical = buildLangUrl(supportedLang, summaryPath(book.slug || slug));
     const cover = book.coverUrl;
     // Редактор закрыл книгу от индекса - пересказ с её сюжетом закрыт вместе с ней.
-    const bookClosed = /noindex/i.test(bookSeo.meta.robots ?? '');
+    const bookClosed = robotsHasNoindex(bookSeo.meta.robots);
 
     return {
       title: metaTitle,

@@ -22,6 +22,11 @@ import { loadLandingPresence } from '@/lib/seo/landing-presence';
 import { isTaxonomyLinkable } from '@/lib/seo/taxonomy-linkable';
 import { buildLangUrl } from '@/lib/seo/urls';
 import {
+  buildSummarySectionsSitemapItems,
+  parseSummarySectionsSitemapFile,
+  SUMMARY_SECTIONS_SITEMAP_PREFIX,
+} from '@/lib/sitemap/summary-sections';
+import {
   getBaseUrl,
   buildUrlSetXml,
   fetchAllPages,
@@ -309,6 +314,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
         ...(analysisAlternates ? { alternates: { languages: analysisAlternates } } : {}),
       });
     });
+  }
+  // 2а. Разделы пересказа (F04-3, `tech.md` T10): sitemap-summary-sections-[lang]-[n].xml - одна
+  // страница ручки на файл; сборка и проверки формы - `lib/sitemap/summary-sections.ts`.
+  else if (filename.startsWith(`${SUMMARY_SECTIONS_SITEMAP_PREFIX}-`)) {
+    const file = parseSummarySectionsSitemapFile(filename, SUPPORTED_LANGS);
+    if (!file) {
+      return new NextResponse('Sitemap not found', { status: 404 });
+    }
+    try {
+      sitemapItems.push(...(await buildSummarySectionsSitemapItems(file.lang, file.page)));
+    } catch (error) {
+      noteFailure(`summary-sections ${file.lang} file${file.page}`, error);
+    }
+    // Номер за пределами выдачи - 404, как у файлов книг; отказ - 503 ниже. Файл 1 индекс держит
+    // и при неизвестном счёте (`LEGACY-082`): язык без разделов - пустой `<urlset>`, а не 404.
+    if (sitemapItems.length === 0 && upstreamFailures.length === 0 && file.page > 1) {
+      return new NextResponse('Sitemap not found', { status: 404 });
+    }
   }
   // 3. Genres Sitemap: sitemap-genres-[lang].xml
   else if (filename.startsWith('sitemap-genres-') && filename.endsWith('.xml')) {

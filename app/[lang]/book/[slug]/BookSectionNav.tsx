@@ -15,6 +15,11 @@ interface BookSectionNavProps {
   /** Только разделы, которые у книги реально есть: пустых ссылок навигация не рисует. */
   items: BookSectionNavItem[];
   active: BookSectionKey;
+  /**
+   * Активный пункт остаётся ссылкой: страница раздела пересказа отмечает «Краткое содержание»
+   * текущим, но ведёт на `/summary` (F04-3, `product.md` §5 п.3).
+   */
+  activeIsLink?: boolean;
   ariaLabel: string;
 }
 
@@ -75,24 +80,36 @@ export function buildBookSectionNavItems(input: {
  * Серверная - ссылки видны краулеру. Список собирает страница; новый раздел - новый пункт
  * списка, а не правка компонента.
  */
-export function BookSectionNav({ items, active, ariaLabel }: BookSectionNavProps) {
+export function BookSectionNav({ items, active, activeIsLink, ariaLabel }: BookSectionNavProps) {
   if (items.length < 2) return null;
   return (
     <nav className={styles.nav} aria-label={ariaLabel}>
       <ul className={styles.list}>
-        {items.map((item) => (
-          <li key={item.key}>
-            {item.key === active ? (
-              <span className={`${styles.item} ${styles.active}`} aria-current="page">
-                {item.label}
-              </span>
-            ) : (
-              <Link href={item.href} className={styles.item}>
+        {items.map((item) => {
+          const isActive = item.key === active;
+          const className = isActive ? `${styles.item} ${styles.active}` : styles.item;
+          // Активный пункт - текст; на странице раздела пересказа - ссылка на сам раздел книги.
+          if (isActive && !activeIsLink) {
+            return (
+              <li key={item.key}>
+                <span className={className} aria-current="page">
+                  {item.label}
+                </span>
+              </li>
+            );
+          }
+          return (
+            <li key={item.key}>
+              <Link
+                href={item.href}
+                className={className}
+                aria-current={isActive ? 'true' : undefined}
+              >
                 {item.label}
               </Link>
-            )}
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );

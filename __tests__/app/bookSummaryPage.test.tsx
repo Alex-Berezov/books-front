@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
   pathname: '/en/book/hamlet/summary',
   getBookOverview: vi.fn(),
   getPublicBookSummary: vi.fn(),
+  getPublicSummarySections: vi.fn(),
   resolveSeo: vi.fn(),
   resolveRetiredSlug: vi.fn(),
 }));
@@ -41,6 +42,7 @@ vi.mock('@/api/endpoints/public', async () => {
     ...actual,
     getBookOverview: mocks.getBookOverview,
     getPublicBookSummary: mocks.getPublicBookSummary,
+    getPublicSummarySections: mocks.getPublicSummarySections,
     resolveSeo: mocks.resolveSeo,
   };
 });
@@ -429,6 +431,97 @@ describe('страница пересказа: блок «Очень кратк�
   });
 });
 
+// F04-3: оглавление «Краткое содержание по главам» над полным пересказом (`product.md` F04 §4 п.4-5).
+describe('страница пересказа: оглавление разделов', () => {
+  const NO_CALL = 'no-call';
+  const SECTIONS = [
+    { id: 's-1', number: 1, title: 'Part one', readerChapter: 1, updatedAt: UPDATED_AT },
+    { id: 's-2', number: 2, title: 'Part two', readerChapter: null, updatedAt: UPDATED_AT },
+  ];
+  const withSections = (count: number | undefined) =>
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        versions: [
+          version('en', 'hamlet', 1, {
+            _count: { chapters: 3, audioChapters: 0, summaries: 1, summarySections: count },
+          }),
+        ],
+      })
+    );
+
+  it('ссылки на разделы с номерами по порядку и h2 «Full summary» без очень краткого', async () => {
+    withSections(2);
+    mocks.getPublicSummarySections.mockResolvedValue({ sections: SECTIONS });
+
+    const { container } = await renderPage();
+
+    expect(mocks.getPublicSummarySections).toHaveBeenCalledWith('v-en');
+    const toc = screen.getByRole('navigation', { name: 'Chapter-by-chapter summary' });
+    const items = [...toc.querySelectorAll('li')];
+    expect(items.map((li) => li.getAttribute('value'))).toEqual(['1', '2']);
+    expect(
+      [...toc.querySelectorAll('a')].map((a) => [a.textContent, a.getAttribute('href')])
+    ).toEqual([
+      ['Part one', '/en/book/hamlet/summary/1'],
+      ['Part two', '/en/book/hamlet/summary/2'],
+    ]);
+    const headings = [...container.querySelectorAll('article h2')].map((h) => h.textContent);
+    expect(headings.slice(0, 2)).toEqual(['Chapter-by-chapter summary', 'Full summary']);
+  });
+
+  // Пункт без целого номера или названия дал бы ссылку `/summary/undefined` на индексируемой странице.
+  it('пункты не той формы отбрасываются, остальные - ссылками', async () => {
+    withSections(3);
+    mocks.getPublicSummarySections.mockResolvedValue({
+      sections: [
+        SECTIONS[0],
+        { id: 'x', title: 'No number' },
+        { id: 'y', number: 3 },
+        { id: 'z', number: 0, title: 'Zero' },
+        { id: 'w', number: -2, title: 'Negative' },
+        { id: 'd', number: 1, title: 'Duplicate of 1' },
+      ],
+    });
+
+    await renderPage();
+
+    const toc = screen.getByRole('navigation', { name: 'Chapter-by-chapter summary' });
+    expect([...toc.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual([
+      '/en/book/hamlet/summary/1',
+    ]);
+  });
+
+  it('один раздел - оглавление тоже есть', async () => {
+    withSections(1);
+    mocks.getPublicSummarySections.mockResolvedValue({ sections: SECTIONS.slice(0, 1) });
+
+    await renderPage();
+
+    const toc = screen.getByRole('navigation', { name: 'Chapter-by-chapter summary' });
+    expect(toc.querySelectorAll('a')).toHaveLength(1);
+  });
+
+  it.each([
+    ['счётчик 0 - без запроса', 0, NO_CALL],
+    ['счётчика нет (до выката бэкенда) - без запроса', undefined, NO_CALL],
+    ['пустой список (претензия) - без оглавления', 2, { sections: [] }],
+    ['отказ списка - без оглавления, страница открыта', 2, new Error('down')],
+    ['ответ без поля sections - без оглавления, страница открыта', 2, {}],
+    ['пустое тело - без оглавления, страница открыта', 2, null],
+  ])('%s', async (_name, count, answer) => {
+    withSections(count);
+    if (answer instanceof Error) mocks.getPublicSummarySections.mockRejectedValue(answer);
+    else mocks.getPublicSummarySections.mockResolvedValue(answer);
+
+    const { container } = await renderPage();
+
+    if (answer === NO_CALL) expect(mocks.getPublicSummarySections).not.toHaveBeenCalled();
+    expect(container.textContent).not.toContain('Chapter-by-chapter summary');
+    expect(container.textContent).not.toContain('Full summary');
+    expect(container.textContent).toContain('The ghost appears to Hamlet.');
+  });
+});
+
 describe('страница пересказа: 404 и отказы', () => {
   it('язык без пересказа - 404, пересказ другого языка не подставляется', async () => {
     mocks.pathname = '/ru/book/gamlet/summary';
@@ -562,12 +655,21 @@ describe('страница пересказа: метаданные', () => {
     );
   });
 
-  it('книга закрыта редактором от индекса - пересказ тоже noindex и без hreflang', async () => {
-    mocks.resolveSeo.mockResolvedValue({ meta: { robots: 'noindex, follow' } });
-    const meta = await metadataFor();
+  // Правило поля Robots - общая `robotsHasNoindex` (F04-3), как у бэкенда: токен, а не подстрока.
+  it.each(['noindex, follow', 'none', 'googlebot: noindex'])(
+    'книга закрыта редактором (%s) - пересказ тоже noindex и без hreflang',
+    async (robots) => {
+      mocks.resolveSeo.mockResolvedValue({ meta: { robots } });
+      const meta = await metadataFor();
 
-    expect(meta.robots).toEqual({ index: false, follow: true });
-    expect(meta.alternates?.languages).toBeUndefined();
+      expect(meta.robots).toEqual({ index: false, follow: true });
+      expect(meta.alternates?.languages).toBeUndefined();
+    }
+  );
+
+  it('max-image-preview:none пересказ не закрывает', async () => {
+    mocks.resolveSeo.mockResolvedValue({ meta: { robots: 'index, max-image-preview:none' } });
+    expect((await metadataFor()).robots).toBeUndefined();
   });
 
   it('пересказа нет - noindex', async () => {

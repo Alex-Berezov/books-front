@@ -110,16 +110,21 @@ export const LanguageSwitcher = () => {
     enabled: !!bookSlug,
   });
 
+  // Раздел пересказа `/summary/{n}` ведёт на `/summary` другого языка: каждый язык режет книгу
+  // на разделы по-своему, пары «раздел ↔ раздел» нет (F04 `product.md` §5).
+  const isSummarySectionPage = parts[2] === 'book' && parts[4] === 'summary' && Boolean(parts[5]);
+  const switchParts = isSummarySectionPage ? parts.slice(0, 5) : parts;
+
   const handleLanguageChange = (newLang: string) => {
     const lang = newLang as SupportedLang;
-    let newPath = switchLangInPath(pathname, lang);
+    let newPath = switchLangInPath(switchParts.join('/'), lang);
 
     if (isBookRelated && book && book.versions) {
       const targetVersion = book.versions.find((v) => v.language === lang) as
         | ((typeof book.versions)[0] & { slug?: string })
         | undefined;
       if (targetVersion && targetVersion.slug) {
-        const updatedParts = [...parts];
+        const updatedParts = [...switchParts];
         updatedParts[1] = lang;
         updatedParts[3] = targetVersion.slug;
         newPath = updatedParts.join('/');

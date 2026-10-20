@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchAnalysisClaimClosures } from '@/api/endpoints/analysis-claim-closures';
 import {
   CLOSURES_TTL_MS,
-  isAnalysisClosed,
+  isClaimClosed,
   loadClaimClosures,
-  matchAnalysisPath,
+  matchClaimClosedPath,
   resetClaimClosuresCache,
   RETRY_AFTER_FAILURE_MS,
-} from '@/lib/analysis-claim-closures';
+} from '@/lib/claim-closures';
 import type { BookAnalysisClaimClosure } from '@/types/api-schema';
 
 /**
@@ -110,13 +110,24 @@ describe('loadClaimClosures', () => {
   });
 });
 
-describe('matchAnalysisPath', () => {
+describe('matchClaimClosedPath', () => {
   it.each([
-    ['/en/book/hamlet/analysis', { lang: 'en', slug: 'hamlet' }],
-    ['/en/book/hamlet/analysis/', { lang: 'en', slug: 'hamlet' }],
-    ['/ru/book/%D0%B3%D0%B0%D0%BC%D0%BB%D0%B5%D1%82/analysis', { lang: 'ru', slug: 'гамлет' }],
-  ])('%s - анализ', (path, expected) => {
-    expect(matchAnalysisPath(path)).toEqual(expected);
+    ['/en/book/hamlet/analysis', { lang: 'en', slug: 'hamlet', kind: 'analysis' }],
+    ['/en/book/hamlet/analysis/', { lang: 'en', slug: 'hamlet', kind: 'analysis' }],
+    [
+      '/ru/book/%D0%B3%D0%B0%D0%BC%D0%BB%D0%B5%D1%82/analysis',
+      { lang: 'ru', slug: 'гамлет', kind: 'analysis' },
+    ],
+    // F04-3: раздел пересказа - номер правильной формы, есть такой раздел или нет (451 раньше 404).
+    ['/en/book/hamlet/summary/1', { lang: 'en', slug: 'hamlet', kind: 'summarySection' }],
+    ['/en/book/hamlet/summary/7/', { lang: 'en', slug: 'hamlet', kind: 'summarySection' }],
+    ['/pt/book/hamlet/summary/999999', { lang: 'pt', slug: 'hamlet', kind: 'summarySection' }],
+    // Закодированные сегменты Next раскодирует и отдаёт странице - закрытие видит то же самое.
+    ['/en/book/hamlet/summary/%31', { lang: 'en', slug: 'hamlet', kind: 'summarySection' }],
+    ['/en/book/hamlet/%73ummary/1', { lang: 'en', slug: 'hamlet', kind: 'summarySection' }],
+    ['/en/book/hamlet/%61nalysis', { lang: 'en', slug: 'hamlet', kind: 'analysis' }],
+  ])('%s - закрываемый адрес', (path, expected) => {
+    expect(matchClaimClosedPath(path)).toEqual(expected);
   });
 
   it.each([
@@ -124,28 +135,37 @@ describe('matchAnalysisPath', () => {
     '/en/book/hamlet/analysis/x',
     '/xx/book/hamlet/analysis',
     '/en/book/%E0/analysis',
-  ])('%s - не анализ', (path) => {
-    expect(matchAnalysisPath(path)).toBeNull();
+    // Сам пересказ открыт при претензии (D4); кривой номер - 404 везде (решение арбитра `F04 | F04-3`).
+    '/en/book/hamlet/summary',
+    '/en/book/hamlet/summary/',
+    '/en/book/hamlet/summary/0',
+    '/en/book/hamlet/summary/01',
+    '/en/book/hamlet/summary/abc',
+    '/en/book/hamlet/summary/1.5',
+    '/en/book/hamlet/summary/1/x',
+    '/xx/book/hamlet/summary/1',
+  ])('%s - не закрывается', (path) => {
+    expect(matchClaimClosedPath(path)).toBeNull();
   });
 });
 
-describe('isAnalysisClosed', () => {
+describe('isClaimClosed', () => {
   const target = { lang: 'en', slug: 'Hamlet' };
 
   it('слаг сравнивается без учёта регистра; страна - точно', () => {
-    expect(isAnalysisClosed([closure()], target, 'GB', T0)).toBe(true);
-    expect(isAnalysisClosed([closure()], target, 'US', T0)).toBe(false);
-    expect(isAnalysisClosed([closure()], target, null, T0)).toBe(false);
+    expect(isClaimClosed([closure()], target, 'GB', T0)).toBe(true);
+    expect(isClaimClosed([closure()], target, 'US', T0)).toBe(false);
+    expect(isClaimClosed([closure()], target, null, T0)).toBe(false);
   });
 
   it('блок на весь мир закрывает и без страны; блок на все языки - любой язык', () => {
     const worldwide = closure({ countryCode: null, language: null });
-    expect(isAnalysisClosed([worldwide], { lang: 'fr', slug: 'hamlet' }, null, T0)).toBe(true);
+    expect(isClaimClosed([worldwide], { lang: 'fr', slug: 'hamlet' }, null, T0)).toBe(true);
   });
 
   it('истёкший блок не закрывает', () => {
     const expired = closure({ expiresAt: new Date(T0 - 1).toISOString() });
-    expect(isAnalysisClosed([expired], target, 'GB', T0)).toBe(false);
+    expect(isClaimClosed([expired], target, 'GB', T0)).toBe(false);
   });
 });
 

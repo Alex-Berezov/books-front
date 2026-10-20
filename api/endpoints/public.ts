@@ -29,6 +29,9 @@ import type {
   BookAnalysisDetail,
   BookOverview,
   BookSummaryDetail,
+  BookSummarySectionList,
+  BookSummarySectionPage,
+  BookSummarySectionsSitemapItem,
   CategoryBookCardsResponse,
   CategoryBooksResponse,
   CategoryTree,
@@ -115,6 +118,52 @@ export const getPublicBookAnalysis = async (
     headers: { [VISITOR_COUNTRY_HEADER]: UNKNOWN_COUNTRY },
   });
   return analysis ?? null;
+};
+
+/**
+ * Раздел пересказа по номеру для публичной страницы `/{lang}/book/{slug}/summary/{n}` (F04-3).
+ *
+ * Без токена и со страной «неизвестна» - по тем же причинам, что анализ выше: ответ ложится в общий
+ * ISR-кэш, блок по стране закрывает middleware, на странице закрывает только блок на весь мир (451).
+ */
+export const getPublicSummarySection = async (
+  versionId: string,
+  n: number
+): Promise<BookSummarySectionPage> =>
+  httpGet<BookSummarySectionPage>(`/versions/${versionId}/summary-sections/${n}`, {
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+    headers: { [VISITOR_COUNTRY_HEADER]: UNKNOWN_COUNTRY },
+  });
+
+/**
+ * Оглавление разделов пересказа для страницы `/summary` (F04-3): без текстов. Читателю при
+ * претензии хоть в одной стране ручка отдаёт `{sections: []}` - оглавления нет. Без токена: список
+ * редактора с черновым пересказом попал бы в общий кэш. Страна «неизвестна», как у раздела
+ * (`tech.md` §6): ответ ложится в общий ISR-кэш, и страна сервера фронта в нём не нужна.
+ */
+export const getPublicSummarySections = async (
+  versionId: string
+): Promise<BookSummarySectionList> =>
+  httpGet<BookSummarySectionList>(`/versions/${versionId}/summary-sections`, {
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+    headers: { [VISITOR_COUNTRY_HEADER]: UNKNOWN_COUNTRY },
+  });
+
+/**
+ * Страница ручки карты разделов пересказа (F04 T10): элемент - версия со своими разделами, одна
+ * страница - один файл карты. `cache: 'no-store'`, как у остальных выборок карты сайта.
+ */
+export const getSummarySectionsSitemap = async (
+  lang: SupportedLang,
+  page: number,
+  limit: number
+): Promise<PaginatedResult<BookSummarySectionsSitemapItem>> => {
+  const query = new URLSearchParams({ page: String(page), limit: String(limit) });
+  const endpoint = buildLangPath(lang, `/summary-sections/sitemap?${query.toString()}`);
+  return httpGet<PaginatedResult<BookSummarySectionsSitemapItem>>(endpoint, {
+    language: lang,
+    cache: 'no-store',
+  });
 };
 
 /**

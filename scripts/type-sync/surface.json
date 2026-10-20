@@ -1290,6 +1290,22 @@
     ]
   },
   {
+    "route": "GET /{lang}/summary-sections/sitemap",
+    "hasResponseSchema": true,
+    "fields": [
+      "items",
+      "items[].sections",
+      "items[].sections[].lastmod",
+      "items[].sections[].number",
+      "items[].slug",
+      "pagination",
+      "pagination.limit",
+      "pagination.page",
+      "pagination.total",
+      "pagination.totalPages"
+    ]
+  },
+  {
     "route": "GET /{lang}/tags",
     "hasResponseSchema": true,
     "fields": [
@@ -7107,6 +7123,23 @@
       "sections[].readerChapter",
       "sections[].title",
       "sections[].updatedAt"
+    ]
+  },
+  {
+    "route": "GET /versions/{bookVersionId}/summary-sections/{number}",
+    "hasResponseSchema": true,
+    "fields": [
+      "briefHasText",
+      "contentDate",
+      "id",
+      "number",
+      "readerChapter",
+      "readerChapterExists",
+      "sections",
+      "sections[].number",
+      "sections[].title",
+      "text",
+      "title"
     ]
   },
   {
