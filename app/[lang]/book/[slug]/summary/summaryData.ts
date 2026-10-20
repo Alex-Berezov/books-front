@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { getPublicBookSummary } from '@/api/endpoints/public';
-import { pickSummaryVersion, summaryPlainText } from '@/lib/seo/book-summary';
+import { pickBrief, pickSummaryVersion, summaryPlainText } from '@/lib/seo/book-summary';
 import { handleContentFailure } from '@/lib/utils/content-failure';
 import type { BookOverview } from '@/types/api-schema';
 
@@ -9,8 +9,8 @@ import type { BookOverview } from '@/types/api-schema';
 export const getCachedBookSummary = cache((versionId: string) => getPublicBookSummary(versionId));
 
 /**
- * Версия языка страницы, её пересказ и его видимый текст - или `notFound()`. Неизвестное
- * (пропало поле из ответа) - отказ, а не «пересказа нет».
+ * Версия языка страницы, её пересказ, его видимый текст и очень краткий пересказ (`null` - блока
+ * нет) - или `notFound()`. Неизвестное (пропало прежнее поле из ответа) - отказ, а не «пересказа нет».
  */
 export async function loadSummaryOrNotFound(
   book: BookOverview,
@@ -44,5 +44,5 @@ export async function loadSummaryOrNotFound(
   const plainText = summaryPlainText(summary.summary);
   if (!plainText) notFound();
 
-  return { version, summary, plainText };
+  return { version, summary, plainText, brief: pickBrief(summary) };
 }

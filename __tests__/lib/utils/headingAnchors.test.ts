@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { anchorHeadings } from '@/lib/utils/heading-anchors';
+import { anchorHeadings, demoteH1 } from '@/lib/utils/heading-anchors';
 import { sanitizeRichHtml } from '@/lib/utils/rich-html';
 
 /** F02-3: якоря разделов биографии для оглавления (решение арбитра, `F02 | F02-3`, Р1). */
@@ -58,6 +58,19 @@ describe('anchorHeadings', () => {
     expect(anchors.map((a) => a.id)).toEqual(['part-akt-i', 'part-akt-ii']);
     expect(html).toBe(
       '<h2 id="part-akt-i">Акт I</h2><h3>Сцена</h3><h2 id="part-akt-ii">Акт II</h2>'
+    );
+  });
+});
+
+/** F04 T3: одно понижение `h1` на полный и очень краткий пересказ. */
+describe('demoteH1', () => {
+  it('h1 с атрибутами и в любом регистре становится h2', () => {
+    expect(demoteH1('<h1 style="x">A</h1><H1>B</H1>')).toBe('<h2 style="x">A</h2><h2>B</h2>');
+  });
+
+  it('прочие теги не трогает', () => {
+    expect(demoteH1('<h10>x</h10><h2>y</h2><header>z</header>')).toBe(
+      '<h10>x</h10><h2>y</h2><header>z</header>'
     );
   });
 });

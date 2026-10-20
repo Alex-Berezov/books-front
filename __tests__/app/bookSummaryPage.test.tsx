@@ -322,6 +322,111 @@ describe('страница пересказа: содержимое', () => {
     const toc = screen.getByRole('navigation', { name: 'Contents' });
     expect([...toc.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['Prologue', 'Act I']);
   });
+
+  // F04-2 (`tech.md` §6): без очень краткого страница та же, что до F04. Снимок снят на коде
+  // до блока «Очень кратко» - сдвиг разметки старой страницы краснеет здесь.
+  it('без очень краткого HTML страницы прежний - и без полей в ответе, и с пустым brief', async () => {
+    const { container, unmount } = await renderPage();
+    const before = container.innerHTML;
+    expect(before).toMatchSnapshot();
+    unmount();
+
+    mocks.getPublicBookSummary.mockResolvedValue({ ...SUMMARY, brief: null, briefHasText: false });
+    const { container: empty } = await renderPage();
+    expect(empty.innerHTML).toBe(before);
+  });
+});
+
+// F04-2: блок «Очень кратко» вверху страницы (`product.md` F04 §4, §5а).
+const BRIEF = '<p>A prince avenges his father and dies.</p>';
+
+describe('страница пересказа: блок «Очень кратко»', () => {
+  const withBrief = (brief: string | null, briefHasText: boolean) =>
+    mocks.getPublicBookSummary.mockResolvedValue({ ...SUMMARY, brief, briefHasText });
+
+  it('блок с якорем, своим временем чтения и h2 «Full summary» над полным текстом', async () => {
+    withBrief(BRIEF, true);
+    const { container } = await renderPage();
+
+    const block = container.querySelector('section#brief');
+    expect(block?.querySelector('h2')?.textContent).toBe('In brief');
+    expect(block?.textContent).toContain('A prince avenges his father and dies.');
+    expect(block?.textContent).toContain('1 min read');
+    expect(container.querySelectorAll('#brief')).toHaveLength(1);
+
+    const headings = [...container.querySelectorAll('article h2')].map((h) => h.textContent);
+    expect(headings).toEqual(['In brief', 'Full summary', 'Act I', 'Act II']);
+    // Блок - после предупреждения о спойлерах и подписи редакции.
+    const spoiler = screen.getByRole('note');
+    expect(spoiler.compareDocumentPosition(block!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it.each([
+    ['es', 'En pocas palabras', 'Resumen completo'],
+    ['fr', 'En bref', 'Résumé complet'],
+    ['pt', 'Em poucas palavras', 'Resumo completo'],
+    ['ru', 'Очень кратко', 'Полный пересказ'],
+  ])('%s: подписи блоков на языке страницы', async (lang, briefTitle, fullTitle) => {
+    mocks.pathname = `/${lang}/book/hamlet/summary`;
+    mocks.getBookOverview.mockResolvedValue(makeBook({ versions: [version(lang, 'hamlet', 1)] }));
+    withBrief(BRIEF, true);
+    const { container } = await renderPage(lang);
+
+    const headings = [...container.querySelectorAll('article h2')].map((h) => h.textContent);
+    expect(headings.slice(0, 2)).toEqual([briefTitle, fullTitle]);
+  });
+
+  it('время чтения блока - по очень краткому, в шапке - по полному', async () => {
+    withBrief(`<p>${'word '.repeat(920)}</p>`, true);
+    const { container } = await renderPage();
+
+    expect(container.querySelector('section#brief')?.textContent).toContain('4 min read');
+    expect(container.querySelector('header')?.textContent).toContain('1 min read');
+  });
+
+  it.each([
+    ['одни теги при briefHasText', '<p>&nbsp;</p>', true],
+    ['briefHasText=false', BRIEF, false],
+  ])('%s - ни блока, ни h2 «Full summary»', async (_name, brief, hasText) => {
+    withBrief(brief, hasText);
+    const { container } = await renderPage();
+
+    expect(container.querySelector('#brief')).toBeNull();
+    expect(container.textContent).not.toContain('Full summary');
+    expect(container.textContent).not.toContain('In brief');
+  });
+
+  it('h1 и h2 очень краткого - без якорей и не в оглавлении, h1 на странице один', async () => {
+    withBrief('<h2>Setup</h2><p>Ghost.</p><h1>Ending</h1><p>All die.</p>', true);
+    const { container } = await renderPage();
+
+    expect(container.querySelectorAll('h1')).toHaveLength(1);
+    const blockHeadings = [...container.querySelectorAll('section#brief h2')];
+    expect(blockHeadings.map((h) => h.textContent)).toEqual(['In brief', 'Setup', 'Ending']);
+    expect(blockHeadings.slice(1).every((h) => !h.id)).toBe(true);
+    const toc = screen.getByRole('navigation', { name: 'Contents' });
+    expect([...toc.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual([
+      '#part-act-i',
+      '#part-act-ii',
+    ]);
+  });
+
+  // §2 п.6: бэкенд сдвигает `updatedAt` строки пересказа и на правке одного очень краткого -
+  // страница берёт дату из ответа и при блоке.
+  it('дата «Обновлено» - из ответа и при очень кратком', async () => {
+    mocks.getPublicBookSummary.mockResolvedValue({
+      ...SUMMARY,
+      brief: BRIEF,
+      briefHasText: true,
+      updatedAt: '2026-10-20T08:00:00.000Z',
+    });
+    await renderPage();
+
+    const link = screen.getByRole('link', { name: 'Bibliaris Editorial Team' });
+    expect(link.parentElement?.textContent).toBe(
+      'Bibliaris Editorial Team · Updated October 20, 2026'
+    );
+  });
 });
 
 describe('страница пересказа: 404 и отказы', () => {
@@ -416,6 +521,45 @@ describe('страница пересказа: метаданные', () => {
       fr: buildLangUrl('fr', '/book/hamlet-fr/summary'),
       'x-default': buildLangUrl('en', '/book/hamlet/summary'),
     });
+  });
+
+  it('есть очень краткий - описание, og и twitter из него, без тегов, до 160 знаков', async () => {
+    mocks.getPublicBookSummary.mockResolvedValue({
+      ...SUMMARY,
+      brief: `<h2>Plot</h2><p>${'Hamlet avenges his father. '.repeat(10)}</p>`,
+      briefHasText: true,
+    });
+    const meta = await metadataFor();
+
+    expect(meta.description).toMatch(/^Hamlet avenges his father\./);
+    expect(String(meta.description).length).toBeLessThanOrEqual(160);
+    expect(meta.description).not.toContain('Plot');
+    expect(meta.openGraph?.description).toBe(meta.description);
+    expect(meta.twitter?.description).toBe(meta.description);
+  });
+
+  it('очень краткий из одних заголовков - блок есть, описание из полного', async () => {
+    mocks.getPublicBookSummary.mockResolvedValue({
+      ...SUMMARY,
+      brief: '<h2>Setup</h2>',
+      briefHasText: true,
+    });
+
+    expect((await metadataFor()).description).toBe(
+      'The ghost appears to Hamlet. Hamlet feigns madness.'
+    );
+  });
+
+  it('очень краткий без видимого текста - описание из полного', async () => {
+    mocks.getPublicBookSummary.mockResolvedValue({
+      ...SUMMARY,
+      brief: '<p>&nbsp;</p>',
+      briefHasText: true,
+    });
+
+    expect((await metadataFor()).description).toBe(
+      'The ghost appears to Hamlet. Hamlet feigns madness.'
+    );
   });
 
   it('книга закрыта редактором от индекса - пересказ тоже noindex и без hreflang', async () => {

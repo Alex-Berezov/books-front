@@ -4,6 +4,9 @@
  * и hreflang-хелперы `book-summary.ts` в общий бандл нельзя.
  */
 
+/** Якорь блока «Очень кратко» на странице пересказа: на него ведут страницы разделов (F04). */
+export const SUMMARY_BRIEF_ANCHOR = 'brief';
+
 /** Путь страницы пересказа без языка: `/book/{slug}/summary`. */
 export function summaryPath(bookSlug: string): string {
   return `/book/${bookSlug}/summary`;

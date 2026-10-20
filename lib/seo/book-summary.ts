@@ -3,7 +3,7 @@ import { summaryPath, versionHasSummary } from '@/lib/seo/summary-path';
 import { buildLangUrl } from '@/lib/seo/urls';
 import { htmlToPlainText, truncateAtWord } from '@/lib/utils/html-text';
 import { sanitizeRichHtml } from '@/lib/utils/rich-html';
-import type { BookOverview, VersionPreview } from '@/types/api-schema';
+import type { BookOverview, BookSummaryDetail, VersionPreview } from '@/types/api-schema';
 
 /**
  * Страница пересказа книги - `/{lang}/book/{slug}/summary` (решение владельца 17.10.2026).
@@ -69,4 +69,29 @@ const HEADINGS = /<h[1-6]\b[^>]*>[\s\S]*?<\/h[1-6]>/gi;
 /** Описание страницы пересказа: начало текста без заголовков, не длиннее 160 знаков. */
 export function describeSummary(html: string): string | undefined {
   return truncateAtWord(htmlToPlainText(sanitizeRichHtml(html).replace(HEADINGS, ' ')));
+}
+
+/**
+ * Очень краткий пересказ, если блок «Очень кратко» есть (F04, `tech.md` §6): бэкенд подтвердил
+ * текст (`briefHasText`) и видимый текст остался после санитайзера. Поля нет (бэкенд до F04) -
+ * `null`, страница как до F04: это не отказ, в отличие от пропавших прежних полей. Одно правило
+ * на тело страницы и её description; видимый текст отдаётся вместе с HTML - для времени чтения.
+ */
+export function pickBrief(
+  summary: Pick<BookSummaryDetail, 'brief' | 'briefHasText'>
+): { html: string; plainText: string } | null {
+  if (summary.briefHasText !== true || typeof summary.brief !== 'string') return null;
+  const plainText = summaryPlainText(summary.brief);
+  return plainText ? { html: summary.brief, plainText } : null;
+}
+
+/**
+ * Описание страницы пересказа: из очень краткого, если блок есть, иначе - из полного. Очень краткий
+ * из одних заголовков описания не даёт (`describeSummary` их снимает) - тогда тоже из полного.
+ */
+export function describeSummaryPage(
+  summary: Pick<BookSummaryDetail, 'summary' | 'brief' | 'briefHasText'>
+): string | undefined {
+  const brief = pickBrief(summary);
+  return (brief && describeSummary(brief.html)) || describeSummary(summary.summary);
 }

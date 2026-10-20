@@ -63,6 +63,37 @@
   }
 }
 
+// Блок «Очень кратко» (F04-2) и заголовок «Полный пересказ» под ним.
+.brief {
+  margin: 0 0 $spacing-xl;
+  padding: $spacing-md;
+  border: 1px solid var(--public-border);
+  border-radius: $border-radius-lg;
+  scroll-margin-top: $spacing-xxl;
+}
+
+.briefHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs $spacing-md;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.briefReading {
+  display: inline-flex;
+  gap: $spacing-xs;
+  align-items: center;
+  font-size: $font-size-sm;
+  opacity: 0.7;
+}
+
+.blockTitle {
+  margin: 0 0 $spacing-sm;
+  font-size: $font-size-xl;
+  line-height: $line-height-tight;
+}
+
 .sidebar {
   display: flex;
   flex-direction: column;

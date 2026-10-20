@@ -7,12 +7,13 @@ import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
 import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
+import { getSummaryStrings } from '@/lib/i18n/summaryStrings';
 import { analysisPath, pickAnalysisVersion } from '@/lib/seo/book-analysis';
 import { summaryPath } from '@/lib/seo/book-summary';
 import { buildSummaryArticleJsonLd } from '@/lib/seo/summary-jsonld';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
 import { formatLongDateUtc } from '@/lib/utils/date';
-import { anchorHeadings } from '@/lib/utils/heading-anchors';
+import { anchorHeadings, demoteH1 } from '@/lib/utils/heading-anchors';
 import { serializeJsonLd } from '@/lib/utils/json-ld';
 import { readingMinutes } from '@/lib/utils/reading-time';
 import { sanitizeRichHtml } from '@/lib/utils/rich-html';
@@ -23,6 +24,7 @@ import { BookSectionNav, buildBookSectionNavItems } from '../BookSectionNav';
 import { BookSubpageHero } from '../BookSubpageHero';
 import { RelatedBooksSection } from '../RelatedBooksSection';
 import styles from './summary.module.scss';
+import { SummaryBrief } from './SummaryBrief';
 import { loadSummaryOrNotFound } from './summaryData';
 import { buildSummaryMetadata } from './summaryMetadata';
 import { buildExploreLinks, SummaryMoreBlocks } from './SummaryMoreBlocks';
@@ -39,12 +41,6 @@ const SUMMARY_ANCHOR_PREFIX = 'part';
 
 /** С какого числа разделов `h2` в сайдбаре появляется оглавление. */
 const SUMMARY_TOC_MIN_SECTIONS = 2;
-
-/**
- * Заголовок первого уровня у страницы один - название пересказа в шапке. `h1` из редактора
- * понижается до `h2`: иначе на индексируемой странице два `h1`, а раздел выпал бы из оглавления.
- */
-const demoteH1 = (safeHtml: string) => safeHtml.replace(/<(\/?)h1(?=[\s>])/gi, '<$1h2');
 
 const anchorSummaryHeadings = (safeHtml: string) =>
   anchorHeadings(demoteH1(safeHtml), SUMMARY_ANCHOR_PREFIX, 'h2').html;
@@ -72,9 +68,14 @@ export default async function BookSummaryPage({ params }: Props) {
     redirect(summaryUrl(lang)(book.slug));
   }
 
-  const { version, summary, plainText } = await loadSummaryOrNotFound(book, supportedLang, slug);
+  const { version, summary, plainText, brief } = await loadSummaryOrNotFound(
+    book,
+    supportedLang,
+    slug
+  );
 
   const dict = getDictionary(supportedLang);
+  const summaryStrings = getSummaryStrings(supportedLang);
   const bookSlug = book.slug || slug;
   const bookHref = `/${supportedLang}/book/${bookSlug}`;
   const title = version.title || book.title;
@@ -197,6 +198,15 @@ export default async function BookSummaryPage({ params }: Props) {
                 updatedDate ? dict.book.updatedOn.replace('{date}', updatedDate) : undefined
               }
             />
+            {brief && (
+              <SummaryBrief
+                html={brief.html}
+                plainText={brief.plainText}
+                title={summaryStrings.summaryBriefTitle}
+                fullTitle={summaryStrings.summaryFullTitle}
+                readingTimeTemplate={dict.book.summaryReadingTime}
+              />
+            )}
             <RichTextContent
               html={summary.summary}
               transformSafeHtml={anchorSummaryHeadings}

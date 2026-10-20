@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   buildSummaryAlternates,
   describeSummary,
+  describeSummaryPage,
+  pickBrief,
   pickSummaryVersion,
   summaryPath,
   summaryPlainText,
@@ -94,5 +96,46 @@ describe('текст и время чтения', () => {
     expect(
       describeSummary('<h2>Act I</h2><p>The ghost appears.</p><h2>Act II</h2><p>Madness.</p>')
     ).toBe('The ghost appears. Madness.');
+  });
+});
+
+/** F04-2 (`tech.md` §6): блок «Очень кратко» - только по подтверждённому видимому тексту. */
+describe('pickBrief', () => {
+  it('текст при briefHasText', () => {
+    expect(pickBrief({ brief: '<p>Short.</p>', briefHasText: true })).toEqual({
+      html: '<p>Short.</p>',
+      plainText: 'Short.',
+    });
+  });
+
+  it.each([
+    ['полей нет (бэкенд до F04)', {}],
+    ['briefHasText=false', { brief: '<p>Short.</p>', briefHasText: false }],
+    ['brief=null', { brief: null, briefHasText: true }],
+    ['одни теги', { brief: '<p>&nbsp;</p>', briefHasText: true }],
+    ['только скрипт', { brief: '<script>x()</script>', briefHasText: true }],
+  ])('%s - null, без отказа', (_name, summary) => {
+    expect(pickBrief(summary)).toBeNull();
+  });
+});
+
+/** F04-2: описание страницы - из очень краткого, а когда от него ничего не остаётся - из полного. */
+describe('describeSummaryPage', () => {
+  const FULL = '<h2>Act I</h2><p>The ghost appears.</p>';
+
+  it('из очень краткого, если блок есть', () => {
+    expect(
+      describeSummaryPage({ summary: FULL, brief: '<p>Revenge.</p>', briefHasText: true })
+    ).toBe('Revenge.');
+  });
+
+  it.each([
+    ['блока нет', { summary: FULL }],
+    [
+      'очень краткий из одних заголовков',
+      { summary: FULL, brief: '<h2>Setup</h2>', briefHasText: true },
+    ],
+  ])('%s - из полного', (_name, summary) => {
+    expect(describeSummaryPage(summary)).toBe('The ghost appears.');
   });
 });

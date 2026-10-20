@@ -1,7 +1,7 @@
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import {
   buildSummaryAlternates,
-  describeSummary,
+  describeSummaryPage,
   pickSummaryVersion,
   summaryPath,
 } from '@/lib/seo/book-summary';
@@ -36,7 +36,8 @@ export async function buildSummaryMetadata(
 
     const title = version.title || book.title;
     const metaTitle = dict.book.summaryMetaTitle.replace('{title}', title);
-    const description = describeSummary(summary.summary);
+    // Есть очень краткий - описание из него (F04 `product.md` §4): это выжимка всей книги.
+    const description = describeSummaryPage(summary);
     const canonical = buildLangUrl(supportedLang, summaryPath(book.slug || slug));
     const cover = book.coverUrl;
     // Редактор закрыл книгу от индекса - пересказ с её сюжетом закрыт вместе с ней.
