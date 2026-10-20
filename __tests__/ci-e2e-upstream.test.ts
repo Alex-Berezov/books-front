@@ -40,6 +40,28 @@ const stepBody = (nameStartsWith: string): string | undefined =>
     .slice(1)
     .find((step) => step.startsWith(nameStartsWith));
 
+/**
+ * Разбор таблиц приёмочных спек для сверки с пробой данных: один на блоки F03-4 и F04-4 (L-017,
+ * одно понятие - один разборщик). Слаги - объект `SLUG` спеки (ключ → слаг с префиксом), таблица -
+ * от `const <NAME>` (целым словом: `READER`, а не `READER_CHAPTERS`) до первого `];`, элементы
+ * цикла пробы - список после `for <var> in` до `; do`.
+ */
+const acceptanceSlugs = (source: string, prefix: string) =>
+  Object.fromEntries(
+    [...source.matchAll(new RegExp(`^ {2}(\\w+): '(${prefix}-[a-z0-9-]+)',$`, 'gm'))].map(
+      ([, key, slug]) => [key, slug]
+    )
+  );
+const specTable = (source: string, name: string) => {
+  const at = source.search(new RegExp(`const ${name}\\b`));
+  return at === -1 ? '' : source.slice(at, source.indexOf('];', at));
+};
+const probeLoopItems = (source: string, loopVar: string) =>
+  (source.match(new RegExp(`for ${loopVar} in ([^;]+); do`))?.[1] ?? '')
+    .split(/[\s\\]+/)
+    .filter(Boolean)
+    .sort();
+
 describe('конвейер CI: e2e гоняются против своего бэкенда, а не против прода', () => {
   it('адрес API в сборке не указывает на боевой хост', () => {
     const build = stepBody('Build');
@@ -172,23 +194,12 @@ describe('конвейер CI: e2e гоняются против своего б
     const probe = stepBody('The seeded data actually arrived') ?? '';
 
     const specTriples = (source: string) => {
-      const slugs = Object.fromEntries(
-        [...source.matchAll(/^ {2}(\w+): '(analysis-acceptance-[a-z-]+)',$/gm)].map(
-          ([, key, slug]) => [key, slug]
-        )
-      );
-      const table = source.slice(
-        source.indexOf('const OPENED'),
-        source.indexOf('];', source.indexOf('const OPENED'))
-      );
-      return [...table.matchAll(/\['(\w{2})', SLUG\.(\w+), ([01])\]/g)]
+      const slugs = acceptanceSlugs(source, 'analysis-acceptance');
+      return [...specTable(source, 'OPENED').matchAll(/\['(\w{2})', SLUG\.(\w+), ([01])\]/g)]
         .map(([, lang, key, count]) => `${lang}/${slugs[key]}/${count}`)
         .sort();
     };
-    const probeTriples = (source: string) =>
-      [...source.matchAll(/\b([a-z]{2})\/(analysis-acceptance-[a-z-]+)\/([01])\b/g)]
-        .map(([, lang, slug, count]) => `${lang}/${slug}/${count}`)
-        .sort();
+    const probeTriples = (source: string) => probeLoopItems(source, 'triple');
 
     it('чистый вход: тройки совпадают', () => {
       expect(specTriples(spec).length).toBeGreaterThan(0);
@@ -221,12 +232,7 @@ describe('конвейер CI: e2e гоняются против своего б
         ? [`analysis-acceptance-full/${table[1]}`, `analysis-acceptance-no-chapters/${table[2]}`]
         : [];
     };
-    const probeChapters = (source: string) =>
-      (source.match(/for pair in ((?:analysis-acceptance-[a-z-]+\/\d+ ?)+); do/)?.[1] ?? '')
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .sort();
+    const probeChapters = (source: string) => probeLoopItems(source, 'analysis_pair');
 
     it('чистый вход: число глав в пробе = CHAPTERS спеки', () => {
       expect(specChapters(spec)).toHaveLength(2);
@@ -237,6 +243,122 @@ describe('конвейер CI: e2e гоняются против своего б
       const spoiled = probe.replace('analysis-acceptance-full/4', 'analysis-acceptance-full/3');
       expect(spoiled).not.toBe(probe);
       expect(probeChapters(spoiled)).not.toEqual([...specChapters(spec)].sort());
+    });
+  });
+
+  /**
+   * F04-4: проба проверяет ровно те четвёрки «язык/книга/пересказ/разделов», пары очень краткого
+   * и тройки главы читалки, которые открывает спека (таблицы `OPENED`, `BRIEF`, `READER`). Строка
+   * спеки без пары в пробе - на устаревшем образе спека покраснела бы «404» с причиной в чужом
+   * репозитории; расхождение счётчика - проба красила бы исправный образ или пропускала бы
+   * отсутствие данных.
+   */
+  describe('проба = данные приёмки вариантов пересказа из e2e/book-summary-variants.spec.ts', () => {
+    const spec = readFileSync(
+      resolve(__dirname, '..', 'e2e', 'book-summary-variants.spec.ts'),
+      'utf8'
+    );
+    const probe = stepBody('The seeded data actually arrived') ?? '';
+
+    const slugsOf = (source: string) => acceptanceSlugs(source, 'summary-acceptance');
+
+    const specQuads = (source: string) => {
+      const slugs = slugsOf(source);
+      return [...specTable(source, 'OPENED').matchAll(/\['(\w{2})', SLUG\.(\w+), ([01]), (\d+)\]/g)]
+        .map(
+          ([, lang, key, summaries, sections]) => `${lang}/${slugs[key]}/${summaries}/${sections}`
+        )
+        .sort();
+    };
+    const probeQuads = (source: string) => probeLoopItems(source, 'quad');
+
+    const specBrief = (source: string) => {
+      const slugs = slugsOf(source);
+      return [...specTable(source, 'BRIEF').matchAll(/\[SLUG\.(\w+), ([01])\]/g)]
+        .map(([, key, want]) => `${slugs[key]}/${want}`)
+        .sort();
+    };
+    const probeBrief = (source: string) => probeLoopItems(source, 'brief_pair');
+
+    const specReader = (source: string) => {
+      const slugs = slugsOf(source);
+      return [...specTable(source, 'READER').matchAll(/\[SLUG\.(\w+), (\d+), (true|false)\]/g)]
+        .map(([, key, n, want]) => `${slugs[key]}/${n}/${want}`)
+        .sort();
+    };
+    const probeReader = (source: string) => probeLoopItems(source, 'reader_triple');
+
+    // Дата пересказа, которую спека ждёт в `dateModified`, = дата, которую проба требует от сида.
+    const specSummaryDate = (source: string) =>
+      source.match(/^const SUMMARY_DATE = '([^']+)';$/m)?.[1];
+    // Дата задана в пробе один раз, переменной `summary_date`: её берут и `jq`, и текст ошибки.
+    const probeSummaryDate = (source: string) =>
+      /--arg date "\$summary_date" '\.briefHasText/.test(source)
+        ? source.match(/^\s*summary_date=(\S+)$/m)?.[1]
+        : undefined;
+
+    it('чистый вход: четвёрки, пары и тройки совпадают', () => {
+      expect(specQuads(spec).length).toBeGreaterThan(0);
+      expect(specQuads(spec).every((row) => !row.includes('undefined'))).toBe(true);
+      expect(probeQuads(probe)).toEqual(specQuads(spec));
+
+      expect(specBrief(spec).length).toBeGreaterThan(0);
+      expect(specBrief(spec).every((row) => !row.includes('undefined'))).toBe(true);
+      expect(probeBrief(probe)).toEqual(specBrief(spec));
+
+      expect(specReader(spec).length).toBeGreaterThan(0);
+      expect(specReader(spec).every((row) => !row.includes('undefined'))).toBe(true);
+      expect(probeReader(probe)).toEqual(specReader(spec));
+
+      expect(specSummaryDate(spec)).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      expect(probeSummaryDate(probe)).toBe(specSummaryDate(spec));
+    });
+
+    it('испорченная проба (дата пересказа) - расхождение видно', () => {
+      const spoiled = probe.replace('2026-03-10T09:30:00.000Z', '2026-03-11T09:30:00.000Z');
+      expect(spoiled).not.toBe(probe);
+      expect(probeSummaryDate(spoiled)).not.toBe(specSummaryDate(spec));
+    });
+
+    it.each([
+      [
+        'счётчик разделов',
+        (s: string) =>
+          s.replace('ru/summary-acceptance-full/1/4', 'ru/summary-acceptance-full/1/3'),
+        probeQuads,
+        specQuads,
+      ],
+      [
+        'язык',
+        (s: string) =>
+          s.replace('pt/summary-acceptance-full/1/2', 'es/summary-acceptance-full/1/2'),
+        probeQuads,
+        specQuads,
+      ],
+      [
+        'пропущенная четвёрка',
+        (s: string) => s.replace('en/summary-acceptance-noindex/1/2 ', ''),
+        probeQuads,
+        specQuads,
+      ],
+      [
+        'пара очень краткого',
+        (s: string) =>
+          s.replace('summary-acceptance-brief-only/1 ', 'summary-acceptance-brief-only/0 '),
+        probeBrief,
+        specBrief,
+      ],
+      [
+        'тройка главы читалки',
+        (s: string) =>
+          s.replace('summary-acceptance-full/3/false', 'summary-acceptance-full/3/true'),
+        probeReader,
+        specReader,
+      ],
+    ])('испорченная проба (%s) - расхождение видно', (_name, spoil, fromProbe, fromSpec) => {
+      const spoiled = spoil(probe);
+      expect(spoiled).not.toBe(probe);
+      expect(fromProbe(spoiled)).not.toEqual(fromSpec(spec));
     });
   });
 

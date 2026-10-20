@@ -381,8 +381,8 @@ jobs:
             fi
           done
           # Отрицательное предусловие §24 п.5: у версии без глав номеров глав нет, у полной - 1..4.
-          for pair in analysis-acceptance-no-chapters/0 analysis-acceptance-full/4; do
-            slug=${pair%%/*}; want=${pair#*/}
+          for analysis_pair in analysis-acceptance-no-chapters/0 analysis-acceptance-full/4; do
+            slug=${analysis_pair%%/*}; want=${analysis_pair#*/}
             # Сбой overview отдельной веткой: иначе пустой id ушёл бы в /versions//analysis, и ошибка
             # назвала бы расхождение сида со спекой вместо недоступной книги.
             if ! curl -fsS "http://127.0.0.1:5000/api/en/books/${slug}/overview" -o "$RUNNER_TEMP/analysis-book.json" \
@@ -400,6 +400,77 @@ jobs:
             fi
           done
           echo "книги приёмки анализа на месте"
+
+          # 🔴 Пятая часть пробы - книги приёмки вариантов пересказа (`F04-4`,
+          # `e2e/book-summary-variants.spec.ts`). Их заводит `books/prisma/seed-summaries.ts`; образ
+          # старше релиза с этим файлом их не создаст, и спека покраснела бы «404» на первой странице.
+          # Четвёрки «язык/слаг версии/пересказ/разделов» - счётчики обзора книги (`_count.summaries` и
+          # `_count.summarySections`): ровно те, что открывает спека (`OPENED`), правишь там - правь и здесь.
+          # id английских версий запоминаются здесь же: ниже они нужны без повторного запроса обзора.
+          declare -A en_id
+          for quad in en/summary-acceptance-full/1/3 es/summary-acceptance-full/1/2 \
+                      fr/summary-acceptance-full/1/3 pt/summary-acceptance-full/1/2 \
+                      ru/summary-acceptance-full/1/4 en/summary-acceptance-only-full/1/0 \
+                      en/summary-acceptance-brief-only/1/0 en/summary-acceptance-sections-only/1/2 \
+                      es/summary-acceptance-sections-only-es/1/1 ru/summary-acceptance-sections-only/0/0 \
+                      en/summary-acceptance-no-full/0/0 en/summary-acceptance-noindex/1/2 \
+                      en/summary-acceptance-no-chapters/1/2; do
+            lang=${quad%%/*}; rest=${quad#*/}; slug=${rest%%/*}; rest=${rest#*/}
+            summaries=${rest%%/*}; sections=${rest#*/}
+            if ! curl -fsS "http://127.0.0.1:5000/api/${lang}/books/${slug}/overview" -o "$RUNNER_TEMP/summary-book.json" \
+              || ! jq -e --arg lang "$lang" --argjson s "$summaries" --argjson n "$sections" \
+                   '[.versions[] | select(.language == $lang) | [._count.summaries, ._count.summarySections]] == [[$s, $n]]' \
+                   "$RUNNER_TEMP/summary-book.json" > /dev/null; then
+              echo "::error::Книга приёмки пересказа ${lang}/${slug}: ожидались счётчики пересказа ${summaries} и разделов ${sections}."
+              echo "Похоже, образ ghcr.io/alex-berezov/books:latest старше релиза с books/prisma/seed-summaries.ts (F04-4)."
+              exit 1
+            fi
+            if [ "$lang" = en ] \
+              && ! en_id[$slug]=$(jq -er '.versions[] | select(.language == "en") | .id' "$RUNNER_TEMP/summary-book.json"); then
+              echo "::error::Книга приёмки пересказа en/${slug}: в обзоре нет id версии en."
+              echo "Похоже, ответ обзора сменил форму или образ ghcr.io/alex-berezov/books:latest старше релиза с books/prisma/seed-summaries.ts (F04-4)."
+              exit 1
+            fi
+          done
+          # Очень краткий пересказ английской версии: 1 - блок есть (`BRIEF` спеки), дата правки -
+          # та, что спека ждёт в `dateModified` (`SUMMARY_DATE`).
+          summary_date=2026-03-10T09:30:00.000Z
+          for brief_pair in summary-acceptance-full/1 summary-acceptance-only-full/0 \
+                            summary-acceptance-brief-only/1 summary-acceptance-sections-only/0 \
+                            summary-acceptance-noindex/1 summary-acceptance-no-chapters/0; do
+            slug=${brief_pair%%/*}; want=${brief_pair#*/}
+            # Пустой id ушёл бы в /versions//summary - отдельная ветка с понятной причиной.
+            id=${en_id[$slug]:-}
+            if [ -z "$id" ]; then
+              echo "::error::Книги en/${slug} нет среди четвёрок пробы - пара очень краткого без версии."
+              exit 1
+            fi
+            if ! curl -fsS "http://127.0.0.1:5000/api/versions/${id}/summary" -o "$RUNNER_TEMP/summary.json" \
+              || ! jq -e --argjson want "$want" --arg date "$summary_date" '.briefHasText == ($want == 1) and .updatedAt == $date' \
+                   "$RUNNER_TEMP/summary.json" > /dev/null; then
+              echo "::error::Пересказ ${slug}: ожидались очень краткий пересказ ${want} и дата правки ${summary_date} (её ждёт dateModified спеки)."
+              echo "Сид books/prisma/seed-summaries.ts разошёлся со спекой e2e/book-summary-variants.spec.ts (F04-4)."
+              exit 1
+            fi
+          done
+          # Глава читалки раздела существует в версии (`READER` спеки): третий раздел полной книги ведёт
+          # на главу 99, у версии без текста книги нет и первой.
+          for reader_triple in summary-acceptance-full/1/true summary-acceptance-full/3/false \
+                               summary-acceptance-no-chapters/1/false; do
+            slug=${reader_triple%%/*}; rest=${reader_triple#*/}; number=${rest%%/*}; want=${rest#*/}
+            id=${en_id[$slug]:-}
+            if [ -z "$id" ]; then
+              echo "::error::Книги en/${slug} нет среди четвёрок пробы - тройка главы читалки без версии."
+              exit 1
+            fi
+            if ! curl -fsS "http://127.0.0.1:5000/api/versions/${id}/summary-sections/${number}" -o "$RUNNER_TEMP/summary-section.json" \
+              || ! jq -e --argjson want "$want" '.readerChapterExists == $want' "$RUNNER_TEMP/summary-section.json" > /dev/null; then
+              echo "::error::Раздел ${number} пересказа ${slug}: ожидалось readerChapterExists=${want}."
+              echo "Сид books/prisma/seed-summaries.ts разошёлся со спекой e2e/book-summary-variants.spec.ts (F04-4)."
+              exit 1
+            fi
+          done
+          echo "книги приёмки вариантов пересказа на месте"
 
       # Сборка здесь потому, что lint, typecheck и тесты её не заменяют.
       # 08.08.2026 импорт `next/headers` в файл, общий для сервера и клиента,
