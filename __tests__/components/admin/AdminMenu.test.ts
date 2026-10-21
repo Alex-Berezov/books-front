@@ -21,10 +21,23 @@ describe('getVisibleAdminMenuItems', () => {
     expect(items.map((item) => item.id)).toContain('legal-reviews');
   });
 
-  it('gives a content manager every item as well', () => {
+  it('gives a content manager every item except the admin-only LLM settings (F05, U6)', () => {
     const items = getVisibleAdminMenuItems('en', ['content_manager']);
 
-    expect(items).toHaveLength(getAdminMenuItems('en').length);
+    expect(items.map((item) => item.id)).toEqual(
+      getAdminMenuItems('en')
+        .map((item) => item.id)
+        .filter((id) => id !== 'llm-settings')
+    );
+  });
+
+  it('shows LLM settings to an admin only (F05, U6)', () => {
+    const ids = (roles: string[]) => getVisibleAdminMenuItems('en', roles).map((item) => item.id);
+
+    expect(ids(['admin'])).toContain('llm-settings');
+    expect(ids(['content_manager'])).not.toContain('llm-settings');
+    expect(ids(['lawyer'])).not.toContain('llm-settings');
+    expect(ids(['content_manager', 'lawyer'])).not.toContain('llm-settings');
   });
 
   it('gives a plain user nothing', () => {
@@ -34,7 +47,8 @@ describe('getVisibleAdminMenuItems', () => {
   it('unions the items when a user is both staff and a lawyer', () => {
     const items = getVisibleAdminMenuItems('en', ['content_manager', 'lawyer']);
 
-    expect(items).toHaveLength(getAdminMenuItems('en').length);
+    expect(items).toHaveLength(getAdminMenuItems('en').length - 1);
+    expect(items.map((item) => item.id)).toContain('legal-reviews');
   });
 
   it('builds the legal reviews path for the current language', () => {

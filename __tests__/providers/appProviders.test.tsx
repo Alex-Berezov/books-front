@@ -19,6 +19,13 @@ import { AppProviders } from '@/providers/AppProviders';
 import { ApiError } from '@/types/api';
 import type { QueryClient } from '@tanstack/react-query';
 
+const toastMocks = vi.hoisted(() => ({ error: vi.fn() }));
+
+vi.mock('@/lib/utils/toast', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/utils/toast')>();
+  return { ...actual, toast: { ...actual.toast, error: toastMocks.error } };
+});
+
 vi.mock('next/navigation', () => ({
   useParams: () => ({ lang: 'en' }),
   usePathname: () => '/en',
@@ -118,5 +125,35 @@ describe('AppProviders и настройки кэша', () => {
 
     expect(client.getQueryCache().config.onError).toBeTypeOf('function');
     expect(client.getMutationCache().config.onError).toBeTypeOf('function');
+  });
+
+  describe('общий тост 5xx и коды, которые экран разбирает сам (F05-1s)', () => {
+    const error503 = (code?: string) =>
+      new ApiError({ statusCode: 503, message: 'x', ...(code ? { data: { code } } : {}) });
+    const LOCAL = { localErrorCodes: ['LLM_MODELS_UNAVAILABLE'] };
+
+    type Fire = (client: QueryClient, error: ApiError, meta?: Record<string, unknown>) => void;
+    const fireQuery: Fire = (client, error, meta) =>
+      client.getQueryCache().config.onError?.(error, { meta } as never);
+    const fireMutation: Fire = (client, error, meta) =>
+      client
+        .getMutationCache()
+        .config.onError?.(error, undefined, undefined, { meta } as never, {} as never);
+
+    it.each([
+      ['запрос', fireQuery],
+      ['мутация', fireMutation],
+    ])('%s: объявленный код — без тоста, другой код и без meta — тост', (_, fire) => {
+      const client = renderProviders();
+      toastMocks.error.mockClear();
+      fire(client, error503('LLM_MODELS_UNAVAILABLE'), LOCAL);
+      expect(toastMocks.error).not.toHaveBeenCalled();
+
+      fire(client, error503('OTHER'), LOCAL);
+      expect(toastMocks.error).toHaveBeenCalledTimes(1);
+
+      fire(client, error503('LLM_MODELS_UNAVAILABLE'));
+      expect(toastMocks.error).toHaveBeenCalledTimes(2);
+    });
   });
 });

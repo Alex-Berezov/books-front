@@ -215,6 +215,13 @@ export const STAFF_ROLES = [UserRole.ADMIN, UserRole.CONTENT_MANAGER] as const;
 export const ADMIN_PANEL_ROLES = [...STAFF_ROLES, UserRole.LAWYER] as const;
 
 /**
+ * Roles that see admin sections spending money: `admin` only (F05, U6). A content manager is
+ * staff, yet must not change the models or the spending ceiling of the LLM pipeline. The admin
+ * layout lets every {@link ADMIN_PANEL_ROLES} role in, so such a page checks this list itself.
+ */
+export const ADMIN_ONLY_ROLES = [UserRole.ADMIN] as const;
+
+/**
  * Authorization routes
  */
 export const AUTH_ROUTES = {

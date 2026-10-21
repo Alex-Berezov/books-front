@@ -56,6 +56,7 @@
   "/admin/[lang]/comments": 298370,
   "/admin/[lang]/genres": 522495,
   "/admin/[lang]/legal-reviews": 136938,
+  "/admin/[lang]/llm-settings": 290403,
   "/admin/[lang]/media": 290059,
   "/admin/[lang]/pages": 288104,
   "/admin/[lang]/pages/[id]": 536485,

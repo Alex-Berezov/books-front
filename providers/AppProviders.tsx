@@ -24,6 +24,7 @@ import { useParams, usePathname } from 'next/navigation';
 import { SessionProvider, useSession } from 'next-auth/react';
 import { SnackbarProvider } from 'notistack';
 import { ToastConfigurator } from '@/components/common/ToastConfigurator';
+import { isHandledLocally } from '@/lib/api/local-error-codes';
 import { SESSION_SETTINGS, isSessionEndedError } from '@/lib/auth/constants';
 import { endDeadSession, isAuthPagePath } from '@/lib/auth/session-end';
 import { hasLoggedInMarker } from '@/lib/auth/sessionMarker';
@@ -155,20 +156,28 @@ export const AppProviders = (props: AppProvidersProps) => {
   const [queryClient] = useState(() =>
     createQueryClient({
       queryCache: new QueryCache({
-        onError: (error) => {
+        onError: (error, query) => {
           // Global error handling for queries
           // Only show toast for server errors (5xx)
-          if (error instanceof ApiError && error.statusCode >= 500) {
+          if (
+            error instanceof ApiError &&
+            error.statusCode >= 500 &&
+            !isHandledLocally(error, query.meta)
+          ) {
             console.error('Server error:', error.message);
             toast.error(getServerErrorMessage());
           }
         },
       }),
       mutationCache: new MutationCache({
-        onError: (error) => {
+        onError: (error, _variables, _context, mutation) => {
           // Global error handling for mutations
           // Show toast for server errors (5xx)
-          if (error instanceof ApiError && error.statusCode >= 500) {
+          if (
+            error instanceof ApiError &&
+            error.statusCode >= 500 &&
+            !isHandledLocally(error, mutation.meta)
+          ) {
             console.error('Server error:', error.message);
             toast.error(getServerErrorMessage());
           }

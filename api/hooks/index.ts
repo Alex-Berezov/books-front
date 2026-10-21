@@ -355,6 +355,16 @@ export {
   useRevokeRightsOverride,
 } from './useRightsOverride';
 
+// LLM pipeline settings (F05-1s, admin only)
+export {
+  llmKeys,
+  useLlmStatus,
+  useLlmModels,
+  useLlmStageSettings,
+  useUpdateLlmStageSetting,
+  useUpdateLlmBudget,
+} from './useLlmSettings';
+
 // Rights Intakes (continued: review imports, profile, agent manifest)
 export {
   useMaterializeRightsReviewImport,

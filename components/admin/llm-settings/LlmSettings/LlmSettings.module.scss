@@ -1,0 +1,99 @@
+@import '@/styles/tokens.scss';
+
+.container {
+  padding: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-lg;
+}
+
+.section {
+  margin-bottom: $spacing-xl;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-md;
+}
+
+.alert {
+  margin-bottom: $spacing-md;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: $spacing-xs $spacing-lg;
+  margin: 0 0 $spacing-md;
+
+  dt {
+    color: $color-text-secondary;
+  }
+
+  dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.budgetForm,
+.stageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: $spacing-md;
+  align-items: end;
+  margin-bottom: $spacing-md;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.fieldLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.hint {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.error {
+  color: $color-error;
+  font-size: $font-size-sm;
+  margin: 0 0 $spacing-sm;
+}
+
+.empty {
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.stage {
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.stageHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.stageTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  margin: 0;
+}

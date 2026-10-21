@@ -19,8 +19,9 @@ import {
   ClipboardList,
   Scale,
   ShieldAlert,
+  SlidersHorizontal,
 } from 'lucide-react';
-import { STAFF_ROLES, UserRole } from '@/lib/auth/constants';
+import { ADMIN_ONLY_ROLES, STAFF_ROLES, UserRole } from '@/lib/auth/constants';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /**
@@ -160,13 +161,21 @@ export const getAdminMenuItems = (lang: SupportedLang): AdminMenuItem[] => [
     icon: Users,
     path: `/admin/${lang}/users`,
   },
+  {
+    id: 'llm-settings',
+    label: 'LLM settings',
+    icon: SlidersHorizontal,
+    path: `/admin/${lang}/llm-settings`,
+    roles: ADMIN_ONLY_ROLES,
+  },
 ];
 
 /**
  * Menu items a given set of user roles may see.
  *
  * An item without an explicit `roles` list is staff-only, so a user whose only role is `lawyer`
- * ends up with exactly two entries: Legal Reviews and Rights Notifications (ADR-004).
+ * ends up with exactly two entries: Legal Reviews and Rights Notifications (ADR-004). An item
+ * with `roles` is visible to those roles only: LLM settings is hidden from a content manager.
  */
 export const getVisibleAdminMenuItems = (
   lang: SupportedLang,

@@ -2107,6 +2107,58 @@
     ]
   },
   {
+    "route": "GET /admin/llm/models",
+    "hasResponseSchema": true,
+    "fields": [
+      "items",
+      "items[].contextLength",
+      "items[].id",
+      "items[].inputPerMTokUsd",
+      "items[].name",
+      "items[].outputPerMTokUsd",
+      "items[].structuredOutputs",
+      "pagination",
+      "pagination.limit",
+      "pagination.page",
+      "pagination.total",
+      "pagination.totalPages"
+    ]
+  },
+  {
+    "route": "GET /admin/llm/stage-settings",
+    "hasResponseSchema": true,
+    "fields": [
+      "items",
+      "items[].enabled",
+      "items[].fallbacks",
+      "items[].maxPricePerMTok",
+      "items[].maxTokens",
+      "items[].model",
+      "items[].source",
+      "items[].stage",
+      "items[].temperature",
+      "items[].updatedAt",
+      "pagination",
+      "pagination.limit",
+      "pagination.page",
+      "pagination.total",
+      "pagination.totalPages"
+    ]
+  },
+  {
+    "route": "GET /admin/llm/status",
+    "hasResponseSchema": true,
+    "fields": [
+      "budgetConfigured",
+      "ceilingUsd",
+      "defaultRunLimitUsd",
+      "keyConfigured",
+      "reservedUsd",
+      "spentUsd",
+      "state"
+    ]
+  },
+  {
     "route": "GET /admin/pages",
     "hasResponseSchema": true,
     "fields": [
@@ -13958,6 +14010,32 @@
       "warnings[].lang",
       "warnings[].path",
       "warnings[].slug"
+    ]
+  },
+  {
+    "route": "PUT /admin/llm/budget",
+    "hasResponseSchema": true,
+    "fields": [
+      "ceilingUsd",
+      "defaultRunLimitUsd",
+      "reservedUsd",
+      "spentUsd",
+      "updatedAt"
+    ]
+  },
+  {
+    "route": "PUT /admin/llm/stage-settings/{stage}",
+    "hasResponseSchema": true,
+    "fields": [
+      "enabled",
+      "fallbacks",
+      "maxPricePerMTok",
+      "maxTokens",
+      "model",
+      "source",
+      "stage",
+      "temperature",
+      "updatedAt"
     ]
   },
   {
