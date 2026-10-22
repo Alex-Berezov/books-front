@@ -365,6 +365,21 @@ export {
   useUpdateLlmBudget,
 } from './useLlmSettings';
 
+// Translation compare of models on a chapter (F05-3, admin only)
+export {
+  COMPARE_MAX_MODELS,
+  COMPARE_MIN_MODELS,
+  COMPARE_REFETCH_MS,
+  compareRefetchInterval,
+  LLM_DISABLED,
+  translationCompareKeys,
+  useCompareOperation,
+  useStartTranslationCompare,
+  useTranslationCompare,
+  useTranslationCompareEstimate,
+  useTranslationCompares,
+} from './useTranslationCompare';
+
 // Rights Intakes (continued: review imports, profile, agent manifest)
 export {
   useMaterializeRightsReviewImport,

@@ -85,3 +85,26 @@ export interface UpdateLlmStageSettingRequest {
   enabled: boolean;
   maxPricePerMTok: LlmMoney | null;
 }
+
+/** Операция LLM: всё, что тратит деньги, тратит их на операцию с лимитом. */
+export interface LlmOperation {
+  id: string;
+  kind: 'translation_run' | 'dossier' | 'compare' | 'draft';
+  status: 'active' | 'paused' | 'cancelled' | 'done' | 'failed';
+  /** Почему операция на паузе; `null` — не на паузе. */
+  pauseReason:
+    | 'LIMIT_REACHED'
+    | 'CEILING_REACHED'
+    | 'NO_COMPLIANT_PROVIDER'
+    | 'DOSSIER_STALE'
+    | 'DOSSIER_PAUSED'
+    | 'INSUFFICIENT_FUNDS'
+    | 'STEP_FAILED'
+    | null;
+  bookVersionId: string | null;
+  limitUsd: LlmMoney;
+  reservedUsd: LlmMoney;
+  spentUsd: LlmMoney;
+  createdAt: string;
+  updatedAt: string;
+}

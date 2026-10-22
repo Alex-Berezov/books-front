@@ -539,9 +539,23 @@ export type {
   LlmModel,
   LlmModelsResponse,
   LlmMoney,
+  LlmOperation,
   LlmStageSetting,
   LlmStageSettingsResponse,
   LlmStatus,
   UpdateLlmBudgetRequest,
   UpdateLlmStageSettingRequest,
 } from './llm';
+
+// Translation compare of models on a chapter (F05-3, admin only)
+export type {
+  CompareContextLine,
+  StartTranslationCompareRequest,
+  TranslationCompare,
+  TranslationCompareEstimate,
+  TranslationCompareListItem,
+  TranslationCompareListResponse,
+  TranslationCompareModelStatus,
+  TranslationCompareParams,
+  TranslationCompareResult,
+} from './translation';

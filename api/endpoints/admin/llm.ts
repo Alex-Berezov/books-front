@@ -11,10 +11,11 @@
  * `v1.0.241`), прежней формы и окна выката с ней у них не было (`LEGACY-177`).
  */
 
-import { httpGetAuth, httpPutAuth } from '@/lib/http-client';
+import { httpGetAuth, httpPostAuth, httpPutAuth } from '@/lib/http-client';
 import type {
   LlmBudget,
   LlmModelsResponse,
+  LlmOperation,
   LlmStageSetting,
   LlmStageSettingsResponse,
   LlmStatus,
@@ -45,3 +46,14 @@ export const updateLlmStageSetting = async (
 /** 404, если строки бюджета нет. */
 export const updateLlmBudget = async (data: UpdateLlmBudgetRequest): Promise<LlmBudget> =>
   httpPutAuth<LlmBudget>('/admin/llm/budget', data);
+
+/** Отмена операции `active` или `paused` (F05-3: сравнение моделей); 409 — уже закончилась. */
+export const cancelLlmOperation = async (id: string): Promise<LlmOperation> =>
+  httpPostAuth<LlmOperation>(`/admin/llm/operations/${id}/cancel`);
+
+/**
+ * «Продолжить» операцию на паузе; `limitUsd` — новый лимит, не ниже потраченного и
+ * зарезервированного (иначе 400). 503 `LLM_DISABLED` — ключа нет.
+ */
+export const resumeLlmOperation = async (id: string, limitUsd?: string): Promise<LlmOperation> =>
+  httpPostAuth<LlmOperation>(`/admin/llm/operations/${id}/resume`, limitUsd ? { limitUsd } : {});

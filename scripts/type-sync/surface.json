@@ -4910,6 +4910,45 @@
     ]
   },
   {
+    "route": "GET /admin/translation-compares/{id}",
+    "hasResponseSchema": true,
+    "fields": [
+      "bookVersionId",
+      "chapterNumber",
+      "chapterTitle",
+      "chunks",
+      "createdAt",
+      "id",
+      "language",
+      "models",
+      "operation",
+      "operation.bookVersionId",
+      "operation.createdAt",
+      "operation.id",
+      "operation.kind",
+      "operation.limitUsd",
+      "operation.pauseReason",
+      "operation.reservedUsd",
+      "operation.spentUsd",
+      "operation.status",
+      "operation.updatedAt",
+      "originalHtml",
+      "results",
+      "results[].chunksDone",
+      "results[].costUsd",
+      "results[].durationMs",
+      "results[].error",
+      "results[].html",
+      "results[].inputTokens",
+      "results[].model",
+      "results[].outputTokens",
+      "results[].position",
+      "results[].status",
+      "splitCostUsd",
+      "waitingForContext"
+    ]
+  },
+  {
     "route": "GET /admin/versions/{bookVersionId}/audio-chapters",
     "hasResponseSchema": true,
     "fields": [
@@ -6394,6 +6433,59 @@
       "versions[].status",
       "versions[].title",
       "versions[].type"
+    ]
+  },
+  {
+    "route": "GET /admin/versions/{id}/translation-compare/estimate",
+    "hasResponseSchema": true,
+    "fields": [
+      "chapterNumber",
+      "chunks",
+      "dossier",
+      "dossier.estimateUsd",
+      "dossier.suggestedLimitUsd",
+      "dossier.upperBound",
+      "glossary",
+      "glossary.estimateUsd",
+      "glossary.suggestedLimitUsd",
+      "glossary.upperBound",
+      "models",
+      "models[].estimateUsd",
+      "models[].model",
+      "splitUsd",
+      "suggestedLimitUsd",
+      "targetLanguage",
+      "translationsUsd",
+      "upperBound"
+    ]
+  },
+  {
+    "route": "GET /admin/versions/{id}/translation-compares",
+    "hasResponseSchema": true,
+    "fields": [
+      "items",
+      "items[].bookVersionId",
+      "items[].chapterNumber",
+      "items[].createdAt",
+      "items[].id",
+      "items[].language",
+      "items[].models",
+      "items[].operation",
+      "items[].operation.bookVersionId",
+      "items[].operation.createdAt",
+      "items[].operation.id",
+      "items[].operation.kind",
+      "items[].operation.limitUsd",
+      "items[].operation.pauseReason",
+      "items[].operation.reservedUsd",
+      "items[].operation.spentUsd",
+      "items[].operation.status",
+      "items[].operation.updatedAt",
+      "pagination",
+      "pagination.limit",
+      "pagination.page",
+      "pagination.total",
+      "pagination.totalPages"
     ]
   },
   {
@@ -8701,6 +8793,38 @@
       "updatedAt",
       "viafId",
       "wikidataId"
+    ]
+  },
+  {
+    "route": "POST /admin/llm/operations/{id}/cancel",
+    "hasResponseSchema": true,
+    "fields": [
+      "bookVersionId",
+      "createdAt",
+      "id",
+      "kind",
+      "limitUsd",
+      "pauseReason",
+      "reservedUsd",
+      "spentUsd",
+      "status",
+      "updatedAt"
+    ]
+  },
+  {
+    "route": "POST /admin/llm/operations/{id}/resume",
+    "hasResponseSchema": true,
+    "fields": [
+      "bookVersionId",
+      "createdAt",
+      "id",
+      "kind",
+      "limitUsd",
+      "pauseReason",
+      "reservedUsd",
+      "spentUsd",
+      "status",
+      "updatedAt"
     ]
   },
   {
@@ -13329,6 +13453,45 @@
       "reasonRu",
       "recheckRequired",
       "versionId"
+    ]
+  },
+  {
+    "route": "POST /admin/versions/{id}/translation-compare",
+    "hasResponseSchema": true,
+    "fields": [
+      "bookVersionId",
+      "chapterNumber",
+      "chapterTitle",
+      "chunks",
+      "createdAt",
+      "id",
+      "language",
+      "models",
+      "operation",
+      "operation.bookVersionId",
+      "operation.createdAt",
+      "operation.id",
+      "operation.kind",
+      "operation.limitUsd",
+      "operation.pauseReason",
+      "operation.reservedUsd",
+      "operation.spentUsd",
+      "operation.status",
+      "operation.updatedAt",
+      "originalHtml",
+      "results",
+      "results[].chunksDone",
+      "results[].costUsd",
+      "results[].durationMs",
+      "results[].error",
+      "results[].html",
+      "results[].inputTokens",
+      "results[].model",
+      "results[].outputTokens",
+      "results[].position",
+      "results[].status",
+      "splitCostUsd",
+      "waitingForContext"
     ]
   },
   {

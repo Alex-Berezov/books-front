@@ -14,6 +14,16 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ back: vi.fn(), replace: vi.fn(), push }),
 }));
 
+// Кнопка «Compare Models» — только `admin` в живой сессии (F05-3, U6, L-010).
+const sessionResult = {
+  data: { user: { roles: ['admin'] } } as unknown,
+  status: 'authenticated' as string,
+};
+
+vi.mock('next-auth/react', () => ({
+  useSession: () => sessionResult,
+}));
+
 const versionResult = {
   data: undefined as unknown,
   isLoading: false,
@@ -436,6 +446,49 @@ describe('Кнопка Preview на странице версии', () => {
     render(<EditBookVersionPage />);
 
     expect(screen.queryByRole('button', { name: 'Preview' })).not.toBeInTheDocument();
+  });
+});
+
+describe('Кнопка Compare Models на странице версии (F05-3)', () => {
+  beforeEach(() => {
+    push.mockClear();
+    editedVersion.type = 'text';
+    sessionResult.data = { user: { roles: ['admin'] } };
+    sessionResult.status = 'authenticated';
+  });
+
+  it('admin видит кнопку и попадает на экран сравнения этой версии', () => {
+    render(<EditBookVersionPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Compare Models' }));
+
+    expect(push).toHaveBeenCalledWith('/admin/es/books/versions/version-42/translation-compare');
+  });
+
+  it('у версии любого типа кнопка есть: исходник проверяет экран (С1)', () => {
+    editedVersion.type = 'audio';
+
+    render(<EditBookVersionPage />);
+
+    expect(screen.getByRole('button', { name: 'Compare Models' })).toBeInTheDocument();
+  });
+
+  it.each([
+    ['content_manager', { user: { roles: ['content_manager'] } }, 'authenticated'],
+    ['lawyer', { user: { roles: ['lawyer'] } }, 'authenticated'],
+    ['сессия ещё грузится', { user: { roles: ['admin'] } }, 'loading'],
+    [
+      'сессия с ошибкой обновления',
+      { user: { roles: ['admin'] }, error: 'RefreshFailed' },
+      'authenticated',
+    ],
+  ])('%s — кнопки нет', (_, data, status) => {
+    sessionResult.data = data;
+    sessionResult.status = status;
+
+    render(<EditBookVersionPage />);
+
+    expect(screen.queryByRole('button', { name: 'Compare Models' })).not.toBeInTheDocument();
   });
 });
 

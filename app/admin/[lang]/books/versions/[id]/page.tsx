@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import type { FC } from 'react';
-import { ArrowLeft, Eye, Plus, Save, Download } from 'lucide-react';
+import { ArrowLeft, Eye, Languages, Plus, Save, Download } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
   BookForm,
   BookVersionSwitcher,
@@ -22,6 +23,7 @@ import {
 } from '@/components/admin/books';
 import { Button } from '@/components/admin/common/Button';
 import { Spinner } from '@/components/admin/shared';
+import { UserRole } from '@/lib/auth/constants';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 import { PREVIEW_SOURCE_EDITOR, PREVIEW_SOURCE_PARAM } from './preview/preview.constants';
@@ -54,6 +56,13 @@ const EditBookVersionPage: FC = () => {
     isImporting,
     router,
   } = useBookVersionLogic(versionId);
+
+  // Сравнение моделей тратит деньги - только `admin` (F05, U6); страница отказывает остальным сама.
+  const { data: session, status: sessionStatus } = useSession();
+  const isAdmin =
+    sessionStatus === 'authenticated' &&
+    !session?.error &&
+    (session?.user?.roles ?? []).includes(UserRole.ADMIN);
 
   // Loading state
   if (isLoading) {
@@ -138,6 +147,17 @@ const EditBookVersionPage: FC = () => {
                 }
               >
                 Preview
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                variant="secondary"
+                leftIcon={<Languages size={16} />}
+                onClick={() =>
+                  router.push(`/admin/${lang}/books/versions/${versionId}/translation-compare`)
+                }
+              >
+                Compare Models
               </Button>
             )}
             <Button

@@ -359,10 +359,17 @@ export function indexApiPaths(doc) {
   return index;
 }
 
+/**
+ * Коды успешного ответа с телом. 202 - долгая админская операция бэкенда с телом состояния
+ * (`POST /admin/versions/{id}/translation-compare`): без него её тип не сверялся бы вовсе
+ * (решение арбитра 22.10.2026, `F05 | F05-3`).
+ */
+const SUCCESS_CODES = ['200', '201', '202'];
+
 /** Схема успешного ответа операции плюс код, под которым она объявлена. */
 export function successResponseSchema(operation) {
   const responses = operation?.responses ?? {};
-  for (const code of ['200', '201']) {
+  for (const code of SUCCESS_CODES) {
     const response = responses[code];
     if (!response) continue;
     const content = response.content?.['application/json'] ?? Object.values(response.content ?? {})[0];
@@ -373,13 +380,13 @@ export function successResponseSchema(operation) {
 
 /**
  * Ответ «204 без тела»: операция объявляет 204 без содержимого (`content` нет или он пуст)
- * и не объявляет 200/201 вовсе - 200 даже без схемы означает, что тело возможно.
+ * и не объявляет 200/201/202 вовсе - 200 даже без схемы означает, что тело возможно.
  * Схемы, против которой строить утверждение, тут нет и быть не может - сверять остаётся одно:
  * вызов ждёт `void` (класс `noBodyResponse`, решение арбитра 06.10.2026, `T104l`).
  */
 export function noBodyResponse(operation) {
   const responses = operation?.responses ?? {};
-  if (responses['200'] || responses['201']) return false;
+  if (SUCCESS_CODES.some((code) => responses[code])) return false;
   const response = responses['204'];
   return Boolean(response) && Object.keys(response.content ?? {}).length === 0;
 }

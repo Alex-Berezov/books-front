@@ -242,6 +242,12 @@ describe('поля ответа', () => {
         responses: { 201: { content: { 'application/json': { schema: {} } } } },
       })?.code
     ).toBe(201);
+    // 202 с телом - долгая операция бэкенда: её тип сверяется так же (F05-3).
+    expect(
+      successResponseSchema({
+        responses: { 202: { content: { 'application/json': { schema: {} } } } },
+      })?.code
+    ).toBe(202);
     expect(successResponseSchema({ responses: { 200: { description: '' } } })).toBeNull();
   });
 
@@ -252,6 +258,9 @@ describe('поля ответа', () => {
       noBodyResponse({ responses: { 204: { content: { 'application/json': { schema: {} } } } } })
     ).toBe(false);
     expect(noBodyResponse({ responses: { 429: { description: '' } } })).toBe(false);
+    expect(
+      noBodyResponse({ responses: { 202: { description: '' }, 204: { description: '' } } })
+    ).toBe(false);
     // 200 даже без схемы означает возможное тело - требовать `<void>` здесь нельзя.
     expect(
       noBodyResponse({ responses: { 200: { description: '' }, 204: { description: '' } } })
