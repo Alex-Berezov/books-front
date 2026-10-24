@@ -100,6 +100,18 @@ vi.mock('@/components/admin/books', () => {
   };
 });
 
+// Перевод книги (F05-7): кнопка и блок - заглушки с меткой, видно только, нарисованы ли они.
+vi.mock('@/components/admin/translation-run', () => ({
+  TranslateButton: ({ versionId, bookId }: { versionId: string; bookId: string }) => (
+    <button type="button">
+      Translate to other languages {versionId} {bookId}
+    </button>
+  ),
+  TranslationRunBlock: (props: { versionId: string; bookId: string; lang: string }) => (
+    <section aria-label="Translation run" data-props={JSON.stringify(props)} />
+  ),
+}));
+
 const chapter = (id: string, number: number, title: string, content: string) => ({
   id,
   bookVersionId: 'v1',
@@ -489,6 +501,46 @@ describe('Кнопка Compare Models на странице версии (F05-3)
     render(<EditBookVersionPage />);
 
     expect(screen.queryByRole('button', { name: 'Compare Models' })).not.toBeInTheDocument();
+  });
+});
+
+describe('Перевод книги на странице версии (F05-7)', () => {
+  beforeEach(() => {
+    sessionResult.data = { user: { roles: ['admin'] } };
+    sessionResult.status = 'authenticated';
+  });
+
+  it('admin видит кнопку перевода этой версии и блок запуска', () => {
+    render(<EditBookVersionPage />);
+
+    expect(
+      screen.getByRole('button', { name: 'Translate to other languages version-42 b1' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Translation run' })).toHaveAttribute(
+      'data-props',
+      JSON.stringify({ versionId: 'version-42', bookId: 'b1', lang: 'es' })
+    );
+  });
+
+  it.each([
+    ['content_manager', { user: { roles: ['content_manager'] } }, 'authenticated'],
+    ['lawyer', { user: { roles: ['lawyer'] } }, 'authenticated'],
+    ['сессия ещё грузится', { user: { roles: ['admin'] } }, 'loading'],
+    [
+      'сессия с ошибкой обновления',
+      { user: { roles: ['admin'] }, error: 'RefreshFailed' },
+      'authenticated',
+    ],
+  ])('%s — ни кнопки, ни блока', (_, data, status) => {
+    sessionResult.data = data;
+    sessionResult.status = status;
+
+    render(<EditBookVersionPage />);
+
+    expect(
+      screen.queryByRole('button', { name: /Translate to other languages/ })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Translation run' })).not.toBeInTheDocument();
   });
 });
 

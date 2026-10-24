@@ -1,0 +1,64 @@
+@import '@/styles/tokens.scss';
+
+.block {
+  margin-bottom: $spacing-lg;
+  padding: $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $spacing-md;
+  margin-bottom: $spacing-sm;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  margin: 0;
+}
+
+.buttons {
+  display: flex;
+  gap: $spacing-sm;
+  margin-left: auto;
+}
+
+.pause {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.limit {
+  // Токенов ширины полей нет: сумма до восьми знаков после точки.
+  width: 140px;
+}
+
+.model {
+  // Подпись модели с ценами длинная: список не сжимается до нечитаемого.
+  min-width: 320px;
+}
+
+.alert {
+  margin-bottom: $spacing-sm;
+}
+
+.table {
+  width: 100%;
+  margin-bottom: $spacing-sm;
+
+  th {
+    text-align: left;
+  }
+}
+
+.operations {
+  margin: 0;
+  color: $color-text-secondary;
+}

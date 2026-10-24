@@ -23,6 +23,7 @@ import {
 } from '@/components/admin/books';
 import { Button } from '@/components/admin/common/Button';
 import { Spinner } from '@/components/admin/shared';
+import { TranslateButton, TranslationRunBlock } from '@/components/admin/translation-run';
 import { UserRole } from '@/lib/auth/constants';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
@@ -57,7 +58,7 @@ const EditBookVersionPage: FC = () => {
     router,
   } = useBookVersionLogic(versionId);
 
-  // Сравнение моделей тратит деньги - только `admin` (F05, U6); страница отказывает остальным сама.
+  // Сравнение моделей и перевод тратят деньги - только `admin` (F05, U6); ручки отказывают остальным.
   const { data: session, status: sessionStatus } = useSession();
   const isAdmin =
     sessionStatus === 'authenticated' &&
@@ -160,6 +161,7 @@ const EditBookVersionPage: FC = () => {
                 Compare Models
               </Button>
             )}
+            {isAdmin && <TranslateButton versionId={versionId} bookId={version.bookId} />}
             <Button
               type="submit"
               size="md"
@@ -185,6 +187,9 @@ const EditBookVersionPage: FC = () => {
 
       <div className={styles.contentLayout}>
         <div className={styles.mainContent}>
+          {isAdmin && (
+            <TranslationRunBlock versionId={versionId} bookId={version.bookId} lang={lang} />
+          )}
           <BookVersionTabs
             activeTab={activeTab}
             listenContent={<ListenContentTab versionId={versionId} />}

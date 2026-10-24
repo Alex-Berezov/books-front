@@ -1,0 +1,31 @@
+@import '@/styles/tokens.scss';
+
+.language {
+  margin-bottom: $spacing-lg;
+}
+
+.subtitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  margin: 0 0 $spacing-sm;
+}
+
+.table {
+  width: 100%;
+
+  th {
+    text-align: left;
+  }
+}
+
+.total {
+  font-weight: $font-weight-semibold;
+}
+
+.findings {
+  margin: 0;
+}
+
+.muted {
+  color: $color-text-secondary;
+}

@@ -11,11 +11,20 @@
 
 import { httpGetAuth, httpPostAuth } from '@/lib/http-client';
 import type {
+  ResumeTranslationRunRequest,
   StartTranslationCompareRequest,
+  StartTranslationRunRequest,
   TranslationCompare,
   TranslationCompareEstimate,
   TranslationCompareListResponse,
   TranslationCompareParams,
+  TranslationRun,
+  TranslationRunEstimate,
+  TranslationRunEstimateParams,
+  TranslationRunListParams,
+  TranslationRunListResponse,
+  TranslationRunReport,
+  TranslationSource,
 } from '@/types/api-schema';
 
 const compareQuery = (params: TranslationCompareParams): string => {
@@ -52,3 +61,67 @@ export const getTranslationCompares = async (
 
 export const getTranslationCompare = async (id: string): Promise<TranslationCompare> =>
   httpGetAuth<TranslationCompare>(`/admin/translation-compares/${id}`);
+
+// ---------------------------------------------------------------------------
+// Запуск перевода по всей книге (F05-7) — только `admin`. Оценка и старт отказывают 409
+// `TRANSLATION_TARGET_UNAVAILABLE` (`languages[{language, reason}]`), `TRANSLATION_SOURCE_EMPTY`,
+// `SOURCE_TOO_MANY_CHAPTERS`, `CHECK_MODEL_SAME_FAMILY`, кодом причины D8; старт — ещё 400
+// `TRANSLATION_RUN_LIMIT_TOO_LOW`; кнопки — 409 `TRANSLATION_RUN_NOT_PAUSABLE`,
+// `LLM_OPERATION_NOT_RESUMABLE`, `LLM_OPERATION_NOT_CANCELLABLE`, `TRANSLATION_RUN_MODELS_CHANGED`.
+
+export const getTranslationSource = async (versionId: string): Promise<TranslationSource> =>
+  httpGetAuth<TranslationSource>(`/admin/versions/${versionId}/translation-source`);
+
+const runEstimateQuery = (params: TranslationRunEstimateParams): string => {
+  const query = new URLSearchParams();
+  for (const language of params.languages) query.append('languages', language);
+  if (params.translateModel) query.set('translateModel', params.translateModel);
+  return query.toString();
+};
+
+export const getTranslationRunEstimate = async (
+  versionId: string,
+  params: TranslationRunEstimateParams
+): Promise<TranslationRunEstimate> =>
+  httpGetAuth<TranslationRunEstimate>(
+    `/admin/versions/${versionId}/translation-runs/estimate?${runEstimateQuery(params)}`
+  );
+
+export const startTranslationRun = async (
+  versionId: string,
+  data: StartTranslationRunRequest
+): Promise<TranslationRun> =>
+  httpPostAuth<TranslationRun>(`/admin/versions/${versionId}/translation-runs`, data);
+
+export const getBookTranslationRuns = async (
+  bookId: string,
+  params: TranslationRunListParams = {}
+): Promise<TranslationRunListResponse> => {
+  const query = new URLSearchParams({
+    page: String(params.page ?? 1),
+    limit: String(params.limit ?? 10),
+  });
+  if (params.bookVersionId) query.set('bookVersionId', params.bookVersionId);
+  if (params.active) query.set('active', 'true');
+  return httpGetAuth<TranslationRunListResponse>(
+    `/admin/books/${bookId}/translation-runs?${query.toString()}`
+  );
+};
+
+export const getTranslationRun = async (id: string): Promise<TranslationRun> =>
+  httpGetAuth<TranslationRun>(`/admin/translation-runs/${id}`);
+
+export const getTranslationRunReport = async (id: string): Promise<TranslationRunReport> =>
+  httpGetAuth<TranslationRunReport>(`/admin/translation-runs/${id}/report`);
+
+export const pauseTranslationRun = async (id: string): Promise<TranslationRun> =>
+  httpPostAuth<TranslationRun>(`/admin/translation-runs/${id}/pause`);
+
+export const resumeTranslationRun = async (
+  id: string,
+  data: ResumeTranslationRunRequest
+): Promise<TranslationRun> =>
+  httpPostAuth<TranslationRun>(`/admin/translation-runs/${id}/resume`, data);
+
+export const cancelTranslationRun = async (id: string): Promise<TranslationRun> =>
+  httpPostAuth<TranslationRun>(`/admin/translation-runs/${id}/cancel`);

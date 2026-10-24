@@ -559,3 +559,30 @@ export type {
   TranslationCompareParams,
   TranslationCompareResult,
 } from './translation';
+
+// Translation run over the whole book (F05-7, admin only)
+export type {
+  ResumeTranslationRunRequest,
+  StartTranslationRunRequest,
+  TranslationBlockReason,
+  TranslationChapterStatus,
+  TranslationFinalCheckStatus,
+  TranslationReportChapter,
+  TranslationReportFinding,
+  TranslationReportLanguage,
+  TranslationRun,
+  TranslationRunEstimate,
+  TranslationRunEstimateParams,
+  TranslationRunLanguage,
+  TranslationRunLanguageEstimate,
+  TranslationRunLanguageStatus,
+  TranslationRunListItem,
+  TranslationRunListParams,
+  TranslationRunListResponse,
+  TranslationRunReport,
+  TranslationRunStage,
+  TranslationRunStageModels,
+  TranslationSource,
+  TranslationTarget,
+  TranslationTargetReason,
+} from './translation';

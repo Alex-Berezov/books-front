@@ -19115,6 +19115,25 @@
         },
         "type": "object"
       },
+      "ResumeTranslationRunDto": {
+        "properties": {
+          "limitUsd": {
+            "description": "New operation limit; not below spent + reserved. Omitted - the limit stays",
+            "example": "100",
+            "format": "decimal",
+            "type": "string"
+          },
+          "stageModels": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TranslationRunStageModelsDto"
+              }
+            ],
+            "description": "Stage models of this run over its snapshot, one model without fallbacks: the way out of NO_COMPLIANT_PROVIDER"
+          }
+        },
+        "type": "object"
+      },
       "ReviewChainDiffDto": {
         "properties": {
           "changedCountryCount": {
@@ -24203,6 +24222,32 @@
         ],
         "type": "object"
       },
+      "StartTranslationRunDto": {
+        "properties": {
+          "languages": {
+            "description": "Target languages, each once; in a query - repeated or comma-separated",
+            "items": {
+              "$ref": "#/components/schemas/Language"
+            },
+            "type": "array"
+          },
+          "limitUsd": {
+            "description": "Limit of the run operation; must fit the dossier and glossaries built first. Default - LlmBudget.defaultRunLimitUsd",
+            "example": "100",
+            "format": "decimal",
+            "type": "string"
+          },
+          "translateModel": {
+            "description": "Translate model of this run only, one model without fallbacks; settings are not changed. Default - the translate stage model",
+            "example": "anthropic/claude-sonnet-5.5",
+            "type": "string"
+          }
+        },
+        "required": [
+          "languages"
+        ],
+        "type": "object"
+      },
       "SupersedeRightsEvidenceDto": {
         "properties": {
           "supersededById": {
@@ -25652,6 +25697,16 @@
         ],
         "type": "object"
       },
+      "TranslationChapterStatus": {
+        "description": "written - in the draft; flagged - not in the draft; assembled/pending - not yet",
+        "enum": [
+          "pending",
+          "assembled",
+          "written",
+          "flagged"
+        ],
+        "type": "string"
+      },
       "TranslationCompareDto": {
         "properties": {
           "bookVersionId": {
@@ -25931,6 +25986,806 @@
         ],
         "type": "string"
       },
+      "TranslationReportChapterDto": {
+        "properties": {
+          "chapterId": {
+            "description": "Chapter of the draft",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/TranslationReportFindingDto"
+            },
+            "type": "array"
+          },
+          "flagReason": {
+            "description": "First flag of the chapter",
+            "nullable": true,
+            "type": "string"
+          },
+          "length": {
+            "description": "Length of the assembled chapter",
+            "nullable": true,
+            "type": "number"
+          },
+          "lengthLimit": {
+            "nullable": true,
+            "type": "number"
+          },
+          "number": {
+            "type": "number"
+          },
+          "seamIndex": {
+            "nullable": true,
+            "type": "number"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TranslationChapterStatus"
+              }
+            ],
+            "description": "written - in the draft; flagged - not in the draft; assembled/pending - not yet"
+          }
+        },
+        "required": [
+          "number",
+          "status",
+          "flagReason",
+          "seamIndex",
+          "length",
+          "lengthLimit",
+          "chapterId",
+          "findings"
+        ],
+        "type": "object"
+      },
+      "TranslationReportChunkFlagDto": {
+        "properties": {
+          "count": {
+            "type": "number"
+          },
+          "reason": {
+            "description": "Flag reason code of the pieces",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason",
+          "count"
+        ],
+        "type": "object"
+      },
+      "TranslationReportChunksDto": {
+        "properties": {
+          "flagged": {
+            "items": {
+              "$ref": "#/components/schemas/TranslationReportChunkFlagDto"
+            },
+            "type": "array"
+          },
+          "retries": {
+            "description": "Translate attempts beyond the first, summed over the pieces",
+            "type": "number"
+          },
+          "total": {
+            "description": "Pieces of all chapters of this language",
+            "type": "number"
+          }
+        },
+        "required": [
+          "total",
+          "retries",
+          "flagged"
+        ],
+        "type": "object"
+      },
+      "TranslationReportCostDto": {
+        "properties": {
+          "calls": {
+            "type": "number"
+          },
+          "costUsd": {
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "model": {
+            "description": "Model that answered; null - calls without an answer of a model",
+            "nullable": true,
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "stage",
+          "model",
+          "calls",
+          "costUsd"
+        ],
+        "type": "object"
+      },
+      "TranslationReportFinalCheckDto": {
+        "properties": {
+          "chaptersChecked": {
+            "description": "Chapters read by the checking model",
+            "type": "number"
+          },
+          "missingChapters": {
+            "description": "Source chapters with text that are not among the chapters of the translation",
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "status": {
+            "description": "pending - an unfinished language has not reached it yet; skipped - not done: its metadata stage started before the final check existed, or the language ended earlier",
+            "enum": [
+              "pending",
+              "skipped",
+              "in_progress",
+              "done"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "missingChapters",
+          "chaptersChecked"
+        ],
+        "type": "object"
+      },
+      "TranslationReportFindingDto": {
+        "properties": {
+          "block": {
+            "description": "Source block number the remark is about",
+            "type": "number"
+          },
+          "chunkIndex": {
+            "type": "number"
+          },
+          "chunkReason": {
+            "description": "Flag reason of the piece (CHUNK_FLAGGED)",
+            "type": "string"
+          },
+          "code": {
+            "description": "Finding code: assembly (CHAPTER_TOO_LONG, CHUNK_UNTRANSLATED, CHUNKS_MISMATCH, CHUNK_FLAGGED, SEAM_REPEAT), joints (SEAM_*), final check (FINAL_*, GLOSSARY_SOURCE_FORM, CHAPTER_EMPTY), draft (SOURCE_CHANGED, TITLE_MISSING). SEAM_CHECKED and FINAL_CHECKED are paid answers without a problem",
+            "type": "string"
+          },
+          "form": {
+            "description": "The source spelling found in the translation",
+            "type": "string"
+          },
+          "fragment": {
+            "description": "Text around the found spelling",
+            "type": "string"
+          },
+          "issue": {
+            "description": "Remark of the checking model",
+            "type": "string"
+          },
+          "key": {
+            "description": "Glossary entry key (GLOSSARY_SOURCE_FORM)",
+            "type": "string"
+          },
+          "model": {
+            "description": "Model of the paid answer",
+            "type": "string"
+          },
+          "problems": {
+            "description": "Problems at the joint named by the model",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "seam": {
+            "description": "Joint number from 1: between pieces seam-1 and seam",
+            "type": "number"
+          },
+          "target": {
+            "description": "The spelling the glossary gives",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "TranslationReportInFlightDto": {
+        "properties": {
+          "calls": {
+            "description": "Calls without a final cost yet",
+            "type": "number"
+          },
+          "reservedUsd": {
+            "description": "Reserved for them, not in the total",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          }
+        },
+        "required": [
+          "calls",
+          "reservedUsd"
+        ],
+        "type": "object"
+      },
+      "TranslationReportLanguageDto": {
+        "properties": {
+          "authorFromGlossary": {
+            "description": "The author name is the glossary spelling; null - the metadata stage gave no answer",
+            "nullable": true,
+            "type": "boolean"
+          },
+          "chapters": {
+            "items": {
+              "$ref": "#/components/schemas/TranslationReportChapterDto"
+            },
+            "type": "array"
+          },
+          "chunks": {
+            "$ref": "#/components/schemas/TranslationReportChunksDto"
+          },
+          "draftCreatedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "draftVersionId": {
+            "description": "The draft version of this language; null - not created or deleted",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "finalCheck": {
+            "$ref": "#/components/schemas/TranslationReportFinalCheckDto"
+          },
+          "flaggedChapters": {
+            "type": "number"
+          },
+          "flaggedChunks": {
+            "type": "number"
+          },
+          "language": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Language"
+              }
+            ]
+          },
+          "notWrittenChapters": {
+            "description": "Chapters not in the draft (CHAPTER_TOO_LONG, CHUNK_UNTRANSLATED, SOURCE_CHANGED…)",
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "reason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "reasonText": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TranslationRunLanguageStatus"
+              }
+            ]
+          },
+          "takenChapters": {
+            "description": "Chapter numbers already taken in the draft by another chapter: skipped, not written by the run",
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "writtenChapters": {
+            "description": "Chapters the run wrote to the draft; 0 with a draft - a draft without chapters of the run",
+            "type": "number"
+          }
+        },
+        "required": [
+          "language",
+          "status",
+          "reason",
+          "reasonText",
+          "draftVersionId",
+          "draftCreatedAt",
+          "flaggedChunks",
+          "flaggedChapters",
+          "authorFromGlossary",
+          "chunks",
+          "chapters",
+          "notWrittenChapters",
+          "writtenChapters",
+          "takenChapters",
+          "finalCheck"
+        ],
+        "type": "object"
+      },
+      "TranslationRunDto": {
+        "properties": {
+          "bookVersionId": {
+            "description": "Translation source version",
+            "format": "uuid",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "dossierId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "languages": {
+            "items": {
+              "$ref": "#/components/schemas/TranslationRunLanguageDto"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LlmOperationDto"
+              }
+            ],
+            "description": "Progress and pause live here: status, pauseReason, spent and limit"
+          },
+          "operations": {
+            "description": "Dossier and glossary operations of this run, and the paused ones its languages wait for (blockedByOperationId): own limit and spent, cancel and resume via /admin/llm/operations/:id; the run operation itself is not here",
+            "items": {
+              "$ref": "#/components/schemas/LlmOperationDto"
+            },
+            "type": "array"
+          },
+          "sourceLanguage": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Language"
+              }
+            ]
+          },
+          "stageModels": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TranslationRunStageModelsDto"
+              }
+            ],
+            "description": "Stage models of this run over its snapshot"
+          }
+        },
+        "required": [
+          "id",
+          "bookVersionId",
+          "sourceLanguage",
+          "dossierId",
+          "stageModels",
+          "operation",
+          "operations",
+          "languages",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "TranslationRunEstimateDto": {
+        "properties": {
+          "chapters": {
+            "description": "Source chapters with text to translate",
+            "type": "number"
+          },
+          "chunks": {
+            "description": "Pieces by code boundaries, per language",
+            "type": "number"
+          },
+          "defaultLimitUsd": {
+            "description": "Default run limit (LlmBudget.defaultRunLimitUsd)",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "dossier": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompareContextLineDto"
+              }
+            ],
+            "description": "The dossier is built first under its own operation (also a stale one); null - fresh and ready, or building",
+            "nullable": true,
+            "type": "object"
+          },
+          "languages": {
+            "items": {
+              "$ref": "#/components/schemas/TranslationRunLanguageEstimateDto"
+            },
+            "type": "array"
+          },
+          "minLimitUsd": {
+            "description": "The run limit cannot be lower: suggested limits of the dossier and glossaries built first",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "nearLimitChapters": {
+            "description": "Source chapters at 80% of the chapter length limit or longer (R8): a translation may not fit",
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "totalUsd": {
+            "description": "Translations plus the dossier and glossaries built first",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "translateModel": {
+            "description": "Translate model of the estimate",
+            "type": "string"
+          },
+          "translationsUsd": {
+            "description": "All languages: split, translate and check",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "upperBound": {
+            "description": "Translation estimates include an upper bound for a dossier and glossary not built yet",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "translateModel",
+          "chapters",
+          "chunks",
+          "dossier",
+          "languages",
+          "upperBound",
+          "translationsUsd",
+          "totalUsd",
+          "minLimitUsd",
+          "defaultLimitUsd",
+          "nearLimitChapters"
+        ],
+        "type": "object"
+      },
+      "TranslationRunLanguageDto": {
+        "properties": {
+          "blockedByOperationId": {
+            "description": "Paused dossier or glossary operation this language waits for (DOSSIER_PAUSED)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "chapterNumber": {
+            "description": "Reader chapter being translated",
+            "nullable": true,
+            "type": "number"
+          },
+          "chapterPosition": {
+            "description": "«Chapter N of M»: N, from 1",
+            "nullable": true,
+            "type": "number"
+          },
+          "chaptersTotal": {
+            "description": "«Chapter N of M»: M",
+            "type": "number"
+          },
+          "chunksDone": {
+            "description": "Closed pieces of the current chapter",
+            "type": "number"
+          },
+          "chunksTotal": {
+            "description": "Pieces of the current chapter; 0 before its split",
+            "type": "number"
+          },
+          "draftVersionId": {
+            "description": "Draft version this language writes into; empty before its creation or after its deletion. Stage assemble with a draft - chapters go into the draft",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "flaggedChapters": {
+            "description": "Chapters with a flag (seams, final check, not written): details in the report",
+            "type": "number"
+          },
+          "flaggedChunks": {
+            "type": "number"
+          },
+          "glossaryId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "language": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Language"
+              }
+            ]
+          },
+          "reason": {
+            "description": "Code of the last stop of this language: a pause reason or a step failure code (LLM_PROVIDER_ERROR, DOSSIER_STALE, DOSSIER_LIMIT_TOO_LOW - the run limit left is lower than the dossier or glossary limit, amount in reasonUsd...). A failed language: METADATA_INVALID, METADATA_TOO_LONG, VERSION_EXISTS, CREATE_REJECTED (text in reasonText), DRAFT_DELETED, NO_CHAPTERS_WRITTEN (no chapter could go to the draft), DOSSIER_STALE (the source changed while another language was writing its draft)",
+            "nullable": true,
+            "type": "string"
+          },
+          "reasonModels": {
+            "description": "Models that all refused by the data policy (NO_COMPLIANT_PROVIDER): pick another one in stageModels; empty otherwise",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "reasonText": {
+            "description": "Text of the service that refused to create the draft version (reason CREATE_REJECTED), up to 300 characters; empty otherwise",
+            "nullable": true,
+            "type": "string"
+          },
+          "reasonUsd": {
+            "description": "Reason DOSSIER_LIMIT_TOO_LOW: the run limit with which the dossier or glossary operation fits (spent + reserved + its limit); resume with a run limit not lower than it. Empty otherwise",
+            "example": "100.00000000",
+            "format": "decimal",
+            "nullable": true,
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "dossier",
+              "glossary",
+              "translate",
+              "check",
+              "assemble",
+              "done",
+              "failed",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TranslationRunLanguageStatus"
+              }
+            ]
+          }
+        },
+        "required": [
+          "language",
+          "status",
+          "stage",
+          "reason",
+          "reasonText",
+          "reasonModels",
+          "reasonUsd",
+          "chapterNumber",
+          "chapterPosition",
+          "chaptersTotal",
+          "chunksDone",
+          "chunksTotal",
+          "flaggedChunks",
+          "flaggedChapters",
+          "glossaryId",
+          "blockedByOperationId",
+          "draftVersionId"
+        ],
+        "type": "object"
+      },
+      "TranslationRunLanguageEstimateDto": {
+        "properties": {
+          "checkUsd": {
+            "description": "Upper estimate: one meaning check per piece and one per joint of pieces by a model of another family than the translator (no such model - 409 CHECK_MODEL_SAME_FAMILY)",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "finalCheckUsd": {
+            "description": "Upper estimate: one final check call per chapter by a model of another family than the translator (no such model - 409 CHECK_MODEL_SAME_FAMILY)",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "glossary": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompareContextLineDto"
+              }
+            ],
+            "description": "The glossary of this language is built first under its own operation; null - ready or building",
+            "nullable": true,
+            "type": "object"
+          },
+          "language": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Language"
+              }
+            ]
+          },
+          "metadataUsd": {
+            "description": "Upper estimate: one call of the metadata stage (title, description, author, chapter titles)",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "splitUsd": {
+            "description": "Contested joints by the split stage",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "totalUsd": {
+            "description": "Split, translate, check, final check and metadata of this language",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "translateUsd": {
+            "description": "Upper estimate: one call per piece",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          }
+        },
+        "required": [
+          "language",
+          "glossary",
+          "splitUsd",
+          "translateUsd",
+          "checkUsd",
+          "finalCheckUsd",
+          "metadataUsd",
+          "totalUsd"
+        ],
+        "type": "object"
+      },
+      "TranslationRunLanguageStatus": {
+        "enum": [
+          "pending",
+          "running",
+          "done",
+          "failed",
+          "cancelled"
+        ],
+        "type": "string"
+      },
+      "TranslationRunListItemDto": {
+        "properties": {
+          "bookVersionId": {
+            "description": "Translation source version",
+            "format": "uuid",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "languages": {
+            "items": {
+              "$ref": "#/components/schemas/Language"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LlmOperationDto"
+              }
+            ],
+            "description": "Status, pause reason, spent and limit of the run"
+          },
+          "sourceLanguage": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Language"
+              }
+            ]
+          },
+          "stageModels": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TranslationRunStageModelsDto"
+              }
+            ],
+            "description": "Stage models of this run over its snapshot"
+          }
+        },
+        "required": [
+          "id",
+          "bookVersionId",
+          "sourceLanguage",
+          "languages",
+          "stageModels",
+          "operation",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "TranslationRunReportDto": {
+        "properties": {
+          "bookVersionId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "costs": {
+            "description": "Cost by stage and model over every operation of the run (the run, its dossier and glossaries)",
+            "items": {
+              "$ref": "#/components/schemas/TranslationReportCostDto"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inFlight": {
+            "$ref": "#/components/schemas/TranslationReportInFlightDto"
+          },
+          "languages": {
+            "items": {
+              "$ref": "#/components/schemas/TranslationReportLanguageDto"
+            },
+            "type": "array"
+          },
+          "totalUsd": {
+            "description": "Spent by every operation of the run; equals the sum of costs to the cent",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "bookVersionId",
+          "languages",
+          "costs",
+          "inFlight",
+          "totalUsd"
+        ],
+        "type": "object"
+      },
+      "TranslationRunStageModelsDto": {
+        "properties": {
+          "check_semantic": {
+            "description": "Meaning check model: of another family than the translate model of the run",
+            "example": "deepseek/deepseek-v4-pro",
+            "type": "string"
+          },
+          "final_check": {
+            "description": "Final check model: of another family than the translate model of the run",
+            "example": "deepseek/deepseek-v4-pro",
+            "type": "string"
+          },
+          "metadata": {
+            "description": "Model of the version fields (title, description, author, chapter titles)",
+            "example": "anthropic/claude-sonnet-5.5",
+            "type": "string"
+          },
+          "translate": {
+            "example": "anthropic/claude-sonnet-5.5",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "TranslationSourceDto": {
         "properties": {
           "canTranslate": {
@@ -26007,6 +26862,7 @@
             "enum": [
               "IS_SOURCE",
               "VERSION_EXISTS",
+              "TRANSLATION_IN_PROGRESS",
               "NOT_IN_INTAKE"
             ],
             "nullable": true,
@@ -29165,6 +30021,103 @@
         "summary": "Отменить действующее решение «Разрешить публикацию» (только admin)",
         "tags": [
           "rights-override"
+        ]
+      }
+    },
+    "/admin/books/{bookId}/translation-runs": {
+      "get": {
+        "operationId": "TranslationController_listRuns",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bookId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page number",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "description": "Number of records per page",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "maximum": 100,
+              "type": "number"
+            }
+          },
+          {
+            "description": "Only runs of this source version",
+            "in": "query",
+            "name": "bookVersionId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only runs not finished: the operation active or paused",
+            "in": "query",
+            "name": "active",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/TranslationRunListItemDto"
+                      },
+                      "type": "array"
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/PaginationInfoDto"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "description": "Book not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Translation runs of the book, newest first",
+        "tags": [
+          "admin"
         ]
       }
     },
@@ -37282,6 +38235,231 @@
         ]
       }
     },
+    "/admin/translation-runs/{id}": {
+      "get": {
+        "operationId": "TranslationController_getRun",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationRunDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "description": "Translation run not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Translation run progress by language: stage, chapter N of M, pieces, flags, pause reason; spent and limit in its operation",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/translation-runs/{id}/cancel": {
+      "post": {
+        "operationId": "TranslationController_cancelRun",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationRunDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "description": "Translation run not found"
+          },
+          "409": {
+            "description": "LLM_OPERATION_NOT_CANCELLABLE: already finished"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel a translation run: unfinished languages stop and the run spends nothing more; translated pieces stay. Dossier and glossary operations started for it run on their own limit and are cancelled separately",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/translation-runs/{id}/pause": {
+      "post": {
+        "operationId": "TranslationController_pauseRun",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationRunDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "description": "Translation run not found"
+          },
+          "409": {
+            "description": "TRANSLATION_RUN_NOT_PAUSABLE: not running"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Pause a running translation: the step in progress finishes, nothing more starts. Dossier and glossary operations started for it are not paused",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/translation-runs/{id}/report": {
+      "get": {
+        "operationId": "TranslationController_getRunReport",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationRunReportDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "description": "Translation run not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Translation run report: by language - pieces, retries, piece and chapter flags with reasons, final check, chapters not in the draft, the draft version; cost by stage and model over every operation of the run",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/translation-runs/{id}/resume": {
+      "post": {
+        "operationId": "TranslationController_resumeRun",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResumeTranslationRunDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationRunDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "description": "limitUsd below spent + reserved; LLM_MODEL_UNKNOWN; a stage that cannot be changed"
+          },
+          "404": {
+            "description": "Translation run not found"
+          },
+          "409": {
+            "description": "LLM_OPERATION_NOT_RESUMABLE: not paused, or paused on DOSSIER_STALE (cancel and start anew); RETRY_IN_PROGRESS; LLM_NO_PRICE; LLM_STAGE_DISABLED; CHECK_MODEL_SAME_FAMILY: after the change no meaning check or final check model of another family than the translate model; TRANSLATION_RUN_MODELS_CHANGED: a concurrent resume changed the stage models, retry"
+          },
+          "503": {
+            "description": "LLM_DISABLED: no OpenRouter key"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Resume a paused translation run on every unfinished language, optionally with a new limit and stage models",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/admin/versions/{bookVersionId}/audio-chapters": {
       "get": {
         "operationId": "AudioChapterController_listAdmin",
@@ -37837,7 +39015,7 @@
             "description": ""
           },
           "409": {
-            "description": "DOSSIER_FRESH: a fresh dossier exists; LLM_CEILING_REACHED: the spending ceiling is reached; SOURCE_HAS_NO_CHAPTERS; SOURCE_TOO_MANY_CHAPTERS; LLM_NO_PRICE; LLM_STAGE_DISABLED; DOSSIER_BUSY: changed concurrently, try again"
+            "description": "DOSSIER_FRESH: a fresh dossier exists; DOSSIER_OF_RUN: the version was made by a translation run, its dossier is the run dossier; LLM_CEILING_REACHED: the spending ceiling is reached; SOURCE_HAS_NO_CHAPTERS; SOURCE_TOO_MANY_CHAPTERS; LLM_NO_PRICE; LLM_STAGE_DISABLED; DOSSIER_BUSY: changed concurrently, try again"
           },
           "503": {
             "description": "LLM_DISABLED: no OpenRouter key"
@@ -38650,6 +39828,136 @@
           }
         ],
         "summary": "Model comparisons of this version, newest first",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/versions/{id}/translation-runs": {
+      "post": {
+        "operationId": "TranslationController_startRun",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartTranslationRunDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationRunDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "description": "TRANSLATION_RUN_LIMIT_TOO_LOW: limitUsd below the dossier and glossaries built first; LLM_MODEL_UNKNOWN; 1-5 distinct languages; limitUsd"
+          },
+          "404": {
+            "description": "Book version not found"
+          },
+          "409": {
+            "description": "The version is not a translation source by D8 (code = its reason, with sourceVersionId); TRANSLATION_TARGET_UNAVAILABLE (languages[{language, reason}]: IS_SOURCE, VERSION_EXISTS, TRANSLATION_IN_PROGRESS, NOT_IN_INTAKE); SOURCE_TOO_MANY_CHAPTERS; TRANSLATION_SOURCE_EMPTY: nothing to translate in the chapters; LLM_NO_PRICE; LLM_STAGE_DISABLED (also of check_semantic, final_check, metadata); CHECK_MODEL_SAME_FAMILY: no meaning check or final check model of another family than the translate model"
+          },
+          "503": {
+            "description": "LLM_DISABLED: no OpenRouter key; LLM_MODELS_UNAVAILABLE"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start translating the book into the given languages in the background under one run operation; a language with a version or an unfinished run is refused, the whole request with it",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/versions/{id}/translation-runs/estimate": {
+      "get": {
+        "operationId": "TranslationController_runEstimate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Target languages, each once; in a query - repeated or comma-separated",
+            "in": "query",
+            "name": "languages",
+            "required": true,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Language"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Translate model of this run only, one model without fallbacks; settings are not changed. Default - the translate stage model",
+            "in": "query",
+            "name": "translateModel",
+            "required": false,
+            "schema": {
+              "example": "anthropic/claude-sonnet-5.5",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationRunEstimateDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "description": "LLM_MODEL_UNKNOWN; 1-5 distinct languages"
+          },
+          "404": {
+            "description": "Book version not found"
+          },
+          "409": {
+            "description": "The version is not a translation source by D8 (code = its reason, with sourceVersionId); TRANSLATION_TARGET_UNAVAILABLE (languages[{language, reason}]); SOURCE_TOO_MANY_CHAPTERS; TRANSLATION_SOURCE_EMPTY: nothing to translate in the chapters; LLM_NO_PRICE; LLM_STAGE_DISABLED (also of check_semantic, metadata); CHECK_MODEL_SAME_FAMILY: no meaning check model of another family than the translate model"
+          },
+          "503": {
+            "description": "LLM_MODELS_UNAVAILABLE"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upper cost estimate of translating the book into the given languages: per language and total, the dossier and glossaries built first, chapters near the length limit",
         "tags": [
           "admin"
         ]

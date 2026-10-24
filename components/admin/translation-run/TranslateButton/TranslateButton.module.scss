@@ -1,0 +1,14 @@
+@import '@/styles/tokens.scss';
+
+.wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  // Токена ширины нет: подсказка под кнопкой не растягивает шапку версии.
+  max-width: 320px;
+}
+
+.hint {
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}

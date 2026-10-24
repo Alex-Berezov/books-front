@@ -4,7 +4,7 @@
  * «LLM settings».
  */
 
-import type { PaginatedResult } from './common';
+import type { PaginatedResult, SupportedLang } from './common';
 import type { LlmMoney, LlmOperation } from './llm';
 
 /** Строка оценки досье или глоссария, которые строятся раньше перевода своими операциями. */
@@ -91,4 +91,245 @@ export interface TranslationCompare extends TranslationCompareListItem {
   /** `null` — вызовов `split` не было. */
   splitCostUsd: LlmMoney | null;
   results: TranslationCompareResult[];
+}
+
+// ---------------------------------------------------------------------------
+// Запуск перевода по всей книге (F05-7, админка перевода) — только `admin` (U6).
+
+/** Почему версию нельзя переводить (D8, `product.md` §2.1). */
+export type TranslationBlockReason =
+  | 'SOURCE_LANGUAGE_UNKNOWN'
+  | 'ORIGINAL_VERSION_MISSING'
+  | 'ENGLISH_VERSION_MISSING'
+  | 'NOT_ORIGINAL_VERSION'
+  | 'NOT_ENGLISH_VERSION'
+  | 'SOURCE_HAS_NO_CHAPTERS'
+  | 'INTAKE_TARGETS_MISSING'
+  | 'NO_AVAILABLE_TARGETS';
+
+/** Почему язык недоступен в окне запуска (§2.2, §7 п.10). */
+export type TranslationTargetReason =
+  | 'IS_SOURCE'
+  | 'VERSION_EXISTS'
+  | 'TRANSLATION_IN_PROGRESS'
+  | 'NOT_IN_INTAKE';
+
+export interface TranslationTarget {
+  language: SupportedLang;
+  available: boolean;
+  reason: TranslationTargetReason | null;
+}
+
+/** Ответ `GET /admin/versions/:id/translation-source`. */
+export interface TranslationSource {
+  canTranslate: boolean;
+  reason: TranslationBlockReason | null;
+  sourceVersionId: string | null;
+  sourceLanguage: SupportedLang | null;
+  /** Поле «язык оригинала» как записано у исходника. */
+  originalLanguageRaw: string | null;
+  /** У версий книги поле «язык оригинала» расходится. */
+  originalLanguageMismatch: boolean;
+  targets: TranslationTarget[];
+}
+
+/** Строка оценки одного языка запуска. */
+export interface TranslationRunLanguageEstimate {
+  language: SupportedLang;
+  /** `null` — глоссарий готов или уже строится. */
+  glossary: CompareContextLine | null;
+  splitUsd: LlmMoney;
+  translateUsd: LlmMoney;
+  checkUsd: LlmMoney;
+  finalCheckUsd: LlmMoney;
+  metadataUsd: LlmMoney;
+  totalUsd: LlmMoney;
+}
+
+/** Ответ `GET /admin/versions/:id/translation-runs/estimate`. */
+export interface TranslationRunEstimate {
+  translateModel: string;
+  chapters: number;
+  /** Кусков на один язык. */
+  chunks: number;
+  /** `null` — досье свежее и готово или уже строится. */
+  dossier: CompareContextLine | null;
+  languages: TranslationRunLanguageEstimate[];
+  upperBound: boolean;
+  translationsUsd: LlmMoney;
+  totalUsd: LlmMoney;
+  /** Лимит запуска не ниже этого: досье и глоссарии строятся первыми. */
+  minLimitUsd: LlmMoney;
+  /** Умолчание лимита — `defaultRunLimitUsd`. */
+  defaultLimitUsd: LlmMoney;
+  /** Главы от 80 % предела длины главы. */
+  nearLimitChapters: number[];
+}
+
+/** Параметры оценки запуска. */
+export interface TranslationRunEstimateParams {
+  languages: SupportedLang[];
+  /** Модель перевода на этот запуск; нет — модель этапа `translate`. */
+  translateModel?: string;
+}
+
+/** Тело `POST /admin/versions/:id/translation-runs`. */
+export interface StartTranslationRunRequest extends TranslationRunEstimateParams {
+  /** Нет — `defaultRunLimitUsd`. */
+  limitUsd?: LlmMoney;
+}
+
+/** Модели этапов, которые меняются на запуск и при «продолжить». */
+export interface TranslationRunStageModels {
+  translate?: string;
+  check_semantic?: string;
+  metadata?: string;
+  final_check?: string;
+}
+
+export type TranslationRunStage =
+  | 'dossier'
+  | 'glossary'
+  | 'translate'
+  | 'check'
+  | 'assemble'
+  | 'done'
+  | 'failed'
+  | 'cancelled';
+
+export type TranslationRunLanguageStatus = 'pending' | 'running' | 'done' | 'failed' | 'cancelled';
+
+/** Язык в ходе запуска. */
+export interface TranslationRunLanguage {
+  language: SupportedLang;
+  status: TranslationRunLanguageStatus;
+  stage: TranslationRunStage;
+  /** Код последней остановки языка: причина паузы или код отказа шага; список не закрыт. */
+  reason: string | null;
+  /** Текст сервиса при `CREATE_REJECTED`. */
+  reasonText: string | null;
+  /** Модели, отказавшие по политике данных (`NO_COMPLIANT_PROVIDER`). */
+  reasonModels: string[];
+  /** `DOSSIER_LIMIT_TOO_LOW`: лимит досье или глоссария, которого не хватило запуску до трат. */
+  reasonUsd: LlmMoney | null;
+  chapterNumber: number | null;
+  /** «Глава N из M»: N. */
+  chapterPosition: number | null;
+  chaptersTotal: number;
+  chunksDone: number;
+  chunksTotal: number;
+  flaggedChunks: number;
+  /** Глав с флагом (стыки, итоговая проверка, не записана): подробности — в отчёте. */
+  flaggedChapters: number;
+  glossaryId: string | null;
+  /** Операция досье или глоссария на паузе, которую ждёт язык (`DOSSIER_PAUSED`). */
+  blockedByOperationId: string | null;
+  /** Черновик версии языка; `null` до создания и после удаления. */
+  draftVersionId: string | null;
+}
+
+/** Ответ `GET /admin/translation-runs/:id`, старта и кнопок запуска. */
+export interface TranslationRun {
+  id: string;
+  bookVersionId: string;
+  sourceLanguage: SupportedLang;
+  dossierId: string | null;
+  stageModels: TranslationRunStageModels;
+  operation: LlmOperation;
+  /** Операции досье и глоссариев запуска и те, что ждут его языки; без операции запуска. */
+  operations: LlmOperation[];
+  languages: TranslationRunLanguage[];
+  createdAt: string;
+}
+
+/** Строка `GET /admin/books/:bookId/translation-runs`. */
+export interface TranslationRunListItem {
+  id: string;
+  bookVersionId: string;
+  sourceLanguage: SupportedLang;
+  languages: SupportedLang[];
+  stageModels: TranslationRunStageModels;
+  operation: LlmOperation;
+  createdAt: string;
+}
+
+export type TranslationRunListResponse = PaginatedResult<TranslationRunListItem>;
+
+/** Фильтры `GET /admin/books/:bookId/translation-runs` (решение арбитра `F05 | F05-7`, /fix В1). */
+export interface TranslationRunListParams {
+  /** Только запуски этой версии-исходника. */
+  bookVersionId?: string;
+  /** Только незавершённые: операция `active` или `paused`. */
+  active?: boolean;
+  page?: number;
+  limit?: number;
+}
+
+/** Тело `POST /admin/translation-runs/:id/resume`. */
+export interface ResumeTranslationRunRequest {
+  limitUsd?: LlmMoney;
+  stageModels?: TranslationRunStageModels;
+}
+
+export type TranslationChapterStatus = 'pending' | 'assembled' | 'flagged' | 'written';
+
+/** Находка главы отчёта: код и поля, которые у него есть. */
+export interface TranslationReportFinding {
+  code: string;
+  seam?: number;
+  chunkIndex?: number;
+  chunkReason?: string;
+  block?: number;
+  issue?: string;
+  problems?: string[];
+  key?: string;
+  form?: string;
+  target?: string;
+  fragment?: string;
+  model?: string;
+}
+
+export interface TranslationReportChapter {
+  number: number;
+  status: TranslationChapterStatus;
+  flagReason: string | null;
+  seamIndex: number | null;
+  length: number | null;
+  lengthLimit: number | null;
+  chapterId: string | null;
+  findings: TranslationReportFinding[];
+}
+
+export type TranslationFinalCheckStatus = 'pending' | 'skipped' | 'in_progress' | 'done';
+
+export interface TranslationReportLanguage {
+  language: SupportedLang;
+  status: TranslationRunLanguageStatus;
+  reason: string | null;
+  reasonText: string | null;
+  draftVersionId: string | null;
+  draftCreatedAt: string | null;
+  flaggedChunks: number;
+  flaggedChapters: number;
+  authorFromGlossary: boolean | null;
+  chunks: { total: number; retries: number; flagged: Array<{ reason: string; count: number }> };
+  chapters: TranslationReportChapter[];
+  notWrittenChapters: number[];
+  writtenChapters: number;
+  takenChapters: number[];
+  finalCheck: {
+    status: TranslationFinalCheckStatus;
+    missingChapters: number[];
+    chaptersChecked: number;
+  };
+}
+
+/** Ответ `GET /admin/translation-runs/:id/report`. */
+export interface TranslationRunReport {
+  id: string;
+  bookVersionId: string;
+  languages: TranslationReportLanguage[];
+  costs: Array<{ stage: string; model: string | null; calls: number; costUsd: LlmMoney }>;
+  inFlight: { calls: number; reservedUsd: LlmMoney };
+  totalUsd: LlmMoney;
 }

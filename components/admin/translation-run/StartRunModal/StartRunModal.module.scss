@@ -1,0 +1,51 @@
+@import '@/styles/tokens.scss';
+
+.languages {
+  border: 0;
+  padding: 0;
+  margin: 0 0 $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.language {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-sm;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+.stages {
+  margin: 0 0 $spacing-md;
+  color: $color-text-secondary;
+}
+
+.estimate {
+  width: 100%;
+  margin-bottom: $spacing-sm;
+
+  td:last-child {
+    text-align: right;
+  }
+}
+
+.total {
+  font-weight: $font-weight-semibold;
+}
+
+.muted {
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.fieldError {
+  color: $color-error;
+  font-size: $font-size-sm;
+}
