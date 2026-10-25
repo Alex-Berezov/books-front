@@ -13,7 +13,9 @@ permissions:
 jobs:
   quality:
     name: Quality Check
-    runs-on: ubuntu-latest
+    # ubuntu-latest уехал на 26.04, где Playwright 1.57 не ставит chromium (CI 40199752413);
+    # закреплено решением арбитра F05 | F05-7v-b до поддержки 26.04 Playwright'ом (LEGACY-476).
+    runs-on: ubuntu-24.04
     # ⚠️ Потолок нужен из-за job `ci_gate` в `deploy.yml` (`LEGACY-283`): оба запуска
     # заводит одно и то же событие, и гейт отсчитывает свои 30 минут. Зависший без потолка
     # прогон пережил бы дедлайн гейта, и тот отменил бы выкат с текстом «успешного прогона

@@ -16,7 +16,10 @@ env:
 jobs:
   test:
     name: Tests & Lint
-    runs-on: ubuntu-latest
+    # Тот же образ, что у ci.yml: оба пути проверки собираются одинаково (LEGACY-078/207). Playwright
+    # здесь не ставится; закрепление — из-за e2e ci.yml на 26.04 (CI 40199752413), решение арбитра
+    # F05 | F05-7v-b, снимать вместе с ci.yml (LEGACY-476).
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -34,7 +37,7 @@ jobs:
   build:
     name: Build & Push Docker Image
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
     permissions:
       contents: read
@@ -107,7 +110,7 @@ jobs:
   # ручной выкат в тупик. Условие job `deploy` поэтому принимает и `skipped`.
   ci_gate:
     name: 🔒 CI Green For This Commit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     if: ${{ github.event_name == 'push' }}
     permissions:
@@ -182,7 +185,7 @@ jobs:
     # гейт по `github.event_name == 'push'` и выкатывал непроверенную сборку в один клик -
     # то есть у требования «красный CI останавливает выкат» оставался бы штатный обход.
     if: ${{ !cancelled() && needs.build.result == 'success' && (needs.ci_gate.result == 'success' || (needs.ci_gate.result == 'skipped' && github.ref == 'refs/heads/main')) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
     # `packages: read` - токен уезжает на сервер для `docker login` и тянет образ (`LEGACY-458`).
     permissions:
