@@ -12,6 +12,7 @@ import type {
   TranslationFinalCheckStatus,
   TranslationRun,
   TranslationRunLanguage,
+  TranslationRunLanguageStatus,
   TranslationRunStage,
   TranslationRunStageModels,
   TranslationSource,
@@ -199,6 +200,18 @@ export const failedText = (lang: { reason: string | null; reasonText: string | n
   return lang.reason ? `Failed: ${lang.reason}` : 'Failed.';
 };
 
+/** Статус языка запуска словами: один на отчёт и историю запусков (F05-8). */
+const LANGUAGE_STATUSES: Record<TranslationRunLanguageStatus, string> = {
+  pending: 'waiting',
+  running: 'in progress',
+  done: 'done',
+  failed: 'failed',
+  cancelled: 'cancelled',
+};
+
+export const languageStatusText = (status: TranslationRunLanguageStatus): string =>
+  LANGUAGE_STATUSES[status];
+
 /** Отказ шага (`STEP_FAILED`) — текст по коду; текста сервиса у этих кодов нет. */
 const STEP_FAILURES: Record<string, string> = {
   LLM_PROVIDER_ERROR: 'the model provider refused the request',
@@ -214,6 +227,29 @@ const STEP_FAILURES: Record<string, string> = {
 
 export const stepFailureText = (reason: string | null): string =>
   reason ? (STEP_FAILURES[reason] ?? reason) : 'no reason given';
+
+/**
+ * Последняя остановка незакончившегося языка (F05-8): деньги и провайдеры
+ * (`books/src/modules/translation/pause-by-failure.ts`), досье и глоссарий
+ * (`run/translation-run-tasks.handler.ts`), провайдер своего этапа; прочее — отказ шага. Ожидание
+ * строящихся досье и глоссария причиной языка не пишется (`waitingFor`) — подписи ему нет.
+ */
+const LANGUAGE_STOPS: Record<string, string> = {
+  'LLM_BUDGET_EXCEEDED:operation': 'the run limit is reached',
+  'LLM_BUDGET_EXCEEDED:ceiling': 'the spending ceiling is reached',
+  LLM_INSUFFICIENT_FUNDS: 'the OpenRouter balance is empty',
+  LLM_NO_COMPLIANT_PROVIDER: 'no provider without data retention for the translation model',
+  CHECK_NO_COMPLIANT_PROVIDER: 'no provider without data retention for the meaning check',
+  METADATA_NO_COMPLIANT_PROVIDER: 'no provider without data retention for the version fields',
+  FINAL_CHECK_NO_COMPLIANT_PROVIDER: 'no provider without data retention for the final check',
+  DOSSIER_LIMIT_TOO_LOW: 'the run limit is lower than the dossier or glossary limit',
+  DOSSIER_PAUSED: 'waits for the dossier',
+  DOSSIER_STALE: 'the source changed',
+  STEP_FAILED: 'the dossier or glossary it waited for failed or was cancelled',
+};
+
+export const languageStopText = (reason: string): string =>
+  LANGUAGE_STOPS[reason] ?? stepFailureText(reason);
 
 /** Этап, модель которого меняет «продолжить» на паузе без провайдера (решение арбитра `F05 | F05-7`). */
 export type ProviderStage = keyof TranslationRunStageModels;

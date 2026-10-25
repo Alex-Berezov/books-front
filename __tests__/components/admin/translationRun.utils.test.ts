@@ -4,6 +4,8 @@ import {
   chapterText,
   failedText,
   findingText,
+  languageStatusText,
+  languageStopText,
   mismatchText,
   pauseActionOf,
   refusalText,
@@ -318,5 +320,42 @@ describe('Тело старта и отказы', () => {
       },
     });
     expect(refusalText(error)).toContain('FR: a translation into it is in progress');
+  });
+});
+
+describe('Итог языка в отчёте и истории (F05-8)', () => {
+  it('статус языка — одна подпись на отчёт и историю', () => {
+    expect(
+      (['pending', 'running', 'done', 'failed', 'cancelled'] as const).map(languageStatusText)
+    ).toEqual(['waiting', 'in progress', 'done', 'failed', 'cancelled']);
+  });
+
+  it('остановка незакончившегося языка — словами; неизвестный код — через отказ шага', () => {
+    expect(languageStopText('LLM_BUDGET_EXCEEDED:operation')).toBe('the run limit is reached');
+    expect(languageStopText('LLM_BUDGET_EXCEEDED:ceiling')).toBe('the spending ceiling is reached');
+    expect(languageStopText('DOSSIER_LIMIT_TOO_LOW')).toBe(
+      'the run limit is lower than the dossier or glossary limit'
+    );
+    expect(languageStopText('DOSSIER_STALE')).toBe('the source changed');
+    expect(languageStopText('DOSSIER_PAUSED')).toBe('waits for the dossier');
+    expect(languageStopText('STEP_FAILED')).toBe(
+      'the dossier or glossary it waited for failed or was cancelled'
+    );
+    expect(languageStopText('LLM_INSUFFICIENT_FUNDS')).toBe('the OpenRouter balance is empty');
+    expect(
+      [
+        'LLM_NO_COMPLIANT_PROVIDER',
+        'CHECK_NO_COMPLIANT_PROVIDER',
+        'METADATA_NO_COMPLIANT_PROVIDER',
+        'FINAL_CHECK_NO_COMPLIANT_PROVIDER',
+      ].map(languageStopText)
+    ).toEqual([
+      'no provider without data retention for the translation model',
+      'no provider without data retention for the meaning check',
+      'no provider without data retention for the version fields',
+      'no provider without data retention for the final check',
+    ]);
+    expect(languageStopText('LLM_PROVIDER_ERROR')).toBe('the model provider refused the request');
+    expect(languageStopText('SOMETHING_NEW')).toBe('SOMETHING_NEW');
   });
 });

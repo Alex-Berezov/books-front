@@ -14,6 +14,7 @@ import {
   failedText,
   FINAL_CHECK_TEXT,
   findingText,
+  languageStatusText,
   refusalText,
   rewriteRefusalText,
   stageName,
@@ -81,14 +82,6 @@ export const RunReportModal: FC<RunReportModalProps> = ({ runId, lang, live, onC
   );
 };
 
-const LANGUAGE_STATUSES: Record<TranslationReportLanguage['status'], string> = {
-  pending: 'waiting',
-  running: 'in progress',
-  done: 'done',
-  failed: 'failed',
-  cancelled: 'cancelled',
-};
-
 const LanguageReport: FC<{ report: TranslationReportLanguage; lang: SupportedLang }> = ({
   report: l,
   lang,
@@ -100,7 +93,7 @@ const LanguageReport: FC<{ report: TranslationReportLanguage; lang: SupportedLan
   return (
     <section className={styles.language} aria-label={`Report ${l.language}`}>
       <h3 className={styles.subtitle}>
-        {l.language.toUpperCase()}: {LANGUAGE_STATUSES[l.status]}
+        {l.language.toUpperCase()}: {languageStatusText(l.status)}
       </h3>
       {l.status === 'failed' && <p>{failedText(l)}</p>}
       <p>

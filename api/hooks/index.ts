@@ -382,6 +382,7 @@ export {
 
 // Translation run over the whole book (F05-7, admin only)
 export {
+  RUN_HISTORY_PAGE_SIZE,
   RUN_MAX_LANGUAGES,
   translationRunKeys,
   translationRunRefetchInterval,
@@ -389,6 +390,7 @@ export {
   useTranslationRun,
   useTranslationRunActions,
   useTranslationRunEstimate,
+  useTranslationRunHistory,
   useTranslationRunReport,
   useTranslationSource,
   useVersionTranslationRuns,

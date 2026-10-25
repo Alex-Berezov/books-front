@@ -242,6 +242,30 @@ export interface TranslationRun {
   createdAt: string;
 }
 
+/** Кто запустил (решение арбитра `F05 | F05-8`, В4). */
+export interface TranslationRunAuthor {
+  id: string;
+  email: string;
+  name: string | null;
+}
+
+/** Модели этапа, выбранные у запуска: снимок операции и переопределение запуска. */
+export interface TranslationRunStageModel {
+  stage: string;
+  model: string;
+  fallbacks: string[];
+}
+
+/** Чем кончился язык запуска; денег по языкам нет. */
+export interface TranslationRunLanguageResult {
+  language: SupportedLang;
+  status: TranslationRunLanguageStatus;
+  reason: string | null;
+  /** Текст сервиса, отказавшего в черновике (`CREATE_REJECTED`), до 300 символов. */
+  reasonText: string | null;
+  draftVersionId: string | null;
+}
+
 /** Строка `GET /admin/books/:bookId/translation-runs`. */
 export interface TranslationRunListItem {
   id: string;
@@ -251,6 +275,13 @@ export interface TranslationRunListItem {
   stageModels: TranslationRunStageModels;
   operation: LlmOperation;
   createdAt: string;
+  /** `null` — пользователь удалён. */
+  createdBy: TranslationRunAuthor | null;
+  /** Выбранные модели по этапам в порядке конвейера; вызванные — в `costs` отчёта. */
+  models: TranslationRunStageModel[];
+  /** Траты всех операций запуска — `totalUsd` его отчёта. */
+  costUsd: string;
+  results: TranslationRunLanguageResult[];
 }
 
 export type TranslationRunListResponse = PaginatedResult<TranslationRunListItem>;

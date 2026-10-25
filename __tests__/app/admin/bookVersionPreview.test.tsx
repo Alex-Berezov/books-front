@@ -100,7 +100,8 @@ vi.mock('@/components/admin/books', () => {
   };
 });
 
-// Перевод книги (F05-7): кнопка и блок - заглушки с меткой, видно только, нарисованы ли они.
+// Перевод книги (F05-7, история - F05-8): кнопка и блоки - заглушки с меткой, видно только,
+// нарисованы ли они.
 vi.mock('@/components/admin/translation-run', () => ({
   TranslateButton: ({ versionId, bookId }: { versionId: string; bookId: string }) => (
     <button type="button">
@@ -109,6 +110,9 @@ vi.mock('@/components/admin/translation-run', () => ({
   ),
   TranslationRunBlock: (props: { versionId: string; bookId: string; lang: string }) => (
     <section aria-label="Translation run" data-props={JSON.stringify(props)} />
+  ),
+  RunHistory: (props: { versionId: string; bookId: string; lang: string }) => (
+    <section aria-label="Translation history" data-props={JSON.stringify(props)} />
   ),
 }));
 
@@ -510,13 +514,17 @@ describe('Перевод книги на странице версии (F05-7)',
     sessionResult.status = 'authenticated';
   });
 
-  it('admin видит кнопку перевода этой версии и блок запуска', () => {
+  it('admin видит кнопку перевода этой версии, блок запуска и историю запусков', () => {
     render(<EditBookVersionPage />);
 
     expect(
       screen.getByRole('button', { name: 'Translate to other languages version-42 b1' })
     ).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Translation run' })).toHaveAttribute(
+      'data-props',
+      JSON.stringify({ versionId: 'version-42', bookId: 'b1', lang: 'es' })
+    );
+    expect(screen.getByRole('region', { name: 'Translation history' })).toHaveAttribute(
       'data-props',
       JSON.stringify({ versionId: 'version-42', bookId: 'b1', lang: 'es' })
     );
@@ -531,7 +539,7 @@ describe('Перевод книги на странице версии (F05-7)',
       { user: { roles: ['admin'] }, error: 'RefreshFailed' },
       'authenticated',
     ],
-  ])('%s — ни кнопки, ни блока', (_, data, status) => {
+  ])('%s — ни кнопки, ни блока, ни истории', (_, data, status) => {
     sessionResult.data = data;
     sessionResult.status = status;
 
@@ -541,6 +549,7 @@ describe('Перевод книги на странице версии (F05-7)',
       screen.queryByRole('button', { name: /Translate to other languages/ })
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Translation run' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Translation history' })).not.toBeInTheDocument();
   });
 });
 

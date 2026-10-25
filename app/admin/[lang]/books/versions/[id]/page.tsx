@@ -23,7 +23,11 @@ import {
 } from '@/components/admin/books';
 import { Button } from '@/components/admin/common/Button';
 import { Spinner } from '@/components/admin/shared';
-import { TranslateButton, TranslationRunBlock } from '@/components/admin/translation-run';
+import {
+  RunHistory,
+  TranslateButton,
+  TranslationRunBlock,
+} from '@/components/admin/translation-run';
 import { UserRole } from '@/lib/auth/constants';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
@@ -188,7 +192,10 @@ const EditBookVersionPage: FC = () => {
       <div className={styles.contentLayout}>
         <div className={styles.mainContent}>
           {isAdmin && (
-            <TranslationRunBlock versionId={versionId} bookId={version.bookId} lang={lang} />
+            <>
+              <TranslationRunBlock versionId={versionId} bookId={version.bookId} lang={lang} />
+              <RunHistory versionId={versionId} bookId={version.bookId} lang={lang} />
+            </>
           )}
           <BookVersionTabs
             activeTab={activeTab}

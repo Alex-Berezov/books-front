@@ -8,6 +8,7 @@
  */
 
 import {
+  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
@@ -58,6 +59,8 @@ export const translationRunKeys = {
   list: (bookId: string) => [...translationRunKeys.all, 'list', bookId] as const,
   versionRuns: (bookId: string, versionId: string, filter: 'active' | 'latest') =>
     [...translationRunKeys.list(bookId), versionId, filter] as const,
+  history: (bookId: string, versionId: string, page: number) =>
+    [...translationRunKeys.list(bookId), versionId, 'history', page] as const,
   detail: (id: string) => [...translationRunKeys.all, 'detail', id] as const,
   report: (id: string) => [...translationRunKeys.all, 'report', id] as const,
 };
@@ -125,6 +128,25 @@ export const useVersionTranslationRuns = (bookId: string, versionId: string) => 
     refetch: () => Promise.all([active.refetch(), latest.refetch()]),
   };
 };
+
+/** Запусков на странице истории (решение арбитра `F05 | F05-8`, В3). */
+export const RUN_HISTORY_PAGE_SIZE = 10;
+
+/**
+ * История запусков версии-исходника (F05-8): все её запуски, новые первыми, страницами. Без опроса —
+ * ход идущих в блоке хода; старт и кнопки запуска сбрасывают её общим префиксом списков книги.
+ */
+export const useTranslationRunHistory = (bookId: string, versionId: string, page: number) =>
+  useQuery({
+    queryKey: translationRunKeys.history(bookId, versionId, page),
+    queryFn: () =>
+      getBookTranslationRuns(bookId, {
+        bookVersionId: versionId,
+        page,
+        limit: RUN_HISTORY_PAGE_SIZE,
+      }),
+    placeholderData: keepPreviousData,
+  });
 
 const isWorking = (op: LlmOperation): boolean => op.status === 'active';
 

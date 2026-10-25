@@ -1,0 +1,42 @@
+@import '@/styles/tokens.scss';
+
+.block {
+  margin-bottom: $spacing-lg;
+  padding: $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-lg;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  margin: 0 0 $spacing-sm;
+}
+
+.alert {
+  margin-bottom: $spacing-lg;
+}
+
+// Строка истории широкая (модели, языки): таблица прокручивается в блоке, а не страница целиком.
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  margin-bottom: $spacing-sm;
+
+  th {
+    text-align: left;
+  }
+
+  td {
+    vertical-align: top;
+  }
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

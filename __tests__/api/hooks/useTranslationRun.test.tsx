@@ -3,12 +3,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  RUN_HISTORY_PAGE_SIZE,
   translationRunKeys,
   translationRunRefetchInterval,
   useStartTranslationRun,
   useTranslationRun,
   useTranslationRunActions,
   useTranslationRunEstimate,
+  useTranslationRunHistory,
   useTranslationRunReport,
   useTranslationSource,
   useVersionTranslationRuns,
@@ -76,6 +78,10 @@ const item = (id: string, status: LlmOperation['status']): TranslationRunListIte
   stageModels: {},
   operation: operation({ status }),
   createdAt: '2026-10-24T00:00:00.000Z',
+  createdBy: null,
+  models: [],
+  costUsd: '0.00000000',
+  results: [],
 });
 
 const page = (items: TranslationRunListItem[]): TranslationRunListResponse => ({
@@ -328,5 +334,45 @@ describe('Хуки запуска перевода', () => {
 
     expect(api.getTranslationRunEstimate).toHaveBeenCalledTimes(1);
     expect(api.getTranslationRunEstimate).toHaveBeenCalledWith('v1', { languages: ['es', 'fr'] });
+  });
+
+  it('история версии (F05-8): все запуски страницами по 10 без фильтра «идущие», без опроса; сброс списков книги перечитывает её', async () => {
+    const { wrapper, client } = setup();
+    api.getBookTranslationRuns.mockResolvedValue(page([item('old', 'cancelled')]));
+
+    const { result, rerender } = renderHook(
+      ({ p }: { p: number }) => useTranslationRunHistory('b1', 'v1', p),
+      { wrapper, initialProps: { p: 1 } }
+    );
+    await waitFor(() => expect(result.current.data?.items.map((r) => r.id)).toEqual(['old']));
+    expect(RUN_HISTORY_PAGE_SIZE).toBe(10);
+    expect(api.getBookTranslationRuns).toHaveBeenLastCalledWith('b1', {
+      bookVersionId: 'v1',
+      page: 1,
+      limit: RUN_HISTORY_PAGE_SIZE,
+    });
+    // Без опроса: ход идущих перечитывает блок хода, а история — только по сбросу.
+    const query = client
+      .getQueryCache()
+      .find({ queryKey: translationRunKeys.history('b1', 'v1', 1) });
+    expect(query?.options).not.toHaveProperty('refetchInterval');
+
+    rerender({ p: 2 });
+    await waitFor(() =>
+      expect(api.getBookTranslationRuns).toHaveBeenLastCalledWith('b1', {
+        bookVersionId: 'v1',
+        page: 2,
+        limit: RUN_HISTORY_PAGE_SIZE,
+      })
+    );
+    api.getBookTranslationRuns.mockClear();
+    await act(() => client.invalidateQueries({ queryKey: translationRunKeys.list('b1') }));
+    // Сброс списков книги перечитывает открытую страницу истории — вторую, один раз.
+    await waitFor(() => expect(api.getBookTranslationRuns).toHaveBeenCalledTimes(1));
+    expect(api.getBookTranslationRuns).toHaveBeenCalledWith('b1', {
+      bookVersionId: 'v1',
+      page: 2,
+      limit: RUN_HISTORY_PAGE_SIZE,
+    });
   });
 });
