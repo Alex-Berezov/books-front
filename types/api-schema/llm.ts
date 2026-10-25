@@ -89,7 +89,7 @@ export interface UpdateLlmStageSettingRequest {
 /** Операция LLM: всё, что тратит деньги, тратит их на операцию с лимитом. */
 export interface LlmOperation {
   id: string;
-  kind: 'translation_run' | 'dossier' | 'compare' | 'draft';
+  kind: 'translation_run' | 'dossier' | 'compare' | 'draft' | 'translation_retry';
   status: 'active' | 'paused' | 'cancelled' | 'done' | 'failed';
   /** Почему операция на паузе; `null` — не на паузе. */
   pauseReason:

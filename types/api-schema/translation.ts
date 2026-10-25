@@ -287,6 +287,8 @@ export interface TranslationReportFinding {
   target?: string;
   fragment?: string;
   model?: string;
+  /** Модельная находка от текста до повтора или правки куска (решение арбитра `F05 | F05-7v`). */
+  stale?: boolean;
 }
 
 export interface TranslationReportChapter {
@@ -297,6 +299,8 @@ export interface TranslationReportChapter {
   length: number | null;
   lengthLimit: number | null;
   chapterId: string | null;
+  /** Почему повтор или правка куска не переписали главу черновика; `null` — переписали или не было. */
+  rewriteRefusal: string | null;
   findings: TranslationReportFinding[];
 }
 
@@ -332,4 +336,96 @@ export interface TranslationRunReport {
   costs: Array<{ stage: string; model: string | null; calls: number; costUsd: LlmMoney }>;
   inFlight: { calls: number; reservedUsd: LlmMoney };
   totalUsd: LlmMoney;
+}
+
+// ---------------------------------------------------------------------------
+// Куски запуска: «оригинал | перевод», повтор и правка руками (F05-7v).
+
+export type TranslationChunkStatus = 'pending' | 'translated' | 'checked' | 'done' | 'flagged';
+
+/** Блок куска: исходник и перевод того же номера `n`; `translation: null` — не переведён. */
+export interface TranslationChunkBlock {
+  n: number;
+  source: string;
+  translation: string | null;
+}
+
+/** Попытка повтора куска своей операцией `translation_retry`; кусок подменяется на `applied`. */
+export interface TranslationChunkRetry {
+  operationId: string;
+  /** `pending | translated | checked | done | flagged` — идёт; `applied`, `failed` — итог. */
+  status: string;
+  /** Модель, которую просили; `null` — модели запуска. */
+  requestedModel: string | null;
+  model: string | null;
+  /** Отказ попытки (`failed`) или пауза её операции. */
+  reason: string | null;
+  reasonModels: string[];
+  costUsd: LlmMoney;
+  operationStatus: LlmOperation['status'] | null;
+  pauseReason: LlmOperation['pauseReason'];
+  spentUsd: LlmMoney | null;
+  limitUsd: LlmMoney | null;
+}
+
+export interface TranslationChunk {
+  id: string;
+  chunkIndex: number;
+  firstBlock: number;
+  lastBlock: number;
+  status: TranslationChunkStatus;
+  flagReason: string | null;
+  model: string | null;
+  costUsd: LlmMoney | null;
+  attempts: number;
+  /** Замечания проверок: «почему» у флага. */
+  remarks: string[];
+  /** Правлено руками: `remarks` и `model` — о тексте до правки. */
+  editedAt: string | null;
+  retry: TranslationChunkRetry | null;
+  blocks: TranslationChunkBlock[];
+}
+
+export interface TranslationChunksChapter {
+  status: TranslationChapterStatus;
+  flagReason: string | null;
+  rewriteRefusal: string | null;
+  chapterId: string | null;
+  findings: TranslationReportFinding[];
+}
+
+/** Ответ `GET /admin/translation-runs/:id/chunks?lang=&chapter=`. */
+export interface TranslationChunks {
+  runId: string;
+  language: SupportedLang;
+  chapterNumber: number;
+  /** Глава исходника правлена после нарезки: блоки могут не совпадать. */
+  sourceChanged: boolean;
+  /** Главы перевода ещё нет: не собрана. */
+  chapter: TranslationChunksChapter | null;
+  chunks: TranslationChunk[];
+}
+
+/** Тело `POST /admin/translation-chunks/:id/retry`: пустая модель не уходит — модели запуска. */
+export interface RetryTranslationChunkRequest {
+  model?: string;
+  limitUsd: LlmMoney;
+}
+
+/** Ответ `POST /admin/translation-chunks/:id/retry` (202). */
+export interface TranslationChunkRetryStarted {
+  operation: LlmOperation;
+  chunk: TranslationChunk;
+}
+
+/** Тело `PUT /admin/translation-chunks/:id`: блоки по номеру, только строчная разметка. */
+export interface EditTranslationChunkRequest {
+  blocks: Array<{ n: number; text: string }>;
+}
+
+/** Ответ `PUT /admin/translation-chunks/:id`: `chapterRewritten: false` — причина в `reason`. */
+export interface TranslationChunkEdited {
+  chunk: TranslationChunk;
+  chapterRewritten: boolean;
+  reason: string | null;
 }

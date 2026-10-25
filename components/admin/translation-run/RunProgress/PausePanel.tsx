@@ -1,13 +1,11 @@
 'use client';
 
 import { useMemo, useState, type FC, type ReactNode } from 'react';
-import { Alert, Button, Input, Popconfirm, Select } from 'antd';
+import { Alert, Button, Popconfirm, Select } from 'antd';
 import Link from 'next/link';
 import { useLlmModels } from '@/api/hooks';
-import {
-  formatMoney,
-  isValidMoney,
-} from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
+import { LimitResume } from '@/components/admin/common/LimitResume';
+import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { LlmOperation, ResumeTranslationRunRequest } from '@/types/api-schema';
 import {
@@ -28,37 +26,6 @@ export interface PausePanelProps {
   onResumeOperation: (id: string) => void;
   onRestart: () => void;
 }
-
-/** Новый лимит, $: поле и «продолжить» с ним — пауза запуска по лимиту и операция досье. */
-export const LimitResume: FC<{
-  label: string;
-  pending: boolean;
-  onResume: (limitUsd: string) => void;
-  children?: ReactNode;
-}> = ({ label, pending, onResume, children }) => {
-  const [limit, setLimit] = useState('');
-  const ok = isValidMoney(limit);
-  return (
-    <div className={styles.pause}>
-      {children}
-      <Input
-        aria-label={label}
-        className={styles.limit}
-        value={limit}
-        onChange={(e) => setLimit(e.target.value)}
-        status={limit === '' || ok ? undefined : 'error'}
-      />
-      <Button
-        type="primary"
-        loading={pending}
-        disabled={!ok}
-        onClick={() => onResume(limit.trim())}
-      >
-        Resume
-      </Button>
-    </div>
-  );
-};
 
 /** Пауза без провайдера: модель этапа на этот запуск (решение арбитра `F05 | F05-7`). */
 const ProviderPause: FC<{

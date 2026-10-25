@@ -4,6 +4,7 @@ import { useEffect, useRef, type FC } from 'react';
 import { Alert, Button, Popconfirm } from 'antd';
 import Link from 'next/link';
 import { useTranslationRunActions } from '@/api/hooks';
+import { LimitResume } from '@/components/admin/common/LimitResume';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { LlmOperation, TranslationRun } from '@/types/api-schema';
@@ -17,7 +18,7 @@ import {
   runStatusText,
   stageText,
 } from '../translationRun.utils';
-import { LimitResume, PausePanel } from './PausePanel';
+import { PausePanel } from './PausePanel';
 import styles from './RunProgress.module.scss';
 
 export interface RunProgressProps {
@@ -34,6 +35,7 @@ const OPERATION_KIND: Record<LlmOperation['kind'], string> = {
   translation_run: 'Run',
   compare: 'Compare',
   draft: 'Draft',
+  translation_retry: 'Piece retry',
 };
 
 /**
@@ -138,6 +140,7 @@ export const RunProgress: FC<RunProgressProps> = ({ run, bookId, lang, onReport,
             <th>Progress</th>
             <th>Flagged pieces / chapters</th>
             <th>Draft</th>
+            <th>Pieces</th>
           </tr>
         </thead>
         <tbody>
@@ -156,6 +159,17 @@ export const RunProgress: FC<RunProgressProps> = ({ run, bookId, lang, onReport,
                 {l.draftVersionId ? (
                   <Link href={`/admin/${lang}/books/versions/${l.draftVersionId}`}>
                     {DRAFT_LINK_TEXT}
+                  </Link>
+                ) : (
+                  '—'
+                )}
+              </td>
+              <td>
+                {l.chunksTotal > 0 ? (
+                  <Link
+                    href={`/admin/${lang}/books/versions/${run.bookVersionId}/translation-chunks?${new URLSearchParams({ run: run.id, book: bookId, language: l.language }).toString()}`}
+                  >
+                    Original | translation
                   </Link>
                 ) : (
                   '—'

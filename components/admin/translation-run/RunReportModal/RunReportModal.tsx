@@ -8,12 +8,14 @@ import { Modal } from '@/components/admin/common/Modal';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { TranslationReportLanguage } from '@/types/api-schema';
+import { FindingItem } from '../FindingItem';
 import {
   DRAFT_LINK_TEXT,
   failedText,
   FINAL_CHECK_TEXT,
   findingText,
   refusalText,
+  rewriteRefusalText,
   stageName,
 } from '../translationRun.utils';
 import styles from './RunReportModal.module.scss';
@@ -91,7 +93,10 @@ const LanguageReport: FC<{ report: TranslationReportLanguage; lang: SupportedLan
   report: l,
   lang,
 }) => {
-  const flagged = l.chapters.filter((c) => c.findings.length > 0 || c.flagReason !== null);
+  // Находки от текста до повтора или правки (`stale`) показаны приглушёнными; отказ перезаписи — своей строкой.
+  const flagged = l.chapters.filter(
+    (c) => c.findings.length > 0 || c.flagReason !== null || c.rewriteRefusal !== null
+  );
   return (
     <section className={styles.language} aria-label={`Report ${l.language}`}>
       <h3 className={styles.subtitle}>
@@ -132,15 +137,15 @@ const LanguageReport: FC<{ report: TranslationReportLanguage; lang: SupportedLan
             <li key={c.number}>
               Chapter {c.number}
               {c.flagReason ? `: ${findingText(c.flagReason)}` : ''}
+              {c.rewriteRefusal && (
+                <p className={styles.muted}>
+                  Not rewritten after a retry or edit: {rewriteRefusalText(c.rewriteRefusal)}.
+                </p>
+              )}
               {c.findings.length > 0 && (
                 <ul>
                   {c.findings.map((f, i) => (
-                    <li key={i}>
-                      {findingText(f.code)}
-                      {f.seam !== undefined && ` (seam ${f.seam})`}
-                      {f.issue && `: ${f.issue}`}
-                      {f.form && ` — ${f.form}${f.target ? ` → ${f.target}` : ''}`}
-                    </li>
+                    <FindingItem key={i} finding={f} />
                   ))}
                 </ul>
               )}

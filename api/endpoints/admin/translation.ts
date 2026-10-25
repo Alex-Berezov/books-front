@@ -9,15 +9,22 @@
  * `LLM_MODEL_UNKNOWN`; 503 — `LLM_DISABLED` (только запуск), `LLM_MODELS_UNAVAILABLE`.
  */
 
-import { httpGetAuth, httpPostAuth } from '@/lib/http-client';
+import { httpGetAuth, httpPostAuth, httpPutAuth } from '@/lib/http-client';
 import type {
+  DossierStatus,
+  EditTranslationChunkRequest,
+  Glossary,
   ResumeTranslationRunRequest,
+  RetryTranslationChunkRequest,
   StartTranslationCompareRequest,
   StartTranslationRunRequest,
   TranslationCompare,
   TranslationCompareEstimate,
   TranslationCompareListResponse,
   TranslationCompareParams,
+  TranslationChunkEdited,
+  TranslationChunkRetryStarted,
+  TranslationChunks,
   TranslationRun,
   TranslationRunEstimate,
   TranslationRunEstimateParams,
@@ -125,3 +132,51 @@ export const resumeTranslationRun = async (
 
 export const cancelTranslationRun = async (id: string): Promise<TranslationRun> =>
   httpPostAuth<TranslationRun>(`/admin/translation-runs/${id}/cancel`);
+
+// ---------------------------------------------------------------------------
+// Куски запуска (F05-7v) — только `admin`. Повтор и правка отказывают 409 `RUN_ACTIVE`
+// (запуск идёт), `RETRY_IN_PROGRESS`, `DRAFT_MISSING`, `CHUNK_SOURCE_CHANGED`; повтор — ещё 409
+// `LLM_NO_PRICE`, `LLM_STAGE_DISABLED`, `CHECK_MODEL_SAME_FAMILY`, 400 `LLM_MODEL_UNKNOWN`,
+// 503 `LLM_DISABLED`; правка — 409 `CHUNK_EDIT_CONFLICT`, 400 `CHUNK_BLOCKS_INVALID` (список
+// отказов массивом в `message`).
+
+export const getTranslationChunks = async (
+  runId: string,
+  language: string,
+  chapter: number
+): Promise<TranslationChunks> =>
+  httpGetAuth<TranslationChunks>(
+    `/admin/translation-runs/${encodeURIComponent(runId)}/chunks?${new URLSearchParams({
+      lang: language,
+      chapter: String(chapter),
+    }).toString()}`
+  );
+
+export const retryTranslationChunk = async (
+  chunkId: string,
+  data: RetryTranslationChunkRequest
+): Promise<TranslationChunkRetryStarted> =>
+  httpPostAuth<TranslationChunkRetryStarted>(
+    `/admin/translation-chunks/${encodeURIComponent(chunkId)}/retry`,
+    data
+  );
+
+export const editTranslationChunk = async (
+  chunkId: string,
+  data: EditTranslationChunkRequest
+): Promise<TranslationChunkEdited> =>
+  httpPutAuth<TranslationChunkEdited>(
+    `/admin/translation-chunks/${encodeURIComponent(chunkId)}`,
+    data
+  );
+
+// Досье и глоссарий — только чтение (F05-7v; построение — F05-10). Части адреса из адресной
+// строки экрана (язык, запуск) кодируются: чужое значение не уводит запрос на другую ручку.
+
+export const getVersionDossier = async (versionId: string): Promise<DossierStatus> =>
+  httpGetAuth<DossierStatus>(`/admin/versions/${encodeURIComponent(versionId)}/dossier`);
+
+export const getDossierGlossary = async (dossierId: string, language: string): Promise<Glossary> =>
+  httpGetAuth<Glossary>(
+    `/admin/dossiers/${encodeURIComponent(dossierId)}/glossaries/${encodeURIComponent(language)}`
+  );

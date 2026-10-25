@@ -586,3 +586,29 @@ export type {
   TranslationTarget,
   TranslationTargetReason,
 } from './translation';
+
+// Pieces of a run: original | translation, retry, edit (F05-7v, admin only)
+export type {
+  EditTranslationChunkRequest,
+  RetryTranslationChunkRequest,
+  TranslationChunk,
+  TranslationChunkBlock,
+  TranslationChunkEdited,
+  TranslationChunkRetry,
+  TranslationChunkRetryStarted,
+  TranslationChunks,
+  TranslationChunksChapter,
+  TranslationChunkStatus,
+} from './translation';
+
+// Book dossier and language glossary, read only (F05-2, F05-7v, admin only)
+export type {
+  BookDossierStatus,
+  DossierCharacter,
+  DossierData,
+  DossierEntity,
+  DossierStatus,
+  Glossary,
+  GlossaryData,
+  GlossaryEntry,
+} from './dossier';

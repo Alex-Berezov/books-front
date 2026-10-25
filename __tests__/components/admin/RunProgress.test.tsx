@@ -112,6 +112,27 @@ describe('Блок запуска перевода (F05-7)', () => {
     expect(actions.pause.mutate).toHaveBeenCalled();
   });
 
+  it('F05-7v: ссылка на куски языка — с запуском, книгой и языком; без кусков — прочерк', () => {
+    renderBlock(run({ languages: [language(), language({ language: 'fr', chunksTotal: 0 })] }));
+
+    const links = screen.getAllByRole('link', { name: 'Original | translation' });
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute(
+      'href',
+      '/admin/en/books/versions/v1/translation-chunks?run=r1&book=b1&language=es'
+    );
+  });
+
+  it('F05-7v: вид операции повтора куска подписан своим словом', () => {
+    renderBlock(
+      run({
+        operations: [operation({ id: 'op-retry', kind: 'translation_retry', status: 'done' })],
+      })
+    );
+
+    expect(screen.getByText(/Piece retry:/)).toBeInTheDocument();
+  });
+
   it('смена состояния запуска снимает плашки прежних отказов', () => {
     const { rerender } = renderBlock(run());
     for (const m of Object.values(actions)) m.reset.mockClear();

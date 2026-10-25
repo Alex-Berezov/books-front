@@ -394,6 +394,18 @@ export {
   useVersionTranslationRuns,
 } from './useTranslationRun';
 
+// Pieces of a translation run: original | translation, retry, edit (F05-7v, admin only)
+export {
+  chunksRefetchInterval,
+  translationChunkKeys,
+  useTranslationChunkActions,
+  useTranslationChunks,
+} from './useTranslationChunks';
+export type { TranslationChunkActions } from './useTranslationChunks';
+
+// Book dossier and language glossary, read only (F05-2, F05-7v, admin only)
+export { dossierKeys, useDossierGlossary, useVersionDossier } from './useDossier';
+
 // Rights Intakes (continued: review imports, profile, agent manifest)
 export {
   useMaterializeRightsReviewImport,

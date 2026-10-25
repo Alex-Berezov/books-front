@@ -40,6 +40,7 @@ const reportLanguage = (over: Partial<TranslationReportLanguage>): TranslationRe
       length: 100,
       lengthLimit: 500,
       chapterId: 'c2',
+      rewriteRefusal: null,
       findings: [{ code: 'GLOSSARY_SOURCE_FORM', form: 'Ana', target: 'Anita' }],
     },
   ],
@@ -76,6 +77,33 @@ describe('Отчёт запуска (F05-7)', () => {
       screen.getByText(/a name stayed in the source spelling — Ana → Anita/)
     ).toBeInTheDocument();
     expect(screen.getAllByText('$1.2')).toHaveLength(2);
+  });
+
+  it('F05-7v: находка до повтора или правки приглушена, отказ перезаписи — подписью', () => {
+    hooks.report = report([
+      reportLanguage({
+        chapters: [
+          {
+            number: 3,
+            status: 'written',
+            flagReason: null,
+            seamIndex: null,
+            length: 100,
+            lengthLimit: 500,
+            chapterId: 'c3',
+            rewriteRefusal: 'VERSION_NOT_DRAFT',
+            findings: [{ code: 'SEAM_BROKEN', seam: 1, stale: true }],
+          },
+        ],
+      }),
+    ]);
+    render(<RunReportModal runId="r1" lang="en" onClose={vi.fn()} />);
+
+    const stale = screen.getByText(/the text breaks on a seam \(seam 1\) — before a retry or edit/);
+    expect(stale.className).toMatch(/stale/);
+    expect(
+      screen.getByText(/Not rewritten after a retry or edit: the version is no longer a draft/)
+    ).toBeInTheDocument();
   });
 
   it('без черновика — так и сказано; итоговая проверка ещё не дошла', () => {

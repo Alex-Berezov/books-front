@@ -224,6 +224,10 @@ const PROVIDER_STAGES: Record<string, ProviderStage> = {
   FINAL_CHECK_NO_COMPLIANT_PROVIDER: 'final_check',
 };
 
+/** Этап паузы без провайдера по коду причины; `LLM_NO_COMPLIANT_PROVIDER` и прочее — перевод. */
+export const providerStageOf = (reason: string | null | undefined): ProviderStage =>
+  PROVIDER_STAGES[reason ?? ''] ?? 'translate';
+
 /** Пауза до трат: лимиту запуска не хватило на досье или глоссарий (решение арбитра, /fix В2). */
 export const DOSSIER_LIMIT_TOO_LOW = 'DOSSIER_LIMIT_TOO_LOW';
 
@@ -270,7 +274,7 @@ export const pauseActionOf = (run: TranslationRun): PauseAction | null => {
       const provider = run.languages.find((l) => l.reasonModels.length > 0) ?? lang;
       return {
         kind: 'provider',
-        stage: PROVIDER_STAGES[provider?.reason ?? ''] ?? 'translate',
+        stage: providerStageOf(provider?.reason),
         models: provider?.reasonModels ?? [],
       };
     }
@@ -308,9 +312,13 @@ const OPERATION_PAUSES: Record<NonNullable<LlmOperation['pauseReason']>, string>
   STEP_FAILED: 'a step failed',
 };
 
+/** Причина паузы своей операции: досье, глоссарий или попытка повтора куска. */
+export const operationPauseText = (reason: LlmOperation['pauseReason']): string =>
+  reason ? OPERATION_PAUSES[reason] : 'with the Pause button';
+
 export const operationStatusText = (op: LlmOperation): string =>
   op.status === 'paused'
-    ? `paused: ${op.pauseReason ? OPERATION_PAUSES[op.pauseReason] : 'with the Pause button'}`
+    ? `paused: ${operationPauseText(op.pauseReason)}`
     : RUN_STATUSES[op.status];
 
 /**
@@ -370,3 +378,18 @@ export const FINAL_CHECK_TEXT: Record<TranslationFinalCheckStatus, string> = {
 
 /** Подпись ссылки на черновик — одна в блоке и в отчёте. */
 export const DRAFT_LINK_TEXT = 'Open draft';
+
+/**
+ * Почему повтор или правка куска не переписали главу черновика (`rewriteRefusal`, Р9; решение
+ * арбитра `F05 | F05-7v`) — одна подпись и на экране кусков, и в отчёте. Коды сборки — словами
+ * находок: глава из такого перевода не собирается.
+ */
+const REWRITE_REFUSALS: Record<string, string> = {
+  CHAPTER_EDITED_MANUALLY: 'the chapter of the draft was edited by hand after it was written',
+  VERSION_NOT_DRAFT: 'the version is no longer a draft',
+  DRAFT_DELETED: 'the draft version was deleted',
+  SOURCE_CHANGED: 'the source chapter changed after translation',
+};
+
+export const rewriteRefusalText = (code: string): string =>
+  REWRITE_REFUSALS[code] ?? `the chapter did not assemble: ${findingText(code)}`;
