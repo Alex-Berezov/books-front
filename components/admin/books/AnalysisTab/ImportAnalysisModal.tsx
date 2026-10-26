@@ -20,6 +20,8 @@ interface ImportAnalysisModalProps {
   /** Пробное сохранение на сервере (решение А3): ядро, главы, ссылки ключей. */
   preview: (data: SaveBookAnalysisRequest) => Promise<AnalysisPreview>;
   onImport: (data: SaveBookAnalysisRequest) => void;
+  /** Текст, с которым окно открывается (заготовка из досье, F05-11); правится как обычный. */
+  initialJson?: string;
 }
 
 /** Пауза в наборе перед пробой на сервере. */
@@ -44,11 +46,18 @@ export const ImportAnalysisModal: FC<ImportAnalysisModalProps> = ({
   onRetryLoad,
   preview,
   onImport,
+  initialJson,
 }) => {
   const [jsonText, setJsonText] = useState('');
+
   // Итог пробы привязан к тому разбору JSON, который проверялся: «ok» прошлого текста
   // не одобряет новый, пока эффект не успел поставить «checking».
   const [checked, setChecked] = useState<{ for: unknown; result: AnalysisPreview } | null>(null);
+
+  // Окно открылось с заготовкой — она в поле; закрытие поле очищает (`close`).
+  useEffect(() => {
+    if (isOpen && initialJson) setJsonText(initialJson);
+  }, [isOpen, initialJson]);
 
   const analysis = useMemo(
     () => (analyze && jsonText.trim() ? analyze(jsonText) : null),
@@ -143,6 +152,20 @@ export const ImportAnalysisModal: FC<ImportAnalysisModalProps> = ({
             <p>These filled blocks will be cleared:</p>
             <ul className={styles.issueList}>
               {analysis.cleared.map((key) => (
+                <li key={key}>{key}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {data && analysis && analysis.replaced.length > 0 && (
+          <div className={styles.status}>
+            <p>
+              {initialJson && jsonText === initialJson
+                ? 'These filled blocks will be replaced by the draft (the draft keeps the saved items and fields inside them):'
+                : 'These filled blocks will be replaced entirely:'}
+            </p>
+            <ul className={styles.issueList}>
+              {analysis.replaced.map((key) => (
                 <li key={key}>{key}</li>
               ))}
             </ul>

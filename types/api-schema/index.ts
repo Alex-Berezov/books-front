@@ -617,11 +617,14 @@ export type {
   GlossaryEntry,
 } from './dossier';
 
-// Summary drafts from the dossier (F05-10, admin only)
+// Summary (F05-10) and analysis (F05-11) drafts from the dossier, admin only
 export type {
   ContentDraft,
+  ContentDraftAnalysis,
+  ContentDraftDroppedQuote,
   ContentDraftEstimate,
   ContentDraftKind,
+  ContentDraftMotif,
   ContentDraftSection,
   ContentDraftState,
   ContentDraftStatus,

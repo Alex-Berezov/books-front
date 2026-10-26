@@ -1,4 +1,5 @@
 import type { BookAnalysisPromptVersion } from '@/lib/admin/book-analysis-prompt-inputs';
+import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookAnalysisWarning } from '@/types/api-schema';
 
 /**
@@ -9,6 +10,10 @@ export interface AnalysisTabProps {
   versionId: string;
   /** Version fields for «Вводные для промпта» and the language check of the import */
   version: BookAnalysisPromptVersion;
+  /** Draft from the dossier (F05-11) — `admin` only; others see no button and send no requests */
+  isAdmin?: boolean;
+  /** Admin UI language — for the «LLM settings» link of the draft */
+  lang?: SupportedLang;
 }
 
 /** Итог проверки на сервере: ядро и предупреждения слитой записи (сохранения или `dryRun`). */

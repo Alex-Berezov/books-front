@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   analysisRequestFromForm,
   collectClearedBlocks,
+  collectReplacedBlocks,
   formFromAnalysis,
   hasDraftIssues,
+  hasUnsavedDraftBlocks,
   mergeAnalysisImport,
 } from '@/lib/admin/book-analysis-form-state';
 import { buildAnalysisPromptInputsText } from '@/lib/admin/book-analysis-prompt-inputs';
@@ -214,5 +216,127 @@ describe('«Вводные для промпта» (§21 п.2)', () => {
     expect(text).toContain('глав нет');
     expect(text).toContain('Год первой публикации:\nне указан');
     expect(text.match(/\nнет(\n|$)/g)).toHaveLength(2);
+  });
+});
+
+describe('заготовка Analysis из досье (F05-11)', () => {
+  it('окно импорта называет заполненные блоки, которые заменятся, но не нетронутые и не пустые', () => {
+    const prev = formFromAnalysis(saved());
+    const keyQuotes = [{ text: 'New line', chapter: 1 }];
+    const data = { language: 'en', keyQuotes, style: prev.lists.style } as SaveBookAnalysisRequest;
+    expect(collectReplacedBlocks(prev, data)).toEqual(['keyQuotes']);
+    expect(collectReplacedBlocks(formFromAnalysis(null), data)).toEqual([]);
+    const res = analyzeBookAnalysisImport(prev, JSON.stringify(data), 'en');
+    expect(res.replaced).toEqual(['keyQuotes']);
+    expect(res.cleared).toEqual([]);
+    // Тот же список с полями в другом порядке — не замена.
+    const reordered = (prev.lists.style ?? []).map((item) =>
+      Object.fromEntries(Object.entries(item).reverse())
+    );
+    const same = { language: 'en', style: reordered } as SaveBookAnalysisRequest;
+    expect(analyzeBookAnalysisImport(prev, JSON.stringify(same), 'en').replaced).toEqual([]);
+  });
+
+  it('несохранённые правки — только в facts и трёх списках заготовки (Р4)', () => {
+    const saved_ = formFromAnalysis(saved());
+    expect(hasUnsavedDraftBlocks(saved_, saved_)).toBe(false);
+    const text = { ...saved_, texts: { ...saved_.texts, mainIdea: 'edited' } };
+    expect(hasUnsavedDraftBlocks(text, saved_)).toBe(false);
+    const fact = { ...saved_, facts: { ...saved_.facts, narrator: 'edited' } };
+    expect(hasUnsavedDraftBlocks(fact, saved_)).toBe(true);
+    const list = {
+      ...saved_,
+      drafts: { ...saved_.drafts, style: { text: '[]', issues: null } },
+    };
+    expect(hasUnsavedDraftBlocks(list, saved_)).toBe(true);
+  });
+
+  it('«Вводные»: мотивы досье с главами, язык досье назван, если он не язык версии (Р10)', () => {
+    const version = {
+      title: 'T',
+      author: 'A',
+      language: 'fr' as const,
+      firstPublishedYear: null,
+      characters: null,
+      quotes: null,
+    };
+    const motifs = [
+      { image: 'the door', chapters: [2, 5] },
+      { image: 'rain', chapters: [] },
+    ];
+    const text = buildAnalysisPromptInputsText(version, [], 0, {
+      motifs,
+      dossierLanguage: 'en',
+    });
+    expect(text).toContain(
+      'Сквозные мотивы из досье (язык досье: en):\n- the door — главы 2, 5\n- rain'
+    );
+    const same = buildAnalysisPromptInputsText(version, [], 0, { motifs, dossierLanguage: 'fr' });
+    expect(same).toContain('Сквозные мотивы из досье:\n');
+    expect(buildAnalysisPromptInputsText(version, [], 0)).not.toContain('мотивы');
+  });
+});
+
+describe('JSON заготовки Analysis проходит проверку импорта фронта (F05-11, посадка карточки)', () => {
+  // Форма `draft.analysis` из e2e бэкенда (`books/test/content-draft.e2e-spec.ts`, анализ на
+  // исходнике): сохранённые элементы с описанием и толкованием, новые - без них.
+  const draftAnalysis = {
+    language: 'en',
+    facts: { settingPlace: 'Saved town', settingTime: '1900s' },
+    characters: [
+      {
+        key: 'anna',
+        name: 'Anna',
+        role: 'main',
+        description: 'Saved words',
+        arc: { from: 'alone', to: 'at home' },
+        quote: { text: 'Anna in chapter 1.', chapter: 1 },
+      },
+      {
+        key: 'boris',
+        name: 'Boris',
+        role: 'minor',
+        relations: [{ to: 'anna', label: 'neighbour' }],
+      },
+    ],
+    keyQuotes: [
+      { text: 'Saved quote', interpretation: 'Saved meaning' },
+      { text: 'Anna in chapter 2.', chapter: 2, speakerKey: 'anna' },
+    ],
+    style: [
+      { device: 'Repetition', explanation: 'Saved', example: { text: 'Saved', chapter: 1 } },
+      { device: 'Irony', explanation: 'How it shows' },
+    ],
+  };
+
+  it('ошибок нет, ключей вне пяти нет', () => {
+    const checked = checkBookAnalysisImport(structuredClone(draftAnalysis), 'en');
+    expect(checked.errors).toEqual([]);
+    expect(Object.keys(checked.data ?? {}).sort()).toEqual([
+      'characters',
+      'facts',
+      'keyQuotes',
+      'language',
+      'style',
+    ]);
+  });
+
+  it('заменятся только заполненные блоки с другим содержимым: facts и тексты тоже', () => {
+    const prev = formFromAnalysis(null);
+    prev.facts.narrator = 'Saved narrator';
+    prev.texts.mainIdea = 'Saved idea';
+    const data = {
+      language: 'en',
+      facts: { settingPlace: 'P' },
+      mainIdea: 'Saved idea',
+    } as SaveBookAnalysisRequest;
+    expect(collectReplacedBlocks(prev, data)).toEqual(['facts']);
+    prev.lists.keyQuotes = [{ text: 'Same', chapter: 1 }];
+    const same = {
+      language: 'en',
+      keyQuotes: [{ text: 'Same', chapter: 1, speakerKey: null, interpretation: null }],
+    } as SaveBookAnalysisRequest;
+    // Пустые поля, которые дописывает проверка, - не замена.
+    expect(collectReplacedBlocks(prev, same)).toEqual([]);
   });
 });

@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSnackbar } from 'notistack';
-import { useBookAnalysis, useChapterTitles, useSaveBookAnalysis } from '@/api/hooks';
+import {
+  useBookAnalysis,
+  useChapterTitles,
+  useContentDraft,
+  useSaveBookAnalysis,
+} from '@/api/hooks';
 import {
   analysisRequestFromForm,
   formFromAnalysis,
   hasDraftIssues,
+  hasUnsavedDraftBlocks,
   mergeAnalysisImport,
   UNCHECKED_DRAFT_ISSUE,
   type BookAnalysisFormValues,
@@ -39,11 +45,13 @@ const errorText = (error: unknown): string => {
 const isServerFailure = (error: unknown) => error instanceof ApiError && error.statusCode >= 500;
 
 export const useAnalysisTab = (props: AnalysisTabProps) => {
-  const { versionId, version } = props;
+  const { versionId, version, isAdmin = false } = props;
   const { enqueueSnackbar } = useSnackbar();
 
   const analysisQuery = useBookAnalysis(versionId);
   const chaptersQuery = useChapterTitles(versionId);
+  // Тот же запрос, что у блока заготовки (общий ключ): мотивы во «Вводные» берутся из него.
+  const draftQuery = useContentDraft(versionId, 'analysis', isAdmin);
   const saveMutation = useSaveBookAnalysis();
   // Отдельная мутация для пробы: её ожидание не должно выглядеть сохранением.
   const { mutateAsync: runPreview } = useSaveBookAnalysis();
@@ -95,6 +103,10 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
   const hydratedFor = useRef<string | null>(null);
   // Снимок формы сохранённой записи: повтор пробы проверяет её, а не несохранённые правки.
   const savedForm = useRef<BookAnalysisFormValues | null>(null);
+  // `updatedAt` той записи, из которой форма заполнена или сохранена (Р15, решение `F05 | F05-11`,
+  // Р24): перечитывание после чужого сохранения форму не меняет, и заготовка, собранная поверх
+  // новой записи, не должна открываться в старую форму.
+  const [formUpdatedAt, setFormUpdatedAt] = useState<string | null>(null);
   useEffect(() => {
     // Пока идёт перечитывание, кэш может быть устаревшим (вкладку смонтировали заново позже
     // `staleTime`): заполнять форму только свежими данными, иначе сохранение всей записи вернёт
@@ -109,6 +121,7 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     const saved = analysisQuery.data ?? null;
     const hydrated = formFromAnalysis(saved);
     savedForm.current = hydrated;
+    setFormUpdatedAt(saved?.updatedAt ?? null);
     setForm(hydrated);
     setLastCheck(null);
     // Сохранённый анализ без ядра: сразу показать, чего не хватает (§2), — той же пробой сервера.
@@ -196,6 +209,7 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
       {
         onSuccess: (res) => {
           savedForm.current = checked;
+          if (res.analysis) setFormUpdatedAt(res.analysis.updatedAt);
           checkSeq.current += 1;
           setSavedCheckError(null);
           setLastCheck({ hasCore: res.hasCore, warnings: res.warnings });
@@ -222,7 +236,13 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     }
     // Текст собирается по нажатию: глав может быть тысячи, на каждый ввод в форме его не строим.
     const { items, pagination } = chaptersQuery.data;
-    const text = buildAnalysisPromptInputsText(version, items, pagination.total);
+    // Мотивы — только из готовой заготовки (Р10): строящаяся или отброшенная их не даёт.
+    const draft = draftQuery.data?.draft;
+    const motifs =
+      draft?.status === 'ready' && draft.motifs
+        ? { motifs: draft.motifs, dossierLanguage: draft.dossierLanguage }
+        : null;
+    const text = buildAnalysisPromptInputsText(version, items, pagination.total, motifs);
     const failed = () => enqueueSnackbar('Could not copy to clipboard', { variant: 'error' });
     // Вне защищённого контекста (http) `navigator.clipboard` нет — отказ, а не исключение.
     if (!navigator.clipboard) {
@@ -252,6 +272,14 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
       if (savedForm.current) checkSaved(savedForm.current);
     },
     retryLoad: () => void analysisQuery.refetch(),
+    // Заготовка собрана по сохранённому анализу: правки формы в её блоках закрывают импорт (Р4),
+    // а `updatedAt` сохранённого сверяется с тем, по которому она собрана (Р15).
+    draftBlocksUnsaved: savedForm.current ? hasUnsavedDraftBlocks(form, savedForm.current) : true,
+    savedUpdatedAt: formUpdatedAt,
+    // Запись на сервере сейчас: отличается от записи формы - анализ сохранил кто-то другой.
+    // Пока форма не заполнена, сравнивать не с чем: запись формы и есть ожидаемая.
+    serverUpdatedAt:
+      hydratedFor.current === versionId ? (analysisQuery.data?.updatedAt ?? null) : formUpdatedAt,
     savedHasCore: analysisQuery.data?.hasCore ?? null,
     isLoading: analysisQuery.isLoading,
     // Ошибка чтения прячет форму только до первого заполнения: сбой фонового перечитывания

@@ -213,7 +213,9 @@ const EditBookVersionPage: FC = () => {
             rightsContent={<RightsTab versionId={versionId} bookId={version.bookId} lang={lang} />}
             readContent={<ReadContentTab versionId={versionId} />}
             summaryContent={<SummaryTab versionId={versionId} isAdmin={isAdmin} lang={lang} />}
-            analysisContent={<AnalysisTab versionId={versionId} version={version} />}
+            analysisContent={
+              <AnalysisTab versionId={versionId} version={version} isAdmin={isAdmin} lang={lang} />
+            }
           />
         </div>
 

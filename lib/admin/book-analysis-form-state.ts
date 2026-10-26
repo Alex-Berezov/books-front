@@ -86,21 +86,74 @@ export const mergeAnalysisImport = (
   return { facts, texts, lists: lists as BookAnalysisListValues, drafts };
 };
 
+const filledBlocks = (v: BookAnalysisFormValues) => ({
+  facts: Object.values(v.facts).some((s) => s.trim() !== ''),
+  ...fromEntries(BOOK_ANALYSIS_TEXT_KEYS, (k) => v.texts[k].trim() !== ''),
+  ...fromEntries(BOOK_ANALYSIS_LIST_KEYS, (k) => v.lists[k] !== null),
+});
+
+/**
+ * Сравнимый вид значения: пустое поле (`null`, `undefined`) — «нет значения» (проверка импорта
+ * их дописывает), порядок ключей не важен (сервер и проверка ставят поля в своём порядке).
+ */
+const canonical = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value === null || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([, v]) => v !== null && v !== undefined)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([k, v]) => [k, canonical(v)])
+  );
+};
+
+/** Значение блока формы для сравнения «изменился ли он». */
+const blockValue = (v: BookAnalysisFormValues, key: (typeof BOOK_ANALYSIS_BLOCK_KEYS)[number]) =>
+  key === 'facts'
+    ? JSON.stringify(v.facts)
+    : (BOOK_ANALYSIS_TEXT_KEYS as readonly string[]).includes(key)
+      ? v.texts[key as BookAnalysisTextKey].trim()
+      : JSON.stringify(canonical(v.lists[key as BookAnalysisListKey]));
+
 /** Блоки, которые импорт очистит, хотя в форме они заполнены (предупреждение до применения). */
 export const collectClearedBlocks = (
   prev: BookAnalysisFormValues,
   data: SaveBookAnalysisRequest
 ): string[] => {
-  const next = mergeAnalysisImport(prev, data);
-  const filled = (v: BookAnalysisFormValues) => ({
-    facts: Object.values(v.facts).some((s) => s.trim() !== ''),
-    ...fromEntries(BOOK_ANALYSIS_TEXT_KEYS, (k) => v.texts[k].trim() !== ''),
-    ...fromEntries(BOOK_ANALYSIS_LIST_KEYS, (k) => v.lists[k] !== null),
-  });
-  const before = filled(prev);
-  const after = filled(next);
+  const before = filledBlocks(prev);
+  const after = filledBlocks(mergeAnalysisImport(prev, data));
   return BOOK_ANALYSIS_BLOCK_KEYS.filter((k) => before[k] && !after[k]);
 };
+
+/**
+ * Заполненные в форме блоки, которые импорт заменит другим содержимым: импорт заменяет блок
+ * целиком, и редактор подтверждает это до применения (`F05` `product.md` §5.1 п.3).
+ */
+export const collectReplacedBlocks = (
+  prev: BookAnalysisFormValues,
+  data: SaveBookAnalysisRequest
+): string[] => {
+  const next = mergeAnalysisImport(prev, data);
+  const before = filledBlocks(prev);
+  const after = filledBlocks(next);
+  return BOOK_ANALYSIS_BLOCK_KEYS.filter(
+    (k) => before[k] && after[k] && blockValue(prev, k) !== blockValue(next, k)
+  );
+};
+
+/** Списки, которые строит заготовка Analysis (F05-11), - вместе с `facts` (`draftBlocksOf` бэкенда). */
+const ANALYSIS_DRAFT_BLOCKS = ['characters', 'keyQuotes', 'style'] as const;
+
+/**
+ * В форме есть несохранённые правки в блоках заготовки (`facts` и три списка): заготовка собрана
+ * по сохранённому анализу, и импорт затёр бы их (решение арбитра `F05 | F05-11`, Р4).
+ */
+export const hasUnsavedDraftBlocks = (
+  form: BookAnalysisFormValues,
+  saved: BookAnalysisFormValues
+): boolean =>
+  BOOK_ANALYSIS_FACT_KEYS.some((k) => form.facts[k].trim() !== saved.facts[k].trim()) ||
+  ANALYSIS_DRAFT_BLOCKS.some((k) => form.drafts[k].text !== saved.drafts[k].text);
 
 /** Сохранение шлёт всю запись: все ключи §3, пустые — `null` (решение арбитра А4). */
 export const analysisRequestFromForm = (

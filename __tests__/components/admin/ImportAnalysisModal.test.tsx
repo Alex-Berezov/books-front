@@ -15,7 +15,7 @@ const analyze = (text: string) => analyzeBookAnalysisImport(formFromAnalysis(nul
 
 const ok: AnalysisPreview = { state: 'ok', check: { hasCore: false, warnings: [] } };
 
-const setup = (preview: (data: unknown) => Promise<AnalysisPreview>) => {
+const setup = (preview: (data: unknown) => Promise<AnalysisPreview>, initialJson?: string) => {
   const onImport = vi.fn();
   const onCancel = vi.fn();
   const utils = render(
@@ -27,6 +27,7 @@ const setup = (preview: (data: unknown) => Promise<AnalysisPreview>) => {
       onRetryLoad={vi.fn()}
       preview={preview}
       onImport={onImport}
+      initialJson={initialJson}
     />
   );
   const type = (text: string) =>
@@ -152,5 +153,89 @@ describe('ImportAnalysisModal', () => {
     expect(confirm()).toBeDisabled();
     fireEvent.click(confirm());
     expect(onImport).not.toHaveBeenCalled();
+  });
+
+  it('заготовка из досье (F05-11): окно открывается с её JSON, импорт - той же пробой', async () => {
+    const preview = vi.fn(() => Promise.resolve(ok));
+    const json = '{"language":"en","keyQuotes":[{"text":"Line","chapter":1}]}';
+    const { confirm, onImport } = setup(preview, json);
+    expect(screen.getByRole('textbox', { name: 'Import analysis JSON' })).toHaveValue(json);
+    await flush();
+    expect(preview).toHaveBeenCalledTimes(1);
+    expect(confirm()).toBeEnabled();
+    fireEvent.click(confirm());
+    expect(onImport).toHaveBeenCalledTimes(1);
+    expect(onImport).toHaveBeenCalledWith({
+      language: 'en',
+      keyQuotes: [
+        { text: 'Line', chapter: 1, speakerKey: null, themeKeys: null, interpretation: null },
+      ],
+    });
+  });
+
+  it('заполненный блок, который заменится целиком, назван до импорта (F05-11)', async () => {
+    const prev = formFromAnalysis(null);
+    prev.lists.keyQuotes = [{ text: 'Old', chapter: 1 }];
+    const onImport = vi.fn();
+    render(
+      <ImportAnalysisModal
+        isOpen
+        onCancel={vi.fn()}
+        analyze={(text) => analyzeBookAnalysisImport(prev, text, 'en')}
+        loadFailed={false}
+        onRetryLoad={vi.fn()}
+        preview={() => Promise.resolve(ok)}
+        onImport={onImport}
+        initialJson='{"language":"en","keyQuotes":[{"text":"New","chapter":1}]}'
+      />
+    );
+    // Окно заготовки говорит, что сохранённое внутри блоков заготовка перенесла.
+    expect(
+      screen.getByText(/will be replaced by the draft \(the draft keeps the saved items/)
+    ).toBeInTheDocument();
+    expect(screen.getByText('keyQuotes')).toBeInTheDocument();
+    await flush();
+  });
+
+  it('закрытие окна с заготовкой очищает поле; ручное открытие — пустое (F05-11)', async () => {
+    const json = '{"language":"en","mainIdea":"A"}';
+    const props = {
+      onCancel: vi.fn(),
+      analyze,
+      loadFailed: false,
+      onRetryLoad: vi.fn(),
+      preview: () => Promise.resolve(ok),
+      onImport: vi.fn(),
+    };
+    const { rerender } = render(<ImportAnalysisModal isOpen initialJson={json} {...props} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(props.onCancel).toHaveBeenCalledTimes(1);
+    rerender(<ImportAnalysisModal isOpen={false} {...props} />);
+    rerender(<ImportAnalysisModal isOpen {...props} />);
+    expect(screen.getByRole('textbox', { name: 'Import analysis JSON' })).toHaveValue('');
+    await flush();
+  });
+
+  it('окно заготовки с вставленным своим JSON говорит о замене целиком, а не о заготовке (Р24)', async () => {
+    const prev = formFromAnalysis(null);
+    prev.lists.keyQuotes = [{ text: 'Old', chapter: 1 }];
+    render(
+      <ImportAnalysisModal
+        isOpen
+        onCancel={vi.fn()}
+        analyze={(text) => analyzeBookAnalysisImport(prev, text, 'en')}
+        loadFailed={false}
+        onRetryLoad={vi.fn()}
+        preview={() => Promise.resolve(ok)}
+        onImport={vi.fn()}
+        initialJson='{"language":"en","keyQuotes":[{"text":"New","chapter":1}]}'
+      />
+    );
+    fireEvent.change(screen.getByRole('textbox', { name: 'Import analysis JSON' }), {
+      target: { value: '{"language":"en","keyQuotes":[{"text":"Mine","chapter":1}]}' },
+    });
+    expect(screen.getByText('These filled blocks will be replaced entirely:')).toBeInTheDocument();
+    expect(screen.queryByText(/will be replaced by the draft/)).toBeNull();
+    await flush();
   });
 });

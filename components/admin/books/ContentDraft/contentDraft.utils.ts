@@ -7,15 +7,28 @@ import { ApiError } from '@/types/api';
 import type {
   ContentDraft,
   ContentDraftEstimate,
+  ContentDraftKind,
   DossierEstimate,
-  SummaryDraftKind,
 } from '@/types/api-schema';
 
-/** Кнопка шага: шаги идут по одному, кнопки «всё сразу» нет (`product.md` §5.2). */
-export const DRAFT_BUTTON: Record<SummaryDraftKind, string> = {
+/**
+ * Кнопка заготовки: у Summary шаги идут по одному, кнопки «всё сразу» нет (`product.md` §5.2);
+ * у Analysis кнопка одна (§5.3).
+ */
+export const DRAFT_BUTTON: Record<ContentDraftKind, string> = {
   summary_sections: 'Draft sections from dossier',
   summary_full: 'Draft full summary from saved sections',
   summary_brief: 'Draft very short summary from saved full summary',
+  analysis: 'Draft from dossier',
+};
+
+/** Что теряет «Discard draft» у готовой заготовки - по виду: у Analysis нет разделов и текста. */
+export const DISCARD_LOSS: Record<ContentDraftKind, string> = {
+  summary_sections: 'Sections not added to the form are lost;',
+  summary_full: 'Text not put into the form is lost;',
+  summary_brief: 'Text not put into the form is lost;',
+  analysis:
+    'The draft JSON not imported into the form and the list of thrown away quotes are lost;',
 };
 
 /**
@@ -24,6 +37,7 @@ export const DRAFT_BUTTON: Record<SummaryDraftKind, string> = {
  */
 const REFUSALS: Record<string, string> = {
   DRAFT_IN_PROGRESS: 'A draft of this kind is already being built.',
+  SOURCE_HAS_NO_CHAPTERS: 'This version has no chapter text to draft from.',
   SUMMARY_SECTIONS_MISSING: 'Save at least one summary section with text first.',
   SUMMARY_FULL_MISSING: 'Save the full summary with text first.',
   DOSSIER_STALE: 'The book text changed after the dossier was built: rebuild the dossier.',
@@ -54,7 +68,8 @@ const FAILURES: Record<string, string> = {
   DRAFT_TOO_LONG: 'the text is too long for the model or for the field',
   DRAFT_NO_PLAN: 'the dossier has no plan of sections',
   DRAFT_DOSSIER_MISSING: 'the dossier is gone',
-  DRAFT_INPUT_MISSING: 'the saved text it was built from is gone',
+  DRAFT_INPUT_MISSING:
+    'the saved text it was built from is gone or the version has no chapter text',
   DRAFT_CANCELLED: 'its operation was cancelled',
 };
 
@@ -89,7 +104,9 @@ export const estimateText = (estimate: ContentDraftEstimate): string => {
     estimate.sections !== null
       ? ` (${estimate.sections} sections)`
       : estimate.upperBound
-        ? ' (the plan is not known yet: one section per chapter)'
+        ? estimate.kind === 'summary_sections'
+          ? ' (the plan is not known yet: one section per chapter)'
+          : ' (the dossier is not built yet: upper estimate)'
         : '';
   lines.push(`The draft: up to ${formatMoney(estimate.stageUsd)}${sections}.`);
   lines.push(`Operation limit: ${formatMoney(estimate.suggestedLimitUsd)}.`);

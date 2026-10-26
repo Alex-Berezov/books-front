@@ -1,8 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAnalysisTab } from '@/components/admin/books/AnalysisTab/useAnalysisTab';
 import { ApiError } from '@/types/api';
-import type { BookAnalysisSaveResponse } from '@/types/api-schema';
+import type { BookAnalysisSaveResponse, ContentDraft } from '@/types/api-schema';
 
 /**
  * Вкладка анализа (F03-1, `product.md` §21 п.3): предупреждения сервера видны после сохранения
@@ -27,6 +27,8 @@ const mocks = vi.hoisted(() => ({
     error: unknown;
   },
   loadValidation: null as null | (() => Promise<unknown>),
+  draft: null as Partial<ContentDraft> | null,
+  draftEnabled: [] as boolean[],
 }));
 
 vi.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: mocks.enqueueSnackbar }) }));
@@ -36,6 +38,10 @@ vi.mock('@/api/hooks', () => ({
   useChapterTitles: () => ({
     data: { items: [{ number: 1, title: 'One' }], pagination: { total: 1 } },
   }),
+  useContentDraft: (_v: string, _k: string, enabled: boolean) => {
+    mocks.draftEnabled.push(enabled);
+    return { data: enabled ? { draft: mocks.draft } : undefined };
+  },
   useSaveBookAnalysis: () => ({
     mutate: mocks.mutate,
     mutateAsync: mocks.mutateAsync,
@@ -97,6 +103,12 @@ const response: BookAnalysisSaveResponse = {
 };
 
 describe('useAnalysisTab', () => {
+  // Модуль проверок грузится лениво (zod): первый импорт под нагрузкой дольше срока `waitFor`.
+  // Прогрев до тестов — ожидание в тесте меряет хук, а не холодную сборку модуля.
+  beforeAll(async () => {
+    await import('@/lib/admin/book-analysis-validation');
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     // Реализации моков из прошлых тестов снимаются: `clearAllMocks` чистит только историю.
@@ -104,6 +116,8 @@ describe('useAnalysisTab', () => {
     mocks.mutateAsync.mockReset();
     mocks.analysis = { data: null, isLoading: false, isSuccess: true, error: null };
     mocks.loadValidation = null;
+    mocks.draft = null;
+    mocks.draftEnabled = [];
     mocks.mutateAsync.mockResolvedValue({ analysis: null, hasCore: false, warnings: [] });
   });
 
@@ -363,6 +377,107 @@ describe('useAnalysisTab', () => {
     expect(result.current.form.texts.mainIdea).toBe('Fresh');
   });
 
+  it('правки facts или списков заготовки — несохранённые; updatedAt — сохранённого (F05-11, Р4, Р15)', async () => {
+    mocks.analysis = {
+      data: emptySaved,
+      isLoading: false,
+      isSuccess: true,
+      isFetching: false,
+      error: null,
+    } as typeof mocks.analysis;
+    const { result } = renderHook(() => useAnalysisTab(props));
+    await waitFor(() => expect(result.current.draftBlocksUnsaved).toBe(false));
+    expect(result.current.savedUpdatedAt).toBe(emptySaved.updatedAt);
+    act(() => result.current.setText('mainIdea', 'edited'));
+    expect(result.current.draftBlocksUnsaved).toBe(false);
+    act(() => result.current.setFact('narrator', 'edited'));
+    expect(result.current.draftBlocksUnsaved).toBe(true);
+  });
+
+  it('правка списка заготовки (style) — несохранённая; анализа не было — updatedAt null, импорт открыт (F05-11)', async () => {
+    mocks.analysis = {
+      data: null,
+      isLoading: false,
+      isSuccess: true,
+      isFetching: false,
+      error: null,
+    };
+    const { result } = renderHook(() => useAnalysisTab(props));
+    await waitFor(() => expect(result.current.draftBlocksUnsaved).toBe(false));
+    expect(result.current.savedUpdatedAt).toBeNull();
+    act(() => result.current.setListText('style', '[{"device":"D","explanation":"E"}]'));
+    expect(result.current.draftBlocksUnsaved).toBe(true);
+  });
+
+  it('чужое сохранение перечитано, форма прежняя — updatedAt остаётся от записи формы (Р24, Р15)', async () => {
+    mocks.analysis = {
+      data: emptySaved,
+      isLoading: false,
+      isSuccess: true,
+      isFetching: false,
+      error: null,
+    } as typeof mocks.analysis;
+    const { result, rerender } = renderHook(() => useAnalysisTab(props));
+    await waitFor(() => expect(result.current.savedUpdatedAt).toBe(emptySaved.updatedAt));
+    mocks.analysis = {
+      ...mocks.analysis,
+      data: { ...emptySaved, updatedAt: '2026-10-27T00:00:00.000Z' },
+    } as typeof mocks.analysis;
+    rerender();
+    expect(result.current.savedUpdatedAt).toBe(emptySaved.updatedAt);
+    // Запись сервера видна отдельно: заготовку поверх неё блок отличит от устаревшей.
+    expect(result.current.serverUpdatedAt).toBe('2026-10-27T00:00:00.000Z');
+  });
+
+  it('своё сохранение переводит запись формы на сохранённую (Р15)', async () => {
+    mocks.analysis = {
+      data: emptySaved,
+      isLoading: false,
+      isSuccess: true,
+      isFetching: false,
+      error: null,
+    } as typeof mocks.analysis;
+    const savedAt = '2026-10-28T00:00:00.000Z';
+    mocks.mutate.mockImplementation(
+      (_v: unknown, opts: { onSuccess: (r: BookAnalysisSaveResponse) => void }) =>
+        opts.onSuccess({
+          analysis: { ...emptySaved, updatedAt: savedAt },
+          hasCore: false,
+          warnings: [],
+        } as unknown as BookAnalysisSaveResponse)
+    );
+    const { result } = renderHook(() => useAnalysisTab(props));
+    await waitFor(() => expect(result.current.savedUpdatedAt).toBe(emptySaved.updatedAt));
+    await waitFor(() => expect(result.current.validationFailed).toBe(false));
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    act(() => result.current.handleSave());
+    await waitFor(() => expect(result.current.savedUpdatedAt).toBe(savedAt));
+  });
+
+  it('форма ещё не заполнена с сервера — импорт заготовки закрыт', () => {
+    mocks.analysis = { data: null, isLoading: true, isSuccess: false, error: null };
+    const { result } = renderHook(() => useAnalysisTab(props));
+    expect(result.current.draftBlocksUnsaved).toBe(true);
+    expect(result.current.savedUpdatedAt).toBeNull();
+    // Запись сервера до заполнения формы не отличается от записи формы: ложного «сохранил другой» нет.
+    expect(result.current.serverUpdatedAt).toBeNull();
+  });
+
+  it('устаревший кэш, форма ждёт перечитывания — запись сервера не сравнивается (F05-11)', () => {
+    mocks.analysis = {
+      data: emptySaved,
+      isLoading: false,
+      isSuccess: true,
+      isFetching: true,
+      error: null,
+    } as typeof mocks.analysis;
+    const { result } = renderHook(() => useAnalysisTab(props));
+    expect(result.current.savedUpdatedAt).toBeNull();
+    expect(result.current.serverUpdatedAt).toBeNull();
+  });
+
   describe('Copy prompt inputs', () => {
     const writeText = vi.fn();
     beforeEach(() => {
@@ -384,6 +499,35 @@ describe('useAnalysisTab', () => {
           variant: 'success',
         })
       );
+    });
+
+    it('не admin — запроса заготовки нет, мотивов во «Вводных» нет (F05-11)', () => {
+      writeText.mockResolvedValue(undefined);
+      mocks.draft = { status: 'ready', motifs: [{ image: 'door', chapters: [1] }] };
+      const { result } = renderHook(() => useAnalysisTab(props));
+      act(() => result.current.copyPromptInputs());
+      expect(mocks.draftEnabled.length).toBeGreaterThan(0);
+      expect(mocks.draftEnabled.every((e) => !e)).toBe(true);
+      expect(writeText.mock.calls[0][0]).not.toContain('мотивы');
+    });
+
+    it('admin с готовой заготовкой — мотивы досье во «Вводных»; строящаяся их не даёт (F05-11)', () => {
+      writeText.mockResolvedValue(undefined);
+      const draft: Partial<ContentDraft> = {
+        status: 'ready',
+        motifs: [{ image: 'the door', chapters: [1] }],
+        dossierLanguage: 'en',
+      };
+      mocks.draft = draft;
+      const { result, rerender } = renderHook(() => useAnalysisTab({ ...props, isAdmin: true }));
+      act(() => result.current.copyPromptInputs());
+      expect(writeText.mock.calls[0][0]).toContain(
+        'Сквозные мотивы из досье:\n- the door — главы 1'
+      );
+      mocks.draft = { ...draft, status: 'building' };
+      rerender();
+      act(() => result.current.copyPromptInputs());
+      expect(writeText.mock.calls[1][0]).not.toContain('мотивы');
     });
 
     it('отказ буфера — тост об ошибке', async () => {

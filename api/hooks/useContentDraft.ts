@@ -1,5 +1,5 @@
 /**
- * React Query hooks for the summary drafts from the dossier (F05-10, `admin` only).
+ * React Query hooks for the summary (F05-10) and analysis (F05-11) drafts from the dossier, `admin` only.
  *
  * Заготовка строится фоном на бэкенде: последняя заготовка вида перечитывается раз в несколько
  * секунд, пока она строится и её операция `active`; пауза, отказ и готовность — без опроса.
@@ -24,7 +24,7 @@ import type {
   ContentDraftState,
   DossierStatus,
   LlmOperation,
-  SummaryDraftKind,
+  ContentDraftKind,
 } from '@/types/api-schema';
 import { dossierKeys } from './useDossier';
 
@@ -36,9 +36,9 @@ export const CONTENT_DRAFT_LOCAL_CODES = localErrorCodes(['LLM_DISABLED', LLM_MO
 
 export const contentDraftKeys = {
   all: ['content-draft'] as const,
-  latest: (versionId: string, kind: SummaryDraftKind) =>
+  latest: (versionId: string, kind: ContentDraftKind) =>
     [...contentDraftKeys.all, 'latest', versionId, kind] as const,
-  estimate: (versionId: string, kind: SummaryDraftKind) =>
+  estimate: (versionId: string, kind: ContentDraftKind) =>
     [...contentDraftKeys.all, 'estimate', versionId, kind] as const,
 };
 
@@ -51,7 +51,7 @@ export const contentDraftRefetchInterval = (
     ? CONTENT_DRAFT_REFETCH_MS
     : false;
 
-export const useContentDraft = (versionId: string, kind: SummaryDraftKind, enabled: boolean) =>
+export const useContentDraft = (versionId: string, kind: ContentDraftKind, enabled: boolean) =>
   useQuery({
     queryKey: contentDraftKeys.latest(versionId, kind),
     queryFn: () => getContentDraft(versionId, kind),
@@ -63,7 +63,7 @@ export const useContentDraft = (versionId: string, kind: SummaryDraftKind, enabl
 /** Оценка до старта: запрос уходит, только когда окно подтверждения открыто. */
 export const useContentDraftEstimate = (
   versionId: string,
-  kind: SummaryDraftKind,
+  kind: ContentDraftKind,
   enabled: boolean
 ) =>
   useQuery({
@@ -79,7 +79,7 @@ export const useContentDraftEstimate = (
  * Старт, «не нужна», «продолжить» операции и перестройка досье. После ответа — и при отказе:
  * 409 значит, что на экране устаревшее состояние, — заготовка вида перечитывается.
  */
-export const useContentDraftActions = (versionId: string, kind: SummaryDraftKind) => {
+export const useContentDraftActions = (versionId: string, kind: ContentDraftKind) => {
   const queryClient = useQueryClient();
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: contentDraftKeys.latest(versionId, kind) });

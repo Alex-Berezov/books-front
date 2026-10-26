@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FC } from 'react';
+import { refusalText } from '@/components/admin/books/ContentDraft';
 import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
 import { Button } from '@/components/admin/common/Button';
 import type { ContentDraftSection } from '@/types/api-schema';
@@ -10,7 +11,6 @@ import {
   SECTION_TITLE_MAX_LENGTH,
   type SectionDraft,
 } from '../useSummarySections';
-import { refusalText } from './summaryDraft.utils';
 
 export interface DraftSectionCardProps {
   section: ContentDraftSection;

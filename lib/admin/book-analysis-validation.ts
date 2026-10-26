@@ -5,6 +5,7 @@ import {
 } from '@/lib/admin/book-analysis-blocks';
 import {
   collectClearedBlocks,
+  collectReplacedBlocks,
   type BookAnalysisFormValues,
   type BookAnalysisListValues,
 } from '@/lib/admin/book-analysis-form-state';
@@ -24,6 +25,8 @@ export interface BookAnalysisImportAnalysis {
   errors: BookAnalysisIssue[];
   /** Заполненные в форме блоки, которые импорт очистит. */
   cleared: string[];
+  /** Заполненные в форме блоки, которые импорт заменит другим содержимым. */
+  replaced: string[];
 }
 
 export const analyzeBookAnalysisImport = (
@@ -35,10 +38,19 @@ export const analyzeBookAnalysisImport = (
   try {
     parsed = JSON.parse(text);
   } catch {
-    return { data: null, errors: [{ path: '', message: 'invalid JSON' }], cleared: [] };
+    return {
+      data: null,
+      errors: [{ path: '', message: 'invalid JSON' }],
+      cleared: [],
+      replaced: [],
+    };
   }
   const checked = checkBookAnalysisImport(parsed, versionLanguage);
-  return { ...checked, cleared: checked.data ? collectClearedBlocks(prev, checked.data) : [] };
+  return {
+    ...checked,
+    cleared: checked.data ? collectClearedBlocks(prev, checked.data) : [],
+    replaced: checked.data ? collectReplacedBlocks(prev, checked.data) : [],
+  };
 };
 
 /**

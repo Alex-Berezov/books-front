@@ -2,6 +2,7 @@
 
 import type { FC } from 'react';
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/admin/common/Button';
 import { Spinner } from '@/components/admin/shared';
 import {
@@ -16,6 +17,11 @@ import { AnalysisCheckSummary } from './AnalysisCheckSummary';
 import styles from './AnalysisTab.module.scss';
 import { ImportAnalysisModal } from './ImportAnalysisModal';
 import { useAnalysisTab } from './useAnalysisTab';
+
+// Заготовка из досье (F05-11) — только у `admin`: в бандл страницы версии не входит.
+const AnalysisDraft = dynamic(() => import('./AnalysisDraft').then((m) => m.AnalysisDraft), {
+  ssr: false,
+});
 
 const TEXT_ROWS: Record<BookAnalysisTextKey, number> = {
   mainIdea: 3,
@@ -33,7 +39,14 @@ const TEXT_ROWS: Record<BookAnalysisTextKey, number> = {
 export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
   const tab = useAnalysisTab(props);
   const [importOpen, setImportOpen] = useState(false);
+  /** JSON, с которым открыто окно импорта: заготовка из досье; `undefined` — ручной импорт. */
+  const [importJson, setImportJson] = useState<string | undefined>(undefined);
   const { form } = tab;
+  const { isAdmin = false, lang = 'en', versionId } = props;
+  const openImport = (json?: string) => {
+    setImportJson(json);
+    setImportOpen(true);
+  };
 
   if (tab.isLoading) {
     return (
@@ -64,11 +77,23 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
           <Button type="button" variant="secondary" onClick={tab.copyPromptInputs}>
             Copy prompt inputs
           </Button>
-          <Button type="button" variant="secondary" onClick={() => setImportOpen(true)}>
+          <Button type="button" variant="secondary" onClick={() => openImport()}>
             Import JSON
           </Button>
         </div>
       </div>
+
+      {isAdmin && (
+        <AnalysisDraft
+          versionId={versionId}
+          lang={lang}
+          versionLanguage={props.version.language}
+          unsaved={tab.draftBlocksUnsaved}
+          savedUpdatedAt={tab.savedUpdatedAt}
+          serverUpdatedAt={tab.serverUpdatedAt}
+          onOpen={openImport}
+        />
+      )}
 
       {tab.validationFailed && (
         <div className={styles.error} role="alert">
@@ -181,7 +206,11 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
 
       <ImportAnalysisModal
         isOpen={importOpen}
-        onCancel={() => setImportOpen(false)}
+        initialJson={importJson}
+        onCancel={() => {
+          setImportOpen(false);
+          setImportJson(undefined);
+        }}
         analyze={tab.analyzeImport}
         loadFailed={tab.validationFailed}
         onRetryLoad={tab.retryValidation}

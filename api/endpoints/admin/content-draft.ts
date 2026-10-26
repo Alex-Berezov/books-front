@@ -1,7 +1,7 @@
 /**
- * Заготовки Summary из досье (фича F05, F05-10) — только `admin` (U6, 403 остальным). Старт ставит
- * операцию `draft` с лимитом, модель зовёт фоновый исполнитель бэкенда; в пересказ версии
- * заготовка не пишется.
+ * Заготовки Summary (фича F05, F05-10) и Analysis (F05-11) из досье — только `admin` (U6, 403
+ * остальным). Старт ставит операцию `draft` с лимитом, модель зовёт фоновый исполнитель бэкенда;
+ * в пересказ и анализ версии заготовка не пишется.
  *
  * Отказы с `code` в теле: 409 — `DRAFT_IN_PROGRESS`, `SUMMARY_SECTIONS_MISSING`,
  * `SUMMARY_FULL_MISSING`, `DOSSIER_STALE`, `RUN_LANGUAGE_UNFINISHED`, `DRAFT_DOSSIER_MISSING`,
@@ -17,12 +17,12 @@ import type {
   ContentDraftEstimate,
   ContentDraftState,
   StartContentDraftRequest,
-  SummaryDraftKind,
+  ContentDraftKind,
 } from '@/types/api-schema';
 
 export const getContentDraftEstimate = async (
   versionId: string,
-  kind: SummaryDraftKind
+  kind: ContentDraftKind
 ): Promise<ContentDraftEstimate> =>
   httpGetAuth<ContentDraftEstimate>(
     `/admin/versions/${encodeURIComponent(versionId)}/drafts/${kind}/estimate`
@@ -31,13 +31,13 @@ export const getContentDraftEstimate = async (
 /** Последняя неотброшенная заготовка вида в любом статусе; нет — `draft: null`. */
 export const getContentDraft = async (
   versionId: string,
-  kind: SummaryDraftKind
+  kind: ContentDraftKind
 ): Promise<ContentDraftState> =>
   httpGetAuth<ContentDraftState>(`/admin/versions/${encodeURIComponent(versionId)}/drafts/${kind}`);
 
 export const startContentDraft = async (
   versionId: string,
-  kind: SummaryDraftKind,
+  kind: ContentDraftKind,
   data: StartContentDraftRequest
 ): Promise<ContentDraft> =>
   httpPostAuth<ContentDraft>(
