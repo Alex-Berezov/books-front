@@ -1,6 +1,8 @@
 'use client';
 
 import type { FC } from 'react';
+import dynamic from 'next/dynamic';
+import { useBookSummarySections } from '@/api/hooks';
 import { Button } from '@/components/admin/common/Button';
 import { Spinner } from '@/components/admin/shared';
 import type { SummaryTabProps } from './SummaryTab.types';
@@ -8,6 +10,14 @@ import { SummaryFormField } from './SummaryFormField';
 import { SummarySections } from './SummarySections';
 import styles from './SummaryTab.module.scss';
 import { useSummaryTab } from './useSummaryTab';
+
+// Заготовка из досье — только у `admin` и по кнопке: в бандл страницы версии не входит.
+const SummaryDraft = dynamic(() => import('./SummaryDraft').then((m) => m.SummaryDraft), {
+  ssr: false,
+});
+const ApplyDraftText = dynamic(() => import('./SummaryDraft').then((m) => m.ApplyDraftText), {
+  ssr: false,
+});
 
 /**
  * Tab for managing book summary
@@ -29,6 +39,18 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
     isSavingBrief,
     loadFailed,
   } = useSummaryTab(props);
+  const { isAdmin = false, lang = 'en', versionId } = props;
+  // Тот же запрос, что у списка разделов ниже (общий ключ): лишнего обращения нет.
+  const sectionsQuery = useBookSummarySections(versionId);
+  // Не загрузилось — не «разделов нет»: шаг закрыт своей причиной (L-013). Пустой текст раздела
+  // список не показывает — его отсекает сервер (409 `SUMMARY_SECTIONS_MISSING`).
+  const fullBlockedHint = sectionsQuery.isError
+    ? 'Failed to load the saved sections.'
+    : sectionsQuery.isPending
+      ? 'Loading the saved sections…'
+      : (sectionsQuery.data?.sections.length ?? 0) > 0
+        ? null
+        : 'Save the summary sections first.';
 
   if (isLoading) {
     return (
@@ -58,6 +80,26 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
             value={formData.summaryText}
           />
 
+          {isAdmin && (
+            <SummaryDraft
+              versionId={versionId}
+              kind="summary_full"
+              lang={lang}
+              blockedHint={fullBlockedHint}
+            >
+              {(draft) =>
+                draft.text !== null && (
+                  <ApplyDraftText
+                    text={draft.text}
+                    current={formData.summaryText}
+                    field="Summary"
+                    onUse={(text) => handleFieldChange('summaryText', text)}
+                  />
+                )
+              }
+            </SummaryDraft>
+          )}
+
           <Button onClick={handleSave} loading={isSaving} disabled={isSaving}>
             Save Summary
           </Button>
@@ -75,6 +117,26 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
             Reading time: {briefMinutes} min
           </p>
           {!hasFullSummary && <p className={styles.labelHint}>Save the full summary first.</p>}
+          {isAdmin && (
+            <SummaryDraft
+              versionId={versionId}
+              kind="summary_brief"
+              lang={lang}
+              // Подсказка «Save the full summary first.» уже стоит у поля выше.
+              blockedHint={hasFullSummary ? null : ''}
+            >
+              {(draft) =>
+                draft.text !== null && (
+                  <ApplyDraftText
+                    text={draft.text}
+                    current={formData.briefText}
+                    field="Very short summary"
+                    onUse={(text) => handleFieldChange('briefText', text)}
+                  />
+                )
+              }
+            </SummaryDraft>
+          )}
           <Button
             onClick={handleSaveBrief}
             loading={isSavingBrief}
@@ -85,7 +147,7 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
         </>
       )}
 
-      <SummarySections versionId={props.versionId} />
+      <SummarySections versionId={versionId} isAdmin={isAdmin} lang={lang} />
     </div>
   );
 };

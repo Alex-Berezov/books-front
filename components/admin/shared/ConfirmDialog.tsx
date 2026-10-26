@@ -9,6 +9,8 @@ interface ConfirmDialogProps {
   cancelLabel?: string;
   isDestructive?: boolean;
   isLoading?: boolean;
+  /** Подтверждать нечего (например, цена не пришла): кнопка подтверждения неактивна. */
+  isConfirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -22,6 +24,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = (props) => {
     cancelLabel = 'Cancel',
     isDestructive = false,
     isLoading = false,
+    isConfirmDisabled = false,
     onConfirm,
     onCancel,
   } = props;
@@ -34,6 +37,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = (props) => {
       cancelText={cancelLabel}
       confirmVariant={isDestructive ? 'danger' : 'primary'}
       isLoading={isLoading}
+      isConfirmDisabled={isConfirmDisabled}
       onConfirm={onConfirm}
       onCancel={onCancel}
       size="sm"

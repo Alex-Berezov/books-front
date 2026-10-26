@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, type FC } from 'react';
+import dynamic from 'next/dynamic';
 import { AdminRichTextEditor } from '@/components/admin/common/AdminRichTextEditor';
 import { Button } from '@/components/admin/common/Button';
 import { ConfirmDialog, Spinner } from '@/components/admin/shared';
+import type { SupportedLang } from '@/lib/i18n/lang';
 import { SectionWarnings } from './SectionWarnings';
 import { SummarySectionCard } from './SummarySectionCard';
 import styles from './SummaryTab.module.scss';
@@ -14,13 +16,25 @@ import {
   type SectionDraft,
 } from './useSummarySections';
 
+// Заготовка разделов из досье — только у `admin` (F05-10): в бандл страницы версии не входит.
+const SummaryDraft = dynamic(() => import('./SummaryDraft').then((m) => m.SummaryDraft), {
+  ssr: false,
+});
+const DraftSectionCard = dynamic(() => import('./SummaryDraft').then((m) => m.DraftSectionCard), {
+  ssr: false,
+});
+
 const EMPTY_DRAFT: SectionDraft = { title: '', text: '', readerChapter: '' };
 
 /**
  * Разделы пересказа (F04-1, `product.md` §7 п.3-п.6): карточка на раздел, добавление в конец,
  * удаление и перестановка с подтверждением. Видны и правятся и до полного пересказа.
  */
-export const SummarySections: FC<{ versionId: string }> = ({ versionId }) => {
+export const SummarySections: FC<{
+  versionId: string;
+  isAdmin?: boolean;
+  lang?: SupportedLang;
+}> = ({ versionId, isAdmin = false, lang = 'en' }) => {
   const tab = useSummarySections(versionId);
   const [draft, setDraft] = useState<SectionDraft>(EMPTY_DRAFT);
   const [addError, setAddError] = useState<string | null>(null);
@@ -73,6 +87,24 @@ export const SummarySections: FC<{ versionId: string }> = ({ versionId }) => {
           onMove={tab.requestMove}
         />
       ))}
+
+      {isAdmin && (
+        <SummaryDraft versionId={versionId} kind="summary_sections" lang={lang} blockedHint={null}>
+          {(draft, tools) =>
+            draft.sections?.map((section) => (
+              <DraftSectionCard
+                key={`${draft.id}:${section.number}`}
+                section={section}
+                onAdd={tab.addSection}
+                onMarkAdded={tools.markAdded}
+                adding={tab.isAdding}
+                added={draft.addedSections.includes(section.number)}
+                readOnly={draft.status !== 'ready'}
+              />
+            ))
+          }
+        </SummaryDraft>
+      )}
 
       <div className={styles.sectionCard}>
         <label className={styles.label} htmlFor="summary-section-new-title">

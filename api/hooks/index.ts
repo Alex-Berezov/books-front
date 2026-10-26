@@ -406,7 +406,24 @@ export {
 export type { TranslationChunkActions } from './useTranslationChunks';
 
 // Book dossier and language glossary, read only (F05-2, F05-7v, admin only)
-export { dossierKeys, useDossierGlossary, useVersionDossier } from './useDossier';
+export {
+  dossierKeys,
+  useDossierEstimate,
+  useDossierGlossary,
+  useVersionDossier,
+} from './useDossier';
+
+// Summary drafts from the dossier (F05-10, admin only)
+export {
+  CONTENT_DRAFT_LOCAL_CODES,
+  CONTENT_DRAFT_REFETCH_MS,
+  contentDraftKeys,
+  contentDraftRefetchInterval,
+  useContentDraft,
+  useContentDraftActions,
+  useContentDraftEstimate,
+} from './useContentDraft';
+export type { ContentDraftActions } from './useContentDraft';
 
 // Rights Intakes (continued: review imports, profile, agent manifest)
 export {

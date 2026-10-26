@@ -169,3 +169,28 @@
   color: $color-warning;
   font-size: $font-size-sm;
 }
+
+/* Заготовка из досье (F05-10): кнопка шага, ход фоном, готовый черновик. */
+.draft {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  border: 1px dashed $color-border-base;
+  border-radius: $border-radius-base;
+}
+
+.draftActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.draftStatus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}

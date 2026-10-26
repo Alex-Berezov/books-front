@@ -25,6 +25,7 @@ vi.mock('@/api/hooks', () => ({
   }),
   useUpsertBookSummary: () => ({ mutate: vi.fn(), isPending: false }),
   useUpsertBookSummaryBrief: () => ({ mutate: vi.fn(), isPending: false }),
+  useBookSummarySections: () => ({ data: undefined }),
 }));
 vi.mock('@/components/admin/books/SummaryTab/SummarySections', () => ({
   SummarySections: () => <div data-testid="sections" />,

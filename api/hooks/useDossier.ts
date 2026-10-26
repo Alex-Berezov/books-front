@@ -1,14 +1,21 @@
 /**
  * React Query hooks for the book dossier and the language glossaries (F05-2, F05-7v, `admin`
- * only) — в F05-7v только чтение; построение досье (F05-10) сбрасывает те же ключи.
+ * only); оценка перестройки досье — вкладка Summary при `DOSSIER_STALE` (F05-10).
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { getDossierGlossary, getVersionDossier } from '@/api/endpoints/admin/translation';
+import { LLM_MODELS_UNAVAILABLE } from '@/api/endpoints/admin/llm';
+import {
+  getDossierEstimate,
+  getDossierGlossary,
+  getVersionDossier,
+} from '@/api/endpoints/admin/translation';
+import { localErrorCodes } from '@/lib/api/local-error-codes';
 
 export const dossierKeys = {
   all: ['dossier'] as const,
   version: (versionId: string) => [...dossierKeys.all, 'version', versionId] as const,
+  estimate: (versionId: string) => [...dossierKeys.all, 'estimate', versionId] as const,
   glossary: (dossierId: string, language: string) =>
     [...dossierKeys.all, 'glossary', dossierId, language] as const,
 };
@@ -31,4 +38,15 @@ export const useDossierGlossary = (dossierId: string | null, language: string, e
     queryKey: dossierKeys.glossary(dossierId ?? '', language),
     queryFn: () => getDossierGlossary(dossierId as string, language),
     enabled: enabled && dossierId !== null,
+  });
+
+/** Оценка перестройки устаревшего досье: запрос уходит, только когда окно подтверждения открыто. */
+export const useDossierEstimate = (versionId: string, enabled: boolean) =>
+  useQuery({
+    queryKey: dossierKeys.estimate(versionId),
+    queryFn: () => getDossierEstimate(versionId),
+    enabled,
+    retry: false,
+    staleTime: 0,
+    meta: localErrorCodes(['LLM_DISABLED', LLM_MODELS_UNAVAILABLE]),
   });

@@ -1,10 +1,11 @@
 /**
- * Досье книги и глоссарий языка в админке (фича F05, F05-2) — только `admin`, в F05-7v
- * только чтение: построение и оценка досье — F05-10 (решение арбитра `F05 | F05-7v`).
+ * Досье книги и глоссарий языка в админке (фича F05, F05-2) — только `admin`. Оценка и
+ * перестройка досье — с вкладки Summary при `DOSSIER_STALE` (F05-10, решение арбитра
+ * `F05 | F05-7v`).
  */
 
 import type { SupportedLang } from './common';
-import type { LlmOperation } from './llm';
+import type { LlmMoney, LlmOperation } from './llm';
 
 export type BookDossierStatus = 'building' | 'ready' | 'failed';
 
@@ -94,4 +95,17 @@ export interface Glossary {
   operation: LlmOperation | null;
   previousOperation: LlmOperation | null;
   updatedAt: string;
+}
+
+/** Ответ `GET /admin/versions/:id/dossier/estimate`: оценка построения сверху. */
+export interface DossierEstimate {
+  /** Версия, по которой строится досье (Р5). */
+  sourceVersionId: string;
+  /** Глав с текстом. */
+  chapters: number;
+  /** Кусков глав первого прохода. */
+  parts: number;
+  estimateUsd: LlmMoney;
+  /** Лимит операции по умолчанию: оценка × 1,5. */
+  suggestedLimitUsd: LlmMoney;
 }

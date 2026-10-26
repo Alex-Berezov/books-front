@@ -11,6 +11,7 @@
 
 import { httpGetAuth, httpPostAuth, httpPutAuth } from '@/lib/http-client';
 import type {
+  DossierEstimate,
   DossierStatus,
   EditTranslationChunkRequest,
   Glossary,
@@ -179,4 +180,18 @@ export const getVersionDossier = async (versionId: string): Promise<DossierStatu
 export const getDossierGlossary = async (dossierId: string, language: string): Promise<Glossary> =>
   httpGetAuth<Glossary>(
     `/admin/dossiers/${encodeURIComponent(dossierId)}/glossaries/${encodeURIComponent(language)}`
+  );
+
+/** Оценка построения досье сверху (F05-10: «перестроить» при `DOSSIER_STALE`). */
+export const getDossierEstimate = async (versionId: string): Promise<DossierEstimate> =>
+  httpGetAuth<DossierEstimate>(`/admin/versions/${encodeURIComponent(versionId)}/dossier/estimate`);
+
+/**
+ * Построить досье фоном (устаревшее — новым поколением). 409 `DOSSIER_FRESH`, `DOSSIER_OF_RUN`,
+ * `LLM_CEILING_REACHED`; 503 `LLM_DISABLED`.
+ */
+export const buildDossier = async (versionId: string, limitUsd?: string): Promise<DossierStatus> =>
+  httpPostAuth<DossierStatus>(
+    `/admin/versions/${encodeURIComponent(versionId)}/dossier`,
+    limitUsd ? { limitUsd } : {}
   );

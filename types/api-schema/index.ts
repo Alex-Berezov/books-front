@@ -610,8 +610,21 @@ export type {
   DossierCharacter,
   DossierData,
   DossierEntity,
+  DossierEstimate,
   DossierStatus,
   Glossary,
   GlossaryData,
   GlossaryEntry,
 } from './dossier';
+
+// Summary drafts from the dossier (F05-10, admin only)
+export type {
+  ContentDraft,
+  ContentDraftEstimate,
+  ContentDraftKind,
+  ContentDraftSection,
+  ContentDraftState,
+  ContentDraftStatus,
+  StartContentDraftRequest,
+  SummaryDraftKind,
+} from './content-draft';
