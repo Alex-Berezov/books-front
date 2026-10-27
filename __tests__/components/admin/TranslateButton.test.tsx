@@ -40,6 +40,15 @@ describe('Кнопка перевода (F05-7, §2.1)', () => {
     ['NOT_ORIGINAL_VERSION', 'Translate from the version in the original language.'],
     ['ORIGINAL_VERSION_MISSING', 'Upload a version in the original language (fr).'],
     ['SOURCE_LANGUAGE_UNKNOWN', 'Set the original language of the book.'],
+    [
+      'ENGLISH_VERSION_MISSING',
+      'The original is outside the site languages and there is no English version.',
+    ],
+    [
+      'NOT_ENGLISH_VERSION',
+      'The original is outside the site languages: translate from the English version.',
+    ],
+    ['INTAKE_TARGETS_MISSING', 'The rights intake of the book has no target languages.'],
     ['NO_AVAILABLE_TARGETS', 'Nothing to translate into: every language is unavailable.'],
   ] as const)('%s — неактивна с подсказкой', (reason, hint) => {
     hooks.source = { data: source({ reason }), isLoading: false, isError: false };
