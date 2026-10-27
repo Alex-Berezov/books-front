@@ -184,10 +184,9 @@ describe('Окно запуска перевода (F05-7)', () => {
     expect(screen.getByText('Translation ES')).toBeInTheDocument();
     expect(screen.getByText('$1.31')).toBeInTheDocument();
     expect(screen.getByText('$1.81')).toBeInTheDocument();
+    // Jev входит в оценку проверок с F05-R (решение арбитра `F05 | F05-R`, Р9).
     expect(
-      screen.getByText(
-        'The estimate does not include retries of pieces after a failed check, nor Jev.'
-      )
+      screen.getByText('The estimate does not include retries of pieces after a failed check.')
     ).toBeInTheDocument();
   });
 

@@ -187,7 +187,7 @@ export const StartRunModal: FC<StartRunModalProps> = ({
         </table>
       )}
       <p className={styles.muted}>
-        The estimate does not include retries of pieces after a failed check, nor Jev.
+        The estimate does not include retries of pieces after a failed check.
       </p>
       {estimate.data && estimate.data.nearLimitChapters.length > 0 && (
         <Alert
