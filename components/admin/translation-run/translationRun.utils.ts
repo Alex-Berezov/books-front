@@ -73,7 +73,8 @@ const REFUSALS: Record<string, string> = {
   TRANSLATION_SOURCE_EMPTY: 'The chapters have nothing to translate.',
   TRANSLATION_RUN_LIMIT_TOO_LOW:
     'The limit is lower than the dossier and glossaries built first need: see the minimum.',
-  SOURCE_TOO_MANY_CHAPTERS: 'The source has too many chapters for a dossier.',
+  SOURCE_TOO_MANY_CHAPTERS:
+    'The source has more than 2000 chapters: a translation run takes at most 2000.',
   TRANSLATION_RUN_NOT_PAUSABLE: 'The run is not running.',
   LLM_OPERATION_NOT_RESUMABLE: 'The run cannot be resumed from this state.',
   LLM_OPERATION_NOT_CANCELLABLE: 'The run is already finished.',

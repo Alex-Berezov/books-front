@@ -40,6 +40,17 @@ describe('contentDraft.utils', () => {
     expect(refusalText(error)).toBe('This version has no chapter text to draft from.');
   });
 
+  it('DRAFT_TOO_LONG of the analysis estimate names the model context (F05-Rb)', () => {
+    const error = new ApiError({
+      statusCode: 409,
+      message: 'The version text does not fit the context of the analysis model',
+      data: { code: 'DRAFT_TOO_LONG' },
+    });
+    expect(refusalText(error)).toBe(
+      'The book text does not fit the analysis model: choose a model with a larger context in LLM settings.'
+    );
+  });
+
   it('DRAFT_INPUT_MISSING names a version without chapter text', () => {
     expect(failedText('DRAFT_INPUT_MISSING')).toBe(
       'Failed: the saved text it was built from is gone or the version has no chapter text.'

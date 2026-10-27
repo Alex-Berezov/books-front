@@ -49,6 +49,8 @@ const REFUSALS: Record<string, string> = {
   DRAFT_LIMIT_TOO_LOW: 'The limit is below the limits of the dossier and glossary built first.',
   LLM_CEILING_REACHED: 'The spending ceiling is reached: raise it in LLM settings.',
   DOSSIER_FRESH: 'The dossier is already fresh.',
+  DRAFT_TOO_LONG:
+    'The book text does not fit the analysis model: choose a model with a larger context in LLM settings.',
 };
 
 /** Код отказа из тела ответа; нет — `null`. */

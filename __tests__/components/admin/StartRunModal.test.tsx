@@ -286,7 +286,11 @@ describe('Окно запуска перевода (F05-7)', () => {
     renderModal();
 
     expect(screen.getByText(/ES: a version already exists/)).toBeInTheDocument();
-    expect(screen.getByText('The source has too many chapters for a dossier.')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The source has more than 2000 chapters: a translation run takes at most 2000.'
+      )
+    ).toBeInTheDocument();
   });
 
   it('настройки этапов не загрузились — плашка, а не вечная загрузка', () => {

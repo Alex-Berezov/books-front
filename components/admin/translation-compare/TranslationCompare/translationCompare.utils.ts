@@ -31,7 +31,6 @@ const REFUSALS: Record<string, string> = {
     'The original is outside the site languages and there is no English version.',
   SOURCE_LANGUAGE_UNKNOWN: 'The original language of the book is not set or not recognised.',
   SOURCE_HAS_NO_CHAPTERS: 'The source version has no chapter text.',
-  SOURCE_TOO_MANY_CHAPTERS: 'The source has too many chapters for a dossier.',
   INTAKE_TARGETS_MISSING: 'The rights intake of the book has no target languages.',
 };
 
