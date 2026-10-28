@@ -407,7 +407,9 @@ export type { TranslationChunkActions } from './useTranslationChunks';
 
 // Book dossier and language glossary, read only (F05-2, F05-7v, admin only)
 export {
+  DOSSIER_REFETCH_MS,
   dossierKeys,
+  dossierRefetchInterval,
   useDossierEstimate,
   useDossierGlossary,
   useVersionDossier,

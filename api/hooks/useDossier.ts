@@ -11,6 +11,7 @@ import {
   getVersionDossier,
 } from '@/api/endpoints/admin/translation';
 import { localErrorCodes } from '@/lib/api/local-error-codes';
+import type { DossierStatus } from '@/types/api-schema';
 
 export const dossierKeys = {
   all: ['dossier'] as const,
@@ -19,6 +20,15 @@ export const dossierKeys = {
   glossary: (dossierId: string, language: string) =>
     [...dossierKeys.all, 'glossary', dossierId, language] as const,
 };
+
+/** Шаг опроса досье, пока оно строится: ход кусков и групп сводки в подписи живой (F05-12). */
+export const DOSSIER_REFETCH_MS = 4_000;
+
+/** Опрашивать, только пока досье строится и последний запрос не упал. */
+export const dossierRefetchInterval = (
+  dossier: DossierStatus | undefined,
+  failed = false
+): number | false => (!failed && dossier?.status === 'building' ? DOSSIER_REFETCH_MS : false);
 
 /**
  * Досье версии: у черновика перевода — досье его запуска, у исходника — действующее поколение
@@ -30,6 +40,8 @@ export const useVersionDossier = (versionId: string, enabled: boolean) =>
     queryKey: dossierKeys.version(versionId),
     queryFn: () => getVersionDossier(versionId),
     enabled,
+    refetchInterval: (query) =>
+      dossierRefetchInterval(query.state.data, query.state.status === 'error'),
   });
 
 /** Глоссарий языка у досье; без досье или без построенного глоссария — запроса нет (404). */

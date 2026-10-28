@@ -5,7 +5,7 @@ import { Alert, Spin } from 'antd';
 import { useDossierGlossary, useVersionDossier } from '@/api/hooks';
 import { refusalText } from '@/components/admin/translation-run/translationRun.utils';
 import type { DossierStatus, Glossary } from '@/types/api-schema';
-import { dossierFailedText } from '../translationChunks.utils';
+import { dossierFailedText, dossierProgressText } from '../translationChunks.utils';
 import { DossierData } from './DossierData';
 import styles from './TranslationChunks.module.scss';
 
@@ -33,11 +33,17 @@ export const RunContextView: FC<RunContextViewProps> = ({
   glossaryId,
   language,
 }) => {
-  const dossier = useVersionDossier(draftVersionId ?? sourceVersionId, dossierId !== null);
+  // Досье запуска привязывается, когда оно готово; пока его строят, ход виден по исходнику (F05-12).
+  const dossier = useVersionDossier(draftVersionId ?? sourceVersionId, true);
   const glossary = useDossierGlossary(dossierId, language, glossaryId !== null);
 
   if (dossierId === null) {
-    return <p className={styles.muted}>The dossier of this run is not built yet.</p>;
+    return (
+      <p className={styles.muted}>
+        The dossier of this run is not built yet.
+        {dossier.data?.status === 'building' && ` ${dossierProgressText(dossier.data)}`}
+      </p>
+    );
   }
   return (
     <div className={styles.context}>
@@ -79,7 +85,7 @@ const DossierBody: FC<{ dossier: DossierStatus; runDossierId: string }> = ({
     return <p>The dossier was not built: {dossierFailedText(dossier.failedReason)}.</p>;
   }
   if (dossier.status === 'building' || dossier.data === null) {
-    return <p className={styles.muted}>The dossier is being built.</p>;
+    return <p className={styles.muted}>{dossierProgressText(dossier)}</p>;
   }
   return (
     <>

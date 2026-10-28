@@ -74,6 +74,8 @@ const dossierOf = (over: Partial<DossierStatus> = {}): DossierStatus => ({
   formatVersion: 1,
   model: 'a/model',
   partsDone: 1,
+  groupsDone: 0,
+  groupsTotal: 0,
   failedReason: null,
   operation: null,
   previousOperation: null,
@@ -142,10 +144,28 @@ describe('Досье и глоссарий запуска (F05-7v-b)', () => {
     expect(screen.getByText(/Part one — chapters 1, 2/)).toBeInTheDocument();
   });
 
-  it('досье запуска ещё нет — запроса нет, так и сказано', () => {
-    renderView({ dossierId: null });
-    expect(hooks.dossierCalls.at(-1)?.enabled).toBe(false);
+  it('досье запуска ещё нет — так и сказано; пока его строят, виден ход по исходнику (F05-12)', () => {
+    hooks.dossier = dossierOf({ status: 'missing', id: null, data: null });
+    const { unmount } = renderView({ dossierId: null });
+    expect(hooks.dossierCalls.at(-1)).toEqual({ versionId: 'draft-es', enabled: true });
     expect(screen.getByText('The dossier of this run is not built yet.')).toBeInTheDocument();
+    unmount();
+
+    // Досье привязывается к запуску готовым: строящееся видно только через исходник.
+    hooks.dossier = dossierOf({
+      status: 'building',
+      id: 'd9',
+      data: null,
+      partsDone: 313,
+      groupsDone: 2,
+      groupsTotal: 8,
+    });
+    renderView({ dossierId: null });
+    expect(
+      screen.getByText(
+        'The dossier of this run is not built yet. The dossier is being built: 313 parts of the book read, summary groups answered 2 of 8 (more levels may follow).'
+      )
+    ).toBeInTheDocument();
   });
 
   it('ручка отдала другое поколение — не подставляется', () => {
@@ -175,8 +195,29 @@ describe('Досье и глоссарий запуска (F05-7v-b)', () => {
   it('досье строится, устарело или не прочиталось — своей строкой', () => {
     hooks.dossier = dossierOf({ status: 'building', data: null });
     const { unmount } = renderView();
-    expect(screen.getByText('The dossier is being built.')).toBeInTheDocument();
+    expect(
+      screen.getByText('The dossier is being built: 1 part of the book read.')
+    ).toBeInTheDocument();
     unmount();
+
+    // Части прочитаны, идут платные вызовы групп сводки — их ход виден (F05-12), и «0 of 3» в
+    // начале уровня тоже.
+    for (const groupsDone of [0, 1]) {
+      hooks.dossier = dossierOf({
+        status: 'building',
+        data: null,
+        partsDone: 250,
+        groupsDone,
+        groupsTotal: 3,
+      });
+      const groups = renderView();
+      expect(
+        screen.getByText(
+          `The dossier is being built: 250 parts of the book read, summary groups answered ${groupsDone} of 3 (more levels may follow).`
+        )
+      ).toBeInTheDocument();
+      groups.unmount();
+    }
 
     hooks.dossier = dossierOf({ fresh: false });
     const second = renderView();

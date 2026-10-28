@@ -59,6 +59,10 @@ export interface DossierStatus {
   formatVersion: number | null;
   model: string | null;
   partsDone: number;
+  /** Ответы групп сводки, все уровни (F05-12); 0 — сводка без групп. */
+  groupsDone: number;
+  /** Заведённые группы, все уровни: уровень заводится после нижнего, итог растёт по ходу. */
+  groupsTotal: number;
   /** `DOSSIER_TOO_LONG`, `DOSSIER_SOURCE_CHANGED`; `null` у `failed` — общий отказ. */
   failedReason: string | null;
   operation: LlmOperation | null;

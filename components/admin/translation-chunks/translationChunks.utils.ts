@@ -110,6 +110,23 @@ const DOSSIER_FAILURES: Record<string, string> = {
 export const dossierFailedText = (reason: string | null): string =>
   reason ? (DOSSIER_FAILURES[reason] ?? stepFailureText(reason)) : 'the build failed';
 
+/**
+ * Ход построения досье: прочитанные части книги и ответы групп сводки (F05-12, Р6 `F05 | F05-Rb`) —
+ * без групп части уже все прочитаны, а платные вызовы ещё идут. «Части досье», а не «куски»:
+ * куском на этом экране зовётся кусок перевода. Групп «заведено пока»: уровень выше заводится,
+ * когда ответил нижний, и равенство чисел не значит, что сводка кончилась.
+ */
+export const dossierProgressText = (dossier: {
+  partsDone: number;
+  groupsDone: number;
+  groupsTotal: number;
+}): string => {
+  const parts = `${dossier.partsDone} ${dossier.partsDone === 1 ? 'part' : 'parts'} of the book read`;
+  return dossier.groupsTotal > 0
+    ? `The dossier is being built: ${parts}, summary groups answered ${dossier.groupsDone} of ${dossier.groupsTotal} (more levels may follow).`
+    : `The dossier is being built: ${parts}.`;
+};
+
 /** Глава в списке экрана: из отчёта или та, где язык стоит, ещё не собранная. */
 export interface ChapterOption {
   number: number;
