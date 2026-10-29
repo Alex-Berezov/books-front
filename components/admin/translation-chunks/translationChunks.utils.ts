@@ -1,6 +1,7 @@
 import { isValidMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import {
   refusalText,
+  retryRefusalOf,
   rewriteRefusalText,
   stepFailureText,
 } from '@/components/admin/translation-run/translationRun.utils';
@@ -16,21 +17,17 @@ import type {
 } from '@/types/api-schema';
 
 /**
- * Отказы повтора, правки и «продолжить» попытки по коду бэкенда (карточка F05-7v, «Для 7v-b»):
- * своя подпись на код; коды модели и ключа — подписями запуска (`refusalText`).
+ * Отказы повтора, правки и «продолжить» попытки по коду бэкенда (карточка F05-7v, «Для 7v-b»),
+ * которых у запуска нет. Код, общий с запуском, подписан в его таблице вариантом `retry`
+ * (`retryRefusalOf`); коды модели и ключа — подписями запуска (`refusalText`).
  */
 const CHUNK_REFUSALS: Record<string, string> = {
   RUN_ACTIVE: 'The run is running (any of its languages): pause the run first.',
-  RETRY_IN_PROGRESS: 'A piece of this language is being retried: wait for that retry to finish.',
-  LLM_OPERATION_NOT_RESUMABLE: 'The retry cannot be resumed from this state.',
-  LLM_OPERATION_NOT_CANCELLABLE: 'The retry is already finished.',
   DRAFT_MISSING:
     'The language finished without a draft version: there is no chapter to write the piece into.',
   CHUNK_SOURCE_CHANGED:
     'The source chapter changed after the split: the piece no longer matches it. Start a new run.',
   CHUNK_EDIT_CONFLICT: 'The piece or its chapter changed at the same time. Try again.',
-  CHECK_MODEL_SAME_FAMILY:
-    'The meaning check has no model of another family than this model: pick another model or change the check stage in LLM settings.',
 };
 
 const blockErrorsOf = (error: ApiError): string[] => {
@@ -44,7 +41,10 @@ export const chunkRefusalText = (error: unknown): string => {
   if (code === 'CHUNK_BLOCKS_INVALID') {
     return `The blocks did not pass the check: ${blockErrorsOf(error).join('; ')}`;
   }
-  if (typeof code === 'string' && CHUNK_REFUSALS[code]) return CHUNK_REFUSALS[code];
+  if (typeof code === 'string') {
+    const text = CHUNK_REFUSALS[code] ?? retryRefusalOf(code);
+    if (text) return text;
+  }
   return refusalText(error);
 };
 

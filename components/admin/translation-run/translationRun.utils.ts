@@ -59,16 +59,25 @@ export const TARGET_REASONS: Record<TranslationTargetReason, string> = {
   NOT_IN_INTAKE: 'not in the rights intake of the book',
 };
 
+/**
+ * Подпись отказа. Код, который отдают и кнопки запуска, и повтор куска, подписан дважды: `text` -
+ * про запуск, `retry` - про повтор (`translationChunks.utils.ts`, `chunkRefusalText`).
+ */
+type Refusal = string | { text: string; retry: string };
+
 /** Отказы оценки, старта и кнопок запуска по коду бэкенда (`api/endpoints/admin/translation.ts`). */
-const REFUSALS: Record<string, string> = {
+const REFUSALS: Record<string, Refusal> = {
   ...BLOCK_REASONS,
   LLM_DISABLED: 'The OpenRouter key is not configured on the server: nothing can call a model.',
   LLM_MODELS_UNAVAILABLE: 'The OpenRouter model list is unavailable. Try later.',
   LLM_NO_PRICE: 'A model has no fixed price and its stage has no price cap (LLM settings).',
   LLM_STAGE_DISABLED: 'A stage of the translation is switched off on the LLM settings screen.',
   LLM_MODEL_UNKNOWN: 'The model is not in the OpenRouter list.',
-  CHECK_MODEL_SAME_FAMILY:
-    'The meaning check has no model of another family than the translation model: pick another translation model or change the check stage in LLM settings.',
+  CHECK_MODEL_SAME_FAMILY: {
+    text: 'The meaning check has no model of another family than the translation model: pick another translation model or change the check stage in LLM settings.',
+    retry:
+      'The meaning check has no model of another family than this model: pick another model or change the check stage in LLM settings.',
+  },
   TRANSLATION_TARGET_UNAVAILABLE: 'A selected language is no longer available.',
   TRANSLATION_SOURCE_EMPTY: 'The chapters have nothing to translate.',
   TRANSLATION_RUN_LIMIT_TOO_LOW:
@@ -76,10 +85,30 @@ const REFUSALS: Record<string, string> = {
   SOURCE_TOO_MANY_CHAPTERS:
     'The source has more than 2000 chapters: a translation run takes at most 2000.',
   TRANSLATION_RUN_NOT_PAUSABLE: 'The run is not running.',
-  LLM_OPERATION_NOT_RESUMABLE: 'The run cannot be resumed from this state.',
-  LLM_OPERATION_NOT_CANCELLABLE: 'The run is already finished.',
+  LLM_OPERATION_NOT_RESUMABLE: {
+    text: 'The run cannot be resumed from this state.',
+    retry: 'The retry cannot be resumed from this state.',
+  },
+  LLM_OPERATION_NOT_CANCELLABLE: {
+    text: 'The run is already finished.',
+    retry: 'The retry is already finished.',
+  },
   TRANSLATION_RUN_MODELS_CHANGED: 'The models were changed at the same time. Try again.',
-  RETRY_IN_PROGRESS: 'A piece is being retried. Try again in a moment.',
+  RETRY_IN_PROGRESS: {
+    text: 'A piece is being retried. Try again in a moment.',
+    retry: 'A piece of this language is being retried: wait for that retry to finish.',
+  },
+};
+
+const runRefusalOf = (code: string): string | undefined => {
+  const refusal = REFUSALS[code];
+  return typeof refusal === 'object' ? refusal.text : refusal;
+};
+
+/** Подпись кода для повтора куска; `undefined` - у кода одна подпись, общая с запуском. */
+export const retryRefusalOf = (code: string): string | undefined => {
+  const refusal = REFUSALS[code];
+  return typeof refusal === 'object' ? refusal.retry : undefined;
 };
 
 interface UnavailableLanguage {
@@ -111,10 +140,11 @@ export const refusalText = (error: unknown): string => {
           `${l.language.toUpperCase()}: ${TARGET_REASONS[l.reason as TranslationTargetReason] ?? l.reason}`
       )
       .join('; ');
-    return languages ? `${REFUSALS[code]} ${languages}.` : REFUSALS[code];
+    const text = runRefusalOf(code);
+    return languages ? `${text} ${languages}.` : (text ?? error.message);
   }
-  if (typeof code === 'string' && REFUSALS[code]) return REFUSALS[code];
-  return error.message || 'The request failed';
+  const text = typeof code === 'string' ? runRefusalOf(code) : undefined;
+  return text || error.message || 'The request failed';
 };
 
 /** Лимит пустой (умолчание `defaultRunLimitUsd`) или деньги в формате сервера. */

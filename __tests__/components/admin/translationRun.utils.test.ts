@@ -321,6 +321,24 @@ describe('Тело старта и отказы', () => {
     });
     expect(refusalText(error)).toContain('FR: a translation into it is in progress');
   });
+
+  it.each([
+    ['RETRY_IN_PROGRESS', 'A piece is being retried. Try again in a moment.'],
+    ['LLM_OPERATION_NOT_RESUMABLE', 'The run cannot be resumed from this state.'],
+    ['LLM_OPERATION_NOT_CANCELLABLE', 'The run is already finished.'],
+    [
+      'CHECK_MODEL_SAME_FAMILY',
+      'The meaning check has no model of another family than the translation model: pick another translation model or change the check stage in LLM settings.',
+    ],
+  ])('код, общий с повтором куска, у запуска — подпись про запуск: %s', (code, text) => {
+    const error = new ApiError({
+      message: 'raw server text',
+      statusCode: 409,
+      error: 'Conflict',
+      data: { code },
+    });
+    expect(refusalText(error)).toBe(text);
+  });
 });
 
 describe('Итог языка в отчёте и истории (F05-8)', () => {
