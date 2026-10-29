@@ -29,7 +29,7 @@ const reportLanguage = (over: Partial<TranslationReportLanguage>): TranslationRe
   draftCreatedAt: '2026-10-24T00:00:00.000Z',
   flaggedChunks: 1,
   flaggedChapters: 1,
-  authorFromGlossary: false,
+  authorFromGlossary: null,
   chunks: { total: 4, retries: 2, flagged: [{ reason: 'CHUNK_FLAGGED', count: 1 }] },
   chapters: [
     {
@@ -117,6 +117,25 @@ describe('Отчёт запуска (F05-7)', () => {
 
     expect(screen.getByText(/No draft version\./)).toBeInTheDocument();
     expect(screen.getByText(/Final check: not reached yet/)).toBeInTheDocument();
+  });
+
+  it('F05-17: автор не из глоссария помечен только при черновике; из глоссария и null — молчание', () => {
+    const warning = /Author name in the draft: not from the glossary/;
+    hooks.report = report([reportLanguage({ authorFromGlossary: false })]);
+    const { unmount } = render(<RunReportModal runId="r1" lang="en" onClose={vi.fn()} />);
+    expect(screen.getByText(warning)).toBeInTheDocument();
+    unmount();
+
+    for (const over of [
+      { authorFromGlossary: true },
+      { authorFromGlossary: null },
+      { authorFromGlossary: false, status: 'failed' as const, draftVersionId: null },
+    ]) {
+      hooks.report = report([reportLanguage(over)]);
+      const view = render(<RunReportModal runId="r1" lang="en" onClose={vi.fn()} />);
+      expect(screen.queryByText(/Author name/)).not.toBeInTheDocument();
+      view.unmount();
+    }
   });
 
   it('упавший язык — та же подпись, что в блоке; отказ отчёта — плашка', () => {

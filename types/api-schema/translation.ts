@@ -346,6 +346,7 @@ export interface TranslationReportLanguage {
   draftCreatedAt: string | null;
   flaggedChunks: number;
   flaggedChapters: number;
+  /** Имя автора по глоссарию; null - этап полей версии не дошёл или автора нет ни у исходника, ни в ответе (F05-17). */
   authorFromGlossary: boolean | null;
   chunks: { total: number; retries: number; flagged: Array<{ reason: string; count: number }> };
   chapters: TranslationReportChapter[];

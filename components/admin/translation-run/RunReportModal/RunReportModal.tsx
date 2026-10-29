@@ -118,6 +118,14 @@ const LanguageReport: FC<{ report: TranslationReportLanguage; lang: SupportedLan
           `, missing chapters ${l.finalCheck.missingChapters.join(', ')}`}
         .
       </p>
+      {/* Автор вне глоссария (`product.md` §2.4, решение `F05 | F05-6`): только при черновике; null -
+          этап полей версии не дошёл или автора нет ни у исходника, ни в ответе (решение `F05 | F05-17`). */}
+      {l.draftVersionId && l.authorFromGlossary === false && (
+        <p>
+          Author name in the draft: not from the glossary — translated or transliterated by the
+          model, check it.
+        </p>
+      )}
       {l.notWrittenChapters.length > 0 && (
         <p>Chapters not in the draft: {l.notWrittenChapters.join(', ')}.</p>
       )}
