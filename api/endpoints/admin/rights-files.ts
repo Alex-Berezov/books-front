@@ -21,7 +21,10 @@ import type {
   SupersedeRightsEvidenceResponse,
 } from '@/types/api-schema';
 
-/** Form field name expected by `FileInterceptor('file')` on the backend. */
+/**
+ * The only form field: the backend `FormFileInterceptor('file', …, RIGHTS_UPLOAD_FIELDS)`
+ * allows 0 text fields and answers 400 to any extra one (`LEGACY-482`).
+ */
 const UPLOAD_FIELD = 'file';
 
 const toFormData = (file: File): FormData => {
