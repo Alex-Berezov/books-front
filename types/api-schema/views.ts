@@ -19,7 +19,7 @@ export type ViewSource = 'text' | 'audio' | 'referral';
  * Request body for `POST /views`.
  */
 export interface RecordViewRequest {
-  versionId: UUID;
+  bookVersionId: UUID;
   source: ViewSource;
 }
 

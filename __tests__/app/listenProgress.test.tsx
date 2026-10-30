@@ -19,6 +19,7 @@ import { clearLocalProgress, readLocalProgress, saveLocalProgress } from '@/lib/
 
 const sessionState: { data: unknown; status: string } = { data: null, status: 'unauthenticated' };
 const audioProgressMutate = vi.fn();
+const recordViewMutate = vi.fn();
 const serverProgressResult = {
   data: null as unknown,
   isLoading: false,
@@ -59,7 +60,7 @@ vi.mock('@/api/hooks/usePublicAudio', () => ({
     isLoading: false,
     error: null,
   }),
-  useRecordView: () => ({ mutate: vi.fn() }),
+  useRecordView: () => ({ mutate: recordViewMutate }),
   useUpdateAudioProgress: () => ({ mutate: audioProgressMutate }),
 }));
 
@@ -111,6 +112,7 @@ describe('ListenClient: прогресс прослушивания', () => {
   beforeEach(() => {
     clearLocalProgress();
     audioProgressMutate.mockClear();
+    recordViewMutate.mockClear();
     currentTimeValue = 0;
     readyStateValue = 0;
     serverProgressResult.data = null;
@@ -130,6 +132,15 @@ describe('ListenClient: прогресс прослушивания', () => {
     sessionState.data = { user: { id: 'u1' } };
     sessionState.status = 'authenticated';
   };
+
+  it('первое воспроизведение пишет просмотр с bookVersionId, а не versionId', () => {
+    render(<ListenClient params={{ lang: 'ru', slug: 'hamlet' }} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /play|воспроизв/i }));
+
+    expect(recordViewMutate).toHaveBeenCalledTimes(1);
+    expect(recordViewMutate).toHaveBeenCalledWith({ bookVersionId: 'v-audio', source: 'audio' });
+  });
 
   it('аноним пишет позицию локально, а не в закрытую ручку', () => {
     render(<ListenClient params={{ lang: 'ru', slug: 'hamlet' }} />);

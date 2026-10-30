@@ -70,7 +70,7 @@ describe('public audio endpoints', () => {
   });
 
   describe('recordView', () => {
-    it('POSTs { versionId, source } to /views with source="audio"', async () => {
+    it('POSTs { bookVersionId, source } to /views with source="audio"', async () => {
       let seenBody: unknown = null;
       server.use(
         http.post('http://localhost:5000/api/views', async ({ request }) => {
@@ -79,9 +79,9 @@ describe('public audio endpoints', () => {
         })
       );
 
-      await recordView({ versionId: 'ver-123', source: 'audio' });
+      await recordView({ bookVersionId: 'ver-123', source: 'audio' });
 
-      expect(seenBody).toEqual({ versionId: 'ver-123', source: 'audio' });
+      expect(seenBody).toEqual({ bookVersionId: 'ver-123', source: 'audio' });
     });
   });
 });

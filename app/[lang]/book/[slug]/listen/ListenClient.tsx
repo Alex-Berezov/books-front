@@ -295,7 +295,7 @@ export default function ListenClient({ params, initialBook }: Props) {
       audio.play().catch(() => setIsPlaying(false));
       if (!hasRecordedViewRef.current && versionId) {
         hasRecordedViewRef.current = true;
-        recordViewMutation.mutate({ versionId, source: 'audio' });
+        recordViewMutation.mutate({ bookVersionId: versionId, source: 'audio' });
       }
     } else {
       audio.pause();
