@@ -658,6 +658,44 @@ describe('ProfilePage', () => {
     });
   });
 
+  // LEGACY-471: ручка режет ник длиннее 30. Ник, сохранённый до потолка, при повторной
+  // отправке запер бы смену имени — несменённый ник не уходит вовсе.
+  it('does not resend an unchanged nickname, so a legacy long one does not block the name', async () => {
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { email: 'john@example.com' } },
+      status: 'authenticated',
+    } as unknown as ReturnType<typeof useSession>);
+    vi.mocked(useAuthHooks.useMe).mockReturnValue({
+      data: {
+        email: 'john@example.com',
+        name: 'John Doe',
+        nickname: 'n'.repeat(40),
+        avatarUrl: '',
+        roles: ['USER'],
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useMe>);
+    vi.mocked(useAuthHooks.useUserActivities).mockReturnValue(activitiesQuery([activitiesPage()]));
+    const mutateAsyncMock = vi.fn().mockResolvedValue({});
+    vi.mocked(useAuthHooks.useUpdateProfile).mockReturnValue({
+      mutateAsync: mutateAsyncMock,
+      isPending: false,
+    } as unknown as ReturnType<typeof useAuthHooks.useUpdateProfile>);
+
+    render(<ProfilePage />);
+    fireEvent.change(screen.getByLabelText(/Full Name/i), { target: { value: 'John Updated' } });
+    fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
+
+    await waitFor(() => expect(mutateAsyncMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => {
+      expect(mutateAsyncMock).toHaveBeenCalledWith({
+        name: 'John Updated',
+        nickname: undefined,
+        avatarUrl: undefined,
+      });
+    });
+  });
+
   /**
    * 🔴 `LEGACY-053`: страница печатала посетителю `err.message` — английский текст
    * бэкенда или запасную фразу транспорта. Сторож краснеет на возврате: в тосте
@@ -770,7 +808,8 @@ describe('ProfilePage', () => {
       await waitFor(() => expect(mutateAsyncMock).toHaveBeenCalledTimes(1));
       expect(mutateAsyncMock).toHaveBeenCalledWith({
         name: 'John New',
-        nickname: 'john_doe',
+        // Несменённый ник не уходит (LEGACY-471).
+        nickname: undefined,
         avatarUrl: undefined,
       });
       expect(mutateAsyncMock.mock.calls[0][0].avatarUrl).toBeUndefined();
@@ -797,7 +836,8 @@ describe('ProfilePage', () => {
       await waitFor(() => expect(mutateAsyncMock).toHaveBeenCalledTimes(1));
       expect(mutateAsyncMock).toHaveBeenCalledWith({
         name: 'John Doe',
-        nickname: 'john_doe',
+        // Несменённый ник не уходит (LEGACY-471).
+        nickname: undefined,
         avatarUrl: 'https://cdn.example.com/new.png',
       });
     });

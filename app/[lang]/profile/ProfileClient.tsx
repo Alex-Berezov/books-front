@@ -107,11 +107,15 @@ export default function ProfileClient() {
     // при повторной отправке запер бы смену имени и ника. Без ключа ручка аватар не трогает.
     const trimmedAvatarUrl = avatarUrl.trim();
     const avatarChanged = trimmedAvatarUrl !== (user?.avatarUrl ?? '').trim();
+    // Ник — тем же правилом (`LEGACY-471`): ручка режет ник длиннее 30, а сохранённый
+    // до потолка ник при повторной отправке запер бы смену имени и аватара.
+    const trimmedNickname = nickname.trim();
+    const nicknameChanged = trimmedNickname !== (user?.nickname ?? '').trim();
 
     try {
       await updateProfileMutation.mutateAsync({
         name: name.trim() || undefined,
-        nickname: nickname.trim() || undefined,
+        nickname: nicknameChanged ? trimmedNickname || undefined : undefined,
         avatarUrl: avatarChanged ? trimmedAvatarUrl || undefined : undefined,
       });
       toast.success(t('profile.updateSuccess'));

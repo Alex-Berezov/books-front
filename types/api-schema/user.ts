@@ -115,6 +115,7 @@ export interface ChangePasswordRequest {
 
 export interface UpdateProfileRequest {
   name?: string;
+  /** 3–30 символов (`USER_NICKNAME_MAX_LENGTH` на бэкенде), длиннее — 400. */
   nickname?: string;
   avatarUrl?: string;
   languagePreference?: SupportedLang;
