@@ -24,6 +24,8 @@ const mocks = vi.hoisted(() => ({
     isLoading: boolean;
     isSuccess: boolean;
     isFetching?: boolean;
+    /** Не задан — выводится из `isFetching`, как у react-query без паузы. */
+    fetchStatus?: 'idle' | 'fetching' | 'paused';
     error: unknown;
   },
   loadValidation: null as null | (() => Promise<unknown>),
@@ -34,7 +36,10 @@ const mocks = vi.hoisted(() => ({
 vi.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: mocks.enqueueSnackbar }) }));
 
 vi.mock('@/api/hooks', () => ({
-  useBookAnalysis: () => mocks.analysis,
+  useBookAnalysis: () => ({
+    fetchStatus: mocks.analysis.isFetching ? 'fetching' : 'idle',
+    ...mocks.analysis,
+  }),
   useChapterTitles: () => ({
     data: { items: [{ number: 1, title: 'One' }], pagination: { total: 1 } },
   }),
@@ -186,6 +191,10 @@ describe('useAnalysisTab', () => {
     act(() => result.current.setText('mainIdea', 'typed'));
     expect(result.current.form.texts.mainIdea).toBe('typed');
     expect(result.current.loadError).toBeInstanceOf(Error);
+    // Ошибка — не загрузка: вкладка показывает отказ с повтором, а не вечный спиннер.
+    expect(result.current.isLoading).toBe(false);
+    act(() => result.current.handleSave());
+    expect(mocks.mutate).not.toHaveBeenCalled();
     mocks.analysis = {
       data: { ...emptySaved, mainIdea: 'Saved idea', hasCore: true },
       isLoading: false,
@@ -194,6 +203,85 @@ describe('useAnalysisTab', () => {
     };
     rerender();
     expect(result.current.form.texts.mainIdea).toBe('Saved idea');
+  });
+
+  it('запрос на паузе офлайн: загрузка, а не пустая форма; Save ничего не шлёт, ответ после сети заполняет', async () => {
+    mocks.analysis = {
+      data: undefined,
+      isLoading: false,
+      isSuccess: false,
+      isFetching: false,
+      fetchStatus: 'paused',
+      error: null,
+    };
+    const { result, rerender } = renderHook(() => useAnalysisTab(props));
+    await waitFor(() => expect(result.current.analyzeImport).not.toBeNull());
+    expect(result.current.isLoading).toBe(true);
+    act(() => result.current.handleSave());
+    expect(mocks.mutate).not.toHaveBeenCalled();
+    mocks.analysis = {
+      data: { ...emptySaved, mainIdea: 'Saved idea', hasCore: true },
+      isLoading: false,
+      isSuccess: true,
+      isFetching: false,
+      error: null,
+    };
+    rerender();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.form.texts.mainIdea).toBe('Saved idea');
+    act(() => result.current.handleSave());
+    expect(mocks.mutate).toHaveBeenCalledTimes(1);
+  });
+
+  it('перечитывание на паузе офлайн поверх устаревшего кэша форму не заполняет; Save ждёт свежего ответа', async () => {
+    mocks.analysis = {
+      data: { ...emptySaved, mainIdea: 'Stale idea', hasCore: true },
+      isLoading: false,
+      isSuccess: true,
+      isFetching: false,
+      fetchStatus: 'paused',
+      error: null,
+    };
+    const { result, rerender } = renderHook(() => useAnalysisTab(props));
+    await waitFor(() => expect(result.current.analyzeImport).not.toBeNull());
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.form.texts.mainIdea).not.toBe('Stale idea');
+    act(() => result.current.handleSave());
+    expect(mocks.mutate).not.toHaveBeenCalled();
+    mocks.analysis = {
+      data: { ...emptySaved, mainIdea: 'Fresh idea', hasCore: true },
+      isLoading: false,
+      isSuccess: true,
+      isFetching: false,
+      error: null,
+    };
+    rerender();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.form.texts.mainIdea).toBe('Fresh idea');
+  });
+
+  it('перечитывание на паузе или в полёте после заполнения не прячет форму и не держит Save', async () => {
+    mocks.analysis = {
+      data: { ...emptySaved, mainIdea: 'Saved idea', hasCore: true },
+      isLoading: false,
+      isSuccess: true,
+      isFetching: false,
+      error: null,
+    };
+    const { result, rerender } = renderHook(() => useAnalysisTab(props));
+    await waitFor(() => expect(result.current.analyzeImport).not.toBeNull());
+    act(() => result.current.setText('mainIdea', 'Edited'));
+    for (const refetch of [
+      { isFetching: false, fetchStatus: 'paused' as const },
+      { isFetching: true, fetchStatus: 'fetching' as const },
+    ]) {
+      mocks.analysis = { ...mocks.analysis, ...refetch };
+      rerender();
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.form.texts.mainIdea).toBe('Edited');
+    }
+    act(() => result.current.handleSave());
+    expect(mocks.mutate).toHaveBeenCalledTimes(1);
   });
 
   it('правка списка до загрузки проверки держит сохранение и проверяется после загрузки', async () => {
@@ -356,7 +444,7 @@ describe('useAnalysisTab', () => {
     expect(body.data.mainIdea).toBe('Saved');
   });
 
-  it('устаревший кэш при перечитывании: форма ждёт свежих данных', () => {
+  it('устаревший кэш при перечитывании: загрузка, Save ничего не шлёт, форма ждёт свежих данных', async () => {
     mocks.analysis = {
       data: { ...emptySaved, mainIdea: 'Stale', hasCore: true },
       isLoading: false,
@@ -365,7 +453,11 @@ describe('useAnalysisTab', () => {
       error: null,
     } as typeof mocks.analysis;
     const { result, rerender } = renderHook(() => useAnalysisTab(props));
+    await waitFor(() => expect(result.current.analyzeImport).not.toBeNull());
     expect(result.current.form.texts.mainIdea).toBe('');
+    expect(result.current.isLoading).toBe(true);
+    act(() => result.current.handleSave());
+    expect(mocks.mutate).not.toHaveBeenCalled();
     mocks.analysis = {
       data: { ...emptySaved, mainIdea: 'Fresh', hasCore: true },
       isLoading: false,

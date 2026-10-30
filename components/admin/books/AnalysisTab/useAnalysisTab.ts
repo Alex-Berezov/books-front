@@ -110,8 +110,13 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
   useEffect(() => {
     // Пока идёт перечитывание, кэш может быть устаревшим (вкладку смонтировали заново позже
     // `staleTime`): заполнять форму только свежими данными, иначе сохранение всей записи вернёт
-    // блоки, сохранённые другим редактором.
-    if (!analysisQuery.isSuccess || analysisQuery.isFetching || hydratedFor.current === versionId) {
+    // блоки, сохранённые другим редактором. Перечитывание на паузе офлайн (`fetchStatus: 'paused'`)
+    // не «в полёте» по `isFetching`, но кэш у него тот же устаревший — ждём `idle`, как пересказ.
+    if (
+      !analysisQuery.isSuccess ||
+      analysisQuery.fetchStatus !== 'idle' ||
+      hydratedFor.current === versionId
+    ) {
       return;
     }
     hydratedFor.current = versionId;
@@ -127,7 +132,11 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     // Сохранённый анализ без ядра: сразу показать, чего не хватает (§2), — той же пробой сервера.
     if (saved && !saved.hasCore) checkSaved(hydrated);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- гидрация один раз на версию; checkSaved читает только аргумент и стабильные ссылки
-  }, [analysisQuery.data, analysisQuery.isSuccess, analysisQuery.isFetching, versionId]);
+  }, [analysisQuery.data, analysisQuery.isSuccess, analysisQuery.fetchStatus, versionId]);
+
+  // Форма заполнена с сервера для этой версии. Гидрация ставит ref и сразу `setForm` — рендер
+  // после неё читает свежее значение.
+  const formHydrated = hydratedFor.current === versionId;
 
   const setFact = (key: BookAnalysisFactKey, value: string) =>
     setForm((prev) => ({ ...prev, facts: { ...prev.facts, [key]: value } }));
@@ -193,6 +202,8 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
   };
 
   const handleSave = () => {
+    // До заполнения с сервера в форме не то, что сохранено: такая запись затёрла бы анализ.
+    if (!formHydrated) return;
     if (!validation) {
       enqueueSnackbar('Validation is not loaded yet', { variant: 'warning' });
       return;
@@ -278,13 +289,14 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     savedUpdatedAt: formUpdatedAt,
     // Запись на сервере сейчас: отличается от записи формы - анализ сохранил кто-то другой.
     // Пока форма не заполнена, сравнивать не с чем: запись формы и есть ожидаемая.
-    serverUpdatedAt:
-      hydratedFor.current === versionId ? (analysisQuery.data?.updatedAt ?? null) : formUpdatedAt,
+    serverUpdatedAt: formHydrated ? (analysisQuery.data?.updatedAt ?? null) : formUpdatedAt,
     savedHasCore: analysisQuery.data?.hasCore ?? null,
-    isLoading: analysisQuery.isLoading,
+    // Ждём ответа, в том числе запрос на паузе офлайн (`isLoading` у него ложен): полей нет,
+    // пока форма не заполнена с сервера и нет ошибки чтения.
+    isLoading: !formHydrated && !analysisQuery.error,
     // Ошибка чтения прячет форму только до первого заполнения: сбой фонового перечитывания
     // (фокус окна) не должен отнимать у редактора несохранённую форму и кнопку сохранения.
-    loadError: hydratedFor.current === versionId ? null : analysisQuery.error,
+    loadError: formHydrated ? null : analysisQuery.error,
     isSaving: saveMutation.isPending,
   };
 };
