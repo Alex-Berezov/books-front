@@ -97,7 +97,12 @@ const estimateData: TranslationRunEstimate = {
   translateModel: 'base/translate',
   chapters: 2,
   chunks: 3,
-  dossier: { estimateUsd: '0.5', suggestedLimitUsd: '0.75', upperBound: true },
+  dossier: {
+    estimateUsd: '0.5',
+    suggestedLimitUsd: '0.75',
+    upperBound: true,
+    refusedTooLong: false,
+  },
   languages: [
     {
       language: 'es',
@@ -188,6 +193,32 @@ describe('Окно запуска перевода (F05-7)', () => {
     expect(
       screen.getByText('The estimate does not include retries of pieces after a failed check.')
     ).toBeInTheDocument();
+  });
+
+  it('досье, которому старт откажет DOSSIER_TOO_LONG, помечено «не построится»; без признака подписи нет (T147)', () => {
+    ready();
+    const { unmount } = renderModal();
+    expect(screen.queryByText(/The dossier will not be built/)).not.toBeInTheDocument();
+    unmount();
+
+    ready({
+      data: { ...estimateData, dossier: { ...estimateData.dossier!, refusedTooLong: true } },
+    });
+    renderModal();
+    expect(screen.getByText(/The dossier will not be built/)).toHaveTextContent(
+      'change the settings, then press Resume'
+    );
+    // Сумма остаётся оценкой, старт не блокируется (решение арбитра T147 (а)).
+    expect(screen.getByText('Dossier (own limit $0.75)')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    expect(screen.getByRole('button', { name: 'Start' })).toBeEnabled();
+  });
+
+  it('досье свежее или строится (`dossier: null`) — окно рисуется без подписи отказа (T147)', () => {
+    ready({ data: { ...estimateData, dossier: null } });
+    renderModal();
+    expect(screen.getByText('Translation ES')).toBeInTheDocument();
+    expect(screen.queryByText(/The dossier will not be built/)).not.toBeInTheDocument();
   });
 
   it('Start без лимита — умолчание сервера: лимит в тело не уходит, лимит по умолчанию виден', () => {

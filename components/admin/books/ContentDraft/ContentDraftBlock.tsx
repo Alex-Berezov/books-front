@@ -222,7 +222,8 @@ export const ContentDraftBlock: FC<ContentDraftBlockProps> = ({
         message={dossierMessage}
         confirmLabel="Rebuild"
         isLoading={dossierEstimate.isFetching}
-        isConfirmDisabled={!dossierEstimate.data}
+        // Старт откажет `DOSSIER_TOO_LONG` (T147): «Rebuild» закрыл бы строку отказом, а не строил.
+        isConfirmDisabled={!dossierEstimate.data || dossierEstimate.data.refusedTooLong}
         onConfirm={confirmRebuild}
         onCancel={() => setRebuilding(false)}
       />

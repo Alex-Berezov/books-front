@@ -217,6 +217,26 @@ describe('Хуки запуска перевода', () => {
     second.unmount();
   });
 
+  it('оценка запуска перечитывается на каждом открытии окна и при умолчании клиента в минуту (T147)', async () => {
+    // Как `AppProviders`: умолчание клиента держит данные свежими. Оценка зависит от настроек
+    // этапов (отказ досье на старте) - окно после их правки берёт новую.
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: 60_000 } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    api.getTranslationRunEstimate.mockResolvedValue({ languages: [] });
+    const params = { languages: ['es' as const] };
+
+    const first = renderHook(() => useTranslationRunEstimate('v1', params), { wrapper });
+    await waitFor(() => expect(first.result.current.isSuccess).toBe(true));
+    first.unmount();
+    const second = renderHook(() => useTranslationRunEstimate('v1', params), { wrapper });
+    await waitFor(() => expect(api.getTranslationRunEstimate).toHaveBeenCalledTimes(2));
+    second.unmount();
+  });
+
   it('идущий запуск по опросу ничего не сбрасывает', async () => {
     const { wrapper, invalidated } = setup();
     api.getTranslationRun.mockResolvedValue(run());

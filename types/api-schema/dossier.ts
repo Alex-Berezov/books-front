@@ -112,4 +112,6 @@ export interface DossierEstimate {
   estimateUsd: LlmMoney;
   /** Лимит операции по умолчанию: оценка × 1,5. */
   suggestedLimitUsd: LlmMoney;
+  /** Старт откажет `DOSSIER_TOO_LONG` до платных вызовов; сумма остаётся оценкой (`T147`). */
+  refusedTooLong: boolean;
 }

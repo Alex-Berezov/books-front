@@ -5569,6 +5569,7 @@
       "chapters",
       "estimateUsd",
       "parts",
+      "refusedTooLong",
       "sourceVersionId",
       "suggestedLimitUsd"
     ]
@@ -6996,6 +6997,7 @@
       "defaultLimitUsd",
       "dossier",
       "dossier.estimateUsd",
+      "dossier.refusedTooLong",
       "dossier.suggestedLimitUsd",
       "dossier.upperBound",
       "languages",

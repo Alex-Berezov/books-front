@@ -1,5 +1,6 @@
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import {
+  DOSSIER_REFUSED_TEXT,
   operationPauseText,
   refusalText as runRefusalText,
 } from '@/components/admin/translation-run/translationRun.utils';
@@ -116,4 +117,6 @@ export const estimateText = (estimate: ContentDraftEstimate): string => {
 };
 
 export const dossierEstimateText = (estimate: DossierEstimate): string =>
-  `A new dossier generation is built from ${estimate.chapters} chapters: up to ${formatMoney(estimate.estimateUsd)}, limit ${formatMoney(estimate.suggestedLimitUsd)}.`;
+  estimate.refusedTooLong
+    ? DOSSIER_REFUSED_TEXT
+    : `A new dossier generation is built from ${estimate.chapters} chapters: up to ${formatMoney(estimate.estimateUsd)}, limit ${formatMoney(estimate.suggestedLimitUsd)}.`;

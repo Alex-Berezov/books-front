@@ -94,6 +94,9 @@ export const useTranslationRunEstimate = (
       sorted.languages.length > 0 &&
       sorted.languages.length <= RUN_MAX_LANGUAGES,
     retry: false,
+    // Оценка зависит от настроек этапов (модели, `maxTokens`, отказ досье на старте — T147):
+    // окно, открытое после их правки, берёт свежую, как `useDossierEstimate`.
+    staleTime: 0,
     meta: LOCAL_CODES,
   });
 };

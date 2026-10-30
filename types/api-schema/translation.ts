@@ -16,6 +16,12 @@ export interface CompareContextLine {
   upperBound: boolean;
 }
 
+/** Строка досье оценки запуска: строка контекста и признак отказа на старте (`T147`). */
+export interface DossierContextLine extends CompareContextLine {
+  /** Старт откажет `DOSSIER_TOO_LONG` до платных вызовов; сумма остаётся оценкой. */
+  refusedTooLong: boolean;
+}
+
 /** Ответ `GET /admin/versions/:id/translation-compare/estimate`. */
 export interface TranslationCompareEstimate {
   chapterNumber: number;
@@ -153,7 +159,7 @@ export interface TranslationRunEstimate {
   /** Кусков на один язык. */
   chunks: number;
   /** `null` — досье свежее и готово или уже строится. */
-  dossier: CompareContextLine | null;
+  dossier: DossierContextLine | null;
   languages: TranslationRunLanguageEstimate[];
   upperBound: boolean;
   translationsUsd: LlmMoney;

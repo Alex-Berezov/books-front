@@ -25,6 +25,7 @@ const hooks = vi.hoisted(() => ({
   actions: {} as Record<string, ReturnType<typeof mutation>>,
   estimateEnabled: [] as boolean[],
   estimateError: null as unknown,
+  dossierRefused: false,
 }));
 
 vi.mock('@/api/hooks', () => ({
@@ -47,6 +48,7 @@ vi.mock('@/api/hooks', () => ({
           parts: 3,
           estimateUsd: '0.5',
           suggestedLimitUsd: '0.75',
+          refusedTooLong: hooks.dossierRefused,
         }
       : undefined,
     isError: false,
@@ -107,6 +109,7 @@ describe('SummaryDraft', () => {
     hooks.estimate = undefined;
     hooks.estimateEnabled.length = 0;
     hooks.estimateError = null;
+    hooks.dossierRefused = false;
     hooks.actions = {
       start: mutation(),
       discard: mutation(),
@@ -209,6 +212,22 @@ describe('SummaryDraft', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Rebuild' }));
     expect(hooks.actions.rebuildDossier.mutate).toHaveBeenCalledTimes(1);
   });
+  it('a dossier the start will refuse DOSSIER_TOO_LONG: «Rebuild» says it will not be built and is disabled (T147)', () => {
+    hooks.dossierRefused = true;
+    hooks.actions.start.error = new ApiError({
+      statusCode: 409,
+      message: 'stale',
+      data: { code: 'DOSSIER_STALE' },
+    });
+    render(view());
+    fireEvent.click(screen.getByRole('button', { name: 'Rebuild dossier' }));
+    expect(screen.getByText(/The dossier will not be built/)).toBeInTheDocument();
+    expect(screen.queryByText(/up to \$0\.5/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Rebuild' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Rebuild' }));
+    expect(hooks.actions.rebuildDossier.mutate).not.toHaveBeenCalled();
+  });
+
   it('the estimate did not come — Start is disabled; the stale dossier keeps «Rebuild dossier» after Cancel', () => {
     hooks.estimateError = new ApiError({
       statusCode: 409,

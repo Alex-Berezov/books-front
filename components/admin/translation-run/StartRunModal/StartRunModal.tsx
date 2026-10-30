@@ -20,6 +20,7 @@ import type {
 import {
   isLimitOk,
   refusalText,
+  RUN_DOSSIER_REFUSED_TEXT,
   stageName,
   startRunRequest,
   TARGET_REASONS,
@@ -189,6 +190,9 @@ export const StartRunModal: FC<StartRunModalProps> = ({
       <p className={styles.muted}>
         The estimate does not include retries of pieces after a failed check.
       </p>
+      {estimate.data?.dossier?.refusedTooLong && (
+        <Alert type="warning" message={RUN_DOSSIER_REFUSED_TEXT} />
+      )}
       {estimate.data && estimate.data.nearLimitChapters.length > 0 && (
         <Alert
           type="warning"

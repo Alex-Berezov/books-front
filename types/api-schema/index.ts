@@ -562,6 +562,7 @@ export type {
 
 // Translation run over the whole book (F05-7, admin only)
 export type {
+  DossierContextLine,
   ResumeTranslationRunRequest,
   StartTranslationRunRequest,
   TranslationBlockReason,

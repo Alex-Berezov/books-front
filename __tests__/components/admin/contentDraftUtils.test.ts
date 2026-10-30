@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  dossierEstimateText,
   estimateText,
   failedText,
   refusalText,
@@ -55,5 +56,20 @@ describe('contentDraft.utils', () => {
     expect(failedText('DRAFT_INPUT_MISSING')).toBe(
       'Failed: the saved text it was built from is gone or the version has no chapter text.'
     );
+  });
+
+  it('dossier estimate: a book the start will refuse DOSSIER_TOO_LONG says it will not be built, not a sum (T147)', () => {
+    const dossier = {
+      sourceVersionId: 's',
+      chapters: 19,
+      parts: 19,
+      estimateUsd: '0.5',
+      suggestedLimitUsd: '0.75',
+    };
+    expect(dossierEstimateText({ ...dossier, refusedTooLong: false })).toContain('up to $0.5');
+    const refused = dossierEstimateText({ ...dossier, refusedTooLong: true });
+    expect(refused).toContain('will not be built');
+    expect(refused).toContain('DOSSIER_TOO_LONG');
+    expect(refused).not.toContain('$0.5');
   });
 });

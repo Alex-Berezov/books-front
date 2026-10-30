@@ -256,6 +256,13 @@ const STEP_FAILURES: Record<string, string> = {
   CHUNK_INVALID_RESPONSE: 'the model answer for a piece was not valid',
 };
 
+/** Оценка досье помечена отказом на старте (`refusedTooLong`, `T147`): ни один вызов не уйдёт. */
+export const DOSSIER_REFUSED_TEXT =
+  'The dossier will not be built: the book has more chapters than the dossier model context fits (DOSSIER_TOO_LONG). Choose a model with a larger context or other max tokens for the dossier stage in LLM settings.';
+
+/** Окно запуска: тот же отказ и что станет с запуском — пауза на шаге досье (Р20). */
+export const RUN_DOSSIER_REFUSED_TEXT = `${DOSSIER_REFUSED_TEXT} A run started now pauses at the dossier step: change the settings, then press Resume on the run.`;
+
 export const stepFailureText = (reason: string | null): string =>
   reason ? (STEP_FAILURES[reason] ?? reason) : 'no reason given';
 
