@@ -22,6 +22,7 @@ import {
   matchClaimClosedPath,
 } from '@/lib/claim-closures';
 import { API_BASE_URL } from '@/lib/http.constants';
+import { isSupportedLang } from '@/lib/i18n/lang';
 import { DEFAULT_REDIRECT_LANG } from '@/lib/middleware.constants';
 import { getSiteUrl } from '@/lib/seo/urls';
 import type { NextRequest } from 'next/server';
@@ -57,11 +58,20 @@ const isAdminRoute = (pathname: string): boolean => {
  */
 
 /**
- * Extract language from path (handles admin and public paths)
+ * Язык для редиректа с `/admin/**` на вход и на 403.
+ *
+ * 🔴 `LEGACY-469`: язык берётся только из целого сегмента и только из списка
+ * поддерживаемых. Прежняя регулярка `^\/(?:admin\/)?([a-z]{2})` на голом `/admin`
+ * брала первые две буквы `admin` и уводила на несуществующий `/ad/auth/sign-in`.
+ *
+ * Фолбэк — фиксированный `DEFAULT_REDIRECT_LANG`, как у редиректа с корня, а не
+ * `getDefaultLang()` из `lib/i18n/lang.ts`: тот зависит от `NEXT_PUBLIC_DEFAULT_LANG`
+ * и дал бы второй язык по умолчанию в одном middleware (решение арбитра `T144`).
  */
 const extractLangFromPath = (pathname: string): string => {
-  const match = pathname.match(/^\/(?:admin\/)?([a-z]{2})/);
-  return match ? match[1] : DEFAULT_REDIRECT_LANG;
+  const segments = pathname.split('/').filter(Boolean);
+  const candidate = segments[0] === 'admin' ? segments[1] : segments[0];
+  return candidate && isSupportedLang(candidate) ? candidate : DEFAULT_REDIRECT_LANG;
 };
 
 /**
@@ -244,6 +254,16 @@ export async function middleware(request: NextRequest) {
   // Instant redirect for root path '/' to default language
   if (pathname === '/') {
     return NextResponse.redirect(buildRedirectUrl(`/${DEFAULT_REDIRECT_LANG}`));
+  }
+
+  // 🔴 `LEGACY-469`: страницы `/admin` без языка нет (`app/admin/[lang]/`), голый адрес
+  // и после входа, и с ролью давал 404. Точное совпадение, а не `startsWith`: `/adminx`
+  // сюда не попадает. Стоит до гейта, чтобы `callbackUrl` входа был уже `/admin/<язык>`.
+  // Регистр сравнивается без учёта (`/Admin` — одним прыжком). Строка запроса на этом
+  // прыжке сохраняется; `callbackUrl` входа её не несёт — остаток в `LEGACY-469`.
+  const lowerPathname = pathname.toLowerCase();
+  if (lowerPathname === '/admin' || lowerPathname === '/admin/') {
+    return NextResponse.redirect(buildRedirectUrl(`/admin/${DEFAULT_REDIRECT_LANG}`, search));
   }
 
   let shouldRedirect = false;

@@ -545,6 +545,96 @@ describe('гейт админки пропускает сотрудника (LEG
   });
 });
 
+describe('язык редиректа с админки берётся из целого сегмента (LEGACY-469)', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', SITE_URL);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  // Голый `/admin` уводил на `/ad/auth/sign-in` — 404: язык брался из первых двух букв `admin`.
+  // Страницы `/admin` без языка нет вовсе, поэтому голый адрес уходит в `/admin/en` до гейта —
+  // и без сессии, и с ролью.
+  it.each([
+    ['/admin', null],
+    ['/admin/', null],
+    ['/admin', { roles: ['admin'] }],
+    ['/admin/', { roles: ['user'] }],
+  ])('%s (токен %j) уходит на /admin/en', async (path, token) => {
+    getTokenMock.mockResolvedValue(token as never);
+
+    const response = await middleware(request(`${SITE_URL}${path}`, { host: SITE_HOST }));
+
+    expect(locationOf(response).pathname).toBe('/admin/en');
+  });
+
+  it.each([
+    ['/admin/xx/dashboard', '/en'],
+    ['/admin/english', '/en'],
+    ['/admin/en/dashboard', '/en'],
+    ['/admin/ru/books', '/ru'],
+    ['/admin/pt', '/pt'],
+  ])('без сессии %s уходит на вход %s/auth/sign-in', async (path, langPrefix) => {
+    getTokenMock.mockResolvedValue(null as never);
+
+    const response = await middleware(request(`${SITE_URL}${path}`, { host: SITE_HOST }));
+
+    const location = locationOf(response);
+    expect(location.pathname).toBe(`${langPrefix}/auth/sign-in`);
+    expect(location.searchParams.get('callbackUrl')).toBe(path);
+  });
+
+  it.each([
+    ['/admin/xx/dashboard', '/en'],
+    ['/admin/books', '/en'],
+    ['/admin/es/dashboard', '/es'],
+  ])('без роли %s уходит на %s/403', async (path, langPrefix) => {
+    getTokenMock.mockResolvedValue({ roles: ['user'] } as never);
+
+    const response = await middleware(request(`${SITE_URL}${path}`, { host: SITE_HOST }));
+
+    expect(locationOf(response).pathname).toBe(`${langPrefix}/403`);
+  });
+
+  it('/Admin?tab=queue уходит на /admin/en одним прыжком и со строкой запроса', async () => {
+    getTokenMock.mockResolvedValue(null as never);
+
+    const response = await middleware(request(`${SITE_URL}/Admin?tab=queue`, { host: SITE_HOST }));
+
+    const location = locationOf(response);
+    expect(location.pathname).toBe('/admin/en');
+    expect(location.searchParams.get('tab')).toBe('queue');
+  });
+
+  // Редирект голого адреса — по точному совпадению. Что `/adminx` при этом всё равно
+  // идёт через гейт (префикс `isAdminRoute`), здесь не закрепляется: это остаток в теле
+  // `LEGACY-469`. Кейс с ролью проверяет только, что `/adminx` не уводится в `/admin/en`.
+  it('голый редирект по точному совпадению: /adminx с ролью не уводится в /admin/en', async () => {
+    getTokenMock.mockResolvedValue({ roles: ['admin'] } as never);
+
+    const response = await middleware(request(`${SITE_URL}/adminx`, { host: SITE_HOST }));
+
+    expect(response.headers.get('location')).toBeNull();
+  });
+
+  // Решение арбитра `T144`: язык по умолчанию в middleware один — `DEFAULT_REDIRECT_LANG`,
+  // а не `NEXT_PUBLIC_DEFAULT_LANG` клиентского `getDefaultLang()`.
+  it('NEXT_PUBLIC_DEFAULT_LANG=ru не меняет язык редиректов с админки', async () => {
+    vi.stubEnv('NEXT_PUBLIC_DEFAULT_LANG', 'ru');
+    getTokenMock.mockResolvedValue(null as never);
+
+    const bare = await middleware(request(`${SITE_URL}/admin`, { host: SITE_HOST }));
+    const unknown = await middleware(
+      request(`${SITE_URL}/admin/xx/dashboard`, { host: SITE_HOST })
+    );
+
+    expect(locationOf(bare).pathname).toBe('/admin/en');
+    expect(locationOf(unknown).pathname).toBe('/en/auth/sign-in');
+  });
+});
+
 describe('гейт админки не пускает мёртвую сессию (LEGACY-466)', () => {
   beforeEach(() => {
     vi.stubEnv('NEXT_PUBLIC_SITE_URL', SITE_URL);
