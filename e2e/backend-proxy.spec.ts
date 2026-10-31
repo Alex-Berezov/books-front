@@ -31,6 +31,11 @@ const UPLOAD_DIRECT_PATH = `${BACKEND_PROXY_PREFIX}/uploads/direct`;
 const UPLOAD_CONFIRM_PATH = `${BACKEND_PROXY_PREFIX}/uploads/confirm`;
 const PASSWORD = 'e2e-proxy-password-1';
 
+// Блок входа идёт без повторов, а трасса по конфигу снимается только на повторе
+// (`trace: 'on-first-retry'`) — поэтому весь файл, включая тест без входа, хранит её у упавшего
+// теста. `trace` в группе Playwright не принимает: опция меняет воркер.
+test.use({ trace: 'retain-on-failure' });
+
 test.describe('Backend proxy', () => {
   test('refuses a request without the proxy header before touching the API', async ({
     request,
@@ -45,11 +50,9 @@ test.describe('Backend proxy', () => {
     // Регистрация в API ограничена (`RATE_LIMIT_REGISTER_MAX` 3 за 5 минут, `auth-rate-limit.guard.ts`).
     // Блок идёт одним воркером по порядку (`serial`): `beforeAll` регистрирует одного пользователя
     // на проект, тесты входят им по очереди. Повторов нет: повтор заново прогнал бы `beforeAll`,
-    // и 429 на регистрации спрятал бы настоящую причину падения. Трасса без повтора не снимается
-    // (`trace: 'on-first-retry'`), поэтому блок хранит её у упавшего теста. Тесты делят пользователя:
+    // и 429 на регистрации спрятал бы настоящую причину падения. Тесты делят пользователя:
     // исходное состояние профиля здесь не проверяется.
     test.describe.configure({ mode: 'serial', retries: 0 });
-    test.use({ trace: 'retain-on-failure' });
 
     let email = '';
 
