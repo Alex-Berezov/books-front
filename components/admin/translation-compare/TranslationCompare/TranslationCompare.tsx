@@ -84,7 +84,9 @@ export const TranslationCompare: FC<TranslationCompareProps> = ({ lang, versionI
     keyMissing,
     params,
     limit,
-    estimateReady: estimate.isSuccess,
+    // Перезапрос отдаёт прошлый ответ: старт - только по свежей оценке, как в окне запуска (T151).
+    estimateReady: estimate.isSuccess && !estimate.isFetching,
+    dossierRefused: estimate.data?.dossier?.refusedTooLong === true,
     pending: start.isPending,
   });
 

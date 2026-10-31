@@ -14,7 +14,7 @@ import type {
 } from './book-analysis';
 import type { SupportedLang } from './common';
 import type { LlmMoney, LlmOperation } from './llm';
-import type { CompareContextLine } from './translation';
+import type { CompareContextLine, DossierContextLine } from './translation';
 
 /** Виды заготовки Summary (F05-10); `analysis` — заготовка Analysis (F05-11). */
 export type SummaryDraftKind = 'summary_sections' | 'summary_full' | 'summary_brief';
@@ -27,7 +27,7 @@ export type ContentDraftStatus = 'building' | 'ready' | 'failed' | 'discarded';
 export interface ContentDraftEstimate {
   kind: ContentDraftKind;
   /** Досье строится первым; `null` — готово. */
-  dossier: CompareContextLine | null;
+  dossier: DossierContextLine | null;
   /** Глоссарий языка версии строится первым; `null` — готов или не нужен (язык досье). */
   glossary: CompareContextLine | null;
   /** Разделов в плане досье; `null` — план ещё не известен или это не разделы. */

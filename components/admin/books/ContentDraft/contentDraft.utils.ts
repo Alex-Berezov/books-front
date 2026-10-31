@@ -95,7 +95,9 @@ export const buildingText = (draft: ContentDraft): string => {
 /** Окно подтверждения старта: что строится первым и сколько стоит сверху. */
 export const estimateText = (estimate: ContentDraftEstimate): string => {
   const lines: string[] = [];
-  if (estimate.dossier) {
+  if (estimate.dossier?.refusedTooLong) {
+    lines.push(DOSSIER_REFUSED_TEXT);
+  } else if (estimate.dossier) {
     lines.push(`The dossier is built first: up to ${formatMoney(estimate.dossier.estimateUsd)}.`);
   }
   if (estimate.glossary) {

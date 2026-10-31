@@ -128,7 +128,12 @@ describe('SummaryDraft', () => {
   it('start: the estimate is asked only when the confirmation opens and shows the dossier line', () => {
     hooks.estimate = {
       kind: 'summary_sections',
-      dossier: { estimateUsd: '0.5', suggestedLimitUsd: '0.75', upperBound: false },
+      dossier: {
+        estimateUsd: '0.5',
+        suggestedLimitUsd: '0.75',
+        upperBound: false,
+        refusedTooLong: false,
+      },
       glossary: null,
       sections: null,
       stageUsd: '0.2',
@@ -143,6 +148,28 @@ describe('SummaryDraft', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start' }));
     expect(hooks.actions.start.mutate).toHaveBeenCalledTimes(1);
     expect(hooks.actions.start.mutate).toHaveBeenCalledWith({});
+  });
+
+  it('start: a dossier the start will refuse DOSSIER_TOO_LONG — the text says so and «Start» is disabled (T151)', () => {
+    hooks.estimate = {
+      kind: 'summary_sections',
+      dossier: {
+        estimateUsd: '0.5',
+        suggestedLimitUsd: '0.75',
+        upperBound: false,
+        refusedTooLong: true,
+      },
+      glossary: null,
+      sections: null,
+      stageUsd: '0.2',
+      upperBound: true,
+      suggestedLimitUsd: '0.75',
+    } satisfies ContentDraftEstimate;
+    render(view());
+    fireEvent.click(button());
+    expect(screen.getByText(/will not be built/)).toBeInTheDocument();
+    expect(screen.queryByText(/The dossier is built first/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
   });
 
   it('building: waits for the dossier, then for the glossary, then counts sections; the button is disabled', () => {

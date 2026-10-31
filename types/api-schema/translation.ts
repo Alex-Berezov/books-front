@@ -16,7 +16,7 @@ export interface CompareContextLine {
   upperBound: boolean;
 }
 
-/** Строка досье оценки запуска: строка контекста и признак отказа на старте (`T147`). */
+/** Строка досье оценок запуска, сравнения и заготовки: строка контекста и признак отказа на старте (`T147`, `T151`). */
 export interface DossierContextLine extends CompareContextLine {
   /** Старт откажет `DOSSIER_TOO_LONG` до платных вызовов; сумма остаётся оценкой. */
   refusedTooLong: boolean;
@@ -29,7 +29,7 @@ export interface TranslationCompareEstimate {
   /** Кусков по границам кода. */
   chunks: number;
   /** `null` — досье готово или уже строится. */
-  dossier: CompareContextLine | null;
+  dossier: DossierContextLine | null;
   /** `null` — глоссарий готов или уже строится. */
   glossary: CompareContextLine | null;
   splitUsd: LlmMoney;

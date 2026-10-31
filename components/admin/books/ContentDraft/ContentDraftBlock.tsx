@@ -205,14 +205,15 @@ export const ContentDraftBlock: FC<ContentDraftBlockProps> = ({
         onConfirm={confirmDiscard}
         onCancel={() => setDiscarding(false)}
       />
-      {/* Без цены подтверждать нечего: подтверждение неактивно, пока оценка не пришла. */}
+      {/* Без цены подтверждать нечего: подтверждение неактивно, пока оценка не пришла. Досье,
+          которому старт откажет (T151), не построится: старт выбросил бы прежнюю заготовку и встал. */}
       <ConfirmDialog
         isOpen={confirming}
         title={DRAFT_BUTTON[kind]}
         message={startMessage}
         confirmLabel="Start"
         isLoading={estimate.isFetching}
-        isConfirmDisabled={!estimate.data}
+        isConfirmDisabled={!estimate.data || estimate.data.dossier?.refusedTooLong === true}
         onConfirm={confirmStart}
         onCancel={() => setConfirming(false)}
       />

@@ -5667,6 +5667,7 @@
     "fields": [
       "dossier",
       "dossier.estimateUsd",
+      "dossier.refusedTooLong",
       "dossier.suggestedLimitUsd",
       "dossier.upperBound",
       "glossary",
@@ -6943,6 +6944,7 @@
       "chunks",
       "dossier",
       "dossier.estimateUsd",
+      "dossier.refusedTooLong",
       "dossier.suggestedLimitUsd",
       "dossier.upperBound",
       "glossary",

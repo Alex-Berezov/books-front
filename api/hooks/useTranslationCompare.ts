@@ -72,6 +72,10 @@ export const useTranslationCompareEstimate = (
     queryFn: () => getTranslationCompareEstimate(versionId, params as TranslationCompareParams),
     enabled: isComplete(params),
     retry: false,
+    // Отказ досье на старте (`refusedTooLong`, T151) выключает старт и зависит от настроек этапов:
+    // открытие экрана и смена параметров берут новую оценку, а не минутный кэш (на фокус вкладки
+    // клиент не перезапрашивает).
+    staleTime: 0,
     meta: LOCAL_CODES,
   });
 

@@ -103,6 +103,8 @@ export const canStartCompare = (state: {
   params: TranslationCompareParams | null;
   limit: string;
   estimateReady: boolean;
+  /** Досье оценки помечено отказом на старте (`refusedTooLong`, T151): сравнение встало бы на нём. */
+  dossierRefused: boolean;
   pending: boolean;
 }): boolean =>
   !state.keyMissing &&
@@ -111,6 +113,7 @@ export const canStartCompare = (state: {
   state.params.models.length <= COMPARE_MAX_MODELS &&
   isLimitOk(state.limit) &&
   state.estimateReady &&
+  !state.dossierRefused &&
   !state.pending;
 
 /** Тело запуска: пустой лимит не уходит вовсе — сервер берёт предложенный оценкой. */

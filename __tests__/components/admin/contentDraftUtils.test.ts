@@ -72,4 +72,15 @@ describe('contentDraft.utils', () => {
     expect(refused).toContain('DOSSIER_TOO_LONG');
     expect(refused).not.toContain('$0.5');
   });
+
+  it('draft estimate: a dossier the start will refuse says it will not be built, not a sum (T151)', () => {
+    const line = { estimateUsd: '0.5', suggestedLimitUsd: '0.75', upperBound: false };
+    expect(estimateText(estimate({ dossier: { ...line, refusedTooLong: false } }))).toContain(
+      'The dossier is built first: up to $0.5'
+    );
+    const refused = estimateText(estimate({ dossier: { ...line, refusedTooLong: true } }));
+    expect(refused).toContain('will not be built');
+    expect(refused).toContain('DOSSIER_TOO_LONG');
+    expect(refused).not.toContain('built first');
+  });
 });

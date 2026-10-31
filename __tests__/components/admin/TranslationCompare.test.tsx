@@ -98,6 +98,7 @@ describe('правила запуска сравнения', () => {
     params: params(['a', 'b']),
     limit: '',
     estimateReady: true,
+    dossierRefused: false,
     pending: false,
   };
 
@@ -109,6 +110,7 @@ describe('правила запуска сравнения', () => {
   });
 
   it.each([
+    ['досье оценки откажет на старте (T151)', { dossierRefused: true }],
     ['одна модель', { params: params(['a']) }],
     ['пять моделей', { params: params(['a', 'b', 'c', 'd', 'e']) }],
     ['глава или язык не выбраны', { params: null }],
