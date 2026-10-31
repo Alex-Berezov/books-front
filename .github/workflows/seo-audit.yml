@@ -30,7 +30,8 @@ permissions:
 jobs:
   audit:
     name: Crawl sitemap and internal links
-    runs-on: ubuntu-latest
+    # LEGACY-476: тот же образ, что у ci.yml и deploy.yml фронта (решение арбитра T137).
+    runs-on: ubuntu-24.04
     # A failed deploy has nothing to audit.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     steps:

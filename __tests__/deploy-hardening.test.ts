@@ -96,6 +96,34 @@ describe('конвейер фронта: усиление (LEGACY-458)', () => {
     expect(deploy).toContain("docker login ghcr.io -u '${GHCR_USER}' --password-stdin");
   });
 
+  // LEGACY-476 (решение арбитра T137): `ubuntu-latest` сменил образ на 26.04, где Playwright
+  // не ставит chromium, и уронил CI. Все job всех workflow фронта - на одном явном образе.
+  it('все job идут на одном явном образе ubuntu-24.04', () => {
+    const images = FILES.flatMap((file) =>
+      [...code(file).matchAll(/^\s+runs-on:\s*(\S+)\s*(?:#.*)?$/gm)].map((m) => `${file}: ${m[1]}`)
+    );
+    expect(images.length).toBeGreaterThan(0);
+    expect(images.filter((line) => !line.endsWith(': ubuntu-24.04'))).toEqual([]);
+  });
+
+  // LEGACY-474 (решение арбитра T137): `docker compose pull` на сервере минутами молчит, а сеть
+  // раннера рвёт простаивающий TCP примерно через 4 мин (так рвался выкат бэкенда). Каждый
+  // вызов `ssh` во всех workflow держит канал keep-alive с интервалом не больше 60 с.
+  it('каждый вызов ssh держит канал keep-alive', () => {
+    const calls = FILES.flatMap((file) =>
+      code(file)
+        .split('\n')
+        .filter((line) => /(^|[\s(|:$])ssh\s/.test(line))
+        .map((line) => `${file}: ${line.trim()}`)
+    );
+    expect(calls.length).toBeGreaterThanOrEqual(1);
+    for (const call of calls) {
+      const interval = Number(/-o ServerAliveInterval=(\d+)/.exec(call)?.[1] ?? NaN);
+      expect([call, interval > 0 && interval <= 60]).toEqual([call, true]);
+      expect([call, /-o ServerAliveCountMax=\d+/.test(call)]).toEqual([call, true]);
+    }
+  });
+
   it('ключ хоста берётся из DEPLOY_KNOWN_HOSTS, ssh-keyscan - только запасной путь', () => {
     const deploy = code('deploy.yml');
     expect(deploy).toContain('KNOWN_HOSTS: ${{ vars.DEPLOY_KNOWN_HOSTS }}');

@@ -233,7 +233,9 @@ jobs:
         run: |
           # 🔴 LEGACY-458. Токен GHCR идёт в stdin ssh, а не в текст команды: аргументы процесса
           # видны в `ps` на раннере и попадают в отладочный вывод.
-          printf '%s' "$GHCR_TOKEN" | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+          # LEGACY-474: keep-alive держит канал, пока `docker compose pull` молчит минутами;
+          # без него сеть раннера рвёт простаивающий TCP примерно через 4 мин.
+          printf '%s' "$GHCR_TOKEN" | ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=10 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
             set -euo pipefail
             cd /opt/bibliaris-frontend/app/src
             docker login ghcr.io -u '${GHCR_USER}' --password-stdin
