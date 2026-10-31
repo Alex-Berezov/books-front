@@ -224,8 +224,15 @@ const registerFreshUser = async (request: APIRequestContext): Promise<string> =>
 /** Входит заведённым пользователем через форму сайта. */
 const signIn = async (page: Page, email: string): Promise<void> => {
   await page.goto('/en/auth/sign-in');
-  // Форма входа — `#sign-in`: в шапке есть своя кнопка submit у поиска.
+  // Форма входа — `#sign-in`: в шапке есть своя кнопка submit у поиска. Страница отдаётся
+  // потоком: пока React не убрал скрытый блок `<div hidden id="S:…">`, форма лежит в DOM дважды —
+  // в `main` и в нём (снимок трассы упавшего прогона), и строгий локатор падал на двух
+  // совпадениях. Порядок в трассе: одна скрытая → две → одна видимая. Поэтому сначала ждём
+  // видимую (окно «двух» уже началось), затем единственную (скрытый блок убран) — это конечное
+  // состояние; держащийся дубль id уронит тест здесь, а не спрячется.
   const form = page.locator('#sign-in');
+  await expect(form.filter({ visible: true })).toHaveCount(1);
+  await expect(form).toHaveCount(1);
   await form.locator('input[name="email"]').fill(email);
   await form.locator('input[name="password"]').fill(PASSWORD);
   await form.locator('button[type="submit"]').click();
