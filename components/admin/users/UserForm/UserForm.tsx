@@ -110,7 +110,7 @@ export const UserForm: FC<UserFormProps> = ({ initialData, lang }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+    <form method="post" onSubmit={handleSubmit(onSubmit)} className={styles.form}>
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Basic Information</h3>
 
