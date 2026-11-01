@@ -578,6 +578,7 @@
       "book",
       "book.id",
       "book.slug",
+      "bookSlug",
       "categories",
       "categories[].booksCount",
       "categories[].id",

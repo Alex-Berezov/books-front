@@ -137,6 +137,12 @@ export interface BookOverviewSeoEntry {
 export interface BookOverview {
   id: UUID;
   slug: string;
+  /**
+   * `Book.slug` самой книги (`LEGACY-472`). Версия без своего слага адресуется им: канонический
+   * адрес и `@id` книги в разметке бэкенда - `version.slug || bookSlug`. `slug` выше бывает
+   * слагом версии другого языка. Необязательное - ответ бэкенда до выката поля его не несёт.
+   */
+  bookSlug?: string | null;
   title: string;
   author: string;
   /**

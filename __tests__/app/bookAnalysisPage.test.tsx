@@ -55,7 +55,7 @@ vi.mock('@/app/[lang]/book/[slug]/RelatedBooksSection', () => ({
   RelatedBooksSection: () => null,
 }));
 
-const version = (language: string, slug: string, analyses: number, extra = {}) => ({
+const version = (language: string, slug: string | null, analyses: number, extra = {}) => ({
   id: `v-${language}`,
   type: 'text',
   language,
@@ -330,6 +330,47 @@ describe('страница анализа: содержимое', () => {
       itemListElement: { name: string }[];
     };
     expect(crumbs.itemListElement.map((i) => i.name)).toEqual(['Home', 'Hamlet', 'Analysis']);
+  });
+
+  it('версия без своего слага: about ведёт на @id книги по слагу книги, а не по id версии (LEGACY-472)', async () => {
+    // Пришли по слагу французской версии на английском: у `en` слага нет, обзор отдаёт запрошенный слаг.
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        slug: 'hamlet-fr',
+        bookSlug: 'hamlet-book',
+        versions: [version('en', null, 1), version('fr', 'hamlet-fr', 1)],
+      })
+    );
+    const { container } = await renderPage('en', 'hamlet-fr');
+
+    const article = [...container.querySelectorAll('script[type="application/ld+json"]')]
+      .map((s) => JSON.parse(s.textContent ?? '{}') as Record<string, unknown>)
+      .find((s) => s['@type'] === 'Article');
+    expect(article?.about).toEqual({ '@id': `${buildLangUrl('en', '/book/hamlet-book')}#book` });
+  });
+
+  it('свой слаг версии важнее слага книги; без bookSlug в ответе - слаг адреса (LEGACY-472)', async () => {
+    const aboutOf = async (slug: string) => {
+      const { container } = await renderPage('en', slug);
+      return [...container.querySelectorAll('script[type="application/ld+json"]')]
+        .map((s) => JSON.parse(s.textContent ?? '{}') as Record<string, unknown>)
+        .find((s) => s['@type'] === 'Article')?.about;
+    };
+
+    mocks.getBookOverview.mockResolvedValue(makeBook({ bookSlug: 'hamlet-book' }));
+    expect(await aboutOf('hamlet')).toEqual({
+      '@id': `${buildLangUrl('en', '/book/hamlet')}#book`,
+    });
+
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        slug: 'hamlet-fr',
+        versions: [version('en', null, 1), version('fr', 'hamlet-fr', 1)],
+      })
+    );
+    expect(await aboutOf('hamlet-fr')).toEqual({
+      '@id': `${buildLangUrl('en', '/book/hamlet-fr')}#book`,
+    });
   });
 
   it('навигация разделов: анализ активен, пересказ есть, пункты только существующих разделов', async () => {

@@ -9,7 +9,7 @@ type AnalysisJsonLdInput = {
   pageSlug: string;
   /**
    * Слаг, которым бэкенд строит `@id` книги в её разметке (`generateBookSchema`: слаг версии,
-   * а без него - id версии). `about` ссылается на тот же узел.
+   * а без него - слаг книги, `bookCardSlug`, `LEGACY-472`). `about` ссылается на тот же узел.
    */
   bookSchemaSlug: string;
   headline: string;

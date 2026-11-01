@@ -141,7 +141,8 @@ export default async function BookAnalysisPage({ params }: Props) {
   const jsonLd = buildAnalysisArticleJsonLd({
     lang: supportedLang,
     pageSlug: bookSlug,
-    bookSchemaSlug: version.slug || version.id,
+    // `LEGACY-472`: то же правило, что `bookCardSlug` бэкенда - без своего слага версия идёт по слагу книги.
+    bookSchemaSlug: version.slug || book.bookSlug || bookSlug,
     headline: pageTitle,
     editorialTeam: t.editorialTeam,
     createdAt: analysis.createdAt,
