@@ -138,7 +138,13 @@ const SignInClient: FC = () => {
         />
       )}
 
-      <form id="sign-in" onSubmit={form.handleSubmit} autoComplete="off" className={styles.form}>
+      <form
+        id="sign-in"
+        method="post"
+        onSubmit={form.handleSubmit}
+        autoComplete="off"
+        className={styles.form}
+      >
         <AuthField
           id="sign-in_email"
           name="email"

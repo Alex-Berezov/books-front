@@ -160,7 +160,13 @@ const RegisterClient: FC = () => {
         />
       )}
 
-      <form id="register" onSubmit={form.handleSubmit} autoComplete="off" className={styles.form}>
+      <form
+        id="register"
+        method="post"
+        onSubmit={form.handleSubmit}
+        autoComplete="off"
+        className={styles.form}
+      >
         <AuthField
           id="register_email"
           name="email"
