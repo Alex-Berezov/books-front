@@ -550,12 +550,25 @@ describe('страница анализа: мета', () => {
     await expect(metadataFor()).resolves.toEqual({ robots: { index: false, follow: true } });
   });
 
-  it('книга закрыта редактором от индекса - анализ тоже noindex и без hreflang', async () => {
-    mocks.resolveSeo.mockResolvedValue({ meta: { robots: 'noindex, follow' } });
-    const meta = await metadataFor();
-    expect(meta.robots).toEqual({ index: false, follow: true });
-    expect(meta.alternates?.languages).toBeUndefined();
-  });
+  // Правило поля Robots - общая `robotsHasNoindex` (T159), как у пересказа: токен, а не подстрока.
+  it.each(['noindex, follow', 'none', 'googlebot: noindex'])(
+    'книга закрыта редактором (%s) - анализ тоже noindex и без hreflang',
+    async (robots) => {
+      mocks.resolveSeo.mockResolvedValue({ meta: { robots } });
+      const meta = await metadataFor();
+      expect(meta.robots).toEqual({ index: false, follow: true });
+      expect(meta.alternates?.languages).toBeUndefined();
+    }
+  );
+
+  // Токен, а не подстрока: `noindexed` прежняя регулярка закрывала, общее правило - нет.
+  it.each(['index, max-image-preview:none', 'noindexed'])(
+    'не токен noindex (%s) - анализ не закрыт',
+    async (robots) => {
+      mocks.resolveSeo.mockResolvedValue({ meta: { robots } });
+      expect((await metadataFor()).robots).toBeUndefined();
+    }
+  );
 });
 
 // F03-3 (`product.md` §9, §10, §13-§20): блоки низа страницы - есть данные / нет данных, полоса

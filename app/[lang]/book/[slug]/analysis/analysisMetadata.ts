@@ -7,6 +7,7 @@ import {
   pickAnalysisPageVersion,
 } from '@/lib/seo/book-analysis';
 import { noteDegraded } from '@/lib/seo/degraded';
+import { robotsHasNoindex } from '@/lib/seo/robots-noindex';
 import { buildLangUrl } from '@/lib/seo/urls';
 import { isNotFoundError } from '@/lib/utils/content-failure';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -43,7 +44,7 @@ export async function buildAnalysisMetadata(
     const description = describeAnalysis(analysis.mainIdea);
     const canonical = buildLangUrl(supportedLang, analysisPath(book.slug || slug));
     const cover = book.coverUrl;
-    const bookClosed = /noindex/i.test(bookSeo.meta.robots ?? '');
+    const bookClosed = robotsHasNoindex(bookSeo.meta.robots);
     const alternates = buildAnalysisAlternates(book.versions);
 
     return {
