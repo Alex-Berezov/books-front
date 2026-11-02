@@ -110,7 +110,7 @@ describe('LanguageSwitcher', () => {
     expect(screen.queryByText(/ES/)).not.toBeInTheDocument();
   });
 
-  // Счётчик языка страницы 0 при открытой странице (блок по другой стране): свой язык не пропадает.
+  // Счётчик языка страницы 0 при открытой странице (отставший кэш счётчика): свой язык не пропадает.
   it('на странице анализа текущий язык есть и при нулевом счётчике', () => {
     vi.spyOn(navigation, 'usePathname').mockReturnValue('/en/book/hamlet/analysis');
     overview.data = {

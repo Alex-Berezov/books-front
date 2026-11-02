@@ -62,7 +62,10 @@ export interface VersionPreview {
     chapters: number;
     audioChapters: number;
     summaries: number;
-    /** Анализ с заполненным ядром (F03): 0 или 1. */
+    /**
+     * Анализ с заполненным ядром (F03): 0 или 1. Не считается при блоке окончённой претензии на весь
+     * мир; блок по одной стране не обнуляет (F03 D8) - в стране блока страницу закрывает middleware.
+     */
     analyses: number;
     /**
      * Разделы пересказа, открытые читателю (F04): у полного пересказа есть текст и версию не закрывает
@@ -562,7 +565,10 @@ export interface BookListVersion extends BookContainerVersion {
     chapters: number;
     audioChapters: number;
     summaries: number;
-    /** Анализ с заполненным ядром (F03): по нему карта сайта строит адреса анализа. */
+    /**
+     * Анализ с заполненным ядром (F03), правило то же, что в обзоре (блок по одной стране не обнуляет,
+     * F03 D8): по нему карта сайта строит адреса анализа.
+     */
     analyses: number;
   };
   tags: { tag: Tag }[];

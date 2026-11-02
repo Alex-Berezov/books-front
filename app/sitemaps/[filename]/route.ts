@@ -295,7 +295,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
       }
 
       // Анализ (F03-2) - рядом с пересказом и по тому же устройству: счётчик `_count.analyses`
-      // (ядро и не закрыт окончённой претензией) уже в этой выдаче, кластер - тем же
+      // (ядро и не закрыт окончённой претензией на весь мир; блок по одной стране адрес не
+      // убирает, F03 D8) уже в этой выдаче, кластер - тем же
       // `buildAnalysisAlternates`, что у страницы. Счётчика нет - отказ файла (503).
       if (typeof currentVersion._count?.analyses !== 'number') {
         noteFailure(

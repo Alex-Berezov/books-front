@@ -11,8 +11,10 @@ export function analysisPath(bookSlug: string): string {
 
 /**
  * Есть ли у версии анализ: обзор книги и список книг отдают счётчик `_count.analyses` - запись
- * с ядром, не закрытая окончённой претензией (`books/src/modules/book/book-card.ts`). Счётчика нет -
- * анализ не подтверждён, ссылку на него не ставим.
+ * с ядром, не закрытая окончённой претензией на весь мир (`books/src/modules/book/book-card.ts`).
+ * Блок по одной стране счётчик не обнуляет (F03 D8): кнопка, hreflang и карта сайта есть везде,
+ * а в стране блока страницу закрывает 451 middleware. Счётчика нет - анализ не подтверждён, ссылку
+ * на него не ставим.
  */
 export function versionHasAnalysis(version: { _count?: { analyses?: number } }): boolean {
   const count = version._count?.analyses;
