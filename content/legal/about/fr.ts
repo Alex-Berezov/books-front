@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'Bibliaris est une bibliothèque en ligne gratuite de littérature classique du domaine public : lisez, écoutez et trouvez des résumés de livres en cinq langues.',
   title: 'À propos de Bibliaris',
-  updatedAt: '2026-10-13',
+  updatedAt: '2026-11-03',
   toc: false,
   sections: [
     {
@@ -62,7 +62,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Le site est réalisé par la rédaction de Bibliaris : une petite équipe de rédacteurs qui sélectionne les livres, prépare les textes pour la publication et rédige les résumés et les descriptions.',
+              text: 'Le site est réalisé par la rédaction de Bibliaris : une petite équipe de rédacteurs qui sélectionne les livres, prépare les textes et les résumés pour la publication et rédige les descriptions.',
             },
           ],
         },
@@ -78,7 +78,7 @@ export const document: LegalDocument = {
             [
               {
                 kind: 'text',
-                text: 'Les résumés et les descriptions des livres sont écrits et révisés par des personnes.',
+                text: 'Les descriptions des livres sont écrites et révisées par des personnes. Les résumés ainsi que les analyses de personnages, de symboles et de citations dans les blocs des pages des livres sont préparés par la rédaction, en partie avec l’aide de modèles de langage.',
               },
             ],
             [

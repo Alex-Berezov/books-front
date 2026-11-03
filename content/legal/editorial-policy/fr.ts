@@ -6,9 +6,9 @@ export const document: LegalDocument = {
   lang: 'fr',
   metaTitle: 'Politique éditoriale - Bibliaris',
   metaDescription:
-    'D’où viennent les textes de Bibliaris, qui écrit les résumés et les descriptions, comment sont rédigées les analyses de livres, comment les textes des livres sont préparés et comment les erreurs sont corrigées.',
+    'D’où viennent les textes de Bibliaris, qui prépare les résumés et écrit les descriptions, comment sont rédigées les analyses de livres, comment les textes des livres sont préparés et comment les erreurs sont corrigées.',
   title: 'Politique éditoriale',
-  updatedAt: '2026-10-19',
+  updatedAt: '2026-11-03',
   toc: false,
   sections: [
     {
@@ -20,7 +20,16 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Les résumés et les descriptions des livres, ainsi que les analyses de personnages, de symboles et de citations dans les blocs des pages des livres, sont écrits et révisés par des personnes : la rédaction de Bibliaris. Les analyses de livres sont préparées autrement : voir « Comment sont préparées les analyses de livres » ci-dessous.',
+              text: 'Les descriptions des livres sont écrites et révisées par des personnes : la rédaction de Bibliaris.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'La rédaction prépare les résumés ainsi que les analyses de personnages, de symboles et de citations dans les blocs des pages des livres : elle a écrit elle-même une partie de ces textes et en prépare une autre partie avec l’aide de modèles de langage, selon ses propres consignes. Un résumé est écrit uniquement à partir du texte du livre. Depuis novembre 2026, les résumés qu’un modèle écrit directement sur le site sont comparés au livre par un second modèle, d’un autre développeur, qui signale les passages douteux. La rédaction lit chaque texte et le publie elle-même ; les citations sont reproduites mot pour mot d’après le texte de l’édition publiée sur le site. Plus sur les analyses de livres : « Comment sont préparées les analyses de livres » ci-dessous.',
             },
           ],
         },
@@ -76,7 +85,7 @@ export const document: LegalDocument = {
               },
             ],
             [{ kind: 'text', text: 'Un résumé peut dévoiler l’intrigue.' }],
-            [{ kind: 'text', text: 'Un résumé est vérifié par rapport au texte du livre.' }],
+            [{ kind: 'text', text: 'Un résumé est écrit uniquement à partir du texte du livre.' }],
           ],
         },
       ],

@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'O Bibliaris é uma biblioteca online gratuita de literatura clássica em domínio público: leia, ouça e encontre resumos de livros em cinco idiomas.',
   title: 'Sobre o Bibliaris',
-  updatedAt: '2026-10-13',
+  updatedAt: '2026-11-03',
   toc: false,
   sections: [
     {
@@ -57,7 +57,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'O site é feito pela redação do Bibliaris: uma pequena equipe de editores que seleciona os livros, prepara os textos para publicação e escreve os resumos e as descrições.',
+              text: 'O site é feito pela redação do Bibliaris: uma pequena equipe de editores que seleciona os livros, prepara os textos e os resumos para publicação e escreve as descrições.',
             },
           ],
         },
@@ -73,7 +73,7 @@ export const document: LegalDocument = {
             [
               {
                 kind: 'text',
-                text: 'Os resumos e as descrições dos livros são escritos e editados por pessoas.',
+                text: 'As descrições dos livros são escritas e editadas por pessoas. Os resumos e as análises de personagens, símbolos e citações nos blocos das páginas dos livros são preparados pela redação, em parte com a ajuda de modelos de linguagem.',
               },
             ],
             [

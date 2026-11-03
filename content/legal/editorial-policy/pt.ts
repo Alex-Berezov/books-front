@@ -6,9 +6,9 @@ export const document: LegalDocument = {
   lang: 'pt',
   metaTitle: 'Política editorial - Bibliaris',
   metaDescription:
-    'De onde vêm os textos do Bibliaris, quem escreve os resumos e as descrições, como são elaboradas as análises de livros, como os textos dos livros são preparados e como os erros são corrigidos.',
+    'De onde vêm os textos do Bibliaris, quem prepara os resumos e escreve as descrições, como são elaboradas as análises de livros, como os textos dos livros são preparados e como os erros são corrigidos.',
   title: 'Política editorial',
-  updatedAt: '2026-10-19',
+  updatedAt: '2026-11-03',
   toc: false,
   sections: [
     {
@@ -20,7 +20,16 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Os resumos e as descrições dos livros, e as análises de personagens, símbolos e citações nos blocos das páginas dos livros, são escritos e editados por pessoas: a redação do Bibliaris. As análises de livros são preparadas de outra forma: veja “Como são preparadas as análises de livros” abaixo.',
+              text: 'As descrições dos livros são escritas e editadas por pessoas: a redação do Bibliaris.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'A redação prepara os resumos e as análises de personagens, símbolos e citações nos blocos das páginas dos livros: parte desses textos a própria redação escreveu, e parte ela prepara com a ajuda de modelos de linguagem, seguindo as suas instruções. O resumo é escrito somente a partir do texto do livro. Desde novembro de 2026, os resumos que um modelo escreve diretamente no site são conferidos com o livro por um segundo modelo, de outro desenvolvedor, que assinala os trechos duvidosos. A redação lê cada texto e o publica ela mesma; as citações são reproduzidas literalmente conforme o texto da edição no site. Mais sobre as análises de livros: “Como são preparadas as análises de livros” abaixo.',
             },
           ],
         },
@@ -74,7 +83,7 @@ export const document: LegalDocument = {
               },
             ],
             [{ kind: 'text', text: 'Um resumo pode revelar o enredo.' }],
-            [{ kind: 'text', text: 'Um resumo é conferido com o texto do livro.' }],
+            [{ kind: 'text', text: 'O resumo é escrito somente a partir do texto do livro.' }],
           ],
         },
       ],

@@ -6,9 +6,9 @@ export const document: LegalDocument = {
   lang: 'es',
   metaTitle: 'Política editorial - Bibliaris',
   metaDescription:
-    'De dónde salen los textos de Bibliaris, quién escribe los resúmenes y las descripciones, cómo se elaboran los análisis de libros, cómo se preparan los textos de los libros y cómo se corrigen los errores.',
+    'De dónde salen los textos de Bibliaris, quién prepara los resúmenes y escribe las descripciones, cómo se elaboran los análisis de libros, cómo se preparan los textos de los libros y cómo se corrigen los errores.',
   title: 'Política editorial',
-  updatedAt: '2026-10-19',
+  updatedAt: '2026-11-03',
   toc: false,
   sections: [
     {
@@ -20,7 +20,16 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Los resúmenes y las descripciones de los libros, y los análisis de personajes, símbolos y citas de los bloques de las páginas de los libros, los escriben y los editan personas: la redacción de Bibliaris. Los análisis de libros se preparan de otra manera: consulta «Cómo se preparan los análisis de libros» más abajo.',
+              text: 'Las descripciones de los libros las escriben y las editan personas: la redacción de Bibliaris.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'La redacción prepara los resúmenes y los análisis de personajes, símbolos y citas de los bloques de las páginas de los libros: parte de estos textos la escribió ella misma y otra parte la prepara con la ayuda de modelos de lenguaje, siguiendo sus propias instrucciones. El resumen se escribe únicamente a partir del texto del libro. Desde noviembre de 2026, los resúmenes que un modelo escribe directamente en el sitio los contrasta con el libro un segundo modelo de otro desarrollador, que marca los pasajes dudosos. La redacción lee cada texto y lo publica ella misma; las citas se dan literalmente según el texto de la edición del sitio. Más sobre los análisis de libros: «Cómo se preparan los análisis de libros» más abajo.',
             },
           ],
         },
@@ -76,7 +85,12 @@ export const document: LegalDocument = {
               },
             ],
             [{ kind: 'text', text: 'Un resumen puede revelar la trama.' }],
-            [{ kind: 'text', text: 'Un resumen se contrasta con el texto del libro.' }],
+            [
+              {
+                kind: 'text',
+                text: 'El resumen se escribe únicamente a partir del texto del libro.',
+              },
+            ],
           ],
         },
       ],

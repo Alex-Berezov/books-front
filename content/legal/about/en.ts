@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'Bibliaris is a free online library of classic literature in the public domain: read, listen, and find summaries of books in five languages.',
   title: 'About Bibliaris',
-  updatedAt: '2026-10-13',
+  updatedAt: '2026-11-03',
   toc: false,
   sections: [
     {
@@ -57,7 +57,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Bibliaris is made by the Bibliaris editorial team: a small team of editors who select books, prepare texts for publication, and write summaries and descriptions.',
+              text: 'Bibliaris is made by the Bibliaris editorial team: a small team of editors who select books, prepare texts and summaries for publication, and write descriptions.',
             },
           ],
         },
@@ -73,7 +73,7 @@ export const document: LegalDocument = {
             [
               {
                 kind: 'text',
-                text: 'Summaries and descriptions of books are written and edited by people.',
+                text: 'Descriptions of books are written and edited by people. Summaries, and the analyses of characters, symbols and quotations in the blocks on book pages, are prepared by the editorial team, some of them with the help of language models.',
               },
             ],
             [

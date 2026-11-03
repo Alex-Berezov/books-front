@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { LegalPage } from '@/components/public/legal/LegalPage';
 import { getLegalDocument } from '@/content/legal';
 import { getDictionary } from '@/lib/i18n/dictionaries';
-import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
+import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { contactGeneral } from '@/lib/site/owner-facts';
 import type { LegalDocument, LegalInline } from '@/content/legal/types';
 
@@ -31,7 +31,21 @@ const parts = (doc: LegalDocument): LegalInline[] =>
 const links = (doc: LegalDocument) =>
   parts(doc).flatMap((part) => (part.kind === 'link' ? [part.href] : []));
 
+// «Люди» и «модель» на пяти языках - корнями слов; один набор на все тесты файла.
+const PEOPLE = 'люд|человек|human|humain|humano|people|personas|personne|pessoa';
+const MODEL = /модел|model|modelo|modèle/iu;
+
 const ids = (page: TrustPage) => getLegalDocument(page, 'en').sections.map((section) => section.id);
+
+const sectionParts = (page: TrustPage, lang: SupportedLang, sectionIds: string[]) => {
+  const doc = getLegalDocument(page, lang);
+  return parts({ ...doc, sections: doc.sections.filter((s) => sectionIds.includes(s.id)) });
+};
+
+const sectionText = (page: TrustPage, lang: SupportedLang, sectionIds: string[]): string =>
+  sectionParts(page, lang, sectionIds)
+    .map((part) => part.text)
+    .join(' ');
 
 describe('страницы доверия: состав', () => {
   it('о нас: пять разделов по порядку', () => {
@@ -67,34 +81,63 @@ describe('страницы доверия: состав', () => {
       .join(' ');
     expect(text).toMatch(/\S/);
     // «пишут люди» и «проверяет редакция» на пяти языках — корнями слов, без общих слов вроде «check».
-    expect(text).not.toMatch(
-      /люд|человек|провер|human|humain|humano|people|personne|pessoa|verif|vérif|comprob|reviewed/iu
+    expect(text).not.toMatch(new RegExp(`${PEOPLE}|провер|verif|vérif|comprob|reviewed`, 'iu'));
+  });
+
+  // F06-4 (D2/D5): пересказы и разборы готовит редакция с помощью моделей; «пишут люди» - только про описания.
+  it.each(SUPPORTED_LANGS)('%s: #who политики и «О нас» - люди только у описаний', (lang) => {
+    const SUMMARY = /пересказ|summar|resum|resúm|résum/iu;
+    const DESCRIPTION = /описан|description|descripci|descriç/iu;
+    const BREAKDOWN = /разбор|analys|análisis|análise/iu;
+    const PART = /част|some|parte|partie/iu;
+    // Двоеточие не режет предложение: «Пересказы готовит редакция: часть - с помощью моделей».
+    const sentences = (text: string) => text.split(/(?<=[.;])\s+/u);
+    const who = sectionText('editorial-policy', lang, ['who']);
+    const about = sectionText('about', lang, ['who', 'how']);
+    for (const text of [who, about]) {
+      // Про пересказы сказано, что часть их готовят с помощью моделей, - одним предложением,
+      // отдельным от предложения про сверку второй моделью (в нём «2026»).
+      expect(
+        sentences(text).some(
+          (s) => SUMMARY.test(s) && MODEL.test(s) && PART.test(s) && !/2026/u.test(s)
+        )
+      ).toBe(true);
+      // Предложение про людей есть и не называет пересказы.
+      const withPeople = sentences(text).filter((s) => new RegExp(PEOPLE, 'iu').test(s));
+      expect(withPeople.length).toBeGreaterThan(0);
+      expect(withPeople.filter((s) => SUMMARY.test(s) || BREAKDOWN.test(s))).toEqual([]);
+      expect(withPeople.filter((s) => !DESCRIPTION.test(s))).toEqual([]);
+    }
+    // «Редакторы пишут пересказы» на «О нас» не осталось.
+    expect(about).not.toMatch(
+      /пишут пересказы|write summaries|escribe los resúmenes|rédige les résumés|escreve os resumos/iu
     );
+    // #summaries не обещает сверки всех пересказов (решение арбитра `F06 | F06-4`, дополнение).
+    expect(sectionText('editorial-policy', lang, ['summaries'])).not.toMatch(
+      /сверя|checked|contrast|vérifi|conferid/iu
+    );
+    // Сверка второй моделью с ноября 2026 названа в политике одним предложением.
+    expect(sentences(who).some((s) => /2026/u.test(s) && MODEL.test(s))).toBe(true);
   });
 
   // F03-3 (В5): черновик анализа составляет модель - раздел об этом говорит, не обещает ручной сверки
   // и называет автоматическую проверку номеров глав;
-  // строка #who оговаривает, что «пишут люди» - про блоки на странице книги, а анализ готовится иначе.
+  // строка #who отсылает к разделу анализа его заголовком.
   it.each(SUPPORTED_LANGS)(
     '%s: #analysis - о языковой модели, без «пишут люди» и сверки',
     (lang) => {
       const doc = getLegalDocument('editorial-policy', lang);
-      const sectionParts = (id: string) =>
-        parts({ ...doc, sections: doc.sections.filter((s) => s.id === id) });
-      const text = (id: string) =>
-        sectionParts(id)
-          .map((part) => part.text)
-          .join(' ');
+      const text = (id: string) => sectionText('editorial-policy', lang, [id]);
       const analysis = text('analysis');
-      expect(analysis).toMatch(/модел|model|modelo|modèle/iu);
-      expect(analysis).not.toMatch(
-        /люд|человек|human|humain|humano|people|personne|pessoa|сверя|вручную|manual/iu
-      );
+      expect(analysis).toMatch(MODEL);
+      expect(analysis).not.toMatch(new RegExp(`${PEOPLE}|сверя|вручную|manual`, 'iu'));
       // Проверка, которая есть, - автоматическая проверка номеров глав при загрузке (§21.3, ревью F03-3 круг 2).
       expect(analysis).toMatch(
         /автоматически|automatically|automáticamente|automatiquement|automaticamente/iu
       );
-      expect(sectionParts('analysis').find((part) => part.kind === 'link')).toMatchObject({
+      expect(
+        sectionParts('editorial-policy', lang, ['analysis']).find((part) => part.kind === 'link')
+      ).toMatchObject({
         href: '/contact',
       });
       // Отсылка из #who к разделу анализа - его заголовком.
@@ -212,7 +255,17 @@ describe('о нас и редполитика: без выдумки', () => {
       const text = parts(getLegalDocument(page, lang))
         .map((part) => part.text)
         .join(' ');
-      expect(text).not.toMatch(/\d/);
+      // Решение арбитра `F06 | F06-4`: единственная цифра - год «2026» в #who политики (формулировка
+      // владельца), ровно одно вхождение; остальной текст обеих страниц - без цифр, как в F01-4.
+      const YEAR = /(?<!\d)2026(?!\d)/gu;
+      const isPolicy = page === 'editorial-policy';
+      const who = sectionText(page, lang, ['who']);
+      expect(isPolicy ? (who.match(YEAR) ?? []).length : 0).toBe(isPolicy ? 1 : 0);
+      // Вырезается одно «2026» из текста самого #who, а не первое во всей странице.
+      // Текст #who - подстрока текста страницы; функция замены не толкует `$` в тексте.
+      expect(text.includes(who)).toBe(true);
+      const rest = isPolicy ? text.replace(who, () => who.replace(YEAR, '')) : text;
+      expect(rest).not.toMatch(/\d/);
       // `\b` не видит кириллицу: границы слова - через `\p{L}` с флагом `u`.
       expect(text).not.toMatch(/(?<!\p{L})(AI|IA|ИИ)(?!\p{L})|artificial|искусствен|нейросет/iu);
     }

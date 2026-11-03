@@ -6,9 +6,9 @@ export const document: LegalDocument = {
   lang: 'en',
   metaTitle: 'Editorial Policy - Bibliaris',
   metaDescription:
-    'Where the texts on Bibliaris come from, who writes the summaries and descriptions, how book analyses are prepared, how book texts are prepared, and how mistakes are corrected.',
+    'Where the texts on Bibliaris come from, who prepares the summaries and writes the descriptions, how book analyses are prepared, how book texts are prepared, and how mistakes are corrected.',
   title: 'Editorial Policy',
-  updatedAt: '2026-10-19',
+  updatedAt: '2026-11-03',
   toc: false,
   sections: [
     {
@@ -20,7 +20,16 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Summaries and descriptions of books, and the analyses of characters, symbols and quotations in the blocks on book pages, are written and edited by people: the Bibliaris editorial team. Book analyses are prepared differently — see “How book analyses are prepared” below.',
+              text: 'Descriptions of books are written and edited by people: the Bibliaris editorial team.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'The editorial team prepares the summaries and the analyses of characters, symbols and quotations in the blocks on book pages: it wrote some of these texts itself, and prepares others with the help of language models, following its own instructions. A summary is written only from the text of the book. Since November 2026, summaries that a model writes directly on the site are checked against the book by a second model from a different developer, which marks doubtful passages. The editorial team reads every text and publishes it itself; quotations are given verbatim from the edition of the text on the site. More about book analyses: “How book analyses are prepared” below.',
             },
           ],
         },
@@ -74,7 +83,7 @@ export const document: LegalDocument = {
               },
             ],
             [{ kind: 'text', text: 'A summary may reveal the plot.' }],
-            [{ kind: 'text', text: 'A summary is checked against the text of the book.' }],
+            [{ kind: 'text', text: 'A summary is written only from the text of the book.' }],
           ],
         },
       ],
