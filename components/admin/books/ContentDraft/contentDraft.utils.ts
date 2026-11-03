@@ -6,31 +6,21 @@ import {
 } from '@/components/admin/translation-run/translationRun.utils';
 import { ApiError } from '@/types/api';
 import type {
+  CompareContextLine,
   ContentDraft,
   ContentDraftEstimate,
-  ContentDraftKind,
+  DossierContextLine,
   DossierEstimate,
+  LlmMoney,
+  LlmOperation,
 } from '@/types/api-schema';
 
-/**
- * Кнопка заготовки: у Summary шаги идут по одному, кнопки «всё сразу» нет (`product.md` §5.2);
- * у Analysis кнопка одна (§5.3).
- */
-export const DRAFT_BUTTON: Record<ContentDraftKind, string> = {
-  summary_sections: 'Draft sections from dossier',
-  summary_full: 'Draft full summary from saved sections',
-  summary_brief: 'Draft very short summary from saved full summary',
-  analysis: 'Draft from dossier',
-};
+/** Кнопка заготовки Analysis (F05 `product.md` §5.3); пересказ пишет ход «Write Summary» (F06). */
+export const DRAFT_BUTTON = 'Draft from dossier';
 
-/** Что теряет «Discard draft» у готовой заготовки - по виду: у Analysis нет разделов и текста. */
-export const DISCARD_LOSS: Record<ContentDraftKind, string> = {
-  summary_sections: 'Sections not added to the form are lost;',
-  summary_full: 'Text not put into the form is lost;',
-  summary_brief: 'Text not put into the form is lost;',
-  analysis:
-    'The draft JSON not imported into the form and the list of thrown away quotes are lost;',
-};
+/** Что теряет «Discard draft» у готовой заготовки. */
+export const DISCARD_LOSS =
+  'The draft JSON not imported into the form and the list of thrown away quotes are lost;';
 
 /**
  * Свои отказы заготовки (`api/endpoints/admin/content-draft.ts`); общие коды LLM (`LLM_DISABLED`,
@@ -39,14 +29,10 @@ export const DISCARD_LOSS: Record<ContentDraftKind, string> = {
 const REFUSALS: Record<string, string> = {
   DRAFT_IN_PROGRESS: 'A draft of this kind is already being built.',
   SOURCE_HAS_NO_CHAPTERS: 'This version has no chapter text to draft from.',
-  SUMMARY_SECTIONS_MISSING: 'Save at least one summary section with text first.',
-  SUMMARY_FULL_MISSING: 'Save the full summary with text first.',
   DOSSIER_STALE: 'The book text changed after the dossier was built: rebuild the dossier.',
   DRAFT_DOSSIER_MISSING: 'The dossier of the translation run that made this version is gone.',
   RUN_LANGUAGE_UNFINISHED:
     'The translation run is still writing this version: wait until it finishes.',
-  DRAFT_NOT_READY: 'The draft is no longer ready: reload it.',
-  DRAFT_SECTION_UNKNOWN: 'The draft has no such section.',
   DRAFT_LIMIT_TOO_LOW: 'The limit is below the limits of the dossier and glossary built first.',
   LLM_CEILING_REACHED: 'The spending ceiling is reached: raise it in LLM settings.',
   DOSSIER_FRESH: 'The dossier is already fresh.',
@@ -65,35 +51,49 @@ export const refusalText = (error: unknown): string => {
   return code && REFUSALS[code] ? REFUSALS[code] : runRefusalText(error);
 };
 
-/** Окончательные отказы заготовки (`failedReason`). */
-const FAILURES: Record<string, string> = {
+/**
+ * Окончательные отказы заготовки (`failedReason`), общие с ходом пересказа (F06): его таблица
+ * дополняет эту своими кодами.
+ */
+export const DRAFT_FAILURES: Readonly<Record<string, string>> = {
   DRAFT_INVALID_RESPONSE: 'the model answered not in the expected form',
   DRAFT_TOO_LONG: 'the text is too long for the model or for the field',
-  DRAFT_NO_PLAN: 'the dossier has no plan of sections',
   DRAFT_DOSSIER_MISSING: 'the dossier is gone',
-  DRAFT_INPUT_MISSING:
-    'the saved text it was built from is gone or the version has no chapter text',
+  DRAFT_INPUT_MISSING: 'the version has no chapter text or the dossier is gone',
   DRAFT_CANCELLED: 'its operation was cancelled',
 };
 
-export const failedText = (reason: string | null): string =>
-  `Failed: ${(reason && FAILURES[reason]) ?? reason ?? 'unknown reason'}.`;
+/** Причина словами; неизвестный код — сам код, нет кода — «unknown reason». */
+export const failureReason = (
+  reason: string | null,
+  table: Readonly<Record<string, string>> = DRAFT_FAILURES
+): string => (reason ? (table[reason] ?? reason) : 'unknown reason');
 
-/** Ход строящейся заготовки: чего ждёт, сколько разделов готово, пауза операции. */
-export const buildingText = (draft: ContentDraft): string => {
-  if (draft.operation.status === 'paused') {
-    return `Paused: ${operationPauseText(draft.operation.pauseReason)}.`;
+export const failedText = (reason: string | null): string => `Failed: ${failureReason(reason)}.`;
+
+/** Ход фоном: пауза операции с причиной, ожидание досье и глоссария; иначе — `writing`. */
+export const operationStatusText = (
+  operation: LlmOperation,
+  waitingFor: 'dossier' | 'glossary' | null,
+  writing: string
+): string => {
+  if (operation.status === 'paused') {
+    return `Paused: ${operationPauseText(operation.pauseReason)}.`;
   }
-  if (draft.waitingFor === 'dossier') return 'Building the dossier first…';
-  if (draft.waitingFor === 'glossary') return 'Building the glossary of this language first…';
-  if (draft.kind === 'summary_sections' && draft.plannedSections !== null) {
-    return `Building the draft: ${draft.sections?.length ?? 0} of ${draft.plannedSections} sections…`;
-  }
-  return 'Building the draft…';
+  if (waitingFor === 'dossier') return 'Building the dossier first…';
+  if (waitingFor === 'glossary') return 'Building the glossary of this language first…';
+  return writing;
 };
 
-/** Окно подтверждения старта: что строится первым и сколько стоит сверху. */
-export const estimateText = (estimate: ContentDraftEstimate): string => {
+/** Ход строящейся заготовки: чего ждёт, пауза операции. */
+export const buildingText = (draft: ContentDraft): string =>
+  operationStatusText(draft.operation, draft.waitingFor, 'Building the draft…');
+
+/** Строки окна старта о том, что строится первым: досье (или его отказ) и глоссарий. */
+export const contextEstimateLines = (estimate: {
+  dossier: DossierContextLine | null;
+  glossary: CompareContextLine | null;
+}): string[] => {
   const lines: string[] = [];
   if (estimate.dossier?.refusedTooLong) {
     lines.push(DOSSIER_REFUSED_TEXT);
@@ -105,17 +105,20 @@ export const estimateText = (estimate: ContentDraftEstimate): string => {
       `The glossary of this language is built first: up to ${formatMoney(estimate.glossary.estimateUsd)}.`
     );
   }
-  const sections =
-    estimate.sections !== null
-      ? ` (${estimate.sections} sections)`
-      : estimate.upperBound
-        ? estimate.kind === 'summary_sections'
-          ? ' (the plan is not known yet: one section per chapter)'
-          : ' (the dossier is not built yet: upper estimate)'
-        : '';
-  lines.push(`The draft: up to ${formatMoney(estimate.stageUsd)}${sections}.`);
-  lines.push(`Operation limit: ${formatMoney(estimate.suggestedLimitUsd)}.`);
-  return lines.join(' ');
+  return lines;
+};
+
+export const limitLine = (suggestedLimitUsd: LlmMoney): string =>
+  `Operation limit: ${formatMoney(suggestedLimitUsd)}.`;
+
+/** Окно подтверждения старта: что строится первым и сколько стоит сверху. */
+export const estimateText = (estimate: ContentDraftEstimate): string => {
+  const upper = estimate.upperBound ? ' (the dossier is not built yet: upper estimate)' : '';
+  return [
+    ...contextEstimateLines(estimate),
+    `The draft: up to ${formatMoney(estimate.stageUsd)}${upper}.`,
+    limitLine(estimate.suggestedLimitUsd),
+  ].join(' ');
 };
 
 export const dossierEstimateText = (estimate: DossierEstimate): string =>

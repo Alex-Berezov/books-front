@@ -6,9 +6,9 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 export interface SummaryTabProps {
   /** Book version ID */
   versionId: string;
-  /** `admin`: заготовки из досье (F05-10); остальным ролям их нет вовсе (решение арбитра `F05 | F05-10`, В8). */
+  /** `admin`: ход «Write Summary» (F06-3); остальным ролям его нет вовсе. */
   isAdmin?: boolean;
-  /** Язык админки: ссылка на «LLM settings» из отказа заготовки. */
+  /** Язык админки: ссылка на «LLM settings» из отказа и паузы хода. */
   lang?: SupportedLang;
 }
 

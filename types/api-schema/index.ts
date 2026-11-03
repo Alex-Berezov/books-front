@@ -618,7 +618,7 @@ export type {
   GlossaryEntry,
 } from './dossier';
 
-// Summary (F05-10) and analysis (F05-11) drafts from the dossier, admin only
+// Analysis (F05-11) drafts from the dossier, admin only
 export type {
   ContentDraft,
   ContentDraftAnalysis,
@@ -626,9 +626,27 @@ export type {
   ContentDraftEstimate,
   ContentDraftKind,
   ContentDraftMotif,
-  ContentDraftSection,
   ContentDraftState,
   ContentDraftStatus,
   StartContentDraftRequest,
-  SummaryDraftKind,
 } from './content-draft';
+
+// Summary run «Write Summary» (F06-2, F06-3), admin only
+export type {
+  AcceptSummaryItemRequest,
+  RegenerateSummaryItemRequest,
+  SummaryChapterChangeBody,
+  SummaryChapterRange,
+  SummaryFieldChangedBody,
+  SummaryWrite,
+  SummaryWriteEstimate,
+  SummaryWriteItem,
+  SummaryWriteOutcome,
+  SummaryWriteOwns,
+  SummaryWriteRemark,
+  SummaryWriteRemarkCode,
+  SummaryWriteReview,
+  SummaryWriteState,
+  SummaryWriteTarget,
+  SummaryWriteVerdict,
+} from './summary-write';

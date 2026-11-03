@@ -9,14 +9,13 @@ import { ApiError } from '@/types/api';
 import type { ContentDraftEstimate } from '@/types/api-schema';
 
 /**
- * F05-10, F05-11: подписи общей оболочки заготовки — оценка сверху по виду и причина отказа.
+ * F05-11: подписи оболочки заготовки — оценка сверху по виду и причина отказа.
  */
 
 const estimate = (patch: Partial<ContentDraftEstimate>): ContentDraftEstimate => ({
-  kind: 'summary_sections',
+  kind: 'analysis',
   dossier: null,
   glossary: null,
-  sections: null,
   stageUsd: '0.5',
   upperBound: true,
   suggestedLimitUsd: '0.75',
@@ -24,12 +23,13 @@ const estimate = (patch: Partial<ContentDraftEstimate>): ContentDraftEstimate =>
 });
 
 describe('contentDraft.utils', () => {
-  it('upper estimate: sections — one section per chapter; analysis — dossier not built yet', () => {
-    expect(estimateText(estimate({}))).toContain('one section per chapter');
-    const analysis = estimateText(estimate({ kind: 'analysis' }));
-    expect(analysis).toContain('the dossier is not built yet: upper estimate');
+  it('upper estimate: the dossier is not built yet; no sections in the analysis text', () => {
+    const analysis = estimateText(estimate({}));
+    expect(analysis).toContain(
+      'The draft: up to $0.5 (the dossier is not built yet: upper estimate).'
+    );
     expect(analysis).not.toContain('section');
-    expect(estimateText(estimate({ sections: 4, upperBound: false }))).toContain('(4 sections)');
+    expect(estimateText(estimate({ upperBound: false }))).toContain('The draft: up to $0.5.');
   });
 
   it('SOURCE_HAS_NO_CHAPTERS of a draft speaks of drafting, not of translating (Р26)', () => {
@@ -52,9 +52,18 @@ describe('contentDraft.utils', () => {
     );
   });
 
+  it('DRAFT_NO_PLAN is not a reason of the analysis draft: shown as the code (F06-3)', () => {
+    expect(failedText('DRAFT_NO_PLAN')).toBe('Failed: DRAFT_NO_PLAN.');
+  });
+
+  it('an empty or missing reason is «unknown reason», not an empty text', () => {
+    expect(failedText('')).toBe('Failed: unknown reason.');
+    expect(failedText(null)).toBe('Failed: unknown reason.');
+  });
+
   it('DRAFT_INPUT_MISSING names a version without chapter text', () => {
     expect(failedText('DRAFT_INPUT_MISSING')).toBe(
-      'Failed: the saved text it was built from is gone or the version has no chapter text.'
+      'Failed: the version has no chapter text or the dossier is gone.'
     );
   });
 

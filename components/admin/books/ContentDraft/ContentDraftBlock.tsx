@@ -1,80 +1,49 @@
 'use client';
 
 import { useState, type FC, type ReactNode } from 'react';
-import Link from 'next/link';
-import {
-  useContentDraft,
-  useContentDraftActions,
-  useContentDraftEstimate,
-  useDossierEstimate,
-} from '@/api/hooks';
+import { useContentDraft, useContentDraftActions, useContentDraftEstimate } from '@/api/hooks';
 import { Button } from '@/components/admin/common/Button';
 import { ConfirmDialog } from '@/components/admin/shared';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { ContentDraft, ContentDraftKind } from '@/types/api-schema';
+import type { ContentDraft } from '@/types/api-schema';
 import styles from './ContentDraft.module.scss';
 import {
   DISCARD_LOSS,
   DRAFT_BUTTON,
-  dossierEstimateText,
+  buildingText,
   estimateText,
   failedText,
-  refusalCode,
   refusalText,
 } from './contentDraft.utils';
-import { ContentDraftProgress } from './ContentDraftProgress';
+import { OperationProgress } from './OperationProgress';
+import { StartConfirm } from './StartConfirm';
+import { StartRefusal } from './StartRefusal';
 
 export interface ContentDraftBlockProps {
   versionId: string;
-  kind: ContentDraftKind;
   lang: SupportedLang;
-  /** Почему шаг недоступен (предыдущий не сохранён); `null` — доступен, `''` — недоступен, подсказка уже рядом. */
-  blockedHint: string | null;
-  /**
-   * Готовые части видны и по ходу, и после отказа (разделы Summary: оплачены и годны); иначе
-   * результат — только у готовой заготовки.
-   */
-  partial?: boolean;
-  /** Готовая заготовка: карточки разделов, «подставить в поле», «открыть в импорте». */
-  children: (draft: ContentDraft, tools: ContentDraftTools) => ReactNode;
+  /** Готовая заготовка: «открыть в импорте». */
+  children: (draft: ContentDraft) => ReactNode;
 }
 
-/** Действия над заготовкой для её карточек. */
-export interface ContentDraftTools {
-  /** Раздел добавлен «Add section» — отметка на сервере (решение `F05 | F05-10`, Р1). */
-  markAdded: (sectionNumber: number) => Promise<unknown>;
-}
+const KIND = 'analysis';
 
 /**
- * Заготовка из досье (`product.md` §5.1) — шаг Summary (F05-10) или Analysis (F05-11), только
- * `admin`: кнопка с оценкой, ход фоном (строится досье, глоссарий, заготовка; пауза операции),
- * отказ с причиной, готовая заготовка. Ничего не сохраняет — сохраняет редактор (решение арбитра
- * `F05 | F05-11`, Р12: одна оболочка на обе вкладки).
+ * Заготовка Analysis из досье (F05 `product.md` §5.1, F05-11), только `admin`: кнопка с оценкой,
+ * ход фоном (строится досье, глоссарий, заготовка; пауза операции), отказ с причиной, готовая
+ * заготовка. Ничего не сохраняет — сохраняет редактор. Пошаговые заготовки Summary (F05-10)
+ * сняты: их заменил ход «Write Summary» (F06-3), он же делит с этим блоком паузу, отказ старта
+ * и окно оценки.
  */
-export const ContentDraftBlock: FC<ContentDraftBlockProps> = ({
-  versionId,
-  kind,
-  lang,
-  blockedHint,
-  partial = false,
-  children,
-}) => {
-  const { data, isError, refetch } = useContentDraft(versionId, kind, true);
-  const actions = useContentDraftActions(versionId, kind);
+export const ContentDraftBlock: FC<ContentDraftBlockProps> = ({ versionId, lang, children }) => {
+  const { data, isError, refetch } = useContentDraft(versionId, KIND, true);
+  const actions = useContentDraftActions(versionId, KIND);
   const [confirming, setConfirming] = useState(false);
-  const [rebuilding, setRebuilding] = useState(false);
   const [discarding, setDiscarding] = useState(false);
-  const estimate = useContentDraftEstimate(versionId, kind, confirming);
-  const dossierEstimate = useDossierEstimate(versionId, rebuilding);
+  const estimate = useContentDraftEstimate(versionId, KIND, confirming);
 
   const draft = data?.draft ?? null;
   const building = draft?.status === 'building';
-  // Досье устарело — по отказу старта или оценки; оценка хранит отказ и после закрытия окна.
-  // Перестройка пошла — кнопки нет, отказала — снова есть.
-  const rebuildDone = actions.rebuildDossier.isPending || actions.rebuildDossier.isSuccess;
-  const stale =
-    !rebuildDone &&
-    [actions.start.error, estimate.error].some((e) => refusalCode(e) === 'DOSSIER_STALE');
 
   const openStart = () => {
     actions.start.reset();
@@ -85,43 +54,17 @@ export const ContentDraftBlock: FC<ContentDraftBlockProps> = ({
     setDiscarding(false);
     if (draft) actions.discard.mutate(draft.id);
   };
-  const tools: ContentDraftTools = {
-    markAdded: (sectionNumber) =>
-      draft
-        ? actions.markAdded.mutateAsync({ id: draft.id, sectionNumber })
-        : Promise.reject(new Error('no draft')),
-  };
-
-  const confirmStart = () => {
-    setConfirming(false);
-    actions.start.mutate({});
-  };
-  const confirmRebuild = () => {
-    setRebuilding(false);
-    actions.rebuildDossier.mutate();
-  };
-
-  const startMessage = estimate.data
-    ? estimateText(estimate.data)
-    : estimate.isError
-      ? refusalText(estimate.error)
-      : 'Estimating the cost…';
-  const dossierMessage = dossierEstimate.data
-    ? dossierEstimateText(dossierEstimate.data)
-    : dossierEstimate.isError
-      ? refusalText(dossierEstimate.error)
-      : 'Estimating the cost…';
 
   return (
-    <div className={styles.draft} aria-label={`${DRAFT_BUTTON[kind]} block`}>
+    <div className={styles.draft} aria-label={`${DRAFT_BUTTON} block`}>
       <div className={styles.draftActions}>
         <Button
           variant="secondary"
           onClick={openStart}
           loading={actions.start.isPending}
-          disabled={blockedHint !== null || building || actions.start.isPending}
+          disabled={building || actions.start.isPending}
         >
-          {DRAFT_BUTTON[kind]}
+          {DRAFT_BUTTON}
         </Button>
         {draft && (
           <Button
@@ -134,7 +77,6 @@ export const ContentDraftBlock: FC<ContentDraftBlockProps> = ({
           </Button>
         )}
       </div>
-      {blockedHint ? <p className={styles.labelHint}>{blockedHint}</p> : null}
 
       {isError && (
         <p className={styles.error} role="alert">
@@ -144,52 +86,33 @@ export const ContentDraftBlock: FC<ContentDraftBlockProps> = ({
           </Button>
         </p>
       )}
-      {actions.start.error && !rebuildDone && (
-        <p className={styles.error} role="alert">
-          {refusalText(actions.start.error)}
-          {refusalCode(actions.start.error) === 'LLM_CEILING_REACHED' && (
-            <>
-              {' '}
-              <Link href={`/admin/${lang}/llm-settings`}>LLM settings</Link>
-            </>
-          )}
-        </p>
-      )}
-      {stale && (
-        <Button
-          variant="secondary"
-          onClick={() => setRebuilding(true)}
-          loading={actions.rebuildDossier.isPending}
-          disabled={actions.rebuildDossier.isPending}
-        >
-          Rebuild dossier
-        </Button>
-      )}
-      {actions.rebuildDossier.error && (
-        <p className={styles.error} role="alert">
-          {refusalText(actions.rebuildDossier.error)}
-        </p>
-      )}
-      {actions.rebuildDossier.isSuccess && (
-        <p className={styles.labelHint} role="status">
-          The dossier is being rebuilt. Start the draft again when it is ready.
-        </p>
-      )}
+      <StartRefusal
+        versionId={versionId}
+        lang={lang}
+        startError={actions.start.error}
+        estimateError={estimate.error}
+        rebuildDossier={actions.rebuildDossier}
+        refusalText={refusalText}
+        rebuiltHint="The dossier is being rebuilt. Start the draft again when it is ready."
+      />
 
       {draft && building && (
-        <ContentDraftProgress draft={draft} lang={lang} resume={actions.resume} />
+        <OperationProgress
+          operation={draft.operation}
+          text={buildingText(draft)}
+          lang={lang}
+          resume={actions.resume}
+          limitLabel="New limit of the draft"
+          resumeLabel="Resume"
+          refusalText={refusalText}
+        />
       )}
       {draft?.status === 'failed' && (
         <p className={styles.error} role="alert">
           {failedText(draft.failedReason)}
         </p>
       )}
-      {draft?.status === 'ready' && draft.question && (
-        <p className={styles.labelHint}>Question from the model: {draft.question}</p>
-      )}
-      {draft && (draft.status === 'ready' || (draft.status !== 'discarded' && partial))
-        ? children(draft, tools)
-        : null}
+      {draft?.status === 'ready' ? children(draft) : null}
 
       {/* «Не нужна» выбрасывает оплаченное: только после подтверждения. */}
       <ConfirmDialog
@@ -198,35 +121,24 @@ export const ContentDraftBlock: FC<ContentDraftBlockProps> = ({
         message={
           building
             ? 'Stop building this draft and discard it? The money spent so far is not returned.'
-            : `Discard this draft? ${DISCARD_LOSS[kind]} a new draft costs money again.`
+            : `Discard this draft? ${DISCARD_LOSS} a new draft costs money again.`
         }
         confirmLabel="Discard"
         isDestructive
         onConfirm={confirmDiscard}
         onCancel={() => setDiscarding(false)}
       />
-      {/* Без цены подтверждать нечего: подтверждение неактивно, пока оценка не пришла. Досье,
-          которому старт откажет (T151), не построится: старт выбросил бы прежнюю заготовку и встал. */}
-      <ConfirmDialog
+      <StartConfirm
         isOpen={confirming}
-        title={DRAFT_BUTTON[kind]}
-        message={startMessage}
-        confirmLabel="Start"
-        isLoading={estimate.isFetching}
-        isConfirmDisabled={!estimate.data || estimate.data.dossier?.refusedTooLong === true}
-        onConfirm={confirmStart}
+        title={DRAFT_BUTTON}
+        estimate={estimate}
+        text={estimateText}
+        refusalText={refusalText}
+        onConfirm={() => {
+          setConfirming(false);
+          actions.start.mutate({});
+        }}
         onCancel={() => setConfirming(false)}
-      />
-      <ConfirmDialog
-        isOpen={rebuilding}
-        title="Rebuild dossier"
-        message={dossierMessage}
-        confirmLabel="Rebuild"
-        isLoading={dossierEstimate.isFetching}
-        // Старт откажет `DOSSIER_TOO_LONG` (T147): «Rebuild» закрыл бы строку отказом, а не строил.
-        isConfirmDisabled={!dossierEstimate.data || dossierEstimate.data.refusedTooLong}
-        onConfirm={confirmRebuild}
-        onCancel={() => setRebuilding(false)}
       />
     </div>
   );

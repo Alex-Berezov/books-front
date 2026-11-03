@@ -250,7 +250,7 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     // Мотивы — только из готовой заготовки (Р10): строящаяся или отброшенная их не даёт.
     const draft = draftQuery.data?.draft;
     const motifs =
-      draft?.status === 'ready' && draft.motifs
+      draft?.status === 'ready'
         ? { motifs: draft.motifs, dossierLanguage: draft.dossierLanguage }
         : null;
     const text = buildAnalysisPromptInputsText(version, items, pagination.total, motifs);

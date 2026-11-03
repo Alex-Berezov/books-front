@@ -10,10 +10,11 @@ import {
   useContentDraftActions,
 } from '@/api/hooks/useContentDraft';
 import { dossierKeys } from '@/api/hooks/useDossier';
+import { summaryWriteKeys } from '@/api/hooks/useSummaryWrite';
 import type { ContentDraft, ContentDraftState, LlmOperation } from '@/types/api-schema';
 
 /**
- * F05-10: заготовка перечитывается, пока строится и её операция идёт; пауза, отказ, готовность
+ * F05-11: заготовка перечитывается, пока строится и её операция идёт; пауза, отказ, готовность
  * и упавший запрос — без опроса. Кнопки сбрасывают заготовку вида, перестройка — и досье.
  */
 
@@ -21,7 +22,6 @@ const api = vi.hoisted(() => ({
   discardContentDraft: vi.fn(),
   getContentDraft: vi.fn(),
   getContentDraftEstimate: vi.fn(),
-  markContentDraftSectionAdded: vi.fn(),
   startContentDraft: vi.fn(),
 }));
 vi.mock('@/api/endpoints/admin/content-draft', () => api);
@@ -74,47 +74,37 @@ describe('useContentDraftActions', () => {
   it('start refreshes the draft of its kind once, also on a refusal', async () => {
     const spy = vi.spyOn(client, 'invalidateQueries');
     api.startContentDraft.mockRejectedValueOnce(new Error('409'));
-    const { result } = renderHook(() => useContentDraftActions('v1', 'summary_full'), { wrapper });
+    const { result } = renderHook(() => useContentDraftActions('v1', 'analysis'), { wrapper });
     act(() => result.current.start.mutate({}));
     await waitFor(() => expect(result.current.start.isError).toBe(true));
     expect(api.startContentDraft).toHaveBeenCalledTimes(1);
-    expect(api.startContentDraft).toHaveBeenCalledWith('v1', 'summary_full', {});
+    expect(api.startContentDraft).toHaveBeenCalledWith('v1', 'analysis', {});
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith({ queryKey: contentDraftKeys.latest('v1', 'summary_full') });
+    expect(spy).toHaveBeenCalledWith({ queryKey: contentDraftKeys.latest('v1', 'analysis') });
   });
 
-  it('rebuilding the dossier refreshes every draft, the dossier and its estimate', async () => {
+  it('rebuilding the dossier resets the analysis draft and the summary run of this version', async () => {
     const spy = vi.spyOn(client, 'invalidateQueries');
     // Отказ оценки DOSSIER_STALE в кэше выключенного запроса вернул бы «Rebuild dossier».
-    client.setQueryData(contentDraftKeys.estimate('v1', 'summary_sections'), { stale: true });
+    client.setQueryData(contentDraftKeys.estimate('v1', 'analysis'), { stale: true });
+    client.setQueryData(summaryWriteKeys.estimate('v1'), { stale: true });
+    client.setQueryData(summaryWriteKeys.estimate('v2'), { other: true });
     translation.buildDossier.mockResolvedValueOnce({});
-    const { result } = renderHook(() => useContentDraftActions('v1', 'summary_sections'), {
+    const { result } = renderHook(() => useContentDraftActions('v1', 'analysis'), {
       wrapper,
     });
     act(() => result.current.rebuildDossier.mutate());
     await waitFor(() => expect(result.current.rebuildDossier.isSuccess).toBe(true));
     expect(translation.buildDossier).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls.map(([arg]) => (arg as { queryKey: unknown }).queryKey)).toEqual([
-      contentDraftKeys.all,
+      contentDraftKeys.latest('v1', 'analysis'),
+      summaryWriteKeys.latest('v1'),
       dossierKeys.version('v1'),
       dossierKeys.estimate('v1'),
     ]);
-    expect(
-      client.getQueryData(contentDraftKeys.estimate('v1', 'summary_sections'))
-    ).toBeUndefined();
-  });
-
-  it('the added mark refreshes the draft of its kind', async () => {
-    const spy = vi.spyOn(client, 'invalidateQueries');
-    api.markContentDraftSectionAdded.mockResolvedValueOnce({});
-    const { result } = renderHook(() => useContentDraftActions('v1', 'summary_sections'), {
-      wrapper,
-    });
-    await act(() => result.current.markAdded.mutateAsync({ id: 'd1', sectionNumber: 2 }));
-    expect(api.markContentDraftSectionAdded).toHaveBeenCalledTimes(1);
-    expect(api.markContentDraftSectionAdded).toHaveBeenCalledWith('d1', 2);
-    expect(spy).toHaveBeenCalledWith({
-      queryKey: contentDraftKeys.latest('v1', 'summary_sections'),
-    });
+    // Обе оценки этой версии сброшены, чужая версия не тронута.
+    expect(client.getQueryData(contentDraftKeys.estimate('v1', 'analysis'))).toBeUndefined();
+    expect(client.getQueryData(summaryWriteKeys.estimate('v1'))).toBeUndefined();
+    expect(client.getQueryData(summaryWriteKeys.estimate('v2'))).toEqual({ other: true });
   });
 });

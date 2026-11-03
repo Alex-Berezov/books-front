@@ -1,5 +1,5 @@
 /**
- * React Query hooks for the summary (F05-10) and analysis (F05-11) drafts from the dossier, `admin` only.
+ * React Query hooks for the analysis draft from the dossier (F05-11), `admin` only.
  *
  * Заготовка строится фоном на бэкенде: последняя заготовка вида перечитывается раз в несколько
  * секунд, пока она строится и её операция `active`; пауза, отказ и готовность — без опроса.
@@ -12,35 +12,23 @@ import {
   discardContentDraft,
   getContentDraft,
   getContentDraftEstimate,
-  markContentDraftSectionAdded,
   startContentDraft,
 } from '@/api/endpoints/admin/content-draft';
-import { LLM_MODELS_UNAVAILABLE, resumeLlmOperation } from '@/api/endpoints/admin/llm';
-import { buildDossier } from '@/api/endpoints/admin/translation';
-import { localErrorCodes } from '@/lib/api/local-error-codes';
+import { resumeLlmOperation } from '@/api/endpoints/admin/llm';
 import type { ApiError } from '@/types/api';
 import type {
   ContentDraft,
   ContentDraftState,
-  DossierStatus,
   LlmOperation,
   ContentDraftKind,
 } from '@/types/api-schema';
-import { dossierKeys } from './useDossier';
+import { CONTENT_DRAFT_LOCAL_CODES, contentDraftKeys } from './draftKeys';
+import { useRebuildDossier } from './useRebuildDossier';
+
+export { CONTENT_DRAFT_LOCAL_CODES, contentDraftKeys } from './draftKeys';
 
 /** Пока заготовка строится, она перечитывается с этим шагом. */
 export const CONTENT_DRAFT_REFETCH_MS = 4_000;
-
-/** Отказы, которые вкладка показывает своей подписью, без общего тоста 5xx. */
-export const CONTENT_DRAFT_LOCAL_CODES = localErrorCodes(['LLM_DISABLED', LLM_MODELS_UNAVAILABLE]);
-
-export const contentDraftKeys = {
-  all: ['content-draft'] as const,
-  latest: (versionId: string, kind: ContentDraftKind) =>
-    [...contentDraftKeys.all, 'latest', versionId, kind] as const,
-  estimate: (versionId: string, kind: ContentDraftKind) =>
-    [...contentDraftKeys.all, 'estimate', versionId, kind] as const,
-};
 
 /** Перечитывать, пока строится и операция идёт; запрос упал — опрос встаёт. */
 export const contentDraftRefetchInterval = (
@@ -98,25 +86,8 @@ export const useContentDraftActions = (versionId: string, kind: ContentDraftKind
     meta: CONTENT_DRAFT_LOCAL_CODES,
     onSettled: refresh,
   });
-  const markAdded = useMutation<ContentDraft, ApiError, { id: string; sectionNumber: number }>({
-    mutationFn: ({ id, sectionNumber }) => markContentDraftSectionAdded(id, sectionNumber),
-    onSettled: refresh,
-  });
-  const rebuildDossier = useMutation<DossierStatus, ApiError, void>({
-    mutationFn: () => buildDossier(versionId),
-    meta: CONTENT_DRAFT_LOCAL_CODES,
-    // Отказ оценки `DOSSIER_STALE` лежит в кэше выключенного запроса: сброс, а не пометка
-    // устаревшим, - иначе после перемонтирования вкладки «Rebuild dossier» вернулся бы.
-    onSuccess: () =>
-      queryClient.removeQueries({ queryKey: [...contentDraftKeys.all, 'estimate', versionId] }),
-    onSettled: () =>
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: contentDraftKeys.all }),
-        queryClient.invalidateQueries({ queryKey: dossierKeys.version(versionId) }),
-        queryClient.invalidateQueries({ queryKey: dossierKeys.estimate(versionId) }),
-      ]),
-  });
-  return { start, discard, resume, markAdded, rebuildDossier };
+  const rebuildDossier = useRebuildDossier(versionId);
+  return { start, discard, resume, rebuildDossier };
 };
 
 export type ContentDraftActions = ReturnType<typeof useContentDraftActions>;

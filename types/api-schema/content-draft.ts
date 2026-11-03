@@ -1,7 +1,7 @@
 /**
- * Заготовки Summary (фича F05, F05-10) и Analysis (F05-11) из досье — только `admin`. Заготовка —
- * черновик для формы вкладки: в пересказ и анализ версии сервер её не пишет, сохраняет редактор
- * ручками Summary и Analysis.
+ * Заготовка Analysis (фича F05, F05-11) из досье — только `admin`. Заготовка — черновик для формы
+ * вкладки: в анализ версии сервер её не пишет, сохраняет редактор ручками Analysis. Пошаговые
+ * заготовки Summary (F05-10) сняты: их заменил ход «Write Summary» (F06, `summary-write.ts`).
  * Источник формы — `books/src/modules/translation/dto/content-draft-response.dto.ts` (ответы)
  * и `content-draft-request.dto.ts` (тело старта).
  */
@@ -16,9 +16,8 @@ import type { SupportedLang } from './common';
 import type { LlmMoney, LlmOperation } from './llm';
 import type { CompareContextLine, DossierContextLine } from './translation';
 
-/** Виды заготовки Summary (F05-10); `analysis` — заготовка Analysis (F05-11). */
-export type SummaryDraftKind = 'summary_sections' | 'summary_full' | 'summary_brief';
-export type ContentDraftKind = SummaryDraftKind | 'analysis';
+/** Вид заготовки: только Analysis (F05-11); виды Summary сняты (решение арбитра `F06 | F06-3`, А2). */
+export type ContentDraftKind = 'analysis';
 
 /** Пауза операции заготовку не меняет: она `building`, причина — `operation.pauseReason`. */
 export type ContentDraftStatus = 'building' | 'ready' | 'failed' | 'discarded';
@@ -30,27 +29,11 @@ export interface ContentDraftEstimate {
   dossier: DossierContextLine | null;
   /** Глоссарий языка версии строится первым; `null` — готов или не нужен (язык досье). */
   glossary: CompareContextLine | null;
-  /** Разделов в плане досье; `null` — план ещё не известен или это не разделы. */
-  sections: number | null;
   stageUsd: LlmMoney;
-  /** Досье ещё нет: его размер — по ответу этапов досье и глоссария (разделы — по главе на раздел). */
+  /** Досье ещё нет: его размер — по ответу этапов досье и глоссария. */
   upperBound: boolean;
   /** Лимит по умолчанию: max(этап × 1,5, лимиты досье и глоссария). */
   suggestedLimitUsd: LlmMoney;
-}
-
-export interface ContentDraftSection {
-  /** Номер раздела в плане досье. */
-  number: number;
-  title: string;
-  /** Rich HTML; пусто, когда у глав раздела нет текста в этой версии. */
-  text: string;
-  /** Первая глава раздела в плане; `null` — такой главы у этой версии нет. */
-  readerChapter: number | null;
-  readerChapterMissing: boolean;
-  /** Имена, которых нет в досье. */
-  additions: string | null;
-  question: string | null;
 }
 
 /**
@@ -99,21 +82,12 @@ export interface ContentDraft {
   waitingFor: 'dossier' | 'glossary' | null;
   operation: LlmOperation;
   model: string | null;
-  /** Разделов в плане (`summary_sections`); `null`, пока досье не готово. */
-  plannedSections: number | null;
-  /** Готовые разделы (`summary_sections`). */
-  sections: ContentDraftSection[] | null;
-  /** Номера разделов, уже добавленных «Add section» (отметка на сервере, решение `F05 | F05-10`, Р1). */
-  addedSections: number[];
-  /** Rich HTML (`summary_full`, `summary_brief`). */
-  text: string | null;
-  question: string | null;
   /** JSON импорта (`analysis`). */
   analysis: ContentDraftAnalysis | null;
-  /** Выкинутые цитаты (`analysis`); у других видов — `null`. */
-  droppedQuotes: ContentDraftDroppedQuote[] | null;
-  /** Мотивы досье (`analysis`); у других видов — `null`. */
-  motifs: ContentDraftMotif[] | null;
+  /** Выкинутые цитаты; пустой массив — ни одной (сервер отдаёт массив всегда). */
+  droppedQuotes: ContentDraftDroppedQuote[];
+  /** Мотивы досье; пустой массив — ни одного (сервер отдаёт массив всегда). */
+  motifs: ContentDraftMotif[];
   /** Язык досье, по которому собрана заготовка Analysis. */
   dossierLanguage: SupportedLang | null;
   /** `updatedAt` анализа, поверх которого собрана заготовка; `null` — анализа не было (Р15). */

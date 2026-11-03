@@ -9,6 +9,8 @@ export interface LimitResumeProps {
   label: string;
   pending: boolean;
   onResume: (limitUsd: string) => void;
+  /** Подпись кнопки; по умолчанию «Resume» (ход «Write Summary» — «Continue», F06-3). */
+  actionLabel?: string;
   children?: ReactNode;
 }
 
@@ -36,7 +38,13 @@ export const LimitInput: FC<LimitInputProps> = ({ value, onChange, ok, ...rest }
  * Новый лимит, $: поле и «продолжить» с ним — пауза запуска по лимиту, операция досье
  * и попытка повтора куска (F05-7, F05-7v).
  */
-export const LimitResume: FC<LimitResumeProps> = ({ label, pending, onResume, children }) => {
+export const LimitResume: FC<LimitResumeProps> = ({
+  label,
+  pending,
+  onResume,
+  actionLabel = 'Resume',
+  children,
+}) => {
   const [limit, setLimit] = useState('');
   const ok = isValidMoney(limit);
   return (
@@ -49,7 +57,7 @@ export const LimitResume: FC<LimitResumeProps> = ({ label, pending, onResume, ch
         disabled={!ok}
         onClick={() => onResume(limit.trim())}
       >
-        Resume
+        {actionLabel}
       </Button>
     </div>
   );

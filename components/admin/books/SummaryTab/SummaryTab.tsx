@@ -1,21 +1,19 @@
 'use client';
 
-import type { FC } from 'react';
+import { useCallback, type FC } from 'react';
 import dynamic from 'next/dynamic';
-import { useBookSummarySections } from '@/api/hooks';
 import { Button } from '@/components/admin/common/Button';
 import { Spinner } from '@/components/admin/shared';
 import type { SummaryTabProps } from './SummaryTab.types';
+import type { SummaryWriteField } from './SummaryWrite/summaryWrite.utils';
+import { ServerTextNotice } from './ServerTextNotice';
 import { SummaryFormField } from './SummaryFormField';
 import { SummarySections } from './SummarySections';
 import styles from './SummaryTab.module.scss';
 import { useSummaryTab } from './useSummaryTab';
 
-// Заготовка из досье — только у `admin` и по кнопке: в бандл страницы версии не входит.
-const SummaryDraft = dynamic(() => import('./SummaryDraft').then((m) => m.SummaryDraft), {
-  ssr: false,
-});
-const ApplyDraftText = dynamic(() => import('./SummaryDraft').then((m) => m.ApplyDraftText), {
+// Ход «Write Summary» — только у `admin` (F06-3): в бандл страницы версии не входит.
+const SummaryWrite = dynamic(() => import('./SummaryWrite').then((m) => m.SummaryWrite), {
   ssr: false,
 });
 
@@ -32,6 +30,9 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
     handleFieldChange,
     handleSave,
     handleSaveBrief,
+    reloadFields,
+    serverUpdates,
+    loadServerText,
     hasFullSummary,
     briefMinutes,
     isLoading,
@@ -40,17 +41,11 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
     loadFailed,
   } = useSummaryTab(props);
   const { isAdmin = false, lang = 'en', versionId } = props;
-  // Тот же запрос, что у списка разделов ниже (общий ключ): лишнего обращения нет.
-  const sectionsQuery = useBookSummarySections(versionId);
-  // Не загрузилось — не «разделов нет»: шаг закрыт своей причиной (L-013). Пустой текст раздела
-  // список не показывает — его отсекает сервер (409 `SUMMARY_SECTIONS_MISSING`).
-  const fullBlockedHint = sectionsQuery.isError
-    ? 'Failed to load the saved sections.'
-    : sectionsQuery.isPending
-      ? 'Loading the saved sections…'
-      : (sectionsQuery.data?.sections.length ?? 0) > 0
-        ? null
-        : 'Save the summary sections first.';
+  // Ход зовёт его из эффекта: одна функция на всю жизнь вкладки, без лишних перезапусков.
+  const onFieldsWritten = useCallback(
+    (fields: SummaryWriteField[]) => void reloadFields(fields),
+    [reloadFields]
+  );
 
   if (isLoading) {
     return (
@@ -63,6 +58,10 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Book Summary</h2>
+
+      {isAdmin && (
+        <SummaryWrite versionId={versionId} lang={lang} onFieldsWritten={onFieldsWritten} />
+      )}
 
       {loadFailed ? (
         <p className={styles.error} role="alert">
@@ -79,25 +78,8 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
             rows={24}
             value={formData.summaryText}
           />
-
-          {isAdmin && (
-            <SummaryDraft
-              versionId={versionId}
-              kind="summary_full"
-              lang={lang}
-              blockedHint={fullBlockedHint}
-            >
-              {(draft) =>
-                draft.text !== null && (
-                  <ApplyDraftText
-                    text={draft.text}
-                    current={formData.summaryText}
-                    field="Summary"
-                    onUse={(text) => handleFieldChange('summaryText', text)}
-                  />
-                )
-              }
-            </SummaryDraft>
+          {serverUpdates.summaryText !== undefined && (
+            <ServerTextNotice field="Summary" onLoad={() => loadServerText('summaryText')} />
           )}
 
           <Button onClick={handleSave} loading={isSaving} disabled={isSaving}>
@@ -113,30 +95,16 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
             rows={8}
             value={formData.briefText}
           />
+          {serverUpdates.briefText !== undefined && (
+            <ServerTextNotice
+              field="Very short summary"
+              onLoad={() => loadServerText('briefText')}
+            />
+          )}
           <p className={styles.readingTime} aria-live="polite">
             Reading time: {briefMinutes} min
           </p>
           {!hasFullSummary && <p className={styles.labelHint}>Save the full summary first.</p>}
-          {isAdmin && (
-            <SummaryDraft
-              versionId={versionId}
-              kind="summary_brief"
-              lang={lang}
-              // Подсказка «Save the full summary first.» уже стоит у поля выше.
-              blockedHint={hasFullSummary ? null : ''}
-            >
-              {(draft) =>
-                draft.text !== null && (
-                  <ApplyDraftText
-                    text={draft.text}
-                    current={formData.briefText}
-                    field="Very short summary"
-                    onUse={(text) => handleFieldChange('briefText', text)}
-                  />
-                )
-              }
-            </SummaryDraft>
-          )}
           <Button
             onClick={handleSaveBrief}
             loading={isSavingBrief}
@@ -147,7 +115,7 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
         </>
       )}
 
-      <SummarySections versionId={versionId} isAdmin={isAdmin} lang={lang} />
+      <SummarySections versionId={versionId} />
     </div>
   );
 };

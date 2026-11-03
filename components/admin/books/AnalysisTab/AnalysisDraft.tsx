@@ -89,11 +89,11 @@ export const AnalysisDraft: FC<AnalysisDraftProps> = ({
   serverUpdatedAt,
   onOpen,
 }) => (
-  <ContentDraftBlock versionId={versionId} kind="analysis" lang={lang} blockedHint={null}>
+  <ContentDraftBlock versionId={versionId} lang={lang}>
     {(draft) => {
       const hint = openBlockedHint(draft, unsaved, savedUpdatedAt, serverUpdatedAt);
-      const dropped = draft.droppedQuotes ?? [];
-      const motifs = draft.motifs ?? [];
+      const dropped = draft.droppedQuotes;
+      const motifs = draft.motifs;
       return (
         <div className={styles.section}>
           <div className={styles.actions}>
