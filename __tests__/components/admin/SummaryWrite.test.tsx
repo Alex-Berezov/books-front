@@ -770,6 +770,24 @@ describe('SummaryWrite (F06-3)', () => {
       expect(onFieldsWritten).toHaveBeenCalledWith(['full']);
     });
 
+    it.each(['SUMMARY_ITEM_NOT_PROPOSED', 'SUMMARY_WRITE_NOT_READY'])(
+      'a «nothing written» code %s after some accepted: the accepted fields still go into the form',
+      async (code) => {
+        hooks.run = run({
+          items: [item(), full(), item({ index: 5, target: 'brief', number: null, title: null })],
+        });
+        // Полный принят, «Очень кратко» отброшено или ход сброшен в другой вкладке.
+        actions().acceptAll.mutateAsync.mockRejectedValueOnce(
+          conflict({ code, message: 'x', acceptedIndexes: [0, 4] })
+        );
+        view();
+        fireEvent.click(button('Accept all'));
+        await screen.findByRole('alert');
+        expect(onFieldsWritten).toHaveBeenCalledTimes(1);
+        expect(onFieldsWritten).toHaveBeenCalledWith(['full']);
+      }
+    );
+
     it('a 409 with expectedNumber names the way out', async () => {
       actions().acceptAll.mutateAsync.mockRejectedValueOnce(
         conflict({ code: 'SUMMARY_FIELD_CHANGED', message: 'x', current: null, expectedNumber: 2 })

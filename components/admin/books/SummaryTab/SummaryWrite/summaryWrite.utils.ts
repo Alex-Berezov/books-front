@@ -98,8 +98,9 @@ export const isPending = (item: SummaryWriteItem): boolean =>
   item.outcome === 'proposed' || item.outcome === 'waiting';
 
 /**
- * Отказы, после которых сервер точно ничего не записал. Любой другой отказ «Accept» и «Accept
- * all» (сеть, таймаут, 5xx, 409 посреди) мог что-то записать — поля перечитываются.
+ * Отказы, после которых сервер не записал отказанный текст и ничего вслед за ним. Любой другой
+ * отказ (сеть, таймаут, 5xx, 409 посреди) мог что-то записать — поля перечитываются. У «Accept all»
+ * тексты, принятые до отказа, приходят в `acceptedIndexes` при любом коде 409 — их проверяют раньше.
  */
 const NOTHING_WRITTEN: ReadonlySet<string> = new Set([
   'ACCEPT_ALL_CHAPTER_CHANGE',

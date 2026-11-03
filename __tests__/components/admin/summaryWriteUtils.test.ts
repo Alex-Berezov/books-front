@@ -247,7 +247,7 @@ describe('summaryWrite.utils', () => {
     expect(fullWaitsFor([item()])).toBeNull();
   });
 
-  it('only the four refusals that wrote nothing are «nothing written»', () => {
+  it('only the four refusals that did not write the refused text are «nothing written»', () => {
     const code = (c: string) => new ApiError({ statusCode: 409, message: 'x', data: { code: c } });
     for (const c of [
       'ACCEPT_ALL_CHAPTER_CHANGE',

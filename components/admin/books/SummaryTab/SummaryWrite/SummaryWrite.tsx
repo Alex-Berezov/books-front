@@ -86,12 +86,12 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
       reload(before);
     } catch (error) {
       setAcceptAllError({ runId: run.id, error });
-      // Отказ, после которого точно ничего не записано, форму не трогает. Известно, что принято, —
-      // принятые и поле, изменённое на сервере; неизвестно (сеть, 5xx) — все затронутые поля.
-      if (!mayHaveWritten(error)) return;
+      // Известно, что принято (`acceptedIndexes` — при любом коде 409 после части принятых), —
+      // принятые и поле, изменённое на сервере; ничего не принято и отказ «ничего не записано» —
+      // форма не трогается; неизвестно (сеть, 5xx) — все затронутые поля.
       const done = acceptedIndexesOf(error);
       if (done.length === 0) {
-        reload(before);
+        if (mayHaveWritten(error)) reload(before);
         return;
       }
       const stop = fieldChangedOf(error) ? acceptAllStopOf(run.items, done) : null;
