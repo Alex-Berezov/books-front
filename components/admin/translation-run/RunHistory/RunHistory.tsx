@@ -4,10 +4,11 @@ import { useEffect, useState, type FC } from 'react';
 import { Alert, Button } from 'antd';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useTranslationRunHistory } from '@/api/hooks';
+import { isRunRowLive, useTranslationRunHistory } from '@/api/hooks';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import { Pagination } from '@/components/admin/shared';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import { SummaryLineView } from '../SummaryLineView';
 import { DRAFT_LINK_TEXT, refusalText, runStatusText } from '../translationRun.utils';
 import styles from './RunHistory.module.scss';
 import { authorText, languageResultText, stageModelText } from './runHistory.utils';
@@ -101,6 +102,16 @@ export const RunHistory: FC<RunHistoryProps> = ({ versionId, bookId, lang }) => 
                             </Link>
                           </>
                         )}
+                        {run.writeSummary && (
+                          <div className={styles.muted}>
+                            <SummaryLineView
+                              writeSummary
+                              language={r}
+                              draftVersionId={r.draftVersionId}
+                              lang={lang}
+                            />
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -123,7 +134,8 @@ export const RunHistory: FC<RunHistoryProps> = ({ versionId, bookId, lang }) => 
           runId={reportRunId}
           lang={lang}
           // Живой — по последнему чтению истории, а не по моменту клика: запуск мог закончиться.
-          live={reported?.operation.status === 'active'}
+          live={reported !== undefined && isRunRowLive(reported)}
+          writeSummary={reported?.writeSummary ?? false}
           onClose={() => setReportRunId(null)}
         />
       )}

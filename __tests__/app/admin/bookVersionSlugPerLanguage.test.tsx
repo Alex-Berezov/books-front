@@ -115,4 +115,23 @@ describe('слаг языковой версии', () => {
     const request = mocks.updateVersion.mock.calls[0][0] as { data: Record<string, unknown> };
     expect(request.data).not.toHaveProperty('slug');
   });
+
+  it('F06-5b: ссылка «Open the Summary tab» (?tab=summary) открывает вкладку Summary, без неё — Overview', () => {
+    mocks.version = makeVersion();
+    expect(renderHook(() => useBookVersionLogic('version-ru')).result.current.activeTab).toBe(
+      'overview'
+    );
+
+    window.history.pushState({}, '', '/admin/en/books/versions/version-ru?tab=summary');
+    try {
+      const { result } = renderHook(() => useBookVersionLogic('version-ru'));
+      expect(result.current.activeTab).toBe('summary');
+      window.history.pushState({}, '', '/admin/en/books/versions/version-ru?tab=nonsense');
+      expect(renderHook(() => useBookVersionLogic('version-ru')).result.current.activeTab).toBe(
+        'overview'
+      );
+    } finally {
+      window.history.pushState({}, '', '/');
+    }
+  });
 });

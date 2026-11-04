@@ -100,7 +100,8 @@ const REFUSALS: Record<string, Refusal> = {
   },
 };
 
-const runRefusalOf = (code: string): string | undefined => {
+/** Подпись отказа запуска по коду; чужой код — `undefined`. */
+export const runRefusalOf = (code: string): string | undefined => {
   const refusal = REFUSALS[code];
   return typeof refusal === 'object' ? refusal.text : refusal;
 };
@@ -158,10 +159,13 @@ export const toModelOptions = (models: LlmModel[]): Array<{ value: string; label
 export const startRunRequest = (
   languages: SupportedLang[],
   translateModel: string | null,
-  limit: string
+  limit: string,
+  writeSummary = false
 ): StartTranslationRunRequest => ({
   languages,
   ...(translateModel ? { translateModel } : {}),
+  // Явное `false` не шлём: бэкенд читает отсутствие как «выключено».
+  ...(writeSummary ? { writeSummary: true } : {}),
   ...(limit.trim() ? { limitUsd: limit.trim() } : {}),
 });
 

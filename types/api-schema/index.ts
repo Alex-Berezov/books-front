@@ -579,6 +579,8 @@ export type {
   TranslationRunLanguageEstimate,
   TranslationRunLanguageResult,
   TranslationRunLanguageStatus,
+  TranslationRunSummary,
+  TranslationRunSummaryStatus,
   TranslationRunListItem,
   TranslationRunListParams,
   TranslationRunListResponse,

@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import {
+  addMoney,
   formatMoney,
   isPositiveMoney,
   isValidMoney,
@@ -169,5 +170,20 @@ describe('modelPriceLabel', () => {
   it('каталог не загрузился — «цена неизвестна», а не «нет в списке»', () => {
     expect(modelPriceLabel(undefined, false)).toBe('price unknown: the model list is unavailable');
     expect(modelPriceLabel(undefined, true)).toBe('not in the OpenRouter list');
+  });
+});
+
+describe('addMoney — сумма строкой без перевода в число (F06-5b)', () => {
+  it('восемь знаков без потери точности, без хвостовых нулей', () => {
+    expect(addMoney('0.1', '0.2')).toBe('0.3');
+    expect(addMoney('0.00000001', '0.99999999')).toBe('1');
+    expect(addMoney('1.25000000', '2', '0.5')).toBe('3.75');
+    expect(addMoney()).toBe('0');
+  });
+
+  it('слагаемое не по форме суммы — null, а не падение', () => {
+    expect(addMoney('1', '')).toBeNull();
+    expect(addMoney('NaN')).toBeNull();
+    expect(addMoney('-1')).toBeNull();
   });
 });

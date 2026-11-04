@@ -68,6 +68,7 @@ const language = (over: Partial<TranslationRunLanguage> = {}): TranslationRunLan
   glossaryId: 'g1',
   blockedByOperationId: null,
   draftVersionId: null,
+  summary: null,
   ...over,
 });
 
@@ -80,6 +81,7 @@ const run = (over: Partial<TranslationRun> = {}): TranslationRun => ({
   operation: operation(),
   operations: [],
   languages: [language()],
+  writeSummary: false,
   createdAt: '2026-10-24T00:00:00.000Z',
   ...over,
 });
@@ -413,5 +415,51 @@ describe('Блок запуска перевода (F05-7)', () => {
       '/admin/en/books/versions/draft-ru'
     );
     expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument();
+  });
+
+  it('F06-5b: Write Summary — строка раздела у языка; на паузе — ссылка сразу на вкладку Summary', () => {
+    renderBlock(
+      run({
+        writeSummary: true,
+        languages: [
+          language({ language: 'es', status: 'running' }),
+          language({
+            language: 'fr',
+            status: 'done',
+            draftVersionId: 'draft-fr',
+            summary: {
+              ...{
+                status: 'building',
+                reason: null,
+                draftId: 'cd1',
+                operationStatus: 'active',
+                pauseReason: null,
+                plannedSections: 4,
+                sectionsDone: 1,
+                fullDone: false,
+                briefDone: false,
+                flaggedTexts: 0,
+                failedTexts: 0,
+                spentUsd: '0.25000000',
+              },
+              operationStatus: 'paused',
+              pauseReason: 'CEILING_REACHED',
+            },
+          }),
+        ],
+      })
+    );
+
+    expect(screen.getByText('Summary: waiting for translation')).toBeInTheDocument();
+    expect(screen.getByText(/^Summary: paused — /)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open the Summary tab' })).toHaveAttribute(
+      'href',
+      '/admin/en/books/versions/draft-fr?tab=summary'
+    );
+  });
+
+  it('F06-5b: без Write Summary строки раздела нет', () => {
+    renderBlock(run({ writeSummary: false }));
+    expect(screen.queryByText(/^Summary:/)).not.toBeInTheDocument();
   });
 });

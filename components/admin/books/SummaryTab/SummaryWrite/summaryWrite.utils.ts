@@ -6,6 +6,7 @@ import {
   operationStatusText,
   refusalCode,
   refusalText as draftRefusalText,
+  refusalTextOfCode as draftRefusalTextOfCode,
 } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import { DOSSIER_REFUSED_TEXT } from '@/components/admin/translation-run/translationRun.utils';
@@ -46,6 +47,10 @@ const REFUSALS: Record<string, string> = {
   ACCEPT_ALL_CHAPTER_CHANGE:
     'Some sections move to other reader chapters: accept those sections one by one.',
 };
+
+/** Подпись отказа хода по коду: своя, затем заготовки и запуска; чужой код — `undefined`. */
+export const refusalTextOfCode = (code: string): string | undefined =>
+  REFUSALS[code] ?? draftRefusalTextOfCode(code);
 
 export const refusalText = (error: unknown): string => {
   const code = refusalCode(error);

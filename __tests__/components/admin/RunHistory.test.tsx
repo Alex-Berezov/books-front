@@ -2,7 +2,11 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RunHistory } from '@/components/admin/translation-run/RunHistory';
 import { ApiError } from '@/types/api';
-import type { LlmOperation, TranslationRunListItem } from '@/types/api-schema';
+import type {
+  LlmOperation,
+  TranslationRunListItem,
+  TranslationRunSummary,
+} from '@/types/api-schema';
 
 /**
  * F05-8: история запусков версии — кто, модели, стоимость, итог по языкам, черновик, отчёт
@@ -19,7 +23,8 @@ const hooks = vi.hoisted(() => ({
   pages: [] as number[],
 }));
 
-vi.mock('@/api/hooks', () => ({
+vi.mock('@/api/hooks', async (importOriginal) => ({
+  isRunRowLive: (await importOriginal<typeof import('@/api/hooks')>()).isRunRowLive,
   useTranslationRunHistory: (_book: string, _version: string, page: number) => {
     hooks.pages.push(page);
     return hooks.result;
@@ -32,8 +37,16 @@ vi.mock('next/dynamic', () => ({
     if (!load.toString().includes('RunReportModal')) {
       throw new Error(`dynamic(): unknown module in ${load.toString()}`);
     }
-    const Stub = (props: { runId: string; live: boolean; onClose: () => void }) => (
-      <div role="dialog" aria-label={`report ${props.runId} live=${String(props.live)}`}>
+    const Stub = (props: {
+      runId: string;
+      live: boolean;
+      writeSummary: boolean;
+      onClose: () => void;
+    }) => (
+      <div
+        role="dialog"
+        aria-label={`report ${props.runId} live=${String(props.live)}${props.writeSummary ? ' summary' : ''}`}
+      >
         <button type="button" onClick={props.onClose}>
           Close report
         </button>
@@ -71,8 +84,16 @@ const item = (
   createdBy: { id: 'u1', email: 'admin@example.com', name: 'Ann' },
   models: [{ stage: 'translate', model: 'a/main', fallbacks: ['b/spare'] }],
   costUsd: '1.25000000',
+  writeSummary: false,
   results: [
-    { language: 'es', status: 'done', reason: null, reasonText: null, draftVersionId: 'draft-es' },
+    {
+      language: 'es',
+      status: 'done',
+      reason: null,
+      reasonText: null,
+      draftVersionId: 'draft-es',
+      summary: null,
+    },
   ],
   ...over,
 });
@@ -122,6 +143,7 @@ describe('RunHistory', () => {
             reason: null,
             reasonText: null,
             draftVersionId: null,
+            summary: null,
           },
           {
             language: 'ru',
@@ -129,6 +151,7 @@ describe('RunHistory', () => {
             reason: 'VERSION_EXISTS',
             reasonText: null,
             draftVersionId: null,
+            summary: null,
           },
           {
             language: 'pt',
@@ -136,6 +159,7 @@ describe('RunHistory', () => {
             reason: 'CREATE_REJECTED',
             reasonText: 'Slug is taken',
             draftVersionId: null,
+            summary: null,
           },
         ],
       }),
@@ -162,6 +186,7 @@ describe('RunHistory', () => {
             reason: 'LLM_BUDGET_EXCEEDED:operation',
             reasonText: null,
             draftVersionId: null,
+            summary: null,
           },
           {
             language: 'fr',
@@ -169,6 +194,7 @@ describe('RunHistory', () => {
             reason: null,
             reasonText: null,
             draftVersionId: null,
+            summary: null,
           },
         ],
       }),
@@ -251,5 +277,44 @@ describe('RunHistory', () => {
     expect(screen.getByText(/Translation history:/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
     expect(hooks.result.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('F06-5b: Write Summary — строка раздела под языком; отчёт живой, пока раздел пишет', () => {
+    const summary: TranslationRunSummary = {
+      status: 'building',
+      reason: null,
+      draftId: 'cd1',
+      operationStatus: 'active',
+      pauseReason: null,
+      plannedSections: 4,
+      sectionsDone: 1,
+      fullDone: false,
+      briefDone: false,
+      flaggedTexts: 0,
+      failedTexts: 0,
+      spentUsd: '0.25000000',
+    };
+    show([
+      item('run-s', 'done', {
+        writeSummary: true,
+        results: [
+          {
+            language: 'es',
+            status: 'done',
+            reason: null,
+            reasonText: null,
+            draftVersionId: 'draft-es',
+            summary,
+          },
+        ],
+      }),
+    ]);
+    render(<RunHistory versionId="v1" bookId="b1" lang="en" />);
+
+    expect(screen.getByText('Summary: writing, sections 1 of 4')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Report' }));
+    expect(
+      screen.getByRole('dialog', { name: 'report run-s live=true summary' })
+    ).toBeInTheDocument();
   });
 });

@@ -42,6 +42,24 @@ export const normalizeMoney = (value: string): string => {
 export const formatMoney = (value: string | null): string =>
   value === null ? '—' : `$${normalizeMoney(value)}`;
 
+/** Знаков после точки у `MONEY_PATTERN`: масштаб суммы. */
+const MONEY_SCALE = 8;
+
+/**
+ * Сумма денег строкой без перевода в число (В2) и без потери точности до восьми знаков —
+ * в той же форме, что `MONEY_PATTERN`. Слагаемое не в этой форме — `null` (прочерк в
+ * `formatMoney`), а не падение экрана.
+ */
+export const addMoney = (...amounts: string[]): string | null => {
+  if (!amounts.every(isValidMoney)) return null;
+  const units = amounts.reduce((acc, amount) => {
+    const [int, frac = ''] = amount.trim().split('.');
+    return acc + BigInt(int + frac.padEnd(MONEY_SCALE, '0'));
+  }, 0n);
+  const digits = units.toString().padStart(MONEY_SCALE + 1, '0');
+  return normalizeMoney(`${digits.slice(0, -MONEY_SCALE)}.${digits.slice(-MONEY_SCALE)}`);
+};
+
 /** У модели нет фиксированной цены — без потолка цены этап не сохранится (Р24). */
 export const hasNoFixedPrice = (model: LlmModel): boolean =>
   model.inputPerMTokUsd === null || model.outputPerMTokUsd === null;

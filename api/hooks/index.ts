@@ -384,6 +384,8 @@ export {
 export {
   RUN_HISTORY_PAGE_SIZE,
   RUN_MAX_LANGUAGES,
+  isRunRowLive,
+  isSummaryInFlight,
   translationRunKeys,
   translationRunRefetchInterval,
   useStartTranslationRun,

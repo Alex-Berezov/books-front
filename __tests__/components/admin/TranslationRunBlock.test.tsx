@@ -24,7 +24,8 @@ const hooks = vi.hoisted(() => ({
   makeRun: null as null | ((id: string) => unknown),
 }));
 
-vi.mock('@/api/hooks', () => ({
+vi.mock('@/api/hooks', async (importOriginal) => ({
+  isRunRowLive: (await importOriginal<typeof import('@/api/hooks')>()).isRunRowLive,
   useVersionTranslationRuns: () => hooks.current,
   useTranslationRun: (id: string | null) => {
     hooks.runCalls.push(id);
@@ -77,6 +78,7 @@ const run = (id: string): TranslationRun => ({
   },
   operations: [],
   languages: [],
+  writeSummary: false,
   createdAt: '2026-10-24T00:00:00.000Z',
 });
 const source: TranslationSource = {

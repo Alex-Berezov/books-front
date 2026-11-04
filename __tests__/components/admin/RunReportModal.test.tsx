@@ -23,6 +23,7 @@ vi.mock('@/api/hooks', () => ({
 const reportLanguage = (over: Partial<TranslationReportLanguage>): TranslationReportLanguage => ({
   language: 'es',
   status: 'done',
+  summary: null,
   reason: null,
   reasonText: null,
   draftVersionId: 'draft-es',
@@ -152,5 +153,55 @@ describe('Отчёт запуска (F05-7)', () => {
     render(<RunReportModal runId="r1" lang="en" onClose={vi.fn()} />);
     expect(screen.getByRole('alert')).toHaveTextContent('The request failed');
     hooks.error = null;
+  });
+
+  it('F06-5b: строка раздела с тратами, траты Summary отдельной строкой стоимости; упавший язык — Р8', () => {
+    hooks.report = {
+      ...report([
+        reportLanguage({
+          summary: {
+            ...{
+              status: 'building',
+              reason: null,
+              draftId: 'cd1',
+              operationStatus: 'active',
+              pauseReason: null,
+              plannedSections: 4,
+              sectionsDone: 1,
+              fullDone: false,
+              briefDone: false,
+              flaggedTexts: 0,
+              failedTexts: 0,
+              spentUsd: '0.25000000',
+            },
+            status: 'ready',
+            operationStatus: 'done',
+            sectionsDone: 4,
+            fullDone: true,
+            briefDone: true,
+          },
+        }),
+        reportLanguage({ language: 'fr', status: 'failed', draftVersionId: null }),
+      ]),
+      totalUsd: '1.45000000',
+    };
+    render(<RunReportModal runId="r1" lang="en" writeSummary onClose={vi.fn()} />);
+
+    expect(
+      screen.getByText(
+        (_, el) => el?.tagName === 'P' && el.textContent === 'Summary: done · spent $0.25'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('Summary: not started — translation failed')).toBeInTheDocument();
+    const row = screen.getByRole('cell', { name: 'Summary' }).closest('tr');
+    expect(row).toHaveTextContent('$0.25');
+  });
+
+  it('F06-5b: без Write Summary — ни строки раздела, ни строки трат Summary', () => {
+    hooks.report = report([reportLanguage({})]);
+    render(<RunReportModal runId="r1" lang="en" onClose={vi.fn()} />);
+
+    expect(screen.queryByText(/^Summary:/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('cell', { name: 'Summary' })).not.toBeInTheDocument();
   });
 });

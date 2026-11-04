@@ -40,6 +40,8 @@ import type {
   StartTranslationRunRequest,
   TranslationRun,
   TranslationRunEstimateParams,
+  TranslationRunListItem,
+  TranslationRunSummary,
 } from '@/types/api-schema';
 import { COMPARE_REFETCH_MS, LLM_DISABLED } from './useTranslationCompare';
 
@@ -149,19 +151,60 @@ export const useTranslationRunHistory = (bookId: string, versionId: string, page
         limit: RUN_HISTORY_PAGE_SIZE,
       }),
     placeholderData: keepPreviousData,
+    // Раздел Summary пишется после конца запуска, а запуск может уйти из блока версии (там идущие
+    // и последний) — история сама держит свою строку Summary свежей, пока он не встал (F06-5b).
+    refetchInterval: (query) =>
+      query.state.status !== 'error' &&
+      (query.state.data?.items ?? []).some((r) => r.writeSummary && isSummaryInFlight(r.results))
+        ? COMPARE_REFETCH_MS
+        : false,
   });
 
 const isWorking = (op: LlmOperation): boolean => op.status === 'active';
 
 /**
- * Перечитывать, пока идёт запуск или одна из его операций досье и глоссария; всё на паузе или
- * закончилось — без опроса. Запрос упал — опрос встаёт, отказ виден своей плашкой.
+ * Раздел Summary какого-то языка ещё идёт сам (F06-5b): автозапуск ждёт задачи или ход пишет
+ * не на паузе. Операций раздела в `run.operations` нет, а запуск гаснет с последним языком —
+ * без этого строка Summary застыла бы на «waiting to start». Пауза и конец хода — не идёт.
+ */
+export const isSummaryInFlight = (
+  languages: ReadonlyArray<{ summary: TranslationRunSummary | null }>
+): boolean =>
+  languages.some(
+    ({ summary: s }) =>
+      s !== null &&
+      (s.status === 'pending' ||
+        // `done` при `building` — окно между закрытием операции и записью статуса хода.
+        (s.status === 'building' &&
+          (s.operationStatus === 'active' || s.operationStatus === 'done')))
+  );
+
+/**
+ * Строка списка запусков ещё «живая» — её отчёт перечитывается: идёт операция запуска или раздел
+ * Summary языка (одно правило на блок версии и историю).
+ */
+export const isRunRowLive = (
+  row: Pick<TranslationRunListItem, 'operation' | 'writeSummary' | 'results'>
+): boolean =>
+  row.operation.status === 'active' || (row.writeSummary && isSummaryInFlight(row.results));
+
+/** Идёт сам запуск или одна из его операций досье и глоссария. */
+const isRunWorking = (run: TranslationRun): boolean =>
+  isWorking(run.operation) || run.operations.some(isWorking);
+
+const isRunSummaryWorking = (run: TranslationRun): boolean =>
+  run.writeSummary && isSummaryInFlight(run.languages);
+
+/**
+ * Перечитывать, пока идёт запуск, одна из его операций досье и глоссария или раздел Summary
+ * языка; всё на паузе или закончилось — без опроса. Запрос упал — опрос встаёт, отказ виден
+ * своей плашкой.
  */
 export const translationRunRefetchInterval = (
   run: TranslationRun | undefined,
   failed = false
 ): number | false =>
-  !failed && run !== undefined && (isWorking(run.operation) || run.operations.some(isWorking))
+  !failed && run !== undefined && (isRunWorking(run) || isRunSummaryWorking(run))
     ? COMPARE_REFETCH_MS
     : false;
 
@@ -189,13 +232,14 @@ export const useTranslationRun = (id: string | null, bookId: string) => {
     queryFn: async () => {
       const before = queryClient.getQueryData<TranslationRun>(translationRunKeys.detail(id ?? ''));
       const run = await getTranslationRun(id as string);
-      // Опрос кончился на этом чтении (конец, отмена, пауза — в том числе из другой вкладки):
-      // языки и списки иначе остались бы «в процессе» до перезагрузки. Стоящий ход, прочитанный
-      // заново, ничего не сбрасывает — сброс только на переходе.
+      // Запуск или раздел Summary языка встал на этом чтении (конец, отмена, пауза — в том числе
+      // из другой вкладки): языки и списки иначе остались бы «в процессе» до перезагрузки. Конец
+      // запуска сбрасывает их сразу, не дожидаясь раздела, который ещё пишет (F06-5b). Стоящий ход,
+      // прочитанный заново, ничего не сбрасывает — сброс только на переходе.
       if (
         before !== undefined &&
-        translationRunRefetchInterval(before) !== false &&
-        translationRunRefetchInterval(run) === false
+        ((isRunWorking(before) && !isRunWorking(run)) ||
+          (isRunSummaryWorking(before) && !isRunSummaryWorking(run)))
       ) {
         void invalidateRunDependents(queryClient, run, bookId);
       }

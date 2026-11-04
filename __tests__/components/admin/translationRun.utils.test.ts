@@ -59,6 +59,7 @@ const language = (over: Partial<TranslationRunLanguage> = {}): TranslationRunLan
   glossaryId: 'g1',
   blockedByOperationId: null,
   draftVersionId: null,
+  summary: null,
   ...over,
 });
 
@@ -71,6 +72,7 @@ const translationRun = (over: Partial<TranslationRun> = {}): TranslationRun => (
   operation: operation(),
   operations: [],
   languages: [language()],
+  writeSummary: false,
   createdAt: '2026-10-24T00:00:00.000Z',
   ...over,
 });
@@ -302,6 +304,12 @@ describe('Подписи языка', () => {
 describe('Тело старта и отказы', () => {
   it('пустой лимит и модель по умолчанию не уходят', () => {
     expect(startRunRequest(['es', 'fr'], null, ' ')).toEqual({ languages: ['es', 'fr'] });
+    // Write Summary (F06-5b): включён — поле в теле; выключен — поля нет вовсе.
+    expect(startRunRequest(['es'], null, '', true)).toEqual({
+      languages: ['es'],
+      writeSummary: true,
+    });
+    expect(startRunRequest(['es'], null, '', false)).toEqual({ languages: ['es'] });
     expect(startRunRequest(['es'], 'a/b', '5')).toEqual({
       languages: ['es'],
       translateModel: 'a/b',

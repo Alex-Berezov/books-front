@@ -3,6 +3,7 @@ import {
   DOSSIER_REFUSED_TEXT,
   operationPauseText,
   refusalText as runRefusalText,
+  runRefusalOf,
 } from '@/components/admin/translation-run/translationRun.utils';
 import { ApiError } from '@/types/api';
 import type {
@@ -39,6 +40,10 @@ const REFUSALS: Record<string, string> = {
   DRAFT_TOO_LONG:
     'The book text does not fit the analysis model: choose a model with a larger context in LLM settings.',
 };
+
+/** Подпись отказа по коду: своя, затем запуска перевода (как `refusalText`); чужой код — `undefined`. */
+export const refusalTextOfCode = (code: string): string | undefined =>
+  REFUSALS[code] ?? runRefusalOf(code);
 
 /** Код отказа из тела ответа; нет — `null`. */
 export const refusalCode = (error: unknown): string | null => {

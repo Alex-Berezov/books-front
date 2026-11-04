@@ -73,6 +73,14 @@ describe('admin translation run endpoints', () => {
     ]);
   });
 
+  it('Write Summary (F06-5b): оценка — параметром writeSummary=true, старт — полем тела', async () => {
+    await getTranslationRunEstimate('v1', { languages: ['es'], writeSummary: true });
+    await startTranslationRun('v1', { languages: ['es'], writeSummary: true });
+
+    expect(seen[0]).toMatchObject({ search: '?languages=es&writeSummary=true' });
+    expect(seen[1]).toMatchObject({ body: { languages: ['es'], writeSummary: true } });
+  });
+
   it('оценка — языки повторяющимся параметром и модель перевода; старт — тело выбора', async () => {
     await getTranslationRunEstimate('v1', { languages: ['es', 'fr'], translateModel: 'a/b' });
     await startTranslationRun('v1', { languages: ['es'], limitUsd: '3' });

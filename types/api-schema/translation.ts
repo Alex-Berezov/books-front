@@ -149,6 +149,9 @@ export interface TranslationRunLanguageEstimate {
   checkUsd: LlmMoney;
   finalCheckUsd: LlmMoney;
   metadataUsd: LlmMoney;
+  /** Write Summary (F06-5): верхняя оценка раздела по главам исходника; `null` — без `writeSummary`. */
+  summaryUsd: LlmMoney | null;
+  /** Перевод языка плюс `summaryUsd`. */
   totalUsd: LlmMoney;
 }
 
@@ -163,6 +166,9 @@ export interface TranslationRunEstimate {
   languages: TranslationRunLanguageEstimate[];
   upperBound: boolean;
   translationsUsd: LlmMoney;
+  /** Write Summary всех языков: своя операция и свой лимит, в `minLimitUsd` не входит; `null` — без `writeSummary`. */
+  summaryUsd: LlmMoney | null;
+  /** Перевод, досье и глоссарии плюс `summaryUsd`. */
   totalUsd: LlmMoney;
   /** Лимит запуска не ниже этого: досье и глоссарии строятся первыми. */
   minLimitUsd: LlmMoney;
@@ -177,6 +183,8 @@ export interface TranslationRunEstimateParams {
   languages: SupportedLang[];
   /** Модель перевода на этот запуск; нет — модель этапа `translate`. */
   translateModel?: string;
+  /** Write Summary (F06-5): раздел языка стартует сам по концу языка; нет — выключено. */
+  writeSummary?: boolean;
 }
 
 /** Тело `POST /admin/versions/:id/translation-runs`. */
@@ -205,6 +213,38 @@ export type TranslationRunStage =
 
 export type TranslationRunLanguageStatus = 'pending' | 'running' | 'done' | 'failed' | 'cancelled';
 
+/**
+ * Где ход раздела языка (F06-5): `pending` — автозапуск заведён; `skipped` — не начат с причиной;
+ * `failed` без хода — автозапуск упал или снят; остальное — статус строки хода.
+ */
+export type TranslationRunSummaryStatus =
+  | 'pending'
+  | 'skipped'
+  | 'building'
+  | 'ready'
+  | 'failed'
+  | 'discarded';
+
+/** Раздел языка запуска (`TranslationRunSummaryDto`); `null` у языка — раздела нет или язык не `done`. */
+export interface TranslationRunSummary {
+  status: TranslationRunSummaryStatus;
+  /** Всегда у `skipped` и `failed`: код пропуска, отказа старта или срыва хода. */
+  reason: string | null;
+  /** Черновик, на вкладке Summary которого идёт ход. */
+  draftId: string | null;
+  operationStatus: LlmOperation['status'] | null;
+  pauseReason: LlmOperation['pauseReason'];
+  plannedSections: number | null;
+  sectionsDone: number;
+  fullDone: boolean;
+  briefDone: boolean;
+  /** Тексты с флагами модели (не замечания). */
+  flaggedTexts: number;
+  /** Тексты, которые не удалось написать. */
+  failedTexts: number;
+  spentUsd: LlmMoney;
+}
+
 /** Язык в ходе запуска. */
 export interface TranslationRunLanguage {
   language: SupportedLang;
@@ -232,6 +272,7 @@ export interface TranslationRunLanguage {
   blockedByOperationId: string | null;
   /** Черновик версии языка; `null` до создания и после удаления. */
   draftVersionId: string | null;
+  summary: TranslationRunSummary | null;
 }
 
 /** Ответ `GET /admin/translation-runs/:id`, старта и кнопок запуска. */
@@ -245,6 +286,8 @@ export interface TranslationRun {
   /** Операции досье и глоссариев запуска и те, что ждут его языки; без операции запуска. */
   operations: LlmOperation[];
   languages: TranslationRunLanguage[];
+  /** Write Summary включён у запуска. */
+  writeSummary: boolean;
   createdAt: string;
 }
 
@@ -270,6 +313,7 @@ export interface TranslationRunLanguageResult {
   /** Текст сервиса, отказавшего в черновике (`CREATE_REJECTED`), до 300 символов. */
   reasonText: string | null;
   draftVersionId: string | null;
+  summary: TranslationRunSummary | null;
 }
 
 /** Строка `GET /admin/books/:bookId/translation-runs`. */
@@ -285,8 +329,9 @@ export interface TranslationRunListItem {
   createdBy: TranslationRunAuthor | null;
   /** Выбранные модели по этапам в порядке конвейера; вызванные — в `costs` отчёта. */
   models: TranslationRunStageModel[];
-  /** Траты всех операций запуска — `totalUsd` его отчёта. */
+  /** Траты всех операций запуска, с Write Summary его языков — `totalUsd` его отчёта. */
   costUsd: string;
+  writeSummary: boolean;
   results: TranslationRunLanguageResult[];
 }
 
@@ -350,6 +395,7 @@ export interface TranslationReportLanguage {
   reasonText: string | null;
   draftVersionId: string | null;
   draftCreatedAt: string | null;
+  summary: TranslationRunSummary | null;
   flaggedChunks: number;
   flaggedChapters: number;
   /** Имя автора по глоссарию; null - этап полей версии не дошёл или автора нет ни у исходника, ни в ответе (F05-17). */

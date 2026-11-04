@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { getBook } from '@/api/endpoints/admin/books';
@@ -17,6 +17,10 @@ import {
   buildVersionSeoPayload,
   versionSlugOf,
 } from '@/components/admin/books';
+import {
+  LINKABLE_VERSION_TABS,
+  VERSION_TAB_PARAM,
+} from '@/components/admin/books/BookVersionTabs/versionTab.constants';
 import type { BookFormData, TabType } from '@/components/admin/books';
 import type { ApiError } from '@/types/api';
 import type { UpdateBookVersionRequest, CreateBookVersionRequest } from '@/types/api-schema';
@@ -27,6 +31,13 @@ export const useBookVersionLogic = (versionId: string) => {
 
   // Active tab state
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  // Ссылка «Open the Summary tab» из запуска перевода (F06-5b) ведёт сюда с `?tab=summary`.
+  // Читается после монтирования: сервер рисует Overview, разметка не расходится при гидрации.
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get(VERSION_TAB_PARAM);
+    const linked = LINKABLE_VERSION_TABS.find((t) => t === tab);
+    if (linked) setActiveTab(linked);
+  }, []);
   const [isImporting, setIsImporting] = useState(false);
 
   // Load version data

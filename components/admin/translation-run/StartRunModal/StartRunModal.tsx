@@ -26,6 +26,7 @@ import {
   TARGET_REASONS,
   toModelOptions,
 } from '../translationRun.utils';
+import { RunEstimateTable } from './RunEstimateTable';
 import styles from './StartRunModal.module.scss';
 
 export interface StartRunModalProps {
@@ -69,9 +70,17 @@ export const StartRunModal: FC<StartRunModalProps> = ({
   const [languages, setLanguages] = useState<SupportedLang[]>([]);
   const [translateModel, setTranslateModel] = useState<string | null>(null);
   const [limit, setLimit] = useState('');
+  // Write Summary включён по умолчанию (F06, `product.md` §5): раздел языка пишется сам по его концу.
+  const [writeSummary, setWriteSummary] = useState(true);
 
   const params: TranslationRunEstimateParams | null =
-    languages.length > 0 ? { languages, ...(translateModel ? { translateModel } : {}) } : null;
+    languages.length > 0
+      ? {
+          languages,
+          ...(translateModel ? { translateModel } : {}),
+          ...(writeSummary ? { writeSummary: true } : {}),
+        }
+      : null;
   const estimate = useTranslationRunEstimate(versionId, params);
   const start = useStartTranslationRun(versionId, bookId, { onSuccess: onStarted });
 
@@ -102,7 +111,7 @@ export const StartRunModal: FC<StartRunModalProps> = ({
       size="lg"
       confirmText="Start"
       onConfirm={() => {
-        if (canStart) start.mutate(startRunRequest(languages, translateModel, limit));
+        if (canStart) start.mutate(startRunRequest(languages, translateModel, limit, writeSummary));
       }}
       onCancel={onCancel}
       isConfirmDisabled={!canStart}
@@ -152,41 +161,19 @@ export const StartRunModal: FC<StartRunModalProps> = ({
       {settings.isError && <Alert type="error" message={refusalText(settings.error)} />}
       {models.isError && <Alert type="error" message={refusalText(models.error)} />}
 
+      <div className={styles.field}>
+        <Checkbox checked={writeSummary} onChange={(e) => setWriteSummary(e.target.checked)}>
+          Write Summary
+        </Checkbox>
+        <span className={styles.muted}>
+          When a language is translated, its summary starts on the Summary tab of the new version.
+          It is paid from its own limit: the run limit below does not cover it.
+        </span>
+      </div>
+
       {estimate.isFetching && <Spin />}
       {estimate.isError && <Alert type="error" message={refusalText(estimate.error)} />}
-      {estimate.data && (
-        <table className={styles.estimate}>
-          <tbody>
-            {estimate.data.dossier && (
-              <tr>
-                <td>Dossier (own limit {formatMoney(estimate.data.dossier.suggestedLimitUsd)})</td>
-                <td>{formatMoney(estimate.data.dossier.estimateUsd)}</td>
-              </tr>
-            )}
-            {estimate.data.languages.map((l) =>
-              l.glossary ? (
-                <tr key={`glossary-${l.language}`}>
-                  <td>
-                    Glossary {l.language.toUpperCase()} (own limit{' '}
-                    {formatMoney(l.glossary.suggestedLimitUsd)})
-                  </td>
-                  <td>{formatMoney(l.glossary.estimateUsd)}</td>
-                </tr>
-              ) : null
-            )}
-            {estimate.data.languages.map((l) => (
-              <tr key={l.language}>
-                <td>Translation {l.language.toUpperCase()}</td>
-                <td>{formatMoney(l.totalUsd)}</td>
-              </tr>
-            ))}
-            <tr className={styles.total}>
-              <td>Total{estimate.data.upperBound ? ' (upper bound)' : ''}</td>
-              <td>{formatMoney(estimate.data.totalUsd)}</td>
-            </tr>
-          </tbody>
-        </table>
-      )}
+      {estimate.data && <RunEstimateTable estimate={estimate.data} />}
       <p className={styles.muted}>
         The estimate does not include retries of pieces after a failed check.
       </p>

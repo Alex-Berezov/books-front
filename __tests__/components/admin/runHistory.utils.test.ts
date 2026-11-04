@@ -27,7 +27,7 @@ describe('runHistory.utils', () => {
   });
 
   it('итог языка: упавший без причины, остановка словами, неизвестный код — как есть', () => {
-    const base = { language: 'es' as const, reasonText: null, draftVersionId: null };
+    const base = { language: 'es' as const, reasonText: null, draftVersionId: null, summary: null };
     expect(languageResultText({ ...base, status: 'failed', reason: null })).toBe('ES: Failed.');
     expect(
       languageResultText({ ...base, status: 'pending', reason: 'LLM_BUDGET_EXCEEDED:ceiling' })

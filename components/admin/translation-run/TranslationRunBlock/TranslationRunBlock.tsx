@@ -3,7 +3,12 @@
 import { useState, type FC } from 'react';
 import { Alert, Button, Spin } from 'antd';
 import dynamic from 'next/dynamic';
-import { useTranslationRun, useTranslationSource, useVersionTranslationRuns } from '@/api/hooks';
+import {
+  isRunRowLive,
+  useTranslationRun,
+  useTranslationSource,
+  useVersionTranslationRuns,
+} from '@/api/hooks';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import { refusalText } from '../translationRun.utils';
 import styles from './TranslationRunBlock.module.scss';
@@ -75,6 +80,7 @@ export const TranslationRunBlock: FC<TranslationRunBlockProps> = ({ versionId, b
   const source = useTranslationSource(versionId, restartOpen);
 
   if (runs.length === 0 && !restartOpen && !error) return null;
+  const reported = runs.find((r) => r.id === reportRunId);
 
   return (
     <>
@@ -104,7 +110,8 @@ export const TranslationRunBlock: FC<TranslationRunBlockProps> = ({ versionId, b
         <RunReportModal
           runId={reportRunId}
           lang={lang}
-          live={runs.some((r) => r.id === reportRunId && r.operation.status === 'active')}
+          live={reported !== undefined && isRunRowLive(reported)}
+          writeSummary={reported?.writeSummary ?? false}
           onClose={() => setReportRunId(null)}
         />
       )}

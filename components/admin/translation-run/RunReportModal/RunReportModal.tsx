@@ -9,6 +9,8 @@ import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSett
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { TranslationReportLanguage } from '@/types/api-schema';
 import { FindingItem } from '../FindingItem';
+import { sumSummarySpent } from '../summaryLine.utils';
+import { SummaryLineView } from '../SummaryLineView';
 import {
   DRAFT_LINK_TEXT,
   failedText,
@@ -26,6 +28,8 @@ export interface RunReportModalProps {
   lang: SupportedLang;
   /** Запуск идёт: отчёт перечитывается, пока окно открыто. */
   live?: boolean;
+  /** Write Summary у запуска (строка списка): строка раздела и у языка без раздела (Р8). */
+  writeSummary?: boolean;
   onClose: () => void;
 }
 
@@ -33,8 +37,18 @@ export interface RunReportModalProps {
  * Отчёт запуска (F05-7, `product.md` §2.4): куски и повторы, флаги с причинами, главы
  * не в черновике, итоговая проверка, ссылка на черновик версии, стоимость по этапам и моделям.
  */
-export const RunReportModal: FC<RunReportModalProps> = ({ runId, lang, live, onClose }) => {
+export const RunReportModal: FC<RunReportModalProps> = ({
+  runId,
+  lang,
+  live,
+  writeSummary = false,
+  onClose,
+}) => {
   const report = useTranslationRunReport(runId, live);
+  // Траты Summary в `costs` не входят (`totalUsd` покрывает оба): своей строкой.
+  // Строка — по наличию раздела: сумма не по форме денег даёт прочерк, а не пропавшую строку.
+  const hasSummary = report.data?.languages.some((l) => l.summary !== null) ?? false;
+  const summarySpent = report.data ? sumSummarySpent(report.data.languages) : null;
 
   return (
     <Modal isOpen title="Translation report" size="xl" showFooter={false} onCancel={onClose}>
@@ -43,7 +57,7 @@ export const RunReportModal: FC<RunReportModalProps> = ({ runId, lang, live, onC
       {report.data && (
         <>
           {report.data.languages.map((l) => (
-            <LanguageReport key={l.language} report={l} lang={lang} />
+            <LanguageReport key={l.language} report={l} lang={lang} writeSummary={writeSummary} />
           ))}
           <h3 className={styles.subtitle}>Cost</h3>
           <table className={styles.table}>
@@ -64,6 +78,14 @@ export const RunReportModal: FC<RunReportModalProps> = ({ runId, lang, live, onC
                   <td>{formatMoney(c.costUsd)}</td>
                 </tr>
               ))}
+              {hasSummary && (
+                <tr>
+                  <td>Summary</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>{formatMoney(summarySpent)}</td>
+                </tr>
+              )}
               <tr className={styles.total}>
                 <td colSpan={3}>Total</td>
                 <td>{formatMoney(report.data.totalUsd)}</td>
@@ -82,10 +104,11 @@ export const RunReportModal: FC<RunReportModalProps> = ({ runId, lang, live, onC
   );
 };
 
-const LanguageReport: FC<{ report: TranslationReportLanguage; lang: SupportedLang }> = ({
-  report: l,
-  lang,
-}) => {
+const LanguageReport: FC<{
+  report: TranslationReportLanguage;
+  lang: SupportedLang;
+  writeSummary: boolean;
+}> = ({ report: l, lang, writeSummary }) => {
   // Находки от текста до повтора или правки (`stale`) показаны приглушёнными; отказ перезаписи — своей строкой.
   const flagged = l.chapters.filter(
     (c) => c.findings.length > 0 || c.flagReason !== null || c.rewriteRefusal !== null
@@ -105,6 +128,17 @@ const LanguageReport: FC<{ report: TranslationReportLanguage; lang: SupportedLan
         {/* Ноль глав при черновике показывается явно (решение арбитра 24.10.2026, 6b круг 5 В1). */}
         Chapters written: {l.writtenChapters}.
       </p>
+      {(writeSummary || l.summary) && (
+        <p>
+          <SummaryLineView
+            writeSummary={writeSummary || l.summary !== null}
+            language={l}
+            draftVersionId={l.draftVersionId}
+            lang={lang}
+          />
+          {l.summary && ` · spent ${formatMoney(l.summary.spentUsd)}`}
+        </p>
+      )}
       <p>
         Pieces: {l.chunks.total}, retries: {l.chunks.retries}, flagged: {l.flaggedChunks}
         {l.chunks.flagged.length > 0 &&

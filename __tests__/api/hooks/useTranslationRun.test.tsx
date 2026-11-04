@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   RUN_HISTORY_PAGE_SIZE,
   translationRunKeys,
+  isSummaryInFlight,
   translationRunRefetchInterval,
   useStartTranslationRun,
   useTranslationRun,
@@ -18,6 +19,8 @@ import {
 import type {
   LlmOperation,
   TranslationRun,
+  TranslationRunLanguage,
+  TranslationRunSummary,
   TranslationRunListItem,
   TranslationRunListResponse,
 } from '@/types/api-schema';
@@ -57,6 +60,28 @@ const operation = (over: Partial<LlmOperation> = {}): LlmOperation => ({
   ...over,
 });
 
+const language = (over: Partial<TranslationRunLanguage> = {}): TranslationRunLanguage => ({
+  language: 'es',
+  status: 'running',
+  stage: 'translate',
+  reason: null,
+  reasonText: null,
+  reasonModels: [],
+  reasonUsd: null,
+  chapterNumber: 1,
+  chapterPosition: 1,
+  chaptersTotal: 1,
+  chunksDone: 0,
+  chunksTotal: 0,
+  flaggedChunks: 0,
+  flaggedChapters: 0,
+  glossaryId: null,
+  blockedByOperationId: null,
+  draftVersionId: 'draft-es',
+  summary: null,
+  ...over,
+});
+
 const run = (over: Partial<TranslationRun> = {}): TranslationRun => ({
   id: 'r1',
   bookVersionId: 'v1',
@@ -66,6 +91,7 @@ const run = (over: Partial<TranslationRun> = {}): TranslationRun => ({
   operation: operation(),
   operations: [],
   languages: [],
+  writeSummary: false,
   createdAt: '2026-10-24T00:00:00.000Z',
   ...over,
 });
@@ -81,6 +107,7 @@ const item = (id: string, status: LlmOperation['status']): TranslationRunListIte
   createdBy: null,
   models: [],
   costUsd: '0.00000000',
+  writeSummary: false,
   results: [],
 });
 
@@ -126,7 +153,86 @@ describe('Опрос хода запуска (решение арбитра F05 
   it('отказ запроса — без опроса', () => {
     expect(translationRunRefetchInterval(run(), true)).toBe(false);
   });
+
+  // F06-5b: операций раздела в `operations` нет, а запуск гаснет с последним языком.
+  const withSummary = (summary: TranslationRunSummary | null, writeSummary = true) =>
+    run({
+      operation: operation({ status: 'done' }),
+      writeSummary,
+      languages: [language({ status: 'done', summary })],
+    });
+  const summary = (over: Partial<TranslationRunSummary>): TranslationRunSummary => ({
+    ...{
+      status: 'building',
+      reason: null,
+      draftId: 'cd1',
+      operationStatus: 'active',
+      pauseReason: null,
+      plannedSections: 4,
+      sectionsDone: 1,
+      fullDone: false,
+      briefDone: false,
+      flaggedTexts: 0,
+      failedTexts: 0,
+      spentUsd: '0.25000000',
+    },
+    ...over,
+  });
+
+  it('запуск кончился, раздел Summary ждёт старта или пишет — опрос продолжается', () => {
+    expect(translationRunRefetchInterval(withSummary(summary({ status: 'pending' })))).toBe(5_000);
+    expect(translationRunRefetchInterval(withSummary(summary({})))).toBe(5_000);
+  });
+
+  it.each([
+    ['пауза хода', { operationStatus: 'paused' as const, pauseReason: 'LIMIT_REACHED' as const }],
+    ['ход упал', { operationStatus: 'failed' as const }],
+    ['готов', { status: 'ready' as const, operationStatus: 'done' as const }],
+    ['не начат', { status: 'skipped' as const, operationStatus: null }],
+  ])('запуск кончился, раздел: %s — без опроса', (_, over) => {
+    expect(translationRunRefetchInterval(withSummary(summary(over)))).toBe(false);
+  });
+
+  it('без Write Summary и без раздела у языка — без опроса', () => {
+    expect(translationRunRefetchInterval(withSummary(summary({}), false))).toBe(false);
+    expect(translationRunRefetchInterval(withSummary(null))).toBe(false);
+  });
+
+  it('isSummaryInFlight — по строкам списка запусков', () => {
+    expect(
+      isSummaryInFlight([{ summary: null }, { summary: summary({ status: 'pending' }) }])
+    ).toBe(true);
+    expect(isSummaryInFlight([{ summary: summary({ status: 'ready' }) }])).toBe(false);
+    expect(isSummaryInFlight([{ summary: summary({ operationStatus: 'active' }) }])).toBe(true);
+    expect(isSummaryInFlight([{ summary: summary({ operationStatus: 'paused' }) }])).toBe(false);
+    // Операция закрыта, статус хода ещё не записан — ждём, а не встаём на «writing».
+    expect(isSummaryInFlight([{ summary: summary({ operationStatus: 'done' }) }])).toBe(true);
+    expect(isSummaryInFlight([{ summary: summary({ operationStatus: null }) }])).toBe(false);
+  });
 });
+
+/** Ход с Write Summary: язык `done`, раздел в заданном состоянии. */
+const summaryRun = (runStatus: LlmOperation['status'], summary: TranslationRunSummary) =>
+  run({
+    operation: operation({ status: runStatus }),
+    writeSummary: true,
+    languages: [language({ status: 'done', summary })],
+  });
+
+const writingSummary: TranslationRunSummary = {
+  status: 'building',
+  reason: null,
+  draftId: 'cd1',
+  operationStatus: 'active',
+  pauseReason: null,
+  plannedSections: 4,
+  sectionsDone: 1,
+  fullDone: false,
+  briefDone: false,
+  flaggedTexts: 0,
+  failedTexts: 0,
+  spentUsd: '0.25000000',
+};
 
 describe('Хуки запуска перевода', () => {
   beforeEach(() => {
@@ -146,6 +252,40 @@ describe('Хуки запуска перевода', () => {
       expect.arrayContaining([
         JSON.stringify(translationRunKeys.list('b1')),
         JSON.stringify(translationRunKeys.source('v1')),
+        JSON.stringify(translationRunKeys.report('r1')),
+      ])
+    );
+  });
+
+  it('F06-5b: запуск кончился, а Summary ещё пишет — языки и списки сбрасываются сразу', async () => {
+    const { client, wrapper, invalidated } = setup();
+    client.setQueryData(translationRunKeys.detail('r1'), summaryRun('active', writingSummary));
+    api.getTranslationRun.mockResolvedValue(summaryRun('done', writingSummary));
+
+    const { result } = renderHook(() => useTranslationRun('r1', 'b1'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(invalidated()).toEqual(
+      expect.arrayContaining([
+        JSON.stringify(translationRunKeys.list('b1')),
+        JSON.stringify(translationRunKeys.source('v1')),
+      ])
+    );
+  });
+
+  it('F06-5b: Summary кончился после запуска — история и отчёт сбрасываются ещё раз', async () => {
+    const { client, wrapper, invalidated } = setup();
+    client.setQueryData(translationRunKeys.detail('r1'), summaryRun('done', writingSummary));
+    api.getTranslationRun.mockResolvedValue(
+      summaryRun('done', { ...writingSummary, status: 'ready', operationStatus: 'done' })
+    );
+
+    const { result } = renderHook(() => useTranslationRun('r1', 'b1'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(invalidated()).toEqual(
+      expect.arrayContaining([
+        JSON.stringify(translationRunKeys.list('b1')),
         JSON.stringify(translationRunKeys.report('r1')),
       ])
     );
@@ -371,11 +511,32 @@ describe('Хуки запуска перевода', () => {
       page: 1,
       limit: RUN_HISTORY_PAGE_SIZE,
     });
-    // Без опроса: ход идущих перечитывает блок хода, а история — только по сбросу.
+    // Без опроса: ход идущих перечитывает блок хода, а история — только по сбросу. Исключение
+    // одно (F06-5b): раздел Summary строки ещё пишется — его запуск мог уйти из блока версии.
     const query = client
       .getQueryCache()
       .find({ queryKey: translationRunKeys.history('b1', 'v1', 1) });
-    expect(query?.options).not.toHaveProperty('refetchInterval');
+    // `QueryOptions` кэша не знает полей наблюдателя: опция опроса читается из объекта опций.
+    const { refetchInterval: interval } = query?.options as {
+      refetchInterval: (q: unknown) => number | false;
+    };
+    expect(interval(query)).toBe(false);
+    const writing = {
+      ...item('w', 'done'),
+      writeSummary: true,
+      results: [
+        {
+          language: 'es' as const,
+          status: 'done' as const,
+          reason: null,
+          reasonText: null,
+          draftVersionId: 'draft-es',
+          summary: writingSummary,
+        },
+      ],
+    };
+    expect(interval({ state: { status: 'success', data: page([writing]) } })).toBe(5_000);
+    expect(interval({ state: { status: 'error', data: page([writing]) } })).toBe(false);
 
     rerender({ p: 2 });
     await waitFor(() =>
