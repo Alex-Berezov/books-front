@@ -45,8 +45,8 @@ export const SummarySections: FC<{ versionId: string }> = ({ versionId }) => {
       <h3 id="summary-sections-title" className={styles.sectionsTitle}>
         Summary sections
         <span className={styles.labelHint}>
-          (Each section retells its part of the book in more detail than the full summary, not a
-          copy of it. Plot only. The number is the section address, so deleting or moving a section
+          (Each section retells its part of the book in more detail than the Summary, not a copy of
+          it. Plot only. The number is the section address, so deleting or moving a section
           renumbers the following ones)
         </span>
       </h3>

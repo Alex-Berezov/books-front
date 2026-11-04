@@ -6,10 +6,12 @@ import {
   chapterChangeText,
   fieldsOf,
   fullWaitsFor,
+  itemsToReloadAfterAcceptAll,
   mayHaveWritten,
   progressText,
   reasonText,
   refusalText,
+  refusalTextOfCode,
   reviewSkippedText,
   sortItems,
   startLossText,
@@ -57,6 +59,8 @@ const item = (patch: Partial<SummaryWriteItem> = {}): SummaryWriteItem => ({
   regenFailedReason: null,
   regenerating: false,
   regenOperationId: null,
+  regenOperationStatus: null,
+  regenPauseReason: null,
   ...patch,
 });
 
@@ -153,7 +157,7 @@ describe('summaryWrite.utils', () => {
     expect(full).toContain('(the plan is not known yet: one section per chapter)');
     expect(full).toContain('Operation limit: $4.35.');
     expect(writeEstimateText(estimate({ sections: 12 }))).toContain(
-      'The summary: up to $2.9 (12 sections, the full and the very short summary).'
+      'The summary: up to $2.9 (12 sections, the Summary and the very short summary).'
     );
     expect(writeEstimateText(estimate())).toContain('The summary: up to $2.9.');
     const refused = writeEstimateText(estimate({ dossier: { ...line, refusedTooLong: true } }));
@@ -172,8 +176,8 @@ describe('summaryWrite.utils', () => {
       acceptedIndexesOf(
         new ApiError({ statusCode: 409, message: 'x', data: { acceptedIndexes: 'all' } })
       )
-    ).toEqual([]);
-    expect(acceptedIndexesOf(new Error('network'))).toEqual([]);
+    ).toBeNull();
+    expect(acceptedIndexesOf(new Error('network'))).toBeNull();
   });
 
   it('order: sections by number (no number first), then the full, then the very short summary', () => {
@@ -247,19 +251,98 @@ describe('summaryWrite.utils', () => {
     expect(fullWaitsFor([item()])).toBeNull();
   });
 
-  it('only the four refusals that did not write the refused text are «nothing written»', () => {
+  it('any 409 but SUMMARY_FIELD_CHANGED wrote nothing; the rest may have written', () => {
     const code = (c: string) => new ApiError({ statusCode: 409, message: 'x', data: { code: c } });
     for (const c of [
       'ACCEPT_ALL_CHAPTER_CHANGE',
       'SUMMARY_WRITE_NOT_READY',
       'SUMMARY_CHAPTER_CHANGE',
       'SUMMARY_ITEM_NOT_PROPOSED',
+      'SUMMARY_REGEN_IN_PROGRESS',
     ]) {
       expect(mayHaveWritten(code(c))).toBe(false);
     }
     expect(mayHaveWritten(code('SUMMARY_FIELD_CHANGED'))).toBe(true);
     expect(mayHaveWritten(new ApiError({ statusCode: 502, message: 'bad gateway' }))).toBe(true);
     expect(mayHaveWritten(new Error('offline'))).toBe(true);
+  });
+
+  it('what to reload after a refusal of «Accept all»: the list of the body decides', () => {
+    const items = [
+      item({ index: 0 }),
+      item({ index: 1, number: 2 }),
+      item({ index: 4, target: 'full', number: null }),
+    ];
+    const err = (data: Record<string, unknown>, statusCode = 409) =>
+      new ApiError({ statusCode, message: 'x', data });
+    const idx = (list: SummaryWriteItem[]) => list.map((i) => i.index);
+    // Принят 0; встали на 1 (поле изменено) — перечитываются принятые и тот, на котором встали.
+    expect(
+      idx(
+        itemsToReloadAfterAcceptAll(
+          err({ code: 'SUMMARY_FIELD_CHANGED', acceptedIndexes: [0] }),
+          items,
+          items
+        )
+      )
+    ).toEqual([0, 1]);
+    // Другой код с принятым: встали на 1, но его поле не менялось — только принятое.
+    expect(
+      idx(
+        itemsToReloadAfterAcceptAll(
+          err({ code: 'SUMMARY_ITEM_NOT_PROPOSED', acceptedIndexes: [0] }),
+          items,
+          items
+        )
+      )
+    ).toEqual([0]);
+    // Пустой список и не «поле изменено»: ничего не записано.
+    expect(
+      itemsToReloadAfterAcceptAll(
+        err({ code: 'SUMMARY_WRITE_NOT_READY', acceptedIndexes: [] }),
+        items,
+        items
+      )
+    ).toEqual([]);
+    // Списка нет: 409 — до записи; сеть и 5xx — неизвестно, все затронутые.
+    expect(
+      itemsToReloadAfterAcceptAll(err({ code: 'ACCEPT_ALL_CHAPTER_CHANGE' }), items, items)
+    ).toEqual([]);
+    expect(itemsToReloadAfterAcceptAll(new Error('offline'), items, items)).toEqual(items);
+    expect(itemsToReloadAfterAcceptAll(err({}, 502), items, items)).toEqual(items);
+  });
+
+  it('Accept all stop: a waiting section before the first proposal makes it unknown (F06-5c)', () => {
+    const waiting = item({ index: 0, outcome: 'waiting' });
+    const fullItem = item({ index: 4, target: 'full', number: null });
+    // `settle` мог сделать ждущий раздел предложением, и он встал первым: текст не угадывается.
+    expect(acceptAllStopOf([waiting, fullItem], [])).toBeNull();
+    expect(acceptAllStopOf([item({ index: 0, outcome: 'accepted' }), fullItem], [])).toBe(fullItem);
+    const err = new ApiError({
+      statusCode: 409,
+      message: 'x',
+      data: { code: 'SUMMARY_FIELD_CHANGED', acceptedIndexes: [] },
+    });
+    // Текст остановки не выведен — поле могло измениться у любого непринятого: перечитать все.
+    expect(itemsToReloadAfterAcceptAll(err, [fullItem], [waiting, fullItem])).toEqual([fullItem]);
+  });
+
+  it('refusals of the run have words', () => {
+    for (const c of [
+      'DRAFT_IN_PROGRESS',
+      'SOURCE_HAS_NO_CHAPTERS',
+      'SUMMARY_REGEN_IN_PROGRESS',
+      'SUMMARY_ITEM_UNKNOWN',
+      'SUMMARY_SECTIONS_UNFINISHED',
+      'SUMMARY_FULL_UNFINISHED',
+    ]) {
+      expect(refusalTextOfCode(c)).toMatch(/\w+ \w+/);
+    }
+    expect(refusalTextOfCode('NO_SUCH_CODE')).toBeUndefined();
+    // Свой текст хода, а не заготовки («у версии нет текста глав»).
+    expect(reasonText('DRAFT_INPUT_MISSING')).toBe(
+      'the chapters have no text, or the dossier is gone'
+    );
   });
 
   it('DOSSIER_TOO_LONG of the start is the common refused dossier text', () => {

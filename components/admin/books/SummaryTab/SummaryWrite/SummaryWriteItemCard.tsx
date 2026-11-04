@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, type FC } from 'react';
+import { isRegenPaused, type SummaryWriteActions } from '@/api/hooks';
 import { Button } from '@/components/admin/common/Button';
 import { ConfirmDialog } from '@/components/admin/shared';
-import type { SummaryWriteActions } from '@/api/hooks';
+import type { SupportedLang } from '@/lib/i18n/lang';
 import type { SummaryChapterChangeBody, SummaryWriteItem } from '@/types/api-schema';
 import { ItemCheck } from './ItemCheck';
 import { ItemError } from './ItemError';
 import { ItemRegenerate } from './ItemRegenerate';
+import { ItemResume } from './ItemResume';
 import { ItemStatus } from './ItemStatus';
 import styles from './SummaryWrite.module.scss';
 import {
@@ -22,6 +24,7 @@ import {
 
 export interface SummaryWriteItemCardProps {
   runId: string;
+  lang: SupportedLang;
   item: SummaryWriteItem;
   /** Ход готов: тексты можно принимать, отбрасывать и перегенерировать (иначе сервер ответит 409). */
   ready: boolean;
@@ -29,11 +32,11 @@ export interface SummaryWriteItemCardProps {
   disabled: boolean;
   /** Раздел, которого ждёт раздел `waiting` (первый перед ним без текста). */
   blockedBy: number;
-  actions: Pick<SummaryWriteActions, 'accept' | 'discardItem' | 'regenerate'>;
+  actions: Pick<SummaryWriteActions, 'accept' | 'discardItem' | 'regenerate' | 'resume'>;
   /** Полный или «Очень кратко» мог измениться на сервере: форма берёт это поле. */
   onFieldsWritten: (fields: SummaryWriteField[]) => void;
-  /** «Accept» этого текста лёг. */
-  onAccepted: () => void;
+  /** «Accept» или «Discard» этого текста лёг: прежний отказ «Accept all» больше не про этот ход. */
+  onDecided: () => void;
 }
 
 /**
@@ -43,13 +46,14 @@ export interface SummaryWriteItemCardProps {
  */
 export const SummaryWriteItemCard: FC<SummaryWriteItemCardProps> = ({
   runId,
+  lang,
   item,
   ready,
   disabled,
   blockedBy,
   actions,
   onFieldsWritten,
-  onAccepted,
+  onDecided,
 }) => {
   const [busy, setBusy] = useState(false);
   // Отказ — к тому тексту, на который ответил: новый текст или его судьба отказ снимают.
@@ -96,8 +100,12 @@ export const SummaryWriteItemCard: FC<SummaryWriteItemCardProps> = ({
       }
     );
     if (!ok) return;
-    onAccepted();
+    onDecided();
     fieldsWritten();
+  };
+
+  const discard = async () => {
+    if (await run(() => actions.discardItem.mutateAsync(vars))) onDecided();
   };
 
   return (
@@ -108,6 +116,15 @@ export const SummaryWriteItemCard: FC<SummaryWriteItemCardProps> = ({
       <ItemCheck item={item} />
       <ItemStatus item={item} ready={ready} blockedBy={blockedBy} />
       {error !== null && <ItemError item={item} error={error} blockedBy={blockedBy} />}
+      {isRegenPaused(item) && item.regenOperationId && (
+        <ItemResume
+          operationId={item.regenOperationId}
+          pauseReason={item.regenPauseReason}
+          lang={lang}
+          disabled={!ready || disabled}
+          resume={actions.resume}
+        />
+      )}
 
       {ready && (
         <div className={styles.actions}>
@@ -116,11 +133,7 @@ export const SummaryWriteItemCard: FC<SummaryWriteItemCardProps> = ({
               <Button variant="primary" onClick={() => void accept(false)} disabled={locked}>
                 Accept
               </Button>
-              <Button
-                variant="ghost"
-                onClick={() => void run(() => actions.discardItem.mutateAsync(vars))}
-                disabled={locked}
-              >
+              <Button variant="ghost" onClick={() => void discard()} disabled={locked}>
                 Discard
               </Button>
             </>

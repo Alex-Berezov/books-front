@@ -109,6 +109,81 @@ describe('useSummaryTab: fields written by the summary run', () => {
     expect(result.current.serverUpdates).toEqual({});
   });
 
+  it('a failed reload closes Save of the field until a retry learns the server text (F06-5c)', async () => {
+    const { result } = await hydrated();
+    api.getBookSummary.mockRejectedValueOnce(new Error('offline'));
+    await act(() => result.current.reloadFields(['full']));
+    expect(result.current.unknownFields).toEqual(['summaryText']);
+    act(() => result.current.handleSave());
+    expect(api.upsertBookSummary).not.toHaveBeenCalled();
+    // Повтор без названных полей: перечитывает невыясненные, форма берёт текст сервера.
+    api.getBookSummary.mockResolvedValueOnce(NEW);
+    await act(() => result.current.reloadFields([]));
+    expect(result.current.unknownFields).toEqual([]);
+    expect(result.current.formData.summaryText).toBe('<p>New full.</p>');
+    act(() => result.current.handleSave());
+    await waitFor(() => expect(api.upsertBookSummary).toHaveBeenCalledTimes(1));
+  });
+
+  it('two overlapping reloads that fail keep both fields unknown; Save of both stays closed (F06-5c)', async () => {
+    const { result } = await hydrated();
+    // Оба запроса (второй обрывает первый, оборванный ждёт новый) отказывают.
+    api.getBookSummary.mockImplementation(() => Promise.reject(new Error('offline')));
+    let first: Promise<void> = Promise.resolve();
+    let second: Promise<void> = Promise.resolve();
+    act(() => {
+      first = result.current.reloadFields(['full']);
+      second = result.current.reloadFields(['brief']);
+    });
+    await act(() => Promise.all([first, second]).then(() => undefined));
+    expect([...result.current.unknownFields].sort()).toEqual(['briefText', 'summaryText']);
+    act(() => result.current.handleSave());
+    act(() => result.current.handleSaveBrief());
+    expect(api.upsertBookSummary).not.toHaveBeenCalled();
+    expect(api.upsertBookSummaryBrief).not.toHaveBeenCalled();
+  });
+
+  it('a reload cancelled by the neighbour save is not a fresh answer: the field stays unknown (F06-5c)', async () => {
+    const { result } = await hydrated();
+    // Запрос ещё в полёте; сохранение соседнего поля отменяет его с откатом (cancelQueries).
+    api.getBookSummary.mockImplementationOnce(
+      () => new Promise<BookSummaryDetail>((resolve) => setTimeout(() => resolve(NEW), 50))
+    );
+    let reload: Promise<void> = Promise.resolve();
+    act(() => {
+      reload = result.current.reloadFields(['full']);
+    });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      await client.cancelQueries({ queryKey: summaryKeys.detail('v1') });
+      await reload;
+    });
+    expect(result.current.unknownFields).toEqual(['summaryText']);
+    expect(result.current.formData.summaryText).toBe('<p>Old full.</p>');
+  });
+
+  it('a failure on version A, away to B and back to A: the fresh fill clears the mark (F06-5c)', async () => {
+    const { result, rerender } = await hydrated();
+    api.getBookSummary.mockRejectedValueOnce(new Error('offline'));
+    await act(() => result.current.reloadFields(['full']));
+    expect(result.current.unknownFields).toEqual(['summaryText']);
+    api.getBookSummary.mockResolvedValueOnce(summary('<p>B.</p>', '<p>B brief.</p>'));
+    rerender({ versionId: 'v2' });
+    await waitFor(() => expect(result.current.formData.summaryText).toBe('<p>B.</p>'));
+    api.getBookSummary.mockResolvedValueOnce(NEW);
+    rerender({ versionId: 'v1' });
+    await waitFor(() => expect(result.current.formData.summaryText).toBe('<p>New full.</p>'));
+    expect(result.current.unknownFields).toEqual([]);
+  });
+
+  it('a version switched inside the mounted tab reads its summary afresh, not from the cache (F06-5c)', async () => {
+    const { rerender } = await hydrated();
+    client.setQueryData(summaryKeys.detail('v2'), OLD);
+    api.getBookSummary.mockClear();
+    rerender({ versionId: 'v2' });
+    await waitFor(() => expect(api.getBookSummary).toHaveBeenCalledWith('v2'));
+  });
+
   it('an unsaved edit over a field the server did not change: no notice', async () => {
     const { result } = await hydrated();
     act(() => result.current.handleFieldChange('briefText', '<p>Mine.</p>'));

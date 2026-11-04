@@ -38,7 +38,10 @@ const hooks = vi.hoisted(() => ({
   actions: {} as Record<string, unknown>,
 }));
 
-vi.mock('@/api/hooks', () => ({
+vi.mock('@/api/hooks', async () => ({
+  // Чистые правила хода и коды — настоящие, мокаются только хуки.
+  ...(await vi.importActual<object>('@/api/hooks/useSummaryWrite')),
+  ...(await vi.importActual<object>('@/api/hooks/draftKeys')),
   useSummaryWrite: () => ({
     data: hooks.loading || hooks.loadError ? undefined : { draft: hooks.run },
     isError: hooks.loadError || hooks.pollError,
@@ -115,6 +118,8 @@ const item = (patch: Partial<SummaryWriteItem> = {}): SummaryWriteItem => ({
   regenFailedReason: null,
   regenerating: false,
   regenOperationId: null,
+  regenOperationStatus: null,
+  regenPauseReason: null,
   ...patch,
 });
 
@@ -247,7 +252,7 @@ describe('SummaryWrite (F06-3)', () => {
       ).toBeInTheDocument();
       expect(within(section).queryByRole('button', { name: 'Accept' })).toBeNull();
       expect(
-        within(card('Full summary')).getByText(
+        within(card('Summary')).getByText(
           'Regenerate it or write the text by hand in the field below.'
         )
       ).toBeInTheDocument();
@@ -273,7 +278,7 @@ describe('SummaryWrite (F06-3)', () => {
       expect(screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)).toEqual([
         'Section 1: A',
         'Section 2: B',
-        'Full summary',
+        'Summary',
         'Very short summary',
       ]);
     });
@@ -283,7 +288,7 @@ describe('SummaryWrite (F06-3)', () => {
     it('Accept of the full summary posts the item and takes the field into the form', async () => {
       hooks.run = run({ items: [full()] });
       view();
-      const c = card('Full summary');
+      const c = card('Summary');
       expect(within(c).getByText('Proposed text.')).toBeInTheDocument();
       fireEvent.click(within(c).getByRole('button', { name: 'Accept' }));
       await waitFor(() => expect(onFieldsWritten).toHaveBeenCalledWith(['full']));
@@ -310,7 +315,7 @@ describe('SummaryWrite (F06-3)', () => {
       const c = card('Section 2: B');
       expect(
         within(c).getByText(
-          'Waits for section 1. Accept now writes it if every section before it is in the field; otherwise the server says which section must come first.'
+          'Waits for section 1. Accept now writes it if every section before it is in the field; otherwise Accept is refused and names the section that must come first.'
         )
       ).toBeInTheDocument();
       fireEvent.click(within(c).getByRole('button', { name: 'Accept' }));
@@ -760,7 +765,7 @@ describe('SummaryWrite (F06-3)', () => {
       view();
       fireEvent.click(button('Accept all'));
       const alert = await screen.findByRole('alert');
-      expect(alert).toHaveTextContent('Full summary: the field was changed after this proposal');
+      expect(alert).toHaveTextContent('Summary: the field was changed after this proposal');
       expect(within(alert).getByText('Edited full.')).toBeInTheDocument();
       expect(
         within(alert).getByText('Already accepted: Section 1: The storm.')
@@ -790,7 +795,13 @@ describe('SummaryWrite (F06-3)', () => {
 
     it('a 409 with expectedNumber names the way out', async () => {
       actions().acceptAll.mutateAsync.mockRejectedValueOnce(
-        conflict({ code: 'SUMMARY_FIELD_CHANGED', message: 'x', current: null, expectedNumber: 2 })
+        conflict({
+          code: 'SUMMARY_FIELD_CHANGED',
+          message: 'x',
+          current: null,
+          expectedNumber: 2,
+          acceptedIndexes: [],
+        })
       );
       hooks.run = run({ items: [item({ number: 3, title: 'C' })] });
       view();
@@ -821,6 +832,74 @@ describe('SummaryWrite (F06-3)', () => {
       expect(await screen.findByRole('alert')).toHaveTextContent('The request failed');
       expect(onFieldsWritten).toHaveBeenCalledTimes(1);
       expect(onFieldsWritten).toHaveBeenCalledWith(['full', 'brief']);
+    });
+
+    it('a refusal midway names the text it stopped at, by the texts at the click (F06-5c)', async () => {
+      // Встали на «Очень кратко» (отброшено в другой вкладке); перечитанный ход его уже не предлагает.
+      hooks.run = run({
+        items: [
+          item({ outcome: 'accepted' }),
+          full(),
+          item({ index: 5, target: 'brief', number: null, title: null }),
+        ],
+      });
+      actions().acceptAll.mutateAsync.mockImplementationOnce(() => {
+        hooks.run = run({
+          items: [
+            item({ outcome: 'accepted' }),
+            full({ outcome: 'accepted' }),
+            item({ index: 5, target: 'brief', number: null, title: null, outcome: 'discarded' }),
+          ],
+        });
+        return Promise.reject(
+          conflict({ code: 'SUMMARY_ITEM_NOT_PROPOSED', message: 'x', acceptedIndexes: [4] })
+        );
+      });
+      const { rerender } = view();
+      fireEvent.click(button('Accept all'));
+      await screen.findByRole('alert');
+      rerender(element());
+      // Раздел уже принят: встали на «Очень кратко» — по текстам на момент нажатия.
+      expect(screen.getByText('Stopped at: Very short summary.')).toBeInTheDocument();
+      expect(screen.getByText('Already accepted: Summary.')).toBeInTheDocument();
+    });
+
+    it('after a refusal with nothing left to accept, Accept all is off (F06-5c)', async () => {
+      hooks.run = run({
+        items: [full(), item({ index: 5, target: 'brief', number: null, title: null })],
+      });
+      actions().acceptAll.mutateAsync.mockImplementationOnce(() => {
+        hooks.run = run({
+          items: [
+            full({ outcome: 'accepted' }),
+            item({ index: 5, target: 'brief', number: null, title: null, outcome: 'discarded' }),
+          ],
+        });
+        return Promise.reject(
+          conflict({ code: 'SUMMARY_ITEM_NOT_PROPOSED', message: 'x', acceptedIndexes: [4] })
+        );
+      });
+      const { rerender } = view();
+      fireEvent.click(button('Accept all'));
+      await screen.findByRole('alert');
+      rerender(element());
+      expect(button('Accept all')).toBeDisabled();
+    });
+
+    it('Discard of a text clears the refusal of Accept all (F06-5c)', async () => {
+      hooks.run = run({
+        items: [full(), item({ index: 5, target: 'brief', number: null, title: null })],
+      });
+      actions().acceptAll.mutateAsync.mockRejectedValueOnce(
+        conflict({ code: 'SUMMARY_ITEM_NOT_PROPOSED', message: 'x', acceptedIndexes: [] })
+      );
+      view();
+      fireEvent.click(button('Accept all'));
+      await screen.findByText(/no longer a proposal/);
+      fireEvent.click(within(card('Summary')).getByRole('button', { name: 'Discard' }));
+      await waitFor(() =>
+        expect(screen.queryByText(/no longer a proposal/)).not.toBeInTheDocument()
+      );
     });
 
     it('a chapter change refusal wrote nothing: the form is not touched', async () => {
@@ -914,7 +993,8 @@ describe('SummaryWrite (F06-3)', () => {
       view();
       expect(onFieldsWritten).toHaveBeenCalledTimes(1);
       expect(onFieldsWritten).toHaveBeenCalledWith(['full', 'brief']);
-      expect(actions().refreshFields).not.toHaveBeenCalled();
+      // Записанный ходом раздел: список разделов перечитывается и на первом ответе (F06-5c).
+      expect(actions().refreshFields).toHaveBeenCalledTimes(1);
     });
 
     it('another version: its first answer is a first answer again', () => {
@@ -928,16 +1008,152 @@ describe('SummaryWrite (F06-3)', () => {
       expect(actions().refreshFields).not.toHaveBeenCalled();
     });
 
-    it('the first load does not reload anything; a new written full summary goes into the form', async () => {
+    it('the first load reloads the sections once; a new written full summary goes into the form', async () => {
       hooks.run = writing({ items: [item({ outcome: 'written' })] });
       const { rerender } = view();
       rerender(element());
-      expect(actions().refreshFields).not.toHaveBeenCalled();
+      expect(actions().refreshFields).toHaveBeenCalledTimes(1);
       hooks.run = writing({ items: [item({ outcome: 'written' }), full({ outcome: 'written' })] });
       rerender(element());
       await waitFor(() => expect(onFieldsWritten).toHaveBeenCalledWith(['full']));
       expect(onFieldsWritten).toHaveBeenCalledTimes(1);
-      expect(actions().refreshFields).toHaveBeenCalledTimes(1);
+      expect(actions().refreshFields).toHaveBeenCalledTimes(2);
+    });
+
+    it('a regeneration that writes the same number again with another text is noticed (F06-5c)', async () => {
+      hooks.run = writing({ items: [full({ outcome: 'written', html: '<p>One.</p>' })] });
+      const { rerender } = view();
+      expect(onFieldsWritten).toHaveBeenCalledTimes(1);
+      hooks.run = writing({ items: [full({ outcome: 'written', html: '<p>Two.</p>' })] });
+      rerender(element());
+      await waitFor(() => expect(onFieldsWritten).toHaveBeenCalledTimes(2));
+      expect(onFieldsWritten).toHaveBeenLastCalledWith(['full']);
+    });
+
+    const regen = (patch: Partial<SummaryWriteItem>) =>
+      item({ regenerating: true, regenOperationId: 'op-regen', ...patch });
+
+    it('a paused regeneration: the reason in words and «Continue» resumes that operation (F06-5c)', () => {
+      hooks.run = run({
+        items: [regen({ regenOperationStatus: 'paused', regenPauseReason: 'CEILING_REACHED' })],
+      });
+      view();
+      expect(
+        screen.getByText(/Regeneration paused: the spending ceiling is reached/)
+      ).toBeInTheDocument();
+      fireEvent.click(button('Continue'));
+      expect(actions().resume.mutate).toHaveBeenCalledTimes(1);
+      expect(actions().resume.mutate).toHaveBeenCalledWith({ id: 'op-regen' });
+    });
+
+    it('paused on its limit: «Continue» goes with a new limit (F06-5c)', () => {
+      hooks.run = run({
+        items: [regen({ regenOperationStatus: 'paused', regenPauseReason: 'LIMIT_REACHED' })],
+      });
+      view();
+      fireEvent.change(screen.getByLabelText('New limit of the regeneration'), {
+        target: { value: '2.5' },
+      });
+      fireEvent.click(button('Continue'));
+      expect(actions().resume.mutate).toHaveBeenCalledTimes(1);
+      expect(actions().resume.mutate).toHaveBeenCalledWith({ id: 'op-regen', limitUsd: '2.5' });
+    });
+
+    it('a refusal of the own operation is shown, of another operation is not (F06-5c)', () => {
+      hooks.run = run({
+        items: [regen({ regenOperationStatus: 'paused', regenPauseReason: 'STEP_FAILED' })],
+      });
+      const resume = actions().resume as Mutation & { variables?: unknown };
+      resume.error = conflict({ code: 'LLM_OPERATION_NOT_RESUMABLE' });
+      resume.variables = { id: 'op-other' };
+      const { unmount } = view();
+      expect(
+        screen.queryByText('The regeneration is not paused any more.')
+      ).not.toBeInTheDocument();
+      unmount();
+      resume.variables = { id: 'op-regen' };
+      view();
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'The regeneration is not paused any more.'
+      );
+    });
+
+    it('a paused regeneration shows no «Regenerating…»: the pause is said once (F06-5c)', () => {
+      hooks.run = run({
+        items: [regen({ regenOperationStatus: 'paused', regenPauseReason: 'STEP_FAILED' })],
+      });
+      view();
+      expect(screen.queryByText('Regenerating…')).not.toBeInTheDocument();
+      expect(screen.getByText(/Regeneration paused/)).toBeInTheDocument();
+    });
+
+    it('while Accept all runs or another Continue is on its way: the reason without a button (F06-5c)', () => {
+      hooks.run = run({
+        items: [regen({ regenOperationStatus: 'paused', regenPauseReason: 'STEP_FAILED' })],
+      });
+      actions().acceptAll.isPending = true;
+      const { unmount } = view();
+      expect(screen.queryByRole('button', { name: 'Continue' })).not.toBeInTheDocument();
+      expect(screen.getByText(/Regeneration paused/)).toBeInTheDocument();
+      unmount();
+      actions().acceptAll.isPending = false;
+      const resume = actions().resume as Mutation & { variables?: unknown };
+      resume.isPending = true;
+      resume.variables = { id: 'op-other' };
+      view();
+      expect(screen.queryByRole('button', { name: 'Continue' })).not.toBeInTheDocument();
+    });
+
+    it('a 503 LLM_DISABLED of «Continue» is said here (no common toast); another 5xx is not (F06-5c)', () => {
+      hooks.run = run({
+        items: [regen({ regenOperationStatus: 'paused', regenPauseReason: 'STEP_FAILED' })],
+      });
+      const resume = actions().resume as Mutation & { variables?: unknown };
+      resume.variables = { id: 'op-regen' };
+      resume.error = new ApiError({
+        statusCode: 503,
+        message: 'off',
+        data: { code: 'LLM_DISABLED' },
+      });
+      const { unmount } = view();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      unmount();
+      resume.error = new ApiError({ statusCode: 502, message: 'bad gateway' });
+      view();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('a running regeneration (not paused) or one without an operation has no «Continue» (F06-5c)', () => {
+      hooks.run = run({
+        items: [
+          regen({ regenOperationStatus: 'active' }),
+          item({ index: 2, number: 2, regenerating: true, regenOperationId: null }),
+        ],
+      });
+      view();
+      expect(screen.queryByRole('button', { name: 'Continue' })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Regeneration paused/)).not.toBeInTheDocument();
+    });
+
+    it('the first answer with only the full and very short summary does not reload the sections', () => {
+      hooks.run = run({
+        items: [
+          full({ outcome: 'written' }),
+          item({ index: 5, target: 'brief', number: null, title: null, outcome: 'written' }),
+        ],
+      });
+      view();
+      expect(onFieldsWritten).toHaveBeenCalledTimes(1);
+      expect(actions().refreshFields).not.toHaveBeenCalled();
+    });
+
+    it('a section names its reader chapter; no chapter — says so (F06-5c)', () => {
+      hooks.run = run({
+        items: [item({ readerChapter: 3 }), item({ index: 2, number: 2, readerChapter: null })],
+      });
+      view();
+      expect(screen.getByText('Reader chapter: 3.')).toBeInTheDocument();
+      expect(screen.getByText('Reader chapter: none in this version.')).toBeInTheDocument();
     });
 
     it('a new written section reloads the summary but not the form fields', async () => {

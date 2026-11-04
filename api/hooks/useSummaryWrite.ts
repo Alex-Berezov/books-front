@@ -25,6 +25,7 @@ import type {
   BookSummarySectionList,
   LlmOperation,
   SummaryWrite,
+  SummaryWriteItem,
   SummaryWriteState,
 } from '@/types/api-schema';
 import { CONTENT_DRAFT_LOCAL_CODES, summaryWriteKeys } from './draftKeys';
@@ -36,6 +37,14 @@ export { summaryWriteKeys } from './draftKeys';
 /** Пока ход пишется или перегенерирует текст, он перечитывается с этим шагом. */
 export const SUMMARY_WRITE_REFETCH_MS = 4_000;
 
+/** Перегенерация текста стоит на паузе (F06-5c): выход — «Continue», опрос её не ждёт. */
+export const isRegenPaused = (item: SummaryWriteItem): boolean =>
+  item.regenerating && item.regenOperationStatus === 'paused';
+
+/** Перегенерация текста идёт (не на паузе): «Regenerating…» и опрос хода. */
+export const isRegenRunning = (item: SummaryWriteItem): boolean =>
+  item.regenerating && !isRegenPaused(item);
+
 /** Перечитывать, пока ход строится с идущей операцией или идёт перегенерация; запрос упал — опрос встаёт. */
 export const summaryWriteRefetchInterval = (
   state: SummaryWriteState | undefined,
@@ -44,7 +53,8 @@ export const summaryWriteRefetchInterval = (
   const run = state?.draft;
   if (failed || !run) return false;
   const writing = run.status === 'building' && run.operation.status === 'active';
-  return writing || run.items.some((item) => item.regenerating) ? SUMMARY_WRITE_REFETCH_MS : false;
+  const regenerating = run.items.some(isRegenRunning);
+  return writing || regenerating ? SUMMARY_WRITE_REFETCH_MS : false;
 };
 
 export const useSummaryWrite = (versionId: string, enabled: boolean) =>

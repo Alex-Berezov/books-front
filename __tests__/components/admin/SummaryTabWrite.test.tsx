@@ -20,7 +20,8 @@ vi.mock('@/api/hooks', () => ({
     isError: false,
     status: 'success',
     fetchStatus: 'idle',
-    refetch: () => Promise.resolve({ status: 'success', data: mocks.summary }),
+    refetch: () =>
+      Promise.resolve({ status: 'success', data: mocks.summary, dataUpdatedAt: Date.now() }),
   }),
   useUpsertBookSummary: () => ({ mutate: vi.fn(), isPending: false }),
   useUpsertBookSummaryBrief: () => ({ mutate: vi.fn(), isPending: false }),

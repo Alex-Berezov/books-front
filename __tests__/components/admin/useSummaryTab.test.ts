@@ -115,7 +115,7 @@ describe('useSummaryTab: очень краткий пересказ (F04)', () =
     act(() => result.current.handleFieldChange('briefText', '<p>Short.</p>'));
     act(() => result.current.handleSaveBrief());
     expect(mocks.mutateBrief).not.toHaveBeenCalled();
-    expect(mocks.enqueueSnackbar).toHaveBeenCalledWith('Save the full summary first', {
+    expect(mocks.enqueueSnackbar).toHaveBeenCalledWith('Save the Summary first', {
       variant: 'warning',
     });
   });

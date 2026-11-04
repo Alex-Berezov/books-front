@@ -637,6 +637,7 @@ export type {
 export type {
   AcceptSummaryItemRequest,
   RegenerateSummaryItemRequest,
+  SummaryAcceptAllStopBody,
   SummaryChapterChangeBody,
   SummaryChapterRange,
   SummaryFieldChangedBody,

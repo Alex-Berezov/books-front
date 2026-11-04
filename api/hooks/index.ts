@@ -432,6 +432,8 @@ export type { ContentDraftActions } from './useContentDraft';
 // Summary run «Write Summary» (F06-2, F06-3, admin only)
 export {
   SUMMARY_WRITE_REFETCH_MS,
+  isRegenPaused,
+  isRegenRunning,
   summaryWriteKeys,
   summaryWriteRefetchInterval,
   useSummaryWrite,

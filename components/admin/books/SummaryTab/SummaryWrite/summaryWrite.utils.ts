@@ -13,6 +13,7 @@ import { DOSSIER_REFUSED_TEXT } from '@/components/admin/translation-run/transla
 import { pluralize } from '@/lib/i18n/plural';
 import { ApiError } from '@/types/api';
 import type {
+  SummaryAcceptAllStopBody,
   SummaryChapterChangeBody,
   SummaryChapterRange,
   SummaryFieldChangedBody,
@@ -43,7 +44,7 @@ const REFUSALS: Record<string, string> = {
   SUMMARY_ITEM_UNKNOWN: 'The run has no such text: reload the tab.',
   SUMMARY_SECTIONS_UNFINISHED:
     'Not every section has a text yet: regenerate or write the missing sections first.',
-  SUMMARY_FULL_UNFINISHED: 'The run has no full summary with a text: regenerate it first.',
+  SUMMARY_FULL_UNFINISHED: 'The run has no Summary with a text: regenerate it first.',
   ACCEPT_ALL_CHAPTER_CHANGE:
     'Some sections move to other reader chapters: accept those sections one by one.',
 };
@@ -60,6 +61,8 @@ export const refusalText = (error: unknown): string => {
 /** Причины хода и его текстов (`failedReason`, `regenFailedReason`): общие с заготовкой и свои. */
 const RUN_FAILURES: Readonly<Record<string, string>> = {
   ...DRAFT_FAILURES,
+  // Сообщение заготовки («у версии нет текста глав») к разделу хода не подходит: нужен текст его глав.
+  DRAFT_INPUT_MISSING: 'the chapters have no text, or the dossier is gone',
   DRAFT_NO_PLAN: 'the dossier has no plan of sections',
   DRAFT_DATA_INVALID: 'the stored run data is broken',
   SUMMARY_WRITE_REFUSED: 'the field did not take the text',
@@ -85,7 +88,7 @@ export const reviewSkippedText = (review: SummaryWriteReview | null): string | n
 };
 
 export const itemTitle = (item: SummaryWriteItem): string => {
-  if (item.target === 'full') return 'Full summary';
+  if (item.target === 'full') return 'Summary';
   if (item.target === 'brief') return 'Very short summary';
   return item.title ? `Section ${item.number}: ${item.title}` : `Section ${item.number}`;
 };
@@ -103,19 +106,17 @@ export const isPending = (item: SummaryWriteItem): boolean =>
   item.outcome === 'proposed' || item.outcome === 'waiting';
 
 /**
- * Отказы, после которых сервер не записал отказанный текст и ничего вслед за ним. Любой другой
- * отказ (сеть, таймаут, 5xx, 409 посреди) мог что-то записать — поля перечитываются. У «Accept all»
- * тексты, принятые до отказа, приходят в `acceptedIndexes` при любом коде 409 — их проверяют раньше.
+ * Мог ли отказ действия над текстом хода что-то записать в поле. Любой 409, кроме
+ * `SUMMARY_FIELD_CHANGED`, — сервер отказал до записи поля (атомарное «Accept»; «Accept all» до цикла полей не трогает).
+ * `SUMMARY_FIELD_CHANGED` — поле изменил кто-то другой, форме нужен его свежий текст. Сеть, таймаут
+ * и 5xx — неизвестно: поля перечитываются. Отдельного списка кодов нет: он расходился с сервером.
  */
-const NOTHING_WRITTEN: ReadonlySet<string> = new Set([
-  'ACCEPT_ALL_CHAPTER_CHANGE',
-  'SUMMARY_WRITE_NOT_READY',
-  'SUMMARY_CHAPTER_CHANGE',
-  'SUMMARY_ITEM_NOT_PROPOSED',
-]);
-
 export const mayHaveWritten = (error: unknown): boolean =>
-  !NOTHING_WRITTEN.has(refusalCode(error) ?? '');
+  !(
+    error instanceof ApiError &&
+    error.statusCode === 409 &&
+    refusalCode(error) !== 'SUMMARY_FIELD_CHANGED'
+  );
 
 const sectionsOf = (items: SummaryWriteItem[]) =>
   sortItems(items).filter((i) => i.target === 'section' && i.number !== null);
@@ -160,7 +161,7 @@ export const progressText = (run: SummaryWrite): string =>
 export const writeEstimateText = (estimate: SummaryWriteEstimate): string => {
   const sections =
     estimate.sections !== null
-      ? ` (${estimate.sections} sections, the full and the very short summary)`
+      ? ` (${estimate.sections} sections, the Summary and the very short summary)`
       : estimate.upperBound
         ? ' (the plan is not known yet: one section per chapter)'
         : '';
@@ -201,22 +202,38 @@ export const fieldChangedOf = (error: unknown): SummaryFieldChangedBody | null =
 export const chapterChangeOf = (error: unknown): SummaryChapterChangeBody | null =>
   bodyOf(error, 'SUMMARY_CHAPTER_CHANGE') as SummaryChapterChangeBody | null;
 
-/** Что уже принял «Accept all» до отказа; мусор в теле отбрасывается. */
-export const acceptedIndexesOf = (error: unknown): number[] => {
-  const list = error instanceof ApiError ? error.data?.acceptedIndexes : undefined;
-  return Array.isArray(list) ? list.filter((i): i is number => Number.isInteger(i)) : [];
+/**
+ * Что принял «Accept all» до отказа: список из тела 409 (`SummaryAcceptAllStopBody`, пустой тоже);
+ * `null` — списка нет: отказ до цикла принятия или ответа сервера не было (сеть, 5xx).
+ */
+export const acceptedIndexesOf = (error: unknown): number[] | null => {
+  const body =
+    error instanceof ApiError
+      ? (error.data as Partial<SummaryAcceptAllStopBody> | undefined)
+      : undefined;
+  const list: unknown = body?.acceptedIndexes;
+  return Array.isArray(list) ? list.filter((i): i is number => Number.isInteger(i)) : null;
 };
 
 /**
- * На каком тексте встал «Accept all»: первое предложение в серверном порядке, которого нет среди
- * принятых; не вывести — `null`.
+ * На каком тексте встал «Accept all»: первое предложение (`proposed`, без перегенерации) в серверном
+ * порядке, которого нет среди принятых — сервер в цикле берёт только такие. Ждущие разделы он
+ * сводит до цикла (`settle`): такой раздел, ставший предложением, идёт в цикл, и фронт, считая по
+ * снимку на момент нажатия, его пропускает — точный индекс остановки знает только сервер. Считается по текстам на момент нажатия:
+ * перечитанный после отказа ход уже не держит текст, на котором встали. Не вывести — `null`.
  */
 export const acceptAllStopOf = (
   items: SummaryWriteItem[],
   accepted: number[]
-): SummaryWriteItem | null =>
-  sortItems(items).find((i) => isPending(i) && !i.regenerating && !accepted.includes(i.index)) ??
-  null;
+): SummaryWriteItem | null => {
+  for (const i of sortItems(items)) {
+    if (i.regenerating || accepted.includes(i.index)) continue;
+    // Ждущий раздел перед ним мог стать предложением на `settle` и встать первым: не угадываем.
+    if (i.outcome === 'waiting') return null;
+    if (i.outcome === 'proposed') return i;
+  }
+  return null;
+};
 
 const range = (c: SummaryChapterRange | null): string =>
   c === null
@@ -238,4 +255,24 @@ export const chapterChangeText = (body: SummaryChapterChangeBody): string => {
   }
   lines.push('Accept it anyway?');
   return lines.join(' ');
+};
+
+/**
+ * Что перечитать в форме после отказа «Accept all» (`before` — тексты, которые он собирался принять).
+ * Список принятого есть — перечитываются принятые и текст, на котором встал (его поле могло измениться
+ * на сервере); списка нет: 409 — сервер отказал до записи, остальное (сеть, 5xx) — неизвестно,
+ * перечитываются все затронутые.
+ */
+export const itemsToReloadAfterAcceptAll = (
+  error: unknown,
+  before: SummaryWriteItem[],
+  items: SummaryWriteItem[]
+): SummaryWriteItem[] => {
+  const done = acceptedIndexesOf(error);
+  if (done === null) return mayHaveWritten(error) ? before : [];
+  // Поле текста, на котором встали, мог изменить кто-то другой — только тогда оно перечитывается.
+  if (!fieldChangedOf(error)) return before.filter((i) => done.includes(i.index));
+  // Поле изменено на тексте, на котором встали; не вывести его — перечитываются все непринятые.
+  const stop = acceptAllStopOf(items, done);
+  return before.filter((i) => done.includes(i.index) || !stop || i.index === stop.index);
 };

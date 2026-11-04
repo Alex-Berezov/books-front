@@ -99,6 +99,10 @@ export interface SummaryWriteItem {
   /** Идёт перегенерация этого текста. */
   regenerating: boolean;
   regenOperationId: string | null;
+  /** Статус операции перегенерации; `null` — перегенерации нет (F06-5c). */
+  regenOperationStatus: LlmOperation['status'] | null;
+  /** Почему операция перегенерации на паузе; `null` — не на паузе. */
+  regenPauseReason: LlmOperation['pauseReason'];
 }
 
 /** Поля, которые ход пишет прямо (пустые на старте у неопубликованной версии). */
@@ -162,8 +166,16 @@ export interface SummaryFieldChangedBody {
   current: { title?: string; text: string | null; readerChapter?: number | null } | null;
   /** Раздел, который должен прийти первым (раздел сверх последнего номера). */
   expectedNumber?: number;
-  /** «Accept all»: что уже принято до отказа. */
-  acceptedIndexes?: number[];
+}
+
+/**
+ * Любой 409 «Accept all» посреди принятия (`summary-write.service.ts`, `acceptAll`): сервер кладёт
+ * в тело, что принято до отказа, всегда, и пустым списком тоже (`F06-5a`, `v1.0.291`). Отказ до
+ * цикла (`ACCEPT_ALL_CHAPTER_CHANGE`, ход не готов) списка не несёт: полей Summary и «Очень кратко»
+ * он не трогал (ждущие разделы `settle` мог записать — список разделов перечитывается).
+ */
+export interface SummaryAcceptAllStopBody {
+  acceptedIndexes: number[];
 }
 
 /** Тело 409 `SUMMARY_CHAPTER_CHANGE`: раздел переходит на другие главы читалки. */

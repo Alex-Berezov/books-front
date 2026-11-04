@@ -71,6 +71,8 @@ const written: SummaryWriteItem = {
   regenFailedReason: null,
   regenerating: false,
   regenOperationId: null,
+  regenOperationStatus: null,
+  regenPauseReason: null,
 };
 
 const run: SummaryWrite = {

@@ -7,6 +7,7 @@ import { Spinner } from '@/components/admin/shared';
 import type { SummaryTabProps } from './SummaryTab.types';
 import type { SummaryWriteField } from './SummaryWrite/summaryWrite.utils';
 import { ServerTextNotice } from './ServerTextNotice';
+import { ServerTextUnknown } from './ServerTextUnknown';
 import { SummaryFormField } from './SummaryFormField';
 import { SummarySections } from './SummarySections';
 import styles from './SummaryTab.module.scss';
@@ -31,6 +32,8 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
     handleSave,
     handleSaveBrief,
     reloadFields,
+    unknownFields,
+    retryReload,
     serverUpdates,
     loadServerText,
     hasFullSummary,
@@ -82,7 +85,15 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
             <ServerTextNotice field="Summary" onLoad={() => loadServerText('summaryText')} />
           )}
 
-          <Button onClick={handleSave} loading={isSaving} disabled={isSaving}>
+          {unknownFields.includes('summaryText') && (
+            <ServerTextUnknown field="Summary" onRetry={retryReload} />
+          )}
+
+          <Button
+            onClick={handleSave}
+            loading={isSaving}
+            disabled={isSaving || unknownFields.includes('summaryText')}
+          >
             Save Summary
           </Button>
 
@@ -101,14 +112,17 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
               onLoad={() => loadServerText('briefText')}
             />
           )}
+          {unknownFields.includes('briefText') && (
+            <ServerTextUnknown field="Very short summary" onRetry={retryReload} />
+          )}
           <p className={styles.readingTime} aria-live="polite">
             Reading time: {briefMinutes} min
           </p>
-          {!hasFullSummary && <p className={styles.labelHint}>Save the full summary first.</p>}
+          {!hasFullSummary && <p className={styles.labelHint}>Save the Summary first.</p>}
           <Button
             onClick={handleSaveBrief}
             loading={isSavingBrief}
-            disabled={isSavingBrief || !hasFullSummary}
+            disabled={isSavingBrief || !hasFullSummary || unknownFields.includes('briefText')}
           >
             Save Very Short Summary
           </Button>

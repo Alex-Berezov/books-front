@@ -9,14 +9,11 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { SummaryWriteItem } from '@/types/api-schema';
 import styles from './SummaryWrite.module.scss';
 import {
-  acceptAllStopOf,
-  acceptedIndexesOf,
   blockingSectionOf,
-  fieldChangedOf,
   fieldsOf,
   fullWaitsFor,
   isPending,
-  mayHaveWritten,
+  itemsToReloadAfterAcceptAll,
   progressText,
   reasonText,
   refusalText,
@@ -45,9 +42,12 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
   const actions = useSummaryWriteActions(versionId);
   const [discarding, setDiscarding] = useState(false);
   // Отказ «Accept all» — со своим ходом: у нового хода или после «Accept» и «Discard run» его нет.
-  const [acceptAllError, setAcceptAllError] = useState<{ runId: string; error: unknown } | null>(
-    null
-  );
+  // Тексты хода на момент нажатия: перечитанный после отказа ход уже не держит текст, на котором встали.
+  const [acceptAllError, setAcceptAllError] = useState<{
+    runId: string;
+    error: unknown;
+    items: SummaryWriteItem[];
+  } | null>(null);
 
   const run = data?.draft ?? null;
   const building = run?.status === 'building';
@@ -57,7 +57,7 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
   // «Accept all» берёт предложения и ждущие разделы; перегенерируемые сервер пропускает.
   const acceptable = items.filter((i) => isPending(i) && !i.regenerating);
   const waitsFor = ready ? fullWaitsFor(items) : null;
-  const allError = acceptAllError && acceptAllError.runId === run?.id ? acceptAllError.error : null;
+  const allFailure = acceptAllError && acceptAllError.runId === run?.id ? acceptAllError : null;
 
   useWrittenFields(versionId, data?.draft, actions.refreshFields, onFieldsWritten);
   // Отказы «Discard run» и «Continue» — своего хода: у другого хода (новый старт) их нет.
@@ -85,17 +85,8 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
       await actions.acceptAll.mutateAsync(run.id);
       reload(before);
     } catch (error) {
-      setAcceptAllError({ runId: run.id, error });
-      // Известно, что принято (`acceptedIndexes` — при любом коде 409 после части принятых), —
-      // принятые и поле, изменённое на сервере; ничего не принято и отказ «ничего не записано» —
-      // форма не трогается; неизвестно (сеть, 5xx) — все затронутые поля.
-      const done = acceptedIndexesOf(error);
-      if (done.length === 0) {
-        if (mayHaveWritten(error)) reload(before);
-        return;
-      }
-      const stop = fieldChangedOf(error) ? acceptAllStopOf(run.items, done) : null;
-      reload(before.filter((i) => done.includes(i.index) || i === stop));
+      setAcceptAllError({ runId: run.id, error, items: run.items });
+      reload(itemsToReloadAfterAcceptAll(error, before, run.items));
     }
   };
 
@@ -156,12 +147,14 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
         </p>
       )}
 
-      {run && ready && acceptable.length > 0 && (
+      {/* Отказ «Accept all» остаётся на экране и тогда, когда после него принимать уже нечего. */}
+      {run && ready && (acceptable.length > 0 || allFailure !== null) && (
         <SummaryWriteAcceptAll
           run={run}
           pending={actions.acceptAll.isPending}
-          disabled={isError}
-          error={allError}
+          disabled={isError || acceptable.length === 0}
+          error={allFailure?.error ?? null}
+          itemsAtFailure={allFailure?.items ?? run.items}
           onAcceptAll={() => void acceptAll()}
         />
       )}
@@ -172,13 +165,14 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
             <SummaryWriteItemCard
               key={`${run.id}:${item.index}`}
               runId={run.id}
+              lang={lang}
               item={item}
               ready={ready}
               disabled={actions.acceptAll.isPending || isError}
               blockedBy={blockingSectionOf(run.items, item)}
               actions={actions}
               onFieldsWritten={onFieldsWritten}
-              onAccepted={() => setAcceptAllError(null)}
+              onDecided={() => setAcceptAllError(null)}
             />
           ))}
         </div>

@@ -45,7 +45,7 @@ export const useSummaryTab = (props: SummaryTabProps) => {
     fetchStatus,
     isError,
     refetch,
-  } = useBookSummary(versionId, { refetchOnMount: 'always' });
+  } = useBookSummary(versionId, { refetchOnMount: 'always', staleTime: 0 });
   const upsertMutation = useUpsertBookSummary();
   const briefMutation = useUpsertBookSummaryBrief();
 
@@ -75,6 +75,15 @@ export const useSummaryTab = (props: SummaryTabProps) => {
       })),
     []
   );
+  // Поля, чей текст на сервере не выяснен: перечитывание после записи хода не удалось. Save такого
+  // поля закрыт, пока повтор не удастся — иначе он вернул бы в поле старый текст поверх записанного.
+  const [unknown, setUnknown] = useState<{ versionId: string; fields: (keyof SummaryFormData)[] }>({
+    versionId,
+    fields: [],
+  });
+  const unknownFields = unknown.versionId === versionId ? unknown.fields : [];
+  const unknownRef = useRef(unknownFields);
+  unknownRef.current = unknownFields;
   const refetchRef = useRef(refetch);
   refetchRef.current = refetch;
 
@@ -102,6 +111,8 @@ export const useSummaryTab = (props: SummaryTabProps) => {
   useEffect(() => {
     if (status !== 'success' || fetchStatus !== 'idle' || hydratedFor === versionId) return;
     setHydratedFor(versionId);
+    // Свежий ответ и есть выясненный текст сервера: пометка прежнего неудачного перечитывания снимается.
+    setUnknown((prev) => (prev.versionId === versionId ? { versionId, fields: [] } : prev));
     saved.current = formOf(existingSummary);
     synced.current = saved.current;
     setFormData(saved.current);
@@ -127,13 +138,29 @@ export const useSummaryTab = (props: SummaryTabProps) => {
     async (fields: SummaryWriteField[]) => {
       const calledFor = versionRef.current;
       // Форма ещё не заполнена: её заполнит свежий ответ (`refetchOnMount: 'always'`).
-      if (!hydratedRef.current || fields.length === 0) return;
+      if (!hydratedRef.current) return;
+      // Невыясненные поля перечитываются вместе с названными: повтор — тот же вызов.
+      const wanted = [...new Set([...fields.map((f) => FORM_FIELD[f]), ...unknownRef.current])];
+      if (wanted.length === 0) return;
       // Второй вызов обрывает запрос первого, а оборванный ждёт новый (query-core `fetch`, тихая
       // отмена): оба получают свежий ответ — сторож в useSummaryTabReload.test.
+      const startedAt = Date.now();
       const result = await refetchRef.current();
-      if (result.status !== 'success' || versionRef.current !== calledFor) return;
+      if (versionRef.current !== calledFor) return;
+      // Запрос, отменённый сохранением соседнего поля (`cancelQueries`, откат), отдаёт данные
+      // прежнего состояния со статусом success: удачен только ответ, пришедший после начала.
+      const fresh = result.status === 'success' && result.dataUpdatedAt >= startedAt;
+      // Вызовы внахлёст делят один запрос: пометки сливаются, успех снимает только свои поля.
+      setUnknown((prev) => {
+        const before = prev.versionId === calledFor ? prev.fields : [];
+        const fields = fresh
+          ? before.filter((f) => !wanted.includes(f))
+          : [...new Set([...before, ...wanted])];
+        return { versionId: calledFor, fields };
+      });
+      if (!fresh) return;
       const server = formOf(result.data);
-      for (const field of fields.map((f) => FORM_FIELD[f])) {
+      for (const field of wanted) {
         // Правка сверяется в момент подстановки: набранное за время запроса тоже правка.
         if (stored(current.current[field]) === stored(synced.current[field])) {
           takeServerText(field, server[field]);
@@ -164,6 +191,12 @@ export const useSummaryTab = (props: SummaryTabProps) => {
   const handleSave = () => {
     // До заполнения с сервера в поле не то, что сохранено: такая запись затёрла бы пересказ.
     if (!hydrated) return;
+    if (unknownFields.includes('summaryText')) {
+      enqueueSnackbar('The server text of “Summary” is not known: retry loading it first', {
+        variant: 'warning',
+      });
+      return;
+    }
     const summary = formData.summaryText.trim();
     // То же правило, что у сервера (`@RichHtmlHasText`): пустой редактор отдаёт `<p></p>`.
     // Санитайзер сюда не тянется (+12 кБ в бандл админки): вырезанное им сервер отобьёт 400.
@@ -202,7 +235,16 @@ export const useSummaryTab = (props: SummaryTabProps) => {
    */
   const handleSaveBrief = () => {
     if (!hydrated || !existingSummary?.hasText) {
-      enqueueSnackbar('Save the full summary first', { variant: 'warning' });
+      enqueueSnackbar('Save the Summary first', { variant: 'warning' });
+      return;
+    }
+    if (unknownFields.includes('briefText')) {
+      enqueueSnackbar(
+        'The server text of “Very short summary” is not known: retry loading it first',
+        {
+          variant: 'warning',
+        }
+      );
       return;
     }
     const brief = formData.briefText.trim();
@@ -235,6 +277,9 @@ export const useSummaryTab = (props: SummaryTabProps) => {
     handleSave,
     handleSaveBrief,
     reloadFields,
+    unknownFields,
+    /** Повтор перечитывания невыясненных полей. */
+    retryReload: () => void reloadFields([]),
     serverUpdates,
     loadServerText,
     // Очень краткий заводится после полного с текстом (`product.md` §7 п.5) — и только когда форма

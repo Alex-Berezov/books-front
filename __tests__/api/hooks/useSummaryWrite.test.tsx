@@ -59,6 +59,8 @@ const item = (regenerating: boolean): SummaryWriteItem => ({
   regenFailedReason: null,
   regenerating,
   regenOperationId: regenerating ? 'op-2' : null,
+  regenOperationStatus: regenerating ? 'active' : null,
+  regenPauseReason: null,
 });
 
 const state = (
@@ -106,6 +108,12 @@ describe('summaryWriteRefetchInterval', () => {
     expect(summaryWriteRefetchInterval(state('failed', 'failed'))).toBe(false);
     expect(summaryWriteRefetchInterval({ draft: null })).toBe(false);
     expect(summaryWriteRefetchInterval(state('building', 'active'), true)).toBe(false);
+  });
+
+  it('a paused regeneration is not polled: it waits for «Continue» like a paused run (F06-5c)', () => {
+    const paused = state('ready', 'done', true);
+    paused.draft!.items[0].regenOperationStatus = 'paused';
+    expect(summaryWriteRefetchInterval(paused)).toBe(false);
   });
 });
 

@@ -21,6 +21,8 @@ export interface SummaryWriteAcceptAllProps {
   disabled: boolean;
   /** Отказ последнего «Accept all» этого хода; `null` — не было. */
   error: unknown;
+  /** Тексты хода на момент нажатия «Accept all» — по ним называется, на чём встали. */
+  itemsAtFailure: SummaryWrite['items'];
   onAcceptAll: () => void;
 }
 
@@ -34,14 +36,16 @@ export const SummaryWriteAcceptAll: FC<SummaryWriteAcceptAllProps> = ({
   pending,
   disabled,
   error,
+  itemsAtFailure,
   onAcceptAll,
 }) => {
   const blocked = run.chapterChanges;
+  // Списка нет (отказ до первой записи, сеть, 5xx) — на каком тексте встали, неизвестно.
   const accepted = acceptedIndexesOf(error);
   const changed = fieldChangedOf(error);
-  const stop = changed ? acceptAllStopOf(run.items, accepted) : null;
-  const acceptedTitles = accepted
-    .map((index) => run.items.find((i) => i.index === index))
+  const stop = accepted ? acceptAllStopOf(itemsAtFailure, accepted) : null;
+  const acceptedTitles = (accepted ?? [])
+    .map((index) => itemsAtFailure.find((i) => i.index === index))
     .filter((i) => i !== undefined)
     .map(itemTitle);
 
@@ -75,6 +79,7 @@ export const SummaryWriteAcceptAll: FC<SummaryWriteAcceptAllProps> = ({
           ) : (
             <p className={styles.error}>{refusalText(error)}</p>
           )}
+          {!changed && stop && <p className={styles.hint}>Stopped at: {itemTitle(stop)}.</p>}
           {acceptedTitles.length > 0 && (
             <p className={styles.hint}>Already accepted: {acceptedTitles.join(', ')}.</p>
           )}

@@ -16,7 +16,8 @@ export interface ResumeAction {
 }
 
 export interface OperationProgressProps {
-  operation: LlmOperation;
+  /** Нужны только id, статус и причина паузы: так её рисует и перегенерация текста хода (F06-5c). */
+  operation: Pick<LlmOperation, 'id' | 'status' | 'pauseReason'>;
   /** Строка хода: чего ждёт, сколько готово или пауза с причиной. */
   text: string;
   lang: SupportedLang;

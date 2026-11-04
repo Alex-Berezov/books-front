@@ -18,7 +18,7 @@ export interface FieldConflictProps {
  * сервер не засчитывает (`appendAllowed`).
  */
 export const FieldConflict: FC<FieldConflictProps> = ({ body, subject }) => {
-  // «Section 2 must…» без текста-виновника, «Full summary: section 2 must…» — с ним.
+  // «Section 2 must…» без текста-виновника, «Summary: section 2 must…» — с ним.
   const lead = (text: string) =>
     subject ? `${subject}: ${text}` : `${text[0].toUpperCase()}${text.slice(1)}`;
   if (body.expectedNumber !== undefined) {
