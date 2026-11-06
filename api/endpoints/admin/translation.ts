@@ -85,6 +85,7 @@ const runEstimateQuery = (params: TranslationRunEstimateParams): string => {
   for (const language of params.languages) query.append('languages', language);
   if (params.translateModel) query.set('translateModel', params.translateModel);
   if (params.writeSummary) query.set('writeSummary', 'true');
+  if (params.writeAnalysis) query.set('writeAnalysis', 'true');
   return query.toString();
 };
 

@@ -10,9 +10,19 @@ export interface RunEstimateTableProps {
   estimate: TranslationRunEstimate;
 }
 
+/** Разделы, которые итог включает сверх перевода: Summary и Analysis со своими суммами. */
+const includedText = (estimate: TranslationRunEstimate): string => {
+  const parts = [
+    ...(estimate.summaryUsd !== null ? [`Summary ${formatMoney(estimate.summaryUsd)}`] : []),
+    ...(estimate.analysisUsd !== null ? [`Analysis ${formatMoney(estimate.analysisUsd)}`] : []),
+  ];
+  return parts.length > 0 ? `, including ${parts.join(' and ')}` : '';
+};
+
 /**
- * Оценка окна запуска (F05-7, `product.md` §2.2; F06-5b, §5): досье и глоссарии своими лимитами,
- * перевод по языкам, Summary по языкам отдельной строкой и итог — перевод плюс Summary.
+ * Оценка окна запуска (F05-7, `product.md` §2.2; F06-5b, §5; F07-3b): досье и глоссарии своими
+ * лимитами, перевод по языкам, Summary и Analysis по языкам отдельными строками и итог — перевод
+ * плюс оба раздела.
  */
 export const RunEstimateTable: FC<RunEstimateTableProps> = ({ estimate }) => (
   <table className={styles.estimate}>
@@ -37,7 +47,7 @@ export const RunEstimateTable: FC<RunEstimateTableProps> = ({ estimate }) => (
       {estimate.languages.map((l) => (
         <tr key={l.language}>
           <td>Translation {l.language.toUpperCase()}</td>
-          {/* `totalUsd` языка с Write Summary включает его раздел: перевод — сумма этапов. */}
+          {/* `totalUsd` языка включает Summary и Analysis: перевод — сумма этапов. */}
           <td>
             {formatMoney(
               addMoney(l.splitUsd, l.translateUsd, l.checkUsd, l.finalCheckUsd, l.metadataUsd)
@@ -53,11 +63,18 @@ export const RunEstimateTable: FC<RunEstimateTableProps> = ({ estimate }) => (
           </tr>
         ) : null
       )}
+      {estimate.languages.map((l) =>
+        l.analysisUsd !== null ? (
+          <tr key={`analysis-${l.language}`}>
+            <td>Analysis {l.language.toUpperCase()} (own limit)</td>
+            <td>{formatMoney(l.analysisUsd)}</td>
+          </tr>
+        ) : null
+      )}
       <tr className={styles.total}>
         <td>
           Total{estimate.upperBound ? ' (upper bound)' : ''}
-          {estimate.summaryUsd !== null &&
-            `, including Summary ${formatMoney(estimate.summaryUsd)}`}
+          {includedText(estimate)}
         </td>
         <td>{formatMoney(estimate.totalUsd)}</td>
       </tr>

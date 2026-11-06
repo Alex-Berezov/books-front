@@ -69,6 +69,7 @@ const language = (over: Partial<TranslationRunLanguage> = {}): TranslationRunLan
   blockedByOperationId: null,
   draftVersionId: null,
   summary: null,
+  analysis: null,
   ...over,
 });
 
@@ -82,6 +83,7 @@ const run = (over: Partial<TranslationRun> = {}): TranslationRun => ({
   operations: [],
   languages: [language()],
   writeSummary: false,
+  writeAnalysis: false,
   createdAt: '2026-10-24T00:00:00.000Z',
   ...over,
 });
@@ -421,6 +423,7 @@ describe('Блок запуска перевода (F05-7)', () => {
     renderBlock(
       run({
         writeSummary: true,
+        writeAnalysis: false,
         languages: [
           language({ language: 'es', status: 'running' }),
           language({
@@ -461,5 +464,55 @@ describe('Блок запуска перевода (F05-7)', () => {
   it('F06-5b: без Write Summary строки раздела нет', () => {
     renderBlock(run({ writeSummary: false }));
     expect(screen.queryByText(/^Summary:/)).not.toBeInTheDocument();
+  });
+
+  it('F07-3b: Write Analysis без Write Summary — своя строка анализа у языка, строки Summary нет', () => {
+    renderBlock(
+      run({
+        writeSummary: false,
+        writeAnalysis: true,
+        languages: [
+          language({ language: 'es', status: 'running' }),
+          language({
+            language: 'fr',
+            status: 'done',
+            draftVersionId: 'draft-fr',
+            analysis: {
+              status: 'building',
+              reason: null,
+              draftId: 'cd2',
+              operationStatus: 'active',
+              pauseReason: null,
+              stepsDone: 2,
+              stepsTotal: 5,
+              flaggedItems: 0,
+              failedItems: 0,
+              coreReady: false,
+              spentUsd: '0.1',
+            },
+          }),
+        ],
+      })
+    );
+
+    expect(screen.getByText('Analysis: waiting for translation')).toBeInTheDocument();
+    expect(screen.getByText('Analysis: writing, step 3 of 5')).toBeInTheDocument();
+    expect(screen.queryByText(/^Summary:/)).not.toBeInTheDocument();
+  });
+
+  it('F07-3b: оба раздела (умолчание окна) — у языка две строки подряд: Summary, затем Analysis', () => {
+    renderBlock(
+      run({
+        writeSummary: true,
+        writeAnalysis: true,
+        languages: [language({ language: 'es', status: 'running' })],
+      })
+    );
+
+    const lines = screen.getAllByText(/^(Summary|Analysis): waiting for translation$/);
+    expect(lines.map((l) => l.textContent)).toEqual([
+      'Summary: waiting for translation',
+      'Analysis: waiting for translation',
+    ]);
   });
 });

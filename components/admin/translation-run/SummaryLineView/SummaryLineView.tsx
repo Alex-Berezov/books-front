@@ -1,8 +1,7 @@
 import type { FC } from 'react';
-import Link from 'next/link';
-import { versionTabHref } from '@/components/admin/books/BookVersionTabs/versionTab.constants';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { TranslationRunLanguageStatus, TranslationRunSummary } from '@/types/api-schema';
+import { SectionLineView } from '../SectionLineView';
 import { summaryLineOf } from '../summaryLine.utils';
 
 export interface SummaryLineViewProps {
@@ -19,18 +18,11 @@ export const SummaryLineView: FC<SummaryLineViewProps> = ({
   language,
   draftVersionId,
   lang,
-}) => {
-  const line = summaryLineOf(writeSummary, language);
-  if (!line) return null;
-  return (
-    <span>
-      {line.text}
-      {line.link !== null && draftVersionId !== null && (
-        <>
-          {'. '}
-          <Link href={versionTabHref(lang, draftVersionId, 'summary')}>{line.link}</Link>
-        </>
-      )}
-    </span>
-  );
-};
+}) => (
+  <SectionLineView
+    line={summaryLineOf(writeSummary, language)}
+    tab="summary"
+    draftVersionId={draftVersionId}
+    lang={lang}
+  />
+);

@@ -24,6 +24,7 @@ const reportLanguage = (over: Partial<TranslationReportLanguage>): TranslationRe
   language: 'es',
   status: 'done',
   summary: null,
+  analysis: null,
   reason: null,
   reasonText: null,
   draftVersionId: 'draft-es',
@@ -203,5 +204,77 @@ describe('Отчёт запуска (F05-7)', () => {
 
     expect(screen.queryByText(/^Summary:/)).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Summary' })).not.toBeInTheDocument();
+  });
+
+  it('F07-3b: строка анализа с тратами, траты Analysis отдельной строкой стоимости; без Write Analysis — ни того, ни другого', () => {
+    hooks.report = {
+      ...report([
+        reportLanguage({
+          analysis: {
+            status: 'ready',
+            reason: null,
+            draftId: 'cd2',
+            operationStatus: 'done',
+            pauseReason: null,
+            stepsDone: 5,
+            stepsTotal: 5,
+            flaggedItems: 0,
+            failedItems: 0,
+            coreReady: false,
+            spentUsd: '0.40000000',
+          },
+        }),
+        reportLanguage({ language: 'fr', status: 'failed', draftVersionId: null }),
+      ]),
+      totalUsd: '1.60000000',
+    };
+    const { unmount } = render(
+      <RunReportModal runId="r1" lang="en" writeAnalysis onClose={vi.fn()} />
+    );
+
+    expect(
+      screen.getByText(
+        (_, el) =>
+          el?.tagName === 'P' &&
+          el.textContent ===
+            'Analysis: partly done — core not ready. Open the Analysis tab · spent $0.4'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('Analysis: not started — translation failed')).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Analysis' }).closest('tr')).toHaveTextContent('$0.4');
+    expect(screen.queryByText(/^Summary:/)).not.toBeInTheDocument();
+    unmount();
+
+    hooks.report = report([reportLanguage({})]);
+    render(<RunReportModal runId="r1" lang="en" onClose={vi.fn()} />);
+    expect(screen.queryByText(/^Analysis:/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('cell', { name: 'Analysis' })).not.toBeInTheDocument();
+  });
+
+  it('F07-3b: отчёт открыт без флага списка, а у языка анализ есть — строка анализа всё равно видна', () => {
+    hooks.report = report([
+      reportLanguage({
+        analysis: {
+          status: 'ready',
+          reason: null,
+          draftId: 'cd2',
+          operationStatus: 'done',
+          pauseReason: null,
+          stepsDone: 5,
+          stepsTotal: 5,
+          flaggedItems: 0,
+          failedItems: 0,
+          coreReady: true,
+          spentUsd: '0.40000000',
+        },
+      }),
+    ]);
+    render(<RunReportModal runId="r1" lang="en" onClose={vi.fn()} />);
+
+    expect(
+      screen.getByText(
+        (_, el) => el?.tagName === 'P' && el.textContent === 'Analysis: done · spent $0.4'
+      )
+    ).toBeInTheDocument();
   });
 });

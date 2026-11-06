@@ -126,6 +126,11 @@ describe('слаг языковой версии', () => {
     try {
       const { result } = renderHook(() => useBookVersionLogic('version-ru'));
       expect(result.current.activeTab).toBe('summary');
+      // F07-3b: «Open the Analysis tab» из строки Analysis запуска.
+      window.history.pushState({}, '', '/admin/en/books/versions/version-ru?tab=analysis');
+      expect(renderHook(() => useBookVersionLogic('version-ru')).result.current.activeTab).toBe(
+        'analysis'
+      );
       window.history.pushState({}, '', '/admin/en/books/versions/version-ru?tab=nonsense');
       expect(renderHook(() => useBookVersionLogic('version-ru')).result.current.activeTab).toBe(
         'overview'

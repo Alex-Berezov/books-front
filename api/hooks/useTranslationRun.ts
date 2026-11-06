@@ -41,6 +41,7 @@ import type {
   TranslationRun,
   TranslationRunEstimateParams,
   TranslationRunListItem,
+  TranslationRunAnalysis,
   TranslationRunSummary,
 } from '@/types/api-schema';
 import { COMPARE_REFETCH_MS, LLM_DISABLED } from './useTranslationCompare';
@@ -151,11 +152,12 @@ export const useTranslationRunHistory = (bookId: string, versionId: string, page
         limit: RUN_HISTORY_PAGE_SIZE,
       }),
     placeholderData: keepPreviousData,
-    // Раздел Summary пишется после конца запуска, а запуск может уйти из блока версии (там идущие
-    // и последний) — история сама держит свою строку Summary свежей, пока он не встал (F06-5b).
+    // Разделы Summary и Analysis пишутся после конца запуска, а запуск может уйти из блока версии
+    // (там идущие и последний) — история сама держит их строки свежими, пока они не встали
+    // (F06-5b, F07-3b).
     refetchInterval: (query) =>
       query.state.status !== 'error' &&
-      (query.state.data?.items ?? []).some((r) => r.writeSummary && isSummaryInFlight(r.results))
+      (query.state.data?.items ?? []).some((r) => areSectionsInFlight(r, r.results))
         ? COMPARE_REFETCH_MS
         : false,
   });
@@ -169,42 +171,57 @@ const isWorking = (op: LlmOperation): boolean => op.status === 'active';
  */
 export const isSummaryInFlight = (
   languages: ReadonlyArray<{ summary: TranslationRunSummary | null }>
+): boolean => languages.some(({ summary }) => isSectionInFlight(summary));
+
+/** Анализ какого-то языка ещё идёт сам (F07-3b) — то же правило, что у раздела Summary. */
+export const isAnalysisInFlight = (
+  languages: ReadonlyArray<{ analysis: TranslationRunAnalysis | null }>
+): boolean => languages.some(({ analysis }) => isSectionInFlight(analysis));
+
+const isSectionInFlight = (
+  s: Pick<TranslationRunSummary, 'status' | 'operationStatus'> | null
 ): boolean =>
-  languages.some(
-    ({ summary: s }) =>
-      s !== null &&
-      (s.status === 'pending' ||
-        // `done` при `building` — окно между закрытием операции и записью статуса хода.
-        (s.status === 'building' &&
-          (s.operationStatus === 'active' || s.operationStatus === 'done')))
-  );
+  s !== null &&
+  (s.status === 'pending' ||
+    // `done` при `building` — окно между закрытием операции и записью статуса хода.
+    (s.status === 'building' && (s.operationStatus === 'active' || s.operationStatus === 'done')));
+
+/** Включённый у запуска раздел какого-то языка ещё идёт сам (Summary или Analysis). */
+const areSectionsInFlight = (
+  run: { writeSummary: boolean; writeAnalysis: boolean },
+  languages: ReadonlyArray<{
+    summary: TranslationRunSummary | null;
+    analysis: TranslationRunAnalysis | null;
+  }>
+): boolean =>
+  (run.writeSummary && isSummaryInFlight(languages)) ||
+  (run.writeAnalysis && isAnalysisInFlight(languages));
 
 /**
  * Строка списка запусков ещё «живая» — её отчёт перечитывается: идёт операция запуска или раздел
- * Summary языка (одно правило на блок версии и историю).
+ * Summary или Analysis языка (одно правило на блок версии и историю).
  */
 export const isRunRowLive = (
-  row: Pick<TranslationRunListItem, 'operation' | 'writeSummary' | 'results'>
-): boolean =>
-  row.operation.status === 'active' || (row.writeSummary && isSummaryInFlight(row.results));
+  row: Pick<TranslationRunListItem, 'operation' | 'writeSummary' | 'writeAnalysis' | 'results'>
+): boolean => row.operation.status === 'active' || areSectionsInFlight(row, row.results);
 
 /** Идёт сам запуск или одна из его операций досье и глоссария. */
 const isRunWorking = (run: TranslationRun): boolean =>
   isWorking(run.operation) || run.operations.some(isWorking);
 
-const isRunSummaryWorking = (run: TranslationRun): boolean =>
-  run.writeSummary && isSummaryInFlight(run.languages);
+const isRunSectionWorking = (run: TranslationRun): boolean =>
+  areSectionsInFlight(run, run.languages);
 
 /**
- * Перечитывать, пока идёт запуск, одна из его операций досье и глоссария или раздел Summary
- * языка; всё на паузе или закончилось — без опроса. Запрос упал — опрос встаёт, отказ виден
+ * Перечитывать, пока идёт запуск, одна из его операций досье и глоссария или раздел Summary или
+ * Analysis языка; всё на паузе или закончилось — без опроса. Запрос упал — опрос встаёт, отказ виден
  * своей плашкой.
  */
 export const translationRunRefetchInterval = (
   run: TranslationRun | undefined,
   failed = false
 ): number | false =>
-  !failed && run !== undefined && (isRunWorking(run) || isRunSummaryWorking(run))
+  !failed && run !== undefined && (isRunWorking(run) || isRunSectionWorking(run))
     ? COMPARE_REFETCH_MS
     : false;
 
@@ -232,14 +249,14 @@ export const useTranslationRun = (id: string | null, bookId: string) => {
     queryFn: async () => {
       const before = queryClient.getQueryData<TranslationRun>(translationRunKeys.detail(id ?? ''));
       const run = await getTranslationRun(id as string);
-      // Запуск или раздел Summary языка встал на этом чтении (конец, отмена, пауза — в том числе
+      // Запуск или раздел Summary/Analysis языка встал на этом чтении (конец, отмена, пауза — в том числе
       // из другой вкладки): языки и списки иначе остались бы «в процессе» до перезагрузки. Конец
       // запуска сбрасывает их сразу, не дожидаясь раздела, который ещё пишет (F06-5b). Стоящий ход,
       // прочитанный заново, ничего не сбрасывает — сброс только на переходе.
       if (
         before !== undefined &&
         ((isRunWorking(before) && !isRunWorking(run)) ||
-          (isRunSummaryWorking(before) && !isRunSummaryWorking(run)))
+          (isRunSectionWorking(before) && !isRunSectionWorking(run)))
       ) {
         void invalidateRunDependents(queryClient, run, bookId);
       }

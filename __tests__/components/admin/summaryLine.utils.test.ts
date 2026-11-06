@@ -89,10 +89,17 @@ describe('Подпись раздела языка запуска (F06-5b)', () 
   });
 
   it('skipped — причина словами и подсказка со ссылкой на вкладку (Р7)', () => {
+    // Ход уже готов или пишется — ручной старт не поможет: ссылка открывает вкладку (F07-3b, PM).
     expect(line(summary({ status: 'skipped', reason: 'AUTOSTART_SKIPPED_EXISTING' }))).toEqual({
       text: 'Summary: not started — the version already has a finished summary run',
-      link: 'Write Summary on the Summary tab',
+      link: 'Open the Summary tab',
     });
+    expect(
+      line(summary({ status: 'skipped', reason: 'AUTOSTART_SKIPPED_IN_PROGRESS' }))?.link
+    ).toBe('Open the Summary tab');
+    expect(line(summary({ status: 'skipped', reason: 'LLM_CEILING_REACHED' }))?.link).toBe(
+      'Write Summary on the Summary tab'
+    );
     expect(line(summary({ status: 'skipped', reason: 'LLM_CEILING_REACHED' }))?.text).toBe(
       'Summary: not started — the spending ceiling is reached: raise it in LLM settings'
     );

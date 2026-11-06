@@ -8,7 +8,9 @@ import { Modal } from '@/components/admin/common/Modal';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { TranslationReportLanguage } from '@/types/api-schema';
+import { analysisLineOf, sumAnalysisSpent } from '../analysisLine.utils';
 import { FindingItem } from '../FindingItem';
+import { SectionLineView } from '../SectionLineView';
 import { sumSummarySpent } from '../summaryLine.utils';
 import { SummaryLineView } from '../SummaryLineView';
 import {
@@ -30,6 +32,8 @@ export interface RunReportModalProps {
   live?: boolean;
   /** Write Summary у запуска (строка списка): строка раздела и у языка без раздела (Р8). */
   writeSummary?: boolean;
+  /** Write Analysis у запуска (строка списка): строка анализа и у языка без анализа. */
+  writeAnalysis?: boolean;
   onClose: () => void;
 }
 
@@ -42,6 +46,7 @@ export const RunReportModal: FC<RunReportModalProps> = ({
   lang,
   live,
   writeSummary = false,
+  writeAnalysis = false,
   onClose,
 }) => {
   const report = useTranslationRunReport(runId, live);
@@ -49,6 +54,10 @@ export const RunReportModal: FC<RunReportModalProps> = ({
   // Строка — по наличию раздела: сумма не по форме денег даёт прочерк, а не пропавшую строку.
   const hasSummary = report.data?.languages.some((l) => l.summary !== null) ?? false;
   const summarySpent = report.data ? sumSummarySpent(report.data.languages) : null;
+  // Траты Analysis — так же своей строкой (F07-3b).
+  // `!= null`: ответ прежнего бэкенда поля `analysis` не несёт вовсе (окно выката, F07-3b).
+  const hasAnalysis = report.data?.languages.some((l) => l.analysis != null) ?? false;
+  const analysisSpent = report.data ? sumAnalysisSpent(report.data.languages) : null;
 
   return (
     <Modal isOpen title="Translation report" size="xl" showFooter={false} onCancel={onClose}>
@@ -57,7 +66,13 @@ export const RunReportModal: FC<RunReportModalProps> = ({
       {report.data && (
         <>
           {report.data.languages.map((l) => (
-            <LanguageReport key={l.language} report={l} lang={lang} writeSummary={writeSummary} />
+            <LanguageReport
+              key={l.language}
+              report={l}
+              lang={lang}
+              writeSummary={writeSummary}
+              writeAnalysis={writeAnalysis}
+            />
           ))}
           <h3 className={styles.subtitle}>Cost</h3>
           <table className={styles.table}>
@@ -86,6 +101,14 @@ export const RunReportModal: FC<RunReportModalProps> = ({
                   <td>{formatMoney(summarySpent)}</td>
                 </tr>
               )}
+              {hasAnalysis && (
+                <tr>
+                  <td>Analysis</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>{formatMoney(analysisSpent)}</td>
+                </tr>
+              )}
               <tr className={styles.total}>
                 <td colSpan={3}>Total</td>
                 <td>{formatMoney(report.data.totalUsd)}</td>
@@ -108,7 +131,14 @@ const LanguageReport: FC<{
   report: TranslationReportLanguage;
   lang: SupportedLang;
   writeSummary: boolean;
-}> = ({ report: l, lang, writeSummary }) => {
+  writeAnalysis: boolean;
+}> = ({ report: l, lang, writeSummary, writeAnalysis }) => {
+  // Строка анализа: и без флага списка, если анализ у языка есть; строки нет (язык `done` без
+  // анализа) — без пустого абзаца.
+  const analysisLine = analysisLineOf(writeAnalysis || l.analysis != null, {
+    status: l.status,
+    analysis: l.analysis ?? null,
+  });
   // Находки от текста до повтора или правки (`stale`) показаны приглушёнными; отказ перезаписи — своей строкой.
   const flagged = l.chapters.filter(
     (c) => c.findings.length > 0 || c.flagReason !== null || c.rewriteRefusal !== null
@@ -137,6 +167,17 @@ const LanguageReport: FC<{
             lang={lang}
           />
           {l.summary && ` · spent ${formatMoney(l.summary.spentUsd)}`}
+        </p>
+      )}
+      {analysisLine && (
+        <p>
+          <SectionLineView
+            line={analysisLine}
+            tab="analysis"
+            draftVersionId={l.draftVersionId}
+            lang={lang}
+          />
+          {l.analysis && ` · spent ${formatMoney(l.analysis.spentUsd)}`}
         </p>
       )}
       <p>

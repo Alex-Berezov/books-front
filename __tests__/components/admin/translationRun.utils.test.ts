@@ -60,6 +60,7 @@ const language = (over: Partial<TranslationRunLanguage> = {}): TranslationRunLan
   blockedByOperationId: null,
   draftVersionId: null,
   summary: null,
+  analysis: null,
   ...over,
 });
 
@@ -73,6 +74,7 @@ const translationRun = (over: Partial<TranslationRun> = {}): TranslationRun => (
   operations: [],
   languages: [language()],
   writeSummary: false,
+  writeAnalysis: false,
   createdAt: '2026-10-24T00:00:00.000Z',
   ...over,
 });
@@ -310,6 +312,11 @@ describe('Тело старта и отказы', () => {
       writeSummary: true,
     });
     expect(startRunRequest(['es'], null, '', false)).toEqual({ languages: ['es'] });
+    // Write Analysis (F07-3b) — так же и независимо от Write Summary.
+    expect(startRunRequest(['es'], null, '', false, true)).toEqual({
+      languages: ['es'],
+      writeAnalysis: true,
+    });
     expect(startRunRequest(['es'], 'a/b', '5')).toEqual({
       languages: ['es'],
       translateModel: 'a/b',

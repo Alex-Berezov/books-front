@@ -7,6 +7,7 @@ import {
   runStartLossText,
   refusalCode,
   refusalText as draftRefusalText,
+  refusalTextOfCode as draftRefusalTextOfCode,
 } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import { DOSSIER_REFUSED_TEXT } from '@/components/admin/translation-run/translationRun.utils';
@@ -130,6 +131,10 @@ const REFUSALS: Record<string, string> = {
   ANALYSIS_ITEM_NOT_REGENERABLE:
     'Theme links and sources are not regenerated on their own: regenerate the block they belong to.',
 };
+
+/** Подпись отказа хода по коду: своя, затем ходов из досье и запуска; чужой код — `undefined`. */
+export const refusalTextOfCode = (code: string): string | undefined =>
+  REFUSALS[code] ?? draftRefusalTextOfCode(code);
 
 export const refusalText = (error: unknown): string => {
   const code = refusalCode(error);

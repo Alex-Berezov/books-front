@@ -8,7 +8,7 @@ import { LimitResume } from '@/components/admin/common/LimitResume';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { LlmOperation, TranslationRun } from '@/types/api-schema';
-import { SummaryLineView } from '../SummaryLineView';
+import { RunSectionLines } from '../RunSectionLines';
 import {
   chapterText,
   DRAFT_LINK_TEXT,
@@ -164,16 +164,13 @@ export const RunProgress: FC<RunProgressProps> = ({ run, bookId, lang, onReport,
                 ) : (
                   '—'
                 )}
-                {run.writeSummary && (
-                  <div>
-                    <SummaryLineView
-                      writeSummary
-                      language={l}
-                      draftVersionId={l.draftVersionId}
-                      lang={lang}
-                    />
-                  </div>
-                )}
+                <RunSectionLines
+                  writeSummary={run.writeSummary}
+                  writeAnalysis={run.writeAnalysis}
+                  language={l}
+                  draftVersionId={l.draftVersionId}
+                  lang={lang}
+                />
               </td>
               <td>
                 {l.chunksTotal > 0 ? (

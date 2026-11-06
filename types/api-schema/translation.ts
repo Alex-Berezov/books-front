@@ -151,7 +151,9 @@ export interface TranslationRunLanguageEstimate {
   metadataUsd: LlmMoney;
   /** Write Summary (F06-5): верхняя оценка раздела по главам исходника; `null` — без `writeSummary`. */
   summaryUsd: LlmMoney | null;
-  /** Перевод языка плюс `summaryUsd`. */
+  /** Write Analysis (F07-3b): верхняя оценка хода анализа по главам исходника; `null` — без `writeAnalysis`. */
+  analysisUsd: LlmMoney | null;
+  /** Перевод языка плюс `summaryUsd` и `analysisUsd`. */
   totalUsd: LlmMoney;
 }
 
@@ -168,7 +170,9 @@ export interface TranslationRunEstimate {
   translationsUsd: LlmMoney;
   /** Write Summary всех языков: своя операция и свой лимит, в `minLimitUsd` не входит; `null` — без `writeSummary`. */
   summaryUsd: LlmMoney | null;
-  /** Перевод, досье и глоссарии плюс `summaryUsd`. */
+  /** Write Analysis всех языков: своя операция и свой лимит, в `minLimitUsd` не входит; `null` — без `writeAnalysis`. */
+  analysisUsd: LlmMoney | null;
+  /** Перевод, досье и глоссарии плюс `summaryUsd` и `analysisUsd`. */
   totalUsd: LlmMoney;
   /** Лимит запуска не ниже этого: досье и глоссарии строятся первыми. */
   minLimitUsd: LlmMoney;
@@ -185,6 +189,8 @@ export interface TranslationRunEstimateParams {
   translateModel?: string;
   /** Write Summary (F06-5): раздел языка стартует сам по концу языка; нет — выключено. */
   writeSummary?: boolean;
+  /** Write Analysis (F07-3b): ход анализа языка стартует сам по концу языка, независимо от `writeSummary`. */
+  writeAnalysis?: boolean;
 }
 
 /** Тело `POST /admin/versions/:id/translation-runs`. */
@@ -245,6 +251,30 @@ export interface TranslationRunSummary {
   spentUsd: LlmMoney;
 }
 
+/**
+ * Анализ языка запуска (`TranslationRunAnalysisDto`, F07-3b): статусы и причины — как у раздела
+ * пересказа; единица хода — шаг, счёт — блоки. `null` у языка — анализа нет или язык не `done`.
+ */
+export interface TranslationRunAnalysis {
+  status: TranslationRunSummaryStatus;
+  /** Всегда у `skipped` и `failed`: код пропуска, отказа старта или срыва хода. */
+  reason: string | null;
+  /** Черновик, на вкладке Analysis которого идёт ход. */
+  draftId: string | null;
+  operationStatus: LlmOperation['status'] | null;
+  pauseReason: LlmOperation['pauseReason'];
+  stepsDone: number;
+  /** `null` — ход не начат. */
+  stepsTotal: number | null;
+  /** Блоки с флагами модели (не замечания); флаг шага `CORE_MISSING` не в счёт. */
+  flaggedItems: number;
+  /** Блоки, которые не удалось написать. */
+  failedItems: number;
+  /** Ядро анализа версии собрано сейчас (`hasCore`): «done» требует его и ни одного упавшего блока. */
+  coreReady: boolean;
+  spentUsd: LlmMoney;
+}
+
 /** Язык в ходе запуска. */
 export interface TranslationRunLanguage {
   language: SupportedLang;
@@ -273,6 +303,7 @@ export interface TranslationRunLanguage {
   /** Черновик версии языка; `null` до создания и после удаления. */
   draftVersionId: string | null;
   summary: TranslationRunSummary | null;
+  analysis: TranslationRunAnalysis | null;
 }
 
 /** Ответ `GET /admin/translation-runs/:id`, старта и кнопок запуска. */
@@ -288,6 +319,8 @@ export interface TranslationRun {
   languages: TranslationRunLanguage[];
   /** Write Summary включён у запуска. */
   writeSummary: boolean;
+  /** Write Analysis включён у запуска. */
+  writeAnalysis: boolean;
   createdAt: string;
 }
 
@@ -314,6 +347,7 @@ export interface TranslationRunLanguageResult {
   reasonText: string | null;
   draftVersionId: string | null;
   summary: TranslationRunSummary | null;
+  analysis: TranslationRunAnalysis | null;
 }
 
 /** Строка `GET /admin/books/:bookId/translation-runs`. */
@@ -329,9 +363,10 @@ export interface TranslationRunListItem {
   createdBy: TranslationRunAuthor | null;
   /** Выбранные модели по этапам в порядке конвейера; вызванные — в `costs` отчёта. */
   models: TranslationRunStageModel[];
-  /** Траты всех операций запуска, с Write Summary его языков — `totalUsd` его отчёта. */
+  /** Траты всех операций запуска, с Write Summary и Write Analysis его языков — `totalUsd` его отчёта. */
   costUsd: string;
   writeSummary: boolean;
+  writeAnalysis: boolean;
   results: TranslationRunLanguageResult[];
 }
 
@@ -396,6 +431,7 @@ export interface TranslationReportLanguage {
   draftVersionId: string | null;
   draftCreatedAt: string | null;
   summary: TranslationRunSummary | null;
+  analysis: TranslationRunAnalysis | null;
   flaggedChunks: number;
   flaggedChapters: number;
   /** Имя автора по глоссарию; null - этап полей версии не дошёл или автора нет ни у исходника, ни в ответе (F05-17). */

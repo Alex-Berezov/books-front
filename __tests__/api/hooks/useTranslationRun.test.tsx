@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   RUN_HISTORY_PAGE_SIZE,
   translationRunKeys,
+  isAnalysisInFlight,
+  isRunRowLive,
   isSummaryInFlight,
   translationRunRefetchInterval,
   useStartTranslationRun,
@@ -20,6 +22,7 @@ import type {
   LlmOperation,
   TranslationRun,
   TranslationRunLanguage,
+  TranslationRunAnalysis,
   TranslationRunSummary,
   TranslationRunListItem,
   TranslationRunListResponse,
@@ -79,6 +82,7 @@ const language = (over: Partial<TranslationRunLanguage> = {}): TranslationRunLan
   blockedByOperationId: null,
   draftVersionId: 'draft-es',
   summary: null,
+  analysis: null,
   ...over,
 });
 
@@ -92,6 +96,7 @@ const run = (over: Partial<TranslationRun> = {}): TranslationRun => ({
   operations: [],
   languages: [],
   writeSummary: false,
+  writeAnalysis: false,
   createdAt: '2026-10-24T00:00:00.000Z',
   ...over,
 });
@@ -108,6 +113,7 @@ const item = (id: string, status: LlmOperation['status']): TranslationRunListIte
   models: [],
   costUsd: '0.00000000',
   writeSummary: false,
+  writeAnalysis: false,
   results: [],
 });
 
@@ -198,6 +204,68 @@ describe('Опрос хода запуска (решение арбитра F05 
     expect(translationRunRefetchInterval(withSummary(null))).toBe(false);
   });
 
+  // F07-3b: анализ языка держит опрос так же, независимо от Write Summary.
+  const analysisLine = (over: Partial<TranslationRunAnalysis>): TranslationRunAnalysis => ({
+    status: 'building',
+    reason: null,
+    draftId: 'cd2',
+    operationStatus: 'active',
+    pauseReason: null,
+    stepsDone: 2,
+    stepsTotal: 5,
+    flaggedItems: 0,
+    failedItems: 0,
+    coreReady: false,
+    spentUsd: '0.1',
+    ...over,
+  });
+  const withAnalysis = (analysis: TranslationRunAnalysis | null, writeAnalysis = true) =>
+    run({
+      operation: operation({ status: 'done' }),
+      writeSummary: false,
+      writeAnalysis,
+      languages: [language({ status: 'done', summary: null, analysis })],
+    });
+
+  it('запуск кончился, анализ ждёт старта или пишет — опрос продолжается; встал или выключен — без опроса (F07-3b)', () => {
+    expect(translationRunRefetchInterval(withAnalysis(analysisLine({ status: 'pending' })))).toBe(
+      5_000
+    );
+    expect(translationRunRefetchInterval(withAnalysis(analysisLine({})))).toBe(5_000);
+    expect(
+      translationRunRefetchInterval(withAnalysis(analysisLine({ operationStatus: 'paused' })))
+    ).toBe(false);
+    expect(
+      translationRunRefetchInterval(
+        withAnalysis(analysisLine({ status: 'ready', operationStatus: 'done' }))
+      )
+    ).toBe(false);
+    expect(translationRunRefetchInterval(withAnalysis(analysisLine({}), false))).toBe(false);
+  });
+
+  it('isAnalysisInFlight и живость строки истории — по анализу языка (F07-3b)', () => {
+    expect(isAnalysisInFlight([{ analysis: null }, { analysis: analysisLine({}) }])).toBe(true);
+    expect(isAnalysisInFlight([{ analysis: analysisLine({ status: 'ready' }) }])).toBe(false);
+    const row = {
+      operation: operation({ status: 'done' }),
+      writeSummary: false,
+      writeAnalysis: true,
+      results: [
+        {
+          language: 'es' as const,
+          status: 'done' as const,
+          reason: null,
+          reasonText: null,
+          draftVersionId: 'draft-es',
+          summary: null,
+          analysis: analysisLine({}),
+        },
+      ],
+    };
+    expect(isRunRowLive(row)).toBe(true);
+    expect(isRunRowLive({ ...row, writeAnalysis: false })).toBe(false);
+  });
+
   it('isSummaryInFlight — по строкам списка запусков', () => {
     expect(
       isSummaryInFlight([{ summary: null }, { summary: summary({ status: 'pending' }) }])
@@ -216,8 +284,32 @@ const summaryRun = (runStatus: LlmOperation['status'], summary: TranslationRunSu
   run({
     operation: operation({ status: runStatus }),
     writeSummary: true,
+    writeAnalysis: false,
     languages: [language({ status: 'done', summary })],
   });
+
+/** Ход с Write Analysis (F07-3b): запуск кончился, язык `done`, анализ в заданном состоянии. */
+const analysisRun = (analysis: TranslationRunAnalysis) =>
+  run({
+    operation: operation({ status: 'done' }),
+    writeSummary: false,
+    writeAnalysis: true,
+    languages: [language({ status: 'done', summary: null, analysis })],
+  });
+
+const writingAnalysis: TranslationRunAnalysis = {
+  status: 'building',
+  reason: null,
+  draftId: 'cd2',
+  operationStatus: 'active',
+  pauseReason: null,
+  stepsDone: 2,
+  stepsTotal: 5,
+  flaggedItems: 0,
+  failedItems: 0,
+  coreReady: false,
+  spentUsd: '0.1',
+};
 
 const writingSummary: TranslationRunSummary = {
   status: 'building',
@@ -278,6 +370,24 @@ describe('Хуки запуска перевода', () => {
     client.setQueryData(translationRunKeys.detail('r1'), summaryRun('done', writingSummary));
     api.getTranslationRun.mockResolvedValue(
       summaryRun('done', { ...writingSummary, status: 'ready', operationStatus: 'done' })
+    );
+
+    const { result } = renderHook(() => useTranslationRun('r1', 'b1'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(invalidated()).toEqual(
+      expect.arrayContaining([
+        JSON.stringify(translationRunKeys.list('b1')),
+        JSON.stringify(translationRunKeys.report('r1')),
+      ])
+    );
+  });
+
+  it('F07-3b: анализ кончился после запуска — история и отчёт сбрасываются ещё раз', async () => {
+    const { client, wrapper, invalidated } = setup();
+    client.setQueryData(translationRunKeys.detail('r1'), analysisRun(writingAnalysis));
+    api.getTranslationRun.mockResolvedValue(
+      analysisRun({ ...writingAnalysis, status: 'ready', operationStatus: 'done' })
     );
 
     const { result } = renderHook(() => useTranslationRun('r1', 'b1'), { wrapper });
@@ -524,6 +634,7 @@ describe('Хуки запуска перевода', () => {
     const writing = {
       ...item('w', 'done'),
       writeSummary: true,
+      writeAnalysis: false,
       results: [
         {
           language: 'es' as const,
@@ -532,11 +643,25 @@ describe('Хуки запуска перевода', () => {
           reasonText: null,
           draftVersionId: 'draft-es',
           summary: writingSummary,
+          analysis: null,
         },
       ],
     };
     expect(interval({ state: { status: 'success', data: page([writing]) } })).toBe(5_000);
     expect(interval({ state: { status: 'error', data: page([writing]) } })).toBe(false);
+    // F07-3b: анализ строки, который ещё пишет, держит опрос так же, без Write Summary.
+    const analysing = {
+      ...writing,
+      writeSummary: false,
+      writeAnalysis: true,
+      results: [{ ...writing.results[0], summary: null, analysis: writingAnalysis }],
+    };
+    expect(interval({ state: { status: 'success', data: page([analysing]) } })).toBe(5_000);
+    expect(
+      interval({
+        state: { status: 'success', data: page([{ ...analysing, writeAnalysis: false }]) },
+      })
+    ).toBe(false);
 
     rerender({ p: 2 });
     await waitFor(() =>

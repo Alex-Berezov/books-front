@@ -41,11 +41,12 @@ vi.mock('next/dynamic', () => ({
       runId: string;
       live: boolean;
       writeSummary: boolean;
+      writeAnalysis: boolean;
       onClose: () => void;
     }) => (
       <div
         role="dialog"
-        aria-label={`report ${props.runId} live=${String(props.live)}${props.writeSummary ? ' summary' : ''}`}
+        aria-label={`report ${props.runId} live=${String(props.live)}${props.writeSummary ? ' summary' : ''}${props.writeAnalysis ? ' analysis' : ''}`}
       >
         <button type="button" onClick={props.onClose}>
           Close report
@@ -85,6 +86,7 @@ const item = (
   models: [{ stage: 'translate', model: 'a/main', fallbacks: ['b/spare'] }],
   costUsd: '1.25000000',
   writeSummary: false,
+  writeAnalysis: false,
   results: [
     {
       language: 'es',
@@ -93,6 +95,7 @@ const item = (
       reasonText: null,
       draftVersionId: 'draft-es',
       summary: null,
+      analysis: null,
     },
   ],
   ...over,
@@ -144,6 +147,7 @@ describe('RunHistory', () => {
             reasonText: null,
             draftVersionId: null,
             summary: null,
+            analysis: null,
           },
           {
             language: 'ru',
@@ -152,6 +156,7 @@ describe('RunHistory', () => {
             reasonText: null,
             draftVersionId: null,
             summary: null,
+            analysis: null,
           },
           {
             language: 'pt',
@@ -160,6 +165,7 @@ describe('RunHistory', () => {
             reasonText: 'Slug is taken',
             draftVersionId: null,
             summary: null,
+            analysis: null,
           },
         ],
       }),
@@ -187,6 +193,7 @@ describe('RunHistory', () => {
             reasonText: null,
             draftVersionId: null,
             summary: null,
+            analysis: null,
           },
           {
             language: 'fr',
@@ -195,6 +202,7 @@ describe('RunHistory', () => {
             reasonText: null,
             draftVersionId: null,
             summary: null,
+            analysis: null,
           },
         ],
       }),
@@ -297,6 +305,7 @@ describe('RunHistory', () => {
     show([
       item('run-s', 'done', {
         writeSummary: true,
+        writeAnalysis: false,
         results: [
           {
             language: 'es',
@@ -305,6 +314,7 @@ describe('RunHistory', () => {
             reasonText: null,
             draftVersionId: 'draft-es',
             summary,
+            analysis: null,
           },
         ],
       }),
@@ -315,6 +325,46 @@ describe('RunHistory', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Report' }));
     expect(
       screen.getByRole('dialog', { name: 'report run-s live=true summary' })
+    ).toBeInTheDocument();
+  });
+
+  it('F07-3b: Write Analysis — строка анализа под языком; отчёт живой, пока анализ пишет, и знает про анализ', () => {
+    show([
+      item('run-a', 'done', {
+        writeSummary: false,
+        writeAnalysis: true,
+        results: [
+          {
+            language: 'es',
+            status: 'done',
+            reason: null,
+            reasonText: null,
+            draftVersionId: 'draft-es',
+            summary: null,
+            analysis: {
+              status: 'building',
+              reason: null,
+              draftId: 'cd2',
+              operationStatus: 'active',
+              pauseReason: null,
+              stepsDone: 2,
+              stepsTotal: 5,
+              flaggedItems: 0,
+              failedItems: 0,
+              coreReady: false,
+              spentUsd: '0.1',
+            },
+          },
+        ],
+      }),
+    ]);
+    render(<RunHistory versionId="v1" bookId="b1" lang="en" />);
+
+    expect(screen.getByText('Analysis: writing, step 3 of 5')).toBeInTheDocument();
+    expect(screen.queryByText(/^Summary:/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Report' }));
+    expect(
+      screen.getByRole('dialog', { name: 'report run-a live=true analysis' })
     ).toBeInTheDocument();
   });
 });

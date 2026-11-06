@@ -72,6 +72,8 @@ export const StartRunModal: FC<StartRunModalProps> = ({
   const [limit, setLimit] = useState('');
   // Write Summary включён по умолчанию (F06, `product.md` §5): раздел языка пишется сам по его концу.
   const [writeSummary, setWriteSummary] = useState(true);
+  // Write Analysis — так же, независимо от Write Summary (F07-3b, `product.md` §8 п.12).
+  const [writeAnalysis, setWriteAnalysis] = useState(true);
 
   const params: TranslationRunEstimateParams | null =
     languages.length > 0
@@ -79,6 +81,7 @@ export const StartRunModal: FC<StartRunModalProps> = ({
           languages,
           ...(translateModel ? { translateModel } : {}),
           ...(writeSummary ? { writeSummary: true } : {}),
+          ...(writeAnalysis ? { writeAnalysis: true } : {}),
         }
       : null;
   const estimate = useTranslationRunEstimate(versionId, params);
@@ -111,7 +114,11 @@ export const StartRunModal: FC<StartRunModalProps> = ({
       size="lg"
       confirmText="Start"
       onConfirm={() => {
-        if (canStart) start.mutate(startRunRequest(languages, translateModel, limit, writeSummary));
+        if (canStart) {
+          start.mutate(
+            startRunRequest(languages, translateModel, limit, writeSummary, writeAnalysis)
+          );
+        }
       }}
       onCancel={onCancel}
       isConfirmDisabled={!canStart}
@@ -167,6 +174,15 @@ export const StartRunModal: FC<StartRunModalProps> = ({
         </Checkbox>
         <span className={styles.muted}>
           When a language is translated, its summary starts on the Summary tab of the new version.
+          It is paid from its own limit: the run limit below does not cover it.
+        </span>
+      </div>
+      <div className={styles.field}>
+        <Checkbox checked={writeAnalysis} onChange={(e) => setWriteAnalysis(e.target.checked)}>
+          Write Analysis
+        </Checkbox>
+        <span className={styles.muted}>
+          When a language is translated, its analysis starts on the Analysis tab of the new version.
           It is paid from its own limit: the run limit below does not cover it.
         </span>
       </div>

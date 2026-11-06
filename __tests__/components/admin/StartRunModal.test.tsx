@@ -113,12 +113,14 @@ const estimateData: TranslationRunEstimate = {
       finalCheckUsd: '0.1',
       metadataUsd: '0.01',
       summaryUsd: null,
+      analysisUsd: null,
       totalUsd: '1.31',
     },
   ],
   upperBound: true,
   translationsUsd: '1.31',
   summaryUsd: null,
+  analysisUsd: null,
   totalUsd: '1.81',
   minLimitUsd: '0.75',
   defaultLimitUsd: '20',
@@ -176,8 +178,16 @@ describe('Окно запуска перевода (F05-7)', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: 'FR' }));
 
     expect(hooks.estimateParams[0]).toBeNull();
-    expect(hooks.estimateParams).toContainEqual({ languages: ['es'], writeSummary: true });
-    expect(hooks.estimateParams.at(-1)).toEqual({ languages: ['es', 'fr'], writeSummary: true });
+    expect(hooks.estimateParams).toContainEqual({
+      languages: ['es'],
+      writeSummary: true,
+      writeAnalysis: true,
+    });
+    expect(hooks.estimateParams.at(-1)).toEqual({
+      languages: ['es', 'fr'],
+      writeSummary: true,
+      writeAnalysis: true,
+    });
   });
 
   it('модели этапов видны из настроек; оценка — досье, язык и итог строками, подпись про повторы', () => {
@@ -231,7 +241,11 @@ describe('Окно запуска перевода (F05-7)', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
     fireEvent.click(screen.getByRole('button', { name: 'Start' }));
 
-    expect(hooks.mutate).toHaveBeenCalledWith({ languages: ['es'], writeSummary: true });
+    expect(hooks.mutate).toHaveBeenCalledWith({
+      languages: ['es'],
+      writeSummary: true,
+      writeAnalysis: true,
+    });
   });
 
   it('отмеченный язык стал недоступен (перечитаны языки) — его можно снять', () => {
@@ -286,6 +300,7 @@ describe('Окно запуска перевода (F05-7)', () => {
       languages: ['es'],
       limitUsd: '7.5',
       writeSummary: true,
+      writeAnalysis: true,
     });
   });
 
@@ -347,8 +362,64 @@ describe('Окно запуска перевода (F05-7)', () => {
     fireEvent.click(toggle);
     fireEvent.click(screen.getByRole('button', { name: 'Start' }));
 
-    expect(hooks.estimateParams.at(-1)).toEqual({ languages: ['es'] });
-    expect(hooks.mutate).toHaveBeenCalledWith({ languages: ['es'] });
+    expect(hooks.estimateParams.at(-1)).toEqual({ languages: ['es'], writeAnalysis: true });
+    expect(hooks.mutate).toHaveBeenCalledWith({ languages: ['es'], writeAnalysis: true });
+  });
+
+  it('Write Analysis включён по умолчанию и не зависит от Write Summary: каждая галочка — своё поле (F07-3b)', () => {
+    ready();
+    renderModal();
+
+    const analysis = screen.getByRole('checkbox', { name: 'Write Analysis' });
+    expect(analysis).toBeChecked();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(analysis);
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+
+    // Снят только анализ — пересказ остаётся; обратный случай — тест Write Summary выше.
+    expect(hooks.estimateParams.at(-1)).toEqual({ languages: ['es'], writeSummary: true });
+    expect(hooks.mutate).toHaveBeenCalledTimes(1);
+    expect(hooks.mutate).toHaveBeenCalledWith({ languages: ['es'], writeSummary: true });
+  });
+
+  it('оценка только с Analysis: итог «including Analysis $X» без «and» (F07-3b)', () => {
+    ready({
+      data: {
+        ...estimateData,
+        languages: [{ ...estimateData.languages[0], analysisUsd: '0.7', totalUsd: '2.01' }],
+        analysisUsd: '0.7',
+        totalUsd: '2.51',
+      },
+    });
+    renderModal();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+
+    expect(
+      screen.getByText('Total (upper bound), including Analysis $0.7').nextSibling
+    ).toHaveTextContent('$2.51');
+    expect(screen.queryByText(/^Summary ES/)).not.toBeInTheDocument();
+  });
+
+  it('оценка с Analysis и Summary: строка Analysis по языку, итог с обеими суммами, перевод языка без них (F07-3b)', () => {
+    ready({
+      data: {
+        ...estimateData,
+        languages: [
+          { ...estimateData.languages[0], summaryUsd: '0.5', analysisUsd: '0.7', totalUsd: '2.51' },
+        ],
+        summaryUsd: '0.5',
+        analysisUsd: '0.7',
+        totalUsd: '3.01',
+      },
+    });
+    renderModal();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+
+    expect(screen.getByText('Analysis ES (own limit)').nextSibling).toHaveTextContent('$0.7');
+    expect(screen.getByText('Translation ES').nextSibling).toHaveTextContent('$1.31');
+    expect(
+      screen.getByText('Total (upper bound), including Summary $0.5 and Analysis $0.7').nextSibling
+    ).toHaveTextContent('$3.01');
   });
 
   it('оценка с Summary: строка по языку и итог с разбивкой, перевод языка без Summary', () => {

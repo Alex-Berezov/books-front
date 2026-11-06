@@ -4,6 +4,7 @@ import {
   isNothingToAdd,
   mayHaveWritten,
   progressText,
+  refusalTextOfCode,
   skippedText,
   sortItems,
   startLossText,
@@ -137,5 +138,15 @@ describe('analysisWrite.utils', () => {
     expect(isNothingToAdd(item({ outcome: 'none', failedReason: 'IMPORT_INVALID' }))).toBe(false);
     expect(isNothingToAdd(item({ outcome: 'none', verdict: 'failed' }))).toBe(false);
     expect(isNothingToAdd(item({ outcome: 'written' }))).toBe(false);
+  });
+});
+
+describe('refusalTextOfCode (F07-3b: строка Analysis запуска)', () => {
+  it('свой код хода, затем отказы ходов из досье и запуска; чужой код — undefined', () => {
+    expect(refusalTextOfCode('DRAFT_IN_PROGRESS')).toBe(
+      'The analysis of this version is already being written.'
+    );
+    expect(refusalTextOfCode('LLM_CEILING_REACHED')).toMatch(/ceiling/i);
+    expect(refusalTextOfCode('NO_SUCH_CODE')).toBeUndefined();
   });
 });

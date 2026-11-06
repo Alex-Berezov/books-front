@@ -81,6 +81,22 @@ describe('admin translation run endpoints', () => {
     expect(seen[1]).toMatchObject({ body: { languages: ['es'], writeSummary: true } });
   });
 
+  it('Write Analysis (F07-3b): оценка — параметром writeAnalysis=true независимо от Summary, старт — полем тела', async () => {
+    await getTranslationRunEstimate('v1', { languages: ['es'], writeAnalysis: true });
+    await getTranslationRunEstimate('v1', {
+      languages: ['es'],
+      writeSummary: true,
+      writeAnalysis: true,
+    });
+    await startTranslationRun('v1', { languages: ['es'], writeAnalysis: true });
+
+    expect(seen[0]).toMatchObject({ search: '?languages=es&writeAnalysis=true' });
+    expect(seen[1]).toMatchObject({
+      search: '?languages=es&writeSummary=true&writeAnalysis=true',
+    });
+    expect(seen[2]).toMatchObject({ body: { languages: ['es'], writeAnalysis: true } });
+  });
+
   it('оценка — языки повторяющимся параметром и модель перевода; старт — тело выбора', async () => {
     await getTranslationRunEstimate('v1', { languages: ['es', 'fr'], translateModel: 'a/b' });
     await startTranslationRun('v1', { languages: ['es'], limitUsd: '3' });
