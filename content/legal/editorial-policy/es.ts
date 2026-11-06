@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'De dónde salen los textos de Bibliaris, quién prepara los resúmenes y escribe las descripciones, cómo se elaboran los análisis de libros, cómo se preparan los textos de los libros y cómo se corrigen los errores.',
   title: 'Política editorial',
-  updatedAt: '2026-11-03',
+  updatedAt: '2026-11-06',
   toc: false,
   sections: [
     {
@@ -29,7 +29,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'La redacción prepara los resúmenes y los análisis de personajes, símbolos y citas de los bloques de las páginas de los libros: parte de estos textos la escribió ella misma y otra parte la prepara con la ayuda de modelos de lenguaje, siguiendo sus propias instrucciones. El resumen se escribe únicamente a partir del texto del libro. Desde noviembre de 2026, los resúmenes que un modelo escribe directamente en el sitio los contrasta con el libro un segundo modelo de otro desarrollador, que marca los pasajes dudosos. La redacción lee cada texto y lo publica ella misma; las citas se dan literalmente según el texto de la edición del sitio. Más sobre los análisis de libros: «Cómo se preparan los análisis de libros» más abajo.',
+              text: 'La redacción prepara los resúmenes y los análisis de personajes, símbolos y citas de los bloques de las páginas de los libros: parte de estos textos la escribió ella misma y otra parte la prepara con la ayuda de modelos de lenguaje, siguiendo sus propias instrucciones. El resumen se escribe únicamente a partir del texto del libro. Desde noviembre de 2026, los resúmenes que un modelo escribe directamente en el sitio los contrasta con el libro un segundo modelo de otro desarrollador, que también revisa los análisis escritos allí y marca los pasajes dudosos. La redacción lee cada texto y lo publica ella misma; las citas se dan literalmente según el texto de la edición del sitio. Más sobre los análisis de libros: «Cómo se preparan los análisis de libros» más abajo.',
             },
           ],
         },
@@ -113,7 +113,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'El borrador de cada análisis se elabora con un modelo de lenguaje siguiendo las instrucciones de la redacción. El modelo recibe información sobre esta versión del libro en el sitio, entre ella el título, el autor, el idioma y la lista de capítulos. La redacción carga y publica el borrador.',
+              text: 'Un análisis se elabora con un modelo de lenguaje siguiendo las instrucciones de la redacción. En un análisis escrito directamente en el sitio, el modelo lee el texto de esta versión del libro (en un libro largo, resúmenes de capítulos y parte del texto), además del título, el autor, el idioma y la lista de capítulos. Después, un segundo modelo de otro desarrollador revisa lo escrito y marca los pasajes dudosos. La redacción lee el análisis y lo publica ella misma. Un análisis también puede cargarse ya terminado: entonces se prepara fuera del sitio con las mismas instrucciones.',
             },
           ],
         },
@@ -140,7 +140,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Las instrucciones prohíben incluir fechas, datos biográficos, adaptaciones o fuentes sobre los que no haya certeza, y exigen presentar las interpretaciones como interpretaciones. Cuando se indican las fuentes, aparecen al final de la página del análisis.',
+              text: 'Las instrucciones prohíben incluir fechas, datos biográficos, adaptaciones o fuentes sobre los que no haya certeza, y exigen presentar las interpretaciones como interpretaciones. Cuando se indican las fuentes, aparecen al final de la página del análisis. Lo que viene de fuera del libro —fechas, datos biográficos, adaptaciones, recepción— llega a un análisis escrito en el sitio solo con una fuente: el sitio abre la página indicada y comprueba que responde y menciona este libro o a su autor; si no, se descartan la fuente y las afirmaciones que dependían solo de ella. Esta comprobación muestra que la fuente existe y trata del libro, no que diga lo mismo, así que la redacción lee esos bloques antes de publicar.',
             },
           ],
         },

@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'D’où viennent les textes de Bibliaris, qui prépare les résumés et écrit les descriptions, comment sont rédigées les analyses de livres, comment les textes des livres sont préparés et comment les erreurs sont corrigées.',
   title: 'Politique éditoriale',
-  updatedAt: '2026-11-03',
+  updatedAt: '2026-11-06',
   toc: false,
   sections: [
     {
@@ -29,7 +29,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'La rédaction prépare les résumés ainsi que les analyses de personnages, de symboles et de citations dans les blocs des pages des livres : elle a écrit elle-même une partie de ces textes et en prépare une autre partie avec l’aide de modèles de langage, selon ses propres consignes. Un résumé est écrit uniquement à partir du texte du livre. Depuis novembre 2026, les résumés qu’un modèle écrit directement sur le site sont comparés au livre par un second modèle, d’un autre développeur, qui signale les passages douteux. La rédaction lit chaque texte et le publie elle-même ; les citations sont reproduites mot pour mot d’après le texte de l’édition publiée sur le site. Plus sur les analyses de livres : « Comment sont préparées les analyses de livres » ci-dessous.',
+              text: 'La rédaction prépare les résumés ainsi que les analyses de personnages, de symboles et de citations dans les blocs des pages des livres : elle a écrit elle-même une partie de ces textes et en prépare une autre partie avec l’aide de modèles de langage, selon ses propres consignes. Un résumé est écrit uniquement à partir du texte du livre. Depuis novembre 2026, les résumés qu’un modèle écrit directement sur le site sont comparés au livre par un second modèle, d’un autre développeur, qui relit aussi les analyses écrites sur le site et signale les passages douteux. La rédaction lit chaque texte et le publie elle-même ; les citations sont reproduites mot pour mot d’après le texte de l’édition publiée sur le site. Plus sur les analyses de livres : « Comment sont préparées les analyses de livres » ci-dessous.',
             },
           ],
         },
@@ -108,7 +108,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Le brouillon de chaque analyse est rédigé à l’aide d’un modèle de langage selon les consignes de la rédaction. Le modèle reçoit des informations sur cette version du livre sur le site, notamment le titre, l’auteur, la langue et la liste des chapitres. La rédaction importe et publie le brouillon.',
+              text: 'Une analyse est rédigée à l’aide d’un modèle de langage selon les consignes de la rédaction. Pour une analyse écrite directement sur le site, le modèle lit le texte de cette version du livre (pour un livre long, des résumés de chapitres et une partie du texte), ainsi que le titre, l’auteur, la langue et la liste des chapitres. Un second modèle, d’un autre développeur, relit ensuite ce qui a été écrit et signale les passages douteux. La rédaction lit l’analyse et la publie elle-même. Une analyse peut aussi être importée toute prête : elle est alors rédigée hors du site selon les mêmes consignes.',
             },
           ],
         },
@@ -135,7 +135,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Les consignes interdisent d’inclure des dates, des faits biographiques, des adaptations ou des sources incertains, et demandent de présenter les interprétations comme des interprétations. Lorsque des sources sont indiquées, elles sont citées en bas de la page d’analyse.',
+              text: 'Les consignes interdisent d’inclure des dates, des faits biographiques, des adaptations ou des sources incertains, et demandent de présenter les interprétations comme des interprétations. Lorsque des sources sont indiquées, elles sont citées en bas de la page d’analyse. Ce qui vient de l’extérieur du livre — dates, faits biographiques, adaptations, réception — n’entre dans une analyse écrite sur le site qu’avec une source : le site ouvre la page indiquée et vérifie qu’elle répond et qu’elle mentionne ce livre ou son auteur ; sinon, la source et les affirmations qui ne reposaient que sur elle sont écartées. Ce contrôle montre qu’une source existe et concerne le livre, pas qu’elle dit la même chose ; la rédaction lit donc ces blocs avant de publier.',
             },
           ],
         },

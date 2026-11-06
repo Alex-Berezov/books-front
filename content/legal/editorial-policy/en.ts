@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'Where the texts on Bibliaris come from, who prepares the summaries and writes the descriptions, how book analyses are prepared, how book texts are prepared, and how mistakes are corrected.',
   title: 'Editorial Policy',
-  updatedAt: '2026-11-03',
+  updatedAt: '2026-11-06',
   toc: false,
   sections: [
     {
@@ -29,7 +29,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'The editorial team prepares the summaries and the analyses of characters, symbols and quotations in the blocks on book pages: it wrote some of these texts itself, and prepares others with the help of language models, following its own instructions. A summary is written only from the text of the book. Since November 2026, summaries that a model writes directly on the site are checked against the book by a second model from a different developer, which marks doubtful passages. The editorial team reads every text and publishes it itself; quotations are given verbatim from the edition of the text on the site. More about book analyses: “How book analyses are prepared” below.',
+              text: 'The editorial team prepares the summaries and the analyses of characters, symbols and quotations in the blocks on book pages: it wrote some of these texts itself, and prepares others with the help of language models, following its own instructions. A summary is written only from the text of the book. Since November 2026, summaries that a model writes directly on the site are checked against the book by a second model from a different developer, which also reviews the analyses written there and marks doubtful passages. The editorial team reads every text and publishes it itself; quotations are given verbatim from the edition of the text on the site. More about book analyses: “How book analyses are prepared” below.',
             },
           ],
         },
@@ -106,7 +106,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'A draft of each analysis is produced with a language model following the editorial team’s instructions. The model receives information about this version of the book on the site, including its title, author, language and list of chapters. The editorial team uploads and publishes the draft.',
+              text: 'An analysis is prepared with a language model following the editorial team’s instructions. For an analysis written directly on the site, the model reads the text of this version of the book (for a long book, chapter summaries and part of the text), along with its title, author, language and list of chapters. A second model from a different developer then checks what was written and marks doubtful passages. The editorial team reads the analysis and publishes it itself. An analysis can also be uploaded ready-made: it is then prepared outside the site under the same instructions.',
             },
           ],
         },
@@ -133,7 +133,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'The instructions forbid including dates, biographical facts, adaptations or sources that are not certain, and require interpretations to be presented as interpretations. When sources are given, they are listed at the bottom of the analysis page.',
+              text: 'The instructions forbid including dates, biographical facts, adaptations or sources that are not certain, and require interpretations to be presented as interpretations. When sources are given, they are listed at the bottom of the analysis page. Anything from outside the book — dates, biographical facts, adaptations, reception — gets into an analysis written on the site only with a source: the site opens the page that is named and checks that it responds and mentions this book or its author; if not, the source and the statements that rested only on it are dropped. This check shows that a source exists and concerns the book, not that it says the same thing, so the editorial team reads such blocks before publishing.',
             },
           ],
         },

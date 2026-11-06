@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'De onde vêm os textos do Bibliaris, quem prepara os resumos e escreve as descrições, como são elaboradas as análises de livros, como os textos dos livros são preparados e como os erros são corrigidos.',
   title: 'Política editorial',
-  updatedAt: '2026-11-03',
+  updatedAt: '2026-11-06',
   toc: false,
   sections: [
     {
@@ -29,7 +29,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'A redação prepara os resumos e as análises de personagens, símbolos e citações nos blocos das páginas dos livros: parte desses textos a própria redação escreveu, e parte ela prepara com a ajuda de modelos de linguagem, seguindo as suas instruções. O resumo é escrito somente a partir do texto do livro. Desde novembro de 2026, os resumos que um modelo escreve diretamente no site são conferidos com o livro por um segundo modelo, de outro desenvolvedor, que assinala os trechos duvidosos. A redação lê cada texto e o publica ela mesma; as citações são reproduzidas literalmente conforme o texto da edição no site. Mais sobre as análises de livros: “Como são preparadas as análises de livros” abaixo.',
+              text: 'A redação prepara os resumos e as análises de personagens, símbolos e citações nos blocos das páginas dos livros: parte desses textos a própria redação escreveu, e parte ela prepara com a ajuda de modelos de linguagem, seguindo as suas instruções. O resumo é escrito somente a partir do texto do livro. Desde novembro de 2026, os resumos que um modelo escreve diretamente no site são conferidos com o livro por um segundo modelo, de outro desenvolvedor, que também revisa as análises escritas no site e assinala os trechos duvidosos. A redação lê cada texto e o publica ela mesma; as citações são reproduzidas literalmente conforme o texto da edição no site. Mais sobre as análises de livros: “Como são preparadas as análises de livros” abaixo.',
             },
           ],
         },
@@ -106,7 +106,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'O rascunho de cada análise é elaborado com um modelo de linguagem seguindo as instruções da redação. O modelo recebe informações sobre esta versão do livro no site, entre elas o título, o autor, o idioma e a lista de capítulos. A redação importa e publica o rascunho.',
+              text: 'Uma análise é elaborada com um modelo de linguagem seguindo as instruções da redação. Numa análise escrita diretamente no site, o modelo lê o texto desta versão do livro (num livro longo, resumos dos capítulos e parte do texto), além do título, do autor, do idioma e da lista de capítulos. Depois, um segundo modelo, de outro desenvolvedor, revisa o que foi escrito e assinala os trechos duvidosos. A redação lê a análise e a publica ela mesma. Uma análise também pode ser carregada já pronta: nesse caso, é preparada fora do site com as mesmas instruções.',
             },
           ],
         },
@@ -133,7 +133,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'As instruções proíbem incluir datas, fatos biográficos, adaptações ou fontes sobre os quais não haja certeza, e exigem apresentar as interpretações como interpretações. Quando as fontes são indicadas, elas estão listadas no final da página da análise.',
+              text: 'As instruções proíbem incluir datas, fatos biográficos, adaptações ou fontes sobre os quais não haja certeza, e exigem apresentar as interpretações como interpretações. Quando as fontes são indicadas, elas estão listadas no final da página da análise. O que vem de fora do livro — datas, fatos biográficos, adaptações, recepção — só entra numa análise escrita no site com uma fonte: o site abre a página indicada e verifica que ela responde e menciona este livro ou o seu autor; se não, a fonte e as afirmações que dependiam só dela são descartadas. Essa verificação mostra que a fonte existe e trata do livro, não que diz o mesmo; por isso a redação lê esses blocos antes de publicar.',
             },
           ],
         },

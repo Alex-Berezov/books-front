@@ -34,6 +34,10 @@ const links = (doc: LegalDocument) =>
 // «Люди» и «модель» на пяти языках - корнями слов; один набор на все тесты файла.
 const PEOPLE = 'люд|человек|human|humain|humano|people|personas|personne|pessoa';
 const MODEL = /модел|model|modelo|modèle/iu;
+const SUMMARY = /пересказ|summar|resum|resúm|résum/iu;
+const BREAKDOWN = /разбор|analys|análisis|análise/iu;
+// Двоеточие не режет предложение: «Пересказы готовит редакция: часть - с помощью моделей».
+const sentences = (text: string) => text.split(/(?<=[.;])\s+/u);
 
 const ids = (page: TrustPage) => getLegalDocument(page, 'en').sections.map((section) => section.id);
 
@@ -86,12 +90,8 @@ describe('страницы доверия: состав', () => {
 
   // F06-4 (D2/D5): пересказы и разборы готовит редакция с помощью моделей; «пишут люди» - только про описания.
   it.each(SUPPORTED_LANGS)('%s: #who политики и «О нас» - люди только у описаний', (lang) => {
-    const SUMMARY = /пересказ|summar|resum|resúm|résum/iu;
     const DESCRIPTION = /описан|description|descripci|descriç/iu;
-    const BREAKDOWN = /разбор|analys|análisis|análise/iu;
     const PART = /част|some|parte|partie/iu;
-    // Двоеточие не режет предложение: «Пересказы готовит редакция: часть - с помощью моделей».
-    const sentences = (text: string) => text.split(/(?<=[.;])\s+/u);
     const who = sectionText('editorial-policy', lang, ['who']);
     const about = sectionText('about', lang, ['who', 'how']);
     for (const text of [who, about]) {
@@ -120,7 +120,7 @@ describe('страницы доверия: состав', () => {
     expect(sentences(who).some((s) => /2026/u.test(s) && MODEL.test(s))).toBe(true);
   });
 
-  // F03-3 (В5): черновик анализа составляет модель - раздел об этом говорит, не обещает ручной сверки
+  // F03-3 (В5), F07-4: анализ составляет модель - раздел об этом говорит, не обещает ручной сверки
   // и называет автоматическую проверку номеров глав;
   // строка #who отсылает к разделу анализа его заголовком.
   it.each(SUPPORTED_LANGS)(
@@ -144,6 +144,38 @@ describe('страницы доверия: состав', () => {
       const heading = doc.sections.find((s) => s.id === 'analysis')?.heading ?? '';
       expect(heading).not.toBe('');
       expect(text('who')).toContain(heading);
+    }
+  );
+
+  // F07-4: анализ пишется по тексту книги, вторая модель проверяет, внешние сведения - только с источником;
+  // прежнего «черновик + модель получает только сведения о версии» в политике нет.
+  it.each(SUPPORTED_LANGS)(
+    '%s: #analysis и #who - текст книги, вторая модель, источники',
+    (lang) => {
+      const analysis = sentences(sectionText('editorial-policy', lang, ['analysis']));
+      const who = sentences(sectionText('editorial-policy', lang, ['who']));
+      const BOOK_TEXT =
+        /текст этой версии книги|text of this version of the book|texto de esta versión del libro|texte de cette version du livre|texto desta versão do livro/iu;
+      const SECOND = /втор|second|segundo/iu;
+      const DEVELOPER =
+        /другого разработчика|different developer|otro desarrollador|autre développeur|outro desenvolvedor/iu;
+      const OUTSIDE =
+        /не из самой книги|outside the book|fuera del libro|extérieur du livre|fora do livro/iu;
+      const ONLY_WITH_SOURCE =
+        /только с источником|only with a source|solo con una fuente|qu’avec une source|só entra[^.]*com uma fonte/iu;
+      const DRAFT = /черновик|draft|borrador|brouillon|rascunho/iu;
+      expect(analysis.some((s) => BOOK_TEXT.test(s) && MODEL.test(s))).toBe(true);
+      expect(analysis.some((s) => SECOND.test(s) && MODEL.test(s) && DEVELOPER.test(s))).toBe(true);
+      expect(analysis.some((s) => OUTSIDE.test(s) && ONLY_WITH_SOURCE.test(s))).toBe(true);
+      expect(analysis.join(' ')).not.toMatch(DRAFT);
+      // Ручной путь F03 остаётся: готовый анализ можно загрузить.
+      expect(analysis.join(' ')).toMatch(
+        /загрузить готовым|uploaded ready-made|cargarse ya terminado|importée toute prête|carregada já pronta/iu
+      );
+      // Фраза про вторую модель называет и пересказы, и разборы.
+      const sentence = who.find((s) => /2026/u.test(s) && MODEL.test(s)) ?? '';
+      expect(sentence).toMatch(SUMMARY);
+      expect(sentence).toMatch(BREAKDOWN);
     }
   );
 
