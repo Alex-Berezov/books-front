@@ -48,7 +48,7 @@
   "/admin/[lang]/books": 712327,
   "/admin/[lang]/books/create": 108092,
   "/admin/[lang]/books/new": 713484,
-  "/admin/[lang]/books/versions/[id]": 727508,
+  "/admin/[lang]/books/versions/[id]": 739316,
   "/admin/[lang]/books/versions/[id]/preview": 326615,
   "/admin/[lang]/books/versions/[id]/translation-chunks": 337857,
   "/admin/[lang]/books/versions/[id]/translation-compare": 306522,
