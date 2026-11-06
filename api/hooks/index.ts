@@ -417,18 +417,6 @@ export {
   useVersionDossier,
 } from './useDossier';
 
-// Analysis drafts from the dossier (F05-11, admin only)
-export {
-  CONTENT_DRAFT_LOCAL_CODES,
-  CONTENT_DRAFT_REFETCH_MS,
-  contentDraftKeys,
-  contentDraftRefetchInterval,
-  useContentDraft,
-  useContentDraftActions,
-  useContentDraftEstimate,
-} from './useContentDraft';
-export type { ContentDraftActions } from './useContentDraft';
-
 // Summary run «Write Summary» (F06-2, F06-3, admin only)
 export {
   SUMMARY_WRITE_REFETCH_MS,
@@ -442,7 +430,21 @@ export {
 } from './useSummaryWrite';
 export type { SummaryWriteActions } from './useSummaryWrite';
 
-// Dossier rebuild shared by the analysis draft and the summary run (F05-11, F06-3, admin only)
+// Analysis run «Write Analysis» (F07-3a, admin only)
+export {
+  ANALYSIS_WRITE_REFETCH_MS,
+  CONTENT_DRAFT_LOCAL_CODES,
+  analysisWriteKeys,
+  analysisWriteRefetchInterval,
+  useAnalysisWrite,
+  useAnalysisWriteActions,
+  useAnalysisWritesInFlight,
+  useAnalysisWriteEstimate,
+  useAnalysisWriteProposal,
+} from './useAnalysisWrite';
+export type { AnalysisWriteActions } from './useAnalysisWrite';
+
+// Dossier rebuild shared by the analysis run and the summary run (F06-3, F07-3a, admin only)
 export { useRebuildDossier } from './useRebuildDossier';
 
 // Rights Intakes (continued: review imports, profile, agent manifest)

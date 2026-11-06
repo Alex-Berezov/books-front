@@ -8,7 +8,7 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { LlmOperation } from '@/types/api-schema';
 import styles from './ContentDraft.module.scss';
 
-/** «Продолжить» операции: тот же вызов у заготовки Analysis и хода пересказа. */
+/** «Продолжить» операции: тот же вызов у ходов анализа и пересказа. */
 export interface ResumeAction {
   mutate: (vars: { id: string; limitUsd?: string }) => void;
   isPending: boolean;
@@ -30,7 +30,7 @@ export interface OperationProgressProps {
 }
 
 /**
- * Ход фоном под операцией LLM (заготовка Analysis F05-11, ход «Write Summary» F06-3): строка хода,
+ * Ход фоном под операцией LLM (ходы «Write Summary» F06-3 и «Write Analysis» F07-3a): строка хода,
  * пауза с причиной и «продолжить» (для `LIMIT_REACHED` - с новым лимитом), ссылка на «LLM settings»
  * при потолке и провайдерах, отказ «продолжить».
  */

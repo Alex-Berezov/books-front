@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, type FC } from 'react';
-import { useSummaryWrite, useSummaryWriteActions } from '@/api/hooks';
-import { OperationProgress } from '@/components/admin/books/ContentDraft';
+import { useSummaryWrite, useSummaryWriteActions, useSummaryWriteEstimate } from '@/api/hooks';
+import { OperationProgress, RunStart } from '@/components/admin/books/ContentDraft';
 import { Button } from '@/components/admin/common/Button';
 import { ConfirmDialog } from '@/components/admin/shared';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -18,11 +18,12 @@ import {
   reasonText,
   refusalText,
   sortItems,
+  startLossText,
+  writeEstimateText,
   type SummaryWriteField,
 } from './summaryWrite.utils';
 import { SummaryWriteAcceptAll } from './SummaryWriteAcceptAll';
 import { SummaryWriteItemCard } from './SummaryWriteItemCard';
-import { SummaryWriteStart } from './SummaryWriteStart';
 import { useWrittenFields } from './useWrittenFields';
 
 export interface SummaryWriteProps {
@@ -103,7 +104,19 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
         <p className={styles.hint}>Loading the summary run…</p>
       ) : (
         <div className={styles.actions}>
-          <SummaryWriteStart versionId={versionId} lang={lang} run={run} actions={actions} />
+          <RunStart
+            versionId={versionId}
+            lang={lang}
+            building={building}
+            actions={actions}
+            label="Write Summary"
+            buildingHint="The summary of this version is being written: Write Summary is available when it ends."
+            rebuiltHint="The dossier is being rebuilt. Press Write Summary again when it is ready."
+            useEstimate={useSummaryWriteEstimate}
+            estimateText={writeEstimateText}
+            loss={startLossText(run)}
+            refusalText={refusalText}
+          />
           {(paused || run?.status === 'failed') && (
             <Button
               variant="ghost"

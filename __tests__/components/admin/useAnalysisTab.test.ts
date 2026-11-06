@@ -2,7 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAnalysisTab } from '@/components/admin/books/AnalysisTab/useAnalysisTab';
 import { ApiError } from '@/types/api';
-import type { BookAnalysisSaveResponse, ContentDraft } from '@/types/api-schema';
+import type { BookAnalysisSaveResponse, DossierStatus } from '@/types/api-schema';
 
 /**
  * Вкладка анализа (F03-1, `product.md` §21 п.3): предупреждения сервера видны после сохранения
@@ -29,30 +29,65 @@ const mocks = vi.hoisted(() => ({
     error: unknown;
   },
   loadValidation: null as null | (() => Promise<unknown>),
-  draft: null as Partial<ContentDraft> | null,
-  draftEnabled: [] as boolean[],
+  dossier: null as Partial<DossierStatus> | null,
+  dossierError: false,
+  sourceError: false,
+  dossierEnabled: [] as boolean[],
+  /** Язык исходной версии досье; `undefined` — не загружен. */
+  sourceLanguage: undefined as string | undefined,
+  /** Досье загружено, а фоновое перечитывание упало: данные есть и `isError`. */
+  dossierRefetchError: false,
+  /** Последний ход анализа версии (`useAnalysisWrite`); `null` — хода нет. */
+  run: null as unknown,
+  /** Состояние запроса хода: `pending` — ответа ещё нет, `error` — не загрузился. */
+  runState: 'success' as 'success' | 'pending' | 'error',
+  /** Мутации записи хода в полёте (`useAnalysisWritesInFlight`). */
+  writesInFlight: false,
+  writesFor: [] as string[],
+  refetch: vi.fn(),
 }));
 
 vi.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: mocks.enqueueSnackbar }) }));
 
-vi.mock('@/api/hooks', () => ({
-  useBookAnalysis: () => ({
-    fetchStatus: mocks.analysis.isFetching ? 'fetching' : 'idle',
-    ...mocks.analysis,
-  }),
-  useChapterTitles: () => ({
-    data: { items: [{ number: 1, title: 'One' }], pagination: { total: 1 } },
-  }),
-  useContentDraft: (_v: string, _k: string, enabled: boolean) => {
-    mocks.draftEnabled.push(enabled);
-    return { data: enabled ? { draft: mocks.draft } : undefined };
-  },
-  useSaveBookAnalysis: () => ({
-    mutate: mocks.mutate,
-    mutateAsync: mocks.mutateAsync,
-    isPending: false,
-  }),
-}));
+vi.mock('@/api/hooks', async () => {
+  const keys =
+    await vi.importActual<typeof import('@/api/hooks/draftKeys')>('@/api/hooks/draftKeys');
+  return {
+    isRegenRunning: keys.isRegenRunning,
+    useAnalysisWritesInFlight: (versionId: string) => {
+      mocks.writesFor.push(versionId);
+      return mocks.writesInFlight;
+    },
+    useBookAnalysis: () => ({
+      fetchStatus: mocks.analysis.isFetching ? 'fetching' : 'idle',
+      refetch: mocks.refetch,
+      ...mocks.analysis,
+    }),
+    useBookVersion: (_id: string, opts: { enabled: boolean }) => ({
+      data: opts.enabled && mocks.sourceLanguage ? { language: mocks.sourceLanguage } : undefined,
+      isError: opts.enabled && mocks.sourceError,
+    }),
+    useChapterTitles: () => ({
+      data: { items: [{ number: 1, title: 'One' }], pagination: { total: 1 } },
+    }),
+    useVersionDossier: (_v: string, enabled: boolean) => {
+      mocks.dossierEnabled.push(enabled);
+      return {
+        data: enabled && !mocks.dossierError ? (mocks.dossier ?? undefined) : undefined,
+        isError: enabled && (mocks.dossierError || mocks.dossierRefetchError),
+      };
+    },
+    useAnalysisWrite: (_v: string, enabled: boolean) => ({
+      data: enabled && mocks.runState === 'success' ? { draft: mocks.run } : undefined,
+      isError: enabled && mocks.runState === 'error',
+    }),
+    useSaveBookAnalysis: () => ({
+      mutate: mocks.mutate,
+      mutateAsync: mocks.mutateAsync,
+      isPending: false,
+    }),
+  };
+});
 
 vi.mock('@/lib/admin/load-book-analysis-validation', async (importOriginal) => {
   const original =
@@ -121,8 +156,17 @@ describe('useAnalysisTab', () => {
     mocks.mutateAsync.mockReset();
     mocks.analysis = { data: null, isLoading: false, isSuccess: true, error: null };
     mocks.loadValidation = null;
-    mocks.draft = null;
-    mocks.draftEnabled = [];
+    mocks.dossier = null;
+    mocks.dossierRefetchError = false;
+    mocks.run = null;
+    mocks.runState = 'success';
+    mocks.writesInFlight = false;
+    mocks.writesFor = [];
+    mocks.dossierError = false;
+    mocks.sourceError = false;
+    mocks.dossierEnabled = [];
+    mocks.sourceLanguage = undefined;
+    mocks.refetch.mockReset();
     mocks.mutateAsync.mockResolvedValue({ analysis: null, hasCore: false, warnings: [] });
   });
 
@@ -469,105 +513,398 @@ describe('useAnalysisTab', () => {
     expect(result.current.form.texts.mainIdea).toBe('Fresh');
   });
 
-  it('правки facts или списков заготовки — несохранённые; updatedAt — сохранённого (F05-11, Р4, Р15)', async () => {
-    mocks.analysis = {
-      data: emptySaved,
-      isLoading: false,
-      isSuccess: true,
-      isFetching: false,
-      error: null,
-    } as typeof mocks.analysis;
-    const { result } = renderHook(() => useAnalysisTab(props));
-    await waitFor(() => expect(result.current.draftBlocksUnsaved).toBe(false));
-    expect(result.current.savedUpdatedAt).toBe(emptySaved.updatedAt);
-    act(() => result.current.setText('mainIdea', 'edited'));
-    expect(result.current.draftBlocksUnsaved).toBe(false);
-    act(() => result.current.setFact('narrator', 'edited'));
-    expect(result.current.draftBlocksUnsaved).toBe(true);
-  });
-
-  it('правка списка заготовки (style) — несохранённая; анализа не было — updatedAt null, импорт открыт (F05-11)', async () => {
-    mocks.analysis = {
-      data: null,
-      isLoading: false,
-      isSuccess: true,
-      isFetching: false,
-      error: null,
+  describe('reloadBlocks: ход записал блоки (F07-3a)', () => {
+    // Отметки ответа заведомо после и до начала перечитывания: без гонки с часами теста.
+    const FRESH = Number.MAX_SAFE_INTEGER;
+    const STALE = 0;
+    const hydrate = async () => {
+      mocks.analysis = {
+        data: { ...emptySaved, mainIdea: 'Old idea', context: 'Old context', hasCore: true },
+        isLoading: false,
+        isSuccess: true,
+        isFetching: false,
+        error: null,
+      } as typeof mocks.analysis;
+      const hook = renderHook(() => useAnalysisTab(props));
+      await waitFor(() => expect(hook.result.current.form.texts.mainIdea).toBe('Old idea'));
+      return hook;
     };
-    const { result } = renderHook(() => useAnalysisTab(props));
-    await waitFor(() => expect(result.current.draftBlocksUnsaved).toBe(false));
-    expect(result.current.savedUpdatedAt).toBeNull();
-    act(() => result.current.setListText('style', '[{"device":"D","explanation":"E"}]'));
-    expect(result.current.draftBlocksUnsaved).toBe(true);
-  });
+    const server = {
+      ...emptySaved,
+      mainIdea: 'Run idea',
+      context: 'Run context',
+      themes: [{ key: 'home', title: 'Home', interpretation: 'Why' }],
+      hasCore: true,
+    };
 
-  it('чужое сохранение перечитано, форма прежняя — updatedAt остаётся от записи формы (Р24, Р15)', async () => {
-    mocks.analysis = {
-      data: emptySaved,
-      isLoading: false,
-      isSuccess: true,
-      isFetching: false,
-      error: null,
-    } as typeof mocks.analysis;
-    const { result, rerender } = renderHook(() => useAnalysisTab(props));
-    await waitFor(() => expect(result.current.savedUpdatedAt).toBe(emptySaved.updatedAt));
-    mocks.analysis = {
-      ...mocks.analysis,
-      data: { ...emptySaved, updatedAt: '2026-10-27T00:00:00.000Z' },
-    } as typeof mocks.analysis;
-    rerender();
-    expect(result.current.savedUpdatedAt).toBe(emptySaved.updatedAt);
-    // Запись сервера видна отдельно: заготовку поверх неё блок отличит от устаревшей.
-    expect(result.current.serverUpdatedAt).toBe('2026-10-27T00:00:00.000Z');
-  });
-
-  it('своё сохранение переводит запись формы на сохранённую (Р15)', async () => {
-    mocks.analysis = {
-      data: emptySaved,
-      isLoading: false,
-      isSuccess: true,
-      isFetching: false,
-      error: null,
-    } as typeof mocks.analysis;
-    const savedAt = '2026-10-28T00:00:00.000Z';
-    mocks.mutate.mockImplementation(
-      (_v: unknown, opts: { onSuccess: (r: BookAnalysisSaveResponse) => void }) =>
-        opts.onSuccess({
-          analysis: { ...emptySaved, updatedAt: savedAt },
-          hasCore: false,
-          warnings: [],
-        } as unknown as BookAnalysisSaveResponse)
-    );
-    const { result } = renderHook(() => useAnalysisTab(props));
-    await waitFor(() => expect(result.current.savedUpdatedAt).toBe(emptySaved.updatedAt));
-    await waitFor(() => expect(result.current.validationFailed).toBe(false));
-    await act(async () => {
-      await new Promise((r) => setTimeout(r, 0));
+    it('перечитывает анализ: неправленые блоки — с сервера, правленый остаётся, о нём предупреждение', async () => {
+      const { result } = await hydrate();
+      act(() => result.current.setText('context', 'My edit'));
+      mocks.refetch.mockResolvedValueOnce({
+        status: 'success',
+        data: server,
+        dataUpdatedAt: FRESH,
+      });
+      await act(() => result.current.reloadBlocks());
+      expect(mocks.refetch).toHaveBeenCalledTimes(1);
+      expect(result.current.form.texts.mainIdea).toBe('Run idea');
+      expect(result.current.form.lists.themes).toEqual(server.themes);
+      expect(result.current.form.texts.context).toBe('My edit');
+      expect(mocks.enqueueSnackbar).toHaveBeenCalledWith(
+        expect.stringContaining('your edits are kept: context'),
+        { variant: 'warning' }
+      );
     });
-    act(() => result.current.handleSave());
-    await waitFor(() => expect(result.current.savedUpdatedAt).toBe(savedAt));
+
+    it('сохранение после перечитывания шлёт записанное ходом, а не прежнее', async () => {
+      const { result } = await hydrate();
+      mocks.refetch.mockResolvedValueOnce({
+        status: 'success',
+        data: server,
+        dataUpdatedAt: FRESH,
+      });
+      await act(() => result.current.reloadBlocks());
+      await waitFor(() => expect(result.current.analyzeImport).not.toBeNull());
+      act(() => result.current.handleSave());
+      const vars = mocks.mutate.mock.calls[0][0] as { data: Record<string, unknown> };
+      expect(vars.data.mainIdea).toBe('Run idea');
+      // Проверка списков дописывает пустые поля `null`: сверяется содержимое, а не форма записи.
+      expect(vars.data.themes).toMatchObject(server.themes);
+    });
+
+    it('проба после перечитывания — с языком версии на момент вызова, а не на момент создания (без устаревшего замыкания)', async () => {
+      mocks.analysis = {
+        data: { ...emptySaved, mainIdea: 'Old idea', hasCore: true },
+        isLoading: false,
+        isSuccess: true,
+        isFetching: false,
+        error: null,
+      } as typeof mocks.analysis;
+      const { result, rerender } = renderHook((p: typeof props) => useAnalysisTab(p), {
+        initialProps: props,
+      });
+      await waitFor(() => expect(result.current.form.texts.mainIdea).toBe('Old idea'));
+      rerender({ ...props, version: { ...props.version, language: 'fr' as never } });
+      mocks.refetch.mockResolvedValueOnce({
+        status: 'success',
+        data: { ...emptySaved, mainIdea: 'Run idea', hasCore: false },
+        dataUpdatedAt: FRESH,
+      });
+      await act(() => result.current.reloadBlocks());
+      await waitFor(() => expect(mocks.mutateAsync).toHaveBeenCalled());
+      const probe = mocks.mutateAsync.mock.calls.at(-1)?.[0] as {
+        dryRun: boolean;
+        data: { language: string; mainIdea: string };
+      };
+      expect(probe.dryRun).toBe(true);
+      expect(probe.data.language).toBe('fr');
+      expect(probe.data.mainIdea).toBe('Run idea');
+    });
+
+    it('два вызова подряд — два перечитывания по очереди, без ложной «устаревшей» формы; третий в очередь не встаёт', async () => {
+      const { result } = await hydrate();
+      const answers: Array<(v: unknown) => void> = [];
+      mocks.refetch.mockImplementation(() => new Promise((r) => answers.push(r)));
+      let first: Promise<void> = Promise.resolve();
+      act(() => {
+        first = result.current.reloadBlocks();
+        void result.current.reloadBlocks();
+        void result.current.reloadBlocks();
+      });
+      // Второе перечитывание не стартует, пока идёт первое: refetch не отменяют друг друга.
+      expect(mocks.refetch).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        answers[0]({ status: 'success', data: server, dataUpdatedAt: FRESH });
+      });
+      await waitFor(() => expect(mocks.refetch).toHaveBeenCalledTimes(2));
+      await act(async () => {
+        answers[1]({ status: 'success', data: server, dataUpdatedAt: FRESH });
+        await first;
+      });
+      expect(mocks.refetch).toHaveBeenCalledTimes(2);
+      expect(result.current.formStale).toBe(false);
+      expect(result.current.form.texts.mainIdea).toBe('Run idea');
+    });
+
+    it('сменилась версия, пока шло перечитывание: следующее в очереди идёт за новой версией', async () => {
+      mocks.analysis = {
+        data: { ...emptySaved, mainIdea: 'Old idea', hasCore: true },
+        isLoading: false,
+        isSuccess: true,
+        isFetching: false,
+        error: null,
+      } as typeof mocks.analysis;
+      const { result, rerender } = renderHook((p: typeof props) => useAnalysisTab(p), {
+        initialProps: props,
+      });
+      await waitFor(() => expect(result.current.form.texts.mainIdea).toBe('Old idea'));
+      const answers: Array<(v: unknown) => void> = [];
+      mocks.refetch.mockImplementation(() => new Promise((r) => answers.push(r)));
+      let first: Promise<void> = Promise.resolve();
+      act(() => {
+        first = result.current.reloadBlocks();
+      });
+      rerender({ ...props, versionId: 'v2' });
+      act(() => {
+        void result.current.reloadBlocks();
+      });
+      await act(async () => {
+        answers[0]({ status: 'success', data: server, dataUpdatedAt: FRESH });
+      });
+      await waitFor(() => expect(mocks.refetch).toHaveBeenCalledTimes(2));
+      await act(async () => {
+        answers[1]({ status: 'success', data: server, dataUpdatedAt: FRESH });
+        await first;
+      });
+      expect(result.current.form.texts.mainIdea).toBe('Run idea');
+    });
+
+    it('пока идёт перечитывание — «Save analysis» закрыт с пояснением', async () => {
+      const { result } = await hydrate();
+      await waitFor(() => expect(result.current.analyzeImport).not.toBeNull());
+      let answer: (v: unknown) => void = () => undefined;
+      mocks.refetch.mockReturnValueOnce(new Promise((r) => (answer = r)));
+      let pending: Promise<void> = Promise.resolve();
+      act(() => {
+        pending = result.current.reloadBlocks();
+      });
+      expect(result.current.saveBlockedReason).toBe(
+        'The analysis is being reloaded after the run wrote blocks.'
+      );
+      act(() => result.current.handleSave());
+      expect(mocks.mutate).not.toHaveBeenCalled();
+      await act(async () => {
+        answer({ status: 'success', data: server, dataUpdatedAt: FRESH });
+        await pending;
+      });
+      expect(result.current.saveBlockedReason).toBeNull();
+    });
+
+    it('перечитывание не удалось — форма прежняя, «Save analysis» стоит до свежего ответа', async () => {
+      const { result } = await hydrate();
+      await waitFor(() => expect(result.current.analyzeImport).not.toBeNull());
+      mocks.refetch.mockResolvedValue({ status: 'error', data: undefined, dataUpdatedAt: STALE });
+      await act(() => result.current.reloadBlocks());
+      expect(result.current.form.texts.mainIdea).toBe('Old idea');
+      expect(result.current.formStale).toBe(true);
+      act(() => result.current.handleSave());
+      expect(mocks.mutate).not.toHaveBeenCalled();
+      expect(mocks.enqueueSnackbar).toHaveBeenCalledWith(
+        'The analysis changed on the server: reload it before saving',
+        { variant: 'warning' }
+      );
+      // Повтор со свежим ответом снимает запрет и подставляет записанное ходом.
+      mocks.refetch.mockReset();
+      mocks.refetch.mockResolvedValue({ status: 'success', data: server, dataUpdatedAt: FRESH });
+      await act(() => result.current.reloadBlocks());
+      expect(result.current.formStale).toBe(false);
+      expect(result.current.form.texts.mainIdea).toBe('Run idea');
+      act(() => result.current.handleSave());
+      expect(mocks.mutate).toHaveBeenCalledTimes(1);
+    });
+
+    it('устаревший ответ — ещё одна попытка; свежий со второй — подставлен', async () => {
+      const { result } = await hydrate();
+      mocks.refetch
+        .mockResolvedValueOnce({ status: 'success', data: emptySaved, dataUpdatedAt: STALE })
+        .mockResolvedValueOnce({ status: 'success', data: server, dataUpdatedAt: FRESH });
+      await act(() => result.current.reloadBlocks());
+      expect(mocks.refetch).toHaveBeenCalledTimes(2);
+      expect(result.current.form.texts.mainIdea).toBe('Run idea');
+      expect(result.current.formStale).toBe(false);
+    });
+
+    it('устаревший ответ дважды — форма помечена устаревшей', async () => {
+      const { result } = await hydrate();
+      mocks.refetch.mockResolvedValue({ status: 'success', data: server, dataUpdatedAt: STALE });
+      await act(() => result.current.reloadBlocks());
+      expect(mocks.refetch).toHaveBeenCalledTimes(2);
+      expect(result.current.form.texts.mainIdea).toBe('Old idea');
+      expect(result.current.formStale).toBe(true);
+    });
+
+    it('версия сменилась, пока шёл запрос — ответ не подставляется и форма не помечается', async () => {
+      const { result, rerender } = await (async () => {
+        mocks.analysis = {
+          data: { ...emptySaved, mainIdea: 'Old idea', hasCore: true },
+          isLoading: false,
+          isSuccess: true,
+          isFetching: false,
+          error: null,
+        } as typeof mocks.analysis;
+        const hook = renderHook((p: typeof props) => useAnalysisTab(p), { initialProps: props });
+        await waitFor(() => expect(hook.result.current.form.texts.mainIdea).toBe('Old idea'));
+        return hook;
+      })();
+      let answer: (v: unknown) => void = () => undefined;
+      mocks.refetch.mockReturnValueOnce(new Promise((r) => (answer = r)));
+      let pending: Promise<void> = Promise.resolve();
+      act(() => {
+        pending = result.current.reloadBlocks();
+      });
+      // Другая версия: её гидрация — из её ответа, ответ прошлой версии сюда не ложится.
+      mocks.analysis = {
+        data: { ...emptySaved, mainIdea: 'Second version', hasCore: true },
+        isLoading: false,
+        isSuccess: true,
+        isFetching: false,
+        error: null,
+      } as typeof mocks.analysis;
+      rerender({ ...props, versionId: 'v2' });
+      await waitFor(() => expect(result.current.form.texts.mainIdea).toBe('Second version'));
+      await act(async () => {
+        answer({ status: 'success', data: server, dataUpdatedAt: FRESH });
+        await pending;
+      });
+      expect(result.current.form.texts.mainIdea).toBe('Second version');
+      expect(result.current.formStale).toBe(false);
+    });
+
+    it('форма ещё не заполнена — перечитывание её не трогает и не помечает', async () => {
+      mocks.analysis = { data: null, isLoading: true, isSuccess: false, error: null };
+      const { result } = renderHook(() => useAnalysisTab(props));
+      mocks.refetch.mockResolvedValue({ status: 'error', data: undefined, dataUpdatedAt: STALE });
+      await act(() => result.current.reloadBlocks());
+      expect(result.current.formStale).toBe(false);
+      expect(result.current.form.texts.mainIdea).toBe('');
+    });
+
+    it('после «Save analysis» снимок — ответ сервера: правка блока, который ход не менял, не даёт ложного предупреждения', async () => {
+      const { result } = await hydrate();
+      await waitFor(() => expect(result.current.analyzeImport).not.toBeNull());
+      // Сервер дописывает пустые поля элемента списка: текст его ответа не равен набранному.
+      const normalized = [
+        { key: 'home', title: 'Home', interpretation: 'Why', chapters: null, quotes: null },
+      ];
+      act(() =>
+        result.current.setListText(
+          'themes',
+          '[{"key":"home","title":"Home","interpretation":"Why"}]'
+        )
+      );
+      mocks.mutate.mockImplementation(
+        (_v: unknown, opts: { onSuccess: (r: BookAnalysisSaveResponse) => void }) =>
+          opts.onSuccess({
+            analysis: { ...emptySaved, mainIdea: 'Old idea', themes: normalized, hasCore: true },
+            hasCore: true,
+            warnings: [],
+          } as unknown as BookAnalysisSaveResponse)
+      );
+      act(() => result.current.handleSave());
+      // Правка того же списка после сохранения: сервер его не менял — предупреждать не о чем.
+      act(() => result.current.setListText('themes', '[]'));
+      mocks.enqueueSnackbar.mockClear();
+      mocks.refetch.mockResolvedValue({
+        status: 'success',
+        data: { ...emptySaved, mainIdea: 'Run idea', themes: normalized, hasCore: true },
+        dataUpdatedAt: FRESH,
+      });
+      await act(() => result.current.reloadBlocks());
+      expect(result.current.form.texts.mainIdea).toBe('Run idea');
+      expect(result.current.form.drafts.themes.text).toBe('[]');
+      expect(mocks.enqueueSnackbar).not.toHaveBeenCalledWith(
+        expect.stringContaining('your edits are kept'),
+        expect.anything()
+      );
+    });
   });
 
-  it('форма ещё не заполнена с сервера — импорт заготовки закрыт', () => {
-    mocks.analysis = { data: null, isLoading: true, isSuccess: false, error: null };
-    const { result } = renderHook(() => useAnalysisTab(props));
-    expect(result.current.draftBlocksUnsaved).toBe(true);
-    expect(result.current.savedUpdatedAt).toBeNull();
-    // Запись сервера до заполнения формы не отличается от записи формы: ложного «сохранил другой» нет.
-    expect(result.current.serverUpdatedAt).toBeNull();
-  });
+  describe('Save во время хода анализа (F07-3a, Б1)', () => {
+    const runOf = (status: string, op: string, items: unknown[] = []) => ({
+      status,
+      operation: { status: op },
+      items,
+    });
+    const regenItem = (regenOperationStatus: string) => ({
+      regenerating: true,
+      regenOperationStatus,
+    });
+    const saved = async (isAdmin: boolean) => {
+      mocks.analysis = {
+        data: { ...emptySaved, mainIdea: 'Saved', hasCore: true },
+        isLoading: false,
+        isSuccess: true,
+        isFetching: false,
+        error: null,
+      } as typeof mocks.analysis;
+      const hook = renderHook(() => useAnalysisTab({ ...props, isAdmin }));
+      await waitFor(() => expect(hook.result.current.analyzeImport).not.toBeNull());
+      return hook;
+    };
 
-  it('устаревший кэш, форма ждёт перечитывания — запись сервера не сравнивается (F05-11)', () => {
-    mocks.analysis = {
-      data: emptySaved,
-      isLoading: false,
-      isSuccess: true,
-      isFetching: true,
-      error: null,
-    } as typeof mocks.analysis;
-    const { result } = renderHook(() => useAnalysisTab(props));
-    expect(result.current.savedUpdatedAt).toBeNull();
-    expect(result.current.serverUpdatedAt).toBeNull();
+    it('ход идёт — «Save analysis» закрыт с пояснением, запись не уходит', async () => {
+      mocks.run = runOf('building', 'active');
+      const { result } = await saved(true);
+      expect(result.current.saveBlockedReason).toBe(
+        'The analysis run is writing blocks: save when it ends or pauses.'
+      );
+      act(() => result.current.handleSave());
+      expect(mocks.mutate).not.toHaveBeenCalled();
+      expect(mocks.enqueueSnackbar).toHaveBeenCalledWith(
+        'The analysis run is writing blocks: save when it ends or pauses.',
+        { variant: 'warning' }
+      );
+    });
+
+    it.each([
+      ['pending', 'The analysis run is loading: save when it loads.'],
+      ['error', 'Could not load the analysis run: reload the page before saving.'],
+    ] as const)(
+      'состояние хода %s — идёт ли запись, неизвестно: «Save analysis» закрыт',
+      async (state, reason) => {
+        mocks.runState = state;
+        const { result } = await saved(true);
+        expect(result.current.saveBlockedReason).toBe(reason);
+        act(() => result.current.handleSave());
+        expect(mocks.mutate).not.toHaveBeenCalled();
+        expect(mocks.enqueueSnackbar).toHaveBeenCalledWith(reason, { variant: 'warning' });
+      }
+    );
+
+    it('не admin — хода не видит, «Save analysis» открыт', async () => {
+      mocks.runState = 'pending';
+      const { result } = await saved(false);
+      expect(result.current.saveBlockedReason).toBeNull();
+    });
+
+    it('перегенерация блока идёт (пустой пишется в анализ сразу) — закрыт; на паузе — открыт', async () => {
+      mocks.run = runOf('ready', 'done', [regenItem('active')]);
+      const { result, rerender } = await saved(true);
+      expect(result.current.saveBlockedReason).toBe(
+        'A block of the analysis run is being regenerated: save when it ends.'
+      );
+      act(() => result.current.handleSave());
+      expect(mocks.mutate).not.toHaveBeenCalled();
+      mocks.run = runOf('ready', 'done', [regenItem('paused')]);
+      rerender();
+      expect(result.current.saveBlockedReason).toBeNull();
+    });
+
+    it('«Accept», «Accept all» или «Regenerate» в полёте — закрыт; считаются мутации записи этой версии', async () => {
+      mocks.run = runOf('ready', 'done');
+      mocks.writesInFlight = true;
+      const { result, rerender } = await saved(true);
+      expect(mocks.writesFor).toContain(props.versionId);
+      expect(result.current.saveBlockedReason).toBe(
+        'Blocks of the analysis run are being written: save when it ends.'
+      );
+      act(() => result.current.handleSave());
+      expect(mocks.mutate).not.toHaveBeenCalled();
+      mocks.writesInFlight = false;
+      rerender();
+      expect(result.current.saveBlockedReason).toBeNull();
+    });
+
+    it('ход на паузе или готов — «Save analysis» открыт', async () => {
+      mocks.run = runOf('building', 'paused');
+      const { result, rerender } = await saved(true);
+      expect(result.current.saveBlockedReason).toBeNull();
+      act(() => result.current.handleSave());
+      expect(mocks.mutate).toHaveBeenCalledTimes(1);
+      mocks.run = runOf('ready', 'done');
+      rerender();
+      expect(result.current.saveBlockedReason).toBeNull();
+    });
   });
 
   describe('Copy prompt inputs', () => {
@@ -593,33 +930,139 @@ describe('useAnalysisTab', () => {
       );
     });
 
-    it('не admin — запроса заготовки нет, мотивов во «Вводных» нет (F05-11)', () => {
+    const readyDossier = (patch: Partial<DossierStatus> = {}): Partial<DossierStatus> => ({
+      status: 'ready',
+      sourceVersionId: 'v1',
+      data: {
+        motifs: [
+          { image: 'the door', chapters: [1, 7] },
+          { image: 'rain', chapters: [] },
+        ],
+      } as unknown as DossierStatus['data'],
+      ...patch,
+    });
+
+    it('не admin — запроса досье нет, мотивов во «Вводных» нет (F07-3a)', () => {
       writeText.mockResolvedValue(undefined);
-      mocks.draft = { status: 'ready', motifs: [{ image: 'door', chapters: [1] }] };
+      mocks.dossier = readyDossier();
       const { result } = renderHook(() => useAnalysisTab(props));
       act(() => result.current.copyPromptInputs());
-      expect(mocks.draftEnabled.length).toBeGreaterThan(0);
-      expect(mocks.draftEnabled.every((e) => !e)).toBe(true);
+      expect(mocks.dossierEnabled.length).toBeGreaterThan(0);
+      expect(mocks.dossierEnabled.every((e) => !e)).toBe(true);
       expect(writeText.mock.calls[0][0]).not.toContain('мотивы');
     });
 
-    it('admin с готовой заготовкой — мотивы досье во «Вводных»; строящаяся их не даёт (F05-11)', () => {
+    it('admin с готовым досье — мотивы во «Вводных», главы только этой версии; строящееся их не даёт (F07-3a)', () => {
       writeText.mockResolvedValue(undefined);
-      const draft: Partial<ContentDraft> = {
-        status: 'ready',
-        motifs: [{ image: 'the door', chapters: [1] }],
-        dossierLanguage: 'en',
-      };
-      mocks.draft = draft;
+      mocks.dossier = readyDossier();
       const { result, rerender } = renderHook(() => useAnalysisTab({ ...props, isAdmin: true }));
       act(() => result.current.copyPromptInputs());
+      // Глава 7 у версии нет (в списке глав только 1): она снята, как у `motifsOf` бэкенда.
       expect(writeText.mock.calls[0][0]).toContain(
-        'Сквозные мотивы из досье:\n- the door — главы 1'
+        'Сквозные мотивы из досье:\n- the door — главы 1\n- rain'
       );
-      mocks.draft = { ...draft, status: 'building' };
+      mocks.dossier = readyDossier({ status: 'building' });
       rerender();
       act(() => result.current.copyPromptInputs());
       expect(writeText.mock.calls[1][0]).not.toContain('мотивы');
+    });
+
+    it('досье исходника на другом языке — помечено его языком; язык ещё грузится — копировать рано (F07-3a)', async () => {
+      writeText.mockResolvedValue(undefined);
+      mocks.dossier = readyDossier({ sourceVersionId: 'src' });
+      const { result, rerender } = renderHook(() => useAnalysisTab({ ...props, isAdmin: true }));
+      act(() => result.current.copyPromptInputs());
+      expect(writeText).not.toHaveBeenCalled();
+      expect(mocks.enqueueSnackbar).toHaveBeenCalledWith('The dossier motifs are not loaded yet', {
+        variant: 'warning',
+      });
+      mocks.sourceLanguage = 'fr';
+      rerender();
+      act(() => result.current.copyPromptInputs());
+      expect(writeText.mock.calls[0][0]).toContain('Сквозные мотивы из досье (язык досье: fr):');
+      await waitFor(() =>
+        expect(mocks.enqueueSnackbar).toHaveBeenCalledWith('Prompt inputs copied', {
+          variant: 'success',
+        })
+      );
+    });
+
+    it('досье ещё грузится — копировать рано, редактор знает (F07-3a)', () => {
+      writeText.mockResolvedValue(undefined);
+      mocks.dossier = null;
+      const { result } = renderHook(() => useAnalysisTab({ ...props, isAdmin: true }));
+      act(() => result.current.copyPromptInputs());
+      expect(writeText).not.toHaveBeenCalled();
+      expect(mocks.enqueueSnackbar).toHaveBeenCalledWith('The dossier motifs are not loaded yet', {
+        variant: 'warning',
+      });
+    });
+
+    it('досье или язык его версии не загрузились — копия без мотивов и предупреждение (F07-3a)', async () => {
+      writeText.mockResolvedValue(undefined);
+      mocks.dossierError = true;
+      const { result, rerender } = renderHook(() => useAnalysisTab({ ...props, isAdmin: true }));
+      act(() => result.current.copyPromptInputs());
+      expect(writeText.mock.calls[0][0]).not.toContain('мотивы');
+      await waitFor(() =>
+        expect(mocks.enqueueSnackbar).toHaveBeenCalledWith(
+          'Prompt inputs copied without the dossier motifs: could not load the dossier',
+          { variant: 'warning' }
+        )
+      );
+      mocks.dossierError = false;
+      mocks.dossier = readyDossier({ sourceVersionId: 'src' });
+      mocks.sourceError = true;
+      rerender();
+      act(() => result.current.copyPromptInputs());
+      expect(writeText.mock.calls[1][0]).not.toContain('мотивы');
+      await waitFor(() =>
+        expect(mocks.enqueueSnackbar).toHaveBeenCalledWith(
+          'Prompt inputs copied without the dossier motifs: could not load the language of the dossier',
+          { variant: 'warning' }
+        )
+      );
+    });
+
+    it('досье не готово (строится или его нет) — мотивов нет молча', async () => {
+      writeText.mockResolvedValue(undefined);
+      mocks.dossier = { status: 'missing', sourceVersionId: 'v1', data: null };
+      const { result } = renderHook(() => useAnalysisTab({ ...props, isAdmin: true }));
+      act(() => result.current.copyPromptInputs());
+      expect(writeText.mock.calls[0][0]).not.toContain('мотивы');
+      await waitFor(() =>
+        expect(mocks.enqueueSnackbar).toHaveBeenCalledWith('Prompt inputs copied', {
+          variant: 'success',
+        })
+      );
+    });
+
+    it('досье устарело (fresh: false) — копия без мотивов и прямо «the dossier is outdated»', async () => {
+      writeText.mockResolvedValue(undefined);
+      mocks.dossier = readyDossier({ fresh: false });
+      const { result } = renderHook(() => useAnalysisTab({ ...props, isAdmin: true }));
+      act(() => result.current.copyPromptInputs());
+      expect(writeText.mock.calls[0][0]).not.toContain('мотивы');
+      await waitFor(() =>
+        expect(mocks.enqueueSnackbar).toHaveBeenCalledWith(
+          'Prompt inputs copied without the dossier motifs: the dossier is outdated',
+          { variant: 'warning' }
+        )
+      );
+    });
+
+    it('досье готово и свежее, упало только фоновое перечитывание — мотивы берутся', async () => {
+      writeText.mockResolvedValue(undefined);
+      mocks.dossier = readyDossier({ fresh: true });
+      mocks.dossierRefetchError = true;
+      const { result } = renderHook(() => useAnalysisTab({ ...props, isAdmin: true }));
+      act(() => result.current.copyPromptInputs());
+      expect(writeText.mock.calls[0][0]).toContain('Сквозные мотивы из досье:');
+      await waitFor(() =>
+        expect(mocks.enqueueSnackbar).toHaveBeenCalledWith('Prompt inputs copied', {
+          variant: 'success',
+        })
+      );
     });
 
     it('отказ буфера — тост об ошибке', async () => {

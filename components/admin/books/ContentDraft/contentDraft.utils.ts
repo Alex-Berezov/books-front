@@ -5,27 +5,28 @@ import {
   refusalText as runRefusalText,
   runRefusalOf,
 } from '@/components/admin/translation-run/translationRun.utils';
+import { pluralize } from '@/lib/i18n/plural';
 import { ApiError } from '@/types/api';
 import type {
   CompareContextLine,
-  ContentDraft,
-  ContentDraftEstimate,
   DossierContextLine,
   DossierEstimate,
   LlmMoney,
   LlmOperation,
+  SummaryWriteReview,
 } from '@/types/api-schema';
 
-/** Кнопка заготовки Analysis (F05 `product.md` §5.3); пересказ пишет ход «Write Summary» (F06). */
-export const DRAFT_BUTTON = 'Draft from dossier';
+/** `REGEN_REMARK_MAX` бэкенда (`summary-write.constants.ts`): замечание «Regenerate» у обоих ходов. */
+export const REGEN_REMARK_MAX = 2000;
 
-/** Что теряет «Discard draft» у готовой заготовки. */
-export const DISCARD_LOSS =
-  'The draft JSON not imported into the form and the list of thrown away quotes are lost;';
+/** «3 proposals», «1 regeneration» — счёт в строках ходов. */
+export const pluralWord = (n: number, word: string): string =>
+  `${n} ${pluralize(n, 'en', { one: word, few: `${word}s`, many: `${word}s` })}`;
 
 /**
- * Свои отказы заготовки (`api/endpoints/admin/content-draft.ts`); общие коды LLM (`LLM_DISABLED`,
- * `LLM_MODELS_UNAVAILABLE`, `LLM_NO_PRICE` …) — подписями запуска перевода, одними на админку.
+ * Общие отказы ходов из досье (старт, оценка); свои коды — у таблиц ходов. Общие коды LLM
+ * (`LLM_DISABLED`, `LLM_MODELS_UNAVAILABLE`, `LLM_NO_PRICE` …) — подписями запуска перевода,
+ * одними на админку.
  */
 const REFUSALS: Record<string, string> = {
   DRAFT_IN_PROGRESS: 'A draft of this kind is already being built.',
@@ -57,8 +58,8 @@ export const refusalText = (error: unknown): string => {
 };
 
 /**
- * Окончательные отказы заготовки (`failedReason`), общие с ходом пересказа (F06): его таблица
- * дополняет эту своими кодами.
+ * Окончательные отказы ходов из досье (`failedReason`): таблицы ходов пересказа (F06) и анализа
+ * (F07) дополняют эту своими кодами.
  */
 export const DRAFT_FAILURES: Readonly<Record<string, string>> = {
   DRAFT_INVALID_RESPONSE: 'the model answered not in the expected form',
@@ -74,8 +75,6 @@ export const failureReason = (
   table: Readonly<Record<string, string>> = DRAFT_FAILURES
 ): string => (reason ? (table[reason] ?? reason) : 'unknown reason');
 
-export const failedText = (reason: string | null): string => `Failed: ${failureReason(reason)}.`;
-
 /** Ход фоном: пауза операции с причиной, ожидание досье и глоссария; иначе — `writing`. */
 export const operationStatusText = (
   operation: LlmOperation,
@@ -89,10 +88,6 @@ export const operationStatusText = (
   if (waitingFor === 'glossary') return 'Building the glossary of this language first…';
   return writing;
 };
-
-/** Ход строящейся заготовки: чего ждёт, пауза операции. */
-export const buildingText = (draft: ContentDraft): string =>
-  operationStatusText(draft.operation, draft.waitingFor, 'Building the draft…');
 
 /** Строки окна старта о том, что строится первым: досье (или его отказ) и глоссарий. */
 export const contextEstimateLines = (estimate: {
@@ -116,17 +111,44 @@ export const contextEstimateLines = (estimate: {
 export const limitLine = (suggestedLimitUsd: LlmMoney): string =>
   `Operation limit: ${formatMoney(suggestedLimitUsd)}.`;
 
-/** Окно подтверждения старта: что строится первым и сколько стоит сверху. */
-export const estimateText = (estimate: ContentDraftEstimate): string => {
-  const upper = estimate.upperBound ? ' (the dossier is not built yet: upper estimate)' : '';
-  return [
-    ...contextEstimateLines(estimate),
-    `The draft: up to ${formatMoney(estimate.stageUsd)}${upper}.`,
-    limitLine(estimate.suggestedLimitUsd),
-  ].join(' ');
-};
-
 export const dossierEstimateText = (estimate: DossierEstimate): string =>
   estimate.refusedTooLong
     ? DOSSIER_REFUSED_TEXT
     : `A new dossier generation is built from ${estimate.chapters} chapters: up to ${formatMoney(estimate.estimateUsd)}, limit ${formatMoney(estimate.suggestedLimitUsd)}.`;
+
+/** Почему проверки моделью не было (`review.kind` кроме `answered`). */
+const REVIEW_SKIPPED: Record<Exclude<SummaryWriteReview['kind'], 'answered'>, string> = {
+  not_independent: 'no reviewer model of another family than the author',
+  too_long: 'the text does not fit the reviewer model',
+  invalid: 'the reviewer model answered not in the expected form',
+  no_provider: 'no compliant provider for the reviewer model',
+  unavailable: 'the reviewer model is unavailable',
+};
+
+/** Строка «не проверено моделью» или `null`, когда модель проверила. */
+export const reviewSkippedText = (review: SummaryWriteReview | null): string | null => {
+  if (review?.kind === 'answered') return null;
+  return review
+    ? `Model check: not done (${REVIEW_SKIPPED[review.kind]}).`
+    : 'Model check: not done.';
+};
+
+/**
+ * Что теряет новый старт поверх готового хода (сервер отбрасывает прежний): непринятые
+ * предложения и идущие перегенерации. Нечего терять — пустая строка. Одно правило у обоих ходов;
+ * что считать предложением — правило своего хода.
+ */
+export const runStartLossText = <I extends { regenerating: boolean }>(
+  run: { status: string; items: I[] } | null,
+  isPending: (item: I) => boolean
+): string => {
+  if (run?.status !== 'ready') return '';
+  const pending = run.items.filter(isPending).length;
+  const regenerating = run.items.filter((i) => i.regenerating).length;
+  if (pending === 0 && regenerating === 0) return '';
+  const parts = [
+    pending > 0 ? `${pluralWord(pending, 'proposal')} not accepted will be discarded` : '',
+    regenerating > 0 ? `${pluralWord(regenerating, 'regeneration')} will be cancelled` : '',
+  ].filter(Boolean);
+  return `This replaces the current run: ${parts.join(', ')}.`;
+};

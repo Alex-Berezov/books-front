@@ -2,8 +2,8 @@
 
 import { useState, type FC } from 'react';
 import { Button } from '@/components/admin/common/Button';
-import styles from './SummaryWrite.module.scss';
-import { REGEN_REMARK_MAX } from './summaryWrite.utils';
+import styles from './ContentDraft.module.scss';
+import { REGEN_REMARK_MAX } from './contentDraft.utils';
 
 export interface ItemRegenerateProps {
   /** Поле `id` для подписи замечания. */
@@ -12,13 +12,21 @@ export interface ItemRegenerateProps {
   busy: boolean;
   /** Перегенерация с замечанием автору (`undefined` — без замечания); `true` — ушла. */
   onRegenerate: (remark: string | undefined) => Promise<boolean>;
+  /** Куда придёт результат: правило своего хода (пересказа или анализа). */
+  hint: string;
 }
 
 /**
- * «Regenerate» текста хода (F06 `product.md` §5): необязательное замечание редактора уходит
- * автору; «Cancel» закрывает форму и стирает набранное замечание.
+ * «Regenerate» текста или блока хода (F06 `product.md` §5, F07 §5): необязательное замечание
+ * редактора уходит автору; «Cancel» закрывает форму и стирает набранное замечание.
  */
-export const ItemRegenerate: FC<ItemRegenerateProps> = ({ id, disabled, busy, onRegenerate }) => {
+export const ItemRegenerate: FC<ItemRegenerateProps> = ({
+  id,
+  disabled,
+  busy,
+  onRegenerate,
+  hint,
+}) => {
   const [open, setOpen] = useState(false);
   const [remark, setRemark] = useState('');
 
@@ -32,10 +40,14 @@ export const ItemRegenerate: FC<ItemRegenerateProps> = ({ id, disabled, busy, on
   };
 
   if (!open) {
+    // Подсказка — у самой кнопки, до раскрытия формы (F07-3, шаг 7): куда придёт результат.
     return (
-      <Button variant="secondary" onClick={() => setOpen(true)} disabled={disabled}>
-        Regenerate
-      </Button>
+      <span className={styles.actions}>
+        <Button variant="secondary" onClick={() => setOpen(true)} disabled={disabled}>
+          Regenerate
+        </Button>
+        <span className={styles.hint}>{hint}</span>
+      </span>
     );
   }
   return (
@@ -51,9 +63,7 @@ export const ItemRegenerate: FC<ItemRegenerateProps> = ({ id, disabled, busy, on
         value={remark}
         onChange={(e) => setRemark(e.target.value)}
       />
-      <p className={styles.hint}>
-        The result comes as a proposal unless the field is empty on an unpublished version.
-      </p>
+      <p className={styles.hint}>{hint}</p>
       <div className={styles.actions}>
         <Button variant="secondary" onClick={() => void start()} loading={busy} disabled={disabled}>
           Start regeneration

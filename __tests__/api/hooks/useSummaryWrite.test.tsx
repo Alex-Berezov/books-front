@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { analysisWriteKeys } from '@/api/hooks/draftKeys';
 import { summaryKeys } from '@/api/hooks/useBookSummary';
-import { contentDraftKeys } from '@/api/hooks/useContentDraft';
 import { dossierKeys } from '@/api/hooks/useDossier';
 import {
   SUMMARY_WRITE_REFETCH_MS,
@@ -206,9 +206,9 @@ describe('useSummaryWriteActions', () => {
     expect(llm.resumeLlmOperation).toHaveBeenCalledWith('op-1', '3');
   });
 
-  it('rebuilding the dossier resets the summary run and the analysis draft of this version', async () => {
+  it('rebuilding the dossier resets the summary run and the analysis run of this version', async () => {
     const spy = vi.spyOn(client, 'invalidateQueries');
-    client.setQueryData(contentDraftKeys.estimate('v1', 'analysis'), { stale: true });
+    client.setQueryData(analysisWriteKeys.estimate('v1'), { stale: true });
     client.setQueryData(summaryWriteKeys.estimate('v1'), { stale: true });
     client.setQueryData(summaryWriteKeys.estimate('v2'), { other: true });
     translation.buildDossier.mockResolvedValueOnce({});
@@ -216,13 +216,13 @@ describe('useSummaryWriteActions', () => {
     await act(() => result.current.rebuildDossier.mutateAsync());
     expect(translation.buildDossier).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls.map(([arg]) => (arg as { queryKey: unknown }).queryKey)).toEqual([
-      contentDraftKeys.latest('v1', 'analysis'),
+      analysisWriteKeys.latest('v1'),
       summaryWriteKeys.latest('v1'),
       dossierKeys.version('v1'),
       dossierKeys.estimate('v1'),
     ]);
     // Обе оценки этой версии сброшены, чужая версия не тронута.
-    expect(client.getQueryData(contentDraftKeys.estimate('v1', 'analysis'))).toBeUndefined();
+    expect(client.getQueryData(analysisWriteKeys.estimate('v1'))).toBeUndefined();
     expect(client.getQueryData(summaryWriteKeys.estimate('v1'))).toBeUndefined();
     expect(client.getQueryData(summaryWriteKeys.estimate('v2'))).toEqual({ other: true });
   });

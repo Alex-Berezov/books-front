@@ -23,39 +23,31 @@ import {
 import type { ApiError } from '@/types/api';
 import type {
   BookSummarySectionList,
+  ContentDraftAcceptAll,
+  ContentDraftRun,
   LlmOperation,
   SummaryWrite,
-  SummaryWriteItem,
   SummaryWriteState,
 } from '@/types/api-schema';
-import { CONTENT_DRAFT_LOCAL_CODES, summaryWriteKeys } from './draftKeys';
+import {
+  CONTENT_DRAFT_LOCAL_CODES,
+  DRAFT_RUN_REFETCH_MS,
+  draftRunRefetchInterval,
+  summaryWriteKeys,
+} from './draftKeys';
 import { summaryKeys } from './useBookSummary';
 import { useRebuildDossier } from './useRebuildDossier';
 
-export { summaryWriteKeys } from './draftKeys';
+export { isRegenPaused, isRegenRunning, summaryWriteKeys } from './draftKeys';
 
 /** Пока ход пишется или перегенерирует текст, он перечитывается с этим шагом. */
-export const SUMMARY_WRITE_REFETCH_MS = 4_000;
-
-/** Перегенерация текста стоит на паузе (F06-5c): выход — «Continue», опрос её не ждёт. */
-export const isRegenPaused = (item: SummaryWriteItem): boolean =>
-  item.regenerating && item.regenOperationStatus === 'paused';
-
-/** Перегенерация текста идёт (не на паузе): «Regenerating…» и опрос хода. */
-export const isRegenRunning = (item: SummaryWriteItem): boolean =>
-  item.regenerating && !isRegenPaused(item);
+export const SUMMARY_WRITE_REFETCH_MS = DRAFT_RUN_REFETCH_MS;
 
 /** Перечитывать, пока ход строится с идущей операцией или идёт перегенерация; запрос упал — опрос встаёт. */
 export const summaryWriteRefetchInterval = (
   state: SummaryWriteState | undefined,
   failed = false
-): number | false => {
-  const run = state?.draft;
-  if (failed || !run) return false;
-  const writing = run.status === 'building' && run.operation.status === 'active';
-  const regenerating = run.items.some(isRegenRunning);
-  return writing || regenerating ? SUMMARY_WRITE_REFETCH_MS : false;
-};
+): number | false => draftRunRefetchInterval(state?.draft, failed);
 
 export const useSummaryWrite = (versionId: string, enabled: boolean) =>
   useQuery({
@@ -115,29 +107,31 @@ export const useSummaryWriteActions = (versionId: string) => {
     meta: CONTENT_DRAFT_LOCAL_CODES,
     onSettled: refresh,
   });
-  const discardRun = useMutation<SummaryWrite, ApiError, string>({
+  const discardRun = useMutation<ContentDraftRun, ApiError, string>({
     mutationFn: (id) => discardSummaryWriteRun(id),
     // Отбрасывание хода полей не трогает.
     onSettled: refresh,
   });
-  const regenerate = useMutation<SummaryWrite, ApiError, ItemVars & { remark?: string }>({
+  const regenerate = useMutation<ContentDraftRun, ApiError, ItemVars & { remark?: string }>({
     mutationFn: ({ id, index, remark }) =>
       regenerateSummaryItem(id, index, remark ? { remark } : {}),
     meta: CONTENT_DRAFT_LOCAL_CODES,
     onSettled: refresh,
   });
-  const accept = useMutation<SummaryWrite, ApiError, ItemVars & { confirmChapterChange?: boolean }>(
-    {
-      mutationFn: ({ id, index, confirmChapterChange }) =>
-        acceptSummaryItem(id, index, confirmChapterChange ? { confirmChapterChange } : {}),
-      onSettled: refreshWithFields,
-    }
-  );
-  const discardItem = useMutation<SummaryWrite, ApiError, ItemVars>({
+  const accept = useMutation<
+    ContentDraftRun,
+    ApiError,
+    ItemVars & { confirmChapterChange?: boolean }
+  >({
+    mutationFn: ({ id, index, confirmChapterChange }) =>
+      acceptSummaryItem(id, index, confirmChapterChange ? { confirmChapterChange } : {}),
+    onSettled: refreshWithFields,
+  });
+  const discardItem = useMutation<ContentDraftRun, ApiError, ItemVars>({
     mutationFn: ({ id, index }) => discardSummaryItem(id, index),
     onSettled: refresh,
   });
-  const acceptAll = useMutation<SummaryWrite, ApiError, string>({
+  const acceptAll = useMutation<ContentDraftAcceptAll, ApiError, string>({
     mutationFn: (id) => acceptAllSummaryItems(id),
     onSettled: refreshWithFields,
   });

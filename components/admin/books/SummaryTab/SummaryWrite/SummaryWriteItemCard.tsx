@@ -2,14 +2,12 @@
 
 import { useState, type FC } from 'react';
 import { isRegenPaused, type SummaryWriteActions } from '@/api/hooks';
+import { ItemCheck, ItemRegenerate, ItemResume } from '@/components/admin/books/ContentDraft';
 import { Button } from '@/components/admin/common/Button';
 import { ConfirmDialog } from '@/components/admin/shared';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { SummaryChapterChangeBody, SummaryWriteItem } from '@/types/api-schema';
-import { ItemCheck } from './ItemCheck';
 import { ItemError } from './ItemError';
-import { ItemRegenerate } from './ItemRegenerate';
-import { ItemResume } from './ItemResume';
 import { ItemStatus } from './ItemStatus';
 import styles from './SummaryWrite.module.scss';
 import {
@@ -19,6 +17,7 @@ import {
   isPending,
   itemTitle,
   mayHaveWritten,
+  refusalText,
   type SummaryWriteField,
 } from './summaryWrite.utils';
 
@@ -113,7 +112,7 @@ export const SummaryWriteItemCard: FC<SummaryWriteItemCardProps> = ({
       <h4 id={`${id}-title`} className={styles.itemTitle}>
         {itemTitle(item)}
       </h4>
-      <ItemCheck item={item} />
+      <ItemCheck verdict={item.verdict} remarks={item.remarks} review={item.review} />
       <ItemStatus item={item} ready={ready} blockedBy={blockedBy} />
       {error !== null && <ItemError item={item} error={error} blockedBy={blockedBy} />}
       {isRegenPaused(item) && item.regenOperationId && (
@@ -123,6 +122,7 @@ export const SummaryWriteItemCard: FC<SummaryWriteItemCardProps> = ({
           lang={lang}
           disabled={!ready || disabled}
           resume={actions.resume}
+          refusalText={refusalText}
         />
       )}
 
@@ -143,6 +143,7 @@ export const SummaryWriteItemCard: FC<SummaryWriteItemCardProps> = ({
               id={id}
               disabled={locked}
               busy={busy}
+              hint="The result comes as a proposal unless the field is empty on an unpublished version."
               onRegenerate={(remark) =>
                 run(() => actions.regenerate.mutateAsync(remark ? { ...vars, remark } : vars))
               }

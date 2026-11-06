@@ -1,0 +1,96 @@
+@import '@/styles/tokens.scss';
+
+/* Ход анализа «Write Analysis» (F07-3a): кнопка, ход по шагам, плашка ядра, блоки с отметками. */
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  border: 1px dashed $color-border-base;
+  border-radius: $border-radius-base;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.hint {
+  margin: 0;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.error {
+  margin: 0;
+  color: $color-error;
+  font-size: $font-size-sm;
+}
+
+.core {
+  margin: 0;
+  padding: $spacing-sm;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  color: $color-warning;
+  background: $color-background-secondary;
+}
+
+.coreReady {
+  color: $color-success;
+}
+
+.list {
+  margin: $spacing-xs 0 0;
+  padding-left: $spacing-md;
+  font-size: $font-size-sm;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+}
+
+.itemTitle {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.verify {
+  margin: 0;
+  color: $color-warning;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.preview {
+  margin: 0;
+  padding: $spacing-sm;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  background: $color-background-secondary;
+  font-size: $font-size-sm;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

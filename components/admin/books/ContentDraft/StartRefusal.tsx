@@ -9,7 +9,7 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './ContentDraft.module.scss';
 import { dossierEstimateText, refusalCode } from './contentDraft.utils';
 
-/** Перестройка досье: тот же вызов у заготовки Analysis и хода пересказа. */
+/** Перестройка досье: тот же вызов у ходов анализа и пересказа. */
 export interface RebuildDossierAction {
   mutate: () => void;
   isPending: boolean;

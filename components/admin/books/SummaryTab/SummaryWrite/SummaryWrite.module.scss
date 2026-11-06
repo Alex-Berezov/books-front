@@ -60,53 +60,9 @@
   color: $color-text-primary;
 }
 
-.checkOk {
-  color: $color-success;
-  font-size: $font-size-sm;
-}
-
-.checkFlags {
-  color: $color-warning;
-  font-size: $font-size-sm;
-}
-
-.remarks {
-  font-size: $font-size-sm;
-
-  summary {
-    cursor: pointer;
-  }
-}
-
-.remarkList {
-  margin: $spacing-xs 0 0;
-  padding-left: $spacing-md;
-}
-
 .preview {
   padding: $spacing-sm;
   border: 1px solid $color-border-light;
   border-radius: $border-radius-sm;
   background: $color-background-secondary;
-}
-
-.remarkInput {
-  padding: $spacing-sm;
-  border: 1px solid $color-border-base;
-  border-radius: $border-radius-base;
-  font-size: $font-size-sm;
-  font-family: $font-family-base;
-  resize: vertical;
-
-  &:focus {
-    outline: none;
-    border-color: $color-primary;
-    box-shadow: $shadow-focus;
-  }
-}
-
-.label {
-  font-weight: $font-weight-medium;
-  color: $color-text-primary;
-  font-size: $font-size-sm;
 }

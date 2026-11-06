@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/admin/common/Button';
 import { Spinner } from '@/components/admin/shared';
@@ -18,8 +18,8 @@ import styles from './AnalysisTab.module.scss';
 import { ImportAnalysisModal } from './ImportAnalysisModal';
 import { useAnalysisTab } from './useAnalysisTab';
 
-// Заготовка из досье (F05-11) — только у `admin`: в бандл страницы версии не входит.
-const AnalysisDraft = dynamic(() => import('./AnalysisDraft').then((m) => m.AnalysisDraft), {
+// Ход «Write Analysis» (F07-3a) — только у `admin`: в бандл страницы версии не входит.
+const AnalysisWrite = dynamic(() => import('./AnalysisWrite').then((m) => m.AnalysisWrite), {
   ssr: false,
 });
 
@@ -39,14 +39,10 @@ const TEXT_ROWS: Record<BookAnalysisTextKey, number> = {
 export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
   const tab = useAnalysisTab(props);
   const [importOpen, setImportOpen] = useState(false);
-  /** JSON, с которым открыто окно импорта: заготовка из досье; `undefined` — ручной импорт. */
-  const [importJson, setImportJson] = useState<string | undefined>(undefined);
-  const { form } = tab;
+  const { form, reloadBlocks } = tab;
   const { isAdmin = false, lang = 'en', versionId } = props;
-  const openImport = (json?: string) => {
-    setImportJson(json);
-    setImportOpen(true);
-  };
+  // Ход зовёт его из эффекта: одна функция на всю жизнь вкладки, без лишних перезапусков.
+  const onBlocksWritten = useCallback(() => void reloadBlocks(), [reloadBlocks]);
 
   if (tab.isLoading) {
     return (
@@ -77,21 +73,26 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
           <Button type="button" variant="secondary" onClick={tab.copyPromptInputs}>
             Copy prompt inputs
           </Button>
-          <Button type="button" variant="secondary" onClick={() => openImport()}>
+          <Button type="button" variant="secondary" onClick={() => setImportOpen(true)}>
             Import JSON
           </Button>
         </div>
       </div>
 
       {isAdmin && (
-        <AnalysisDraft
+        <AnalysisWrite
           versionId={versionId}
           lang={lang}
-          versionLanguage={props.version.language}
-          unsaved={tab.draftBlocksUnsaved}
-          savedUpdatedAt={tab.savedUpdatedAt}
-          serverUpdatedAt={tab.serverUpdatedAt}
-          onOpen={openImport}
+          onBlocksWritten={onBlocksWritten}
+          saving={tab.isSaving}
+          core={{
+            hasCore: tab.savedHasCore,
+            missing: tab.lastCheck
+              ? tab.lastCheck.warnings.filter((w) => w.code === 'core_incomplete')
+              : null,
+            error: tab.lastCheck ? null : tab.savedCheckError,
+            retry: tab.retrySavedCheck,
+          }}
         />
       )}
 
@@ -104,26 +105,33 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
         </div>
       )}
 
-      {!tab.lastCheck && tab.savedCheckError && (
-        <div className={styles.error} role="alert">
-          <p>Could not check what is missing to the core: {tab.savedCheckError}</p>
-          <Button type="button" variant="secondary" size="sm" onClick={tab.retrySavedCheck}>
-            Retry
-          </Button>
-        </div>
-      )}
-
-      {tab.lastCheck ? (
-        <AnalysisCheckSummary check={tab.lastCheck} />
+      {isAdmin ? (
+        // Ядро у admin — плашка хода (одно состояние одним текстом); здесь — прочие предупреждения.
+        tab.lastCheck && <AnalysisCheckSummary check={tab.lastCheck} withoutCore />
       ) : (
-        tab.savedHasCore !== null &&
-        !tab.savedCheckError && (
-          <p className={`${styles.status} ${tab.savedHasCore ? styles.statusOk : ''}`}>
-            {tab.savedHasCore
-              ? 'Saved analysis has a complete core.'
-              : 'Saved analysis has no complete core: checking what is missing…'}
-          </p>
-        )
+        <>
+          {!tab.lastCheck && tab.savedCheckError && (
+            <div className={styles.error} role="alert">
+              <p>Could not check what is missing to the core: {tab.savedCheckError}</p>
+              <Button type="button" variant="secondary" size="sm" onClick={tab.retrySavedCheck}>
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {tab.lastCheck ? (
+            <AnalysisCheckSummary check={tab.lastCheck} />
+          ) : (
+            tab.savedHasCore !== null &&
+            !tab.savedCheckError && (
+              <p className={`${styles.status} ${tab.savedHasCore ? styles.statusOk : ''}`}>
+                {tab.savedHasCore
+                  ? 'Saved analysis has a complete core.'
+                  : 'Saved analysis has no complete core: checking what is missing…'}
+              </p>
+            )
+          )}
+        </>
       )}
 
       <section className={styles.section}>
@@ -200,17 +208,30 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
         })}
       </section>
 
-      <Button onClick={tab.handleSave} loading={tab.isSaving} disabled={tab.isSaving}>
+      {tab.formStale && (
+        <div className={styles.error} role="alert">
+          <p>
+            The analysis changed on the server and could not be reloaded: the form may hold old
+            blocks, saving is stopped until it is reloaded.
+          </p>
+          <Button type="button" variant="secondary" size="sm" onClick={onBlocksWritten}>
+            Reload
+          </Button>
+        </div>
+      )}
+
+      <Button
+        onClick={tab.handleSave}
+        loading={tab.isSaving}
+        disabled={tab.isSaving || tab.formStale || tab.saveBlockedReason !== null}
+      >
         Save analysis
       </Button>
+      {tab.saveBlockedReason && <p className={styles.hint}>{tab.saveBlockedReason}</p>}
 
       <ImportAnalysisModal
         isOpen={importOpen}
-        initialJson={importJson}
-        onCancel={() => {
-          setImportOpen(false);
-          setImportJson(undefined);
-        }}
+        onCancel={() => setImportOpen(false)}
         analyze={tab.analyzeImport}
         loadFailed={tab.validationFailed}
         onRetryLoad={tab.retryValidation}

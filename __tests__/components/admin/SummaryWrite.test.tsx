@@ -488,6 +488,15 @@ describe('SummaryWrite (F06-3)', () => {
   });
 
   describe('Regenerate', () => {
+    it('the hint where the result comes is at the button itself, before the form opens', () => {
+      view();
+      expect(
+        screen.getByText(
+          'The result comes as a proposal unless the field is empty on an unpublished version.'
+        )
+      ).toBeInTheDocument();
+    });
+
     it('sends the remark for the author', async () => {
       view();
       fireEvent.click(button('Regenerate'));

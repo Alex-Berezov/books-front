@@ -620,15 +620,10 @@ export type {
   GlossaryEntry,
 } from './dossier';
 
-// Analysis (F05-11) drafts from the dossier, admin only
+// Shared by the runs from the dossier (F06, F07), admin only
 export type {
-  ContentDraft,
-  ContentDraftAnalysis,
-  ContentDraftDroppedQuote,
-  ContentDraftEstimate,
-  ContentDraftKind,
-  ContentDraftMotif,
-  ContentDraftState,
+  ContentDraftAcceptAll,
+  ContentDraftRun,
   ContentDraftStatus,
   StartContentDraftRequest,
 } from './content-draft';
@@ -653,3 +648,29 @@ export type {
   SummaryWriteTarget,
   SummaryWriteVerdict,
 } from './summary-write';
+
+// Analysis run «Write Analysis» (F07-3a), admin only
+export type {
+  AnalysisAcceptAll,
+  AnalysisAcceptAllSkipCode,
+  AnalysisAcceptAllSkipped,
+  AnalysisBlockChangedBody,
+  AnalysisWrite,
+  AnalysisWriteDroppedQuote,
+  AnalysisWriteDroppedSource,
+  AnalysisWriteEstimate,
+  AnalysisWriteFix,
+  AnalysisWriteFixCode,
+  AnalysisWriteItem,
+  AnalysisWriteItemOutcome,
+  AnalysisWriteRefusedBody,
+  AnalysisWriteRemark,
+  AnalysisWriteRemarkCode,
+  AnalysisWriteReview,
+  AnalysisWriteState,
+  AnalysisWriteStep,
+  AnalysisWriteStepNumber,
+  AnalysisWriteTarget,
+  AnalysisWriteValue,
+  AnalysisWriteVerdict,
+} from './analysis-write';

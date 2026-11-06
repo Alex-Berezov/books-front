@@ -141,19 +141,43 @@ export const collectReplacedBlocks = (
   );
 };
 
-/** Списки, которые строит заготовка Analysis (F05-11), - вместе с `facts` (`draftBlocksOf` бэкенда). */
-const ANALYSIS_DRAFT_BLOCKS = ['characters', 'keyQuotes', 'style'] as const;
-
 /**
- * В форме есть несохранённые правки в блоках заготовки (`facts` и три списка): заготовка собрана
- * по сохранённому анализу, и импорт затёр бы их (решение арбитра `F05 | F05-11`, Р4).
+ * Анализ на сервере изменил ход «Write Analysis» (F07-3a: прямая запись, «Accept», «Accept all»):
+ * форма берёт с сервера блоки, которых редактор не правил (равны сохранённым), — иначе «Save
+ * analysis» вернул бы в блок прежнее содержимое. Правленый блок не затирается; `kept` называет
+ * такие блоки, которые сервер при этом и правда изменил. Сохранённым становится ответ сервера.
  */
-export const hasUnsavedDraftBlocks = (
+export const takeServerBlocks = (
   form: BookAnalysisFormValues,
-  saved: BookAnalysisFormValues
-): boolean =>
-  BOOK_ANALYSIS_FACT_KEYS.some((k) => form.facts[k].trim() !== saved.facts[k].trim()) ||
-  ANALYSIS_DRAFT_BLOCKS.some((k) => form.drafts[k].text !== saved.drafts[k].text);
+  saved: BookAnalysisFormValues,
+  server: BookAnalysisFormValues
+): { form: BookAnalysisFormValues; kept: string[] } => {
+  const next: BookAnalysisFormValues = {
+    facts: { ...form.facts },
+    texts: { ...form.texts },
+    lists: { ...form.lists },
+    drafts: { ...form.drafts },
+  };
+  const kept: string[] = [];
+  for (const k of BOOK_ANALYSIS_FACT_KEYS) {
+    if (form.facts[k] === saved.facts[k]) next.facts[k] = server.facts[k];
+    else if (server.facts[k] !== saved.facts[k]) kept.push(`facts.${k}`);
+  }
+  for (const k of BOOK_ANALYSIS_TEXT_KEYS) {
+    if (form.texts[k] === saved.texts[k]) next.texts[k] = server.texts[k];
+    else if (server.texts[k] !== saved.texts[k]) kept.push(k);
+  }
+  const lists = next.lists as Record<BookAnalysisListKey, unknown>;
+  for (const k of BOOK_ANALYSIS_LIST_KEYS) {
+    if (form.drafts[k].text === saved.drafts[k].text) {
+      lists[k] = server.lists[k];
+      next.drafts[k] = server.drafts[k];
+    } else if (server.drafts[k].text !== saved.drafts[k].text) {
+      kept.push(k);
+    }
+  }
+  return { form: next, kept };
+};
 
 /** Сохранение шлёт всю запись: все ключи §3, пустые — `null` (решение арбитра А4). */
 export const analysisRequestFromForm = (

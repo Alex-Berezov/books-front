@@ -1,21 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import {
+  isRegenRunning,
+  useAnalysisWrite,
+  useAnalysisWritesInFlight,
   useBookAnalysis,
+  useBookVersion,
   useChapterTitles,
-  useContentDraft,
   useSaveBookAnalysis,
+  useVersionDossier,
 } from '@/api/hooks';
 import {
   analysisRequestFromForm,
   formFromAnalysis,
   hasDraftIssues,
-  hasUnsavedDraftBlocks,
   mergeAnalysisImport,
+  takeServerBlocks,
   UNCHECKED_DRAFT_ISSUE,
   type BookAnalysisFormValues,
 } from '@/lib/admin/book-analysis-form-state';
-import { buildAnalysisPromptInputsText } from '@/lib/admin/book-analysis-prompt-inputs';
+import {
+  buildAnalysisPromptInputsText,
+  promptMotifsFromDossier,
+} from '@/lib/admin/book-analysis-prompt-inputs';
 import {
   loadBookAnalysisValidation,
   type BookAnalysisValidation,
@@ -50,8 +57,28 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
 
   const analysisQuery = useBookAnalysis(versionId);
   const chaptersQuery = useChapterTitles(versionId);
-  // Тот же запрос, что у блока заготовки (общий ключ): мотивы во «Вводные» берутся из него.
-  const draftQuery = useContentDraft(versionId, 'analysis', isAdmin);
+  // Мотивы во «Вводные» — из досье версии (решение арбитра `F07 | F07-3`): только у `admin`,
+  // ручка досье закрыта остальным.
+  const dossierQuery = useVersionDossier(versionId, isAdmin);
+  // Ход «Write Analysis» — тот же запрос, что у блока хода (общий ключ, второго GET нет): пока он
+  // идёт, «Save analysis» закрыт — полная запись формы (А4) затёрла бы записанное ходом
+  // (решение арбитра `F07 | F07-3`, круг 3, Б1). Состояние хода не пришло или не загрузилось —
+  // идёт ли запись, неизвестно, и сохранение стоит так же.
+  const runQuery = useAnalysisWrite(versionId, isAdmin);
+  const runUnknown = isAdmin && runQuery.data === undefined;
+  const run = runQuery.data?.draft ?? null;
+  const runWriting = run?.status === 'building' && run.operation.status !== 'paused';
+  // Перегенерация пустого блока пишет его в анализ сразу (а заполненного — предложением): пока
+  // идёт любая, запись возможна.
+  const runRegenerating = run?.items.some(isRegenRunning) ?? false;
+  // «Accept», «Accept all» и запуск «Regenerate» в полёте: ответ вот-вот запишет блоки.
+  const writesInFlight = useAnalysisWritesInFlight(versionId);
+  // Досье переведённой версии — досье её исходника: язык досье — язык той версии.
+  const dossierSource = dossierQuery.data?.sourceVersionId ?? null;
+  const foreignDossier = dossierSource !== null && dossierSource !== versionId;
+  const dossierSourceQuery = useBookVersion(dossierSource ?? '', {
+    enabled: isAdmin && foreignDossier,
+  });
   const saveMutation = useSaveBookAnalysis();
   // Отдельная мутация для пробы: её ожидание не должно выглядеть сохранением.
   const { mutateAsync: runPreview } = useSaveBookAnalysis();
@@ -103,10 +130,9 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
   const hydratedFor = useRef<string | null>(null);
   // Снимок формы сохранённой записи: повтор пробы проверяет её, а не несохранённые правки.
   const savedForm = useRef<BookAnalysisFormValues | null>(null);
-  // `updatedAt` той записи, из которой форма заполнена или сохранена (Р15, решение `F05 | F05-11`,
-  // Р24): перечитывание после чужого сохранения форму не меняет, и заготовка, собранная поверх
-  // новой записи, не должна открываться в старую форму.
-  const [formUpdatedAt, setFormUpdatedAt] = useState<string | null>(null);
+  // Форма на этом рендере: перечитывание после записи хода сверяет правки с ней в момент подстановки.
+  const currentForm = useRef(form);
+  currentForm.current = form;
   useEffect(() => {
     // Пока идёт перечитывание, кэш может быть устаревшим (вкладку смонтировали заново позже
     // `staleTime`): заполнять форму только свежими данными, иначе сохранение всей записи вернёт
@@ -126,7 +152,6 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     const saved = analysisQuery.data ?? null;
     const hydrated = formFromAnalysis(saved);
     savedForm.current = hydrated;
-    setFormUpdatedAt(saved?.updatedAt ?? null);
     setForm(hydrated);
     setLastCheck(null);
     // Сохранённый анализ без ядра: сразу показать, чего не хватает (§2), — той же пробой сервера.
@@ -137,6 +162,26 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
   // Форма заполнена с сервера для этой версии. Гидрация ставит ref и сразу `setForm` — рендер
   // после неё читает свежее значение.
   const formHydrated = hydratedFor.current === versionId;
+  // Ход записал блоки, а перечитать анализ не удалось: форма держит прежние блоки, и «Save
+  // analysis» (полная запись, А4) затёрла бы записанное ходом. Сохранение стоит до свежего ответа.
+  const [staleFor, setStaleFor] = useState<string | null>(null);
+  const formStale = staleFor === versionId;
+  // Идёт перечитывание после записи хода: форма вот-вот получит записанное, сохранять рано.
+  const [reloading, setReloading] = useState(false);
+  /** Почему «Save analysis» закрыт сейчас; `null` — открыт. */
+  const saveBlockedReason = runUnknown
+    ? runQuery.isError
+      ? 'Could not load the analysis run: reload the page before saving.'
+      : 'The analysis run is loading: save when it loads.'
+    : runWriting
+      ? 'The analysis run is writing blocks: save when it ends or pauses.'
+      : runRegenerating
+        ? 'A block of the analysis run is being regenerated: save when it ends.'
+        : writesInFlight
+          ? 'Blocks of the analysis run are being written: save when it ends.'
+          : reloading
+            ? 'The analysis is being reloaded after the run wrote blocks.'
+            : null;
 
   const setFact = (key: BookAnalysisFactKey, value: string) =>
     setForm((prev) => ({ ...prev, facts: { ...prev.facts, [key]: value } }));
@@ -204,6 +249,16 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
   const handleSave = () => {
     // До заполнения с сервера в форме не то, что сохранено: такая запись затёрла бы анализ.
     if (!formHydrated) return;
+    if (saveBlockedReason) {
+      enqueueSnackbar(saveBlockedReason, { variant: 'warning' });
+      return;
+    }
+    if (formStale) {
+      enqueueSnackbar('The analysis changed on the server: reload it before saving', {
+        variant: 'warning',
+      });
+      return;
+    }
     if (!validation) {
       enqueueSnackbar('Validation is not loaded yet', { variant: 'warning' });
       return;
@@ -219,8 +274,16 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
       { versionId, data: analysisRequestFromForm(checked, version.language) },
       {
         onSuccess: (res) => {
-          savedForm.current = checked;
-          if (res.analysis) setFormUpdatedAt(res.analysis.updatedAt);
+          // Снимок — ответ сервера (его нормализованные списки), а не набранный текст: иначе
+          // следующее перечитывание после хода сочло бы такие блоки правлеными. Блоки, не
+          // тронутые за время сохранения, форма берёт в том же виде.
+          if (res.analysis) {
+            const server = formFromAnalysis(res.analysis);
+            setForm(takeServerBlocks(currentForm.current, checked, server).form);
+            savedForm.current = server;
+          } else {
+            savedForm.current = checked;
+          }
           checkSeq.current += 1;
           setSavedCheckError(null);
           setLastCheck({ hasCore: res.hasCore, warnings: res.warnings });
@@ -233,6 +296,85 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
       }
     );
   };
+
+  const refetchAnalysis = analysisQuery.refetch;
+  // Проба сохранённой записи на этом рендере: язык версии и мутация — свежие, без устаревшего замыкания.
+  const checkSavedRef = useRef(checkSaved);
+  checkSavedRef.current = checkSaved;
+  /**
+   * Ход «Write Analysis» записал блоки (F07-3a): анализ перечитывается, форма берёт блоки, которых
+   * редактор не правил; правленые остаются, и редактор узнаёт, какие из них сервер изменил. Итог
+   * прошлого сохранения больше не про эту запись — вместо него живое ядро (и проба, если его нет).
+   * Форма ещё не заполнена — её заполнит свежий ответ; сменилась версия — ответ не про неё.
+   */
+  const reloadOnce = useCallback(async () => {
+    const calledFor = versionId;
+    const fresh = async () => {
+      const startedAt = Date.now();
+      const result = await refetchAnalysis();
+      // Запрос, отменённый соседним перечитыванием, отдаёт прежние данные со статусом success:
+      // свежий только ответ, пришедший после начала.
+      return result.status === 'success' && result.dataUpdatedAt >= startedAt ? result : null;
+    };
+    // Устаревший ответ — ещё одна попытка; не вышло — форма помечается устаревшей.
+    const result = (await fresh()) ?? (await fresh());
+    // Форма ещё не заполнена — её заполнит свежий ответ; сменилась версия — ответ не про неё.
+    if (hydratedFor.current !== calledFor || !savedForm.current) return;
+    if (!result) {
+      setStaleFor(calledFor);
+      return;
+    }
+    setStaleFor(null);
+    const saved = result.data ?? null;
+    const server = formFromAnalysis(saved);
+    const merged = takeServerBlocks(currentForm.current, savedForm.current, server);
+    savedForm.current = server;
+    setForm(merged.form);
+    checkSeq.current += 1;
+    setSavedCheckError(null);
+    setLastCheck(null);
+    if (saved && !saved.hasCore) checkSavedRef.current(server);
+    if (merged.kept.length > 0) {
+      enqueueSnackbar(
+        `The analysis run changed blocks you are editing; your edits are kept: ${merged.kept.join(', ')}. Saving writes your version over it.`,
+        { variant: 'warning' }
+      );
+    }
+  }, [versionId, refetchAnalysis, enqueueSnackbar]);
+
+  /**
+   * Перечитывания идут по одному (решение арбитра `F07 | F07-3`, круг 3, Б2): параллельный refetch
+   * отменял бы соседний, и тот считал бы ответ устаревшим. Вызов во время перечитывания ставит
+   * ровно одно следующее (больше одного в очереди не бывает) и ждёт его.
+   */
+  const reloadChain = useRef<{ done: Promise<void> | null; again: boolean }>({
+    done: null,
+    again: false,
+  });
+  // Повтор зовёт перечитывание этого рендера: сменилась версия, пока шло прежнее, — следующее
+  // идёт за новой, а не за прежней (её замыкание отбросило бы ответ как чужой).
+  const reloadOnceRef = useRef(reloadOnce);
+  reloadOnceRef.current = reloadOnce;
+  const reloadBlocks = useCallback((): Promise<void> => {
+    const chain = reloadChain.current;
+    if (chain.done) {
+      chain.again = true;
+      return chain.done;
+    }
+    setReloading(true);
+    chain.done = (async () => {
+      try {
+        do {
+          chain.again = false;
+          await reloadOnceRef.current();
+        } while (chain.again);
+      } finally {
+        chain.done = null;
+        setReloading(false);
+      }
+    })();
+    return chain.done;
+  }, []);
 
   const copyPromptInputs = () => {
     if (chaptersQuery.error) {
@@ -247,22 +389,56 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     }
     // Текст собирается по нажатию: глав может быть тысячи, на каждый ввод в форме его не строим.
     const { items, pagination } = chaptersQuery.data;
-    // Мотивы — только из готовой заготовки (Р10): строящаяся или отброшенная их не даёт.
-    const draft = draftQuery.data?.draft;
+    // Мотивы — только из готового и свежего досье (Р10), главы — только этой версии. Досье или
+    // язык его версии ещё грузятся — как с главами, копировать рано; не загрузились или досье
+    // устарело — копия без мотивов, и редактор об этом знает. Досье не готово (нет, строится,
+    // упало) — мотивов нет молча. Ошибка фонового перечитывания при уже загруженных данных — не
+    // отказ: данные те же.
+    let withoutMotifs: string | null = null;
+    if (isAdmin) {
+      const dossier = dossierQuery.data;
+      const dossierReady = dossier?.status === 'ready';
+      if (!dossier) {
+        if (dossierQuery.isError) {
+          withoutMotifs = 'could not load the dossier';
+        } else {
+          enqueueSnackbar('The dossier motifs are not loaded yet', { variant: 'warning' });
+          return;
+        }
+      } else if (dossierReady && dossier.fresh === false) {
+        withoutMotifs = 'the dossier is outdated';
+      } else if (dossierReady && foreignDossier && !dossierSourceQuery.data) {
+        if (dossierSourceQuery.isError) {
+          withoutMotifs = 'could not load the language of the dossier';
+        } else {
+          enqueueSnackbar('The dossier motifs are not loaded yet', { variant: 'warning' });
+          return;
+        }
+      }
+    }
     const motifs =
-      draft?.status === 'ready'
-        ? { motifs: draft.motifs, dossierLanguage: draft.dossierLanguage }
+      withoutMotifs === null
+        ? promptMotifsFromDossier(
+            dossierQuery.data,
+            items,
+            pagination.total,
+            foreignDossier ? dossierSourceQuery.data?.language : version.language
+          )
         : null;
     const text = buildAnalysisPromptInputsText(version, items, pagination.total, motifs);
+    const copied = () =>
+      withoutMotifs === null
+        ? enqueueSnackbar('Prompt inputs copied', { variant: 'success' })
+        : enqueueSnackbar(`Prompt inputs copied without the dossier motifs: ${withoutMotifs}`, {
+            variant: 'warning',
+          });
     const failed = () => enqueueSnackbar('Could not copy to clipboard', { variant: 'error' });
     // Вне защищённого контекста (http) `navigator.clipboard` нет — отказ, а не исключение.
     if (!navigator.clipboard) {
       failed();
       return;
     }
-    navigator.clipboard
-      .writeText(text)
-      .then(() => enqueueSnackbar('Prompt inputs copied', { variant: 'success' }), failed);
+    navigator.clipboard.writeText(text).then(copied, failed);
   };
 
   return {
@@ -283,13 +459,11 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
       if (savedForm.current) checkSaved(savedForm.current);
     },
     retryLoad: () => void analysisQuery.refetch(),
-    // Заготовка собрана по сохранённому анализу: правки формы в её блоках закрывают импорт (Р4),
-    // а `updatedAt` сохранённого сверяется с тем, по которому она собрана (Р15).
-    draftBlocksUnsaved: savedForm.current ? hasUnsavedDraftBlocks(form, savedForm.current) : true,
-    savedUpdatedAt: formUpdatedAt,
-    // Запись на сервере сейчас: отличается от записи формы - анализ сохранил кто-то другой.
-    // Пока форма не заполнена, сравнивать не с чем: запись формы и есть ожидаемая.
-    serverUpdatedAt: formHydrated ? (analysisQuery.data?.updatedAt ?? null) : formUpdatedAt,
+    reloadBlocks,
+    /** Анализ изменился на сервере, а перечитать не удалось: «Save analysis» стоит, есть повтор. */
+    formStale,
+    /** Почему «Save analysis» закрыт: ход пишет блоки или идёт перечитывание; `null` — открыт. */
+    saveBlockedReason,
     savedHasCore: analysisQuery.data?.hasCore ?? null,
     // Ждём ответа, в том числе запрос на паузе офлайн (`isLoading` у него ложен): полей нет,
     // пока форма не заполнена с сервера и нет ошибки чтения.

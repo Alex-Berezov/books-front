@@ -879,6 +879,882 @@
         ],
         "type": "object"
       },
+      "AnalysisAcceptAllDto": {
+        "properties": {
+          "bookVersionId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "droppedQuotes": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWriteDroppedQuoteDto"
+            },
+            "type": "array"
+          },
+          "droppedSources": {
+            "description": "Sources of step 5 the code dropped: did not open or not about this book",
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWriteDroppedSourceDto"
+            },
+            "type": "array"
+          },
+          "failedReason": {
+            "description": "Code of the final refusal (failed)",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWriteItemDto"
+            },
+            "type": "array"
+          },
+          "language": {
+            "enum": [
+              "en",
+              "es",
+              "fr",
+              "pt",
+              "ru"
+            ],
+            "type": "string"
+          },
+          "operation": {
+            "$ref": "#/components/schemas/LlmOperationDto"
+          },
+          "owns": {
+            "description": "Blocks the run writes directly: empty at the start on an unpublished version",
+            "items": {
+              "enum": [
+                "facts.settingPlace",
+                "facts.settingTime",
+                "facts.narrator",
+                "facts.structure",
+                "characters",
+                "keyQuotes",
+                "style",
+                "mainIdea",
+                "themes",
+                "symbols",
+                "titleMeaning",
+                "endingMeaning",
+                "misreadings",
+                "discussionQuestions",
+                "faq",
+                "facts.genre",
+                "facts.movement",
+                "facts.writtenYears",
+                "context",
+                "timeline",
+                "reception",
+                "adaptations",
+                "sources"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "skipped": {
+            "description": "Proposals this pass tried and left as proposals, in the order of the tries; a block being regenerated before the pass is not tried and not listed",
+            "items": {
+              "$ref": "#/components/schemas/AnalysisAcceptAllSkippedDto"
+            },
+            "type": "array"
+          },
+          "status": {
+            "description": "A paused operation keeps the run building: the reason is operation.pauseReason",
+            "enum": [
+              "building",
+              "ready",
+              "failed",
+              "discarded"
+            ],
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWriteStepDto"
+            },
+            "type": "array"
+          },
+          "stepsTotal": {
+            "description": "Steps of the run in all (5; runs of F07-1 have 3)",
+            "type": "number"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "waitingFor": {
+            "enum": [
+              "dossier",
+              "glossary"
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "bookVersionId",
+          "status",
+          "language",
+          "failedReason",
+          "waitingFor",
+          "operation",
+          "stepsTotal",
+          "owns",
+          "steps",
+          "items",
+          "droppedQuotes",
+          "droppedSources",
+          "createdAt",
+          "updatedAt",
+          "skipped"
+        ],
+        "type": "object"
+      },
+      "AnalysisAcceptAllSkippedDto": {
+        "properties": {
+          "code": {
+            "description": "ANALYSIS_WRITE_REFUSED: the analysis refused the write (a dangling reference, the list of sources is full - flag LIMIT_OUT); ANALYSIS_BLOCK_CHANGED: the editor changed the block after the proposal; ANALYSIS_REGEN_IN_PROGRESS: the block is being regenerated",
+            "enum": [
+              "ANALYSIS_WRITE_REFUSED",
+              "ANALYSIS_BLOCK_CHANGED",
+              "ANALYSIS_REGEN_IN_PROGRESS"
+            ],
+            "type": "string"
+          },
+          "index": {
+            "description": "Index of the item in items",
+            "type": "number"
+          }
+        },
+        "required": [
+          "index",
+          "code"
+        ],
+        "type": "object"
+      },
+      "AnalysisWriteDroppedQuoteDto": {
+        "properties": {
+          "chapter": {
+            "nullable": true,
+            "type": "number"
+          },
+          "path": {
+            "description": "Where the quotation was: keyQuotes.2, style.0.example…",
+            "type": "string"
+          },
+          "reason": {
+            "description": "QUOTE_NOT_VERBATIM: NOT_FOUND - not word for word in the chapter; NO_CHAPTER - no chapter; CHAPTER_MISSING - the chapter is not in the version",
+            "enum": [
+              "NOT_FOUND",
+              "NO_CHAPTER",
+              "CHAPTER_MISSING"
+            ],
+            "type": "string"
+          },
+          "step": {
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "type": "number"
+          },
+          "text": {
+            "description": "The text of the model",
+            "type": "string"
+          }
+        },
+        "required": [
+          "step",
+          "path",
+          "text",
+          "chapter",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "AnalysisWriteDroppedSourceDto": {
+        "properties": {
+          "host": {
+            "description": "The host only, never the full address",
+            "type": "string"
+          },
+          "reason": {
+            "description": "SOURCE_UNREACHABLE - did not open (status, type, size, address not allowed); SOURCE_UNRELATED - the page names neither the book nor the author",
+            "enum": [
+              "SOURCE_UNREACHABLE",
+              "SOURCE_UNRELATED"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "host",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "AnalysisWriteDto": {
+        "properties": {
+          "bookVersionId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "droppedQuotes": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWriteDroppedQuoteDto"
+            },
+            "type": "array"
+          },
+          "droppedSources": {
+            "description": "Sources of step 5 the code dropped: did not open or not about this book",
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWriteDroppedSourceDto"
+            },
+            "type": "array"
+          },
+          "failedReason": {
+            "description": "Code of the final refusal (failed)",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWriteItemDto"
+            },
+            "type": "array"
+          },
+          "language": {
+            "enum": [
+              "en",
+              "es",
+              "fr",
+              "pt",
+              "ru"
+            ],
+            "type": "string"
+          },
+          "operation": {
+            "$ref": "#/components/schemas/LlmOperationDto"
+          },
+          "owns": {
+            "description": "Blocks the run writes directly: empty at the start on an unpublished version",
+            "items": {
+              "enum": [
+                "facts.settingPlace",
+                "facts.settingTime",
+                "facts.narrator",
+                "facts.structure",
+                "characters",
+                "keyQuotes",
+                "style",
+                "mainIdea",
+                "themes",
+                "symbols",
+                "titleMeaning",
+                "endingMeaning",
+                "misreadings",
+                "discussionQuestions",
+                "faq",
+                "facts.genre",
+                "facts.movement",
+                "facts.writtenYears",
+                "context",
+                "timeline",
+                "reception",
+                "adaptations",
+                "sources"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "status": {
+            "description": "A paused operation keeps the run building: the reason is operation.pauseReason",
+            "enum": [
+              "building",
+              "ready",
+              "failed",
+              "discarded"
+            ],
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWriteStepDto"
+            },
+            "type": "array"
+          },
+          "stepsTotal": {
+            "description": "Steps of the run in all (5; runs of F07-1 have 3)",
+            "type": "number"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "waitingFor": {
+            "enum": [
+              "dossier",
+              "glossary"
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "bookVersionId",
+          "status",
+          "language",
+          "failedReason",
+          "waitingFor",
+          "operation",
+          "stepsTotal",
+          "owns",
+          "steps",
+          "items",
+          "droppedQuotes",
+          "droppedSources",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "AnalysisWriteEstimateDto": {
+        "properties": {
+          "dossier": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DossierContextLineDto"
+              }
+            ],
+            "description": "The dossier is built first by its own operation; null - it is ready",
+            "nullable": true,
+            "type": "object"
+          },
+          "glossary": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompareContextLineDto"
+              }
+            ],
+            "description": "The glossary of the version language is built first; null - ready or not needed (the version is in the dossier language)",
+            "nullable": true,
+            "type": "object"
+          },
+          "stageUsd": {
+            "description": "Upper estimate of steps 1-5: each step reads the whole version text, plus the reviewer of each step, each step × 2 passes",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "suggestedLimitUsd": {
+            "description": "Default operation limit: max(steps × 1.5, dossier and glossary limits)",
+            "example": "100.00000000",
+            "format": "decimal",
+            "type": "string"
+          },
+          "upperBound": {
+            "description": "The dossier or the glossary is not ready: their size is taken from their stages",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "dossier",
+          "glossary",
+          "stageUsd",
+          "upperBound",
+          "suggestedLimitUsd"
+        ],
+        "type": "object"
+      },
+      "AnalysisWriteFixDto": {
+        "properties": {
+          "code": {
+            "description": "Fixed by code without a redo: CHAPTER_UNKNOWN - a chapter number not in the version removed; LIMIT_OUT - elements over the import limit cut; IMPORT_INVALID - a theme link to an unknown element dropped; SOURCE_UNREACHABLE, SOURCE_UNRELATED - a source of step 5 dropped; SOURCE_UNVERIFIED - a statement of step 5 with no verified source dropped; EXTERNAL_DOUBT - a statement of step 5 the reviewer still doubts after the redo dropped",
+            "enum": [
+              "CHAPTER_UNKNOWN",
+              "LIMIT_OUT",
+              "IMPORT_INVALID",
+              "SOURCE_UNREACHABLE",
+              "SOURCE_UNRELATED",
+              "SOURCE_UNVERIFIED",
+              "EXTERNAL_DOUBT"
+            ],
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "path": {
+            "description": "Path of the field",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "path",
+          "note"
+        ],
+        "type": "object"
+      },
+      "AnalysisWriteItemDto": {
+        "properties": {
+          "failedReason": {
+            "description": "IMPORT_INVALID - the block failed the import after the redo; DRAFT_DATA_INVALID",
+            "nullable": true,
+            "type": "string"
+          },
+          "index": {
+            "description": "Index of the block in the run",
+            "type": "number"
+          },
+          "links": {
+            "description": "themeKeys of step 3 in the characters or key quotations of steps 1-2",
+            "type": "boolean"
+          },
+          "outcome": {
+            "description": "written - in the analysis; proposed - a proposal; waiting - the write is not decided yet; accepted, discarded - the editor decided; none - not written (failedReason)",
+            "enum": [
+              "waiting",
+              "written",
+              "proposed",
+              "accepted",
+              "discarded",
+              "none"
+            ],
+            "type": "string"
+          },
+          "regenFailedReason": {
+            "description": "The last regeneration gave no text: the previous content stays, this is why",
+            "nullable": true,
+            "type": "string"
+          },
+          "regenOperationId": {
+            "description": "Operation of the running regeneration",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "regenOperationStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LlmOperationStatus"
+              }
+            ],
+            "description": "Status of the regeneration operation; null - no regeneration is running",
+            "nullable": true
+          },
+          "regenPauseReason": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LlmPauseReason"
+              }
+            ],
+            "description": "Why the regeneration operation is paused; null - not paused",
+            "nullable": true
+          },
+          "regenerating": {
+            "description": "A regeneration of this block is running",
+            "type": "boolean"
+          },
+          "remarks": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWriteRemarkDto"
+            },
+            "type": "array"
+          },
+          "review": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisWriteReviewDto"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "step": {
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "type": "number"
+          },
+          "target": {
+            "description": "A block or a facts subfield",
+            "enum": [
+              "facts.settingPlace",
+              "facts.settingTime",
+              "facts.narrator",
+              "facts.structure",
+              "characters",
+              "keyQuotes",
+              "style",
+              "mainIdea",
+              "themes",
+              "symbols",
+              "titleMeaning",
+              "endingMeaning",
+              "misreadings",
+              "discussionQuestions",
+              "faq",
+              "facts.genre",
+              "facts.movement",
+              "facts.writtenYears",
+              "context",
+              "timeline",
+              "reception",
+              "adaptations",
+              "sources"
+            ],
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "ok",
+              "flags",
+              "failed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "index",
+          "target",
+          "step",
+          "verdict",
+          "remarks",
+          "review",
+          "outcome",
+          "failedReason",
+          "links",
+          "regenFailedReason",
+          "regenerating",
+          "regenOperationId",
+          "regenOperationStatus",
+          "regenPauseReason"
+        ],
+        "type": "object"
+      },
+      "AnalysisWriteRemarkDto": {
+        "properties": {
+          "by": {
+            "enum": [
+              "code",
+              "model"
+            ],
+            "type": "string"
+          },
+          "code": {
+            "enum": [
+              "LANGUAGE_MIXED",
+              "NAME_MISMATCH",
+              "JUNK",
+              "STYLE_POOR",
+              "IMPORT_INVALID",
+              "CHAPTER_UNKNOWN",
+              "LIMIT_OUT",
+              "CORE_MISSING",
+              "NOT_IN_TEXT",
+              "GENERIC",
+              "CONTRADICTION",
+              "RETELLING",
+              "ONE_SIDED",
+              "FAQ_WEAK",
+              "MYTH_INVENTED",
+              "EXTERNAL_DOUBT",
+              "EXTERNAL_CHECK",
+              "SOURCE_UNREACHABLE",
+              "SOURCE_UNRELATED",
+              "SOURCE_UNVERIFIED"
+            ],
+            "type": "string"
+          },
+          "note": {
+            "description": "What to fix, in English",
+            "type": "string"
+          },
+          "where": {
+            "description": "The field path and a short fragment, or the step",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "where",
+          "note",
+          "by"
+        ],
+        "type": "object"
+      },
+      "AnalysisWriteReviewDto": {
+        "properties": {
+          "kind": {
+            "description": "answered - the reviewer model checked the step; otherwise why the model check was not done",
+            "enum": [
+              "answered",
+              "not_independent",
+              "too_long",
+              "invalid",
+              "no_provider",
+              "unavailable"
+            ],
+            "type": "string"
+          },
+          "model": {
+            "description": "The reviewer model (answered)",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "model"
+        ],
+        "type": "object"
+      },
+      "AnalysisWriteStateDto": {
+        "properties": {
+          "draft": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisWriteDto"
+              }
+            ],
+            "description": "The latest analysis run that is not discarded, in any status; null - none",
+            "nullable": true,
+            "type": "object"
+          }
+        },
+        "required": [
+          "draft"
+        ],
+        "type": "object"
+      },
+      "AnalysisWriteStepDto": {
+        "properties": {
+          "attempt": {
+            "description": "2 - the text of the one redo",
+            "enum": [
+              1,
+              2
+            ],
+            "type": "number"
+          },
+          "authorModel": {
+            "nullable": true,
+            "type": "string"
+          },
+          "dropped": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWriteFixDto"
+            },
+            "type": "array"
+          },
+          "failedReason": {
+            "description": "Why the step gave no text: DRAFT_TOO_LONG, DRAFT_INVALID_RESPONSE",
+            "nullable": true,
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "done",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "remarks": {
+            "description": "Flags of the step: code checks, the reviewer model, CORE_MISSING after step 3",
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWriteRemarkDto"
+            },
+            "type": "array"
+          },
+          "review": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisWriteReviewDto"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "source": {
+            "description": "text - the whole version text; summaries - the chapter summaries of the dossier; none - the step reads no book text (step 5)",
+            "enum": [
+              "text",
+              "summaries",
+              "none"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "step": {
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "type": "number"
+          },
+          "verdict": {
+            "description": "ok - no remarks; flags - remarks after the redo or no model check; failed - no text",
+            "enum": [
+              "ok",
+              "flags",
+              "failed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "step",
+          "verdict",
+          "remarks",
+          "attempt",
+          "outcome",
+          "failedReason",
+          "authorModel",
+          "review",
+          "source",
+          "dropped"
+        ],
+        "type": "object"
+      },
+      "AnalysisWriteValueDto": {
+        "properties": {
+          "adaptations": {
+            "items": {
+              "$ref": "#/components/schemas/BookAnalysisAdaptationDto"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "characters": {
+            "items": {
+              "$ref": "#/components/schemas/BookAnalysisCharacterDto"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "discussionQuestions": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "faq": {
+            "items": {
+              "$ref": "#/components/schemas/BookAnalysisFaqDto"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "keyQuotes": {
+            "items": {
+              "$ref": "#/components/schemas/BookAnalysisKeyQuoteDto"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "misreadings": {
+            "items": {
+              "$ref": "#/components/schemas/BookAnalysisMisreadingDto"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "sources": {
+            "description": "The sources block; for a regenerated step 5 block - its verified sources: those not saved yet (by url) are added to the saved ones by its Accept",
+            "items": {
+              "$ref": "#/components/schemas/BookAnalysisSourceDto"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "style": {
+            "items": {
+              "$ref": "#/components/schemas/BookAnalysisStyleDto"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "symbols": {
+            "items": {
+              "$ref": "#/components/schemas/BookAnalysisSymbolDto"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "text": {
+            "description": "A facts subfield (facts.<name>), mainIdea, titleMeaning, endingMeaning, context, reception",
+            "nullable": true,
+            "type": "string"
+          },
+          "themes": {
+            "items": {
+              "$ref": "#/components/schemas/BookAnalysisThemeDto"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/BookAnalysisTimelineEventDto"
+            },
+            "nullable": true,
+            "type": "array"
+          }
+        },
+        "required": [
+          "text",
+          "characters",
+          "keyQuotes",
+          "style",
+          "themes",
+          "symbols",
+          "misreadings",
+          "discussionQuestions",
+          "faq",
+          "timeline",
+          "adaptations",
+          "sources"
+        ],
+        "type": "object"
+      },
       "AppHealthResponseDto": {
         "properties": {
           "status": {
@@ -8104,279 +8980,6 @@
         "required": [
           "key",
           "url"
-        ],
-        "type": "object"
-      },
-      "ContentDraftAnalysisDto": {
-        "properties": {
-          "characters": {
-            "items": {
-              "$ref": "#/components/schemas/BookAnalysisCharacterDto"
-            },
-            "type": "array"
-          },
-          "facts": {
-            "$ref": "#/components/schemas/BookAnalysisFactsDto"
-          },
-          "keyQuotes": {
-            "items": {
-              "$ref": "#/components/schemas/BookAnalysisKeyQuoteDto"
-            },
-            "type": "array"
-          },
-          "language": {
-            "enum": [
-              "en",
-              "es",
-              "fr",
-              "pt",
-              "ru"
-            ],
-            "type": "string"
-          },
-          "style": {
-            "items": {
-              "$ref": "#/components/schemas/BookAnalysisStyleDto"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "language"
-        ],
-        "type": "object"
-      },
-      "ContentDraftDroppedQuoteDto": {
-        "properties": {
-          "chapter": {
-            "description": "Chapter given by the model",
-            "nullable": true,
-            "type": "number"
-          },
-          "path": {
-            "description": "keyQuotes, characters.<key>.quote or style.<index>.example",
-            "type": "string"
-          },
-          "reason": {
-            "description": "NOT_FOUND: not word for word within one paragraph of the chapter; NO_CHAPTER: no chapter given; CHAPTER_MISSING: the version has no such chapter; OVER_LIMIT: verified, but over the import limit together with the saved quotes",
-            "enum": [
-              "NOT_FOUND",
-              "NO_CHAPTER",
-              "CHAPTER_MISSING",
-              "OVER_LIMIT"
-            ],
-            "type": "string"
-          },
-          "text": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "path",
-          "text",
-          "chapter",
-          "reason"
-        ],
-        "type": "object"
-      },
-      "ContentDraftDto": {
-        "properties": {
-          "analysis": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ContentDraftAnalysisDto"
-              }
-            ],
-            "description": "Analysis import JSON (analysis): language, facts, characters, keyQuotes, style only; built over the saved analysis",
-            "nullable": true,
-            "type": "object"
-          },
-          "analysisUpdatedAt": {
-            "description": "updatedAt of the saved analysis the draft was built over; null - there was none (analysis)",
-            "format": "date-time",
-            "nullable": true,
-            "type": "string"
-          },
-          "bookVersionId": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "dossierLanguage": {
-            "description": "Language of the dossier the analysis draft was built with",
-            "enum": [
-              "en",
-              "es",
-              "fr",
-              "pt",
-              "ru"
-            ],
-            "nullable": true,
-            "type": "string"
-          },
-          "droppedQuotes": {
-            "description": "Quotes thrown away by the word-for-word check",
-            "items": {
-              "$ref": "#/components/schemas/ContentDraftDroppedQuoteDto"
-            },
-            "type": "array"
-          },
-          "failedReason": {
-            "description": "Code of the final refusal (failed)",
-            "nullable": true,
-            "type": "string"
-          },
-          "id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "kind": {
-            "enum": [
-              "analysis"
-            ],
-            "type": "string"
-          },
-          "language": {
-            "enum": [
-              "en",
-              "es",
-              "fr",
-              "pt",
-              "ru"
-            ],
-            "type": "string"
-          },
-          "model": {
-            "nullable": true,
-            "type": "string"
-          },
-          "motifs": {
-            "description": "Recurring motifs of the dossier for the prompt inputs: chapters of this version only",
-            "items": {
-              "$ref": "#/components/schemas/DossierMotifDto"
-            },
-            "type": "array"
-          },
-          "operation": {
-            "$ref": "#/components/schemas/LlmOperationDto"
-          },
-          "status": {
-            "description": "A paused operation keeps the draft building: the reason is operation.pauseReason",
-            "enum": [
-              "building",
-              "ready",
-              "failed",
-              "discarded"
-            ],
-            "type": "string"
-          },
-          "updatedAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "waitingFor": {
-            "description": "What the draft waits for: the dossier or the glossary built by their own operation",
-            "enum": [
-              "dossier",
-              "glossary"
-            ],
-            "nullable": true,
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "bookVersionId",
-          "kind",
-          "status",
-          "language",
-          "failedReason",
-          "waitingFor",
-          "operation",
-          "model",
-          "analysis",
-          "droppedQuotes",
-          "motifs",
-          "dossierLanguage",
-          "analysisUpdatedAt",
-          "createdAt",
-          "updatedAt"
-        ],
-        "type": "object"
-      },
-      "ContentDraftEstimateDto": {
-        "properties": {
-          "dossier": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DossierContextLineDto"
-              }
-            ],
-            "description": "The dossier is built first by its own operation; null - it is ready",
-            "nullable": true,
-            "type": "object"
-          },
-          "glossary": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CompareContextLineDto"
-              }
-            ],
-            "description": "The glossary of the version language is built first; null - ready or not needed (the version is in the dossier language)",
-            "nullable": true,
-            "type": "object"
-          },
-          "kind": {
-            "enum": [
-              "analysis"
-            ],
-            "type": "string"
-          },
-          "stageUsd": {
-            "description": "Upper estimate of the draft stage calls",
-            "example": "100.00000000",
-            "format": "decimal",
-            "type": "string"
-          },
-          "suggestedLimitUsd": {
-            "description": "Default operation limit: max(stage × 1.5, dossier and glossary limits)",
-            "example": "100.00000000",
-            "format": "decimal",
-            "type": "string"
-          },
-          "upperBound": {
-            "description": "The dossier is not ready: its size is assumed from the dossier and glossary stages",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "kind",
-          "dossier",
-          "glossary",
-          "stageUsd",
-          "upperBound",
-          "suggestedLimitUsd"
-        ],
-        "type": "object"
-      },
-      "ContentDraftStateDto": {
-        "properties": {
-          "draft": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ContentDraftDto"
-              }
-            ],
-            "description": "The latest draft of this kind that is not discarded, in any status; null - none",
-            "nullable": true,
-            "type": "object"
-          }
-        },
-        "required": [
-          "draft"
         ],
         "type": "object"
       },
@@ -31834,17 +32437,24 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SummaryWriteDto"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SummaryWriteDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnalysisAcceptAllDto"
+                    }
+                  ]
                 }
               }
             },
             "description": ""
           },
           "404": {
-            "description": "Summary run not found"
+            "description": "Run not found (a draft of another kind too)"
           },
           "409": {
-            "description": "SUMMARY_WRITE_NOT_READY: the run is building, failed or discarded; SUMMARY_REGEN_IN_PROGRESS: this text is being regenerated; ACCEPT_ALL_CHAPTER_CHANGE: a section moves to other reader chapters, accept it alone; SUMMARY_FIELD_CHANGED: a field changed after its proposal"
+            "description": "SUMMARY_WRITE_NOT_READY: the run is building, failed or discarded; SUMMARY_REGEN_IN_PROGRESS: this text is being regenerated; ACCEPT_ALL_CHAPTER_CHANGE: a section moves to other reader chapters, accept it alone; SUMMARY_FIELD_CHANGED: a field changed after its proposal; ANALYSIS_WRITE_NOT_READY: the analysis run is not ready (acceptedIndexes - what is written already). An analysis proposal refused on its own (ANALYSIS_WRITE_REFUSED, ANALYSIS_BLOCK_CHANGED, ANALYSIS_REGEN_IN_PROGRESS) is skipped: it stays a proposal, the answer is 200 and lists it in skipped with its code"
           }
         },
         "security": [
@@ -31852,47 +32462,7 @@
             "bearer": []
           }
         ],
-        "summary": "Accept all proposals of the summary run one by one: sections by number, then the full and the very short summary",
-        "tags": [
-          "admin"
-        ]
-      }
-    },
-    "/admin/content-drafts/{id}/discard": {
-      "post": {
-        "operationId": "ContentDraftController_discard",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentDraftDto"
-                }
-              }
-            },
-            "description": ""
-          },
-          "404": {
-            "description": "Content draft not found"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Discard a draft: a draft being built cancels its operation; the dossier and glossary are not cancelled; a summary run is discarded by discard-run",
+        "summary": "Accept all proposals of the run one by one: a summary run - sections by number, then the full and the very short summary; an analysis run - interpretations, characters, key quotations, then the theme links",
         "tags": [
           "admin"
         ]
@@ -31917,14 +32487,24 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SummaryWriteDto"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SummaryWriteDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnalysisWriteDto"
+                    }
+                  ]
                 }
               }
             },
             "description": ""
           },
           "404": {
-            "description": "Summary run not found (a draft of another kind too)"
+            "description": "Run not found (a draft of another kind too)"
+          },
+          "409": {
+            "description": "ANALYSIS_REGEN_IN_PROGRESS: an analysis run - a regeneration of its blocks keeps starting while the run is discarded, discard again"
           }
         },
         "security": [
@@ -31932,7 +32512,61 @@
             "bearer": []
           }
         ],
-        "summary": "Discard a summary run: one being built cancels its operation; the regenerations of its texts are cancelled; the fields are not touched",
+        "summary": "Discard a summary or analysis run: one being built cancels its operation; the regenerations of its texts or blocks are cancelled; the fields and the blocks are not touched",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/content-drafts/{id}/items/{index}": {
+      "get": {
+        "operationId": "ContentDraftController_proposal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "index",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisWriteValueDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "description": "ANALYSIS_ITEM_UNKNOWN: the run has no such block"
+          },
+          "404": {
+            "description": "Analysis run not found (a summary run and a draft of another kind too)"
+          },
+          "409": {
+            "description": "ANALYSIS_WRITE_NOT_READY: the run is building, failed or discarded; ANALYSIS_ITEM_NOT_PROPOSED: the block is not a proposal"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The content of a proposal of a ready analysis run: one field by the kind of the block, the others null; the run answer does not carry it",
         "tags": [
           "admin"
         ]
@@ -31975,20 +32609,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SummaryWriteDto"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SummaryWriteDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnalysisWriteDto"
+                    }
+                  ]
                 }
               }
             },
             "description": ""
           },
           "400": {
-            "description": "SUMMARY_ITEM_UNKNOWN: the run has no such text"
+            "description": "SUMMARY_ITEM_UNKNOWN, ANALYSIS_ITEM_UNKNOWN: the run has no such text or block"
           },
           "404": {
-            "description": "Summary run not found"
+            "description": "Run not found (a draft of another kind too)"
           },
           "409": {
-            "description": "SUMMARY_WRITE_NOT_READY: the run is building, failed or discarded; SUMMARY_REGEN_IN_PROGRESS: this text is being regenerated; SUMMARY_ITEM_NOT_PROPOSED: not a proposal; SUMMARY_FIELD_CHANGED: the field changed after the proposal (current - its content); SUMMARY_CHAPTER_CHANGE: the section moves to other reader chapters, repeat with confirmChapterChange"
+            "description": "SUMMARY_WRITE_NOT_READY: the run is building, failed or discarded; SUMMARY_REGEN_IN_PROGRESS: this text is being regenerated; SUMMARY_ITEM_NOT_PROPOSED: not a proposal; SUMMARY_FIELD_CHANGED: the field changed after the proposal (current - its content); SUMMARY_CHAPTER_CHANGE: the section moves to other reader chapters, repeat with confirmChapterChange; ANALYSIS_WRITE_NOT_READY: the run is building, failed or discarded; ANALYSIS_REGEN_IN_PROGRESS: this block is being regenerated; ANALYSIS_ITEM_NOT_PROPOSED: not a proposal; ANALYSIS_BLOCK_CHANGED: the block changed after the proposal (current - its content); ANALYSIS_WRITE_REFUSED: the analysis refused the write, the references do not fit (errors)"
           }
         },
         "security": [
@@ -31996,7 +32637,7 @@
             "bearer": []
           }
         ],
-        "summary": "Accept a proposal of the summary run into its field when the field has not changed since; a section replaces the section of the same number, numbering never changes; beyond the last section - added at the end",
+        "summary": "Accept a proposal of the summary run into its field when the field has not changed since (a section replaces the section of the same number, numbering never changes; beyond the last section - added at the end), or a proposal of the analysis run into its block when the content of the block has not changed since; the kind of the run is taken from its row",
         "tags": [
           "admin"
         ]
@@ -32029,20 +32670,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SummaryWriteDto"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SummaryWriteDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnalysisWriteDto"
+                    }
+                  ]
                 }
               }
             },
             "description": ""
           },
           "400": {
-            "description": "SUMMARY_ITEM_UNKNOWN: the run has no such text"
+            "description": "SUMMARY_ITEM_UNKNOWN, ANALYSIS_ITEM_UNKNOWN: the run has no such text or block"
           },
           "404": {
-            "description": "Summary run not found"
+            "description": "Run not found (a draft of another kind too)"
           },
           "409": {
-            "description": "SUMMARY_WRITE_NOT_READY: the run is building, failed or discarded; SUMMARY_REGEN_IN_PROGRESS: this text is being regenerated; SUMMARY_ITEM_NOT_PROPOSED: not a proposal"
+            "description": "SUMMARY_WRITE_NOT_READY: the run is building, failed or discarded; SUMMARY_REGEN_IN_PROGRESS: this text is being regenerated; SUMMARY_ITEM_NOT_PROPOSED: not a proposal; ANALYSIS_WRITE_NOT_READY: the run is building, failed or discarded; ANALYSIS_REGEN_IN_PROGRESS: this block is being regenerated; ANALYSIS_ITEM_NOT_PROPOSED: not a proposal"
           }
         },
         "security": [
@@ -32050,7 +32698,7 @@
             "bearer": []
           }
         ],
-        "summary": "Discard a proposal of the summary run: the field is not touched",
+        "summary": "Discard a proposal of a summary or analysis run: the field or the block is not touched",
         "tags": [
           "admin"
         ]
@@ -32093,20 +32741,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SummaryWriteDto"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SummaryWriteDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnalysisWriteDto"
+                    }
+                  ]
                 }
               }
             },
             "description": ""
           },
           "400": {
-            "description": "SUMMARY_ITEM_UNKNOWN: the run has no such text"
+            "description": "SUMMARY_ITEM_UNKNOWN, ANALYSIS_ITEM_UNKNOWN: the run has no such text or block"
           },
           "404": {
-            "description": "Summary run not found"
+            "description": "Run not found (a draft of another kind too)"
           },
           "409": {
-            "description": "SUMMARY_WRITE_NOT_READY: the run is building, failed or discarded; SUMMARY_REGEN_IN_PROGRESS: this text is being regenerated; SUMMARY_SECTIONS_UNFINISHED: not every section has a text (full); SUMMARY_FULL_UNFINISHED: no full summary with a text (brief); LLM_CEILING_REACHED"
+            "description": "SUMMARY_WRITE_NOT_READY: the run is building, failed or discarded; SUMMARY_REGEN_IN_PROGRESS: this text is being regenerated; SUMMARY_SECTIONS_UNFINISHED: not every section has a text (full); SUMMARY_FULL_UNFINISHED: no full summary with a text (brief); ANALYSIS_WRITE_NOT_READY: the run is building, failed or discarded; ANALYSIS_REGEN_IN_PROGRESS: this block is being regenerated; ANALYSIS_ITEM_NOT_REGENERABLE: theme links and sources are not regenerated on their own; LLM_CEILING_REACHED"
           },
           "503": {
             "description": "LLM_DISABLED: no OpenRouter key"
@@ -32117,7 +32772,7 @@
             "bearer": []
           }
         ],
-        "summary": "Regenerate one text of a ready summary run under its own operation, with the editor remark in the author prompt; the first text of a section also builds the full and the very short summary",
+        "summary": "Regenerate one text of a ready summary run (the first text of a section also builds the full and the very short summary) or one block of a ready analysis run (sources of a step 5 block are opened again and added to the sources), under its own operation, with the editor remark in the author prompt; the kind of the run is taken from its row",
         "tags": [
           "admin"
         ]
@@ -40978,6 +41633,143 @@
         ]
       }
     },
+    "/admin/versions/{id}/drafts/analysis_write": {
+      "get": {
+        "operationId": "ContentDraftController_analysisLatest",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisWriteStateDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The latest analysis run that is not discarded, in any status: its steps, flags, dropped quotations, what is written and what is proposed; null - none",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "ContentDraftController_analysisStart",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartContentDraftDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisWriteDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "description": "DRAFT_LIMIT_TOO_LOW: below the limits of the dossier and glossary built first"
+          },
+          "404": {
+            "description": "Book version not found"
+          },
+          "409": {
+            "description": "DRAFT_IN_PROGRESS: an analysis run is being built; SOURCE_HAS_NO_CHAPTERS: the version has no chapter text; DOSSIER_STALE: the source changed after the dossier, rebuild it; RUN_LANGUAGE_UNFINISHED: the translation run is still writing this version; DRAFT_DOSSIER_MISSING: the run dossier of a translated version is gone; LLM_CEILING_REACHED: the spending ceiling is reached; DOSSIER_TOO_LONG: the dossier is not built and its summary is refused at the start (estimate dossier.refusedTooLong); LLM_NO_PRICE; LLM_STAGE_DISABLED; DRAFT_TOO_LONG is not a start refusal: a step whose input does not fit even as chapter summaries is marked with it and the run goes on"
+          },
+          "503": {
+            "description": "LLM_DISABLED: no OpenRouter key"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "«Write Analysis»: steps 1-5 (card and characters, key quotations and style, interpretations, blocks for the reader, external blocks with checked sources) in the background under its own operation; blocks empty at the start of an unpublished version are written through the import, the rest become proposals; the previous ready or failed run is discarded",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/versions/{id}/drafts/analysis_write/estimate": {
+      "get": {
+        "operationId": "ContentDraftController_analysisEstimate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisWriteEstimateDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "description": "Book version not found"
+          },
+          "409": {
+            "description": "SOURCE_HAS_NO_CHAPTERS: the version or the dossier source has no chapter text; DOSSIER_STALE: the source changed after the dossier, rebuild it; RUN_LANGUAGE_UNFINISHED: the translation run is still writing this version; DRAFT_DOSSIER_MISSING: the run dossier of a translated version is gone; LLM_NO_PRICE; LLM_STAGE_DISABLED"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upper cost estimate of the analysis run: steps 1-5, each reads the whole version text, plus the reviewer of each step, each step × 2 passes of the author and the reviewer",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/admin/versions/{id}/drafts/summary_write": {
       "get": {
         "operationId": "ContentDraftController_writeLatest",
@@ -41110,176 +41902,6 @@
           }
         ],
         "summary": "Upper cost estimate of the summary run: every section of the dossier plan, the full and the very short summary, each text × 2 passes of the author and the reviewer",
-        "tags": [
-          "admin"
-        ]
-      }
-    },
-    "/admin/versions/{id}/drafts/{kind}": {
-      "get": {
-        "operationId": "ContentDraftController_latest",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "kind",
-            "required": true,
-            "schema": {
-              "enum": [
-                "analysis"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentDraftStateDto"
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "The latest analysis draft that is not discarded, in any status (building, ready, failed); null - none",
-        "tags": [
-          "admin"
-        ]
-      },
-      "post": {
-        "operationId": "ContentDraftController_start",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "kind",
-            "required": true,
-            "schema": {
-              "enum": [
-                "analysis"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StartContentDraftDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "202": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentDraftDto"
-                }
-              }
-            },
-            "description": ""
-          },
-          "400": {
-            "description": "DRAFT_LIMIT_TOO_LOW: below the limits of the dossier and glossary built first"
-          },
-          "404": {
-            "description": "Book version not found"
-          },
-          "409": {
-            "description": "DRAFT_IN_PROGRESS: a draft of this kind is being built; DOSSIER_STALE: the source changed after the dossier, rebuild it; RUN_LANGUAGE_UNFINISHED: the translation run is still writing this version; DRAFT_DOSSIER_MISSING: the run dossier of a translated version is gone; LLM_CEILING_REACHED: the spending ceiling is reached; DOSSIER_TOO_LONG: the dossier is not built and its summary is refused at the start (estimate dossier.refusedTooLong); SOURCE_HAS_NO_CHAPTERS; DRAFT_TOO_LONG: the version text does not fit the context of the analysis model; LLM_NO_PRICE; LLM_STAGE_DISABLED"
-          },
-          "503": {
-            "description": "LLM_DISABLED: no OpenRouter key"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Build an analysis draft in the background under its own operation; the dossier and glossary are built first when missing; the previous ready or failed draft of this kind is discarded",
-        "tags": [
-          "admin"
-        ]
-      }
-    },
-    "/admin/versions/{id}/drafts/{kind}/estimate": {
-      "get": {
-        "operationId": "ContentDraftController_estimate",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "kind",
-            "required": true,
-            "schema": {
-              "enum": [
-                "analysis"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentDraftEstimateDto"
-                }
-              }
-            },
-            "description": ""
-          },
-          "404": {
-            "description": "Book version not found"
-          },
-          "409": {
-            "description": "DRAFT_IN_PROGRESS: a draft of this kind is being built; DOSSIER_STALE: the source changed after the dossier, rebuild it; RUN_LANGUAGE_UNFINISHED: the translation run is still writing this version; DRAFT_DOSSIER_MISSING: the run dossier of a translated version is gone; LLM_CEILING_REACHED: the spending ceiling is reached; DOSSIER_TOO_LONG: the dossier is not built and its summary is refused at the start (estimate dossier.refusedTooLong); SOURCE_HAS_NO_CHAPTERS; DRAFT_TOO_LONG: the version text does not fit the context of the analysis model; LLM_NO_PRICE; LLM_STAGE_DISABLED"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Upper cost estimate of an analysis draft from the dossier",
         "tags": [
           "admin"
         ]

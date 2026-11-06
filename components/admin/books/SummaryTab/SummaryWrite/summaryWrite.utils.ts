@@ -3,6 +3,7 @@ import {
   contextEstimateLines,
   failureReason,
   limitLine,
+  runStartLossText,
   operationStatusText,
   refusalCode,
   refusalText as draftRefusalText,
@@ -10,7 +11,6 @@ import {
 } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import { DOSSIER_REFUSED_TEXT } from '@/components/admin/translation-run/translationRun.utils';
-import { pluralize } from '@/lib/i18n/plural';
 import { ApiError } from '@/types/api';
 import type {
   SummaryAcceptAllStopBody,
@@ -20,11 +20,7 @@ import type {
   SummaryWrite,
   SummaryWriteEstimate,
   SummaryWriteItem,
-  SummaryWriteReview,
 } from '@/types/api-schema';
-
-/** `REGEN_REMARK_MAX` бэкенда (`books/src/modules/translation/summary-write/summary-write.constants.ts`). */
-export const REGEN_REMARK_MAX = 2000;
 
 /** Поле пересказа, которое пишет текст хода (кроме разделов: у них свой список). */
 export type SummaryWriteField = 'full' | 'brief';
@@ -69,23 +65,6 @@ const RUN_FAILURES: Readonly<Record<string, string>> = {
 };
 
 export const reasonText = (reason: string | null): string => failureReason(reason, RUN_FAILURES);
-
-/** Почему проверки моделью не было (`review.kind` кроме `answered`). */
-const REVIEW_SKIPPED: Record<Exclude<SummaryWriteReview['kind'], 'answered'>, string> = {
-  not_independent: 'no reviewer model of another family than the author',
-  too_long: 'the text does not fit the reviewer model',
-  invalid: 'the reviewer model answered not in the expected form',
-  no_provider: 'no compliant provider for the reviewer model',
-  unavailable: 'the reviewer model is unavailable',
-};
-
-/** Строка «не проверено моделью» или `null`, когда модель проверила. */
-export const reviewSkippedText = (review: SummaryWriteReview | null): string | null => {
-  if (review?.kind === 'answered') return null;
-  return review
-    ? `Model check: not done (${REVIEW_SKIPPED[review.kind]}).`
-    : 'Model check: not done.';
-};
 
 export const itemTitle = (item: SummaryWriteItem): string => {
   if (item.target === 'full') return 'Summary';
@@ -172,24 +151,11 @@ export const writeEstimateText = (estimate: SummaryWriteEstimate): string => {
   ].join(' ');
 };
 
-const plural = (n: number, word: string) =>
-  `${n} ${pluralize(n, 'en', { one: word, few: `${word}s`, many: `${word}s` })}`;
-
 /**
  * Что теряет новый старт поверх готового хода (сервер отбрасывает прежний): непринятые
  * предложения и идущие перегенерации. Нечего терять — пустая строка.
  */
-export const startLossText = (run: SummaryWrite | null): string => {
-  if (run?.status !== 'ready') return '';
-  const pending = run.items.filter(isPending).length;
-  const regenerating = run.items.filter((i) => i.regenerating).length;
-  if (pending === 0 && regenerating === 0) return '';
-  const parts = [
-    pending > 0 ? `${plural(pending, 'proposal')} not accepted will be discarded` : '',
-    regenerating > 0 ? `${plural(regenerating, 'regeneration')} will be cancelled` : '',
-  ].filter(Boolean);
-  return `This replaces the current run: ${parts.join(', ')}.`;
-};
+export const startLossText = (run: SummaryWrite | null): string => runStartLossText(run, isPending);
 
 const bodyOf = (error: unknown, code: string): Record<string, unknown> | null =>
   error instanceof ApiError && refusalCode(error) === code && error.data ? error.data : null;

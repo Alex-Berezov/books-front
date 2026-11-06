@@ -2,31 +2,26 @@
 
 import type { FC } from 'react';
 import { CONTENT_DRAFT_LOCAL_CODES } from '@/api/hooks';
-import { OperationProgress, type ResumeAction } from '@/components/admin/books/ContentDraft';
-import { refusalCode } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import { operationPauseText } from '@/components/admin/translation-run/translationRun.utils';
 import { isHandledLocally } from '@/lib/api/local-error-codes';
 import { ApiError } from '@/types/api';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { SummaryWriteItem } from '@/types/api-schema';
-import styles from './SummaryWrite.module.scss';
-import { refusalText } from './summaryWrite.utils';
+import type { LlmOperation } from '@/types/api-schema';
+import styles from './ContentDraft.module.scss';
+import { refusalCode } from './contentDraft.utils';
+import { OperationProgress, type ResumeAction } from './OperationProgress';
 
 export interface ItemResumeProps {
-  /** Операция перегенерации текста (`regenOperationId`), стоящая на паузе. */
+  /** Операция перегенерации текста или блока (`regenOperationId`), стоящая на паузе. */
   operationId: string;
-  pauseReason: SummaryWriteItem['regenPauseReason'];
+  pauseReason: LlmOperation['pauseReason'];
   lang: SupportedLang;
   /** Действия текста закрыты: идёт «Accept all» или ход не перечитывается. */
   disabled: boolean;
   resume: ResumeAction & { variables?: { id: string; limitUsd?: string } };
+  /** Отказ «Continue» словами — по таблице своего хода. */
+  refusalText: (error: unknown) => string;
 }
-
-/** Отказ «Continue» перегенерации словами; 5xx показывает общий тост `MutationCache`. */
-const resumeRefusalText = (error: unknown): string =>
-  refusalCode(error) === 'LLM_OPERATION_NOT_RESUMABLE'
-    ? 'The regeneration is not paused any more.'
-    : refusalText(error);
 
 /**
  * Пауза перегенерации (F06-5c, решение арбитра `F06 | F06-5c`): тот же выход из паузы, что у хода
@@ -39,7 +34,13 @@ export const ItemResume: FC<ItemResumeProps> = ({
   lang,
   disabled,
   resume,
+  refusalText,
 }) => {
+  /** Отказ «Continue» перегенерации словами; 5xx показывает общий тост `MutationCache`. */
+  const resumeRefusalText = (error: unknown): string =>
+    refusalCode(error) === 'LLM_OPERATION_NOT_RESUMABLE'
+      ? 'The regeneration is not paused any more.'
+      : refusalText(error);
   // Мутация одна на вкладку: занятость и отказ — только своей операции.
   const own = resume.variables?.id === operationId;
   const error = own ? resume.error : null;

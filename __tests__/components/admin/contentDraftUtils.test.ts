@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest';
+import { writeEstimateText } from '@/components/admin/books/AnalysisTab/AnalysisWrite/analysisWrite.utils';
 import {
   dossierEstimateText,
-  estimateText,
-  failedText,
+  failureReason,
   refusalText,
 } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import { ApiError } from '@/types/api';
-import type { ContentDraftEstimate } from '@/types/api-schema';
+import type { AnalysisWriteEstimate } from '@/types/api-schema';
 
 /**
- * F05-11: подписи оболочки заготовки — оценка сверху по виду и причина отказа.
+ * Общие подписи ходов из досье (F05-11, с F07-3a — у хода «Write Analysis»): оценка сверху
+ * и причина отказа.
  */
 
-const estimate = (patch: Partial<ContentDraftEstimate>): ContentDraftEstimate => ({
-  kind: 'analysis',
+const estimate = (patch: Partial<AnalysisWriteEstimate>): AnalysisWriteEstimate => ({
   dossier: null,
   glossary: null,
   stageUsd: '0.5',
@@ -24,12 +24,14 @@ const estimate = (patch: Partial<ContentDraftEstimate>): ContentDraftEstimate =>
 
 describe('contentDraft.utils', () => {
   it('upper estimate: the dossier is not built yet; no sections in the analysis text', () => {
-    const analysis = estimateText(estimate({}));
+    const analysis = writeEstimateText(estimate({}));
     expect(analysis).toContain(
-      'The draft: up to $0.5 (the dossier is not built yet: upper estimate).'
+      'The analysis: up to $0.5 (the dossier or the glossary is not built yet).'
     );
     expect(analysis).not.toContain('section');
-    expect(estimateText(estimate({ upperBound: false }))).toContain('The draft: up to $0.5.');
+    expect(writeEstimateText(estimate({ upperBound: false }))).toContain(
+      'The analysis: up to $0.5.'
+    );
   });
 
   it('SOURCE_HAS_NO_CHAPTERS of a draft speaks of drafting, not of translating (Р26)', () => {
@@ -52,18 +54,18 @@ describe('contentDraft.utils', () => {
     );
   });
 
-  it('DRAFT_NO_PLAN is not a reason of the analysis draft: shown as the code (F06-3)', () => {
-    expect(failedText('DRAFT_NO_PLAN')).toBe('Failed: DRAFT_NO_PLAN.');
+  it('DRAFT_NO_PLAN is not a shared reason: shown as the code (F06-3)', () => {
+    expect(failureReason('DRAFT_NO_PLAN')).toBe('DRAFT_NO_PLAN');
   });
 
   it('an empty or missing reason is «unknown reason», not an empty text', () => {
-    expect(failedText('')).toBe('Failed: unknown reason.');
-    expect(failedText(null)).toBe('Failed: unknown reason.');
+    expect(failureReason('')).toBe('unknown reason');
+    expect(failureReason(null)).toBe('unknown reason');
   });
 
   it('DRAFT_INPUT_MISSING names a version without chapter text', () => {
-    expect(failedText('DRAFT_INPUT_MISSING')).toBe(
-      'Failed: the version has no chapter text or the dossier is gone.'
+    expect(failureReason('DRAFT_INPUT_MISSING')).toBe(
+      'the version has no chapter text or the dossier is gone'
     );
   });
 
@@ -82,12 +84,12 @@ describe('contentDraft.utils', () => {
     expect(refused).not.toContain('$0.5');
   });
 
-  it('draft estimate: a dossier the start will refuse says it will not be built, not a sum (T151)', () => {
+  it('run estimate: a dossier the start will refuse says it will not be built, not a sum (T151)', () => {
     const line = { estimateUsd: '0.5', suggestedLimitUsd: '0.75', upperBound: false };
-    expect(estimateText(estimate({ dossier: { ...line, refusedTooLong: false } }))).toContain(
+    expect(writeEstimateText(estimate({ dossier: { ...line, refusedTooLong: false } }))).toContain(
       'The dossier is built first: up to $0.5'
     );
-    const refused = estimateText(estimate({ dossier: { ...line, refusedTooLong: true } }));
+    const refused = writeEstimateText(estimate({ dossier: { ...line, refusedTooLong: true } }));
     expect(refused).toContain('will not be built');
     expect(refused).toContain('DOSSIER_TOO_LONG');
     expect(refused).not.toContain('built first');

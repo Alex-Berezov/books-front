@@ -5,16 +5,23 @@ import {
   collectReplacedBlocks,
   formFromAnalysis,
   hasDraftIssues,
-  hasUnsavedDraftBlocks,
   mergeAnalysisImport,
+  takeServerBlocks,
 } from '@/lib/admin/book-analysis-form-state';
-import { buildAnalysisPromptInputsText } from '@/lib/admin/book-analysis-prompt-inputs';
+import {
+  buildAnalysisPromptInputsText,
+  promptMotifsFromDossier,
+} from '@/lib/admin/book-analysis-prompt-inputs';
 import {
   analyzeBookAnalysisImport,
   applyListText,
   checkBookAnalysisImport,
 } from '@/lib/admin/book-analysis-validation';
-import type { BookAnalysisDetail, SaveBookAnalysisRequest } from '@/types/api-schema';
+import type {
+  BookAnalysisDetail,
+  DossierStatus,
+  SaveBookAnalysisRequest,
+} from '@/types/api-schema';
 import en from '../../fixtures/example-analysis.en.json';
 import es from '../../fixtures/example-analysis.es.json';
 import fr from '../../fixtures/example-analysis.fr.json';
@@ -219,7 +226,7 @@ describe('«Вводные для промпта» (§21 п.2)', () => {
   });
 });
 
-describe('заготовка Analysis из досье (F05-11)', () => {
+describe('импорт поверх формы и перечитывание после хода анализа', () => {
   it('окно импорта называет заполненные блоки, которые заменятся, но не нетронутые и не пустые', () => {
     const prev = formFromAnalysis(saved());
     const keyQuotes = [{ text: 'New line', chapter: 1 }];
@@ -237,18 +244,28 @@ describe('заготовка Analysis из досье (F05-11)', () => {
     expect(analyzeBookAnalysisImport(prev, JSON.stringify(same), 'en').replaced).toEqual([]);
   });
 
-  it('несохранённые правки — только в facts и трёх списках заготовки (Р4)', () => {
+  it('ход записал блоки: форма берёт неправленые с сервера, правленые оставляет и называет (F07-3a)', () => {
     const saved_ = formFromAnalysis(saved());
-    expect(hasUnsavedDraftBlocks(saved_, saved_)).toBe(false);
-    const text = { ...saved_, texts: { ...saved_.texts, mainIdea: 'edited' } };
-    expect(hasUnsavedDraftBlocks(text, saved_)).toBe(false);
-    const fact = { ...saved_, facts: { ...saved_.facts, narrator: 'edited' } };
-    expect(hasUnsavedDraftBlocks(fact, saved_)).toBe(true);
-    const list = {
+    const server = formFromAnalysis({
+      ...saved(),
+      mainIdea: 'Run idea',
+      facts: { ...saved().facts, narrator: 'Run narrator', genre: 'Run genre' },
+      style: [{ device: 'Run device', explanation: 'Run' }],
+    });
+    const form = {
       ...saved_,
-      drafts: { ...saved_.drafts, style: { text: '[]', issues: null } },
+      facts: { ...saved_.facts, narrator: 'My narrator' },
+      drafts: { ...saved_.drafts, keyQuotes: { text: '[]', issues: null } },
     };
-    expect(hasUnsavedDraftBlocks(list, saved_)).toBe(true);
+    const { form: next, kept } = takeServerBlocks(form, saved_, server);
+    expect(next.texts.mainIdea).toBe('Run idea');
+    expect(next.facts.genre).toBe('Run genre');
+    expect(next.lists.style).toEqual(server.lists.style);
+    expect(next.drafts.style.text).toBe(server.drafts.style.text);
+    // Правки редактора не затёрты; сервер изменил только narrator — он и назван.
+    expect(next.facts.narrator).toBe('My narrator');
+    expect(next.drafts.keyQuotes.text).toBe('[]');
+    expect(kept).toEqual(['facts.narrator']);
   });
 
   it('«Вводные»: мотивы досье с главами, язык досье назван, если он не язык версии (Р10)', () => {
@@ -277,7 +294,7 @@ describe('заготовка Analysis из досье (F05-11)', () => {
   });
 });
 
-describe('JSON заготовки Analysis проходит проверку импорта фронта (F05-11, посадка карточки)', () => {
+describe('JSON с сохранёнными и новыми элементами проходит проверку импорта фронта', () => {
   // Форма `draft.analysis` из e2e бэкенда (`books/test/content-draft.e2e-spec.ts`, анализ на
   // исходнике): сохранённые элементы с описанием и толкованием, новые - без них.
   const draftAnalysis = {
@@ -338,5 +355,71 @@ describe('JSON заготовки Analysis проходит проверку и�
     } as SaveBookAnalysisRequest;
     // Пустые поля, которые дописывает проверка, - не замена.
     expect(collectReplacedBlocks(prev, same)).toEqual([]);
+  });
+});
+
+describe('мотивы досье для «Вводных» (F07-3a, решение арбитра `F07 | F07-3`)', () => {
+  const dossier = (patch: Partial<DossierStatus> = {}) =>
+    ({
+      status: 'ready',
+      data: {
+        motifs: [
+          { image: 'the door', chapters: [1, 2, 9] },
+          { image: 'rain', chapters: [] },
+        ],
+      },
+      ...patch,
+    }) as DossierStatus;
+  const chapters = [
+    { number: 1, title: 'One' },
+    { number: 2, title: 'Two' },
+  ];
+
+  it('только готовое досье и известный язык; главы — только этой версии', () => {
+    expect(promptMotifsFromDossier(dossier(), chapters, 2, 'en')).toEqual({
+      motifs: [
+        { image: 'the door', chapters: [1, 2] },
+        { image: 'rain', chapters: [] },
+      ],
+      dossierLanguage: 'en',
+    });
+    expect(promptMotifsFromDossier(dossier({ status: 'building' }), chapters, 2, 'en')).toBeNull();
+    expect(
+      promptMotifsFromDossier(dossier({ status: 'missing', data: null }), chapters, 2, 'en')
+    ).toBeNull();
+    expect(promptMotifsFromDossier(undefined, chapters, 2, 'en')).toBeNull();
+    expect(promptMotifsFromDossier(dossier(), chapters, 2, undefined)).toBeNull();
+  });
+
+  it('пустой список глав — главы мотивов отбрасываются, а не пропускаются все', () => {
+    expect(promptMotifsFromDossier(dossier(), [], 10, 'en')?.motifs).toEqual([
+      { image: 'the door', chapters: [] },
+      { image: 'rain', chapters: [] },
+    ]);
+    expect(promptMotifsFromDossier(dossier(), [], 0, 'en')?.motifs[0].chapters).toEqual([]);
+  });
+
+  it('защитные ветки: мотивы не массив, пустой элемент, образ не строка, главы не массив, номер не число', () => {
+    const odd = (motifs: unknown) =>
+      promptMotifsFromDossier(dossier({ data: { motifs } as never }), chapters, 2, 'en')?.motifs;
+    expect(odd('not a list')).toEqual([]);
+    expect(odd(null)).toEqual([]);
+    expect(
+      odd([
+        null,
+        { image: 7, chapters: [1] },
+        { image: 'door', chapters: 'one' },
+        { image: 'key', chapters: [1, '2', null, 2] },
+      ])
+    ).toEqual([
+      { image: 'door', chapters: [] },
+      { image: 'key', chapters: [1, 2] },
+    ]);
+  });
+
+  it('список глав урезан пределом ручки — номера после последнего показанного остаются', () => {
+    expect(promptMotifsFromDossier(dossier(), chapters, 10, 'en')?.motifs[0].chapters).toEqual([
+      1, 2, 9,
+    ]);
   });
 });

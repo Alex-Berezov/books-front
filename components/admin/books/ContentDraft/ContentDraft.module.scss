@@ -1,21 +1,6 @@
 @import '@/styles/tokens.scss';
 
-/* Заготовка из досье (F05-10, F05-11): кнопка, ход фоном, готовый черновик. */
-.draft {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-  padding: $spacing-md;
-  border: 1px dashed $color-border-base;
-  border-radius: $border-radius-base;
-}
-
-.draftActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-sm;
-}
-
+/* Ход из досье (F06, F07): строка хода, пауза, отказ старта. */
 .draftStatus {
   display: flex;
   flex-wrap: wrap;
@@ -35,4 +20,68 @@
   margin: 0;
   color: $color-error;
   font-size: $font-size-sm;
+}
+
+/* Общие части текста или блока хода: отметка проверки, «Regenerate», пауза перегенерации. */
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.hint {
+  margin: 0;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.label {
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+}
+
+.remarkInput {
+  padding: $spacing-sm;
+  border: 1px solid $color-border-base;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-family: $font-family-base;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: $shadow-focus;
+  }
+}
+
+.checkOk {
+  color: $color-success;
+  font-size: $font-size-sm;
+}
+
+.checkFlags {
+  color: $color-warning;
+  font-size: $font-size-sm;
+}
+
+.remarks {
+  font-size: $font-size-sm;
+
+  summary {
+    cursor: pointer;
+  }
+}
+
+.remarkList {
+  margin: $spacing-xs 0 0;
+  padding-left: $spacing-md;
 }

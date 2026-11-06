@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { reviewSkippedText } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import {
   acceptAllStopOf,
   acceptedIndexesOf,
@@ -12,7 +13,6 @@ import {
   reasonText,
   refusalText,
   refusalTextOfCode,
-  reviewSkippedText,
   sortItems,
   startLossText,
   writeEstimateText,

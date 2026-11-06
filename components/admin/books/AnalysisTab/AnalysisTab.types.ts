@@ -10,9 +10,9 @@ export interface AnalysisTabProps {
   versionId: string;
   /** Version fields for «Вводные для промпта» and the language check of the import */
   version: BookAnalysisPromptVersion;
-  /** Draft from the dossier (F05-11) — `admin` only; others see no button and send no requests */
+  /** The analysis run «Write Analysis» (F07-3a) — `admin` only; others see no block and send no requests */
   isAdmin?: boolean;
-  /** Admin UI language — for the «LLM settings» link of the draft */
+  /** Admin UI language — for the «LLM settings» link of the run */
   lang?: SupportedLang;
 }
 

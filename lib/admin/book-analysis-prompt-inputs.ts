@@ -1,4 +1,9 @@
-import type { BookVersionDetail, ChapterTitle, ContentDraftMotif } from '@/types/api-schema';
+import type {
+  BookVersionDetail,
+  ChapterTitle,
+  DossierData,
+  DossierStatus,
+} from '@/types/api-schema';
 
 /**
  * Текст кнопки «Вводные для промпта» вкладки Analysis (F03-1, `product.md` §21 п.2): ровно раздел
@@ -12,14 +17,54 @@ export type BookAnalysisPromptVersion = Pick<
 >;
 
 /**
- * Сквозные мотивы досье из готовой заготовки Analysis (F05-11, решение арбитра `F05 | F05-11`,
- * Р10): символы в JSON импорта требуют толкования, поэтому мотивы идут во «Вводные».
+ * Сквозные мотивы готового досье версии (Р10 `F05 | F05-11`; с F07-3a — из `GET versions/:id/dossier`,
+ * решение арбитра `F07 | F07-3`): символы в JSON импорта требуют толкования, поэтому мотивы идут
+ * во «Вводные». Главы — только этой версии.
  */
 export interface BookAnalysisPromptMotifs {
-  motifs: readonly ContentDraftMotif[];
+  motifs: readonly DossierData['motifs'][number][];
   /** Язык досье; не язык версии — строка заголовка его называет. */
   dossierLanguage: string | null;
 }
+
+/**
+ * Мотивы для «Вводных» из ответа досье версии: только готовое досье (строящееся, упавшее и
+ * отсутствующее мотивов не дают), главы мотивов — только номера глав этой версии, как `motifsOf`
+ * снятой заготовки (`books`, `content-draft-tasks.handler.ts` до F07-3a). Список глав урезан
+ * пределом ручки — номер после последнего показанного не проверить, он остаётся; глав в списке
+ * нет — главы мотивов не остаются.
+ * `dossierLanguage` неизвестен (`undefined`) — мотивов нет: без него чужой язык досье не пометить.
+ */
+export const promptMotifsFromDossier = (
+  dossier: DossierStatus | undefined,
+  chapters: readonly ChapterTitle[],
+  chaptersTotal: number,
+  dossierLanguage: string | undefined
+): BookAnalysisPromptMotifs | null => {
+  if (dossier?.status !== 'ready' || !dossier.data || dossierLanguage === undefined) return null;
+  const numbers = new Set(chapters.map((c) => c.number));
+  // Номер после последнего показанного не проверить, только если показан хоть один: пустой
+  // список глав — проверять не по чему, главы мотивов отбрасываются.
+  const lastShown =
+    chapters.length > 0 && chapters.length < chaptersTotal
+      ? chapters.reduce((max, c) => Math.max(max, c.number), -Infinity)
+      : Infinity;
+  const raw: unknown = dossier.data.motifs;
+  const motifs = (Array.isArray(raw) ? (raw as unknown[]) : []).flatMap((m) => {
+    const motif = m as Partial<DossierData['motifs'][number]> | null;
+    if (!motif || typeof motif.image !== 'string') return [];
+    const chapterList: unknown[] = Array.isArray(motif.chapters) ? motif.chapters : [];
+    return [
+      {
+        image: motif.image,
+        chapters: chapterList.filter(
+          (n): n is number => typeof n === 'number' && (numbers.has(n) || n > lastShown)
+        ),
+      },
+    ];
+  });
+  return { motifs, dossierLanguage };
+};
 
 export const buildAnalysisPromptInputsText = (
   version: BookAnalysisPromptVersion,
