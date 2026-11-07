@@ -76,6 +76,7 @@ export type AnalysisWriteRemarkCode =
   | 'IMPORT_INVALID'
   | 'CHAPTER_UNKNOWN'
   | 'LIMIT_OUT'
+  | 'QUOTE_NOT_VERBATIM'
   | 'CORE_MISSING'
   | 'NOT_IN_TEXT'
   | 'GENERIC'
