@@ -1,8 +1,9 @@
 import type { BookAnalysisClaimClosures } from '@/types/api-schema';
 
 /**
- * Список закрытий анализа блоками окончённых претензий - `GET /analyses/claim-closures`
- * (F03-2, решение арбитра `F03 | F03-2`). Читает только `middleware.ts`, поэтому голый `fetch`
+ * Список закрытий разделов пересказа блоками окончённых претензий на весь мир -
+ * `GET /analyses/claim-closures` (решения арбитра `F03 | F03-2`, `T163 | LEGACY-490`; имя пути
+ * историческое). Читает только `middleware.ts`, поэтому голый `fetch`
  * без http-клиента: middleware не тянет его зависимости. `null` - список не получен (сбой,
  * таймаут, не `ok`, ответ не той формы): это неизвестность, а не «закрытий нет».
  */
@@ -43,7 +44,7 @@ function isClosure(item: unknown): boolean {
     isNullableString(c.language) &&
     isNullableString(c.countryCode) &&
     isNullableString(c.expiresAt) &&
-    // Неразборчивый срок дал бы `NaN` и молча открыл анализ в стране блока - это «списка нет».
+    // Неразборчивый срок дал бы `NaN` и молча открыл закрытый раздел - это «списка нет».
     (c.expiresAt === null || !Number.isNaN(Date.parse(c.expiresAt as string)))
   );
 }

@@ -14,7 +14,6 @@ import {
   isSessionEndedError,
   isTokenSessionEnded,
 } from '@/lib/auth/constants';
-import { UNKNOWN_COUNTRY, visitorCountryFrom } from '@/lib/backend-proxy';
 import {
   buildClaimClosedResponse,
   isClaimClosed,
@@ -303,15 +302,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // F03-2 и F04-3 (решения арбитра `F03 | F03-2`, `F04 | F04-3`): анализ и раздел пересказа,
-  // закрытые блоком окончённой претензии по стране посетителя, - 451 здесь. Статичная страница
-  // страну не знает и закрывается только блоком на весь мир; список и правила - `lib/claim-closures.ts`.
+  // F04-3 и `T163 | LEGACY-490` (решения арбитра): раздел пересказа по главам, закрытый блоком
+  // окончённой претензии на весь мир, - 451 здесь, не дожидаясь пересборки статичной страницы.
+  // Страновой блок не закрывает ничего; список и правила - `lib/claim-closures.ts`.
   const closedTarget = matchClaimClosedPath(pathname);
   if (closedTarget) {
-    const visitorCountry = visitorCountryFrom(request.headers).toUpperCase();
-    const country = visitorCountry === UNKNOWN_COUNTRY ? null : visitorCountry;
     const closures = await loadClaimClosures(API_BASE_URL);
-    if (isClaimClosed(closures, closedTarget, country)) {
+    if (isClaimClosed(closures, closedTarget)) {
       return buildClaimClosedResponse(closedTarget);
     }
   }

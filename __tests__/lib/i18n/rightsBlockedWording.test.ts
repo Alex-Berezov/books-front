@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
 
-// F03-4: экран читалки при 451 и экран закрытого анализа называют одну и ту же причину -
-// нейтральное «ограничения прав», не намекающее, гео-блок это или претензия (ADR-012 п.8).
-// Расходились ru/fr/pt («прав» против «авторского права»), en/es говорили «copyright»; точка в
-// конце причины не даёт пройти «derechos de autor» как «derechos».
+// F03-4: экран читалки при 451 называет нейтральную причину - «ограничения прав», не намекающую,
+// гео-блок это или претензия (ADR-012 п.8). Расходились ru/fr/pt («прав» против «авторского
+// права»), en/es говорили «copyright»; точка в конце причины не даёт пройти «derechos de autor»
+// как «derechos». Экран закрытого анализа снят с `T163`: претензия анализ не закрывает.
 const REASON: Record<(typeof SUPPORTED_LANGS)[number], string> = {
   en: 'rights restrictions.',
   es: 'restricciones de derechos.',
@@ -15,13 +15,9 @@ const REASON: Record<(typeof SUPPORTED_LANGS)[number], string> = {
   ru: 'ограничений прав.',
 };
 
-describe('rightsBlocked: одна причина на обоих экранах 451', () => {
-  it.each(SUPPORTED_LANGS)('%s: причина и вторая фраза совпадают', (lang) => {
-    const { message, analysisMessage } = getDictionary(lang).rightsBlocked;
-    const tail = (text: string) => text.slice(text.indexOf(REASON[lang]));
-
+describe('rightsBlocked: нейтральная причина экрана 451', () => {
+  it.each(SUPPORTED_LANGS)('%s: причина - ограничения прав', (lang) => {
+    const { message } = getDictionary(lang).rightsBlocked;
     expect(message).toContain(REASON[lang]);
-    expect(analysisMessage).toContain(REASON[lang]);
-    expect(tail(analysisMessage)).toBe(tail(message));
   });
 });

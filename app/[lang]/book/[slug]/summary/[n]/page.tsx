@@ -41,8 +41,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 /**
  * Страница раздела пересказа `/{lang}/book/{slug}/summary/{n}` (F04-3, D1, D3): серверный рендер,
- * индексируется. Номер - общим правилом T3, кривой номер - 404 до запроса. Блок претензии по
- * стране закрывает middleware (`lib/claim-closures.ts`), на весь мир - ответ ручки (451 → 404).
+ * индексируется. Номер - общим правилом T3, кривой номер - 404 до запроса. Закрывает только блок
+ * претензии на весь мир: middleware (`lib/claim-closures.ts`) и ответ ручки (451 → 404); страновой
+ * блок раздел не закрывает (`T163`).
  */
 export default async function SummarySectionPage({ params }: Props) {
   const { lang, slug, n: rawN } = await params;

@@ -262,8 +262,8 @@ export const readLimitedBody = async (
   return merged;
 };
 
-// Константы страны живут в `backend-proxy.constants.ts` (их читает и серверная выборка анализа).
-export { UNKNOWN_COUNTRY, VISITOR_COUNTRY_HEADER };
+// Константы страны живут в `backend-proxy.constants.ts` (их читают и серверные выборки `api/endpoints/public.ts`).
+export { VISITOR_COUNTRY_HEADER };
 
 /**
  * Страна посетителя для API (`LEGACY-465`, решение арбитра 12.10.2026, заход 2).

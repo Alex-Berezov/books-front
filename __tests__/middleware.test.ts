@@ -212,7 +212,7 @@ describe('middleware matcher: точка в адресе (LEGACY-135)', () => {
     '/googleA1b2C3d4.html',
     '/yandex_A1B2.html',
     '/site.webmanifest',
-    // Стили экрана 451 закрытого анализа (F03-4, В2): попади под middleware - редирект на язык.
+    // Стили экрана 451 закрытого раздела пересказа (F03-4, В2): попади под middleware - редирект на язык.
     '/rights-blocked.css',
   ])('статика %s по-прежнему исключена', (path) => {
     expect(matched(path)).toBe(false);
@@ -745,19 +745,21 @@ describe('middleware не печатает персональные данные
 });
 
 /**
- * F03-2, решение арбитра `F03 | F03-2`: анализ, закрытый блоком окончённой претензии по стране,
- * отвечает 451 посетителю из этой страны; другим странам, неизвестной стране и при сбое бэкенда
- * без прежнего списка - открыт. Блок на весь мир закрывает всех.
+ * F04-3 и правило владельца 07.11.2026 (решение арбитра `T163 | LEGACY-490`): middleware закрывает
+ * 451 только раздел пересказа `/summary/{n}` и только блоком окончённой претензии на весь мир.
+ * Блок по стране не закрывает ничего, анализ не закрывает никакой блок.
  */
-describe('анализ: закрытие по стране блока окончённой претензии', () => {
+describe('раздел пересказа: закрытие блоком окончённой претензии на весь мир', () => {
   const closures = {
     items: [
+      // Страновой блок: бэкенд такие больше не отдаёт, но после отката тега бэкенда отдаст.
       { slugs: ['hamlet', 'gamlet'], language: 'en', countryCode: 'GB', expiresAt: null },
       { slugs: ['emma'], language: null, countryCode: null, expiresAt: null },
+      { slugs: ['persuasion'], language: 'en', countryCode: null, expiresAt: null },
       {
         slugs: ['carol'],
         language: 'en',
-        countryCode: 'DE',
+        countryCode: null,
         expiresAt: '2000-01-01T00:00:00.000Z',
       },
     ],
@@ -783,117 +785,71 @@ describe('анализ: закрытие по стране блока оконч
     vi.unstubAllGlobals();
   });
 
-  it('посетитель из страны блока - 451 без претензии и причины, не кэшируется', async () => {
-    const response = await open('/en/book/hamlet/analysis', 'GB');
-
-    expect(response.status).toBe(451);
-    expect(response.headers.get('cache-control')).toBe('private, no-store');
-    const html = await response.text();
-    expect(html).toContain('Not available in your region');
-    expect(html).toContain('href="/en/book/hamlet"');
-    expect(html).toContain('noindex');
-    // F03-4, В2: оформление - статикой с адреса сайта, без инлайн-стилей и без нового маршрута.
-    expect(html).toContain('<link rel="stylesheet" href="/rights-blocked.css">');
-    expect(html).not.toMatch(/style=|<style/);
+  it('блок на весь мир - 451 своим экраном в любой стране, номер без раздела тоже, не кэшируется', async () => {
+    for (const [path, country] of [
+      ['/en/book/emma/summary/1', 'GB'],
+      ['/en/book/emma/summary/7', 'US'],
+      ['/en/book/persuasion/summary/1', undefined],
+    ] as const) {
+      const response = await open(path, country);
+      expect(response.status).toBe(451);
+      expect(response.headers.get('cache-control')).toBe('private, no-store');
+      const html = await response.text();
+      const text = decodeEntities(html);
+      expect(text).toContain('<title>Section unavailable</title>');
+      expect(text).toContain('>Section unavailable</h1>');
+      expect(text).toContain(
+        'This section summary is unavailable because of rights restrictions. The book page stays open.'
+      );
+      expect(text).not.toContain(getDictionary('en').rightsBlocked.title);
+      expect(html).toContain('noindex');
+      expect(text).toContain('href="/en/catalog"');
+      // F03-4, В2: оформление - статикой с адреса сайта, без инлайн-стилей и без нового маршрута.
+      expect(html).toContain('<link rel="stylesheet" href="/rights-blocked.css">');
+      expect(html).not.toMatch(/style=|<style/);
+    }
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/analyses\/claim-closures$/);
   });
 
-  // F03-4: экран на языке страницы - на всех пяти, а не только на en.
-  it.each(SUPPORTED_LANGS)('%s: экран 451 на языке страницы', async (lang) => {
-    const response = await open(`/${lang}/book/emma/analysis`);
-    const html = await response.text();
-    // Сверяется видимый текст, а не копия экранирования из кода: разметка раскодируется.
-    const text = decodeEntities(html);
-    const { title, analysisMessage } = getDictionary(lang).rightsBlocked;
-    // Пустая строка словаря дала бы toContain('') - всегда истину.
-    expect(title.trim()).not.toBe('');
-    expect(analysisMessage.trim()).not.toBe('');
-
+  it.each(SUPPORTED_LANGS)('%s: экран 451 раздела на языке страницы', async (lang) => {
+    const response = await open(`/${lang}/book/emma/summary/2`);
+    const text = decodeEntities(await response.text());
+    const strings = summarySectionClosedStrings[lang];
+    expect(strings.summarySectionClosedTitle.trim()).not.toBe('');
     expect(response.status).toBe(451);
-    expect(html).toContain(`<html lang="${lang}">`);
-    expect(text).toContain(`>${title}</h1>`);
-    expect(text).toContain(analysisMessage);
-    expect(html).toContain(`href="/${lang}/book/emma"`);
-    expect(html).toContain(`href="/${lang}/catalog"`);
+    expect(text).toContain(`<html lang="${lang}">`);
+    expect(text).toContain(`>${strings.summarySectionClosedTitle}</h1>`);
+    expect(text).toContain(strings.summarySectionClosedMessage);
+    expect(text).toContain(`href="/${lang}/book/emma"`);
+    expect(text).toContain(`href="/${lang}/catalog"`);
   });
 
   it.each([
-    ['другая страна', '/en/book/hamlet/analysis', 'US'],
-    ['страна неизвестна', '/en/book/hamlet/analysis', undefined],
-    ['другой язык книги', '/fr/book/hamlet/analysis', 'GB'],
-    ['истёкший блок', '/en/book/carol/analysis', 'DE'],
-    ['страница книги, а не анализ', '/en/book/hamlet', 'GB'],
+    ['страновой блок - раздел в стране блока', '/en/book/hamlet/summary/1', 'GB'],
+    ['страновой блок - раздел в стране блока, нижний регистр', '/en/book/hamlet/summary/1', 'gb'],
+    ['страновой блок - анализ в стране блока', '/en/book/hamlet/analysis', 'GB'],
+    ['блок на весь мир - анализ', '/en/book/emma/analysis', 'GB'],
+    ['блок на весь мир - анализ без страны', '/en/book/emma/analysis', undefined],
+    ['блок на весь мир - сам пересказ', '/en/book/emma/summary', 'GB'],
+    ['кривой номер abc', '/en/book/emma/summary/abc', 'GB'],
+    ['кривой номер 01', '/en/book/emma/summary/01', 'GB'],
+    ['глубже номера', '/en/book/emma/summary/1/x', 'GB'],
+    ['другой язык книги', '/fr/book/persuasion/summary/1', 'GB'],
+    ['истёкший блок', '/en/book/carol/summary/1', 'DE'],
+    ['страница книги', '/en/book/emma', 'GB'],
   ])('%s - открыто', async (_name, path, country) => {
     const response = await open(path, country);
     expect(response.status).not.toBe(451);
   });
 
-  it('страна в нижнем регистре сверяется как в верхнем; XX - страна неизвестна', async () => {
-    expect((await open('/en/book/hamlet/analysis', 'gb')).status).toBe(451);
-    resetClaimClosuresCache();
-    expect((await open('/en/book/hamlet/analysis', 'XX')).status).not.toBe(451);
-  });
-
-  it('блок на весь мир и на все языки - 451 и без страны', async () => {
-    expect((await open('/ru/book/emma/analysis')).status).toBe(451);
-  });
-
   it('список один на окно кэша: второй заход не ходит в бэкенд', async () => {
-    await open('/en/book/hamlet/analysis', 'GB');
-    await open('/en/book/hamlet/analysis', 'US');
+    await open('/en/book/emma/summary/1', 'GB');
+    await open('/en/book/emma/summary/2', 'US');
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('бэкенд не ответил и списка не было - открыто', async () => {
     fetchMock.mockRejectedValue(new Error('down'));
-    expect((await open('/en/book/hamlet/analysis', 'GB')).status).not.toBe(451);
-  });
-
-  // F04-3 (D4, решение арбитра `F04 | F04-3`): разделы пересказа закрыты тем же списком, что анализ,
-  // со своим заголовком и текстом (`product.md` §5а), без «в вашей стране».
-  describe('раздел пересказа /summary/{n}', () => {
-    it('страна блока - 451 своим экраном, номер без раздела тоже, не кэшируется', async () => {
-      for (const path of ['/en/book/hamlet/summary/1', '/en/book/hamlet/summary/7']) {
-        const response = await open(path, 'GB');
-        expect(response.status).toBe(451);
-        expect(response.headers.get('cache-control')).toBe('private, no-store');
-        const text = decodeEntities(await response.text());
-        expect(text).toContain('<title>Section unavailable</title>');
-        expect(text).toContain('>Section unavailable</h1>');
-        expect(text).toContain(
-          'This section summary is unavailable because of rights restrictions. The book page stays open.'
-        );
-        expect(text).not.toContain(getDictionary('en').rightsBlocked.title);
-        expect(text).toContain('href="/en/book/hamlet"');
-        expect(text).toContain('href="/en/catalog"');
-      }
-    });
-
-    it.each(SUPPORTED_LANGS)('%s: экран 451 раздела на языке страницы', async (lang) => {
-      const response = await open(`/${lang}/book/emma/summary/2`);
-      const text = decodeEntities(await response.text());
-      const strings = summarySectionClosedStrings[lang];
-      expect(strings.summarySectionClosedTitle.trim()).not.toBe('');
-      expect(response.status).toBe(451);
-      expect(text).toContain(`<html lang="${lang}">`);
-      expect(text).toContain(`>${strings.summarySectionClosedTitle}</h1>`);
-      expect(text).toContain(strings.summarySectionClosedMessage);
-    });
-
-    it.each([
-      ['сам пересказ', '/en/book/hamlet/summary', 'GB'],
-      ['кривой номер abc', '/en/book/hamlet/summary/abc', 'GB'],
-      ['кривой номер 01', '/en/book/hamlet/summary/01', 'GB'],
-      ['глубже номера', '/en/book/hamlet/summary/1/x', 'GB'],
-      ['другая страна', '/en/book/hamlet/summary/1', 'US'],
-      ['истёкший блок', '/en/book/carol/summary/1', 'DE'],
-    ])('%s - открыто', async (_name, path, country) => {
-      const response = await open(path, country);
-      expect(response.status).not.toBe(451);
-    });
-
-    it('блок на весь мир - 451 и без страны', async () => {
-      expect((await open('/ru/book/emma/summary/1')).status).toBe(451);
-    });
+    expect((await open('/en/book/emma/summary/1', 'GB')).status).not.toBe(451);
   });
 });

@@ -9,7 +9,9 @@ import type { SupportedLang } from '@/lib/i18n/lang';
  * ровно одна страница ручки `GET /{lang}/summary-sections/sitemap`. Элемент ручки - версия со всеми
  * своими разделами, поэтому размер файла - в версиях: 50 версий × не больше 200 разделов
  * (`SUMMARY_SECTION_LIMITS.sectionsPerVersion` на бэкенде) = 10 000 адресов, предел протокола.
- * Версии с претензией и книги с редакторским `noindex` ручка не отдаёт (`product.md` §6 п.1, п.4).
+ * Версии под блоком окончённой претензии на весь мир и книги с редакторским `noindex` ручка
+ * не отдаёт (`product.md` §6 п.1, п.4; страновой блок версию не убирает - правило владельца
+ * 07.11.2026, `T163`).
  */
 // Копия потолка `limit` ручки (`SUMMARY_SECTIONS_SITEMAP_MAX_LIMIT` в
 // `books/src/modules/book-summary/dto/book-summary-sections-sitemap-query.dto.ts`): больше - 400 и

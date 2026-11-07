@@ -166,15 +166,17 @@ export interface ChapterTitle {
 }
 
 /**
- * Где анализ закрыт блоком окончённой претензии — `GET analyses/claim-closures` (F03-2, решение
- * арбитра `F03 | F03-2`). Читает только middleware: закрывает `/analysis` в стране блока.
+ * Где разделы пересказа закрыты блоком окончённой претензии на весь мир —
+ * `GET analyses/claim-closures` (решения арбитра `F03 | F03-2`, `T163 | LEGACY-490`). Читает
+ * только middleware: закрывает `/summary/{n}`. Имя «анализ» историческое — переименование при
+ * пересъёмке снимка OpenAPI.
  */
 export interface BookAnalysisClaimClosure {
   /** Слаги, по которым открывается страница: слаг книги и слаги версий. */
   slugs: string[];
   /** Язык закрытой версии; `null` — все языки книги. */
   language: SupportedLang | null;
-  /** Страна (ISO, верхний регистр); `null` — весь мир. */
+  /** Страна (ISO, верхний регистр); `null` — весь мир. С `T163` бэкенд отдаёт только `null`. */
   countryCode: string | null;
   expiresAt: ISODate | null;
 }

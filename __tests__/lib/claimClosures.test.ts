@@ -11,7 +11,8 @@ import {
 import type { BookAnalysisClaimClosure } from '@/types/api-schema';
 
 /**
- * F03-2, решение арбитра `F03 | F03-2`: список закрытий анализа для middleware. Кэш до
+ * Решения арбитра `F03 | F03-2`, `T163 | LEGACY-490`: список закрытий разделов пересказа блоком
+ * на весь мир для middleware (анализ не закрывается). Кэш до
  * `CLOSURES_TTL_MS`; бэкенд не ответил - прежний список; списка не было - открыто; лежащий бэкенд
  * не добавляет таймаут каждому заходу (пауза `RETRY_AFTER_FAILURE_MS`).
  */
@@ -112,29 +113,24 @@ describe('loadClaimClosures', () => {
 
 describe('matchClaimClosedPath', () => {
   it.each([
-    ['/en/book/hamlet/analysis', { lang: 'en', slug: 'hamlet', kind: 'analysis' }],
-    ['/en/book/hamlet/analysis/', { lang: 'en', slug: 'hamlet', kind: 'analysis' }],
-    [
-      '/ru/book/%D0%B3%D0%B0%D0%BC%D0%BB%D0%B5%D1%82/analysis',
-      { lang: 'ru', slug: 'гамлет', kind: 'analysis' },
-    ],
     // F04-3: раздел пересказа - номер правильной формы, есть такой раздел или нет (451 раньше 404).
-    ['/en/book/hamlet/summary/1', { lang: 'en', slug: 'hamlet', kind: 'summarySection' }],
-    ['/en/book/hamlet/summary/7/', { lang: 'en', slug: 'hamlet', kind: 'summarySection' }],
-    ['/pt/book/hamlet/summary/999999', { lang: 'pt', slug: 'hamlet', kind: 'summarySection' }],
+    ['/en/book/hamlet/summary/1', { lang: 'en', slug: 'hamlet' }],
+    ['/en/book/hamlet/summary/7/', { lang: 'en', slug: 'hamlet' }],
+    ['/pt/book/hamlet/summary/999999', { lang: 'pt', slug: 'hamlet' }],
+    ['/ru/book/%D0%B3%D0%B0%D0%BC%D0%BB%D0%B5%D1%82/summary/1', { lang: 'ru', slug: 'гамлет' }],
     // Закодированные сегменты Next раскодирует и отдаёт странице - закрытие видит то же самое.
-    ['/en/book/hamlet/summary/%31', { lang: 'en', slug: 'hamlet', kind: 'summarySection' }],
-    ['/en/book/hamlet/%73ummary/1', { lang: 'en', slug: 'hamlet', kind: 'summarySection' }],
-    ['/en/book/hamlet/%61nalysis', { lang: 'en', slug: 'hamlet', kind: 'analysis' }],
+    ['/en/book/hamlet/summary/%31', { lang: 'en', slug: 'hamlet' }],
+    ['/en/book/hamlet/%73ummary/1', { lang: 'en', slug: 'hamlet' }],
   ])('%s - закрываемый адрес', (path, expected) => {
     expect(matchClaimClosedPath(path)).toEqual(expected);
   });
 
   it.each([
     '/en/book/hamlet',
-    '/en/book/hamlet/analysis/x',
-    '/xx/book/hamlet/analysis',
-    '/en/book/%E0/analysis',
+    // Анализ претензия не закрывает (правило владельца 07.11.2026, `T163`).
+    '/en/book/hamlet/analysis',
+    '/en/book/hamlet/%61nalysis',
+    '/en/book/%E0/summary/1',
     // Сам пересказ открыт при претензии (D4); кривой номер - 404 везде (решение арбитра `F04 | F04-3`).
     '/en/book/hamlet/summary',
     '/en/book/hamlet/summary/',
@@ -151,21 +147,28 @@ describe('matchClaimClosedPath', () => {
 
 describe('isClaimClosed', () => {
   const target = { lang: 'en', slug: 'Hamlet' };
+  const worldwide = (over: Partial<BookAnalysisClaimClosure> = {}) =>
+    closure({ countryCode: null, ...over });
 
-  it('слаг сравнивается без учёта регистра; страна - точно', () => {
-    expect(isClaimClosed([closure()], target, 'GB', T0)).toBe(true);
-    expect(isClaimClosed([closure()], target, 'US', T0)).toBe(false);
-    expect(isClaimClosed([closure()], target, null, T0)).toBe(false);
+  it('блок на весь мир закрывает; слаг сравнивается без учёта регистра', () => {
+    expect(isClaimClosed([worldwide()], target, T0)).toBe(true);
   });
 
-  it('блок на весь мир закрывает и без страны; блок на все языки - любой язык', () => {
-    const worldwide = closure({ countryCode: null, language: null });
-    expect(isClaimClosed([worldwide], { lang: 'fr', slug: 'hamlet' }, null, T0)).toBe(true);
+  // Правило владельца 07.11.2026 (`T163`): страновой блок не закрывает нигде, включая страну блока.
+  it('страновой блок не закрывает', () => {
+    expect(isClaimClosed([closure({ countryCode: 'GB' })], target, T0)).toBe(false);
+  });
+
+  it('блок на все языки - любой язык; блок языка - только свой', () => {
+    expect(isClaimClosed([worldwide({ language: null })], { lang: 'fr', slug: 'hamlet' }, T0)).toBe(
+      true
+    );
+    expect(isClaimClosed([worldwide()], { lang: 'fr', slug: 'hamlet' }, T0)).toBe(false);
   });
 
   it('истёкший блок не закрывает', () => {
-    const expired = closure({ expiresAt: new Date(T0 - 1).toISOString() });
-    expect(isClaimClosed([expired], target, 'GB', T0)).toBe(false);
+    const expired = worldwide({ expiresAt: new Date(T0 - 1).toISOString() });
+    expect(isClaimClosed([expired], target, T0)).toBe(false);
   });
 });
 

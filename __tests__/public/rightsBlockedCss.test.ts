@@ -4,7 +4,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { buildClaimClosedResponse } from '@/lib/claim-closures';
 
-// Решение арбитра F03 | F03-4, В2: экран 451 закрытого анализа оформлен статическим
+// Решение арбитра F03 | F03-4, В2: экран 451 закрытого раздела пересказа оформлен статическим
 // public/rights-blocked.css, а его значения - копия styles/tokens.scss. Копия дрейфует молча:
 // поменяли токен - экран остался в старом цвете. Тест держит копию и запрещает свои значения.
 const root = path.resolve(__dirname, '../..');
@@ -63,7 +63,6 @@ describe('public/rights-blocked.css - копия токенов', () => {
     const html = await buildClaimClosedResponse({
       lang: 'en',
       slug: 'hamlet',
-      kind: 'analysis',
     }).text();
     const classes = [...html.matchAll(/class="([^"]+)"/g)].flatMap(([, list]) => list.split(/\s+/));
     const defined = (name: string) => new RegExp(`\\.${name}(?![\\w-])`).test(rules);
