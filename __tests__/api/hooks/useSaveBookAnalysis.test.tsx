@@ -7,6 +7,7 @@ import React, { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { saveBookAnalysis } from '@/api/endpoints/admin/bookAnalyses';
 import { analysisKeys, useSaveBookAnalysis } from '@/api/hooks/useBookAnalysis';
 
 const saved = { language: 'en', hasCore: true, mainIdea: 'New' };
@@ -39,6 +40,20 @@ describe('useSaveBookAnalysis', () => {
     expect(client.getQueryData(analysisKeys.detail('v1'))).toEqual(saved);
     expect(invalidate).toHaveBeenCalledTimes(1);
     expect(invalidate).toHaveBeenCalledWith({ queryKey: analysisKeys.detail('v1') });
+  });
+
+  it('сверка записи доходит до запроса', async () => {
+    const { result } = setup();
+    const expected = { expectedUpdatedAt: '2026-10-12T00:00:00.000Z' };
+    await act(() =>
+      result.current.mutateAsync({ versionId: 'v1', data: { language: 'en' }, expected })
+    );
+    expect(vi.mocked(saveBookAnalysis)).toHaveBeenLastCalledWith(
+      'v1',
+      { language: 'en' },
+      undefined,
+      expected
+    );
   });
 
   it('проба: кэш не тронут и не сбрасывается', async () => {

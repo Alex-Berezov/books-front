@@ -130,6 +130,10 @@ describe('SummaryTab with the summary run: the first answer of the run', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Save Summary' }));
     await waitFor(() => expect(api.upsertBookSummary).toHaveBeenCalledTimes(1));
-    expect(api.upsertBookSummary).toHaveBeenCalledWith('v1', { summary: '<p>Run full.</p>' });
+    expect(api.upsertBookSummary).toHaveBeenCalledWith(
+      'v1',
+      { summary: '<p>Run full.</p>' },
+      { expectedUpdatedAt: '2026-11-03T00:00:00.000Z' }
+    );
   });
 });

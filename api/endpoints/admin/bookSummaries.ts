@@ -5,6 +5,7 @@
  * (краткий пересказ / выжимка).
  */
 
+import { expectedRowParams } from '@/lib/admin/expected-row';
 import { httpGetAuth, httpPostAuth, httpPutAuth } from '@/lib/http-client';
 import type {
   BookSummaryDetail,
@@ -14,6 +15,7 @@ import type {
   BookSummarySectionUpdateResponse,
   CreateBookSummarySectionRequest,
   DeleteBookSummarySectionRequest,
+  ExpectedRow,
   ReorderBookSummarySectionsRequest,
   UpdateBookSummarySectionRequest,
   UpsertBookSummaryBriefRequest,
@@ -48,13 +50,16 @@ export const getBookSummary = async (versionId: string): Promise<BookSummaryDeta
  *
  * @param versionId - Book version ID
  * @param data - Summary data to store
+ * @param expected - what the tab saw; the server answers 409 if the summary changed since
  * @returns Stored summary
  */
 export const upsertBookSummary = async (
   versionId: string,
-  data: UpsertBookSummaryRequest
+  data: UpsertBookSummaryRequest,
+  expected?: ExpectedRow
 ): Promise<BookSummaryDetail> => {
-  const endpoint = `/versions/${versionId}/summary`;
+  const params = expectedRowParams(expected);
+  const endpoint = `/versions/${versionId}/summary${params ? `?${params}` : ''}`;
   return httpPutAuth<BookSummaryDetail>(endpoint, data);
 };
 
@@ -63,9 +68,15 @@ export const upsertBookSummary = async (
  */
 export const upsertBookSummaryBrief = async (
   versionId: string,
-  data: UpsertBookSummaryBriefRequest
-): Promise<BookSummaryDetail> =>
-  httpPutAuth<BookSummaryDetail>(`/versions/${versionId}/summary/brief`, data);
+  data: UpsertBookSummaryBriefRequest,
+  expectedUpdatedAt?: string
+): Promise<BookSummaryDetail> => {
+  const params = expectedRowParams({ expectedUpdatedAt });
+  return httpPutAuth<BookSummaryDetail>(
+    `/versions/${versionId}/summary/brief${params ? `?${params}` : ''}`,
+    data
+  );
+};
 
 /**
  * Разделы пересказа версии без текстов. Админке — все и без полного пересказа (по токену модератора).

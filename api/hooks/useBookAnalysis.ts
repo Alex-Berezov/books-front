@@ -8,7 +8,11 @@ import {
   getChapterTitles,
   saveBookAnalysis,
 } from '@/api/endpoints/admin/bookAnalyses';
-import type { BookAnalysisSaveResponse, SaveBookAnalysisRequest } from '@/types/api-schema';
+import type {
+  BookAnalysisSaveResponse,
+  ExpectedRow,
+  SaveBookAnalysisRequest,
+} from '@/types/api-schema';
 
 export const analysisKeys = {
   all: ['analyses'] as const,
@@ -36,9 +40,15 @@ export const useSaveBookAnalysis = () => {
   return useMutation<
     BookAnalysisSaveResponse,
     Error,
-    { versionId: string; data: SaveBookAnalysisRequest; dryRun?: boolean }
+    {
+      versionId: string;
+      data: SaveBookAnalysisRequest;
+      dryRun?: boolean;
+      expected?: ExpectedRow;
+    }
   >({
-    mutationFn: ({ versionId, data, dryRun }) => saveBookAnalysis(versionId, data, dryRun),
+    mutationFn: ({ versionId, data, dryRun, expected }) =>
+      saveBookAnalysis(versionId, data, dryRun, expected),
     onSuccess: (data, variables) => {
       if (variables.dryRun) return;
       // Сохранённая запись кладётся в кэш сразу: вкладка, смонтированная заново до перечитывания,

@@ -513,6 +513,152 @@ describe('useAnalysisTab', () => {
     expect(result.current.form.texts.mainIdea).toBe('Fresh');
   });
 
+  describe('сверка записи (LEGACY-496)', () => {
+    const row = (updatedAt: string) => ({ language: 'en', hasCore: false, updatedAt });
+    const freshResult = (data: unknown) => ({
+      status: 'success',
+      data,
+      dataUpdatedAt: Date.now() + 60_000,
+    });
+    const ready = async (data: unknown) => {
+      mocks.analysis = { ...mocks.analysis, data } as typeof mocks.analysis;
+      const hook = renderHook(() => useAnalysisTab(props));
+      await waitFor(() => expect(hook.result.current.analyzeImport).not.toBeNull());
+      return hook;
+    };
+
+    it('загруженный null - признак «записи нет», запись - её updatedAt', async () => {
+      const empty = await ready(null);
+      act(() => empty.result.current.handleSave());
+      expect(mocks.mutate.mock.calls[0]![0]).toMatchObject({
+        expected: { expectedAbsent: 'true' },
+      });
+      empty.unmount();
+
+      mocks.mutate.mockClear();
+      const loaded = await ready(row('2026-10-12T00:00:00.000Z'));
+      act(() => loaded.result.current.handleSave());
+      expect(mocks.mutate.mock.calls[0]![0]).toMatchObject({
+        expected: { expectedUpdatedAt: '2026-10-12T00:00:00.000Z' },
+      });
+    });
+
+    it('кэш ушёл вперёд без формы: сохранение идёт с точкой сверки формы', async () => {
+      const { result, rerender } = await ready(row('2026-10-12T00:00:00.000Z'));
+      mocks.analysis = {
+        ...mocks.analysis,
+        data: row('2026-10-13T00:00:00.000Z'),
+      } as typeof mocks.analysis;
+      rerender();
+      act(() => result.current.handleSave());
+      expect(mocks.mutate.mock.calls[0]![0]).toMatchObject({
+        expected: { expectedUpdatedAt: '2026-10-12T00:00:00.000Z' },
+      });
+    });
+
+    it('409 RECORD_CHANGED: предупреждение и перечитывание, следующее сохранение со свежей сверкой', async () => {
+      mocks.mutate.mockImplementationOnce((_vars, opts: { onError: (e: Error) => void }) =>
+        opts.onError(
+          new ApiError({
+            statusCode: 409,
+            message: 'changed',
+            error: 'Conflict',
+            data: { code: 'RECORD_CHANGED' },
+          })
+        )
+      );
+      mocks.refetch.mockResolvedValue(freshResult(row('2026-10-13T00:00:00.000Z')));
+      const { result } = await ready(row('2026-10-12T00:00:00.000Z'));
+      await act(async () => result.current.handleSave());
+
+      expect(mocks.refetch).toHaveBeenCalledTimes(1);
+      expect(mocks.enqueueSnackbar).toHaveBeenCalledWith(
+        expect.stringContaining('changed on the server'),
+        { variant: 'warning' }
+      );
+      expect(mocks.enqueueSnackbar).not.toHaveBeenCalledWith(expect.anything(), {
+        variant: 'error',
+      });
+
+      act(() => result.current.handleSave());
+      expect(mocks.mutate.mock.calls[1]![0]).toMatchObject({
+        expected: { expectedUpdatedAt: '2026-10-13T00:00:00.000Z' },
+      });
+    });
+
+    it('409 по блоку с правкой: своё остаётся, текст сервера показан и копится', async () => {
+      mocks.mutate.mockImplementationOnce((_vars, opts: { onError: (e: Error) => void }) =>
+        opts.onError(
+          new ApiError({
+            statusCode: 409,
+            message: 'changed',
+            error: 'Conflict',
+            data: { code: 'RECORD_CHANGED' },
+          })
+        )
+      );
+      const theirs = { ...row('2026-10-13T00:00:00.000Z'), mainIdea: 'Theirs.' };
+      mocks.refetch.mockResolvedValue(freshResult(theirs));
+      const { result } = await ready(row('2026-10-12T00:00:00.000Z'));
+      act(() => result.current.setText('mainIdea', 'Mine.'));
+      await act(async () => result.current.handleSave());
+      await waitFor(() => expect(result.current.serverBlocks.mainIdea).toBe('Theirs.'));
+      expect(result.current.form.texts.mainIdea).toBe('Mine.');
+
+      // Следующее перечитывание без новых правок показ не снимает.
+      await act(() => result.current.reloadBlocks());
+      expect(result.current.serverBlocks.mainIdea).toBe('Theirs.');
+
+      // Правка совпала с сервером - показывать нечего.
+      act(() => result.current.setText('mainIdea', 'Theirs.'));
+      expect(result.current.serverBlocks).toEqual({});
+    });
+
+    it('блок, который форма взяла с сервера, из показа уходит и старый текст не возвращается', async () => {
+      mocks.refetch.mockResolvedValueOnce(
+        freshResult({ ...row('2026-10-13T00:00:00.000Z'), mainIdea: 'S1.' })
+      );
+      const { result } = await ready(row('2026-10-12T00:00:00.000Z'));
+      act(() => result.current.setText('mainIdea', 'Mine.'));
+      await act(() => result.current.reloadBlocks());
+      expect(result.current.serverBlocks.mainIdea).toBe('S1.');
+
+      // Редактор принял текст сервера: правка совпала, следующая запись на сервере приходит в форму.
+      act(() => result.current.setText('mainIdea', 'S1.'));
+      mocks.refetch.mockResolvedValueOnce(
+        freshResult({ ...row('2026-10-14T00:00:00.000Z'), mainIdea: 'S2.' })
+      );
+      await act(() => result.current.reloadBlocks());
+      expect(result.current.form.texts.mainIdea).toBe('S2.');
+      expect(result.current.serverBlocks).toEqual({});
+    });
+
+    it('своё сохранение сдвигает точку сверки и снимает показ', async () => {
+      const saved = { ...row('2026-10-14T00:00:00.000Z'), mainIdea: 'A.', chapterNumbers: [] };
+      mocks.mutate.mockImplementationOnce((_vars, opts: { onSuccess: (r: unknown) => void }) =>
+        opts.onSuccess({ analysis: saved, hasCore: false, warnings: [] })
+      );
+      const { result } = await ready(row('2026-10-12T00:00:00.000Z'));
+      act(() => result.current.setText('mainIdea', 'A.'));
+      act(() => result.current.handleSave());
+      act(() => result.current.handleSave());
+      expect(mocks.mutate.mock.calls[1]![0]).toMatchObject({
+        expected: { expectedUpdatedAt: '2026-10-14T00:00:00.000Z' },
+      });
+      expect(result.current.serverBlocks).toEqual({});
+    });
+
+    it('другой 409 не считается чужой правкой', async () => {
+      mocks.mutate.mockImplementationOnce((_vars, opts: { onError: (e: Error) => void }) =>
+        opts.onError(new ApiError({ statusCode: 409, message: 'other', error: 'Conflict' }))
+      );
+      const { result } = await ready(row('2026-10-12T00:00:00.000Z'));
+      act(() => result.current.handleSave());
+      expect(mocks.refetch).not.toHaveBeenCalled();
+      expect(mocks.enqueueSnackbar).toHaveBeenCalledWith('other', { variant: 'error' });
+    });
+  });
+
   describe('reloadBlocks: ход записал блоки (F07-3a)', () => {
     // Отметки ответа заведомо после и до начала перечитывания: без гонки с часами теста.
     const FRESH = Number.MAX_SAFE_INTEGER;
@@ -669,7 +815,7 @@ describe('useAnalysisTab', () => {
         pending = result.current.reloadBlocks();
       });
       expect(result.current.saveBlockedReason).toBe(
-        'The analysis is being reloaded after the run wrote blocks.'
+        'The analysis is being reloaded from the server: save when it ends.'
       );
       act(() => result.current.handleSave());
       expect(mocks.mutate).not.toHaveBeenCalled();

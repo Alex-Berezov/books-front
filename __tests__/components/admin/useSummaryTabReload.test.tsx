@@ -241,13 +241,21 @@ describe('useSummaryTab: fields written by the summary run', () => {
     server = summary('<p>Spaced.</p>', '<p>Old brief.</p>');
     act(() => result.current.handleSave());
     await waitFor(() => expect(api.upsertBookSummary).toHaveBeenCalledTimes(1));
-    expect(api.upsertBookSummary).toHaveBeenCalledWith('v1', { summary: '<p>Spaced.</p>' });
+    expect(api.upsertBookSummary).toHaveBeenCalledWith(
+      'v1',
+      { summary: '<p>Spaced.</p>' },
+      { expectedUpdatedAt: '2026-11-02T00:00:00.000Z' }
+    );
     await waitFor(() => expect(client.isMutating()).toBe(0));
     act(() => result.current.handleFieldChange('briefText', '<p></p>'));
     server = { ...summary('<p>Spaced.</p>', ''), brief: null };
     act(() => result.current.handleSaveBrief());
     await waitFor(() => expect(api.upsertBookSummaryBrief).toHaveBeenCalledTimes(1));
-    expect(api.upsertBookSummaryBrief).toHaveBeenCalledWith('v1', { brief: null });
+    expect(api.upsertBookSummaryBrief).toHaveBeenCalledWith(
+      'v1',
+      { brief: null },
+      '2026-11-02T00:00:00.000Z'
+    );
     await waitFor(() => expect(client.isMutating()).toBe(0));
     // Сервер ничего не менял: ни плашки, ни подмены набранного.
     await act(() => result.current.reloadFields(['full', 'brief']));

@@ -79,6 +79,7 @@ export type {
   UpdateBookVersionRequest,
   ReorderBookSummarySectionsRequest,
   UpdateBookSummarySectionRequest,
+  ExpectedRow,
   UpsertBookSummaryBriefRequest,
   UpsertBookSummaryRequest,
   VersionPreview,

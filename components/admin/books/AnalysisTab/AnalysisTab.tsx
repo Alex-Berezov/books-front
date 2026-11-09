@@ -16,6 +16,7 @@ import type { AnalysisTabProps } from './AnalysisTab.types';
 import { AnalysisCheckSummary } from './AnalysisCheckSummary';
 import styles from './AnalysisTab.module.scss';
 import { ImportAnalysisModal } from './ImportAnalysisModal';
+import { ServerBlockText } from './ServerBlockText';
 import { useAnalysisTab } from './useAnalysisTab';
 
 // Ход «Write Analysis» (F07-3a) — только у `admin`: в бандл страницы версии не входит.
@@ -148,6 +149,7 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
                 value={form.facts[key]}
                 onChange={(e) => tab.setFact(key, e.target.value)}
               />
+              <ServerBlockText text={tab.serverBlocks[`facts.${key}`]} />
             </div>
           ))}
         </div>
@@ -167,6 +169,7 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
               value={form.texts[key]}
               onChange={(e) => tab.setText(key, e.target.value)}
             />
+            <ServerBlockText text={tab.serverBlocks[key]} />
           </div>
         ))}
       </section>
@@ -192,6 +195,7 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
                 aria-invalid={hasIssues}
                 aria-describedby={hasIssues ? `${id}-issues` : undefined}
               />
+              <ServerBlockText text={tab.serverBlocks[key]} />
               {hasIssues && (
                 <ul
                   id={`${id}-issues`}

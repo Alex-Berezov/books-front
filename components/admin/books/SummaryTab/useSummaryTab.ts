@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useBookSummary, useUpsertBookSummary, useUpsertBookSummaryBrief } from '@/api/hooks';
+import { expectedRowOf, isRecordChanged } from '@/lib/admin/expected-row';
 import { htmlToPlainText } from '@/lib/utils/html-text';
 import { readingMinutes } from '@/lib/utils/reading-time';
 import { ApiError } from '@/types/api';
 import type { SummaryFormData, SummaryTabProps } from './SummaryTab.types';
 import type { SummaryWriteField } from './SummaryWrite/summaryWrite.utils';
+import type { ExpectedRow } from '@/types/api-schema';
 
 /**
  * Пустой редактор — без текста и без медиа. Только такой очищает поле (`null`): бриф из одной
@@ -13,6 +15,9 @@ import type { SummaryWriteField } from './SummaryWrite/summaryWrite.utils';
  */
 const isEmptyEditor = (html: string) =>
   htmlToPlainText(html) === '' && !/<(img|iframe|video|audio|figure)\b/i.test(html);
+
+const CHANGED_ELSEWHERE =
+  'The summary was changed on the server: check the fresh text and save again';
 
 const EMPTY_FORM: SummaryFormData = {
   summaryText: '',
@@ -46,6 +51,8 @@ export const useSummaryTab = (props: SummaryTabProps) => {
     isError,
     refetch,
   } = useBookSummary(versionId, { refetchOnMount: 'always', staleTime: 0 });
+  // С чем форма сверена (`LEGACY-496`): кэш запроса уходит вперёд без формы — на сохранение идёт это.
+  const formBase = useRef<ExpectedRow | undefined>(undefined);
   const upsertMutation = useUpsertBookSummary();
   const briefMutation = useUpsertBookSummaryBrief();
 
@@ -107,6 +114,7 @@ export const useSummaryTab = (props: SummaryTabProps) => {
     saved.current = EMPTY_FORM;
     synced.current = EMPTY_FORM;
     current.current = EMPTY_FORM;
+    formBase.current = undefined;
   }, [versionId]);
   useEffect(() => {
     if (status !== 'success' || fetchStatus !== 'idle' || hydratedFor === versionId) return;
@@ -115,6 +123,7 @@ export const useSummaryTab = (props: SummaryTabProps) => {
     setUnknown((prev) => (prev.versionId === versionId ? { versionId, fields: [] } : prev));
     saved.current = formOf(existingSummary);
     synced.current = saved.current;
+    formBase.current = expectedRowOf(existingSummary);
     setFormData(saved.current);
   }, [existingSummary, status, fetchStatus, hydratedFor, versionId]);
 
@@ -160,6 +169,12 @@ export const useSummaryTab = (props: SummaryTabProps) => {
       });
       if (!fresh) return;
       const server = formOf(result.data);
+      // Точка сверки двигается, только если поля вне запроса на сервере те же: иначе чужая правка
+      // такого поля ушла бы под новым `updatedAt` без 409.
+      const others = Object.values(FORM_FIELD).filter((f) => !wanted.includes(f));
+      if (others.every((f) => stored(server[f]) === stored(saved.current[f]))) {
+        formBase.current = expectedRowOf(result.data);
+      }
       for (const field of wanted) {
         // Правка сверяется в момент подстановки: набранное за время запроса тоже правка.
         if (stored(current.current[field]) === stored(synced.current[field])) {
@@ -189,6 +204,8 @@ export const useSummaryTab = (props: SummaryTabProps) => {
    * Summary save handler
    */
   const handleSave = () => {
+    // Строка одна на оба поля: вторая запись со старым `updatedAt` получила бы 409 на свою же первую.
+    if (upsertMutation.isPending || briefMutation.isPending) return;
     // До заполнения с сервера в поле не то, что сохранено: такая запись затёрла бы пересказ.
     if (!hydrated) return;
     if (unknownFields.includes('summaryText')) {
@@ -204,13 +221,19 @@ export const useSummaryTab = (props: SummaryTabProps) => {
       enqueueSnackbar('Summary text is required', { variant: 'warning' });
       return;
     }
+    // Точка сверки потеряна (смена версии туда и обратно до ответа): без неё запись шла бы вслепую.
+    if (!formBase.current) {
+      enqueueSnackbar(CHANGED_ELSEWHERE, { variant: 'warning' });
+      void reloadFields(['full', 'brief']);
+      return;
+    }
     const savedFor = versionId;
 
     // Поля `analysis`/`themes` пересказа в форме нет (решение владельца 17.10.2026) и в анализ
     // они не идут: анализ живёт в своей записи `BookAnalysis` (F03, `tech.md` T1/T2), старые колонки
     // не удаляются (тема владельца №2). Их не шлём - сервер обновляет только переданное.
     upsertMutation.mutate(
-      { versionId, data: { summary } },
+      { versionId, data: { summary }, expected: formBase.current },
       {
         // Известный текст сервера — его ответ (сервер хранит без пробелов по краям), иначе
         // следующее перечитывание сочло бы поле изменённым и показало бы ложную плашку.
@@ -218,11 +241,17 @@ export const useSummaryTab = (props: SummaryTabProps) => {
           enqueueSnackbar('Summary saved', { variant: 'success' });
           // Ответ по прежней версии: сведения формы уже о другой.
           if (versionRef.current !== savedFor) return;
+          if (data?.updatedAt) formBase.current = { expectedUpdatedAt: data.updatedAt };
           saved.current = { ...saved.current, summaryText: data?.summary ?? summary };
           synced.current = { ...synced.current, summaryText: summary };
           setServerUpdates(({ summaryText: _replaced, ...rest }) => rest);
         },
         onError: (error) => {
+          if (isRecordChanged(error)) {
+            enqueueSnackbar(CHANGED_ELSEWHERE, { variant: 'warning' });
+            if (versionRef.current === savedFor) void reloadFields(['full', 'brief']);
+            return;
+          }
           enqueueSnackbar(error.message || 'Failed to save summary', { variant: 'error' });
         },
       }
@@ -234,6 +263,7 @@ export const useSummaryTab = (props: SummaryTabProps) => {
    * (`null`): блока на странице не будет. Без полного пересказа кнопка выключена — сервер ответил бы 409.
    */
   const handleSaveBrief = () => {
+    if (upsertMutation.isPending || briefMutation.isPending) return;
     if (!hydrated || !existingSummary?.hasText) {
       enqueueSnackbar('Save the Summary first', { variant: 'warning' });
       return;
@@ -247,15 +277,23 @@ export const useSummaryTab = (props: SummaryTabProps) => {
       );
       return;
     }
+    // Ручка не принимает «записи нет»: форма заполнена на пустой версии, а полный пересказ уже есть —
+    // без сверки очень краткий стёр бы чужой текст. Сначала форма узнаёт, что на сервере.
+    if (!formBase.current?.expectedUpdatedAt) {
+      enqueueSnackbar(CHANGED_ELSEWHERE, { variant: 'warning' });
+      void reloadFields(['full', 'brief']);
+      return;
+    }
     const brief = formData.briefText.trim();
     const sent = isEmptyEditor(brief) ? null : brief;
     const savedFor = versionId;
     briefMutation.mutate(
-      { versionId, brief: sent },
+      { versionId, brief: sent, expectedUpdatedAt: formBase.current.expectedUpdatedAt },
       {
         onSuccess: (data) => {
           enqueueSnackbar('Very short summary saved', { variant: 'success' });
           if (versionRef.current !== savedFor) return;
+          if (data?.updatedAt) formBase.current = { expectedUpdatedAt: data.updatedAt };
           saved.current = { ...saved.current, briefText: (data ? data.brief : sent) ?? '' };
           synced.current = { ...synced.current, briefText: sent ?? '' };
           setServerUpdates(({ briefText: _replaced, ...rest }) => rest);
@@ -263,6 +301,11 @@ export const useSummaryTab = (props: SummaryTabProps) => {
         onError: (error) => {
           // 5xx показывает общий тост `MutationCache`.
           if (error instanceof ApiError && error.statusCode >= 500) return;
+          if (isRecordChanged(error)) {
+            enqueueSnackbar(CHANGED_ELSEWHERE, { variant: 'warning' });
+            if (versionRef.current === savedFor) void reloadFields(['full', 'brief']);
+            return;
+          }
           enqueueSnackbar(error.message || 'Failed to save the very short summary', {
             variant: 'error',
           });
@@ -281,6 +324,11 @@ export const useSummaryTab = (props: SummaryTabProps) => {
     /** Повтор перечитывания невыясненных полей. */
     retryReload: () => void reloadFields([]),
     serverUpdates,
+    // Правка совпала с сервером — показывать нечего.
+    showsServerText: (field: keyof SummaryFormData) => {
+      const text = serverUpdates[field];
+      return text !== undefined && stored(text) !== stored(formData[field]);
+    },
     loadServerText,
     // Очень краткий заводится после полного с текстом (`product.md` §7 п.5) — и только когда форма
     // заполнена с сервера: до этого поле пустое не потому, что текста нет.

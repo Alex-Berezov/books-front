@@ -12,6 +12,7 @@ import {
 } from '@/api/hooks';
 import {
   analysisRequestFromForm,
+  blockText,
   formFromAnalysis,
   hasDraftIssues,
   mergeAnalysisImport,
@@ -23,6 +24,7 @@ import {
   buildAnalysisPromptInputsText,
   promptMotifsFromDossier,
 } from '@/lib/admin/book-analysis-prompt-inputs';
+import { expectedRowOf, isRecordChanged } from '@/lib/admin/expected-row';
 import {
   loadBookAnalysisValidation,
   type BookAnalysisValidation,
@@ -34,7 +36,7 @@ import type {
   BookAnalysisListKey,
   BookAnalysisTextKey,
 } from '@/lib/admin/book-analysis-blocks';
-import type { SaveBookAnalysisRequest } from '@/types/api-schema';
+import type { ExpectedRow, SaveBookAnalysisRequest } from '@/types/api-schema';
 
 /**
  * Текст отказа: сервер отдаёт ошибки проверки массивом «путь: причина» — по строке на ошибку,
@@ -130,6 +132,10 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
   const hydratedFor = useRef<string | null>(null);
   // Снимок формы сохранённой записи: повтор пробы проверяет её, а не несохранённые правки.
   const savedForm = useRef<BookAnalysisFormValues | null>(null);
+  // С чем форма сверена (`LEGACY-496`): кэш запроса уходит вперёд без формы — на сохранение идёт это.
+  const formBase = useRef<ExpectedRow | undefined>(undefined);
+  // Текст сервера по блокам с несохранённой правкой (решение арбитра `T173 | LEGACY-496`).
+  const [serverBlocks, setServerBlocks] = useState<Record<string, string>>({});
   // Форма на этом рендере: перечитывание после записи хода сверяет правки с ней в момент подстановки.
   const currentForm = useRef(form);
   currentForm.current = form;
@@ -152,6 +158,8 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     const saved = analysisQuery.data ?? null;
     const hydrated = formFromAnalysis(saved);
     savedForm.current = hydrated;
+    formBase.current = expectedRowOf(saved);
+    setServerBlocks({});
     setForm(hydrated);
     setLastCheck(null);
     // Сохранённый анализ без ядра: сразу показать, чего не хватает (§2), — той же пробой сервера.
@@ -180,7 +188,7 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
         : writesInFlight
           ? 'Blocks of the analysis run are being written: save when it ends.'
           : reloading
-            ? 'The analysis is being reloaded after the run wrote blocks.'
+            ? 'The analysis is being reloaded from the server: save when it ends.'
             : null;
 
   const setFact = (key: BookAnalysisFactKey, value: string) =>
@@ -270,14 +278,23 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
       enqueueSnackbar('Fix the errors in the JSON blocks first', { variant: 'warning' });
       return;
     }
+    const savedFor = versionId;
     saveMutation.mutate(
-      { versionId, data: analysisRequestFromForm(checked, version.language) },
+      {
+        versionId,
+        data: analysisRequestFromForm(checked, version.language),
+        expected: formBase.current,
+      },
       {
         onSuccess: (res) => {
           // Снимок — ответ сервера (его нормализованные списки), а не набранный текст: иначе
           // следующее перечитывание после хода сочло бы такие блоки правлеными. Блоки, не
           // тронутые за время сохранения, форма берёт в том же виде.
           if (res.analysis) {
+            if (hydratedFor.current === savedFor) {
+              formBase.current = { expectedUpdatedAt: res.analysis.updatedAt };
+              setServerBlocks({});
+            }
             const server = formFromAnalysis(res.analysis);
             setForm(takeServerBlocks(currentForm.current, checked, server).form);
             savedForm.current = server;
@@ -291,6 +308,16 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
         },
         onError: (error) => {
           if (isServerFailure(error)) return;
+          if (isRecordChanged(error)) {
+            // Запись успели изменить: форма берёт чужие блоки, набранное остаётся (как после хода).
+            enqueueSnackbar(
+              'The analysis was changed on the server: check the fresh blocks and save again',
+              { variant: 'warning' }
+            );
+            // Отказ по прежней версии: перечитывать нынешнюю незачем.
+            if (hydratedFor.current === savedFor) void reloadBlocks();
+            return;
+          }
           enqueueSnackbar(error.message || 'Failed to save analysis', { variant: 'error' });
         },
       }
@@ -326,17 +353,27 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     }
     setStaleFor(null);
     const saved = result.data ?? null;
+    formBase.current = expectedRowOf(saved);
     const server = formFromAnalysis(saved);
     const merged = takeServerBlocks(currentForm.current, savedForm.current, server);
     savedForm.current = server;
     setForm(merged.form);
+    // Копится между перечитываниями: у следующего `kept` пуст, если сервер больше не менялся.
+    // Текст всегда свежий, блок, который форма взяла с сервера, из показа уходит.
+    setServerBlocks((prev) =>
+      Object.fromEntries(
+        [...new Set([...Object.keys(prev), ...merged.kept])]
+          .filter((k) => blockText(merged.form, k) !== blockText(server, k))
+          .map((k) => [k, blockText(server, k)])
+      )
+    );
     checkSeq.current += 1;
     setSavedCheckError(null);
     setLastCheck(null);
     if (saved && !saved.hasCore) checkSavedRef.current(server);
     if (merged.kept.length > 0) {
       enqueueSnackbar(
-        `The analysis run changed blocks you are editing; your edits are kept: ${merged.kept.join(', ')}. Saving writes your version over it.`,
+        `The analysis changed on the server in blocks you are editing (the server text is shown next to them); your edits are kept: ${merged.kept.join(', ')}. Saving writes your version over it.`,
         { variant: 'warning' }
       );
     }
@@ -465,6 +502,10 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     /** Почему «Save analysis» закрыт: ход пишет блоки или идёт перечитывание; `null` — открыт. */
     saveBlockedReason,
     savedHasCore: analysisQuery.data?.hasCore ?? null,
+    // Правка совпала с сервером — показывать нечего.
+    serverBlocks: Object.fromEntries(
+      Object.entries(serverBlocks).filter(([key, text]) => blockText(form, key) !== text)
+    ),
     // Ждём ответа, в том числе запрос на паузе офлайн (`isLoading` у него ложен): полей нет,
     // пока форма не заполнена с сервера и нет ошибки чтения.
     isLoading: !formHydrated && !analysisQuery.error,

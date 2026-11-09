@@ -13,6 +13,7 @@ const tabState = vi.hoisted(() => ({
   savedHasCore: null as boolean | null,
   formStale: false,
   saveBlockedReason: null as string | null,
+  serverBlocks: {} as Record<string, string>,
 }));
 
 vi.mock('@/components/admin/books/AnalysisTab/useAnalysisTab', () => ({
@@ -43,6 +44,7 @@ vi.mock('@/components/admin/books/AnalysisTab/useAnalysisTab', () => ({
     lastCheck: null,
     savedCheckError: null,
     savedHasCore: tabState.savedHasCore,
+    serverBlocks: tabState.serverBlocks,
     formStale: tabState.formStale,
     saveBlockedReason: tabState.saveBlockedReason,
     reloadBlocks,
@@ -99,6 +101,22 @@ describe('AnalysisTab: the analysis run (F07-3a)', () => {
     tabState.savedHasCore = null;
     tabState.formStale = false;
     tabState.saveBlockedReason = null;
+    tabState.serverBlocks = {};
+  });
+
+  it('server text is shown next to the fact, text and list it belongs to; Save stays open', () => {
+    tabState.serverBlocks = {
+      'facts.genre': 'Their genre',
+      mainIdea: 'Their idea',
+      themes: '[{"their":"theme"}]',
+    };
+    render(<AnalysisTab versionId="v1" version={version} isAdmin={false} lang="en" />);
+    const near = (label: string, text: string) =>
+      expect(screen.getByLabelText(label).closest('div')).toHaveTextContent(text);
+    near('genre', 'Their genre');
+    near('mainIdea', 'Their idea');
+    near('themes', '[{"their":"theme"}]');
+    expect(screen.getByRole('button', { name: 'Save analysis' })).toBeEnabled();
   });
 
   it('not admin — no run block, no «Draft from dossier»', () => {

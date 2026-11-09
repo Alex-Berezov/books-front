@@ -27,6 +27,7 @@ import type {
   BookSummarySectionList,
   CreateBookSummarySectionRequest,
   DeleteBookSummarySectionRequest,
+  ExpectedRow,
   ReorderBookSummarySectionsRequest,
   UpdateBookSummarySectionRequest,
   UpsertBookSummaryRequest,
@@ -77,13 +78,13 @@ export const useUpsertBookSummary = (
   options?: UseMutationOptions<
     BookSummaryDetail,
     Error,
-    { versionId: string; data: UpsertBookSummaryRequest }
+    { versionId: string; data: UpsertBookSummaryRequest; expected?: ExpectedRow }
   >
 ) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ versionId, data }) => upsertBookSummary(versionId, data),
+    mutationFn: ({ versionId, data, expected }) => upsertBookSummary(versionId, data, expected),
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: summaryKeys.detail(variables.versionId) });
@@ -100,8 +101,15 @@ export const useUpsertBookSummary = (
 export const useUpsertBookSummaryBrief = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ versionId, brief }: { versionId: string; brief: string | null }) =>
-      upsertBookSummaryBrief(versionId, { brief }),
+    mutationFn: ({
+      versionId,
+      brief,
+      expectedUpdatedAt,
+    }: {
+      versionId: string;
+      brief: string | null;
+      expectedUpdatedAt?: string;
+    }) => upsertBookSummaryBrief(versionId, { brief }, expectedUpdatedAt),
     // Идущее перечитывание пересказа (его запускает «Save Summary») отменяется: иначе его старый
     // `brief` лёг бы в кэш поверх ответа, и форма при возврате на вкладку заполнилась бы старым текстом.
     // Ответ очень краткого может нести полный пересказ старше записанного «Save Summary» (сервер

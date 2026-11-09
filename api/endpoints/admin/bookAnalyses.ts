@@ -4,11 +4,13 @@
  * Analysis («Разбор и анализ») of a book version and chapter titles for the prompt inputs.
  */
 
+import { expectedRowParams } from '@/lib/admin/expected-row';
 import { httpGetAuth, httpPutAuth } from '@/lib/http-client';
 import type {
   BookAnalysisDetail,
   BookAnalysisSaveResponse,
   ChapterTitle,
+  ExpectedRow,
   PaginatedResult,
   SaveBookAnalysisRequest,
 } from '@/types/api-schema';
@@ -30,13 +32,17 @@ export const getBookAnalysis = async (versionId: string): Promise<BookAnalysisDe
 /**
  * Save (merge) analysis for a version. `dryRun` validates and merges exactly as a save would
  * and writes nothing: the import window shows `hasCore` and `warnings` before applying (decision A3).
+ * `expected` — what the tab saw: the server answers 409 if the record changed since (second tab,
+ * another admin, an analysis run). A dry run writes nothing and sends no check.
  */
 export const saveBookAnalysis = async (
   versionId: string,
   data: SaveBookAnalysisRequest,
-  dryRun = false
+  dryRun = false,
+  expected?: ExpectedRow
 ): Promise<BookAnalysisSaveResponse> => {
-  const endpoint = `/versions/${versionId}/analysis${dryRun ? '?dryRun=true' : ''}`;
+  const params = dryRun ? 'dryRun=true' : expectedRowParams(expected);
+  const endpoint = `/versions/${versionId}/analysis${params ? `?${params}` : ''}`;
   return httpPutAuth<BookAnalysisSaveResponse>(endpoint, data);
 };
 

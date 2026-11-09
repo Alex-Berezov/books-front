@@ -399,6 +399,15 @@ export interface UpsertBookSummaryRequest {
   themes?: string;
 }
 
+/**
+ * Что вкладка видела на сервере — query записи анализа и пересказа: `updatedAt` загруженной записи
+ * или признак «записи нет». Не совпало — 409 `RECORD_CHANGED`; оба поля сразу — 400.
+ */
+export interface ExpectedRow {
+  expectedUpdatedAt?: string;
+  expectedAbsent?: 'true';
+}
+
 /** Тело `PUT /versions/{id}/summary/brief`: ключ обязателен, `null` и `""` очищают. */
 export interface UpsertBookSummaryBriefRequest {
   brief: string | null;

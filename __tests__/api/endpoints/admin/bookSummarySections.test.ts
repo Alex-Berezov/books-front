@@ -7,6 +7,7 @@ import {
   getBookSummarySections,
   reorderBookSummarySections,
   updateBookSummarySection,
+  upsertBookSummary,
   upsertBookSummaryBrief,
 } from '@/api/endpoints/admin/bookSummaries';
 import { server } from '../../../msw/server';
@@ -55,6 +56,34 @@ describe('admin summary sections endpoints', () => {
     expect(seen).toEqual([
       { method: 'PUT', path: '/versions/v1/summary/brief', body: { brief: null } },
     ]);
+  });
+
+  it('полный пересказ: сверка уходит в query, без сведений query пуст', async () => {
+    const urls: string[] = [];
+    server.use(
+      http.put(`${API_BASE}/versions/:id/summary`, ({ request }) => {
+        urls.push(request.url);
+        return HttpResponse.json({});
+      })
+    );
+    await upsertBookSummary('v1', { summary: 'S' }, { expectedAbsent: 'true' });
+    await upsertBookSummary('v1', { summary: 'S' });
+    expect(new URL(urls[0]!).searchParams.get('expectedAbsent')).toBe('true');
+    expect(new URL(urls[1]!).search).toBe('');
+  });
+
+  it('expectedUpdatedAt уходит в query очень краткого', async () => {
+    const urls: string[] = [];
+    server.use(
+      http.put(`${API_BASE}/versions/:id/summary/brief`, ({ request }) => {
+        urls.push(request.url);
+        return HttpResponse.json({});
+      })
+    );
+    await upsertBookSummaryBrief('v1', { brief: 'B' }, '2026-10-17T00:00:00.000Z');
+    expect(new URL(urls[0]!).searchParams.get('expectedUpdatedAt')).toBe(
+      '2026-10-17T00:00:00.000Z'
+    );
   });
 
   it('список и раздел по id — GET', async () => {

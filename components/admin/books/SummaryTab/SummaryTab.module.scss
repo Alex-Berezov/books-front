@@ -36,6 +36,17 @@
   font-weight: $font-weight-regular;
 }
 
+.serverText {
+  margin: 0;
+  padding: $spacing-sm;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  background: $color-background-secondary;
+  font-size: $font-size-sm;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .textarea {
   padding: $spacing-md;
   border: 1px solid $color-border-base;

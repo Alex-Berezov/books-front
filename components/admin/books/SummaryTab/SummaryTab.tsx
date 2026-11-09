@@ -35,6 +35,7 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
     unknownFields,
     retryReload,
     serverUpdates,
+    showsServerText,
     loadServerText,
     hasFullSummary,
     briefMinutes,
@@ -81,8 +82,12 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
             rows={24}
             value={formData.summaryText}
           />
-          {serverUpdates.summaryText !== undefined && (
-            <ServerTextNotice field="Summary" onLoad={() => loadServerText('summaryText')} />
+          {showsServerText('summaryText') && (
+            <ServerTextNotice
+              field="Summary"
+              text={serverUpdates.summaryText ?? ''}
+              onLoad={() => loadServerText('summaryText')}
+            />
           )}
 
           {unknownFields.includes('summaryText') && (
@@ -92,7 +97,7 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
           <Button
             onClick={handleSave}
             loading={isSaving}
-            disabled={isSaving || unknownFields.includes('summaryText')}
+            disabled={isSaving || isSavingBrief || unknownFields.includes('summaryText')}
           >
             Save Summary
           </Button>
@@ -106,9 +111,10 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
             rows={8}
             value={formData.briefText}
           />
-          {serverUpdates.briefText !== undefined && (
+          {showsServerText('briefText') && (
             <ServerTextNotice
               field="Very short summary"
+              text={serverUpdates.briefText ?? ''}
               onLoad={() => loadServerText('briefText')}
             />
           )}
@@ -122,7 +128,9 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
           <Button
             onClick={handleSaveBrief}
             loading={isSavingBrief}
-            disabled={isSavingBrief || !hasFullSummary || unknownFields.includes('briefText')}
+            disabled={
+              isSaving || isSavingBrief || !hasFullSummary || unknownFields.includes('briefText')
+            }
           >
             Save Very Short Summary
           </Button>

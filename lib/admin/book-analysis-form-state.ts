@@ -179,6 +179,15 @@ export const takeServerBlocks = (
   return { form: next, kept };
 };
 
+/** Текст блока формы по ключу из `kept` (`facts.x`, текст, список — как его редактор видит в поле). */
+export const blockText = (form: BookAnalysisFormValues, key: string): string => {
+  if (key.startsWith('facts.')) {
+    return form.facts[key.slice('facts.'.length) as keyof BookAnalysisFormValues['facts']];
+  }
+  if (key in form.texts) return form.texts[key as keyof BookAnalysisFormValues['texts']];
+  return form.drafts[key as BookAnalysisListKey].text;
+};
+
 /** Сохранение шлёт всю запись: все ключи §3, пустые — `null` (решение арбитра А4). */
 export const analysisRequestFromForm = (
   values: BookAnalysisFormValues,
