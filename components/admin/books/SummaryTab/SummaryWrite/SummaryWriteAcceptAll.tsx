@@ -7,11 +7,11 @@ import type { SummaryWrite } from '@/types/api-schema';
 import { FieldConflict } from './FieldConflict';
 import styles from './SummaryWrite.module.scss';
 import {
-  acceptAllStopOf,
   acceptedIndexesOf,
   fieldChangedOf,
   itemTitle,
   refusalText,
+  stoppedItemOf,
 } from './summaryWrite.utils';
 
 export interface SummaryWriteAcceptAllProps {
@@ -43,7 +43,7 @@ export const SummaryWriteAcceptAll: FC<SummaryWriteAcceptAllProps> = ({
   // Списка нет (отказ до первой записи, сеть, 5xx) — на каком тексте встали, неизвестно.
   const accepted = acceptedIndexesOf(error);
   const changed = fieldChangedOf(error);
-  const stop = accepted ? acceptAllStopOf(itemsAtFailure, accepted) : null;
+  const stop = stoppedItemOf(itemsAtFailure, error);
   const acceptedTitles = (accepted ?? [])
     .map((index) => itemsAtFailure.find((i) => i.index === index))
     .filter((i) => i !== undefined)

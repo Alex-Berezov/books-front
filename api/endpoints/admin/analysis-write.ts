@@ -22,6 +22,7 @@ import type {
   AnalysisWriteValue,
   ContentDraftAcceptAll,
   ContentDraftRun,
+  AcceptSummaryItemRequest,
   RegenerateSummaryItemRequest,
   StartContentDraftRequest,
 } from '@/types/api-schema';
@@ -65,12 +66,19 @@ export const regenerateAnalysisItem = async (
     data
   );
 
-/** «Accept»: запись предложения в блок, если содержимое блока не менялось после предложения. */
-export const acceptAnalysisItem = async (id: string, index: number): Promise<ContentDraftRun> =>
-  httpPostAuth<ContentDraftRun>(
+/** «Accept»: запись предложения в блок, если содержимое блока не менялось после предложения;
+ * `expectedPrint` — отпечаток показанного предложения (другое предложение — 409). */
+export const acceptAnalysisItem = async (
+  id: string,
+  index: number,
+  expectedPrint?: string
+): Promise<ContentDraftRun> => {
+  const body: AcceptSummaryItemRequest = expectedPrint ? { expectedPrint } : {};
+  return httpPostAuth<ContentDraftRun>(
     `/admin/content-drafts/${encodeURIComponent(id)}/items/${index}/accept`,
-    {}
+    body
   );
+};
 
 /** «Discard» предложения: блок не трогается. */
 export const discardAnalysisItem = async (id: string, index: number): Promise<ContentDraftRun> =>

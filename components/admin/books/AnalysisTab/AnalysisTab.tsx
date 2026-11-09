@@ -66,6 +66,11 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
     );
   }
 
+  const coreMissing =
+    tab.lastCheck && !tab.lastCheck.hasCore
+      ? tab.lastCheck.warnings.filter((w) => w.code === 'core_incomplete')
+      : null;
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -88,10 +93,10 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
           saving={tab.isSaving}
           core={{
             hasCore: tab.savedHasCore,
-            missing: tab.lastCheck
-              ? tab.lastCheck.warnings.filter((w) => w.code === 'core_incomplete')
-              : null,
-            error: tab.lastCheck ? null : tab.savedCheckError,
+            // Итог «ядро готово» перечня не даёт: при живом `hasCore: false` он устарел.
+            missing: coreMissing,
+            error: coreMissing ? null : tab.savedCheckError,
+            checking: tab.savedCheckPending,
             retry: tab.retrySavedCheck,
           }}
         />
@@ -128,7 +133,17 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
               <p className={`${styles.status} ${tab.savedHasCore ? styles.statusOk : ''}`}>
                 {tab.savedHasCore
                   ? 'Saved analysis has a complete core.'
-                  : 'Saved analysis has no complete core: checking what is missing…'}
+                  : tab.savedCheckPending
+                    ? 'Saved analysis has no complete core: checking what is missing…'
+                    : 'Saved analysis has no complete core.'}
+                {tab.savedHasCore === false && !tab.savedCheckPending && (
+                  <>
+                    {' '}
+                    <Button type="button" variant="link" onClick={tab.retrySavedCheck}>
+                      Check what is missing
+                    </Button>
+                  </>
+                )}
               </p>
             )
           )}

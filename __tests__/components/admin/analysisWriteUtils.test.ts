@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   blockChangedOf,
+  checkOf,
   isNothingToAdd,
   mayHaveWritten,
   progressText,
   refusalTextOfCode,
+  skippedOfError,
   skippedText,
   sortItems,
   startLossText,
@@ -131,6 +133,44 @@ describe('analysisWrite.utils', () => {
     expect(skippedText({ index: 7, code: 'ANALYSIS_BLOCK_CHANGED' }, undefined)).toBe(
       'Block 7: the editor changed the block: press Accept to see what the block holds now, or Discard.'
     );
+  });
+
+  it('skippedText: a refused write without full sources — what to press to learn why (T174, p.4)', () => {
+    expect(skippedText({ index: 3, code: 'ANALYSIS_WRITE_REFUSED' }, item())).toBe(
+      'Main idea: the analysis refused the write: press Accept on the block to retry, it says why if refused, or Discard.'
+    );
+  });
+
+  it('skippedText: a run that is no longer ready — the reason without advice (T174, p.1)', () => {
+    expect(skippedText({ index: 3, code: 'ANALYSIS_WRITE_REFUSED' }, item(), false)).toBe(
+      'Main idea: the analysis refused the write.'
+    );
+  });
+
+  it('a regenerated proposal has its own refusal text (T174, p.2)', () => {
+    expect(refusalTextOfCode('ANALYSIS_PROPOSAL_CHANGED')).toContain('The proposal changed');
+  });
+
+  it('skippedOfError: the skipped of a stopped «Accept all» (T174, p.1); other errors — nothing', () => {
+    const skipped = [{ index: 1, code: 'ANALYSIS_WRITE_REFUSED' }];
+    expect(skippedOfError(conflict('ANALYSIS_WRITE_NOT_READY', { skipped }))).toEqual(skipped);
+    expect(skippedOfError(conflict('ANALYSIS_WRITE_NOT_READY'))).toEqual([]);
+    expect(skippedOfError(conflict('ANALYSIS_BLOCK_CHANGED', { skipped }))).toEqual([]);
+    expect(skippedOfError(new Error('offline'))).toEqual([]);
+  });
+
+  it('checkOf: EXTERNAL_CHECK is not a model flag and does not turn into «OK» (T174, p.3)', () => {
+    const external = { code: 'EXTERNAL_CHECK', where: 'timeline.0', note: 'check', by: 'code' };
+    const answered = { kind: 'answered' } as AnalysisWriteItem['review'];
+    const only = checkOf(
+      item({ verdict: 'flags', remarks: [external] as never, review: answered })
+    );
+    expect(only.remarks).toEqual([]);
+    expect(only.verdict).toBe('flags');
+    const model = { code: 'EXTERNAL_DOUBT', where: 'timeline.1', note: 'doubt', by: 'model' };
+    expect(
+      checkOf(item({ verdict: 'flags', remarks: [external, model] as never })).remarks
+    ).toEqual([model]);
   });
 
   it('isNothingToAdd: none without a reason and not failed', () => {

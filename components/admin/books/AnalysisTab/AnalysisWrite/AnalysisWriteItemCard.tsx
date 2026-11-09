@@ -110,7 +110,10 @@ export const AnalysisWriteItemCard: FC<AnalysisWriteItemCardProps> = ({
   };
 
   const accept = async () => {
-    if (!(await run(() => actions.accept.mutateAsync(vars)))) return;
+    // Без показанного предложения принимать нечего: иначе запрос ушёл бы без сверки отпечатка.
+    if (!fresh) return;
+    const expectedPrint = proposal.data.print;
+    if (!(await run(() => actions.accept.mutateAsync({ ...vars, expectedPrint })))) return;
     onDecided();
     onBlocksWritten();
   };

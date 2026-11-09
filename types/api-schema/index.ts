@@ -655,6 +655,7 @@ export type {
 export type {
   AnalysisAcceptAll,
   AnalysisAcceptAllSkipCode,
+  AnalysisAcceptAllNotReadyBody,
   AnalysisAcceptAllSkipped,
   AnalysisBlockChangedBody,
   AnalysisWrite,

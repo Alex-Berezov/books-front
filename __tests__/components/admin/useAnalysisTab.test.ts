@@ -13,6 +13,8 @@ const mocks = vi.hoisted(() => ({
   enqueueSnackbar: vi.fn(),
   mutate: vi.fn(),
   mutateAsync: vi.fn(),
+  saveInstances: 0,
+  mutateBy: [] as number[],
   analysis: {
     data: null,
     isLoading: false,
@@ -52,6 +54,7 @@ vi.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: mocks.enque
 vi.mock('@/api/hooks', async () => {
   const keys =
     await vi.importActual<typeof import('@/api/hooks/draftKeys')>('@/api/hooks/draftKeys');
+  const react = await vi.importActual<typeof import('react')>('react');
   return {
     isRegenRunning: keys.isRegenRunning,
     useAnalysisWritesInFlight: (versionId: string) => {
@@ -81,11 +84,18 @@ vi.mock('@/api/hooks', async () => {
       data: enabled && mocks.runState === 'success' ? { draft: mocks.run } : undefined,
       isError: enabled && mocks.runState === 'error',
     }),
-    useSaveBookAnalysis: () => ({
-      mutate: mocks.mutate,
-      mutateAsync: mocks.mutateAsync,
-      isPending: false,
-    }),
+    useSaveBookAnalysis: () => {
+      // Номер экземпляра мутации: проба ядра и превью импорта не должны делить одну.
+      const instance = react.useRef(++mocks.saveInstances).current;
+      return {
+        mutate: mocks.mutate,
+        mutateAsync: (args: unknown) => {
+          mocks.mutateBy.push(instance);
+          return mocks.mutateAsync(args);
+        },
+        isPending: false,
+      };
+    },
   };
 });
 
@@ -395,6 +405,63 @@ describe('useAnalysisTab', () => {
       expect(result.current.lastCheck).toEqual({ hasCore: false, warnings: response.warnings })
     );
     expect(result.current.savedCheckError).toBeNull();
+  });
+
+  describe('проба ядра по кнопке (решение арбитра T174)', () => {
+    const answer = (mainIdea: string, hasCore: boolean) =>
+      ({
+        data: { ...emptySaved, mainIdea, hasCore },
+        isLoading: false,
+        isSuccess: true,
+        error: null,
+      }) as typeof mocks.analysis;
+    const opened = async () => {
+      mocks.analysis = answer('Old', true);
+      const hook = renderHook((current: typeof props) => useAnalysisTab(current), {
+        initialProps: props,
+      });
+      await waitFor(() => expect(hook.result.current.analyzeImport).not.toBeNull());
+      return hook;
+    };
+
+    it('фоновый ответ с hasCore: false пробу сам не запускает', async () => {
+      const { rerender } = await opened();
+      mocks.analysis = answer('Live', false);
+      rerender(props);
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(mocks.mutateAsync).not.toHaveBeenCalled();
+    });
+
+    it('кнопка проверяет живую запись, а не снимок формы', async () => {
+      const { result, rerender } = await opened();
+      mocks.analysis = answer('Live', false);
+      rerender(props);
+      act(() => result.current.retrySavedCheck());
+      expect(mocks.mutateAsync).toHaveBeenCalledTimes(1);
+      expect(mocks.mutateAsync.mock.calls[0][0]).toMatchObject({
+        dryRun: true,
+        data: { mainIdea: 'Live' },
+      });
+    });
+
+    it('проба ядра и превью импорта идут разными мутациями: превью не выглядит пробой', async () => {
+      const { result } = await opened();
+      mocks.mutateBy.length = 0;
+      act(() => result.current.retrySavedCheck());
+      await act(() => result.current.previewImport({ language: 'en', mainIdea: 'X' }));
+      expect(mocks.mutateBy).toHaveLength(2);
+      expect(mocks.mutateBy[0]).not.toBe(mocks.mutateBy[1]);
+    });
+
+    it('до гидрации другой версии кнопка ничего не проверяет', async () => {
+      const { result, rerender } = await opened();
+      mocks.analysis = { ...answer('Other', false), isFetching: true };
+      rerender({ ...props, versionId: 'v2' });
+      act(() => result.current.retrySavedCheck());
+      expect(mocks.mutateAsync).not.toHaveBeenCalled();
+    });
   });
 
   it('ответ пробы при открытии, пришедший после сохранения, не перетирает итог сохранения', async () => {
@@ -1024,6 +1091,16 @@ describe('useAnalysisTab', () => {
       mocks.run = runOf('ready', 'done', [regenItem('paused')]);
       rerender();
       expect(result.current.saveBlockedReason).toBeNull();
+    });
+
+    it('перегенерация заполненного блока — «Save analysis» закрыт: правка легла бы под предложение (решение арбитра T174)', async () => {
+      mocks.run = runOf('ready', 'done', [
+        { ...regenItem('active'), target: 'mainIdea', outcome: 'proposed' },
+      ]);
+      const { result } = await saved(true);
+      expect(result.current.saveBlockedReason).toBe(
+        'A block of the analysis run is being regenerated: save when it ends.'
+      );
     });
 
     it('«Accept», «Accept all» или «Regenerate» в полёте — закрыт; считаются мутации записи этой версии', async () => {

@@ -150,6 +150,8 @@ export interface RegenerateSummaryItemRequest {
 export interface AcceptSummaryItemRequest {
   /** Редактор подтвердил, что раздел переходит на другие главы читалки. */
   confirmChapterChange?: boolean;
+  /** Только ход анализа: отпечаток показанного предложения (`print`). */
+  expectedPrint?: string;
 }
 
 /** Охват раздела главами читалки; `null` — не выводится. */
@@ -176,6 +178,8 @@ export interface SummaryFieldChangedBody {
  */
 export interface SummaryAcceptAllStopBody {
   acceptedIndexes: number[];
+  /** Текст, на котором встал проход (с `T174`; старый ответ поля не несёт). */
+  stoppedIndex?: number;
 }
 
 /** Тело 409 `SUMMARY_CHAPTER_CHANGE`: раздел переходит на другие главы читалки. */

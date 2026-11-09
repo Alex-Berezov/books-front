@@ -8,6 +8,7 @@ import { ApiError } from '@/types/api';
 import type { SummaryFormData, SummaryTabProps } from './SummaryTab.types';
 import type { SummaryWriteField } from './SummaryWrite/summaryWrite.utils';
 import type { ExpectedRow } from '@/types/api-schema';
+import { SUMMARY_FIELD_LABEL } from './summaryTab.constants';
 
 /**
  * Пустой редактор — без текста и без медиа. Только такой очищает поле (`null`): бриф из одной
@@ -153,9 +154,15 @@ export const useSummaryTab = (props: SummaryTabProps) => {
       if (wanted.length === 0) return;
       // Второй вызов обрывает запрос первого, а оборванный ждёт новый (query-core `fetch`, тихая
       // отмена): оба получают свежий ответ — сторож в useSummaryTabReload.test.
-      const startedAt = Date.now();
-      const result = await refetchRef.current();
+      let startedAt = Date.now();
+      let result = await refetchRef.current();
       if (versionRef.current !== calledFor) return;
+      // Отмена — не отказ сервера: один повтор, и только если не выяснилось — пометка (T174, п.5).
+      if (result.status === 'success' && result.dataUpdatedAt < startedAt) {
+        startedAt = Date.now();
+        result = await refetchRef.current();
+        if (versionRef.current !== calledFor) return;
+      }
       // Запрос, отменённый сохранением соседнего поля (`cancelQueries`, откат), отдаёт данные
       // прежнего состояния со статусом success: удачен только ответ, пришедший после начала.
       const fresh = result.status === 'success' && result.dataUpdatedAt >= startedAt;
@@ -209,9 +216,12 @@ export const useSummaryTab = (props: SummaryTabProps) => {
     // До заполнения с сервера в поле не то, что сохранено: такая запись затёрла бы пересказ.
     if (!hydrated) return;
     if (unknownFields.includes('summaryText')) {
-      enqueueSnackbar('The server text of “Summary” is not known: retry loading it first', {
-        variant: 'warning',
-      });
+      enqueueSnackbar(
+        `The server text of “${SUMMARY_FIELD_LABEL.summaryText}” is not known: retry loading it first`,
+        {
+          variant: 'warning',
+        }
+      );
       return;
     }
     const summary = formData.summaryText.trim();
@@ -270,7 +280,7 @@ export const useSummaryTab = (props: SummaryTabProps) => {
     }
     if (unknownFields.includes('briefText')) {
       enqueueSnackbar(
-        'The server text of “Very short summary” is not known: retry loading it first',
+        `The server text of “${SUMMARY_FIELD_LABEL.briefText}” is not known: retry loading it first`,
         {
           variant: 'warning',
         }

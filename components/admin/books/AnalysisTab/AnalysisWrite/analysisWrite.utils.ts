@@ -14,6 +14,7 @@ import { DOSSIER_REFUSED_TEXT } from '@/components/admin/translation-run/transla
 import { ApiError } from '@/types/api';
 import type {
   AnalysisAcceptAllSkipCode,
+  AnalysisAcceptAllNotReadyBody,
   AnalysisAcceptAllSkipped,
   AnalysisBlockChangedBody,
   AnalysisWrite,
@@ -96,7 +97,14 @@ export const isRegenerable = (item: AnalysisWriteItem): boolean =>
  * `hasCore`, а не счётчик флагов (решение арбитра `F07 | F07-3`, п.6).
  */
 export const shownRemarks = (remarks: AnalysisWriteRemark[]): AnalysisWriteRemark[] =>
-  remarks.filter((r) => r.code !== 'CORE_MISSING');
+  remarks.filter((r) => r.code !== 'CORE_MISSING' && r.code !== 'EXTERNAL_CHECK');
+
+/**
+ * `EXTERNAL_CHECK` — метка «сверить факты» человеку, а не находка модели (F07 `product.md` §5):
+ * в счётчик «Model flags» не входит и «Model check: OK» внешнему блоку не даёт (T174, п.3).
+ */
+const needsHandCheck = (item: AnalysisWriteItem): boolean =>
+  item.remarks.some((r) => r.code === 'EXTERNAL_CHECK');
 
 /**
  * Отметка блока для общей `ItemCheck`: замечания без `CORE_MISSING`; вердикт `flags`, у которого
@@ -107,7 +115,10 @@ export const checkOf = (
 ): Pick<AnalysisWriteItem, 'verdict' | 'remarks' | 'review'> => {
   const remarks = shownRemarks(item.remarks);
   const onlyCore =
-    item.verdict === 'flags' && remarks.length === 0 && item.review?.kind === 'answered';
+    item.verdict === 'flags' &&
+    remarks.length === 0 &&
+    item.review?.kind === 'answered' &&
+    !needsHandCheck(item);
   return { verdict: onlyCore ? 'ok' : item.verdict, remarks, review: item.review };
 };
 
@@ -127,6 +138,8 @@ const REFUSALS: Record<string, string> = {
     'The run is not ready any more: it is being written, failed or discarded.',
   ANALYSIS_REGEN_IN_PROGRESS: 'This block is being regenerated: wait until it finishes.',
   ANALYSIS_ITEM_NOT_PROPOSED: 'This block is no longer a proposal: reload the tab.',
+  ANALYSIS_PROPOSAL_CHANGED:
+    'The proposal changed since you opened it: read the new text and press Accept again.',
   ANALYSIS_ITEM_UNKNOWN: 'The run has no such block: reload the tab.',
   ANALYSIS_ITEM_NOT_REGENERABLE:
     'Theme links and sources are not regenerated on their own: regenerate the block they belong to.',
@@ -216,6 +229,12 @@ export const mayHaveWritten = (error: unknown): boolean =>
     refusalCode(error) !== 'ANALYSIS_BLOCK_CHANGED'
   );
 
+/** Пропущенные пункты из тела 409 `ANALYSIS_WRITE_NOT_READY` (обрыв «Accept all»); иной отказ — пусто. */
+export const skippedOfError = (error: unknown): AnalysisAcceptAllSkipped[] =>
+  error instanceof ApiError && refusalCode(error) === 'ANALYSIS_WRITE_NOT_READY'
+    ? ((error.data as unknown as AnalysisAcceptAllNotReadyBody | undefined)?.skipped ?? [])
+    : [];
+
 /** Почему «Accept all» оставил пункт предложением (решение арбитра `F07 | F07-3`, п.7). */
 const SKIP_TEXT: Record<AnalysisAcceptAllSkipCode, string> = {
   ANALYSIS_BLOCK_CHANGED: 'the editor changed the block',
@@ -226,15 +245,19 @@ const SKIP_TEXT: Record<AnalysisAcceptAllSkipCode, string> = {
 /** Строка пропущенного пункта; при полном списке источников — что делать. */
 export const skippedText = (
   skipped: AnalysisAcceptAllSkipped,
-  item: AnalysisWriteItem | undefined
+  item: AnalysisWriteItem | undefined,
+  actionable = true
 ): string => {
   const reason = SKIP_TEXT[skipped.code] ?? skipped.code;
-  const hint =
-    skipped.code === 'ANALYSIS_WRITE_REFUSED' && item && sourcesFull(item)
+  const hint = !actionable
+    ? ''
+    : skipped.code === 'ANALYSIS_WRITE_REFUSED' && item && sourcesFull(item)
       ? `: ${SOURCES_FULL_HINT}`
       : skipped.code === 'ANALYSIS_BLOCK_CHANGED'
         ? ': press Accept to see what the block holds now, or Discard'
-        : '';
+        : skipped.code === 'ANALYSIS_WRITE_REFUSED'
+          ? ': press Accept on the block to retry, it says why if refused, or Discard'
+          : '';
   return `${item ? itemTitle(item) : `Block ${skipped.index}`}: ${reason}${hint}.`;
 };
 

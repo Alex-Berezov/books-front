@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   AnalysisWrite,
@@ -184,6 +184,7 @@ const analysis = (patch: Partial<BookAnalysisDetail> = {}): BookAnalysisDetail =
 });
 
 const value = (patch: Partial<AnalysisWriteValue> = {}): AnalysisWriteValue => ({
+  print: 'print-1',
   text: null,
   characters: null,
   keyQuotes: null,
@@ -212,6 +213,7 @@ const core = (patch: Partial<AnalysisCoreState> = {}): AnalysisCoreState => ({
   hasCore: false,
   missing: [],
   error: null,
+  checking: false,
   retry: retryCore,
   ...patch,
 });
@@ -297,9 +299,15 @@ describe('AnalysisWrite (F07-3a)', () => {
       ).toBeInTheDocument();
       fireEvent.click(button('Retry'));
       expect(retryCore).toHaveBeenCalledTimes(1);
-      coreState = core({ missing: null });
+      coreState = core({ missing: null, checking: true });
       rerender(element());
       expect(screen.getByText('Core: not ready — checking what is missing…')).toBeInTheDocument();
+      // Проба не идёт: не «проверяем», а кнопка (T174, п.4).
+      coreState = core({ missing: null });
+      rerender(element());
+      expect(screen.queryByText(/checking what is missing/)).toBeNull();
+      fireEvent.click(button('Check what is missing'));
+      expect(retryCore).toHaveBeenCalledTimes(2);
     });
 
     it('Accept of a core block reloads the analysis: the plate turns ready', async () => {
@@ -308,7 +316,11 @@ describe('AnalysisWrite (F07-3a)', () => {
       fireEvent.click(within(card('Main idea')).getByRole('button', { name: 'Accept' }));
       await waitFor(() => expect(onBlocksWritten).toHaveBeenCalledTimes(1));
       expect(actions().accept.mutateAsync).toHaveBeenCalledTimes(1);
-      expect(actions().accept.mutateAsync).toHaveBeenCalledWith({ id: 'd1', index: 0 });
+      expect(actions().accept.mutateAsync).toHaveBeenCalledWith({
+        id: 'd1',
+        index: 0,
+        expectedPrint: 'print-1',
+      });
       // Вкладка перечитала анализ (`reloadBlocks`): плашка берёт свежий `hasCore`.
       coreState = core({ hasCore: true });
       rerender(element());
@@ -549,15 +561,232 @@ describe('AnalysisWrite (F07-3a)', () => {
     ).toBeInTheDocument();
   });
 
+  it('a stopped «Accept all» still names the items it left as proposals (T174, p.1)', async () => {
+    const items = [item({ index: 0 }), item({ index: 1, target: 'themes', step: 3 })];
+    hooks.run = run({ items });
+    actions().acceptAll.mutateAsync.mockRejectedValueOnce(
+      new ApiError({
+        statusCode: 409,
+        message: 'not ready',
+        data: {
+          code: 'ANALYSIS_WRITE_NOT_READY',
+          acceptedIndexes: [],
+          skipped: [{ index: 1, code: 'ANALYSIS_BLOCK_CHANGED' }],
+        },
+      })
+    );
+    view();
+    fireEvent.click(button('Accept all'));
+    const list = await screen.findByRole('list', { name: 'Left as proposals' });
+    expect(within(list).getByText(/^Themes: the editor changed the block/)).toBeInTheDocument();
+  });
+
+  it.each([
+    ['the run is no longer ready', () => run({ status: 'failed' })],
+    ['the reload brought no run', () => null],
+  ])(
+    'a stopped «Accept all» is shown when %s, without advice on buttons that are gone (T174, p.1)',
+    async (_name, after) => {
+      const items = [item({ index: 0 }), item({ index: 1, target: 'themes', step: 3 })];
+      hooks.run = run({ items });
+      actions().acceptAll.mutateAsync.mockImplementationOnce(() => {
+        hooks.run = after();
+        return Promise.reject(
+          new ApiError({
+            statusCode: 409,
+            message: 'not ready',
+            data: {
+              code: 'ANALYSIS_WRITE_NOT_READY',
+              acceptedIndexes: [],
+              skipped: [{ index: 1, code: 'ANALYSIS_BLOCK_CHANGED' }],
+            },
+          })
+        );
+      });
+      const { rerender } = view();
+      fireEvent.click(button('Accept all'));
+      await waitFor(() => expect(onBlocksWritten).toHaveBeenCalledTimes(1));
+      rerender(element());
+      expect(screen.getByText(/The run is not ready any more/)).toBeInTheDocument();
+      const list = screen.getByRole('list', { name: 'Skipped before the stop' });
+      expect(within(list).getByText('Themes: the editor changed the block.')).toBeInTheDocument();
+    }
+  );
+
+  const stopWith = () =>
+    new ApiError({
+      statusCode: 409,
+      message: 'not ready',
+      data: {
+        code: 'ANALYSIS_WRITE_NOT_READY',
+        acceptedIndexes: [],
+        skipped: [{ index: 1, code: 'ANALYSIS_BLOCK_CHANGED' }],
+      },
+    });
+
+  it('a refusal other than «not ready» is not shown over another run (T174, p.1)', async () => {
+    hooks.run = run({ items: [item({ index: 0 })] });
+    actions().acceptAll.mutateAsync.mockImplementationOnce(() => {
+      hooks.run = run({ id: 'd2', status: 'building', items: [] });
+      return Promise.reject(new ApiError({ statusCode: 500, message: 'boom' }));
+    });
+    const { rerender } = view();
+    fireEvent.click(button('Accept all'));
+    await waitFor(() => expect(onBlocksWritten).toHaveBeenCalledTimes(1));
+    rerender(element());
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('Accept stays closed while the proposal is being reread: nothing goes out without a print (T174, p.2)', () => {
+    hooks.fetching = [0];
+    view();
+    const accept = within(card('Main idea')).getByRole('button', { name: 'Accept' });
+    expect(accept).toBeDisabled();
+    fireEvent.click(accept);
+    expect(actions().accept.mutateAsync).not.toHaveBeenCalled();
+  });
+
+  it('a proposal changed elsewhere: the card says so and nothing is written (T174, p.2)', async () => {
+    actions().accept.mutateAsync.mockRejectedValueOnce(
+      new ApiError({
+        statusCode: 409,
+        message: 'changed',
+        data: { code: 'ANALYSIS_PROPOSAL_CHANGED' },
+      })
+    );
+    view();
+    const c = card('Main idea');
+    fireEvent.click(within(c).getByRole('button', { name: 'Accept' }));
+    expect(await within(c).findByRole('alert')).toHaveTextContent(
+      'The proposal changed since you opened it'
+    );
+    expect(onBlocksWritten).not.toHaveBeenCalled();
+  });
+
+  it('a new run from another tab is what stops «Accept all»: the refusal and the reasons stay (T174, p.1)', async () => {
+    const items = [item({ index: 0 }), item({ index: 1, target: 'themes', step: 3 })];
+    hooks.run = run({ items });
+    actions().acceptAll.mutateAsync.mockImplementationOnce(() => {
+      hooks.run = run({ id: 'd2', status: 'building', items: [] });
+      return Promise.reject(stopWith());
+    });
+    const { rerender } = view();
+    fireEvent.click(button('Accept all'));
+    await waitFor(() => expect(onBlocksWritten).toHaveBeenCalledTimes(1));
+    rerender(element());
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.getByText(/The run is not ready any more/)).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Skipped before the stop' })).toBeInTheDocument();
+  });
+
+  const stoppedText = /The run is not ready any more/;
+  const stopThenNoRun = async () => {
+    hooks.run = run({ items: [item({ index: 0 })] });
+    actions().acceptAll.mutateAsync.mockImplementationOnce(() => {
+      hooks.run = null;
+      return Promise.reject(stopWith());
+    });
+    const rendered = view();
+    fireEvent.click(button('Accept all'));
+    await waitFor(() => expect(onBlocksWritten).toHaveBeenCalledTimes(1));
+    rendered.rerender(element());
+    expect(screen.getByText(stoppedText)).toBeInTheDocument();
+    return rendered;
+  };
+
+  it('a stopped «Accept all» goes with the Start of this tab (T174, p.1)', async () => {
+    const { rerender } = await stopThenNoRun();
+    actions().start.isPending = true;
+    rerender(element());
+    await waitFor(() => expect(screen.queryByText(stoppedText)).not.toBeInTheDocument());
+  });
+
+  it('a ready run of another clears it for good: it does not come back when that run is gone (T174, p.1)', async () => {
+    const { rerender } = await stopThenNoRun();
+    hooks.run = run({ id: 'd2', status: 'ready', items: [] });
+    rerender(element());
+    expect(screen.queryByText(stoppedText)).not.toBeInTheDocument();
+    hooks.run = null;
+    rerender(element());
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.queryByText(stoppedText)).not.toBeInTheDocument();
+  });
+
+  it('a 409 late after a ready run of another appeared does not stay either (T174, p.1)', async () => {
+    hooks.run = run({ items: [item({ index: 0 })] });
+    let fail: (e: unknown) => void = () => undefined;
+    actions().acceptAll.mutateAsync.mockImplementationOnce(
+      () => new Promise((_resolve, reject) => (fail = reject))
+    );
+    const { rerender } = view();
+    fireEvent.click(button('Accept all'));
+    hooks.run = run({ id: 'd2', status: 'ready', items: [] });
+    rerender(element());
+    await act(async () => fail(stopWith()));
+    await waitFor(() => expect(onBlocksWritten).toHaveBeenCalledTimes(1));
+    hooks.run = null;
+    rerender(element());
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.queryByText(stoppedText)).not.toBeInTheDocument();
+  });
+
+  it('a shown stopped «Accept all» goes when the version changes (T174, p.1)', async () => {
+    const { rerender } = await stopThenNoRun();
+    rerender(element('v2'));
+    await waitFor(() => expect(screen.queryByText(stoppedText)).not.toBeInTheDocument());
+  });
+
+  it('a 409 late after the version changed is not put on the new version (T174, p.1)', async () => {
+    hooks.run = run({ items: [item({ index: 0 })] });
+    let fail: (e: unknown) => void = () => undefined;
+    actions().acceptAll.mutateAsync.mockImplementationOnce(
+      () => new Promise((_resolve, reject) => (fail = reject))
+    );
+    const { rerender } = view();
+    fireEvent.click(button('Accept all'));
+    hooks.run = null;
+    rerender(element('v2'));
+    await act(async () => fail(stopWith()));
+    await waitFor(() => expect(onBlocksWritten).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText(stoppedText)).not.toBeInTheDocument();
+  });
+
+  it('an external block: EXTERNAL_CHECK is neither a model flag nor an OK (T174, p.3)', () => {
+    hooks.run = run({
+      items: [
+        item({
+          target: 'context',
+          step: 5,
+          verdict: 'flags',
+          remarks: [{ code: 'EXTERNAL_CHECK', where: 'context.0', note: 'check', by: 'code' }],
+        }),
+      ],
+    });
+    view();
+    const c = card('Context');
+    expect(within(c).queryByText(/Model flags/)).toBeNull();
+    expect(within(c).queryByText('Model check: OK')).toBeNull();
+  });
+
   it('a facts subfield is a proposal of its own, accepted by its index', async () => {
-    hooks.proposals[3] = value({ text: 'Third person' });
+    hooks.proposals[3] = value({ text: 'Third person', print: 'print-3' });
     hooks.run = run({ items: [item({ index: 3, target: 'facts.narrator', step: 1 })] });
     view();
     const c = card('Facts: narrator');
     expect(within(c).getByText('Third person')).toBeInTheDocument();
     fireEvent.click(within(c).getByRole('button', { name: 'Accept' }));
     await waitFor(() =>
-      expect(actions().accept.mutateAsync).toHaveBeenCalledWith({ id: 'd1', index: 3 })
+      expect(actions().accept.mutateAsync).toHaveBeenCalledWith({
+        id: 'd1',
+        index: 3,
+        expectedPrint: 'print-3',
+      })
     );
     expect(actions().accept.mutateAsync).toHaveBeenCalledTimes(1);
   });

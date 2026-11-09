@@ -10,6 +10,7 @@ import { ServerTextNotice } from './ServerTextNotice';
 import { ServerTextUnknown } from './ServerTextUnknown';
 import { SummaryFormField } from './SummaryFormField';
 import { SummarySections } from './SummarySections';
+import { SUMMARY_FIELD_LABEL } from './summaryTab.constants';
 import styles from './SummaryTab.module.scss';
 import { useSummaryTab } from './useSummaryTab';
 
@@ -76,7 +77,7 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
           <SummaryFormField
             hint="Plot only, including the ending; use Heading 2 for parts or chapters. Public page: /book/<slug>/summary"
             id="summaryText"
-            label="Summary"
+            label={SUMMARY_FIELD_LABEL.summaryText}
             onChange={handleFieldChange}
             placeholder="Retell the plot of the book in order..."
             rows={24}
@@ -84,14 +85,14 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
           />
           {showsServerText('summaryText') && (
             <ServerTextNotice
-              field="Summary"
+              field={SUMMARY_FIELD_LABEL.summaryText}
               text={serverUpdates.summaryText ?? ''}
               onLoad={() => loadServerText('summaryText')}
             />
           )}
 
           {unknownFields.includes('summaryText') && (
-            <ServerTextUnknown field="Summary" onRetry={retryReload} />
+            <ServerTextUnknown field={SUMMARY_FIELD_LABEL.summaryText} onRetry={retryReload} />
           )}
 
           <Button
@@ -105,7 +106,7 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
           <SummaryFormField
             hint='3-5 min read, whole plot including the ending. Not the spoiler-free teaser "Summary (Short, 80-160 words)" on the book page'
             id="briefText"
-            label="Very short summary"
+            label={SUMMARY_FIELD_LABEL.briefText}
             onChange={handleFieldChange}
             placeholder="The whole plot in a few paragraphs..."
             rows={8}
@@ -113,13 +114,13 @@ export const SummaryTab: FC<SummaryTabProps> = (props) => {
           />
           {showsServerText('briefText') && (
             <ServerTextNotice
-              field="Very short summary"
+              field={SUMMARY_FIELD_LABEL.briefText}
               text={serverUpdates.briefText ?? ''}
               onLoad={() => loadServerText('briefText')}
             />
           )}
           {unknownFields.includes('briefText') && (
-            <ServerTextUnknown field="Very short summary" onRetry={retryReload} />
+            <ServerTextUnknown field={SUMMARY_FIELD_LABEL.briefText} onRetry={retryReload} />
           )}
           <p className={styles.readingTime} aria-live="polite">
             Reading time: {briefMinutes} min

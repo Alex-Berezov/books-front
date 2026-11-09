@@ -83,7 +83,9 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
   });
   const saveMutation = useSaveBookAnalysis();
   // Отдельная мутация для пробы: её ожидание не должно выглядеть сохранением.
-  const { mutateAsync: runPreview } = useSaveBookAnalysis();
+  const { mutateAsync: runPreview, isPending: savedCheckPending } = useSaveBookAnalysis();
+  // Своя мутация: превью импорта не должно выглядеть пробой ядра на плашке.
+  const { mutateAsync: runImportPreview } = useSaveBookAnalysis();
 
   const [form, setForm] = useState<BookAnalysisFormValues>(() => formFromAnalysis(null));
   const [validation, setValidation] = useState<BookAnalysisValidation | null>(null);
@@ -130,7 +132,7 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
   // чтения пустая форма, отправленная целиком (А4), стёрла бы живой анализ. Перечитывание после
   // сохранения не должно затирать набранное, пока шло сохранение (как у пересказа).
   const hydratedFor = useRef<string | null>(null);
-  // Снимок формы сохранённой записи: повтор пробы проверяет её, а не несохранённые правки.
+  // Снимок формы сохранённой записи: база слияния при перечитывании (проба ядра берёт живую запись).
   const savedForm = useRef<BookAnalysisFormValues | null>(null);
   // С чем форма сверена (`LEGACY-496`): кэш запроса уходит вперёд без формы — на сохранение идёт это.
   const formBase = useRef<ExpectedRow | undefined>(undefined);
@@ -234,7 +236,7 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     async (data: SaveBookAnalysisRequest): Promise<AnalysisPreview> => {
       const body = analysisRequestFromForm(mergeAnalysisImport(form, data), version.language);
       try {
-        const res = await runPreview({ versionId, data: body, dryRun: true });
+        const res = await runImportPreview({ versionId, data: body, dryRun: true });
         return { state: 'ok', check: { hasCore: res.hasCore, warnings: res.warnings } };
       } catch (error) {
         const message = errorText(error);
@@ -244,7 +246,7 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
         return rejected ? { state: 'rejected', message } : { state: 'failed', message };
       }
     },
-    [form, runPreview, versionId, version.language]
+    [form, runImportPreview, versionId, version.language]
   );
 
   const applyImport = (data: SaveBookAnalysisRequest) => {
@@ -492,8 +494,12 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
     copyPromptInputs,
     lastCheck,
     savedCheckError,
+    savedCheckPending,
+    // Живая запись, а не снимок формы: фоновый ответ снимок не обновляет (решение арбитра T174).
     retrySavedCheck: () => {
-      if (savedForm.current) checkSaved(savedForm.current);
+      if (hydratedFor.current === versionId && analysisQuery.data) {
+        checkSaved(formFromAnalysis(analysisQuery.data));
+      }
     },
     retryLoad: () => void analysisQuery.refetch(),
     reloadBlocks,

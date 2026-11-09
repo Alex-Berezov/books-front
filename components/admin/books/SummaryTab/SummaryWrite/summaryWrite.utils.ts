@@ -201,6 +201,22 @@ export const acceptAllStopOf = (
   return null;
 };
 
+/**
+ * Текст, на котором встал «Accept all»: по `stoppedIndex` сервера (T174, п.5), без поля — по списку
+ * принятого; списка нет — неизвестно.
+ */
+export const stoppedItemOf = (
+  items: SummaryWriteItem[],
+  error: unknown
+): SummaryWriteItem | null => {
+  const accepted = acceptedIndexesOf(error);
+  if (accepted === null) return null;
+  const index = (error as ApiError).data?.stoppedIndex;
+  return Number.isInteger(index)
+    ? (items.find((i) => i.index === index) ?? null)
+    : acceptAllStopOf(items, accepted);
+};
+
 const range = (c: SummaryChapterRange | null): string =>
   c === null
     ? 'chapters that cannot be worked out'
@@ -239,6 +255,6 @@ export const itemsToReloadAfterAcceptAll = (
   // Поле текста, на котором встали, мог изменить кто-то другой — только тогда оно перечитывается.
   if (!fieldChangedOf(error)) return before.filter((i) => done.includes(i.index));
   // Поле изменено на тексте, на котором встали; не вывести его — перечитываются все непринятые.
-  const stop = acceptAllStopOf(items, done);
+  const stop = stoppedItemOf(items, error);
   return before.filter((i) => done.includes(i.index) || !stop || i.index === stop.index);
 };

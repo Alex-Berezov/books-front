@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AnalysisTab } from '@/components/admin/books/AnalysisTab';
 
@@ -142,6 +142,30 @@ describe('AnalysisTab + AnalysisWrite: the core at admin (F07-3a)', () => {
     );
     expect(screen.queryByText(/Could not check what is missing to the core/)).toBeNull();
     expect(within(plate() as HTMLElement).getByRole('button', { name: 'Retry' })).toBeEnabled();
+  });
+
+  it('not an admin, the core gone in a background answer: not «checking», a button (T174, p.4)', async () => {
+    api.saved = saved(true);
+    const element = <AnalysisTab versionId="v1" version={version} isAdmin={false} lang="en" />;
+    const { rerender } = render(element);
+    await screen.findByText('Saved analysis has a complete core.');
+    api.saved = saved(false);
+    rerender(<AnalysisTab versionId="v1" version={version} isAdmin={false} lang="en" />);
+    expect(screen.queryByText(/checking what is missing/)).toBeNull();
+    expect(screen.getByRole('button', { name: 'Check what is missing' })).toBeInTheDocument();
+    expect(api.probe).not.toHaveBeenCalled();
+  });
+
+  it('a ready result that no longer holds: the button probes, its failure is shown in the plate (T174, p.4)', async () => {
+    api.saved = saved(false);
+    api.probe.mockResolvedValueOnce({ analysis: null, hasCore: true, warnings: [] });
+    render(<AnalysisTab versionId="v1" version={version} isAdmin lang="en" />);
+    const check = await screen.findByRole('button', { name: 'Check what is missing' });
+    api.probe.mockRejectedValueOnce(new Error('Failed to fetch'));
+    fireEvent.click(check);
+    expect(
+      await screen.findByText(/Could not check what is missing: Failed to fetch/)
+    ).toBeInTheDocument();
   });
 
   it('core ready: only «Core: ready», no other core text', async () => {

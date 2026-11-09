@@ -10,6 +10,7 @@ import {
   itemsToReloadAfterAcceptAll,
   mayHaveWritten,
   progressText,
+  stoppedItemOf,
   reasonText,
   refusalText,
   refusalTextOfCode,
@@ -202,6 +203,19 @@ describe('summaryWrite.utils', () => {
     expect(acceptAllStopOf(items, [2, 1, 0])).toBeNull();
   });
 
+  it('stoppedItemOf: the index from the server names the text even past a waiting section (T174, p.5)', () => {
+    const items = [
+      item({ index: 0, number: 1, outcome: 'waiting' }),
+      item({ index: 1, number: 2 }),
+    ];
+    const stop = (data: Record<string, unknown>) =>
+      new ApiError({ statusCode: 409, message: 'x', data });
+    expect(stoppedItemOf(items, stop({ acceptedIndexes: [], stoppedIndex: 1 }))?.index).toBe(1);
+    expect(stoppedItemOf(items, stop({ acceptedIndexes: [] }))).toBeNull();
+    expect(stoppedItemOf(items, stop({ stoppedIndex: 1 }))).toBeNull();
+    expect(stoppedItemOf(items, stop({ acceptedIndexes: [], stoppedIndex: 9 }))).toBeNull();
+  });
+
   it('fields of the form: the full and the very short summary, not the sections', () => {
     expect(fieldsOf([item(), item({ target: 'full' }), item({ target: 'brief' })])).toEqual([
       'full',
@@ -286,6 +300,16 @@ describe('summaryWrite.utils', () => {
         )
       )
     ).toEqual([0, 1]);
+    // Сервер назвал пункт: перечитывается он, даже если по списку вышел бы другой (T174, п.5).
+    expect(
+      idx(
+        itemsToReloadAfterAcceptAll(
+          err({ code: 'SUMMARY_FIELD_CHANGED', acceptedIndexes: [0], stoppedIndex: 4 }),
+          items,
+          items
+        )
+      )
+    ).toEqual([0, 4]);
     // Другой код с принятым: встали на 1, но его поле не менялось — только принятое.
     expect(
       idx(

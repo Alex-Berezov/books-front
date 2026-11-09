@@ -12,7 +12,6 @@ import { OperationProgress, RunStart } from '@/components/admin/books/ContentDra
 import { Button } from '@/components/admin/common/Button';
 import { ConfirmDialog } from '@/components/admin/shared';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import type { AnalysisAcceptAllSkipped, AnalysisWriteItem } from '@/types/api-schema';
 import styles from './AnalysisWrite.module.scss';
 import {
   isPending,
@@ -23,10 +22,11 @@ import {
   startLossText,
   writeEstimateText,
 } from './analysisWrite.utils';
-import { AnalysisWriteAcceptAll } from './AnalysisWriteAcceptAll';
+import { AcceptAllOutcome, AnalysisWriteAcceptAll } from './AnalysisWriteAcceptAll';
 import { AnalysisWriteCore, type AnalysisCoreState } from './AnalysisWriteCore';
 import { AnalysisWriteItemCard } from './AnalysisWriteItemCard';
 import { AnalysisWriteSteps } from './AnalysisWriteSteps';
+import { useAcceptAll } from './useAcceptAll';
 import { useWrittenBlocks } from './useWrittenBlocks';
 
 export interface AnalysisWriteProps {
@@ -41,14 +41,6 @@ export interface AnalysisWriteProps {
    * и записи «Regenerate» — они ждут её конца (обратная сторона запрета Save, Б1).
    */
   saving: boolean;
-}
-
-/** Итог последнего «Accept all» — своего хода: у нового хода или после «Discard run» его нет. */
-interface AcceptAllResult {
-  runId: string;
-  error: unknown;
-  skipped: AnalysisAcceptAllSkipped[];
-  items: AnalysisWriteItem[];
 }
 
 /**
@@ -69,7 +61,6 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
   const analysis = useBookAnalysis(versionId);
   const actions = useAnalysisWriteActions(versionId);
   const [discarding, setDiscarding] = useState(false);
-  const [acceptAllResult, setAcceptAllResult] = useState<AcceptAllResult | null>(null);
 
   const run = data?.draft ?? null;
   const building = run?.status === 'building';
@@ -78,7 +69,14 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
   const items = run ? sortItems(run.items) : [];
   // «Accept all» берёт предложения; перегенерируемые сервер не пробует.
   const acceptable = items.filter((i) => isPending(i) && !i.regenerating);
-  const allResult = acceptAllResult && acceptAllResult.runId === run?.id ? acceptAllResult : null;
+  const acceptAll = useAcceptAll(
+    versionId,
+    run,
+    actions.acceptAll,
+    actions.start.isPending,
+    onBlocksWritten
+  );
+  const allResult = acceptAll.own;
   const saved = { sources: analysis.data?.sources, failed: analysis.isError };
   // Источники, проверенные этим ходом и ещё не принятые: предложение `sources`.
   const runSourcesItem =
@@ -110,27 +108,8 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
 
   const confirmDiscard = () => {
     setDiscarding(false);
-    setAcceptAllResult(null);
+    acceptAll.clear();
     if (run) actions.discardRun.mutate(run.id);
-  };
-  const acceptAll = async () => {
-    if (!run) return;
-    setAcceptAllResult(null);
-    try {
-      const res = await actions.acceptAll.mutateAsync(run.id);
-      // Ручка общая с ходом пересказа: ход анализа — со `steps`.
-      const own = 'steps' in res ? res : null;
-      setAcceptAllResult({
-        runId: run.id,
-        error: null,
-        skipped: own?.skipped ?? [],
-        items: own?.items ?? run.items,
-      });
-    } catch (error) {
-      setAcceptAllResult({ runId: run.id, error, skipped: [], items: run.items });
-    }
-    // Записанное до отказа тоже в анализе: форма и ядро перечитываются в любом исходе.
-    onBlocksWritten();
   };
 
   return (
@@ -196,6 +175,15 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
         </p>
       )}
 
+      {acceptAll.stopped && (
+        <AcceptAllOutcome
+          error={acceptAll.stopped.error}
+          skipped={acceptAll.stopped.skipped}
+          items={acceptAll.stopped.items}
+          actionable={false}
+        />
+      )}
+
       {run && <AnalysisWriteSteps run={run} />}
 
       {/* Итог «Accept all» остаётся на экране и тогда, когда принимать уже нечего. */}
@@ -206,7 +194,7 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
           error={allResult?.error ?? null}
           skipped={allResult?.skipped ?? []}
           items={allResult?.items ?? run.items}
-          onAcceptAll={() => void acceptAll()}
+          onAcceptAll={() => void acceptAll.accept()}
         />
       )}
 
@@ -224,7 +212,7 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
               saved={saved}
               actions={actions}
               onBlocksWritten={onBlocksWritten}
-              onDecided={() => setAcceptAllResult(null)}
+              onDecided={acceptAll.clear}
             />
           ))}
         </div>

@@ -69,6 +69,17 @@ describe('admin analysis run endpoints', () => {
     ]);
   });
 
+  it('Accept carries the print of the shown proposal in expectedPrint (T174, p.2)', async () => {
+    await acceptAnalysisItem('d1', 5, 'print-5');
+    expect(seen).toEqual([
+      {
+        method: 'POST',
+        path: '/admin/content-drafts/d1/items/5/accept',
+        body: { expectedPrint: 'print-5' },
+      },
+    ]);
+  });
+
   it('proposal content and item actions go to items/:index; the run is discarded by discard-run', async () => {
     await getAnalysisWriteProposal('d1', 4);
     await regenerateAnalysisItem('d1', 3, { remark: 'Less general' });

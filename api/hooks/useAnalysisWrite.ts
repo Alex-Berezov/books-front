@@ -139,9 +139,9 @@ export const useAnalysisWriteActions = (versionId: string) => {
       refresh(),
       queryClient.invalidateQueries({ queryKey: analysisWriteKeys.proposals(runId) }),
     ]);
-  const accept = useMutation<ContentDraftRun, ApiError, ItemVars>({
+  const accept = useMutation<ContentDraftRun, ApiError, ItemVars & { expectedPrint?: string }>({
     mutationKey: analysisWriteKeys.writes(versionId),
-    mutationFn: ({ id, index }) => acceptAnalysisItem(id, index),
+    mutationFn: ({ id, index, expectedPrint }) => acceptAnalysisItem(id, index, expectedPrint),
     onSettled: (_data, _error, { id }) => refreshWithProposals(id),
   });
   const discardItem = useMutation<ContentDraftRun, ApiError, ItemVars>({

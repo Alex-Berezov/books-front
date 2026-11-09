@@ -11,11 +11,13 @@ export interface AnalysisCoreState {
   hasCore: boolean | null;
   /**
    * Чего не хватает — предупреждения `core_incomplete` сервера (сохранение или проба сохранённой
-   * записи); `null` — проба ещё идёт или не удалась.
+   * записи); `null` — перечня нет: проба идёт, не удалась или не запускалась.
    */
   missing: BookAnalysisWarning[] | null;
   /** Проба сохранённой записи не удалась: причина. */
   error: string | null;
+  /** Проба идёт: только тогда плашка говорит «проверяем». */
+  checking: boolean;
   retry: () => void;
 }
 
@@ -54,8 +56,15 @@ export const AnalysisWriteCore: FC<{ core: AnalysisCoreState }> = ({ core }) => 
             Retry
           </Button>
         </span>
-      ) : (
+      ) : core.checking ? (
         <span>Core: not ready — checking what is missing…</span>
+      ) : (
+        <span>
+          Core: not ready.{' '}
+          <Button type="button" variant="link" onClick={core.retry}>
+            Check what is missing
+          </Button>
+        </span>
       )}
     </div>
   );

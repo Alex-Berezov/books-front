@@ -20,6 +20,45 @@ export interface AnalysisWriteAcceptAllProps {
 }
 
 /**
+ * Итог «Accept all»: отказ и пункты, оставшиеся предложениями. `actionable: false` — ход больше
+ * не готов, кнопок у пунктов нет: подсказок «что нажать» не даём (T174, п.1).
+ */
+export const AcceptAllOutcome: FC<{
+  error: unknown;
+  skipped: AnalysisAcceptAllSkipped[];
+  items: AnalysisWriteItem[];
+  actionable: boolean;
+}> = ({ error, skipped, items, actionable }) => {
+  // Обрыв чаще всего значит чужой новый ход: предложений прежнего уже нет.
+  const title = actionable ? 'Left as proposals' : 'Skipped before the stop';
+  return (
+    <>
+      {error !== null && (
+        <p className={styles.error} role="alert">
+          {refusalText(error)}
+        </p>
+      )}
+      {skipped.length > 0 && (
+        <div role="status">
+          <p className={styles.hint}>{title}:</p>
+          <ul className={styles.list} aria-label={title}>
+            {skipped.map((s) => (
+              <li key={s.index}>
+                {skippedText(
+                  s,
+                  items.find((i) => i.index === s.index),
+                  actionable
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  );
+};
+
+/**
  * «Accept all» (F07 `product.md` §4-§5): все предложения по одному. Отказавший по себе пункт сервер
  * пропускает и называет в `skipped` (решение арбитра `F07 | F07-3`, п.7): вкладка показывает его
  * с причиной; полный список источников — с подсказкой, что делать.
@@ -43,25 +82,6 @@ export const AnalysisWriteAcceptAll: FC<AnalysisWriteAcceptAllProps> = ({
         Accept all
       </Button>
     </div>
-    {error !== null && (
-      <p className={styles.error} role="alert">
-        {refusalText(error)}
-      </p>
-    )}
-    {skipped.length > 0 && (
-      <div role="status">
-        <p className={styles.hint}>Left as proposals:</p>
-        <ul className={styles.list} aria-label="Left as proposals">
-          {skipped.map((s) => (
-            <li key={s.index}>
-              {skippedText(
-                s,
-                items.find((i) => i.index === s.index)
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
+    <AcceptAllOutcome error={error} skipped={skipped} items={items} actionable />
   </>
 );

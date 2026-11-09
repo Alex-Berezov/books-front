@@ -22,7 +22,8 @@ vi.mock('@/api/endpoints/admin/bookSummaries', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   ...api,
 }));
-vi.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: vi.fn() }) }));
+const snack = vi.hoisted(() => vi.fn());
+vi.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: snack }) }));
 
 const summary = (full: string, brief: string): BookSummaryDetail => ({
   id: 's1',
@@ -143,23 +144,65 @@ describe('useSummaryTab: fields written by the summary run', () => {
     expect(api.upsertBookSummaryBrief).not.toHaveBeenCalled();
   });
 
-  it('a reload cancelled by the neighbour save is not a fresh answer: the field stays unknown (F06-5c)', async () => {
+  it('a reload cancelled by the neighbour save is retried once: a fresh answer clears the mark, no false «not known» (T174, p.5)', async () => {
     const { result } = await hydrated();
-    // Запрос ещё в полёте; сохранение соседнего поля отменяет его с откатом (cancelQueries).
+    // Запрос в полёте и не отвечает; сохранение соседнего поля отменяет его с откатом.
     api.getBookSummary.mockImplementationOnce(
-      () => new Promise<BookSummaryDetail>((resolve) => setTimeout(() => resolve(NEW), 50))
+      () => new Promise<BookSummaryDetail>(() => undefined)
     );
+    server = NEW;
     let reload: Promise<void> = Promise.resolve();
     act(() => {
       reload = result.current.reloadFields(['full']);
     });
+    await waitFor(() => expect(client.isFetching()).toBe(1));
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await client.cancelQueries({ queryKey: summaryKeys.detail('v1') });
+      await reload;
+    });
+    expect(result.current.unknownFields).toEqual([]);
+    expect(result.current.formData.summaryText).toBe('<p>New full.</p>');
+  });
+
+  it('a reload cancelled and the retry failing too: the field stays unknown (F06-5c)', async () => {
+    const { result } = await hydrated();
+    api.getBookSummary.mockImplementationOnce(
+      () => new Promise<BookSummaryDetail>(() => undefined)
+    );
+    api.getBookSummary.mockRejectedValueOnce(new Error('offline'));
+    let reload: Promise<void> = Promise.resolve();
+    act(() => {
+      reload = result.current.reloadFields(['full']);
+    });
+    await waitFor(() => expect(client.isFetching()).toBe(1));
+    await act(async () => {
       await client.cancelQueries({ queryKey: summaryKeys.detail('v1') });
       await reload;
     });
     expect(result.current.unknownFields).toEqual(['summaryText']);
     expect(result.current.formData.summaryText).toBe('<p>Old full.</p>');
+  });
+
+  it('Save of a field whose server text is not known says so with the label of the notice, and is not sent (T174, p.5)', async () => {
+    const { result } = await hydrated();
+    api.getBookSummary.mockRejectedValueOnce(new Error('offline'));
+    await act(() => result.current.reloadFields(['full', 'brief']));
+    snack.mockClear();
+    act(() => result.current.handleSave());
+    expect(snack).toHaveBeenCalledTimes(1);
+    expect(snack).toHaveBeenCalledWith(
+      'The server text of “Summary” is not known: retry loading it first',
+      { variant: 'warning' }
+    );
+    expect(api.upsertBookSummary).not.toHaveBeenCalled();
+    snack.mockClear();
+    act(() => result.current.handleSaveBrief());
+    expect(snack).toHaveBeenCalledTimes(1);
+    expect(snack).toHaveBeenCalledWith(
+      'The server text of “Very short summary” is not known: retry loading it first',
+      { variant: 'warning' }
+    );
+    expect(api.upsertBookSummaryBrief).not.toHaveBeenCalled();
   });
 
   it('a failure on version A, away to B and back to A: the fresh fill clears the mark (F06-5c)', async () => {

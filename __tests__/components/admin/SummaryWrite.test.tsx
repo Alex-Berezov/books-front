@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SummaryWrite } from '@/components/admin/books/SummaryTab/SummaryWrite';
+import { SummaryWriteAcceptAll } from '@/components/admin/books/SummaryTab/SummaryWrite/SummaryWriteAcceptAll';
 import { ApiError } from '@/types/api';
 import type {
   LlmOperation,
@@ -871,6 +872,29 @@ describe('SummaryWrite (F06-3)', () => {
       // Раздел уже принят: встали на «Очень кратко» — по текстам на момент нажатия.
       expect(screen.getByText('Stopped at: Very short summary.')).toBeInTheDocument();
       expect(screen.getByText('Already accepted: Summary.')).toBeInTheDocument();
+    });
+
+    it('Stopped at names the text the server stopped on, even past a waiting section (T174, p.5)', () => {
+      const items = [
+        item({ index: 0, number: 1, title: 'One', outcome: 'waiting' }),
+        item({ index: 1, number: 2, title: 'Two' }),
+      ];
+      render(
+        <SummaryWriteAcceptAll
+          run={run({ items })}
+          pending={false}
+          disabled={false}
+          error={conflict({
+            code: 'SUMMARY_ITEM_NOT_PROPOSED',
+            message: 'x',
+            acceptedIndexes: [],
+            stoppedIndex: 1,
+          })}
+          itemsAtFailure={items}
+          onAcceptAll={() => undefined}
+        />
+      );
+      expect(screen.getByText('Stopped at: Section 2: Two.')).toBeInTheDocument();
     });
 
     it('after a refusal with nothing left to accept, Accept all is off (F06-5c)', async () => {

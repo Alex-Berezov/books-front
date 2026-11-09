@@ -192,12 +192,15 @@ describe('useAnalysisWriteActions', () => {
     const spy = vi.spyOn(client, 'invalidateQueries');
     const { result } = renderHook(() => useAnalysisWriteActions('v1'), { wrapper });
     await act(() =>
-      result.current.accept.mutateAsync({ id: 'd1', index: 2 }).catch(() => undefined)
+      result.current.accept
+        .mutateAsync({ id: 'd1', index: 2, expectedPrint: 'print-2' })
+        .catch(() => undefined)
     );
     await act(() => result.current.discardItem.mutateAsync({ id: 'd1', index: 1 }));
     await act(() => result.current.acceptAll.mutateAsync('d1'));
     await act(() => result.current.discardRun.mutateAsync('d1'));
-    expect(api.acceptAnalysisItem).toHaveBeenCalledWith('d1', 2);
+    expect(api.acceptAnalysisItem).toHaveBeenCalledTimes(1);
+    expect(api.acceptAnalysisItem).toHaveBeenCalledWith('d1', 2, 'print-2');
     expect(api.discardAnalysisItem).toHaveBeenCalledWith('d1', 1);
     expect(api.acceptAllAnalysisItems).toHaveBeenCalledWith('d1');
     expect(api.discardAnalysisWriteRun).toHaveBeenCalledWith('d1');
