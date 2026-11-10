@@ -4,6 +4,7 @@ import { useMemo, useState, type FC } from 'react';
 import { Button, Input, Select, Switch, Tag } from 'antd';
 import { useSnackbar } from 'notistack';
 import { useUpdateLlmStageSetting } from '@/api/hooks';
+import { hasLlmStageLabel, llmStageLabel } from '@/lib/admin/llm-stages';
 import { ApiError } from '@/types/api';
 import type { LlmModel, LlmStageSetting } from '@/types/api-schema';
 import styles from './LlmSettings.module.scss';
@@ -34,11 +35,13 @@ export const LlmStageForm: FC<LlmStageFormProps> = ({ setting, models, catalogKn
   const { enqueueSnackbar } = useSnackbar();
   const [draft, setDraft] = useState<StageDraft>(() => toStageDraft(setting));
   const [serverError, setServerError] = useState<string | null>(null);
+  const label = llmStageLabel(setting.stage);
+  const labelled = hasLlmStageLabel(setting.stage);
 
   const updateStage = useUpdateLlmStageSetting({
     onSuccess: () => {
       setServerError(null);
-      enqueueSnackbar(`Stage ${setting.stage} saved`, { variant: 'success' });
+      enqueueSnackbar(`Stage «${label.title}» saved`, { variant: 'success' });
     },
     onError: (error) => {
       if (isModelsUnavailable(error)) {
@@ -75,13 +78,24 @@ export const LlmStageForm: FC<LlmStageFormProps> = ({ setting, models, catalogKn
   const inputId = (field: string) => `llm-stage-${setting.stage}-${field}`;
 
   return (
-    <article className={styles.stage} aria-label={`Stage ${setting.stage}`}>
+    // Имя карточки — видимый заголовок, а не техническое имя этапа.
+    <article className={styles.stage} aria-labelledby={inputId('title')}>
       <header className={styles.stageHeader}>
-        <h3 className={styles.stageTitle}>{setting.stage}</h3>
+        <h3 id={inputId('title')} className={styles.stageTitle}>
+          {label.title}
+        </h3>
         <Tag color={setting.source === 'override' ? 'blue' : 'default'}>
           {setting.source === 'override' ? 'Saved in admin' : 'Stage default'}
         </Tag>
+        {/* Имя с экранов запуска рядом с техническим: пауза и отчёт называют этап им. */}
+        {labelled && (
+          <span className={styles.stageCode}>
+            {label.runName && `${label.runName} · `}
+            <code>{setting.stage}</code>
+          </span>
+        )}
       </header>
+      {label.description && <p className={styles.stageDescription}>{label.description}</p>}
 
       <div className={styles.stageGrid}>
         <div className={styles.field}>
@@ -90,6 +104,8 @@ export const LlmStageForm: FC<LlmStageFormProps> = ({ setting, models, catalogKn
           </label>
           <Select
             id={inputId('model')}
+            className={styles.select}
+            classNames={{ popup: { root: styles.modelPopup } }}
             showSearch
             optionFilterProp="label"
             options={options}
@@ -107,6 +123,8 @@ export const LlmStageForm: FC<LlmStageFormProps> = ({ setting, models, catalogKn
           </label>
           <Select
             id={inputId('fallbacks')}
+            className={styles.select}
+            classNames={{ popup: { root: styles.modelPopup } }}
             mode="multiple"
             showSearch
             optionFilterProp="label"

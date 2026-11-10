@@ -13,7 +13,6 @@ import {
   isLimitOk,
   operationStatusText,
   runStatusText,
-  stageName,
   stageText,
   stepFailureText,
   toModelOptions,
@@ -259,10 +258,7 @@ describe('Мелкие подписи и проверки', () => {
     expect(isLimitOk('abc')).toBe(false);
   });
 
-  it('этапы, статусы, глава N из M, пункт модели — словами', () => {
-    expect(stageName('check_semantic')).toBe('Meaning check');
-    expect(stageName('check_language_jev')).toBe('Language review');
-    expect(stageName('new_stage')).toBe('new_stage');
+  it('статусы, глава N из M, пункт модели — словами', () => {
     expect(runStatusText(operation({ status: 'done' }))).toBe('finished');
     expect(operationStatusText(operation({ status: 'paused', pauseReason: null }))).toBe(
       'paused: with the Pause button'

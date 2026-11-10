@@ -11,6 +11,7 @@ import {
 } from '@/api/hooks';
 import { Modal } from '@/components/admin/common/Modal';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
+import { llmStageRunName } from '@/lib/admin/llm-stages';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   TranslationRun,
@@ -21,7 +22,6 @@ import {
   isLimitOk,
   refusalText,
   RUN_DOSSIER_REFUSED_TEXT,
-  stageName,
   startRunRequest,
   TARGET_REASONS,
   toModelOptions,
@@ -161,7 +161,7 @@ export const StartRunModal: FC<StartRunModalProps> = ({
           .filter((s) => s.stage !== 'translate')
           .map((s) => (
             <li key={s.stage}>
-              {stageName(s.stage)}: {s.model}
+              {llmStageRunName(s.stage)}: {s.model}
             </li>
           ))}
       </ul>

@@ -171,21 +171,6 @@ export const startRunRequest = (
   ...(limit.trim() ? { limitUsd: limit.trim() } : {}),
 });
 
-/** Этапы настроек словами экрана (окно запуска, отчёт о стоимости, пауза без провайдера). */
-const STAGE_NAMES: Record<string, string> = {
-  dossier: 'Dossier',
-  dossier_part: 'Dossier',
-  glossary: 'Glossary',
-  split: 'Chapter split',
-  translate: 'Translation',
-  check_semantic: 'Meaning check',
-  check_language_jev: 'Language review',
-  metadata: 'Version fields',
-  final_check: 'Final check',
-};
-
-export const stageName = (stage: string): string => STAGE_NAMES[stage] ?? stage;
-
 const STAGES: Record<TranslationRunStage, string> = {
   dossier: 'building the dossier',
   glossary: 'building the glossary',

@@ -87,6 +87,7 @@
 
 .stageHeader {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: $spacing-sm;
   margin-bottom: $spacing-md;
@@ -96,4 +97,32 @@
   font-size: $font-size-base;
   font-weight: $font-weight-semibold;
   margin: 0;
+}
+
+.stageCode {
+  margin-left: auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.stageDescription {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-md;
+}
+
+// Поле списка моделей и запасных — своя ширина, а не весь столбец сетки (T187). Ширину раскрытого
+// списка задаёт `.modelPopup` ниже, `popupMatchSelectWidth` не трогаем: иначе выключится виртуальный список.
+.select {
+  width: 100%;
+  max-width: $admin-select-max-width;
+}
+
+// Раскрытый список шире поля: класс корня выпадашки (`classNames.popup.root`), `min-width`
+// перебивает ширину поля, виртуальный список при этом не выключается. На узком экране — не шире окна.
+.modelPopup {
+  min-width: $admin-select-popup-min-width;
+  max-width: calc(100vw - 2 * #{$spacing-md});
 }

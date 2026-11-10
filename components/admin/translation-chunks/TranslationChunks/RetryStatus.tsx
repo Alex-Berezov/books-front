@@ -8,8 +8,8 @@ import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSett
 import {
   operationPauseText,
   providerStageOf,
-  stageName,
 } from '@/components/admin/translation-run/translationRun.utils';
+import { llmStageRunName } from '@/lib/admin/llm-stages';
 import type { TranslationChunkActions } from '@/api/hooks';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { TranslationChunk } from '@/types/api-schema';
@@ -89,7 +89,7 @@ export const RetryStatus: FC<RetryStatusProps> = ({ chunk, lang, actions }) => {
               </p>
             ) : (
               <p className={styles.muted}>
-                Stage «{stageName(providerStageOf(retry.reason))}» has no model without data
+                Stage «{llmStageRunName(providerStageOf(retry.reason))}» has no model without data
                 retention: change it in the{' '}
                 <Link href={`/admin/${lang}/llm-settings`}>LLM settings</Link> and resume.
               </p>

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTranslationRunReport } from '@/api/hooks';
 import { Modal } from '@/components/admin/common/Modal';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
+import { llmStageRunName } from '@/lib/admin/llm-stages';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { TranslationReportLanguage } from '@/types/api-schema';
 import { analysisLineOf, sumAnalysisSpent } from '../analysisLine.utils';
@@ -21,7 +22,6 @@ import {
   languageStatusText,
   refusalText,
   rewriteRefusalText,
-  stageName,
 } from '../translationRun.utils';
 import styles from './RunReportModal.module.scss';
 
@@ -87,7 +87,7 @@ export const RunReportModal: FC<RunReportModalProps> = ({
             <tbody>
               {report.data.costs.map((c) => (
                 <tr key={`${c.stage}:${c.model ?? ''}`}>
-                  <td>{stageName(c.stage)}</td>
+                  <td>{llmStageRunName(c.stage)}</td>
                   <td>{c.model ?? '—'}</td>
                   <td>{c.calls}</td>
                   <td>{formatMoney(c.costUsd)}</td>

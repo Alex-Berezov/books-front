@@ -1,14 +1,10 @@
+import { llmStageRunName } from '@/lib/admin/llm-stages';
 import type {
   TranslationRunAuthor,
   TranslationRunLanguageResult,
   TranslationRunStageModel,
 } from '@/types/api-schema';
-import {
-  failedText,
-  languageStatusText,
-  languageStopText,
-  stageName,
-} from '../translationRun.utils';
+import { failedText, languageStatusText, languageStopText } from '../translationRun.utils';
 
 /** Автор запуска; пользователь удалён — `deleted user` (решение арбитра `F05 | F05-8`, В4). */
 export const authorText = (author: TranslationRunAuthor | null): string => {
@@ -19,7 +15,7 @@ export const authorText = (author: TranslationRunAuthor | null): string => {
 /** Модель этапа и запасные: «Translation: a/main (fallbacks: b/spare)». */
 export const stageModelText = (m: TranslationRunStageModel): string => {
   const spare = m.fallbacks.length > 0 ? ` (fallbacks: ${m.fallbacks.join(', ')})` : '';
-  return `${stageName(m.stage)}: ${m.model}${spare}`;
+  return `${llmStageRunName(m.stage)}: ${m.model}${spare}`;
 };
 
 /**

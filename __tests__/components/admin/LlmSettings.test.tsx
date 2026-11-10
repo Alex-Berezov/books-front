@@ -113,7 +113,7 @@ const renderScreen = (queries: Record<string, unknown> = { retry: false }) => {
 /** Код, который общий тост 5xx пропускает: экран показывает его своей плашкой. */
 const LOCAL = { localErrorCodes: ['LLM_MODELS_UNAVAILABLE'] };
 
-const stageCard = () => screen.findByRole('article', { name: 'Stage translate' });
+const stageCard = () => screen.findByRole('article', { name: 'Перевод куска' });
 
 /** Пункт списка подписан «имя (id) · цена»: ищем по началу подписи. */
 const chooseModel = async (card: HTMLElement, name: string, id: string) => {
@@ -127,6 +127,53 @@ describe('LlmSettings (F05-1s)', () => {
   beforeEach(() => {
     // reset, а не clear: ответ PUT из прошлого теста не должен дожить до следующего.
     vi.resetAllMocks();
+  });
+
+  it('карточка этапа: название по-русски, пояснение и мелкое техническое имя', async () => {
+    serve({ stages: [STAGE] });
+    renderScreen();
+    const card = await stageCard();
+    expect(within(card).getByRole('heading', { name: 'Перевод куска' })).toBeInTheDocument();
+    expect(
+      within(card).getByText('Перевод: переводит каждый кусок главы на выбранный язык.')
+    ).toBeInTheDocument();
+    // Имя с экранов запуска рядом с техническим: пауза и отчёт называют этап «Translation».
+    // В `<code>` — только техническое имя.
+    expect(card.querySelector('header code')?.textContent).toBe('translate');
+    expect(card.querySelector('header code')?.parentElement?.textContent).toBe(
+      'Translation · translate'
+    );
+  });
+
+  it('раскрытые списки модели и запасных — со своим классом ширины', async () => {
+    serve({ stages: [STAGE] });
+    renderScreen();
+    const card = await stageCard();
+    for (const field of ['model', 'fallbacks']) {
+      fireEvent.mouseDown(card.querySelector(`#llm-stage-translate-${field}`) as HTMLElement);
+    }
+    await waitFor(() =>
+      expect(document.querySelectorAll('.ant-select-dropdown[class*="modelPopup"]')).toHaveLength(2)
+    );
+  });
+
+  it('этап пересказа: название по-русски, мелкая подпись — только техническое имя', async () => {
+    serve({ stages: [{ ...STAGE, stage: 'summary_review' }] });
+    renderScreen();
+    const card = await screen.findByRole('article', { name: 'Пересказ: проверка' });
+    expect(within(card).getByRole('heading', { name: 'Пересказ: проверка' })).toBeInTheDocument();
+    expect(card.querySelector('header code')?.textContent).toBe('summary_review');
+    expect(card.querySelector('header code')?.parentElement?.textContent).toBe('summary_review');
+  });
+
+  it('этап без подписи: заголовок — техническое имя, без повтора мелкой подписью и без пояснения', async () => {
+    serve({ stages: [{ ...STAGE, stage: 'brand_new_stage' }] });
+    renderScreen();
+    const card = await screen.findByRole('article', { name: 'brand_new_stage' });
+    expect(within(card).getByRole('heading', { name: 'brand_new_stage' })).toBeInTheDocument();
+    expect(within(card).getAllByText('brand_new_stage')).toHaveLength(1);
+    expect(card.querySelector('code')).toBeNull();
+    expect(card.querySelector('header + p')).toBeNull();
   });
 
   it('сохранение этапа шлёт PUT с выбранной моделью и всеми полями этапа', async () => {
@@ -425,11 +472,13 @@ describe('LlmSettings (F05-1s)', () => {
     fireEvent.click(within(card).getByText('Save stage'));
 
     await waitFor(() =>
-      expect(mocks.snackbar).toHaveBeenCalledWith('Stage translate saved', { variant: 'success' })
+      expect(mocks.snackbar).toHaveBeenCalledWith('Stage «Перевод куска» saved', {
+        variant: 'success',
+      })
     );
     // Карточка перестраивается по новому `updatedAt`: ищем заново, а не в старом узле.
     expect(await screen.findByText('Saved in admin')).toBeInTheDocument();
-    const savedCard = screen.getByRole('article', { name: 'Stage translate' });
+    const savedCard = screen.getByRole('article', { name: 'Перевод куска' });
     expect(within(savedCard).getByRole('button', { name: 'Save stage' })).toBeDisabled();
   });
 
@@ -451,7 +500,7 @@ describe('LlmSettings (F05-1s)', () => {
       expect(client.getQueryState(['llm', 'stage-settings'])?.status).toBe('error')
     );
     // Дать экрану перерисоваться от ошибки: проверка ниже иначе прошла бы до неё.
-    await screen.findByRole('article', { name: 'Stage translate' });
+    await screen.findByRole('article', { name: 'Перевод куска' });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(screen.queryByText('Could not load the stages')).not.toBeInTheDocument();

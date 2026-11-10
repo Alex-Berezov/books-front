@@ -6,12 +6,12 @@ import Link from 'next/link';
 import { useLlmModels } from '@/api/hooks';
 import { LimitResume } from '@/components/admin/common/LimitResume';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
+import { llmStageRunName } from '@/lib/admin/llm-stages';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { LlmOperation, ResumeTranslationRunRequest } from '@/types/api-schema';
 import {
   operationStatusText,
   refusalText,
-  stageName,
   stepFailureText,
   toModelOptions,
   type PauseAction,
@@ -41,9 +41,9 @@ const ProviderPause: FC<{
   return (
     <div className={styles.pause}>
       <span>
-        No provider without data retention for the {stageName(pause.stage).toLowerCase()} stage:{' '}
-        {pause.models.join(', ') || 'the stage model'}. Pick another model for this run (or see{' '}
-        {settings}):
+        No provider without data retention for the {llmStageRunName(pause.stage).toLowerCase()}{' '}
+        stage: {pause.models.join(', ') || 'the stage model'}. Pick another model for this run (or
+        see {settings}):
       </span>
       <Select
         aria-label="Model for the stage"
