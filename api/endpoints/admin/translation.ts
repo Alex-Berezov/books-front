@@ -5,7 +5,8 @@
  *
  * Отказы с `code` в теле: 409 — версия не исходник (`NOT_ORIGINAL_VERSION`, `NOT_ENGLISH_VERSION`
  * и прочие причины D8, с `sourceVersionId`), `NOT_IN_INTAKE`, `COMPARE_CHAPTER_EMPTY`,
- * `LLM_CEILING_REACHED`, `LLM_NO_PRICE`, `LLM_STAGE_DISABLED`; 400 — `COMPARE_TARGET_IS_SOURCE`,
+ * `LLM_CEILING_REACHED`, `LLM_NO_PRICE`, `LLM_STAGE_DISABLED`, `DOSSIER_TOO_LONG` (досье оценки
+ * откажет на старте, `dossier.refusedTooLong`); 400 — `COMPARE_TARGET_IS_SOURCE`,
  * `LLM_MODEL_UNKNOWN`; 503 — `LLM_DISABLED` (только запуск), `LLM_MODELS_UNAVAILABLE`.
  */
 

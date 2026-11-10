@@ -1,5 +1,6 @@
 import { COMPARE_MAX_MODELS, COMPARE_MIN_MODELS } from '@/api/hooks/useTranslationCompare';
 import { isValidMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
+import { DOSSIER_REFUSED_TEXT } from '@/components/admin/translation-run/translationRun.utils';
 import { ApiError } from '@/types/api';
 import type {
   LlmOperation,
@@ -10,6 +11,7 @@ import type {
 
 /** Подписи отказов оценки и запуска по коду бэкенда (`api/endpoints/admin/translation.ts`). */
 const REFUSALS: Record<string, string> = {
+  DOSSIER_TOO_LONG: DOSSIER_REFUSED_TEXT,
   LLM_DISABLED: 'The OpenRouter key is not configured on the server: nothing can call a model.',
   LLM_MODELS_UNAVAILABLE: 'The OpenRouter model list is unavailable. Try later.',
   LLM_CEILING_REACHED: 'The LLM spending ceiling is reached. Raise it on the LLM settings screen.',

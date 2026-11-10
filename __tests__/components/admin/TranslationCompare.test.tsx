@@ -9,6 +9,7 @@ import {
   refusalText,
   startRequest,
 } from '@/components/admin/translation-compare/TranslationCompare/translationCompare.utils';
+import { DOSSIER_REFUSED_TEXT } from '@/components/admin/translation-run/translationRun.utils';
 import { ApiError } from '@/types/api';
 import type { TranslationCompareParams } from '@/types/api-schema';
 
@@ -134,6 +135,10 @@ describe('правила запуска сравнения', () => {
     const coded = apiError('x', 'NOT_IN_INTAKE');
     expect(refusalText(coded)).toBe('The target language is not in the rights intake of the book.');
     expect(refusalText(apiError('Raw message', 'SOMETHING_NEW'))).toBe('Raw message');
+    // T175: отказ старта сравнения по длине досье называет причину, а не сырое сообщение сервера.
+    expect(refusalText(apiError('The dossier summary is too long', 'DOSSIER_TOO_LONG'))).toBe(
+      DOSSIER_REFUSED_TEXT
+    );
     expect(refusalText(new Error('boom'))).toBe('The request failed');
   });
 });
