@@ -62,6 +62,33 @@ export function buildAnalysisAlternates(
   );
 }
 
+/**
+ * Слаг адреса страницы анализа (`LEGACY-489`): свой слаг версии, без него слаг книги, без него
+ * слаг адреса - правило `bookCardSlug` бэкенда (`books/src/modules/book/book-card.ts`, менять
+ * вместе) и canonical страницы книги. Один на canonical меты, `Article.url` и ссылку «книга».
+ */
+export function analysisPageSlug(
+  version: Pick<VersionPreview, 'slug'>,
+  book: Pick<BookOverview, 'slug' | 'bookSlug'>,
+  routeSlug: string
+): string {
+  return version.slug || book.bookSlug || book.slug || routeSlug;
+}
+
+/**
+ * Кластер hreflang - только если в нём есть сама страница. Страховка на рассинхрон счётчика
+ * и ручки (разный кэш ответов): с `T163` претензия не закрывает ни тот, ни другую, но счётчик
+ * языка страницы может отстать и быть 0 при открытой странице. Кластер без себя - противоречивый
+ * сигнал, лучше не отдавать его вовсе. Одно правило на мету страницы и карту сайта: у версии без
+ * своего слага адрес анализа есть (`LEGACY-489`), а в кластере её нет - пункт 16 «ВЛАДЕЛЕЦ».
+ */
+export function ownClusterOrNone(
+  alternates: Record<string, string> | undefined,
+  lang: string
+): Record<string, string> | undefined {
+  return alternates && alternates[lang] ? alternates : undefined;
+}
+
 /** Описание страницы - начало главной мысли, не длиннее 160 знаков (`product.md` §5, §22). */
 export function describeAnalysis(mainIdea: string | null | undefined): string | undefined {
   return truncateAtWord((mainIdea ?? '').replace(/\s+/g, ' ').trim());

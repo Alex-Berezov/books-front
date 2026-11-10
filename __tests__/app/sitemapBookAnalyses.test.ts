@@ -129,6 +129,39 @@ describe('карта сайта: адреса анализа', () => {
     expect(xml).not.toContain('/analysis');
   });
 
+  // `LEGACY-489`: версия без своего слага живёт по слагу книги (canonical страницы книги и анализа).
+  // Пересказ такой версии и кластеры `/analysis`, `/summary` - вне пачки (тема владельца, п.16).
+  it('версия без своего слага - страница книги и анализ по слагу книги, пересказа нет', async () => {
+    const noSlug = { ...listVersion('en', 'x', 1, 1), slug: null };
+    serve([book('odyssey', [noSlug as never, listVersion('fr', 'odyssee-fr', 0, 1)])]);
+
+    const xml = await (await callGet('sitemap-books-en-1.xml')).text();
+
+    const page = urlBlock(xml, `${SITE}/en/book/odyssey`) ?? '';
+    expect(hreflangs(page)).toEqual({
+      en: `${SITE}/en/book/odyssey`,
+      fr: `${SITE}/fr/book/odyssee-fr`,
+      'x-default': `${SITE}/en/book/odyssey`,
+    });
+    // Кластер анализа без своего языка не отдаётся - как в мете страницы (`ownClusterOrNone`).
+    expect(hreflangs(urlBlock(xml, `${SITE}/en/book/odyssey/analysis`) ?? '')).toEqual({});
+    expect(xml).not.toContain('/summary');
+    expect(xml).not.toContain('/en/book/</loc>');
+  });
+
+  it('соседняя версия без слага - в кластере страницы книги по слагу книги', async () => {
+    const noSlug = { ...listVersion('fr', 'x', 0, 0), slug: null };
+    serve([book('odyssey', [listVersion('en', 'odyssey-en', 0, 0), noSlug as never])]);
+
+    const xml = await (await callGet('sitemap-books-en-1.xml')).text();
+
+    expect(hreflangs(urlBlock(xml, `${SITE}/en/book/odyssey-en`) ?? '')).toEqual({
+      en: `${SITE}/en/book/odyssey-en`,
+      fr: `${SITE}/fr/book/odyssey`,
+      'x-default': `${SITE}/en/book/odyssey-en`,
+    });
+  });
+
   it('нет счётчика анализа у версии языка файла - 503, а не похудевшая карта', async () => {
     const broken = listVersion('en', 'odd', 1, 1) as Record<string, unknown>;
     broken._count = { chapters: 1, audioChapters: 0, summaries: 1 };

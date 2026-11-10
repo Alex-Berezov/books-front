@@ -15,7 +15,12 @@ import {
 import { API_MAX_PAGE_SIZE } from '@/lib/http.constants';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { isAuthorLinkable } from '@/lib/seo/author-linkable';
-import { analysisPath, buildAnalysisAlternates, versionHasAnalysis } from '@/lib/seo/book-analysis';
+import {
+  analysisPath,
+  buildAnalysisAlternates,
+  ownClusterOrNone,
+  versionHasAnalysis,
+} from '@/lib/seo/book-analysis';
 import { buildSummaryAlternates, summaryPath, versionHasSummary } from '@/lib/seo/book-summary';
 import { buildIndexableAlternates, toAlternateCandidates } from '@/lib/seo/hreflang-alternates';
 import { loadLandingPresence } from '@/lib/seo/landing-presence';
@@ -235,29 +240,30 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
 
     books.forEach((book) => {
       const currentVersion = book.versions?.find(
-        (v: BookListVersion) => v.language === lang && v.status === 'published' && v.slug
+        (v: BookListVersion) => v.language === lang && v.status === 'published'
       );
-      if (!currentVersion?.slug) return;
+      // `LEGACY-489`: адрес страницы книги - слаг версии, без него слаг книги (как `bookCardSlug`
+      // бэкенда и canonical страницы). Версия без слага раньше выпадала из карты целиком.
+      const cardSlug = (v: BookListVersion) => v.slug || book.slug;
+      if (!currentVersion || !cardSlug(currentVersion)) return;
 
-      const alternates: Record<string, string> = {};
       const publishedVersions =
         book.versions?.filter((v: BookListVersion) => v.status === 'published' && v.slug) || [];
+      // Кластер страницы книги - одним вызовом `buildIndexableAlternates` (правило hreflang),
+      // x-default - английский, иначе первый язык.
+      const alternates =
+        buildIndexableAlternates(
+          (book.versions ?? [])
+            .filter((v: BookListVersion) => v.status === 'published')
+            .map((v: BookListVersion) => ({
+              language: v.language ?? '',
+              slug: cardSlug(v),
+              linkable: Boolean(v.language),
+            })),
+          (language, slug) => `${cleanBaseUrl}/${language}/book/${slug}`
+        ) ?? {};
 
-      publishedVersions.forEach((v: BookListVersion) => {
-        if (v.language && v.slug) {
-          alternates[v.language] = `${cleanBaseUrl}/${v.language}/book/${v.slug}`;
-        }
-      });
-
-      const enVersion = publishedVersions.find((v: BookListVersion) => v.language === 'en');
-      const fallbackVersion = publishedVersions[0];
-      const defaultVersion = enVersion || fallbackVersion;
-      if (defaultVersion) {
-        alternates['x-default'] =
-          `${cleanBaseUrl}/${defaultVersion.language}/book/${defaultVersion.slug ?? ''}`;
-      }
-
-      const url = `${cleanBaseUrl}/${lang}/book/${currentVersion.slug}`;
+      const url = `${cleanBaseUrl}/${lang}/book/${cardSlug(currentVersion)}`;
 
       sitemapItems.push({
         url,
@@ -283,7 +289,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
         );
         return;
       }
-      if (versionHasSummary(currentVersion)) {
+      // Пересказ версии без своего слага - вне `LEGACY-489` (тема владельца, пункт 16): адреса нет.
+      if (currentVersion.slug && versionHasSummary(currentVersion)) {
         // Адрес и кластер - через `buildLangUrl`, как у меты страницы (правило «Публичные адреса»).
         const summaryAlternates = buildSummaryAlternates(publishedVersions);
         sitemapItems.push({
@@ -307,9 +314,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
       }
       if (!versionHasAnalysis(currentVersion)) return;
       // Адрес и кластер - через `buildLangUrl`, как у меты страницы (правило «Публичные адреса»).
-      const analysisAlternates = buildAnalysisAlternates(publishedVersions);
+      // Кластер без своего языка (версия без слага) не отдаётся - как в мете страницы.
+      const analysisAlternates = ownClusterOrNone(buildAnalysisAlternates(publishedVersions), lang);
       sitemapItems.push({
-        url: buildLangUrl(lang, analysisPath(currentVersion.slug)),
+        url: buildLangUrl(lang, analysisPath(cardSlug(currentVersion))),
         changeFrequency: 'weekly',
         priority: 0.7,
         ...(analysisAlternates ? { alternates: { languages: analysisAlternates } } : {}),

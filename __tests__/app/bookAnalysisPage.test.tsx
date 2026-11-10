@@ -373,6 +373,31 @@ describe('страница анализа: содержимое', () => {
     });
   });
 
+  it('версия без своего слага: адрес страницы, canonical и ссылка «книга» - по слагу книги (LEGACY-489)', async () => {
+    // Пришли по слагу французской версии на английском: у `en` слага нет.
+    const noSlugBook = makeBook({
+      slug: 'hamlet-fr',
+      bookSlug: 'hamlet-book',
+      versions: [version('en', null, 1), version('fr', 'hamlet-fr', 1)],
+    });
+    mocks.getBookOverview.mockResolvedValue(noSlugBook);
+    const { container } = await renderPage('en', 'hamlet-fr');
+
+    const article = [...container.querySelectorAll('script[type="application/ld+json"]')]
+      .map((s) => JSON.parse(s.textContent ?? '{}') as Record<string, unknown>)
+      .find((s) => s['@type'] === 'Article');
+    expect(article?.url).toBe(buildLangUrl('en', '/book/hamlet-book/analysis'));
+    // Крошка «книга» и ссылка обложки шапки - обе по слагу книги.
+    const crumbs = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(crumbs.querySelector('a[href="/en/book/hamlet-book"]')).not.toBeNull();
+    expect(crumbs.querySelector('a[href="/en/book/hamlet-fr"]')).toBeNull();
+    const bookLinks = [...container.querySelectorAll('a[href="/en/book/hamlet-book"]')];
+    expect(bookLinks.length).toBeGreaterThanOrEqual(2);
+
+    const meta = await metadataFor('en', 'hamlet-fr');
+    expect(meta.alternates?.canonical).toBe(buildLangUrl('en', '/book/hamlet-book/analysis'));
+  });
+
   it('навигация разделов: анализ активен, пересказ есть, пункты только существующих разделов', async () => {
     await renderPage();
 

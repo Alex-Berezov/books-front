@@ -1,9 +1,11 @@
 import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import {
+  analysisPageSlug,
   analysisPath,
   buildAnalysisAlternates,
   describeAnalysis,
+  ownClusterOrNone,
   pickAnalysisPageVersion,
 } from '@/lib/seo/book-analysis';
 import { noteDegraded } from '@/lib/seo/degraded';
@@ -42,7 +44,10 @@ export async function buildAnalysisMetadata(
     const { analysisMetaTitle } = getAnalysisStrings(supportedLang);
     const metaTitle = analysisMetaTitle.replace('{title}', title).replace('{author}', author);
     const description = describeAnalysis(analysis.mainIdea);
-    const canonical = buildLangUrl(supportedLang, analysisPath(book.slug || slug));
+    const canonical = buildLangUrl(
+      supportedLang,
+      analysisPath(analysisPageSlug(version, book, slug))
+    );
     const cover = book.coverUrl;
     const bookClosed = robotsHasNoindex(bookSeo.meta.robots);
     const alternates = buildAnalysisAlternates(book.versions);
@@ -82,17 +87,4 @@ export async function buildAnalysisMetadata(
     });
     throw error;
   }
-}
-
-/**
- * Кластер hreflang - только если в нём есть сама страница. Страховка на рассинхрон счётчика
- * и ручки (разный кэш ответов): с `T163` претензия не закрывает ни тот, ни другую, но счётчик
- * языка страницы может отстать и быть 0 при открытой странице. Кластер без себя - противоречивый
- * сигнал, лучше не отдавать его вовсе.
- */
-function ownClusterOrNone(
-  alternates: Record<string, string> | undefined,
-  lang: string
-): Record<string, string> | undefined {
-  return alternates && alternates[lang] ? alternates : undefined;
 }

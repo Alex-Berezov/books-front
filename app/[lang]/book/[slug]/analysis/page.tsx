@@ -8,7 +8,7 @@ import { hasText } from '@/lib/book-analysis/format';
 import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { buildAnalysisArticleJsonLd } from '@/lib/seo/analysis-jsonld';
-import { analysisPath } from '@/lib/seo/book-analysis';
+import { analysisPageSlug, analysisPath } from '@/lib/seo/book-analysis';
 import { pickSummaryVersion, summaryPath } from '@/lib/seo/book-summary';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
 import { formatLongDateUtc } from '@/lib/utils/date';
@@ -64,6 +64,10 @@ export default async function BookAnalysisPage({ params }: Props) {
   const analysisT = getAnalysisStrings(supportedLang);
   const bookSlug = book.slug || slug;
   const bookHref = `/${supportedLang}/book/${bookSlug}`;
+  // `LEGACY-489`: адрес страницы и ссылка «книга» - по `analysisPageSlug`; `bookSlug` выше идёт
+  // в остальные ссылки как раньше.
+  const ownSlug = analysisPageSlug(version, book, slug);
+  const bookCardHref = `/${supportedLang}/book/${ownSlug}`;
   const title = version.title || book.title;
   const pageTitle = analysisT.analysisPageTitle.replace('{title}', title);
   const authorName = version.author || book.author || t.unknownAuthor;
@@ -140,9 +144,9 @@ export default async function BookAnalysisPage({ params }: Props) {
 
   const jsonLd = buildAnalysisArticleJsonLd({
     lang: supportedLang,
-    pageSlug: bookSlug,
+    pageSlug: ownSlug,
     // `LEGACY-472`: то же правило, что `bookCardSlug` бэкенда - без своего слага версия идёт по слагу книги.
-    bookSchemaSlug: version.slug || book.bookSlug || bookSlug,
+    bookSchemaSlug: ownSlug,
     headline: pageTitle,
     editorialTeam: t.editorialTeam,
     createdAt: analysis.createdAt,
@@ -161,14 +165,14 @@ export default async function BookAnalysisPage({ params }: Props) {
         <Breadcrumbs
           items={[
             { label: dict.breadcrumb.home, href: `/${supportedLang}` },
-            { label: title, href: bookHref },
+            { label: title, href: bookCardHref },
             { label: t.analysis },
           ]}
         />
 
         {/* Жанр - в карточке произведения из анализа; в шапке его нет: два разных жанра на одной странице (§4). */}
         <BookSubpageHero
-          bookHref={bookHref}
+          bookHref={bookCardHref}
           coverUrl={book.coverUrl}
           kicker={analysisT.analysisPageSubtitle}
           title={pageTitle}
