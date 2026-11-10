@@ -1,15 +1,6 @@
 @import '@/styles/tokens.scss';
 
-/* Ход анализа «Write Analysis» (F07-3a): кнопка, ход по шагам, плашка ядра, блоки с отметками. */
-.block {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-  padding: $spacing-md;
-  border: 1px dashed $color-border-base;
-  border-radius: $border-radius-base;
-}
-
+/* Ход анализа «Write Analysis» (F07-3a): шаги, плашка ядра, блоки с отметками; каркас панели — `ContentDraft/WriteRunPanel`. */
 .actions {
   display: flex;
   flex-wrap: wrap;

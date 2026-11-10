@@ -916,6 +916,18 @@ describe('useAnalysisTab', () => {
       expect(mocks.mutate).toHaveBeenCalledTimes(1);
     });
 
+    it('отказ перечитывания — ещё одна попытка; свежий со второй — подставлен (T179)', async () => {
+      const { result } = await hydrate();
+      mocks.refetch.mockReset();
+      mocks.refetch
+        .mockResolvedValueOnce({ status: 'error', data: undefined, dataUpdatedAt: STALE })
+        .mockResolvedValueOnce({ status: 'success', data: server, dataUpdatedAt: FRESH });
+      await act(() => result.current.reloadBlocks());
+      expect(mocks.refetch).toHaveBeenCalledTimes(2);
+      expect(result.current.form.texts.mainIdea).toBe('Run idea');
+      expect(result.current.formStale).toBe(false);
+    });
+
     it('устаревший ответ — ещё одна попытка; свежий со второй — подставлен', async () => {
       const { result } = await hydrate();
       mocks.refetch

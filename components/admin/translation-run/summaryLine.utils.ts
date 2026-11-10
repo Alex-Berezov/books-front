@@ -12,8 +12,6 @@ import {
 } from './sectionLine.utils';
 import { stepFailureText } from './translationRun.utils';
 
-export { inlinePhrase } from './sectionLine.utils';
-
 /**
  * Подписи раздела языка запуска (F06-5b, `product.md` §5): коды автозапуска — своей таблицей,
  * отказы старта и срывы хода — фразами вкладки Summary, одними на всю админку.

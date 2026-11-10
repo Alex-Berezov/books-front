@@ -9,7 +9,7 @@ import { StartConfirm } from './StartConfirm';
 import { StartRefusal, type RebuildDossierAction } from './StartRefusal';
 
 /** Оценка старта: строки досье и глоссария обязательны, остальное — у своего текста. */
-interface StartEstimate {
+export interface StartEstimate {
   dossier: DossierContextLine | null;
   glossary: CompareContextLine | null;
 }

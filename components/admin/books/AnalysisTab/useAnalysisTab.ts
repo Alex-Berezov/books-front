@@ -29,6 +29,7 @@ import {
   loadBookAnalysisValidation,
   type BookAnalysisValidation,
 } from '@/lib/admin/load-book-analysis-validation';
+import { refetchFresh } from '@/lib/admin/refetch-fresh';
 import { ApiError } from '@/types/api';
 import type { AnalysisPreview, AnalysisServerCheck, AnalysisTabProps } from './AnalysisTab.types';
 import type {
@@ -338,23 +339,16 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
    */
   const reloadOnce = useCallback(async () => {
     const calledFor = versionId;
-    const fresh = async () => {
-      const startedAt = Date.now();
-      const result = await refetchAnalysis();
-      // Запрос, отменённый соседним перечитыванием, отдаёт прежние данные со статусом success:
-      // свежий только ответ, пришедший после начала.
-      return result.status === 'success' && result.dataUpdatedAt >= startedAt ? result : null;
-    };
-    // Устаревший ответ — ещё одна попытка; не вышло — форма помечается устаревшей.
-    const result = (await fresh()) ?? (await fresh());
+    // Не свежий ответ (отменённый или отказ) — ещё одна попытка; не вышло — форма устаревшая.
+    const outcome = await refetchFresh(refetchAnalysis, { retryFailure: true });
     // Форма ещё не заполнена — её заполнит свежий ответ; сменилась версия — ответ не про неё.
-    if (hydratedFor.current !== calledFor || !savedForm.current) return;
-    if (!result) {
+    if (!outcome || hydratedFor.current !== calledFor || !savedForm.current) return;
+    if (!outcome.fresh) {
       setStaleFor(calledFor);
       return;
     }
     setStaleFor(null);
-    const saved = result.data ?? null;
+    const saved = outcome.result.data ?? null;
     formBase.current = expectedRowOf(saved);
     const server = formFromAnalysis(saved);
     const merged = takeServerBlocks(currentForm.current, savedForm.current, server);

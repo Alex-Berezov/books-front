@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FC } from 'react';
+import type { FC } from 'react';
 import {
   useAnalysisWrite,
   useAnalysisWriteActions,
@@ -8,9 +8,7 @@ import {
   useAnalysisWriteProposal,
   useBookAnalysis,
 } from '@/api/hooks';
-import { OperationProgress, RunStart } from '@/components/admin/books/ContentDraft';
-import { Button } from '@/components/admin/common/Button';
-import { ConfirmDialog } from '@/components/admin/shared';
+import { WriteRunPanel } from '@/components/admin/books/ContentDraft';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './AnalysisWrite.module.scss';
 import {
@@ -60,11 +58,8 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
   // Тот же запрос, что у формы вкладки (общий ключ): сохранённые источники для «Verify facts».
   const analysis = useBookAnalysis(versionId);
   const actions = useAnalysisWriteActions(versionId);
-  const [discarding, setDiscarding] = useState(false);
 
   const run = data?.draft ?? null;
-  const building = run?.status === 'building';
-  const paused = building && run?.operation.status === 'paused';
   const ready = run?.status === 'ready';
   const items = run ? sortItems(run.items) : [];
   // «Accept all» берёт предложения; перегенерируемые сервер не пробует.
@@ -98,83 +93,32 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
       : null;
 
   useWrittenBlocks(versionId, data?.draft, onBlocksWritten);
-  // Отказы «Discard run» и «Continue» — своего хода: у другого хода (новый старт) их нет.
-  const discardError =
-    run && actions.discardRun.variables === run.id ? actions.discardRun.error : null;
-  const resume = {
-    ...actions.resume,
-    error: run && actions.resume.variables?.id === run.operation.id ? actions.resume.error : null,
-  };
-
-  const confirmDiscard = () => {
-    setDiscarding(false);
-    acceptAll.clear();
-    if (run) actions.discardRun.mutate(run.id);
-  };
 
   return (
-    <section className={styles.block} aria-label="Write Analysis">
-      {isError ? (
-        <p className={styles.error} role="alert">
-          Failed to load the analysis run.{' '}
-          <Button variant="link" onClick={() => void refetch()}>
-            Retry
-          </Button>
-        </p>
-      ) : data === undefined ? (
-        <p className={styles.hint}>Loading the analysis run…</p>
-      ) : (
-        <div className={styles.actions}>
-          <RunStart
-            versionId={versionId}
-            lang={lang}
-            building={building}
-            actions={actions}
-            label="Write Analysis"
-            buildingHint="The analysis of this version is being written: Write Analysis is available when it ends."
-            rebuiltHint="The dossier is being rebuilt. Press Write Analysis again when it is ready."
-            useEstimate={useAnalysisWriteEstimate}
-            estimateText={writeEstimateText}
-            loss={startLossText(run)}
-            refusalText={refusalText}
-          />
-          {(paused || run?.status === 'failed') && (
-            <Button
-              variant="ghost"
-              onClick={() => setDiscarding(true)}
-              loading={actions.discardRun.isPending}
-              disabled={actions.discardRun.isPending}
-            >
-              Discard run
-            </Button>
-          )}
-        </div>
-      )}
-      {discardError ? (
-        <p className={styles.error} role="alert">
-          {refusalText(discardError)}
-        </p>
-      ) : null}
-
-      <AnalysisWriteCore core={core} />
-
-      {run && building && (
-        <OperationProgress
-          operation={run.operation}
-          text={progressText(run)}
-          lang={lang}
-          resume={resume}
-          limitLabel="New limit of the run"
-          resumeLabel="Continue"
-          refusalText={refusalText}
-        />
-      )}
-      {run?.status === 'failed' && (
-        <p className={styles.error} role="alert">
-          Failed: {reasonText(run.failedReason)}.
-        </p>
-      )}
-
+    <WriteRunPanel
+      versionId={versionId}
+      lang={lang}
+      label="Write Analysis"
+      noun="analysis"
+      run={data === undefined ? undefined : run}
+      isError={isError}
+      refetch={refetch}
+      actions={actions}
+      start={{
+        buildingHint:
+          'The analysis of this version is being written: Write Analysis is available when it ends.',
+        rebuiltHint: 'The dossier is being rebuilt. Press Write Analysis again when it is ready.',
+        useEstimate: useAnalysisWriteEstimate,
+        estimateText: writeEstimateText,
+        loss: startLossText(run),
+      }}
+      progressText={progressText}
+      reasonText={reasonText}
+      refusalText={refusalText}
+      discardMessage="Discard this analysis run? Its operation and regenerations stop, proposals not accepted are lost, the money spent is not returned. The analysis is not touched."
+      onDiscarded={acceptAll.clear}
+      beforeProgress={<AnalysisWriteCore core={core} />}
+    >
       {acceptAll.stopped && (
         <AcceptAllOutcome
           error={acceptAll.stopped.error}
@@ -217,17 +161,6 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
           ))}
         </div>
       )}
-
-      {/* Строящийся ход отменяет операцию; оплаченное не возвращается — только после подтверждения. */}
-      <ConfirmDialog
-        isOpen={discarding}
-        title="Discard run"
-        message="Discard this analysis run? Its operation and regenerations stop, proposals not accepted are lost, the money spent is not returned. The analysis is not touched."
-        confirmLabel="Discard"
-        isDestructive
-        onConfirm={confirmDiscard}
-        onCancel={() => setDiscarding(false)}
-      />
-    </section>
+    </WriteRunPanel>
   );
 };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { inlinePhrase } from '@/components/admin/translation-run/sectionLine.utils';
 import {
-  inlinePhrase,
   summaryLineOf,
   summaryReasonText,
   sumSummarySpent,

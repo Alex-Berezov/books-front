@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useBookSummary, useUpsertBookSummary, useUpsertBookSummaryBrief } from '@/api/hooks';
 import { expectedRowOf, isRecordChanged } from '@/lib/admin/expected-row';
+import { refetchFresh } from '@/lib/admin/refetch-fresh';
 import { htmlToPlainText } from '@/lib/utils/html-text';
 import { readingMinutes } from '@/lib/utils/reading-time';
 import { ApiError } from '@/types/api';
@@ -153,19 +154,13 @@ export const useSummaryTab = (props: SummaryTabProps) => {
       const wanted = [...new Set([...fields.map((f) => FORM_FIELD[f]), ...unknownRef.current])];
       if (wanted.length === 0) return;
       // Второй вызов обрывает запрос первого, а оборванный ждёт новый (query-core `fetch`, тихая
-      // отмена): оба получают свежий ответ — сторож в useSummaryTabReload.test.
-      let startedAt = Date.now();
-      let result = await refetchRef.current();
-      if (versionRef.current !== calledFor) return;
-      // Отмена — не отказ сервера: один повтор, и только если не выяснилось — пометка (T174, п.5).
-      if (result.status === 'success' && result.dataUpdatedAt < startedAt) {
-        startedAt = Date.now();
-        result = await refetchRef.current();
-        if (versionRef.current !== calledFor) return;
-      }
-      // Запрос, отменённый сохранением соседнего поля (`cancelQueries`, откат), отдаёт данные
-      // прежнего состояния со статусом success: удачен только ответ, пришедший после начала.
-      const fresh = result.status === 'success' && result.dataUpdatedAt >= startedAt;
+      // отмена): оба получают свежий ответ — сторож в useSummaryTabReload.test. Отмена — не отказ
+      // сервера: один повтор, и только если не выяснилось — пометка (T174, п.5).
+      const outcome = await refetchFresh(() => refetchRef.current(), {
+        stillCurrent: () => versionRef.current === calledFor,
+      });
+      if (!outcome) return;
+      const { result, fresh } = outcome;
       // Вызовы внахлёст делят один запрос: пометки сливаются, успех снимает только свои поля.
       setUnknown((prev) => {
         const before = prev.versionId === calledFor ? prev.fields : [];

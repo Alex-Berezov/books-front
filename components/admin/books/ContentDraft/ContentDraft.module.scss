@@ -85,3 +85,13 @@
   margin: $spacing-xs 0 0;
   padding-left: $spacing-md;
 }
+
+/* Каркас панели хода (`WriteRunPanel`): один на «Write Summary» и «Write Analysis». */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  border: 1px dashed $color-border-base;
+  border-radius: $border-radius-base;
+}

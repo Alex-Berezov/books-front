@@ -2,9 +2,7 @@
 
 import { useState, type FC } from 'react';
 import { useSummaryWrite, useSummaryWriteActions, useSummaryWriteEstimate } from '@/api/hooks';
-import { OperationProgress, RunStart } from '@/components/admin/books/ContentDraft';
-import { Button } from '@/components/admin/common/Button';
-import { ConfirmDialog } from '@/components/admin/shared';
+import { WriteRunPanel } from '@/components/admin/books/ContentDraft';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { SummaryWriteItem } from '@/types/api-schema';
 import styles from './SummaryWrite.module.scss';
@@ -41,7 +39,6 @@ export interface SummaryWriteProps {
 export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsWritten }) => {
   const { data, isError, refetch } = useSummaryWrite(versionId, true);
   const actions = useSummaryWriteActions(versionId);
-  const [discarding, setDiscarding] = useState(false);
   // Отказ «Accept all» — со своим ходом: у нового хода или после «Accept» и «Discard run» его нет.
   // Тексты хода на момент нажатия: перечитанный после отказа ход уже не держит текст, на котором встали.
   const [acceptAllError, setAcceptAllError] = useState<{
@@ -51,8 +48,6 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
   } | null>(null);
 
   const run = data?.draft ?? null;
-  const building = run?.status === 'building';
-  const paused = building && run?.operation.status === 'paused';
   const ready = run?.status === 'ready';
   const items = run ? sortItems(run.items) : [];
   // «Accept all» берёт предложения и ждущие разделы; перегенерируемые сервер пропускает.
@@ -61,19 +56,6 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
   const allFailure = acceptAllError && acceptAllError.runId === run?.id ? acceptAllError : null;
 
   useWrittenFields(versionId, data?.draft, actions.refreshFields, onFieldsWritten);
-  // Отказы «Discard run» и «Continue» — своего хода: у другого хода (новый старт) их нет.
-  const discardError =
-    run && actions.discardRun.variables === run.id ? actions.discardRun.error : null;
-  const resume = {
-    ...actions.resume,
-    error: run && actions.resume.variables?.id === run.operation.id ? actions.resume.error : null,
-  };
-
-  const confirmDiscard = () => {
-    setDiscarding(false);
-    setAcceptAllError(null);
-    if (run) actions.discardRun.mutate(run.id);
-  };
   const acceptAll = async () => {
     if (!run) return;
     const before = acceptable;
@@ -92,66 +74,29 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
   };
 
   return (
-    <section className={styles.block} aria-label="Write Summary">
-      {isError ? (
-        <p className={styles.error} role="alert">
-          Failed to load the summary run.{' '}
-          <Button variant="link" onClick={() => void refetch()}>
-            Retry
-          </Button>
-        </p>
-      ) : data === undefined ? (
-        <p className={styles.hint}>Loading the summary run…</p>
-      ) : (
-        <div className={styles.actions}>
-          <RunStart
-            versionId={versionId}
-            lang={lang}
-            building={building}
-            actions={actions}
-            label="Write Summary"
-            buildingHint="The summary of this version is being written: Write Summary is available when it ends."
-            rebuiltHint="The dossier is being rebuilt. Press Write Summary again when it is ready."
-            useEstimate={useSummaryWriteEstimate}
-            estimateText={writeEstimateText}
-            loss={startLossText(run)}
-            refusalText={refusalText}
-          />
-          {(paused || run?.status === 'failed') && (
-            <Button
-              variant="ghost"
-              onClick={() => setDiscarding(true)}
-              loading={actions.discardRun.isPending}
-              disabled={actions.discardRun.isPending}
-            >
-              Discard run
-            </Button>
-          )}
-        </div>
-      )}
-      {discardError ? (
-        <p className={styles.error} role="alert">
-          {refusalText(discardError)}
-        </p>
-      ) : null}
-
-      {run && building && (
-        <OperationProgress
-          operation={run.operation}
-          text={progressText(run)}
-          lang={lang}
-          resume={resume}
-          limitLabel="New limit of the run"
-          resumeLabel="Continue"
-          refusalText={refusalText}
-        />
-      )}
-      {run?.status === 'failed' && (
-        <p className={styles.error} role="alert">
-          Failed: {reasonText(run.failedReason)}.
-        </p>
-      )}
-
+    <WriteRunPanel
+      versionId={versionId}
+      lang={lang}
+      label="Write Summary"
+      noun="summary"
+      run={data === undefined ? undefined : run}
+      isError={isError}
+      refetch={refetch}
+      actions={actions}
+      start={{
+        buildingHint:
+          'The summary of this version is being written: Write Summary is available when it ends.',
+        rebuiltHint: 'The dossier is being rebuilt. Press Write Summary again when it is ready.',
+        useEstimate: useSummaryWriteEstimate,
+        estimateText: writeEstimateText,
+        loss: startLossText(run),
+      }}
+      progressText={progressText}
+      reasonText={reasonText}
+      refusalText={refusalText}
+      discardMessage="Discard this summary run? Its operation and regenerations stop, texts not in the fields are lost, the money spent is not returned. The fields are not touched."
+      onDiscarded={() => setAcceptAllError(null)}
+    >
       {waitsFor !== null && (
         <p className={styles.hint}>
           Full and very short summaries wait for section {waitsFor}: regenerate it. A section
@@ -190,17 +135,6 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
           ))}
         </div>
       )}
-
-      {/* Строящийся ход отменяет операцию; оплаченное не возвращается — только после подтверждения. */}
-      <ConfirmDialog
-        isOpen={discarding}
-        title="Discard run"
-        message="Discard this summary run? Its operation and regenerations stop, texts not in the fields are lost, the money spent is not returned. The fields are not touched."
-        confirmLabel="Discard"
-        isDestructive
-        onConfirm={confirmDiscard}
-        onCancel={() => setDiscarding(false)}
-      />
-    </section>
+    </WriteRunPanel>
   );
 };
