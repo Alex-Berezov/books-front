@@ -139,6 +139,12 @@ describe('правила запуска сравнения', () => {
     expect(refusalText(apiError('The dossier summary is too long', 'DOSSIER_TOO_LONG'))).toBe(
       DOSSIER_REFUSED_TEXT
     );
+    // T176: второй старт того же набора моделей - своя подпись, а не сырой текст сервера.
+    expect(
+      refusalText(apiError('The same models are already being compared', 'COMPARE_ALREADY_RUNNING'))
+    ).toBe(
+      'These models are already being compared on this chapter and language: wait for it or cancel it.'
+    );
     expect(refusalText(new Error('boom'))).toBe('The request failed');
   });
 });

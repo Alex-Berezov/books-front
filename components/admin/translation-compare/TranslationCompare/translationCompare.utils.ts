@@ -21,6 +21,8 @@ const REFUSALS: Record<string, string> = {
   LLM_MODEL_UNKNOWN: 'A selected model is not in the OpenRouter list.',
   COMPARE_TARGET_IS_SOURCE: 'The target language is the language of the source.',
   COMPARE_CHAPTER_EMPTY: 'The chapter has no text.',
+  COMPARE_ALREADY_RUNNING:
+    'These models are already being compared on this chapter and language: wait for it or cancel it.',
   COMPARE_LIMIT_TOO_LOW:
     'The limit is lower than the dossier and glossary built first need: see the suggested limit.',
   NOT_IN_INTAKE: 'The target language is not in the rights intake of the book.',
