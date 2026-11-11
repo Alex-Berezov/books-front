@@ -516,6 +516,34 @@ jobs:
           # Запросы к Google спек перехватывает сам; боевой образ берёт свой ID в `deploy.yml`.
           NEXT_PUBLIC_GA_MEASUREMENT_ID: G-E2ETEST000
 
+      # Зеркало раннера `azure.archive.ubuntu.com` 11.11.2026 четыре прогона подряд не резолвилось,
+      # и `playwright install --with-deps` не ставил шрифты браузера (T190, решение арбитра
+      # в decisions-log.md). Из списка зеркал раннера (`mirror+file:`) убирается только Azure:
+      # apt идёт на следующие зеркала списка (archive.ubuntu.com), запасная цепочка остаётся. Остался адрес
+      # Azure или список опустел - шаг красный, подмена не прошла молча. Шаг снимается отдельной
+      # правкой, когда зеркало Azure снова резолвится (`getent hosts azure.archive.ubuntu.com` на раннере).
+      - name: Point apt at the main Ubuntu mirror
+        run: |
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i -e '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+          fi
+          for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do
+            if [ -f "$f" ]; then
+              sudo sed -i -e 's|https\?://azure\.archive\.ubuntu\.com|https://archive.ubuntu.com|g' "$f"
+            fi
+          done
+          if grep -qsE '^[^#]*azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*; then
+            echo "::error::apt still points at azure.archive.ubuntu.com"
+            exit 1
+          fi
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            if ! grep -qE '^[[:space:]]*[^#[:space:]]' /etc/apt/apt-mirrors.txt; then
+              echo "::error::apt mirror list is empty after removing azure.archive.ubuntu.com"
+              exit 1
+            fi
+            cat /etc/apt/apt-mirrors.txt
+          fi
+
       # 🔴 Набор e2e существовал в репозитории с февраля и не запускался нигде
       # (`LEGACY-154`): ни `ci.yml`, ни `deploy.yml` его не звали, поэтому
       # единственная проверка гейта админки и единственное покрытие хаба авторов
@@ -525,8 +553,18 @@ jobs:
       # Прогон идёт против `yarn start`, то есть против собранного выше приложения —
       # того самого, что поедет на прод, — а не против dev-сервера. Только chromium:
       # три браузера втрое дороже, а ловят они одно и то же.
+      # Установка с зависимостями повторяется до трёх раз (уже скачанный браузер Playwright
+      # повторно не качает); каждая неудача - предупреждение в сводке прогона, после трёх шаг красный.
       - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+        run: |
+          for attempt in 1 2 3; do
+            if npx playwright install --with-deps chromium; then
+              exit 0
+            fi
+            echo "::warning::playwright install --with-deps failed (attempt $attempt of 3)"
+            if [ "$attempt" -lt 3 ]; then sleep 20; fi
+          done
+          exit 1
 
       # Блока `env:` здесь нет намеренно: адрес API уже впечён сборкой выше, и строки,
       # выглядящие как настройка прогона, ею не являются.
