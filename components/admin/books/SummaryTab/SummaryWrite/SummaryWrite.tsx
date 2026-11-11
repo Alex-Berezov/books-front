@@ -95,7 +95,7 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
       reasonText={reasonText}
       refusalText={refusalText}
       discardMessage="Discard this summary run? Its operation and regenerations stop, texts not in the fields are lost, the money spent is not returned. The fields are not touched."
-      onDiscarded={() => setAcceptAllError(null)}
+      onDiscarded={(id) => setAcceptAllError((e) => (e?.runId === id ? null : e))}
     >
       {waitsFor !== null && (
         <p className={styles.hint}>

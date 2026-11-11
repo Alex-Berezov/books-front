@@ -701,7 +701,9 @@ describe('SummaryWrite (F06-3)', () => {
       expect(actions().discardRun.mutate).not.toHaveBeenCalled();
       fireEvent.click(within(dialog()).getByRole('button', { name: 'Discard' }));
       expect(actions().discardRun.mutate).toHaveBeenCalledTimes(1);
-      expect(actions().discardRun.mutate).toHaveBeenCalledWith('d1');
+      expect(actions().discardRun.mutate).toHaveBeenCalledWith('d1', {
+        onSuccess: expect.any(Function),
+      });
     });
 
     it('failed run: the reason and «Discard run»; a ready run has no «Discard run»', () => {
@@ -1211,18 +1213,16 @@ describe('SummaryWrite (F06-3)', () => {
   });
 
   describe('refusals of another run', () => {
-    it('Continue and Discard run refusals are shown only for their own run', () => {
+    it('Continue refusal is shown only for its own run; Discard run refusal stays', () => {
       hooks.run = writing({
         operation: operation({ id: 'op-2', status: 'paused', pauseReason: 'CEILING_REACHED' }),
       });
       actions().resume.error = conflict({ code: 'LLM_OPERATION_NOT_RESUMABLE' });
       (actions().resume as Mutation & { variables?: unknown }).variables = { id: 'op-1' };
-      actions().discardRun.error = conflict({ code: 'SUMMARY_WRITE_NOT_READY' });
-      (actions().discardRun as Mutation & { variables?: unknown }).variables = 'd0';
       const { unmount } = view();
       expect(screen.queryByRole('alert')).toBeNull();
       unmount();
-      (actions().discardRun as Mutation & { variables?: unknown }).variables = 'd1';
+      actions().discardRun.error = conflict({ code: 'SUMMARY_WRITE_NOT_READY' });
       view();
       expect(screen.getByRole('alert')).toHaveTextContent('The run is not ready any more');
     });

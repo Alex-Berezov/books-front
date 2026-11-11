@@ -75,5 +75,12 @@ export const useAcceptAll = (
     onBlocksWritten();
   };
 
-  return { own, stopped, accept, clear: () => setResult(null) };
+  return {
+    own,
+    stopped,
+    accept,
+    clear: () => setResult(null),
+    // Сброшен ход `id`: снимается только его итог — к ответу сброса на экране может быть другой ход.
+    clearOf: (id: string) => setResult((r) => (r?.runId === id ? null : r)),
+  };
 };

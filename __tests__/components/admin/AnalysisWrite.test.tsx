@@ -703,6 +703,64 @@ describe('AnalysisWrite (F07-3a)', () => {
     await waitFor(() => expect(screen.queryByText(stoppedText)).not.toBeInTheDocument());
   });
 
+  /** Обрыв «Accept all» хода d1, после него на экране упавший ход `failedId` с «Discard run». */
+  const stopThenFailed = async (failedId = 'd1') => {
+    hooks.run = run({ items: [item({ index: 0 })] });
+    actions().acceptAll.mutateAsync.mockImplementationOnce(() => {
+      hooks.run = run({
+        id: failedId,
+        status: 'failed',
+        failedReason: 'DRAFT_CANCELLED',
+        items: [],
+      });
+      return Promise.reject(stopWith());
+    });
+    const rendered = view();
+    fireEvent.click(button('Accept all'));
+    await waitFor(() => expect(onBlocksWritten).toHaveBeenCalledTimes(1));
+    rendered.rerender(element());
+    expect(screen.getByText(stoppedText)).toBeInTheDocument();
+    fireEvent.click(button('Discard run'));
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Discard' }));
+    expect(actions().discardRun.mutate).toHaveBeenCalledTimes(1);
+    expect(actions().discardRun.mutate).toHaveBeenCalledWith(failedId, {
+      onSuccess: expect.any(Function),
+    });
+    const { onSuccess } = actions().discardRun.mutate.mock.calls[0][1] as { onSuccess: () => void };
+    return { ...rendered, onSuccess };
+  };
+
+  it('a stopped «Accept all» goes when its run is discarded — after the answer, with no run left on screen (T190)', async () => {
+    const { rerender, onSuccess } = await stopThenFailed();
+    // До ответа итог на месте.
+    expect(screen.getByText(stoppedText)).toBeInTheDocument();
+    // Перечитанный `latest` приходит раньше ответа сброса: хода на экране уже нет.
+    hooks.run = null;
+    rerender(element());
+    act(() => onSuccess());
+    expect(screen.queryByText(stoppedText)).not.toBeInTheDocument();
+  });
+
+  it('a refused discard keeps the stopped «Accept all» (T190)', async () => {
+    const { rerender } = await stopThenFailed();
+    // Отказ: колбэк успеха не зовётся.
+    actions().discardRun.error = new ApiError({
+      statusCode: 409,
+      message: 'gone',
+      data: { code: 'DRAFT_DISCARDED' },
+    });
+    rerender(element());
+    expect(screen.getByText(stoppedText)).toBeInTheDocument();
+  });
+
+  it('the discard of another run keeps the stopped «Accept all» of its own run (T190)', async () => {
+    const { rerender, onSuccess } = await stopThenFailed('d2');
+    hooks.run = null;
+    rerender(element());
+    act(() => onSuccess());
+    expect(screen.getByText(stoppedText)).toBeInTheDocument();
+  });
+
   it('a ready run of another clears it for good: it does not come back when that run is gone (T174, p.1)', async () => {
     const { rerender } = await stopThenNoRun();
     hooks.run = run({ id: 'd2', status: 'ready', items: [] });

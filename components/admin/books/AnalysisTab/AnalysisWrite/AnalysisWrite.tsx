@@ -116,7 +116,7 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
       reasonText={reasonText}
       refusalText={refusalText}
       discardMessage="Discard this analysis run? Its operation and regenerations stop, proposals not accepted are lost, the money spent is not returned. The analysis is not touched."
-      onDiscarded={acceptAll.clear}
+      onDiscarded={acceptAll.clearOf}
       beforeProgress={<AnalysisWriteCore core={core} />}
     >
       {acceptAll.stopped && (

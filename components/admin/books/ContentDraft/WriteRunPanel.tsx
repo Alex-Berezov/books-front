@@ -30,9 +30,10 @@ export interface WriteRunPanelProps<R extends PanelRun, E extends StartEstimate>
   refetch: () => void;
   actions: RunStartProps<E>['actions'] & {
     discardRun: {
-      mutate: (runId: string) => void;
+      mutate: (runId: string, options?: { onSuccess?: () => void }) => void;
+      /** Снимает отказ сброса: его зовёт новый старт с этой панели. */
+      reset: () => void;
       isPending: boolean;
-      variables: string | undefined;
       error: unknown;
     };
     resume: ResumeAction & { variables: { id: string } | undefined };
@@ -47,8 +48,11 @@ export interface WriteRunPanelProps<R extends PanelRun, E extends StartEstimate>
   refusalText: (error: unknown) => string;
   /** Что теряет «Discard run»: текст окна подтверждения. */
   discardMessage: string;
-  /** Ход сброшен: вкладка убирает итоги, привязанные к нему. */
-  onDiscarded: () => void;
+  /**
+   * Ход `runId` сброшен (ответ получен): вкладка убирает итоги, привязанные к нему, и только к нему —
+   * на экране к этому времени может быть другой ход или ни одного.
+   */
+  onDiscarded: (runId: string) => void;
   /** Между отказом сброса и строкой хода (у хода анализа — плашка ядра). */
   beforeProgress?: ReactNode;
   children?: ReactNode;
@@ -80,21 +84,37 @@ export const WriteRunPanel = <R extends PanelRun, E extends StartEstimate>(
     beforeProgress,
     children,
   } = props;
-  const [discarding, setDiscarding] = useState(false);
+  // Ход, на котором открыто окно подтверждения: опрос мог принести другой, сбрасываем тот, о котором предупредили.
+  const [discarding, setDiscarding] = useState<string | null>(null);
   const building = run?.status === 'building';
   const paused = building && run?.operation.status === 'paused';
-  // Отказы «Discard run» и «Continue» — своего хода: у другого хода (новый старт) их нет.
-  const discardError =
-    run && actions.discardRun.variables === run.id ? actions.discardRun.error : null;
+  // Отказ «Discard run» виден, пока не начат новый сброс или новый старт с этой панели: сбрасывался ход
+  // из окна, он мог уйти с экрана (решение арбитра T190; старт из другой вкладки его не снимает).
+  // Отказ «Continue» — только своего хода: у другого хода (новый старт) его нет.
+  const discardError = actions.discardRun.error;
+  // Новый старт снимает отказ сброса прошлого хода (`reset`), открытие и отмена окна старта — нет.
+  const startActions = {
+    ...actions,
+    start: {
+      ...actions.start,
+      mutate: (vars: { limitUsd?: string }) => {
+        // Идущий сброс не отцепляем: `reset` в react-query рвёт колбэк `onSuccess` и отказ этого сброса.
+        if (!actions.discardRun.isPending) actions.discardRun.reset();
+        actions.start.mutate(vars);
+      },
+    },
+  };
   const resume = {
     ...actions.resume,
     error: run && actions.resume.variables?.id === run.operation.id ? actions.resume.error : null,
   };
 
   const confirmDiscard = () => {
-    setDiscarding(false);
-    onDiscarded();
-    if (run) actions.discardRun.mutate(run.id);
+    const id = discarding;
+    setDiscarding(null);
+    if (id === null) return;
+    // Итоги снимаем после ответа и по id сброшенного хода: отказ их не трогает, итог другого хода тоже.
+    actions.discardRun.mutate(id, { onSuccess: () => onDiscarded(id) });
   };
 
   return (
@@ -114,7 +134,7 @@ export const WriteRunPanel = <R extends PanelRun, E extends StartEstimate>(
             versionId={versionId}
             lang={lang}
             building={building}
-            actions={actions}
+            actions={startActions}
             label={label}
             refusalText={refusalText}
             {...start}
@@ -122,7 +142,7 @@ export const WriteRunPanel = <R extends PanelRun, E extends StartEstimate>(
           {(paused || run?.status === 'failed') && (
             <Button
               variant="ghost"
-              onClick={() => setDiscarding(true)}
+              onClick={() => setDiscarding(run.id)}
               loading={actions.discardRun.isPending}
               disabled={actions.discardRun.isPending}
             >
@@ -160,13 +180,13 @@ export const WriteRunPanel = <R extends PanelRun, E extends StartEstimate>(
 
       {/* Строящийся ход отменяет операцию; оплаченное не возвращается — только после подтверждения. */}
       <ConfirmDialog
-        isOpen={discarding}
+        isOpen={discarding !== null}
         title="Discard run"
         message={discardMessage}
         confirmLabel="Discard"
         isDestructive
         onConfirm={confirmDiscard}
-        onCancel={() => setDiscarding(false)}
+        onCancel={() => setDiscarding(null)}
       />
     </section>
   );
