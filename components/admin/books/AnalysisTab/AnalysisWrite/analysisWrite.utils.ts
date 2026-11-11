@@ -94,7 +94,9 @@ export const isRegenerable = (item: AnalysisWriteItem): boolean =>
 
 /**
  * Флаги блока на вкладке. `CORE_MISSING` — флаг момента шага: ядро показывает плашка по живому
- * `hasCore`, а не счётчик флагов (решение арбитра `F07 | F07-3`, п.6).
+ * `hasCore`, а не счётчик флагов (решение арбитра `F07 | F07-3`, п.6). Копия правила —
+ * счётчик строки запуска `isModelFlagged` (T189, `books/src/modules/translation/run/run-sections.ts`):
+ * меняются вместе.
  */
 export const shownRemarks = (remarks: AnalysisWriteRemark[]): AnalysisWriteRemark[] =>
   remarks.filter((r) => r.code !== 'CORE_MISSING' && r.code !== 'EXTERNAL_CHECK');

@@ -266,7 +266,10 @@ export interface TranslationRunAnalysis {
   stepsDone: number;
   /** `null` — ход не начат. */
   stepsTotal: number | null;
-  /** Блоки с флагами модели (не замечания); флаг шага `CORE_MISSING` не в счёт. */
+  /**
+   * Блоки с флагами модели (не замечания): вердикт `flags` и замечание, кроме `EXTERNAL_CHECK`
+   * и `CORE_MISSING`; блок `flags` без таких замечаний и блок «Nothing to add» не в счёт.
+   */
   flaggedItems: number;
   /** Блоки, которые не удалось написать. */
   failedItems: number;
