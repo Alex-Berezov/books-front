@@ -445,6 +445,9 @@ export {
 } from './useAnalysisWrite';
 export type { AnalysisWriteActions } from './useAnalysisWrite';
 
+// Editor «read» mark of the Summary and Analysis tabs (T184), admin only
+export { autoTextReadKeys, useAutoTextRead } from './useAutoTextRead';
+
 // Dossier rebuild shared by the analysis run and the summary run (F06-3, F07-3a, admin only)
 export { useRebuildDossier } from './useRebuildDossier';
 

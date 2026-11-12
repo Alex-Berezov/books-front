@@ -8,7 +8,7 @@ import {
   useAnalysisWriteProposal,
   useBookAnalysis,
 } from '@/api/hooks';
-import { WriteRunPanel } from '@/components/admin/books/ContentDraft';
+import { AutoTextReadMark, WriteRunPanel } from '@/components/admin/books/ContentDraft';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './AnalysisWrite.module.scss';
 import {
@@ -119,6 +119,13 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
       onDiscarded={acceptAll.clearOf}
       beforeProgress={<AnalysisWriteCore core={core} />}
     >
+      <AutoTextReadMark
+        versionId={versionId}
+        lang={lang}
+        kind="analysis_write"
+        run={data === undefined ? undefined : run}
+      />
+
       {acceptAll.stopped && (
         <AcceptAllOutcome
           error={acceptAll.stopped.error}

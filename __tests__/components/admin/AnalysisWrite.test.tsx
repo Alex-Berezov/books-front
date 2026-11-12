@@ -45,10 +45,22 @@ const hooks = vi.hoisted(() => ({
   proposalEnabled: [] as Array<[number, boolean]>,
   estimate: undefined as unknown,
   actions: {} as Record<string, unknown>,
+  /** Вызовы отметки «прочитано» (T184): версия и вид хода. */
+  readMark: [] as Array<[string, string]>,
 }));
 
 vi.mock('@/api/hooks', async () => ({
   ...(await vi.importActual<object>('@/api/hooks/draftKeys')),
+  // Отметка «прочитано» (T184) — своя спека `AutoTextReadMark.test.tsx`; здесь её нет на экране.
+  useAutoTextRead: (versionId: string, kind: string) => {
+    hooks.readMark.push([versionId, kind]);
+    return {
+      query: { data: undefined, isError: false, refetch: () => Promise.resolve() },
+      mark: { isPending: false, error: null, mutate: () => undefined, reset: () => undefined },
+      unmark: { isPending: false, error: null, mutate: () => undefined, reset: () => undefined },
+      refreshAfterRun: () => Promise.resolve([]),
+    };
+  },
   useAnalysisWrite: () => ({
     data: hooks.runError ? undefined : { draft: hooks.run },
     isError: hooks.runError,
@@ -258,6 +270,15 @@ describe('AnalysisWrite (F07-3a)', () => {
       acceptAll: mutation(),
       rebuildDossier: mutation(),
     };
+  });
+
+  it('the read mark of this tab asks for the analysis_write kind of this version (T184)', () => {
+    hooks.readMark.length = 0;
+    view();
+    expect(hooks.readMark.length).toBeGreaterThan(0);
+    expect(new Set(hooks.readMark.map(([v, k]) => `${v}:${k}`))).toEqual(
+      new Set(['v1:analysis_write'])
+    );
   });
 
   describe('core plate', () => {

@@ -147,6 +147,28 @@ describe('PublishPanel — WP-A.5 gate codes are never shown raw', () => {
     expect(screen.queryByText('GEO_BLOCK_RULES_MISSING')).not.toBeInTheDocument();
   });
 
+  it('labels unread model text of the Summary or Analysis tab (T184)', () => {
+    arrangeGate({
+      data: gateResult({
+        canPublish: false,
+        blockingReasons: [
+          {
+            code: 'AUTO_TEXT_NOT_READ',
+            severity: 'BLOCKER',
+            messageRu: 'Текст модели не отмечен прочитанным на вкладке «Summary».',
+          },
+        ],
+      }),
+    });
+    renderPanel();
+    attemptPublish();
+
+    expect(
+      screen.getByText('Текст модели на вкладке Summary или Analysis не отмечен прочитанным')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Другое требование гейта прав')).not.toBeInTheDocument();
+  });
+
   it('falls back to a readable label for a code it does not know', () => {
     arrangeGate({
       data: gateResult({

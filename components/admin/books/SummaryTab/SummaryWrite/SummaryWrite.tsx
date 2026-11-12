@@ -2,7 +2,7 @@
 
 import { useState, type FC } from 'react';
 import { useSummaryWrite, useSummaryWriteActions, useSummaryWriteEstimate } from '@/api/hooks';
-import { WriteRunPanel } from '@/components/admin/books/ContentDraft';
+import { AutoTextReadMark, WriteRunPanel } from '@/components/admin/books/ContentDraft';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { SummaryWriteItem } from '@/types/api-schema';
 import styles from './SummaryWrite.module.scss';
@@ -97,6 +97,13 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
       discardMessage="Discard this summary run? Its operation and regenerations stop, texts not in the fields are lost, the money spent is not returned. The fields are not touched."
       onDiscarded={(id) => setAcceptAllError((e) => (e?.runId === id ? null : e))}
     >
+      <AutoTextReadMark
+        versionId={versionId}
+        lang={lang}
+        kind="summary_write"
+        run={data === undefined ? undefined : run}
+      />
+
       {waitsFor !== null && (
         <p className={styles.hint}>
           Full and very short summaries wait for section {waitsFor}: regenerate it. A section

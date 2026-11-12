@@ -37,12 +37,24 @@ const hooks = vi.hoisted(() => ({
   estimateEnabled: [] as boolean[],
   dossierRefused: false,
   actions: {} as Record<string, unknown>,
+  /** Вызовы отметки «прочитано» (T184): версия и вид хода. */
+  readMark: [] as Array<[string, string]>,
 }));
 
 vi.mock('@/api/hooks', async () => ({
   // Чистые правила хода и коды — настоящие, мокаются только хуки.
   ...(await vi.importActual<object>('@/api/hooks/useSummaryWrite')),
   ...(await vi.importActual<object>('@/api/hooks/draftKeys')),
+  // Отметка «прочитано» (T184) — своя спека `AutoTextReadMark.test.tsx`; здесь её нет на экране.
+  useAutoTextRead: (versionId: string, kind: string) => {
+    hooks.readMark.push([versionId, kind]);
+    return {
+      query: { data: undefined, isError: false, refetch: () => Promise.resolve() },
+      mark: { isPending: false, error: null, mutate: () => undefined, reset: () => undefined },
+      unmark: { isPending: false, error: null, mutate: () => undefined, reset: () => undefined },
+      refreshAfterRun: () => Promise.resolve([]),
+    };
+  },
   useSummaryWrite: () => ({
     data: hooks.loading || hooks.loadError ? undefined : { draft: hooks.run },
     isError: hooks.loadError || hooks.pollError,
@@ -181,6 +193,15 @@ describe('SummaryWrite (F06-3)', () => {
       rebuildDossier: mutation(),
       refreshFields: vi.fn().mockResolvedValue(undefined),
     };
+  });
+
+  it('the read mark of this tab asks for the summary_write kind of this version (T184)', () => {
+    hooks.readMark.length = 0;
+    view();
+    expect(hooks.readMark.length).toBeGreaterThan(0);
+    expect(new Set(hooks.readMark.map(([v, k]) => `${v}:${k}`))).toEqual(
+      new Set(['v1:summary_write'])
+    );
   });
 
   describe('marks of the model check', () => {

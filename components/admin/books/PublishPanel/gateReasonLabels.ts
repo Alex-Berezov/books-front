@@ -33,6 +33,7 @@ export const GATE_REASON_LABELS: Record<string, string> = {
   PENDING_TERRITORIES_OUTSIDE_TARGET_MARKETS: 'Территории без решения вне целевых рынков',
   MISSING_LANGUAGE_RIGHTS_ASSESSMENT: 'Язык версии не покрыт правовой оценкой',
   VERSION_CONTENT_INCOMPLETE: 'Версия не наполнена: нет описания или обложки',
+  AUTO_TEXT_NOT_READ: 'Текст модели на вкладке Summary или Analysis не отмечен прочитанным',
   LAWYER_OVERRIDE_APPLIED: 'Часть требований снята заключением юриста',
   SUPERVISOR_OVERRIDE_APPLIED: 'Ограничения сняты решением администратора (последняя инстанция)',
   BLOCKED_COUNTRIES_REQUIRE_GEO_BLOCK: 'Закрытые страны требуют настройки geo-block',

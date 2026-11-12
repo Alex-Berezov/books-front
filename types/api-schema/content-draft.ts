@@ -26,3 +26,26 @@ export type ContentDraftAcceptAll = SummaryWrite | AnalysisAcceptAll;
 export interface StartContentDraftRequest {
   limitUsd?: LlmMoney;
 }
+
+/** Вид хода в маршруте отметки «прочитано» (`.../drafts/:kind/read`, T184). */
+export type AutoTextRunKind = 'summary_write' | 'analysis_write';
+
+/**
+ * Отметка редактора «прочитано» вкладки Summary или Analysis (T184,
+ * `books/src/modules/translation/dto/auto-text-read-response.dto.ts`). Без действующей отметки публикация
+ * версии отказывает `RIGHTS_PUBLICATION_BLOCKED` с причиной `AUTO_TEXT_NOT_READ`.
+ */
+export interface AutoTextRead {
+  /** Когда текст модели последний раз лёг в поля вкладки; `null` — никогда. */
+  autoTextAt: string | null;
+  /** Когда редактор отметил текст прочитанным; `null` — не отмечен. */
+  readAt: string | null;
+  readById: string | null;
+  /** `true` — читать нечего или отметка не раньше последнего текста модели. */
+  read: boolean;
+}
+
+/** Тело «Mark as read»: время текста модели, который редактор видел (`AutoTextRead.autoTextAt`). */
+export interface MarkAutoTextReadRequest {
+  autoTextAt: string;
+}

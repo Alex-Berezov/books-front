@@ -1,3 +1,4 @@
+export { AutoTextReadMark } from './AutoTextReadMark';
 export { ItemCheck } from './ItemCheck';
 export { ItemRegenerate } from './ItemRegenerate';
 export { ItemResume } from './ItemResume';

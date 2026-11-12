@@ -23,6 +23,13 @@ vi.mock('next/dynamic', async () => {
 
 vi.mock('@/api/hooks', async () => ({
   ...(await vi.importActual<object>('@/api/hooks/draftKeys')),
+  // Отметка «прочитано» (T184) — своя спека `AutoTextReadMark.test.tsx`; здесь её нет на экране.
+  useAutoTextRead: () => ({
+    query: { data: undefined, isError: false, refetch: () => Promise.resolve() },
+    mark: { isPending: false, error: null, mutate: () => undefined, reset: () => undefined },
+    unmark: { isPending: false, error: null, mutate: () => undefined, reset: () => undefined },
+    refreshAfterRun: () => Promise.resolve([]),
+  }),
   useBookAnalysis: () => ({
     data: api.saved,
     isSuccess: true,

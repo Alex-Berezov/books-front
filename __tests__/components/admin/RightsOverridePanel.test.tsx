@@ -172,6 +172,20 @@ describe('RightsOverridePanel — кто видит кнопку', () => {
     expect(screen.queryByRole('button', { name: GRANT_BUTTON })).not.toBeInTheDocument();
   });
 
+  it('не показывает кнопку, когда гейт запретил только непрочитанным текстом модели (T184)', () => {
+    arrange({
+      roles: ['admin'],
+      gate: gateResult({
+        blockingReasons: [
+          { code: 'AUTO_TEXT_NOT_READ', severity: 'BLOCKER', messageRu: 'Не отмечено.' },
+        ],
+      }),
+    });
+    renderPanel();
+
+    expect(screen.queryByRole('button', { name: GRANT_BUTTON })).not.toBeInTheDocument();
+  });
+
   it('не показывает кнопку, когда гейт разрешает публикацию', () => {
     arrange({ roles: ['admin'], gate: gateResult({ canPublish: true, blockingReasons: [] }) });
     renderPanel();

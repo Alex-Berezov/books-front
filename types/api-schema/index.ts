@@ -624,7 +624,10 @@ export type {
 
 // Shared by the runs from the dossier (F06, F07), admin only
 export type {
+  AutoTextRead,
+  AutoTextRunKind,
   ContentDraftAcceptAll,
+  MarkAutoTextReadRequest,
   ContentDraftRun,
   ContentDraftStatus,
   StartContentDraftRequest,

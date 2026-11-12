@@ -9,7 +9,11 @@ export const OVERRIDE_REASON_MAX_LENGTH = 2000;
  * `SUPERVISOR_OVERRIDE_EXEMPT_GATE_CODES` из `books/src/modules/book-version/publication-gate.constants.ts`
  * той же формы: правится парно, иначе кнопка появится при запрете, который решение не снимает.
  */
-export const NEVER_OVERRIDDEN_GATE_CODES: readonly string[] = ['VERSION_CONTENT_INCOMPLETE'];
+export const NEVER_OVERRIDDEN_GATE_CODES: readonly string[] = [
+  'VERSION_CONTENT_INCOMPLETE',
+  // T184: отметка редактора «прочитано» — не правовой вопрос.
+  'AUTO_TEXT_NOT_READ',
+];
 
 export const isNeverOverriddenGateCode = (code: string): boolean =>
   NEVER_OVERRIDDEN_GATE_CODES.includes(code);
