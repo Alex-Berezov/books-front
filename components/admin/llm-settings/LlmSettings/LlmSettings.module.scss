@@ -123,6 +123,6 @@
 // Раскрытый список шире поля: класс корня выпадашки (`classNames.popup.root`), `min-width`
 // перебивает ширину поля, виртуальный список при этом не выключается. На узком экране — не шире окна.
 .modelPopup {
-  min-width: $admin-select-popup-min-width;
+  min-width: min(#{$admin-select-popup-min-width}, calc(100vw - 2 * #{$spacing-md}));
   max-width: calc(100vw - 2 * #{$spacing-md});
 }

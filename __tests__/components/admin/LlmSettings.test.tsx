@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { LlmSettings } from '@/components/admin/llm-settings/LlmSettings/LlmSettings';
 import { ApiError } from '@/types/api';
@@ -155,6 +157,20 @@ describe('LlmSettings (F05-1s)', () => {
     await waitFor(() =>
       expect(document.querySelectorAll('.ant-select-dropdown[class*="modelPopup"]')).toHaveLength(2)
     );
+  });
+
+  it('раскрытый список не шире окна: min-width тоже зажат шириной экрана', () => {
+    // jsdom не считает вёрстку: проверяется исходник. Голый `min-width: 30rem` перебивает
+    // `max-width` и на узком окне раскрывает список шире экрана (T192).
+    const scss = readFileSync(
+      path.join(process.cwd(), 'components/admin/llm-settings/LlmSettings/LlmSettings.module.scss'),
+      'utf8'
+    );
+    const rule = /\.modelPopup\s*\{([\s\S]*?)\n\}/.exec(scss)?.[1] ?? '';
+    expect(rule).toMatch(
+      /min-width:\s*min\(#\{\$admin-select-popup-min-width\},\s*calc\(100vw - 2 \* #\{\$spacing-md\}\)\)/
+    );
+    expect(rule).toMatch(/max-width:\s*calc\(100vw - 2 \* #\{\$spacing-md\}\)/);
   });
 
   it('этап пересказа: название по-русски, мелкая подпись — только техническое имя', async () => {
