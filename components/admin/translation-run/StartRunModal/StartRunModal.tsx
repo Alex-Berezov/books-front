@@ -23,7 +23,7 @@ import {
   refusalText,
   RUN_DOSSIER_REFUSED_TEXT,
   startRunRequest,
-  TARGET_REASONS,
+  targetReasonText,
   toModelOptions,
 } from '../translationRun.utils';
 import { RunEstimateTable } from './RunEstimateTable';
@@ -138,7 +138,7 @@ export const StartRunModal: FC<StartRunModalProps> = ({
               >
                 {t.language.toUpperCase()}
               </Checkbox>
-              {t.reason && <span className={styles.muted}>{TARGET_REASONS[t.reason]}</span>}
+              {t.reason && <span className={styles.muted}>{targetReasonText(t.reason)}</span>}
             </div>
           ))}
       </fieldset>
@@ -173,8 +173,8 @@ export const StartRunModal: FC<StartRunModalProps> = ({
           Write Summary
         </Checkbox>
         <span className={styles.muted}>
-          When a language is translated, its summary starts on the Summary tab of the new version.
-          It is paid from its own limit: the run limit below does not cover it.
+          When a language is translated, its summary starts on the Summary tab of its version. It is
+          paid from its own limit: the run limit below does not cover it.
         </span>
       </div>
       <div className={styles.field}>
@@ -182,8 +182,8 @@ export const StartRunModal: FC<StartRunModalProps> = ({
           Write Analysis
         </Checkbox>
         <span className={styles.muted}>
-          When a language is translated, its analysis starts on the Analysis tab of the new version.
-          It is paid from its own limit: the run limit below does not cover it.
+          When a language is translated, its analysis starts on the Analysis tab of its version. It
+          is paid from its own limit: the run limit below does not cover it.
         </span>
       </div>
 

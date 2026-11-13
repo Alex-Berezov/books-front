@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { chapterKeys } from '@/api/hooks/useChapters';
 import {
   RUN_HISTORY_PAGE_SIZE,
   translationRunKeys,
@@ -347,6 +348,40 @@ describe('Хуки запуска перевода', () => {
         JSON.stringify(translationRunKeys.report('r1')),
       ])
     );
+  });
+
+  it('D9: запуск кончился — список глав версии языка сбрасывается (черновик редактора мог быть в кэше)', async () => {
+    const { client, wrapper, invalidated } = setup();
+    client.setQueryData(translationRunKeys.detail('r1'), run());
+    api.getTranslationRun.mockResolvedValue(
+      run({
+        operation: operation({ status: 'done' }),
+        languages: [language({ status: 'done', draftVersionId: 'd-es' })],
+      })
+    );
+
+    const { result } = renderHook(() => useTranslationRun('r1', 'b1'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(invalidated()).toContain(JSON.stringify(chapterKeys.list('d-es')));
+  });
+
+  it('D9: идущий запуск каждым чтением сбрасывает только списки глав языков с черновиком', async () => {
+    const { client, wrapper, invalidated } = setup();
+    client.setQueryData(translationRunKeys.detail('r1'), run());
+    api.getTranslationRun.mockResolvedValue(
+      run({
+        languages: [
+          language({ language: 'es', draftVersionId: 'd-es' }),
+          language({ language: 'fr', draftVersionId: null }),
+        ],
+      })
+    );
+
+    const { result } = renderHook(() => useTranslationRun('r1', 'b1'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(invalidated()).toEqual([JSON.stringify(chapterKeys.list('d-es'))]);
   });
 
   it('F06-5b: запуск кончился, а Summary ещё пишет — языки и списки сбрасываются сразу', async () => {

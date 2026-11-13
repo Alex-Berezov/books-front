@@ -54,9 +54,27 @@ export const mismatchText = (source: TranslationSource): string | null =>
 /** Почему язык недоступен в окне запуска (§2.2, §7 п.10). */
 export const TARGET_REASONS: Record<TranslationTargetReason, string> = {
   IS_SOURCE: 'the language of the source',
-  VERSION_EXISTS: 'a version already exists',
+  VERSION_PUBLISHED: 'the version in this language is published',
+  VERSION_HAS_TEXT: 'the version in this language already has chapter content',
   TRANSLATION_IN_PROGRESS: 'a translation into it is in progress',
   NOT_IN_INTAKE: 'not in the rights intake of the book',
+};
+
+/** Коды цели, которые сервер больше не шлёт, но старая сборка бэкенда ещё может (выкат порознь). */
+const LEGACY_TARGET_REASONS: Record<string, string> = {
+  VERSION_EXISTS: 'a version already exists',
+};
+
+/**
+ * Подпись причины цели; код вне словаря — как есть. Фронт и бэкенд выкатываются порознь:
+ * между выкатами сервер может прислать код, которого этот словарь не знает (`VERSION_EXISTS`
+ * до D9 или новый), и подпись не должна пропасть.
+ */
+export const targetReasonText = (reason: string): string => {
+  if (Object.hasOwn(TARGET_REASONS, reason))
+    return TARGET_REASONS[reason as TranslationTargetReason];
+  if (Object.hasOwn(LEGACY_TARGET_REASONS, reason)) return LEGACY_TARGET_REASONS[reason];
+  return reason;
 };
 
 /**
@@ -136,10 +154,7 @@ export const refusalText = (error: unknown): string => {
   const code = error.data?.code;
   if (code === 'TRANSLATION_TARGET_UNAVAILABLE') {
     const languages = unavailableOf(error.data)
-      .map(
-        (l) =>
-          `${l.language.toUpperCase()}: ${TARGET_REASONS[l.reason as TranslationTargetReason] ?? l.reason}`
-      )
+      .map((l) => `${l.language.toUpperCase()}: ${targetReasonText(l.reason)}`)
       .join('; ');
     const text = runRefusalOf(code);
     return languages ? `${text} ${languages}.` : (text ?? error.message);
@@ -204,9 +219,16 @@ const RUN_STATUSES: Record<LlmOperation['status'], string> = {
 
 export const runStatusText = (op: LlmOperation): string => RUN_STATUSES[op.status];
 
-/** Подпись упавшего языка по коду (карточка F05-7, шаг 3); неизвестный код — как есть. */
+/**
+ * Подпись упавшего языка по коду (карточка F05-7, шаг 3); неизвестный код — как есть.
+ * `VERSION_EXISTS` — только у запусков до D9 (13.11.2026), подпись нужна истории.
+ */
 const FAILED: Record<string, string> = {
   VERSION_EXISTS: 'A version in this language already exists.',
+  VERSION_HAS_TEXT:
+    'The version in this language got chapter content before the run reached it; the content is kept.',
+  VERSION_PUBLISHED:
+    'The version in this language was published; the run stopped writing into it, chapters already written stay.',
   DRAFT_DELETED: 'The draft version was deleted; a second one is not created.',
   DOSSIER_STALE: 'The source changed while another language was writing its draft.',
   NO_CHAPTERS_WRITTEN: 'No chapter could be assembled: nothing went to the draft.',

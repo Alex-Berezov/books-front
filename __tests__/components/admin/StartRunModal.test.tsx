@@ -75,7 +75,7 @@ const source: TranslationSource = {
   targets: [
     { language: 'en', available: false, reason: 'IS_SOURCE' },
     { language: 'es', available: true, reason: null },
-    { language: 'fr', available: false, reason: 'VERSION_EXISTS' },
+    { language: 'fr', available: false, reason: 'VERSION_HAS_TEXT' },
     { language: 'pt', available: false, reason: 'NOT_IN_INTAKE' },
     { language: 'ru', available: false, reason: 'TRANSLATION_IN_PROGRESS' },
   ],
@@ -161,7 +161,9 @@ describe('Окно запуска перевода (F05-7)', () => {
     expect(screen.getByRole('checkbox', { name: 'FR' })).toBeDisabled();
     expect(screen.getByRole('checkbox', { name: 'PT' })).toBeDisabled();
     expect(screen.getByRole('checkbox', { name: 'RU' })).toBeDisabled();
-    expect(screen.getByText('a version already exists')).toBeInTheDocument();
+    expect(
+      screen.getByText('the version in this language already has chapter content')
+    ).toBeInTheDocument();
     expect(screen.getByText('not in the rights intake of the book')).toBeInTheDocument();
     expect(screen.getByText('a translation into it is in progress')).toBeInTheDocument();
   });
@@ -312,6 +314,31 @@ describe('Окно запуска перевода (F05-7)', () => {
     expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
   });
 
+  it('D9: опубликованная версия — своя подпись; код вне словаря (выкат порознь) — как есть', () => {
+    renderModal({
+      targets: [
+        { language: 'en', available: false, reason: 'IS_SOURCE' },
+        { language: 'es', available: false, reason: 'VERSION_PUBLISHED' },
+        {
+          language: 'fr',
+          available: false,
+          reason: 'SOMETHING_NEW' as TranslationSource['targets'][number]['reason'],
+        },
+      ],
+    });
+
+    expect(screen.getByRole('checkbox', { name: 'ES' })).toBeDisabled();
+    expect(screen.getByText('the version in this language is published')).toBeInTheDocument();
+    expect(screen.getByText('SOMETHING_NEW')).toBeInTheDocument();
+    // D9: раздел пишется в версию языка - новую или черновик редактора.
+    expect(
+      screen.getByText(/its summary starts on the Summary tab of its version/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/its analysis starts on the Analysis tab of its version/)
+    ).toBeInTheDocument();
+  });
+
   it('отказ старта по языку и отказ оценки — своими подписями', () => {
     const conflict = new ApiError({
       message: 'Conflict',
@@ -319,7 +346,7 @@ describe('Окно запуска перевода (F05-7)', () => {
       error: 'Conflict',
       data: {
         code: 'TRANSLATION_TARGET_UNAVAILABLE',
-        languages: [{ language: 'es', reason: 'VERSION_EXISTS' }],
+        languages: [{ language: 'es', reason: 'VERSION_PUBLISHED' }],
       },
     });
     hooks.start = { isError: true, error: conflict };
@@ -337,7 +364,7 @@ describe('Окно запуска перевода (F05-7)', () => {
     };
     renderModal();
 
-    expect(screen.getByText(/ES: a version already exists/)).toBeInTheDocument();
+    expect(screen.getByText(/ES: the version in this language is published/)).toBeInTheDocument();
     expect(
       screen.getByText(
         'The source has more than 2000 chapters: a translation run takes at most 2000.'

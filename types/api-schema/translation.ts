@@ -113,10 +113,14 @@ export type TranslationBlockReason =
   | 'INTAKE_TARGETS_MISSING'
   | 'NO_AVAILABLE_TARGETS';
 
-/** Почему язык недоступен в окне запуска (§2.2, §7 п.10). */
+/**
+ * Почему язык недоступен в окне запуска (§2.2, §7 п.10). Версия на языке сама язык не закрывает
+ * (D9): закрывает опубликованная или с текстом глав, черновик без текста получает перевод в себя.
+ */
 export type TranslationTargetReason =
   | 'IS_SOURCE'
-  | 'VERSION_EXISTS'
+  | 'VERSION_PUBLISHED'
+  | 'VERSION_HAS_TEXT'
   | 'TRANSLATION_IN_PROGRESS'
   | 'NOT_IN_INTAKE';
 

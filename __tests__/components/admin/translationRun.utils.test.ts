@@ -15,6 +15,7 @@ import {
   runStatusText,
   stageText,
   stepFailureText,
+  targetReasonText,
   toModelOptions,
 } from '@/components/admin/translation-run/translationRun.utils';
 import { ApiError } from '@/types/api';
@@ -289,6 +290,27 @@ describe('Подписи языка', () => {
         language({ status: 'failed', reason: 'CREATE_REJECTED', reasonText: 'Not in intake' })
       )
     ).toBe('The draft version was refused: Not in intake');
+  });
+
+  it('D9: версия получила текст или опубликована до привязки — свои подписи упавшего языка', () => {
+    expect(failedText(language({ status: 'failed', reason: 'VERSION_HAS_TEXT' }))).toBe(
+      'The version in this language got chapter content before the run reached it; the content is kept.'
+    );
+    expect(failedText(language({ status: 'failed', reason: 'VERSION_PUBLISHED' }))).toBe(
+      'The version in this language was published; the run stopped writing into it, chapters already written stay.'
+    );
+  });
+
+  it('подпись причины цели: код из словаря — его подпись, код вне словаря — как есть', () => {
+    expect(targetReasonText('VERSION_HAS_TEXT')).toBe(
+      'the version in this language already has chapter content'
+    );
+    expect(targetReasonText('VERSION_PUBLISHED')).toBe('the version in this language is published');
+    // Старая сборка бэкенда - прежняя подпись; совсем неизвестный код - как есть.
+    expect(targetReasonText('VERSION_EXISTS')).toBe('a version already exists');
+    expect(targetReasonText('SOMETHING_NEW')).toBe('SOMETHING_NEW');
+    // Ключ прототипа объекта - тоже чужой код, а не функция словаря.
+    expect(targetReasonText('constructor')).toBe('constructor');
   });
 
   it('сборка с черновиком — запись глав в черновик (решение арбитра F05 | F05-7)', () => {

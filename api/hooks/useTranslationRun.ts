@@ -44,6 +44,7 @@ import type {
   TranslationRunAnalysis,
   TranslationRunSummary,
 } from '@/types/api-schema';
+import { chapterKeys } from './useChapters';
 import { COMPARE_REFETCH_MS, LLM_DISABLED } from './useTranslationCompare';
 
 /** Языков в запуске — не больше языков сайта (валидатор `StartTranslationRunDto`). */
@@ -229,17 +230,38 @@ export const translationRunRefetchInterval = (
  * Запуск или его досье сменили состояние: языки (`translation-source`), списки запусков книги
  * и отчёт — устарели. Одно место и для кнопок, и для конца опроса. Сам ход здесь не сбрасывается:
  * из чтения хода это перезапустило бы то же чтение по кругу — кнопки сбрасывают его сами.
+ * Список глав версии каждого языка — тоже: с D9 перевод пишет и в черновик редактора, который
+ * мог лежать в кэше пустым (решение арбитра `F05 | F05-19`).
  */
 const invalidateRunDependents = (
   queryClient: QueryClient,
-  run: Pick<TranslationRun, 'id' | 'bookVersionId'>,
+  run: Pick<TranslationRun, 'id' | 'bookVersionId'> & Partial<Pick<TranslationRun, 'languages'>>,
   bookId: string
 ) =>
   Promise.all([
     queryClient.invalidateQueries({ queryKey: translationRunKeys.report(run.id) }),
     queryClient.invalidateQueries({ queryKey: translationRunKeys.list(bookId) }),
     queryClient.invalidateQueries({ queryKey: translationRunKeys.source(run.bookVersionId) }),
+    invalidateDraftChapters(queryClient, run),
   ]);
+
+/**
+ * Списки глав версий, в которые пишут языки запуска (только языки с `draftVersionId`). С D9 это
+ * может быть черновик редактора, открытый на вкладке глав: устаревший список открыл бы главу
+ * из кэша, и ручное сохранение затёрло бы перевод (решение арбитра `F05 | F05-19`, LEGACY-441).
+ * Сбрасывается и каждым чтением идущего хода: перечитываются только смонтированные запросы.
+ */
+const invalidateDraftChapters = (
+  queryClient: QueryClient,
+  run: Partial<Pick<TranslationRun, 'languages'>>
+) =>
+  Promise.all(
+    (run.languages ?? []).flatMap((l) =>
+      l.draftVersionId
+        ? [queryClient.invalidateQueries({ queryKey: chapterKeys.list(l.draftVersionId) })]
+        : []
+    )
+  );
 
 export const useTranslationRun = (id: string | null, bookId: string) => {
   const queryClient = useQueryClient();
@@ -259,6 +281,9 @@ export const useTranslationRun = (id: string | null, bookId: string) => {
           (isRunSectionWorking(before) && !isRunSectionWorking(run)))
       ) {
         void invalidateRunDependents(queryClient, run, bookId);
+      } else if (isRunWorking(run)) {
+        // Запуск пишет главы: списки глав его версий - каждым чтением хода.
+        void invalidateDraftChapters(queryClient, run);
       }
       return run;
     },
