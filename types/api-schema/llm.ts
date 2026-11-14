@@ -48,6 +48,11 @@ export interface LlmModel {
   inputPerMTokUsd: LlmMoney | null;
   outputPerMTokUsd: LlmMoney | null;
   structuredOutputs: boolean;
+  /**
+   * Только асинхронный Batch API (варианты `:batch`): ответ приходит через минуты–часы, данные
+   * запроса OpenRouter хранит 30 дней без zero data retention.
+   */
+  batchOnly: boolean;
 }
 
 /** Ответ `GET /admin/llm/models`: весь каталог одной страницей. */

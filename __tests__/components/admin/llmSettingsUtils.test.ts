@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   addMoney,
+  batchModelIds,
   formatMoney,
   isPositiveMoney,
   isValidMoney,
@@ -27,6 +28,7 @@ const priced = (id: string): LlmModel => ({
   inputPerMTokUsd: '1.00000000',
   outputPerMTokUsd: '2.00000000',
   structuredOutputs: true,
+  batchOnly: false,
 });
 const unpriced = (id: string): LlmModel => ({
   ...priced(id),
@@ -185,5 +187,76 @@ describe('addMoney — сумма строкой без перевода в чи
     expect(addMoney('1', '')).toBeNull();
     expect(addMoney('NaN')).toBeNull();
     expect(addMoney('-1')).toBeNull();
+  });
+});
+
+describe('batchModelIds — модели Batch API у этапа (решения арбитра 14.11.2026)', () => {
+  const batchOf = (id: string): LlmModel => ({ ...priced(id), batchOnly: true });
+  const models = [
+    priced('a'),
+    batchOf('a:batch'),
+    batchOf('b:batch'),
+    priced('x:batch'),
+    batchOf('noname'),
+    { ...unpriced('c:batch'), batchOnly: true },
+  ];
+
+  it('по правилу бэкенда: флаг каталога + суффикс :batch + цена; по порядку, без повторов', () => {
+    expect(
+      batchModelIds({ model: 'b:batch', fallbacks: ['a', 'a:batch', 'b:batch'] }, models, true)
+    ).toEqual({ ids: ['b:batch', 'a:batch'], unpriced: [], fallbackOnly: false, guess: null });
+  });
+
+  it('суффикс без флага каталога и флаг без суффикса — не батч (бэкенд их не шлёт батчем)', () => {
+    expect(batchModelIds({ model: 'x:batch', fallbacks: ['noname'] }, models, true).ids).toEqual(
+      []
+    );
+  });
+
+  it('модель Batch API без фиксированной цены — отдельно: бэкенд её пропускает', () => {
+    expect(batchModelIds({ model: 'a', fallbacks: ['c:batch'] }, models, true)).toEqual({
+      ids: [],
+      unpriced: ['c:batch'],
+      fallbackOnly: false,
+      guess: null,
+    });
+  });
+
+  it('только запасные — помечено: батч ждут лишь вызовы после отказа основной', () => {
+    expect(batchModelIds({ model: 'a', fallbacks: ['a:batch'] }, models, true).fallbackOnly).toBe(
+      true
+    );
+  });
+
+  it('модели нет в загруженном каталоге — не батч', () => {
+    expect(batchModelIds({ model: 'gone:batch', fallbacks: [] }, models, true).ids).toEqual([]);
+  });
+
+  it('каталог без поля batchOnly (бэкенд старше фронта) — догадка по суффиксу с причиной', () => {
+    const old = [{ ...priced('a'), batchOnly: undefined as unknown as boolean }];
+    expect(batchModelIds({ model: 'x:batch', fallbacks: ['a'] }, old, true)).toEqual({
+      ids: ['x:batch'],
+      unpriced: [],
+      fallbackOnly: false,
+      guess: 'no_flag',
+    });
+  });
+
+  it('смешанный каталог: у части моделей поля нет — тоже догадка', () => {
+    const mixed = [
+      batchOf('a:batch'),
+      { ...priced('b'), batchOnly: undefined as unknown as boolean },
+    ];
+    expect(batchModelIds({ model: 'a:batch', fallbacks: [] }, mixed, true).guess).toBe('no_flag');
+  });
+
+  it('каталог не загрузился или пуст — догадка по суффиксу «нет каталога»', () => {
+    expect(batchModelIds({ model: 'x:batch', fallbacks: ['a', 'x:batch'] }, [], false)).toEqual({
+      ids: ['x:batch'],
+      unpriced: [],
+      fallbackOnly: false,
+      guess: 'no_catalog',
+    });
+    expect(batchModelIds({ model: 'x:batch', fallbacks: [] }, [], true).guess).toBe('no_catalog');
   });
 });

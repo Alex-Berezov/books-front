@@ -2320,6 +2320,7 @@
     "hasResponseSchema": true,
     "fields": [
       "items",
+      "items[].batchOnly",
       "items[].contextLength",
       "items[].id",
       "items[].inputPerMTokUsd",

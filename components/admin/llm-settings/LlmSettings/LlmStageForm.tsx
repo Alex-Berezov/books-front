@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, type FC } from 'react';
-import { Button, Input, Select, Switch, Tag } from 'antd';
+import { Alert, Button, Input, Select, Switch, Tag } from 'antd';
 import { useSnackbar } from 'notistack';
 import { useUpdateLlmStageSetting } from '@/api/hooks';
 import { hasLlmStageLabel, llmStageLabel } from '@/lib/admin/llm-stages';
@@ -9,6 +9,8 @@ import { ApiError } from '@/types/api';
 import type { LlmModel, LlmStageSetting } from '@/types/api-schema';
 import styles from './LlmSettings.module.scss';
 import {
+  batchModelIds,
+  type StageBatchModels,
   isModelsUnavailable,
   modelOptionLabel,
   modelPriceLabel,
@@ -17,6 +19,17 @@ import {
   validateStageDraft,
   type StageDraft,
 } from './llmSettings.utils';
+
+const GUESS_REASON: Record<NonNullable<StageBatchModels['guess']>, string> = {
+  no_catalog: 'model list unavailable',
+  no_flag: 'the model list has no batch flag',
+};
+
+/** Заголовок предупреждения: проверенный признак или догадка по имени с причиной. */
+const batchAlertTitle = ({ ids, guess }: StageBatchModels): string =>
+  guess === null
+    ? `Batch mode: ${ids.join(', ')}`
+    : `Probably batch mode (${GUESS_REASON[guess]}, not verified): ${ids.join(', ')}`;
 
 export interface LlmStageFormProps {
   setting: LlmStageSetting;
@@ -61,6 +74,7 @@ export const LlmStageForm: FC<LlmStageFormProps> = ({ setting, models, catalogKn
   const modelById = useMemo(() => new Map(models.map((model) => [model.id, model])), [models]);
 
   const validationError = validateStageDraft(draft, models, catalogKnown);
+  const batchModels = batchModelIds(draft, models, catalogKnown);
   // Сохранять без правки нечего: у этапа на умолчаниях кода такое сохранение завело бы строку
   // и закрепило модель, запасные и «включён» — смена умолчаний в коде этап бы уже не задела.
   const unchanged = JSON.stringify(draft) === JSON.stringify(toStageDraft(setting));
@@ -186,6 +200,31 @@ export const LlmStageForm: FC<LlmStageFormProps> = ({ setting, models, catalogKn
           />
         </div>
       </div>
+
+      {batchModels.ids.length > 0 && (
+        <Alert
+          className={styles.alert}
+          type="warning"
+          showIcon
+          message={batchAlertTitle(batchModels)}
+          description={
+            (batchModels.fallbackOnly
+              ? 'Half price. When the main model fails, the call to these fallbacks waits for OpenRouter Batch API: usually minutes, up to 24 hours. '
+              : 'Half price, but every call waits for OpenRouter Batch API: usually minutes, up to 24 hours. ' +
+                'A translation calls the model piece by piece, so a book language can take days. ') +
+            'OpenRouter keeps the request text for 30 days (no zero data retention).'
+          }
+        />
+      )}
+      {batchModels.unpriced.length > 0 && (
+        <Alert
+          className={styles.alert}
+          type="warning"
+          showIcon
+          message={`Not used in batch mode (no fixed price): ${batchModels.unpriced.join(', ')}`}
+          description="A batch model without a fixed price is skipped by the server: the next fallback answers instead."
+        />
+      )}
 
       {(validationError || serverError) && (
         <p className={styles.error} role="alert">

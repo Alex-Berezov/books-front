@@ -15,6 +15,64 @@ const MAX_TOKENS_MAX = 200_000;
 
 export const isValidMoney = (value: string): boolean => MONEY_PATTERN.test(value.trim());
 
+/** Почему признак Batch API не проверен по каталогу. */
+export type BatchGuessReason = 'no_catalog' | 'no_flag';
+
+/** Модели Batch API у этапа (решение арбитра 14.11.2026) и откуда признак. */
+export interface StageBatchModels {
+  /** Пойдут батчем: основная и запасные по порядку, без повторов. */
+  ids: string[];
+  /** Батчем не пойдут — модели Batch API без фиксированной цены: бэкенд их пропускает. */
+  unpriced: string[];
+  /** Все `ids` — только запасные: батч ждут лишь вызовы, на которых основная отказала. */
+  fallbackOnly: boolean;
+  /** `null` — признак из каталога; иначе модели угаданы по суффиксу `:batch`, и почему. */
+  guess: BatchGuessReason | null;
+}
+
+const isBatchName = (id: string): boolean => id.endsWith(':batch');
+
+/**
+ * Модели черновика этапа, которые пойдут через Batch API: экран предупреждает о сроке ответа и
+ * хранении данных (решения арбитра 14.11.2026, `books-app-docs/ai-context/decisions-log.md`).
+ * Правило — копия бэкенда (`isExplicitBatch` и `batchSkipReason` в
+ * `books/src/modules/llm/openrouter-batch.ts`, `openrouter.client.ts`; перечень копий —
+ * `books-app-docs/ai-context/folder-structure.md`): флаг каталога `batchOnly`, явный суффикс
+ * `:batch` и фиксированная цена; модель без цены бэкенд пропускает — она в `unpriced`.
+ * Каталог не загрузился, пуст или без поля `batchOnly` (бэкенд старше фронта) — «не знаю» не
+ * читается как «батча нет»: модели с `:batch` в имени — догадкой с причиной в `guess`.
+ */
+export const batchModelIds = (
+  draft: Pick<StageDraft, 'model' | 'fallbacks'>,
+  models: LlmModel[],
+  catalogKnown: boolean
+): StageBatchModels => {
+  const chosen = [...new Set([draft.model, ...draft.fallbacks])];
+  const fallbackOnly = (ids: string[]) => ids.length > 0 && !ids.includes(draft.model);
+  const flagged = models.length > 0 && models.every((m) => typeof m.batchOnly === 'boolean');
+  if (!catalogKnown || !flagged) {
+    const ids = chosen.filter(isBatchName);
+    return {
+      ids,
+      unpriced: [],
+      fallbackOnly: fallbackOnly(ids),
+      guess: !catalogKnown || models.length === 0 ? 'no_catalog' : 'no_flag',
+    };
+  }
+  const byId = new Map(models.map((model) => [model.id, model]));
+  const batch = chosen.filter((id) => {
+    const model = byId.get(id);
+    return model !== undefined && model.batchOnly && isBatchName(id);
+  });
+  const ids = batch.filter((id) => !hasNoFixedPrice(byId.get(id) as LlmModel));
+  return {
+    ids,
+    unpriced: batch.filter((id) => !ids.includes(id)),
+    fallbackOnly: fallbackOnly(ids),
+    guess: null,
+  };
+};
+
 /**
  * Потолок цены — сумма больше нуля: `0` сервер отвергает (`llm.service.ts`, `maxPrice.lte(0)`),
  * иначе резерв модели без цены был бы нулём. Сравнение без перевода в число: ненулевая цифра.

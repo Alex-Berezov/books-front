@@ -55,6 +55,7 @@ const MODELS: LlmModel[] = [
     inputPerMTokUsd: '3.00000000',
     outputPerMTokUsd: '15.00000000',
     structuredOutputs: true,
+    batchOnly: false,
   },
   {
     id: 'vendor/model-b',
@@ -63,6 +64,7 @@ const MODELS: LlmModel[] = [
     inputPerMTokUsd: '0.50000000',
     outputPerMTokUsd: '1.50000000',
     structuredOutputs: true,
+    batchOnly: false,
   },
   {
     id: 'vendor/router',
@@ -71,6 +73,7 @@ const MODELS: LlmModel[] = [
     inputPerMTokUsd: null,
     outputPerMTokUsd: null,
     structuredOutputs: false,
+    batchOnly: false,
   },
 ];
 
@@ -145,6 +148,123 @@ describe('LlmSettings (F05-1s)', () => {
     expect(card.querySelector('header code')?.parentElement?.textContent).toBe(
       'Translation · translate'
     );
+  });
+
+  describe('модели Batch API (решение арбитра 14.11.2026)', () => {
+    const BATCH: LlmModel = {
+      id: 'vendor/model-b:batch',
+      name: 'Model B (batch)',
+      contextLength: 128000,
+      inputPerMTokUsd: '0.25000000',
+      outputPerMTokUsd: '0.75000000',
+      structuredOutputs: true,
+      batchOnly: true,
+    };
+    /** Каталог загружен: под полем модели — её цена, а не «price unknown». */
+    const catalogLoaded = (card: HTMLElement) =>
+      within(card).findByText('in $3 / out $15 per 1M tokens');
+
+    it('без модели Batch API у этапа предупреждения нет (каталог загружен)', async () => {
+      serve({ stages: [STAGE], models: [...MODELS, BATCH] });
+      renderScreen();
+      const card = await stageCard();
+      await catalogLoaded(card);
+      expect(within(card).queryByText(/batch mode/i)).not.toBeInTheDocument();
+    });
+
+    it('основная Batch API — предупреждение о сроке до суток на каждом вызове и хранении 30 дней', async () => {
+      serve({
+        stages: [{ ...STAGE, model: 'vendor/model-b:batch', fallbacks: [] }],
+        models: [...MODELS, BATCH],
+      });
+      renderScreen();
+      const card = await stageCard();
+      expect(await within(card).findByText('Batch mode: vendor/model-b:batch')).toBeInTheDocument();
+      expect(within(card).getByText(/every call waits/)).toBeInTheDocument();
+    });
+
+    it('модель Batch API без фиксированной цены — отдельная пометка: батчем не пойдёт', async () => {
+      const unpricedBatch: LlmModel = {
+        ...BATCH,
+        id: 'vendor/x:batch',
+        name: 'X (batch)',
+        inputPerMTokUsd: null,
+        outputPerMTokUsd: null,
+      };
+      serve({
+        stages: [{ ...STAGE, fallbacks: ['vendor/x:batch'], maxPricePerMTok: '5.00000000' }],
+        models: [...MODELS, unpricedBatch],
+      });
+      renderScreen();
+      const card = await stageCard();
+      expect(
+        await within(card).findByText('Not used in batch mode (no fixed price): vendor/x:batch')
+      ).toBeInTheDocument();
+      expect(within(card).queryByText(/^Batch mode/)).not.toBeInTheDocument();
+    });
+
+    it('запасная Batch API — предупреждение о сроке до суток и хранении 30 дней', async () => {
+      serve({
+        stages: [{ ...STAGE, fallbacks: ['vendor/model-b:batch'] }],
+        models: [...MODELS, BATCH],
+      });
+      renderScreen();
+      const card = await stageCard();
+      expect(await within(card).findByText('Batch mode: vendor/model-b:batch')).toBeInTheDocument();
+      expect(within(card).getByText(/When the main model fails/)).toBeInTheDocument();
+      expect(within(card).getByText(/up to 24 hours/)).toBeInTheDocument();
+      expect(within(card).getByText(/30 days/)).toBeInTheDocument();
+    });
+
+    it('предупреждение следует за черновиком: выбор модели Batch API в списке его показывает', async () => {
+      serve({ stages: [STAGE], models: [...MODELS, BATCH] });
+      renderScreen();
+      const card = await stageCard();
+      await catalogLoaded(card);
+      expect(within(card).queryByText(/batch mode/i)).not.toBeInTheDocument();
+
+      await chooseModel(card, 'Model B (batch)', 'vendor/model-b:batch');
+
+      expect(await within(card).findByText('Batch mode: vendor/model-b:batch')).toBeInTheDocument();
+    });
+
+    it('пока каталог грузится — карточек этапов нет вовсе: ни пометки, ни «батча нет»', async () => {
+      mocks.get.mockImplementation(async (path: string) => {
+        if (path === '/admin/llm/status') return statusOf();
+        if (path === '/admin/llm/stage-settings')
+          return page([{ ...STAGE, model: 'vendor/model-b:batch', fallbacks: [] }]);
+        if (path === '/admin/llm/models') return new Promise(() => {});
+        throw new Error(`unexpected GET ${path}`);
+      });
+      renderScreen();
+      expect(await screen.findByRole('heading', { name: 'Pipeline stages' })).toBeInTheDocument();
+      await waitFor(() =>
+        expect(mocks.get.mock.calls.filter(([path]) => path === '/admin/llm/models')).toHaveLength(
+          1
+        )
+      );
+      expect(screen.queryByRole('article', { name: 'Перевод куска' })).not.toBeInTheDocument();
+      expect(screen.queryByText(/batch mode/i)).not.toBeInTheDocument();
+    });
+
+    it('каталог недоступен — предупреждение по суффиксу :batch с пометкой «не проверено»', async () => {
+      serve({
+        stages: [{ ...STAGE, model: 'vendor/model-b:batch', fallbacks: [] }],
+        models: new ApiError({
+          statusCode: 503,
+          message: 'OpenRouter model list is unavailable',
+          data: { code: 'LLM_MODELS_UNAVAILABLE' },
+        }),
+      });
+      renderScreen();
+      const card = await stageCard();
+      await within(card).findByText('price unknown: the model list is unavailable');
+      expect(
+        within(card).getByText(
+          'Probably batch mode (model list unavailable, not verified): vendor/model-b:batch'
+        )
+      ).toBeInTheDocument();
+    });
   });
 
   it('раскрытые списки модели и запасных — со своим классом ширины', async () => {
