@@ -82,6 +82,16 @@ export {
   useChapterTitles,
   useSaveBookAnalysis,
 } from './useBookAnalysis';
+export {
+  bookWorldQueryKeys,
+  useBookWorld,
+  useBookWorldEntity,
+  useDeleteBookWorldEntity,
+  useMarkBookWorldEntityRead,
+  useSaveBookWorld,
+  useSaveBookWorldEntity,
+  useSetBookWorldEntityFlags,
+} from './useBookWorld';
 
 // Chapters
 export {

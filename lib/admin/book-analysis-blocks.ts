@@ -86,11 +86,8 @@ export const BOOK_ANALYSIS_BLOCK_KEYS = [
   ...BOOK_ANALYSIS_LIST_KEYS,
 ] as const;
 
-/** Ошибка данных анализа: путь поля (`themes.0.title`) и текст причины. */
-export interface BookAnalysisIssue {
-  path: string;
-  message: string;
-}
-
-export const formatBookAnalysisIssue = (issue: BookAnalysisIssue): string =>
-  issue.path ? `${issue.path}: ${issue.message}` : issue.message;
+/** Ошибка данных анализа: путь поля (`themes.0.title`) и текст причины — общий тип админки. */
+export {
+  formatDataIssue as formatBookAnalysisIssue,
+  type DataIssue as BookAnalysisIssue,
+} from '@/lib/admin/data-issue';

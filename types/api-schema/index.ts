@@ -526,6 +526,38 @@ export type {
   SaveBookAnalysisRequest,
 } from './book-analysis';
 
+// Book world (F08-1, 14.11.2026)
+export type {
+  BookOverviewWorldKey,
+  BookWorldAdaptation,
+  BookWorldArc,
+  BookWorldArcStage,
+  BookWorldCharacterFields,
+  BookWorldEditor,
+  BookWorldEntity,
+  BookWorldEntityInput,
+  BookWorldEntityResponse,
+  BookWorldEntitySaveResponse,
+  BookWorldEntitySummary,
+  BookWorldExpected,
+  BookWorldFaq,
+  BookWorldListResponse,
+  BookWorldMentions,
+  BookWorldProfile,
+  BookWorldQuote,
+  BookWorldRelation,
+  BookWorldRole,
+  BookWorldSaveResponse,
+  BookWorldScene,
+  BookWorldSource,
+  BookWorldWarning,
+  MarkBookWorldReadRequest,
+  SaveBookWorldEntityRequest,
+  SaveBookWorldRequest,
+  SetBookWorldFlagsRequest,
+  WorldEntityType,
+} from './book-world';
+
 // Rights publication override (admin last resort, 27.09.2026)
 export type {
   GrantRightsOverrideRequest,

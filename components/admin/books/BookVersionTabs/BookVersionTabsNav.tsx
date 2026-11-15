@@ -12,6 +12,7 @@ const TABS: Tab[] = [
   { id: 'listen', label: 'Audio Content' },
   { id: 'summary', label: 'Summary' },
   { id: 'analysis', label: 'Analysis' },
+  { id: 'world', label: 'World' },
 ];
 
 interface BookVersionTabsNavProps {

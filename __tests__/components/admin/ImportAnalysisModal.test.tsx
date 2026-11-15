@@ -193,4 +193,36 @@ describe('ImportAnalysisModal', () => {
     expect(screen.getByText('keyQuotes')).toBeInTheDocument();
     await flush();
   });
+
+  it('the form changed while the window is open: the probe reruns, the result is for the new form', async () => {
+    // Проба сливает JSON с формой вкладки (А3): другая форма — другой итог, прежний не годится.
+    const preview = vi
+      .fn<(data: unknown) => Promise<AnalysisPreview>>()
+      .mockResolvedValueOnce({ state: 'ok', check: { hasCore: false, warnings: [] } })
+      .mockResolvedValueOnce({ state: 'ok', check: { hasCore: true, warnings: [] } });
+    const ui = (formKey: object) => (
+      <ImportAnalysisModal
+        isOpen
+        onCancel={vi.fn()}
+        analyze={analyze}
+        loadFailed={false}
+        onRetryLoad={vi.fn()}
+        preview={preview}
+        previewKey={formKey}
+        onImport={vi.fn()}
+      />
+    );
+    const view = render(ui({ form: 1 }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Import analysis JSON' }), {
+      target: { value: '{"language":"en","mainIdea":"A"}' },
+    });
+    await flush();
+    expect(screen.getByText(/Core is incomplete/)).toBeInTheDocument();
+
+    view.rerender(ui({ form: 2 }));
+    expect(screen.queryByText(/Core is incomplete/)).toBeNull();
+    await flush();
+    expect(preview).toHaveBeenCalledTimes(2);
+    expect(screen.getByText(/Core is complete/)).toBeInTheDocument();
+  });
 });

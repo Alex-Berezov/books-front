@@ -182,4 +182,21 @@ describe('AnalysisTab + AnalysisWrite: the core at admin (F07-3a)', () => {
     expect(screen.queryByText('Saved analysis has a complete core.')).toBeNull();
     expect(api.probe).not.toHaveBeenCalled();
   });
+
+  it('the import window: a form edit while it is open reruns the probe with the new form (fix 3, A)', async () => {
+    // Проба импорта сливает JSON с формой вкладки: правка формы при открытом окне — новая проба.
+    api.saved = saved(true);
+    api.probe.mockResolvedValue({ analysis: null, hasCore: true, warnings: [] });
+    render(<AnalysisTab versionId="v1" version={version} isAdmin={false} lang="en" />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Import JSON' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Import analysis JSON' }), {
+      target: { value: '{"language":"en","mainIdea":"From JSON"}' },
+    });
+    await waitFor(() => expect(api.probe).toHaveBeenCalledTimes(1));
+    fireEvent.change(screen.getByLabelText('titleMeaning'), { target: { value: 'Edited' } });
+    await waitFor(() => expect(api.probe).toHaveBeenCalledTimes(2));
+    const body = (api.probe.mock.calls[1][0] as { data: Record<string, unknown> }).data;
+    expect(body.titleMeaning).toBe('Edited');
+    expect(body.mainIdea).toBe('From JSON');
+  });
 });

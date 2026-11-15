@@ -4,6 +4,7 @@
  * Books, versions, book containers
  */
 
+import type { BookOverviewWorldKey } from './book-world';
 import type { Category } from './categories';
 import type { Chapter } from './chapters';
 import type { ISODate, PublicationStatus, SupportedLang, UUID, VersionType } from './common';
@@ -72,7 +73,16 @@ export interface VersionPreview {
      * окончённая претензия ни в одной стране. Только в обзоре книги; до выката бэкенда поля нет.
      */
     summarySections?: number;
+    /**
+     * Публичные сущности мира книги (F08-1, `isListed`). До выката бэкенда поля нет.
+     */
+    worldEntities?: number;
   };
+  /**
+   * Публичные сущности мира книги этой версии (F08-1): ключ, тип, имя, `isIndexable`. Только
+   * в обзоре книги; до выката бэкенда поля нет.
+   */
+  worldKeys?: BookOverviewWorldKey[];
 }
 
 /**
@@ -579,6 +589,8 @@ export interface BookListVersion extends BookContainerVersion {
      * F03 D8): по нему карта сайта строит адреса анализа.
      */
     analyses: number;
+    /** Публичные сущности мира книги (F08-1, `isListed`). До выката бэкенда поля нет. */
+    worldEntities?: number;
   };
   tags: { tag: Tag }[];
 }

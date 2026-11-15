@@ -255,6 +255,7 @@ export const AnalysisTab: FC<AnalysisTabProps> = (props) => {
         loadFailed={tab.validationFailed}
         onRetryLoad={tab.retryValidation}
         preview={tab.previewImport}
+        previewKey={form}
         onImport={tab.applyImport}
       />
     </div>

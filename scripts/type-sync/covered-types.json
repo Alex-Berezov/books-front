@@ -128,6 +128,8 @@
   "GET /versions/{bookVersionId}/summary",
   "GET /versions/{bookVersionId}/summary-sections",
   "GET /versions/{bookVersionId}/summary-sections/{number}",
+  "GET /versions/{bookVersionId}/world",
+  "GET /versions/{bookVersionId}/world/{key}",
   "GET /{lang}/authors",
   "GET /{lang}/authors/letters",
   "GET /{lang}/authors/{slug}",
@@ -174,6 +176,7 @@
   "PATCH /tags/{id}/translations/{language}",
   "PATCH /users/profile",
   "PATCH /users/{id}",
+  "PATCH /versions/{bookVersionId}/world/{key}/flags",
   "PATCH /versions/{id}",
   "PATCH /versions/{id}/publish",
   "PATCH /versions/{id}/unpublish",
@@ -284,6 +287,7 @@
   "POST /versions/{bookVersionId}/chapters",
   "POST /versions/{bookVersionId}/summary-sections",
   "POST /versions/{bookVersionId}/summary-sections/delete",
+  "POST /versions/{bookVersionId}/world/{key}/read",
   "POST /versions/{id}/categories",
   "POST /versions/{id}/tags",
   "POST /views",
@@ -297,5 +301,7 @@
   "PUT /versions/{bookVersionId}/seo",
   "PUT /versions/{bookVersionId}/summary",
   "PUT /versions/{bookVersionId}/summary-sections/order",
-  "PUT /versions/{bookVersionId}/summary/brief"
+  "PUT /versions/{bookVersionId}/summary/brief",
+  "PUT /versions/{bookVersionId}/world",
+  "PUT /versions/{bookVersionId}/world/{key}"
 ]

@@ -92,6 +92,10 @@ $author-portrait-size-compact: 72px;
 // длинных слов начинает переноситься трижды и ряд теряет ровную высоту.
 $author-card-min-width: 232px;
 
+// Border Width - Border width
+$border-width-base: 1px;
+$border-width-accent: 2px; // полоса-метка статуса слева
+
 // Border Radius - Border radius
 $border-radius-sm: 2px;
 $border-radius-base: 4px;

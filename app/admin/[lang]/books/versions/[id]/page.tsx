@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import { ArrowLeft, Eye, Languages, Plus, Save, Download } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
@@ -29,10 +30,17 @@ import {
   TranslationRunBlock,
 } from '@/components/admin/translation-run';
 import { UserRole } from '@/lib/auth/constants';
+import { sessionEditorState } from '@/lib/auth/session-editor';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import styles from './page.module.scss';
 import { PREVIEW_SOURCE_EDITOR, PREVIEW_SOURCE_PARAM } from './preview/preview.constants';
 import { useBookVersionLogic } from './useBookVersionLogic';
+
+// Вкладка «World» (F08-1) — своим чанком: в бандл страницы версии не входит (бюджет бандла).
+const WorldTab = dynamic(
+  () => import('@/components/admin/books/WorldTab').then((m) => m.WorldTab),
+  { ssr: false, loading: () => <Spinner size="lg" /> }
+);
 
 /**
  * Book version edit page
@@ -68,6 +76,9 @@ const EditBookVersionPage: FC = () => {
     sessionStatus === 'authenticated' &&
     !session?.error &&
     (session?.user?.roles ?? []).includes(UserRole.ADMIN);
+  // Вкладка World — только редакторам (`admin`, `content_manager`): юрист видел бы публичный
+  // список как весь мир, а действия отвечали бы 403. Сессия ещё грузится — `null`.
+  const isEditor = sessionEditorState({ status: sessionStatus, data: session });
 
   // Loading state
   if (isLoading) {
@@ -215,6 +226,14 @@ const EditBookVersionPage: FC = () => {
             summaryContent={<SummaryTab versionId={versionId} isAdmin={isAdmin} lang={lang} />}
             analysisContent={
               <AnalysisTab versionId={versionId} version={version} isAdmin={isAdmin} lang={lang} />
+            }
+            worldContent={
+              <WorldTab
+                versionId={versionId}
+                version={version}
+                isAdmin={isAdmin}
+                isEditor={isEditor}
+              />
             }
           />
         </div>

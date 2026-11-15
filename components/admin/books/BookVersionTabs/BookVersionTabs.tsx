@@ -16,6 +16,7 @@ export type { BookVersionTabsProps, TabType } from './BookVersionTabs.types';
  * - Audio Content: Audio content
  * - Summary: Brief summary and conclusions
  * - Analysis: «Разбор и анализ» blocks (F03-1)
+ * - World: «Мир книги» entities (F08-1)
  */
 export const BookVersionTabs: FC<BookVersionTabsProps> = (props) => {
   const {
@@ -27,6 +28,7 @@ export const BookVersionTabs: FC<BookVersionTabsProps> = (props) => {
     readContent,
     rightsContent,
     summaryContent,
+    worldContent,
   } = props;
 
   /**
@@ -46,6 +48,8 @@ export const BookVersionTabs: FC<BookVersionTabsProps> = (props) => {
         return summaryContent;
       case 'analysis':
         return analysisContent;
+      case 'world':
+        return worldContent;
       default:
         return overviewContent;
     }

@@ -5,10 +5,7 @@ import {
   useAnalysisWrite,
   useAnalysisWritesInFlight,
   useBookAnalysis,
-  useBookVersion,
-  useChapterTitles,
   useSaveBookAnalysis,
-  useVersionDossier,
 } from '@/api/hooks';
 import {
   analysisRequestFromForm,
@@ -24,13 +21,15 @@ import {
   buildAnalysisPromptInputsText,
   promptMotifsFromDossier,
 } from '@/lib/admin/book-analysis-prompt-inputs';
+import { copyPromptText } from '@/lib/admin/copy-prompt-text';
 import { expectedRowOf, isRecordChanged } from '@/lib/admin/expected-row';
 import {
   loadBookAnalysisValidation,
   type BookAnalysisValidation,
 } from '@/lib/admin/load-book-analysis-validation';
 import { refetchFresh } from '@/lib/admin/refetch-fresh';
-import { ApiError } from '@/types/api';
+import { errorText, isDataRejected, isServerFailure } from '@/lib/admin/request-errors';
+import { usePromptInputsSource } from '@/lib/hooks/usePromptInputsSource';
 import type { AnalysisPreview, AnalysisServerCheck, AnalysisTabProps } from './AnalysisTab.types';
 import type {
   BookAnalysisFactKey,
@@ -39,30 +38,13 @@ import type {
 } from '@/lib/admin/book-analysis-blocks';
 import type { ExpectedRow, SaveBookAnalysisRequest } from '@/types/api-schema';
 
-/**
- * Текст отказа: сервер отдаёт ошибки проверки массивом «путь: причина» — по строке на ошибку,
- * а не одной строкой через запятую, как его склеивает `ApiError`.
- */
-const errorText = (error: unknown): string => {
-  if (error instanceof ApiError) {
-    const raw = (error.data as { message?: unknown } | undefined)?.message;
-    if (Array.isArray(raw)) return raw.map(String).join('\n');
-  }
-  return error instanceof Error ? error.message : 'Check failed';
-};
-
-/** 5xx уже показал глобальный тост (`providers/AppProviders.tsx`), второй не нужен. */
-const isServerFailure = (error: unknown) => error instanceof ApiError && error.statusCode >= 500;
-
 export const useAnalysisTab = (props: AnalysisTabProps) => {
   const { versionId, version, isAdmin = false } = props;
   const { enqueueSnackbar } = useSnackbar();
 
   const analysisQuery = useBookAnalysis(versionId);
-  const chaptersQuery = useChapterTitles(versionId);
-  // Мотивы во «Вводные» — из досье версии (решение арбитра `F07 | F07-3`): только у `admin`,
-  // ручка досье закрыта остальным.
-  const dossierQuery = useVersionDossier(versionId, isAdmin);
+  // Главы и досье «Вводных» — общий источник вкладок Analysis и World.
+  const promptSource = usePromptInputsSource(versionId, version.language, isAdmin);
   // Ход «Write Analysis» — тот же запрос, что у блока хода (общий ключ, второго GET нет): пока он
   // идёт, «Save analysis» закрыт — полная запись формы (А4) затёрла бы записанное ходом
   // (решение арбитра `F07 | F07-3`, круг 3, Б1). Состояние хода не пришло или не загрузилось —
@@ -76,12 +58,6 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
   const runRegenerating = run?.items.some(isRegenRunning) ?? false;
   // «Accept», «Accept all» и запуск «Regenerate» в полёте: ответ вот-вот запишет блоки.
   const writesInFlight = useAnalysisWritesInFlight(versionId);
-  // Досье переведённой версии — досье её исходника: язык досье — язык той версии.
-  const dossierSource = dossierQuery.data?.sourceVersionId ?? null;
-  const foreignDossier = dossierSource !== null && dossierSource !== versionId;
-  const dossierSourceQuery = useBookVersion(dossierSource ?? '', {
-    enabled: isAdmin && foreignDossier,
-  });
   const saveMutation = useSaveBookAnalysis();
   // Отдельная мутация для пробы: её ожидание не должно выглядеть сохранением.
   const { mutateAsync: runPreview, isPending: savedCheckPending } = useSaveBookAnalysis();
@@ -242,8 +218,7 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
       } catch (error) {
         const message = errorText(error);
         // «Отвергнуты данные» — только ответ проверки (400, 422); права, лимит, пропавшая версия — сбой.
-        const rejected =
-          error instanceof ApiError && (error.statusCode === 400 || error.statusCode === 422);
+        const rejected = isDataRejected(error);
         return rejected ? { state: 'rejected', message } : { state: 'failed', message };
       }
     },
@@ -410,68 +385,39 @@ export const useAnalysisTab = (props: AnalysisTabProps) => {
   }, []);
 
   const copyPromptInputs = () => {
-    if (chaptersQuery.error) {
-      enqueueSnackbar(`Could not load chapters: ${chaptersQuery.error.message}`, {
-        variant: 'error',
-      });
-      return;
-    }
-    if (!chaptersQuery.data) {
-      enqueueSnackbar('Chapters are not loaded yet', { variant: 'warning' });
-      return;
-    }
     // Текст собирается по нажатию: глав может быть тысячи, на каждый ввод в форме его не строим.
-    const { items, pagination } = chaptersQuery.data;
-    // Мотивы — только из готового и свежего досье (Р10), главы — только этой версии. Досье или
-    // язык его версии ещё грузятся — как с главами, копировать рано; не загрузились или досье
-    // устарело — копия без мотивов, и редактор об этом знает. Досье не готово (нет, строится,
-    // упало) — мотивов нет молча. Ошибка фонового перечитывания при уже загруженных данных — не
-    // отказ: данные те же.
-    let withoutMotifs: string | null = null;
-    if (isAdmin) {
-      const dossier = dossierQuery.data;
-      const dossierReady = dossier?.status === 'ready';
-      if (!dossier) {
-        if (dossierQuery.isError) {
-          withoutMotifs = 'could not load the dossier';
-        } else {
-          enqueueSnackbar('The dossier motifs are not loaded yet', { variant: 'warning' });
-          return;
-        }
-      } else if (dossierReady && dossier.fresh === false) {
-        withoutMotifs = 'the dossier is outdated';
-      } else if (dossierReady && foreignDossier && !dossierSourceQuery.data) {
-        if (dossierSourceQuery.isError) {
-          withoutMotifs = 'could not load the language of the dossier';
-        } else {
-          enqueueSnackbar('The dossier motifs are not loaded yet', { variant: 'warning' });
-          return;
-        }
-      }
+    // Мотивы — только из готового и свежего досье (Р10), главы — только этой версии.
+    const source = promptSource.prepare('The dossier motifs are not loaded yet');
+    if (source.state !== 'ready') {
+      enqueueSnackbar(source.message, { variant: source.state === 'error' ? 'error' : 'warning' });
+      return;
     }
+    const withoutMotifs = source.withoutDossier;
     const motifs =
       withoutMotifs === null
         ? promptMotifsFromDossier(
-            dossierQuery.data,
-            items,
-            pagination.total,
-            foreignDossier ? dossierSourceQuery.data?.language : version.language
+            source.dossier,
+            source.chapters,
+            source.chaptersTotal,
+            source.dossierLanguage
           )
         : null;
-    const text = buildAnalysisPromptInputsText(version, items, pagination.total, motifs);
-    const copied = () =>
-      withoutMotifs === null
-        ? enqueueSnackbar('Prompt inputs copied', { variant: 'success' })
-        : enqueueSnackbar(`Prompt inputs copied without the dossier motifs: ${withoutMotifs}`, {
-            variant: 'warning',
-          });
-    const failed = () => enqueueSnackbar('Could not copy to clipboard', { variant: 'error' });
-    // Вне защищённого контекста (http) `navigator.clipboard` нет — отказ, а не исключение.
-    if (!navigator.clipboard) {
-      failed();
-      return;
-    }
-    navigator.clipboard.writeText(text).then(copied, failed);
+    const text = buildAnalysisPromptInputsText(
+      version,
+      source.chapters,
+      source.chaptersTotal,
+      motifs
+    );
+    copyPromptText(
+      text,
+      () =>
+        withoutMotifs === null
+          ? enqueueSnackbar('Prompt inputs copied', { variant: 'success' })
+          : enqueueSnackbar(`Prompt inputs copied without the dossier motifs: ${withoutMotifs}`, {
+              variant: 'warning',
+            }),
+      () => enqueueSnackbar('Could not copy to clipboard', { variant: 'error' })
+    );
   };
 
   return {

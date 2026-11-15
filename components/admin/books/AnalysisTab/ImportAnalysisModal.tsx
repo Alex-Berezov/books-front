@@ -1,9 +1,5 @@
 import type { FC } from 'react';
-import { useEffect, useMemo, useState } from 'react';
-import { Input } from 'antd';
-import { Button } from '@/components/admin/common/Button';
-import { Modal } from '@/components/admin/common/Modal';
-import { formatBookAnalysisIssue } from '@/lib/admin/book-analysis-blocks';
+import { JsonImportPreviewModal } from '@/components/admin/common/JsonImportPreviewModal';
 import type { AnalysisPreview } from './AnalysisTab.types';
 import type { BookAnalysisImportAnalysis } from '@/lib/admin/book-analysis-validation';
 import type { SaveBookAnalysisRequest } from '@/types/api-schema';
@@ -19,11 +15,10 @@ interface ImportAnalysisModalProps {
   onRetryLoad: () => void;
   /** Пробное сохранение на сервере (решение А3): ядро, главы, ссылки ключей. */
   preview: (data: SaveBookAnalysisRequest) => Promise<AnalysisPreview>;
+  /** Форма вкладки: проба сливает JSON с ней, поэтому её смена перезапускает пробу. */
+  previewKey?: unknown;
   onImport: (data: SaveBookAnalysisRequest) => void;
 }
-
-/** Пауза в наборе перед пробой на сервере. */
-const PREVIEW_DELAY_MS = 400;
 
 const PLACEHOLDER = `{
   "language": "en",
@@ -31,10 +26,25 @@ const PLACEHOLDER = `{
   "themes": [{ "key": "guilt", "title": "…", "interpretation": "…" }]
 }`;
 
+type AnalysisPreviewOk = Extract<AnalysisPreview, { state: 'ok' }>;
+
+const BlockList: FC<{ title: string; keys: string[] }> = ({ title, keys }) =>
+  keys.length > 0 ? (
+    <div className={styles.status}>
+      <p>{title}</p>
+      <ul className={styles.issueList}>
+        {keys.map((key) => (
+          <li key={key}>{key}</li>
+        ))}
+      </ul>
+    </div>
+  ) : null;
+
 /**
  * Окно «Import JSON» вкладки Analysis (`product.md` §21 п.3): ошибки формы по пути поля, неизвестные
  * ключи, язык JSON против языка версии — сразу; ненайденные главы, ссылки ключей и чего не хватает
  * до ядра — пробным сохранением на сервере. Импорт кладёт данные в форму, сохраняет «Save analysis».
+ * Само окно — общее `JsonImportPreviewModal`.
  */
 export const ImportAnalysisModal: FC<ImportAnalysisModalProps> = ({
   isOpen,
@@ -43,152 +53,33 @@ export const ImportAnalysisModal: FC<ImportAnalysisModalProps> = ({
   loadFailed,
   onRetryLoad,
   preview,
+  previewKey,
   onImport,
-}) => {
-  const [jsonText, setJsonText] = useState('');
-
-  // Итог пробы привязан к тому разбору JSON, который проверялся: «ok» прошлого текста
-  // не одобряет новый, пока эффект не успел поставить «checking».
-  const [checked, setChecked] = useState<{ for: unknown; result: AnalysisPreview } | null>(null);
-
-  const analysis = useMemo(
-    () => (analyze && jsonText.trim() ? analyze(jsonText) : null),
-    [analyze, jsonText]
-  );
-  const data = analysis?.data ?? null;
-
-  const [attempt, setAttempt] = useState(0);
-
-  // Проба — полным телом на сервер, поэтому только при открытом окне и после паузы в наборе:
-  // не на каждую клавишу и не из закрытого окна при правке формы.
-  useEffect(() => {
-    if (!isOpen || !data) {
-      setChecked(null);
-      return;
+}) => (
+  <JsonImportPreviewModal<BookAnalysisImportAnalysis, AnalysisPreviewOk>
+    isOpen={isOpen}
+    onCancel={onCancel}
+    title="Import analysis JSON"
+    confirmText="Import into form"
+    hint={
+      'Paste JSON from the analysis prompt. Blocks missing from the JSON stay as they are; null, "" or [] clears a block; a list replaces the previous one entirely.'
     }
-    let cancelled = false;
-    setChecked({ for: data, result: { state: 'checking' } });
-    const timer = setTimeout(() => {
-      void preview(data).then((result) => {
-        if (!cancelled) setChecked({ for: data, result });
-      });
-    }, PREVIEW_DELAY_MS);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [isOpen, data, preview, attempt]);
-
-  const close = () => {
-    setJsonText('');
-    onCancel();
-  };
-
-  const check = checked && checked.for === data ? checked.result : null;
-
-  const handleConfirm = () => {
-    if (!data || check?.state !== 'ok') return;
-    onImport(data);
-    close();
-  };
-
-  return (
-    <Modal
-      isOpen={isOpen}
-      title="Import analysis JSON"
-      confirmText="Import into form"
-      confirmVariant="primary"
-      isConfirmDisabled={!data || check?.state !== 'ok'}
-      onCancel={close}
-      onConfirm={handleConfirm}
-      size="lg"
-    >
-      <div className={styles.section}>
-        <p className={styles.hint}>
-          Paste JSON from the analysis prompt. Blocks missing from the JSON stay as they are; null,
-          &quot;&quot; or [] clears a block; a list replaces the previous one entirely.
-        </p>
-        <Input.TextArea
-          rows={12}
-          value={jsonText}
-          onChange={(e) => setJsonText(e.target.value)}
-          placeholder={PLACEHOLDER}
-          className={styles.jsonTextarea}
-          aria-label="Import analysis JSON"
+    placeholder={PLACEHOLDER}
+    analyze={analyze}
+    loadFailed={loadFailed}
+    onRetryLoad={onRetryLoad}
+    preview={preview}
+    previewKey={previewKey}
+    renderOk={(ok) => <AnalysisCheckSummary check={ok.check} />}
+    renderAnalysis={(analysis) => (
+      <>
+        <BlockList title="These filled blocks will be cleared:" keys={analysis.cleared} />
+        <BlockList
+          title="These filled blocks will be replaced entirely:"
+          keys={analysis.replaced}
         />
-        {!analyze && !loadFailed && (
-          <p className={styles.hint} role="status">
-            Loading validation…
-          </p>
-        )}
-        {!analyze && loadFailed && (
-          <div className={styles.error} role="alert">
-            <p>Could not load data validation.</p>
-            <Button type="button" variant="secondary" size="sm" onClick={onRetryLoad}>
-              Retry
-            </Button>
-          </div>
-        )}
-        {analysis && analysis.errors.length > 0 && (
-          <div className={styles.error} role="alert">
-            <p>Errors, nothing will be imported:</p>
-            <ul className={styles.issueList}>
-              {analysis.errors.map((issue, idx) => (
-                <li key={idx}>{formatBookAnalysisIssue(issue)}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {data && analysis && analysis.cleared.length > 0 && (
-          <div className={styles.status}>
-            <p>These filled blocks will be cleared:</p>
-            <ul className={styles.issueList}>
-              {analysis.cleared.map((key) => (
-                <li key={key}>{key}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {data && analysis && analysis.replaced.length > 0 && (
-          <div className={styles.status}>
-            <p>These filled blocks will be replaced entirely:</p>
-            <ul className={styles.issueList}>
-              {analysis.replaced.map((key) => (
-                <li key={key}>{key}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {check?.state === 'checking' && (
-          <p className={styles.hint} role="status">
-            Checking against the version…
-          </p>
-        )}
-        {check?.state === 'rejected' && (
-          <div className={styles.error} role="alert">
-            <p>The server rejected the data, nothing will be imported:</p>
-            <ul className={styles.issueList}>
-              {check.message.split('\n').map((line, idx) => (
-                <li key={idx}>{line}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {check?.state === 'failed' && (
-          <div className={styles.error} role="alert">
-            <p>Could not check the data against the version: {check.message}</p>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => setAttempt((n) => n + 1)}
-            >
-              Retry check
-            </Button>
-          </div>
-        )}
-        {check?.state === 'ok' && <AnalysisCheckSummary check={check.check} />}
-      </div>
-    </Modal>
-  );
-};
+      </>
+    )}
+    onConfirm={onImport}
+  />
+);
