@@ -18,6 +18,7 @@ import type { BookWorldIssue } from '@/lib/admin/book-world-blocks';
 import type { BookWorldEntityImport } from '@/lib/admin/book-world-validation';
 import type { BookWorldValidation } from '@/lib/admin/load-book-world-validation';
 import type { BookWorldEntitySummary, ExpectedRow, SupportedLang } from '@/types/api-schema';
+import { useWorldRecountNotice } from './useWorldRecountNotice';
 import {
   isWorldPublished,
   WORLD_KEY_TAKEN,
@@ -70,6 +71,12 @@ export const useWorldEntityCard = (options: WorldEntityCardOptions) => {
   // С чем форма сверена: на запись уходит `updatedAt` той сущности, которую форма показала.
   const base = useRef<string | null>(null);
   const entity = entityQuery.data?.entity ?? null;
+  const recount = useWorldRecountNotice(
+    versionId,
+    entity,
+    () => entityQuery.refetch(),
+    options.initialCheck?.recountQueued === true
+  );
   useEffect(() => {
     if (hydrated || !entityQuery.isSuccess || entityQuery.fetchStatus !== 'idle') return;
     base.current = entityQuery.data.entity.updatedAt;
@@ -122,7 +129,12 @@ export const useWorldEntityCard = (options: WorldEntityCardOptions) => {
       {
         onSuccess: (res) => {
           if (res.entity) base.current = res.entity.updatedAt;
-          const check = { hasCore: res.hasCore, warnings: res.warnings };
+          recount.onSaved(res.recountQueued);
+          const check = {
+            hasCore: res.hasCore,
+            warnings: res.warnings,
+            recountQueued: res.recountQueued,
+          };
           setLastCheck(check);
           enqueueSnackbar('Entity saved', { variant: 'success' });
           if (isNew) onCreated(key, check);
@@ -204,7 +216,7 @@ export const useWorldEntityCard = (options: WorldEntityCardOptions) => {
     let check: WorldEntityCheck;
     try {
       const res = await writeEntity({ versionId, key: data.key, data: data.body, expected });
-      check = { hasCore: res.hasCore, warnings: res.warnings };
+      check = { hasCore: res.hasCore, warnings: res.warnings, recountQueued: res.recountQueued };
     } catch (error) {
       if (isRecordChanged(error)) {
         const message =
@@ -217,6 +229,7 @@ export const useWorldEntityCard = (options: WorldEntityCardOptions) => {
     }
     enqueueSnackbar(`Entity «${data.key}» imported`, { variant: 'success' });
     setLastCheck(check);
+    recount.onSaved(check.recountQueued === true);
     if (isNew) onCreated(data.key, check);
     else void reload();
     return { ok: true };
@@ -229,6 +242,8 @@ export const useWorldEntityCard = (options: WorldEntityCardOptions) => {
   return {
     isNew,
     entity,
+    /** Номера глав версии; `null` — карточка ещё не загружена или сущность новая. */
+    chapterNumbers: entityQuery.data?.chapterNumbers ?? null,
     isPublished,
     hydrated,
     loadError: entityQuery.error,
@@ -242,6 +257,10 @@ export const useWorldEntityCard = (options: WorldEntityCardOptions) => {
     deleteError,
     resetDeleteError: () => setDeleteError(null),
     reload: () => void reload(),
+    /** У версии стоит пересчёт присутствия (решения арбитра S5, S6). */
+    recountNotice: recount.notice,
+    reloadPresence: () => void recount.reload(),
+    presenceReloadError: recount.reloadError,
     handleSave,
     isSaving: saveMutation.isPending,
     handleDelete,

@@ -141,6 +141,19 @@ describe('book world import of one entity (F08-1)', () => {
   });
 });
 
+describe('aliasExclusions (F08-2)', () => {
+  it('the import takes excluded name forms; an empty one is refused', () => {
+    const withExclusions = (aliasExclusions: string[]) => {
+      const body = structuredClone(en);
+      return { ...body, entities: [{ ...body.entities[0], aliasExclusions }] };
+    };
+    expect(checkBookWorldImport(withExclusions(['Rodya']), 'en').errors).toEqual([]);
+    expect(checkBookWorldImport(withExclusions([' ']), 'en').errors.map((e) => e.path)).toEqual([
+      'entities.0.aliasExclusions.0',
+    ]);
+  });
+});
+
 describe('book world entity card body (F08-1)', () => {
   const entity = {
     ...(structuredClone(en.entities[0]) as unknown as BookWorldEntity),

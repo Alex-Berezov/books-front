@@ -84,6 +84,7 @@ export {
 } from './useBookAnalysis';
 export {
   bookWorldQueryKeys,
+  invalidateBookWorld,
   useBookWorld,
   useBookWorldEntity,
   useDeleteBookWorldEntity,

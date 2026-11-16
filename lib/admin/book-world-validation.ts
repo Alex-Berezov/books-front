@@ -92,10 +92,13 @@ export const worldEntityRequestFromForm = (
   const relationToMain = text(t.relationToMain);
   const arcFrom = text(t.arcFrom);
   const arcTo = text(t.arcTo);
-  const aliases = values.aliases
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean);
+  const lines = (value: string) =>
+    value
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+  const aliases = lines(values.aliases);
+  const aliasExclusions = lines(values.aliasExclusions);
 
   const body = {
     language,
@@ -103,6 +106,9 @@ export const worldEntityRequestFromForm = (
     name: values.name.trim(),
     role: values.role || null,
     aliases: aliases.length > 0 ? aliases : null,
+    ...(values.aliasExclusionsKnown || aliasExclusions.length > 0
+      ? { aliasExclusions: aliasExclusions.length > 0 ? aliasExclusions : null }
+      : {}),
     short: text(t.short),
     profile: position || relationToMain ? { position, relationToMain } : null,
     appearance: text(t.appearance),

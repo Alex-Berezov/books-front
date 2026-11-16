@@ -1,7 +1,9 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { HttpResponse } from 'msw';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '../../fixtures/example-world.en.json';
 import {
+  detail,
   ENTITY_SEEN,
   installWorldApi,
   LANDED,
@@ -47,7 +49,15 @@ describe('WorldTab (F08-1)', () => {
     expect(main.getByText('main')).toBeTruthy();
     expect(main.getByText('yes')).toBeTruthy();
     expect(main.getByText('Not read')).toBeTruthy();
-    expect(main.getByTitle('Mentions are not counted yet').textContent).toBe('—');
+    // F08-2: в списке — число глав присутствия; не посчитано — прочерк.
+    expect(main.getByTitle('Chapters the entity is found in').textContent).toBe('2');
+    expect(
+      (await rowOf('lebezyatnikov')).getByTitle('Chapters the entity is found in').textContent
+    ).toBe('—');
+    // Посчитано и нигде не найдено — ноль, а не прочерк «не посчитано».
+    expect((await rowOf('sonya')).getByTitle('Chapters the entity is found in').textContent).toBe(
+      '0'
+    );
 
     const sonya = await rowOf('sonya');
     expect(sonya.getByText('missing: quotes, mentions')).toBeTruthy();
@@ -166,6 +176,33 @@ describe('WorldTab (F08-1)', () => {
     });
     // Импорт одной сущности не зовёт ручку всей версии.
     expect(rec.puts).toEqual([]);
+  });
+
+  it('F08-2: an import into the card that queued a recount shows «after the recount» (S5)', async () => {
+    const base = detail('sonya');
+    const pendingEntity = {
+      ...base.entity,
+      editor: { ...base.entity.editor!, recountPending: true },
+    };
+    rec.entityPutReply = (_key, _body, query) =>
+      HttpResponse.json(
+        query.includes('dryRun')
+          ? { entity: null, hasCore: false, warnings: [], recountQueued: false }
+          : { entity: pendingEntity, hasCore: false, warnings: [], recountQueued: true }
+      );
+    renderWorldTab(true);
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit sonya' }));
+    await importIntoCard('Entity sonya', {
+      language: 'en',
+      type: 'character',
+      aliases: ['Sonya', 'Sonechka'],
+    });
+    await waitFor(() => expect(rec.entityPuts).toHaveLength(1));
+    // Карточка после импорта перечитывается: сервер всё ещё держит строку очереди.
+    rec.entityReply = () => HttpResponse.json({ ...base, entity: pendingEntity });
+    await confirmImport();
+    const card = within(await screen.findByRole('region', { name: 'Entity sonya' }));
+    expect(await card.findByText(/Saved — presence will update after the recount/)).toBeTruthy();
   });
 
   it('one entity: another key in the JSON and form errors are refused on the client by their path', async () => {

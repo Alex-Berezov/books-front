@@ -15,6 +15,7 @@ const editor = (readAt: string | null, autoTextAt: string | null) => ({
   autoTextAt,
   firstPublishedAt: null,
   missing: [],
+  mentionChapters: null,
 });
 
 describe('worldReadState', () => {

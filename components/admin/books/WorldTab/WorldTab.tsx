@@ -160,8 +160,10 @@ const WorldTabContent: FC<Omit<WorldTabProps, 'isEditor'>> = (props) => {
                       </span>
                     )}
                   </td>
-                  {/* Подсчёт упоминаний — F08-2; в списке его нет, сейчас пусто у всех. */}
-                  <td title="Mentions are not counted yet">—</td>
+                  {/* Глав присутствия (F08-2): считает бэкенд, `null` — ещё не посчитано. */}
+                  <td title="Chapters the entity is found in">
+                    {entity.editor?.mentionChapters ?? '—'}
+                  </td>
                   <td>{readCell(entity)}</td>
                   <td>
                     <Switch
@@ -195,9 +197,7 @@ const WorldTabContent: FC<Omit<WorldTabProps, 'isEditor'>> = (props) => {
               ))}
             </tbody>
           </table>
-          <p className={styles.hint}>
-            Presence: mentions are not counted yet. Public pages of entities are not available yet.
-          </p>
+          <p className={styles.hint}>Public pages of entities are not available yet.</p>
         </div>
       )}
 

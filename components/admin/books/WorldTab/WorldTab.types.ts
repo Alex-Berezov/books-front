@@ -28,4 +28,9 @@ export interface WorldImportPreviewOk {
 export interface WorldEntityCheck {
   hasCore: boolean;
   warnings: BookWorldWarning[];
+  /**
+   * Запись поставила пересчёт присутствия: новая карточка открывается заново по ключу и метку
+   * «Saved» не теряет (решение арбитра `F08 | F08-2` S6).
+   */
+  recountQueued?: boolean;
 }

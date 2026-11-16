@@ -44,6 +44,7 @@ import type {
   TranslationRunAnalysis,
   TranslationRunSummary,
 } from '@/types/api-schema';
+import { invalidateBookWorld } from './useBookWorld';
 import { chapterKeys } from './useChapters';
 import { COMPARE_REFETCH_MS, LLM_DISABLED } from './useTranslationCompare';
 
@@ -237,13 +238,19 @@ const invalidateRunDependents = (
   queryClient: QueryClient,
   run: Pick<TranslationRun, 'id' | 'bookVersionId'> & Partial<Pick<TranslationRun, 'languages'>>,
   bookId: string
-) =>
-  Promise.all([
+) => {
+  // Перевод записал главы черновиков — их мир книги встаёт на пересчёт (F08-2). Только на смене
+  // состояния, не в опросе хода: каждое чтение перечитывало бы вкладку World по кругу.
+  for (const l of run.languages ?? []) {
+    if (l.draftVersionId) invalidateBookWorld(queryClient, l.draftVersionId);
+  }
+  return Promise.all([
     queryClient.invalidateQueries({ queryKey: translationRunKeys.report(run.id) }),
     queryClient.invalidateQueries({ queryKey: translationRunKeys.list(bookId) }),
     queryClient.invalidateQueries({ queryKey: translationRunKeys.source(run.bookVersionId) }),
     invalidateDraftChapters(queryClient, run),
   ]);
+};
 
 /**
  * Списки глав версий, в которые пишут языки запуска (только языки с `draftVersionId`). С D9 это

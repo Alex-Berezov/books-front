@@ -2,7 +2,7 @@
  * React Query hooks for the book world (F08-1).
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   deleteBookWorldEntity,
   getBookWorld,
@@ -31,6 +31,31 @@ export const bookWorldQueryKeys = {
   entities: (versionId: string) => [...bookWorldQueryKeys.all, 'entity', versionId] as const,
   entity: (versionId: string, key: string) =>
     [...bookWorldQueryKeys.entities(versionId), key] as const,
+};
+
+/** Позиция ключа сущности в `bookWorldQueryKeys.entity` — из самой фабрики, не числом. */
+const ENTITY_KEY_AT = bookWorldQueryKeys.entities('').length;
+
+/**
+ * Мир книги версии зависит от глав и от соседних сущностей (F08-2): правка главы, запись перевода
+ * в главу, запись или удаление сущности ставят пересчёт присутствия всей версии — вкладка World
+ * перечитывает список и карточки (`editor.recountPending`, `coPresence`). `exceptKey` — карточка,
+ * которая уже лежит в кэше из ответа своей записи. Не ждётся: запись не держит перечитывание.
+ */
+export const invalidateBookWorld = (
+  queryClient: QueryClient,
+  versionId: string,
+  exceptKey?: string
+) => {
+  void queryClient.invalidateQueries({ queryKey: bookWorldQueryKeys.list(versionId) });
+  void queryClient.invalidateQueries({
+    queryKey: bookWorldQueryKeys.entities(versionId),
+    ...(exceptKey === undefined
+      ? {}
+      : {
+          predicate: (q) => q.queryKey[ENTITY_KEY_AT] !== exceptKey,
+        }),
+  });
 };
 
 export const useBookWorld = (versionId: string) =>
@@ -88,7 +113,21 @@ const patchMarkedRow = (
     bookWorldQueryKeys.entity(versionId, row.key),
     (prev) =>
       prev
-        ? { ...prev, entity: { ...prev.entity, ...row, updatedAt: prev.entity.updatedAt } }
+        ? {
+            ...prev,
+            entity: {
+              ...prev.entity,
+              ...row,
+              updatedAt: prev.entity.updatedAt,
+              // Строка отметки несёт `editor` списка: без полей страницы сущности (`aliasExclusions`,
+              // `stale`, `mentionsAt`, F08-2). Склеиваем, а не заменяем — иначе форма решит, что
+              // исключений сервер не прислал, а пункты, не сошедшиеся с текстом, пропадут из флага.
+              editor:
+                prev.entity.editor && row.editor
+                  ? { ...prev.entity.editor, ...row.editor }
+                  : (row.editor ?? prev.entity.editor),
+            },
+          }
         : prev
   );
 };
@@ -135,7 +174,9 @@ export const useSaveBookWorldEntity = () => {
       saveBookWorldEntity(versionId, key, data, dryRun, expected),
     onSuccess: (res, { versionId, key, dryRun }) => {
       if (dryRun) return;
-      void queryClient.invalidateQueries({ queryKey: bookWorldQueryKeys.list(versionId) });
+      // Пересчёт поставлен на всю версию: карточки соседей перечитываются, своя — из ответа.
+      if (res.recountQueued) invalidateBookWorld(queryClient, versionId, key);
+      else void queryClient.invalidateQueries({ queryKey: bookWorldQueryKeys.list(versionId) });
       // Сохранённая сущность пришла в ответе — карточка берёт её, второго GET нет.
       const entity = res.entity;
       if (!entity) {
@@ -156,7 +197,8 @@ export const useDeleteBookWorldEntity = () => {
     mutationFn: ({ versionId, key }) => deleteBookWorldEntity(versionId, key),
     onSuccess: (_res, { versionId, key }) => {
       queryClient.removeQueries({ queryKey: bookWorldQueryKeys.entity(versionId, key) });
-      void queryClient.invalidateQueries({ queryKey: bookWorldQueryKeys.list(versionId) });
+      // Удаление ставит пересчёт (`coPresence` соседей): список и карточки соседей перечитываются.
+      invalidateBookWorld(queryClient, versionId);
     },
   });
 };

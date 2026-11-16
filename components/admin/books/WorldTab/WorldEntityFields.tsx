@@ -6,8 +6,10 @@ import {
   type BookWorldIssue,
 } from '@/lib/admin/book-world-blocks';
 import { formatDataIssue } from '@/lib/admin/data-issue';
+import type { WorldRecountNotice } from './useWorldRecountNotice';
 import type { WorldEntityFormValues } from '@/lib/admin/book-world-form-state';
-import type { WorldEntityType } from '@/types/api-schema';
+import type { BookWorldMentions, WorldEntityType } from '@/types/api-schema';
+import { WorldEntityPresence, WorldEntityStale } from './WorldEntityPresence';
 import styles from './WorldTab.module.scss';
 
 /** Поля формы со своим местом для ошибок — по пути поля тела записи. */
@@ -15,6 +17,7 @@ const FIELD_PATHS = [
   'key',
   'name',
   'aliases',
+  'aliasExclusions',
   ...BOOK_WORLD_TEXT_FIELDS.map((f) => f.path),
   ...BOOK_WORLD_LIST_FIELDS.map((f) => f.path),
 ];
@@ -42,8 +45,17 @@ interface WorldEntityFieldsProps {
   /** Ключ сохранённой сущности (только чтение); `null` — новая, ключ вводится. */
   entityKey: string | null;
   type: WorldEntityType;
-  /** Глав с упоминаниями (F08-2); 0 — ещё не посчитано. */
-  presence: number;
+  /** Посчитанное присутствие (F08-2); `null` — ещё не посчитано (новая сущность). */
+  mentions: BookWorldMentions | null;
+  /** Пункты, не сошедшиеся с текстом глав на последнем пересчёте (`quotes.2`). */
+  stale: string[];
+  /** У версии есть главы; `null` — неизвестно (новая сущность). */
+  versionHasChapters: boolean | null;
+  /** У версии стоит пересчёт: `saved` — его поставила запись этой карточки (решения арбитра S5, S6). */
+  recountNotice: WorldRecountNotice;
+  onReloadPresence: () => void;
+  /** Отказ Reload присутствия; `null` — не было. */
+  presenceReloadError: string | null;
 }
 
 /** Поля героя (`tech.md` §3): тексты — полем, списки — JSON, формы имени — по строке. */
@@ -53,7 +65,12 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
   issues,
   entityKey,
   type,
-  presence,
+  mentions,
+  stale,
+  versionHasChapters,
+  recountNotice,
+  onReloadPresence,
+  presenceReloadError,
 }) => {
   const isNew = entityKey === null;
   const issuesFor = (path: string) => issues.filter((i) => matches(i, path));
@@ -115,12 +132,18 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
         </div>
         <div className={styles.field}>
           <span className={styles.label}>Presence</span>
-          <span>
-            {presence > 0 ? `${presence} chapters` : '—'}
-            {presence === 0 && <span className={styles.hint}> Mentions are not counted yet</span>}
-          </span>
+          <WorldEntityPresence
+            mentions={mentions}
+            isNew={isNew}
+            versionHasChapters={versionHasChapters}
+            recountNotice={recountNotice}
+            onReload={onReloadPresence}
+            reloadError={presenceReloadError}
+          />
         </div>
       </div>
+
+      <WorldEntityStale stale={stale} />
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="world-aliases">
@@ -135,6 +158,24 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
           onChange={(e) => set({ aliases: e.target.value })}
         />
         <FieldIssues issues={issuesFor('aliases')} />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="world-alias-exclusions">
+          Excluded name forms (one per line)
+        </label>
+        <span className={styles.hint}>
+          JSON: aliasExclusions — an excluded form is not counted anywhere, real mentions included:
+          use it for a form that matches an ordinary word, not for namesakes
+        </span>
+        <textarea
+          id="world-alias-exclusions"
+          className={styles.textarea}
+          rows={2}
+          value={form.aliasExclusions}
+          onChange={(e) => set({ aliasExclusions: e.target.value })}
+        />
+        <FieldIssues issues={issuesFor('aliasExclusions')} />
       </div>
 
       {BOOK_WORLD_TEXT_FIELDS.map((field) => (

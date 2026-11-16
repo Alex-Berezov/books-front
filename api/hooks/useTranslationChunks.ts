@@ -29,6 +29,7 @@ import type {
   TranslationChunkRetryStarted,
   TranslationChunks,
 } from '@/types/api-schema';
+import { invalidateBookWorld } from './useBookWorld';
 import { chapterKeys } from './useChapters';
 import { COMPARE_REFETCH_MS, LLM_DISABLED } from './useTranslationCompare';
 import { translationRunKeys } from './useTranslationRun';
@@ -74,8 +75,10 @@ const invalidateDraft = (
   queryClient: QueryClient,
   draftVersionId: string | null,
   chapterId: string | null | undefined
-) =>
-  Promise.all([
+) => {
+  // Запись перевода в главу ставит пересчёт присутствия черновой версии (F08-2).
+  if (draftVersionId) invalidateBookWorld(queryClient, draftVersionId);
+  return Promise.all([
     draftVersionId
       ? queryClient.invalidateQueries({ queryKey: chapterKeys.list(draftVersionId) })
       : undefined,
@@ -83,6 +86,7 @@ const invalidateDraft = (
       ? queryClient.invalidateQueries({ queryKey: chapterKeys.detail(chapterId) })
       : undefined,
   ]);
+};
 
 export const useTranslationChunks = (
   runId: string,

@@ -47,6 +47,7 @@ export const row = (
     autoTextAt: LANDED,
     firstPublishedAt: null,
     missing: [],
+    mentionChapters: 2,
     ...editor,
   },
   ...patch,
@@ -56,16 +57,23 @@ export const LIST = (): BookWorldEntitySummary[] => [
   row({}),
   row(
     { key: 'sonya', name: 'Sonya', role: 'secondary', hasCore: false, updatedAt: LIST_NEWEST },
-    { missing: ['quotes', 'mentions'], readAt: '2026-11-14T11:00:00.000Z' }
+    { missing: ['quotes', 'mentions'], readAt: '2026-11-14T11:00:00.000Z', mentionChapters: 0 }
   ),
-  row({ key: 'lebezyatnikov', name: 'Lebezyatnikov', role: null }, { autoTextAt: null }),
+  row(
+    { key: 'lebezyatnikov', name: 'Lebezyatnikov', role: null },
+    { autoTextAt: null, mentionChapters: null }
+  ),
 ];
 
+/** Карточка: ответ страницы сущности редактору — с полями F08-2 (присутствие, исключения, `stale`). */
 export const detail = (key: string): BookWorldEntityResponse => ({
   language: 'en',
   chapterNumbers: [1, 2],
   entity: {
-    ...row({ key, name: 'Sonya', updatedAt: ENTITY_SEEN }),
+    ...row(
+      { key, name: 'Sonya', updatedAt: ENTITY_SEEN },
+      { aliasExclusions: null, stale: [], mentionsAt: '2026-11-14T10:00:00.000Z' }
+    ),
     aliases: ['Sonya'],
     profile: null,
     appearance: null,
@@ -79,7 +87,15 @@ export const detail = (key: string): BookWorldEntityResponse => ({
     adaptations: null,
     faq: null,
     sources: null,
-    mentions: null,
+    mentions: {
+      chapters: [1, 2],
+      first: 1,
+      perChapter: [
+        { chapter: 1, count: 1 },
+        { chapter: 2, count: 1 },
+      ],
+      coPresence: [],
+    },
     createdAt: '2026-11-14T08:00:00.000Z',
   },
 });
@@ -161,6 +177,7 @@ export const installWorldApi = (): WorldApi => {
         entity: null,
         hasCore: false,
         warnings: [],
+        recountQueued: false,
       } satisfies BookWorldEntitySaveResponse),
     deleteReply: () => new HttpResponse(null, { status: 204 }),
     entityReply: (key) => HttpResponse.json(detail(key)),

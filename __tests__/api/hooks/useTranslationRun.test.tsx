@@ -364,6 +364,13 @@ describe('Хуки запуска перевода', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(invalidated()).toContain(JSON.stringify(chapterKeys.list('d-es')));
+    // F08-2: главы черновика записаны — мир книги черновика встаёт на пересчёт.
+    expect(invalidated()).toEqual(
+      expect.arrayContaining([
+        JSON.stringify(['book-world', 'list', 'd-es']),
+        JSON.stringify(['book-world', 'entity', 'd-es']),
+      ])
+    );
   });
 
   it('D9: идущий запуск каждым чтением сбрасывает только списки глав языков с черновиком', async () => {

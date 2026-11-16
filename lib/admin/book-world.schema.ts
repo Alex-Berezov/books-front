@@ -112,6 +112,7 @@ const characterFields = {
   name: requiredText(L.name).optional(),
   role: z.enum(BOOK_WORLD_ROLES).nullable().optional(),
   aliases: clearable(list(requiredText(L.alias), L.aliases)),
+  aliasExclusions: clearable(list(requiredText(L.alias), L.aliases)),
   short: clearable(z.string().trim().max(L.short)),
   profile: clearable(
     z.strictObject({

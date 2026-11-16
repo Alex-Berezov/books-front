@@ -85,7 +85,12 @@ export const WorldEntityCard: FC<WorldEntityCardProps> = (props) => {
         issues={card.issues}
         entityKey={entityKey}
         type={entity?.type ?? 'character'}
-        presence={entity?.mentions?.chapters.length ?? 0}
+        mentions={entity?.mentions ?? null}
+        stale={entity?.editor?.stale ?? []}
+        versionHasChapters={card.chapterNumbers === null ? null : card.chapterNumbers.length > 0}
+        recountNotice={card.recountNotice}
+        onReloadPresence={card.reloadPresence}
+        presenceReloadError={card.presenceReloadError}
       />
 
       {card.issues.length > 0 && (

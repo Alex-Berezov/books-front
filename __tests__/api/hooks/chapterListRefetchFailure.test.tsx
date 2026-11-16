@@ -16,6 +16,7 @@ import {
   useReorderAudioChapters,
   useUpdateAudioChapter,
 } from '@/api/hooks/useAudioChapters';
+import { bookWorldQueryKeys } from '@/api/hooks/useBookWorld';
 import { useCreateChapter, useDeleteChapter, useUpdateChapter } from '@/api/hooks/useChapters';
 
 const mocks = vi.hoisted(() => ({ listAll: vi.fn() }));
@@ -109,6 +110,11 @@ const mutations: Array<[string, () => Run]> = [
   ],
 ];
 
+const partition = (keys: (readonly unknown[] | undefined)[]) => {
+  const isWorld = (k: readonly unknown[] | undefined) => k?.[0] === 'book-world';
+  return [keys.filter((k) => !isWorld(k)), keys.filter(isWorld)] as const;
+};
+
 describe.each(mutations)('%s', (_name, useRun) => {
   it('resolves while the list invalidation never settles', async () => {
     const client = createClient();
@@ -121,7 +127,15 @@ describe.each(mutations)('%s', (_name, useRun) => {
     await act(async () => {
       await expect(result.current()).resolves.not.toThrow();
     });
-    expect(invalidateSpy).toHaveBeenCalledTimes(1);
+    // Список глав сбрасывается один раз; правка текстовой главы сбрасывает ещё и вкладку World
+    // (F08-2: присутствие считается по главам) — эти вызовы тоже не ждутся.
+    const [own, world] = partition(invalidateSpy.mock.calls.map(([filters]) => filters?.queryKey));
+    expect(own).toHaveLength(1);
+    expect(world).toEqual(
+      _name.includes('Audio')
+        ? []
+        : [bookWorldQueryKeys.list('v1'), bookWorldQueryKeys.entities('v1')]
+    );
   });
 });
 

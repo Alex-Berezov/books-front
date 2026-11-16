@@ -33,6 +33,7 @@ const saved = (patch: Partial<BookWorldEntitySaveResponse> = {}) =>
     entity: detail('sonya').entity,
     hasCore: false,
     warnings: [],
+    recountQueued: false,
     ...patch,
   } satisfies BookWorldEntitySaveResponse);
 
@@ -184,6 +185,265 @@ describe('WorldTab entity card (F08-1)', () => {
     const card = await openSonya();
     await card.findByLabelText('Short');
     expect(card.queryByText(/page is hidden until an admin marks it read/)).toBeNull();
+  });
+
+  it('F08-2: presence is read-only from the count; stale items are flagged; exclusions are sent', async () => {
+    const base = detail('sonya');
+    rec.entityReply = () =>
+      HttpResponse.json({
+        ...base,
+        entity: {
+          ...base.entity,
+          mentions: {
+            chapters: [1, 2],
+            first: 1,
+            perChapter: [
+              { chapter: 1, count: 3 },
+              { chapter: 2, count: 1 },
+            ],
+            coPresence: [],
+          },
+          editor: { ...base.entity.editor!, aliasExclusions: ['sonnet'], stale: ['quotes.2'] },
+        },
+      });
+    rec.entityPutReply = () => saved();
+    const card = await openSonya();
+    expect(await card.findByText(/2 chapters, first: 1/)).toBeTruthy();
+    expect(card.getByText(/Chapters: 1 \(3\), 2 \(1\)/)).toBeTruthy();
+    const stale = card.getByText(/No longer matches the chapter text/).closest('div')!;
+    expect(within(stale as HTMLElement).getByText('quotes.2')).toBeTruthy();
+    // Присутствие не поле ввода: его считает бэкенд.
+    const presence = card.getByText('Presence').parentElement!;
+    expect(presence.textContent).toContain('2 chapters, first: 1');
+    expect(presence.querySelectorAll('input, textarea, select')).toHaveLength(0);
+
+    const exclusions = card.getByLabelText('Excluded name forms (one per line)');
+    expect((exclusions as HTMLTextAreaElement).value).toBe('sonnet');
+    fireEvent.change(exclusions, { target: { value: 'sonnet\n  sun  ' } });
+    fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+    await waitFor(() => expect(rec.entityPuts).toHaveLength(1));
+    expect(rec.entityPuts[0].body).toMatchObject({ aliasExclusions: ['sonnet', 'sun'] });
+  });
+
+  it('F08-2: exclusions cleared in the form go as null', async () => {
+    rec.entityPutReply = () => saved();
+    const base = detail('sonya');
+    rec.entityReply = () =>
+      HttpResponse.json({
+        ...base,
+        entity: { ...base.entity, editor: { ...base.entity.editor!, aliasExclusions: ['sonnet'] } },
+      });
+    const card = await openSonya();
+    const exclusions = await card.findByLabelText('Excluded name forms (one per line)');
+    fireEvent.change(exclusions, { target: { value: '  ' } });
+    fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+    await waitFor(() => expect(rec.entityPuts).toHaveLength(1));
+    expect(rec.entityPuts[0].body).toHaveProperty('aliasExclusions', null);
+  });
+
+  it('F08-2: a card without exclusions from the server does not wipe them on save', async () => {
+    rec.entityPutReply = () => saved();
+    const base = detail('sonya');
+    const { aliasExclusions: _dropped, ...editorWithout } = base.entity.editor!;
+    rec.entityReply = () =>
+      HttpResponse.json({ ...base, entity: { ...base.entity, editor: editorWithout } });
+    const card = await openSonya();
+    fireEvent.change(await card.findByLabelText('Short'), { target: { value: 'New short' } });
+    fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+    await waitFor(() => expect(rec.entityPuts).toHaveLength(1));
+    expect(rec.entityPuts[0].body).not.toHaveProperty('aliasExclusions');
+  });
+
+  it('F08-2: a saved entity not counted yet says the recount is coming', async () => {
+    const base = detail('sonya');
+    rec.entityReply = () =>
+      HttpResponse.json({ ...base, entity: { ...base.entity, mentions: null } });
+    const card = await openSonya();
+    expect(await card.findByText(/Not counted yet — the recount runs shortly/)).toBeTruthy();
+    expect(card.getByRole('button', { name: 'Reload presence' })).toBeTruthy();
+    expect(card.queryByText('Counted after the first save')).toBeNull();
+  });
+
+  it('F08-2: a version without chapters: the reason is the missing text, not the name forms', async () => {
+    const base = detail('sonya');
+    rec.entityReply = () =>
+      HttpResponse.json({
+        ...base,
+        chapterNumbers: [],
+        entity: {
+          ...base.entity,
+          mentions: { chapters: [], first: null, perChapter: [], coPresence: [] },
+        },
+      });
+    const card = await openSonya();
+    expect(
+      await card.findByText(
+        'The version has no chapters yet — presence is counted from chapter text'
+      )
+    ).toBeTruthy();
+    expect(card.queryByText('Not found in any chapter — check name forms')).toBeNull();
+  });
+
+  it('F08-2: one chapter is «1 chapter»', async () => {
+    const base = detail('sonya');
+    rec.entityReply = () =>
+      HttpResponse.json({
+        ...base,
+        entity: {
+          ...base.entity,
+          mentions: {
+            chapters: [2],
+            first: 2,
+            perChapter: [{ chapter: 2, count: 1 }],
+            coPresence: [],
+          },
+        },
+      });
+    const card = await openSonya();
+    expect(await card.findByText(/^1 chapter, first: 2/)).toBeTruthy();
+  });
+
+  it('F08-2: a new entity is counted after the first save; its body sends exclusions as null', async () => {
+    rec.entityPutReply = () => saved();
+    const card = await openNew('olga', 'Olga');
+    expect(card.getByText('Counted after the first save')).toBeTruthy();
+    fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+    await waitFor(() => expect(rec.entityPuts).toHaveLength(1));
+    // Новая сущность: исключений нет, `null` — «пусто» (бэкенд принимает, `update-book-world.dto.ts`).
+    expect(rec.entityPuts[0].body).toHaveProperty('aliasExclusions', null);
+  });
+
+  it('F08-2: no stale items — no warning block', async () => {
+    const card = await openSonya();
+    await card.findByLabelText('Excluded name forms (one per line)');
+    expect(card.queryByText(/No longer matches the chapter text/)).toBeNull();
+  });
+
+  it('F08-2: a flag in the list keeps the card fields of the entity page (exclusions, stale)', async () => {
+    const base = detail('sonya');
+    rec.entityReply = () =>
+      HttpResponse.json({
+        ...base,
+        entity: {
+          ...base.entity,
+          editor: { ...base.entity.editor!, aliasExclusions: ['sonnet'], stale: ['quotes.2'] },
+        },
+      });
+    const card = await openSonya();
+    expect(await card.findByText('quotes.2')).toBeTruthy();
+    fireEvent.click(screen.getByRole('switch', { name: 'Visible: sonya' }));
+    await waitFor(() => expect(rec.flags).toHaveLength(1));
+    // Ответ флага — строка списка без полей страницы сущности: кэш карточки их не теряет.
+    await waitFor(() => expect(card.getByText('quotes.2')).toBeTruthy());
+    fireEvent.click(card.getAllByRole('button', { name: 'Close' })[0]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit sonya' }));
+    const reopened = await cardOf('Entity sonya');
+    expect(
+      (
+        (await reopened.findByLabelText(
+          'Excluded name forms (one per line)'
+        )) as HTMLTextAreaElement
+      ).value
+    ).toBe('sonnet');
+  });
+
+  it('F08-2: a save that queued a recount shows «after the recount» until Reload finds the queue empty (S5)', async () => {
+    const base = detail('sonya');
+    const withPending = (recountPending: boolean) => ({
+      ...base.entity,
+      editor: { ...base.entity.editor!, recountPending },
+    });
+    rec.entityPutReply = () => saved({ entity: withPending(true), recountQueued: true });
+    const card = await openSonya();
+    fireEvent.change(await card.findByLabelText('Name forms (one per line)'), {
+      target: { value: 'Sonya\nSonechka' },
+    });
+    fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+    expect(await card.findByText(/Saved — presence will update after the recount/)).toBeTruthy();
+
+    // Пересчёт прошёл, присутствие не изменилось (`mentionsAt` прежний, Q4): строки очереди
+    // больше нет — Reload снимает метку.
+    rec.entityReply = () => HttpResponse.json({ ...base, entity: withPending(false) });
+    const gets = rec.gets.filter((g) => g === 'sonya').length;
+    fireEvent.click(card.getByRole('button', { name: 'Reload presence' }));
+    await waitFor(() => expect(rec.gets.filter((g) => g === 'sonya').length).toBe(gets + 1));
+    await waitFor(() =>
+      expect(card.queryByText(/Saved — presence will update after the recount/)).toBeNull()
+    );
+    expect(card.getByText(/2 chapters, first: 1/)).toBeTruthy();
+  });
+
+  it('F08-2: Reload while the recount is still queued keeps the label; a failed Reload says so (S5)', async () => {
+    const base = detail('sonya');
+    const withPending = (recountPending: boolean) => ({
+      ...base.entity,
+      editor: { ...base.entity.editor!, recountPending },
+    });
+    rec.entityPutReply = () => saved({ entity: withPending(true), recountQueued: true });
+    const card = await openSonya();
+    fireEvent.change(await card.findByLabelText('Name forms (one per line)'), {
+      target: { value: 'Sonya\nSonechka' },
+    });
+    fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+    expect(await card.findByText(/Saved — presence will update after the recount/)).toBeTruthy();
+
+    rec.entityReply = () => HttpResponse.json({ ...base, entity: withPending(true) });
+    const gets = rec.gets.filter((g) => g === 'sonya').length;
+    fireEvent.click(card.getByRole('button', { name: 'Reload presence' }));
+    await waitFor(() => expect(rec.gets.filter((g) => g === 'sonya').length).toBe(gets + 1));
+    expect(card.getByText(/Saved — presence will update after the recount/)).toBeTruthy();
+
+    rec.entityReply = () => HttpResponse.json({ message: 'down' }, { status: 503 });
+    fireEvent.click(card.getByRole('button', { name: 'Reload presence' }));
+    expect(await card.findByText(/Could not reload/)).toBeTruthy();
+    expect(card.getByText(/Saved — presence will update after the recount/)).toBeTruthy();
+  });
+
+  it('F08-2: exclusions typed into a card the server sent none for are sent', async () => {
+    rec.entityPutReply = () => saved();
+    const base = detail('sonya');
+    const { aliasExclusions: _dropped, ...editorWithout } = base.entity.editor!;
+    rec.entityReply = () =>
+      HttpResponse.json({ ...base, entity: { ...base.entity, editor: editorWithout } });
+    const card = await openSonya();
+    fireEvent.change(await card.findByLabelText('Excluded name forms (one per line)'), {
+      target: { value: 'sonnet' },
+    });
+    fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+    await waitFor(() => expect(rec.entityPuts).toHaveLength(1));
+    expect(rec.entityPuts[0].body).toMatchObject({ aliasExclusions: ['sonnet'] });
+  });
+
+  it('F08-2: a save the backend did not queue is not «Saved», even with edited name forms (S5, S6)', async () => {
+    // Бэкенд сравнивает итоговые формы (S7): правка регистра пересчёт не ставит. Строка очереди
+    // у версии при этом есть (правка главы) — метка без «Saved».
+    const base = detail('sonya');
+    const pendingEntity = {
+      ...base.entity,
+      editor: { ...base.entity.editor!, recountPending: true },
+    };
+    rec.entityPutReply = () => saved({ entity: pendingEntity, recountQueued: false });
+    const card = await openSonya();
+    fireEvent.change(await card.findByLabelText('Name forms (one per line)'), {
+      target: { value: 'sonya' },
+    });
+    fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+    expect(await card.findByText(/^Presence will update after the recount/)).toBeTruthy();
+    expect(card.queryByText(/Saved — presence will update after the recount/)).toBeNull();
+  });
+
+  it('F08-2: an entity not found in any chapter says so', async () => {
+    const base = detail('sonya');
+    rec.entityReply = () =>
+      HttpResponse.json({
+        ...base,
+        entity: {
+          ...base.entity,
+          mentions: { chapters: [], first: null, perChapter: [], coPresence: [] },
+        },
+      });
+    const card = await openSonya();
+    expect(await card.findByText('Not found in any chapter — check name forms')).toBeTruthy();
   });
 
   it('delete: 204 closes the card', async () => {

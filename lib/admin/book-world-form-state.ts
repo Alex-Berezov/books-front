@@ -11,6 +11,13 @@ export interface WorldEntityFormValues {
   role: BookWorldRole | '';
   /** Формы имени, по одной на строку. */
   aliases: string;
+  /** Исключённые из подсчёта формы (F08-2), по одной на строку. */
+  aliasExclusions: string;
+  /**
+   * Исключения пришли с сервером (или сущность новая): только тогда пустое поле — «очистить».
+   * Иначе поле не уходит вовсе, чтобы не стереть сохранённые исключения, которых форма не видела.
+   */
+  aliasExclusionsKnown: boolean;
   texts: Record<BookWorldTextKey, string>;
   /** JSON-текст списков; пусто — списка нет. */
   lists: Record<BookWorldListKey, string>;
@@ -24,6 +31,8 @@ export const formFromWorldEntity = (entity: BookWorldEntity | null): WorldEntity
   name: entity?.name ?? '',
   role: entity?.role ?? '',
   aliases: (entity?.aliases ?? []).join('\n'),
+  aliasExclusions: (entity?.editor?.aliasExclusions ?? []).join('\n'),
+  aliasExclusionsKnown: entity === null || entity.editor?.aliasExclusions !== undefined,
   texts: {
     short: entity?.short ?? '',
     position: entity?.profile?.position ?? '',

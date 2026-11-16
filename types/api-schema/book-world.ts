@@ -69,10 +69,29 @@ export interface BookWorldSource {
   url: string;
 }
 
-/** Посчитанное присутствие (F08-2): главы, где сущность найдена, и первая из них. До F08-2 — `null`. */
+export interface BookWorldChapterCount {
+  chapter: number;
+  /** Вхождений любой формы имени в главе. */
+  count: number;
+}
+
+export interface BookWorldCoPresence {
+  /** Ключ другого героя версии. */
+  key: string;
+  /** Главы, где есть оба, по возрастанию. */
+  chapters: number[];
+}
+
+/**
+ * Посчитанное присутствие (F08-2, считает бэкенд по тексту глав): главы, где сущность найдена,
+ * первая из них, вхождения по главам и совместное присутствие героев (читателю — только публичные
+ * соседи). `null` — не посчитано.
+ */
 export interface BookWorldMentions {
   chapters: number[];
   first: number | null;
+  perChapter: BookWorldChapterCount[];
+  coPresence: BookWorldCoPresence[];
 }
 
 /** Поля героя (`tech.md` §3) — общая часть ответа и тела записи. */
@@ -102,6 +121,26 @@ export interface BookWorldEditor {
   firstPublishedAt: ISODate | null;
   /** Чего не хватает до ядра (`world-core.ts` бэкенда); пусто — ядро есть. */
   missing: string[];
+  /** Глав присутствия (F08-2); `null` — ещё не посчитано. */
+  mentionChapters: number | null;
+  /** Только на странице сущности: формы имени, исключённые из подсчёта (F08-2). */
+  aliasExclusions?: string[] | null;
+  /**
+   * Только на странице сущности: пункты, не сошедшиеся с текстом версии на последнем пересчёте
+   * (`quotes.2` — цитаты нет дословно или главы нет; `scenes.0`, `arc.stages.1` — главы нет).
+   * В ядро не идут, читателю не показываются.
+   */
+  stale?: string[];
+  /**
+   * Только на странице сущности: когда посчитанное присутствие последний раз изменилось. Не признак
+   * свежести: пересчёт без изменений его не двигает (Q4) — ждать пересчёта по `recountPending`.
+   */
+  mentionsAt?: ISODate | null;
+  /**
+   * Только на странице сущности: у версии стоит пересчёт присутствия и ещё не прошёл
+   * (решение арбитра `F08 | F08-2` S5).
+   */
+  recountPending?: boolean;
 }
 
 export interface BookWorldEntitySummary {
@@ -141,6 +180,8 @@ export type BookWorldEntityInput = {
   /** Обязательно у новой сущности. */
   name?: string;
   role?: BookWorldRole | null;
+  /** Формы имени, исключённые из подсчёта присутствия (ложные совпадения с обычным словом). */
+  aliasExclusions?: string[] | null;
 } & Partial<BookWorldCharacterFields>;
 
 /** Тело `PUT versions/:id/world`: вся версия; сущности вне тела не трогаются. */
@@ -172,6 +213,11 @@ export interface BookWorldEntitySaveResponse {
   entity: BookWorldEntity | null;
   hasCore: boolean;
   warnings: BookWorldWarning[];
+  /**
+   * Сохранение поставило пересчёт присутствия (новая сущность или изменились итоговые формы поиска —
+   * имя, формы и исключения вместе — или тип; решение арбитра S7); `false` на `dryRun`.
+   */
+  recountQueued: boolean;
 }
 
 /**

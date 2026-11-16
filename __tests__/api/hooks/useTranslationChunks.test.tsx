@@ -203,6 +203,25 @@ describe('Хуки кусков запуска', () => {
     expect(client.getMutationCache().getAll()).toHaveLength(2);
   });
 
+  it('правка сбрасывает и мир книги черновика: запись перевода ставит пересчёт присутствия (F08-2)', async () => {
+    const { wrapper, invalidated } = setup();
+    api.editTranslationChunk.mockResolvedValue({ chunk: {}, chapterRewritten: true, reason: null });
+    const { result } = renderHook(() => useTranslationChunkActions('r1', 'draft-es', 'ch2'), {
+      wrapper,
+    });
+
+    await act(() => result.current.edit.mutateAsync({ chunkId: 'c1', data: { blocks: [] } }));
+
+    await waitFor(() =>
+      expect(invalidated()).toEqual(
+        expect.arrayContaining([
+          JSON.stringify(['book-world', 'list', 'draft-es']),
+          JSON.stringify(['book-world', 'entity', 'draft-es']),
+        ])
+      )
+    );
+  });
+
   it('правка сбрасывает и главу черновика', async () => {
     const { wrapper, invalidated } = setup();
     api.editTranslationChunk.mockResolvedValue({ chunk: {}, chapterRewritten: true, reason: null });

@@ -24,6 +24,7 @@ import type {
   PaginatedResult,
   UpdateChapterRequest,
 } from '@/types/api-schema';
+import { invalidateBookWorld } from './useBookWorld';
 
 /**
  * Query keys for chapters
@@ -106,6 +107,7 @@ export const useCreateChapter = (
     onSuccess: (data, variables, context) => {
       // Invalidate version chapters list
       queryClient.invalidateQueries({ queryKey: chapterKeys.list(variables.versionId) });
+      invalidateBookWorld(queryClient, variables.versionId);
       // Set chapter data in cache
       queryClient.setQueryData(chapterKeys.detail(data.id), data);
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
@@ -159,6 +161,10 @@ export const useUpdateChapter = (
       const versionId = variables.versionId || data.bookVersionId;
       if (versionId) {
         queryClient.invalidateQueries({ queryKey: chapterKeys.list(versionId) });
+        // Правка одного названия пересчёт не ставит (R4) — мир книги не перечитывается.
+        if (variables.data.content !== undefined || variables.data.number !== undefined) {
+          invalidateBookWorld(queryClient, versionId);
+        }
       }
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
         data,
@@ -200,6 +206,7 @@ export const useDeleteChapter = (
     onSuccess: (data, variables, context) => {
       // Invalidate version chapters list
       queryClient.invalidateQueries({ queryKey: chapterKeys.list(variables.versionId) });
+      invalidateBookWorld(queryClient, variables.versionId);
       // Remove chapter from cache
       queryClient.removeQueries({ queryKey: chapterKeys.detail(variables.chapterId) });
       (options?.onSuccess as ((...args: unknown[]) => unknown) | undefined)?.(
