@@ -14,16 +14,20 @@
  * Ответ ручек решений — `ContentDraftRun` / `ContentDraftAcceptAll`: схема отдаёт форму по виду строки.
  */
 
+import {
+  acceptAllContentDraftItems,
+  acceptContentDraftBlock,
+  discardContentDraftItem,
+  discardContentDraftRun,
+  getContentDraftProposal,
+  regenerateContentDraftItem,
+} from '@/api/endpoints/admin/content-draft';
 import { httpGetAuth, httpPostAuth } from '@/lib/http-client';
 import type {
   AnalysisWrite,
   AnalysisWriteEstimate,
   AnalysisWriteState,
   AnalysisWriteValue,
-  ContentDraftAcceptAll,
-  ContentDraftRun,
-  AcceptSummaryItemRequest,
-  RegenerateSummaryItemRequest,
   StartContentDraftRequest,
 } from '@/types/api-schema';
 
@@ -52,48 +56,26 @@ export const startAnalysisWrite = async (
 export const getAnalysisWriteProposal = async (
   id: string,
   index: number
-): Promise<AnalysisWriteValue> =>
-  httpGetAuth<AnalysisWriteValue>(`/admin/content-drafts/${encodeURIComponent(id)}/items/${index}`);
+): Promise<AnalysisWriteValue> => {
+  const value = await getContentDraftProposal(id, index);
+  // Ручка общая у ходов (форма по виду строки): предложение хода мира — не содержимое анализа.
+  if ('aliases' in value)
+    throw new Error('The proposal belongs to a world run, not to the analysis');
+  return value;
+};
 
 /** Перегенерация одного блока своей операцией; замечание редактора уходит автору. */
-export const regenerateAnalysisItem = async (
-  id: string,
-  index: number,
-  data: RegenerateSummaryItemRequest
-): Promise<ContentDraftRun> =>
-  httpPostAuth<ContentDraftRun>(
-    `/admin/content-drafts/${encodeURIComponent(id)}/items/${index}/regenerate`,
-    data
-  );
+export const regenerateAnalysisItem = regenerateContentDraftItem;
 
 /** «Accept»: запись предложения в блок, если содержимое блока не менялось после предложения;
  * `expectedPrint` — отпечаток показанного предложения (другое предложение — 409). */
-export const acceptAnalysisItem = async (
-  id: string,
-  index: number,
-  expectedPrint?: string
-): Promise<ContentDraftRun> => {
-  const body: AcceptSummaryItemRequest = expectedPrint ? { expectedPrint } : {};
-  return httpPostAuth<ContentDraftRun>(
-    `/admin/content-drafts/${encodeURIComponent(id)}/items/${index}/accept`,
-    body
-  );
-};
+export const acceptAnalysisItem = acceptContentDraftBlock;
 
 /** «Discard» предложения: блок не трогается. */
-export const discardAnalysisItem = async (id: string, index: number): Promise<ContentDraftRun> =>
-  httpPostAuth<ContentDraftRun>(
-    `/admin/content-drafts/${encodeURIComponent(id)}/items/${index}/discard`,
-    {}
-  );
+export const discardAnalysisItem = discardContentDraftItem;
 
 /** «Discard run»: строящийся отменяет свою операцию и перегенерации; блоки не трогаются. */
-export const discardAnalysisWriteRun = async (id: string): Promise<ContentDraftRun> =>
-  httpPostAuth<ContentDraftRun>(`/admin/content-drafts/${encodeURIComponent(id)}/discard-run`, {});
+export const discardAnalysisWriteRun = discardContentDraftRun;
 
 /** «Accept all»: предложения по одному; отказавшие по себе — в `skipped` с причиной, ответ 200. */
-export const acceptAllAnalysisItems = async (id: string): Promise<ContentDraftAcceptAll> =>
-  httpPostAuth<ContentDraftAcceptAll>(
-    `/admin/content-drafts/${encodeURIComponent(id)}/accept-all`,
-    {}
-  );
+export const acceptAllAnalysisItems = acceptAllContentDraftItems;

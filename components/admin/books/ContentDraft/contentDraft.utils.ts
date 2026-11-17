@@ -9,6 +9,8 @@ import { pluralize } from '@/lib/i18n/plural';
 import { ApiError } from '@/types/api';
 import type {
   CompareContextLine,
+  ContentDraftAcceptAll,
+  ContentDraftRun,
   DossierContextLine,
   DossierEstimate,
   LlmMoney,
@@ -67,7 +69,18 @@ export const DRAFT_FAILURES: Readonly<Record<string, string>> = {
   DRAFT_DOSSIER_MISSING: 'the dossier is gone',
   DRAFT_INPUT_MISSING: 'the version has no chapter text or the dossier is gone',
   DRAFT_CANCELLED: 'its operation was cancelled',
+  DRAFT_DATA_INVALID: 'the stored run data is broken',
+  EXTERNAL_UNVERIFIED: 'no statement of the block was confirmed by a source',
 };
+
+const SOURCE_REASON: Record<string, string> = {
+  SOURCE_UNREACHABLE: 'did not open',
+  SOURCE_UNRELATED: 'names neither the book nor the author',
+};
+
+/** Источник, снятый проверкой хода (`droppedSources`): название, хост и причина; общее у анализа и мира. */
+export const droppedSourceText = (s: { title: string; host: string; reason: string }): string =>
+  `${s.title} (${s.host}) — ${SOURCE_REASON[s.reason] ?? s.reason}`;
 
 /** Причина словами; неизвестный код — сам код, нет кода — «unknown reason». */
 export const failureReason = (
@@ -152,3 +165,48 @@ export const runStartLossText = <I extends { regenerating: boolean }>(
   ].filter(Boolean);
   return `This replaces the current run: ${parts.join(', ')}.`;
 };
+
+/** Вид хода в ответе общих ручек `content-drafts/:id/*` (форма по виду строки, `ContentDraftRun`). */
+export type ContentDraftKind = 'summary_write' | 'analysis_write' | 'world_write';
+
+/**
+ * Вид хода по форме ответа общей ручки — одно правило на все ходы: ход мира отличают `candidates`,
+ * ход анализа — `steps` без `candidates`, остальное — ход пересказа.
+ */
+export const contentDraftKindOf = (
+  run: ContentDraftRun | ContentDraftAcceptAll
+): ContentDraftKind =>
+  'candidates' in run ? 'world_write' : 'steps' in run ? 'analysis_write' : 'summary_write';
+
+/**
+ * Пропущенные пункты из тела 409 «не готов» (обрыв «Accept all», код `notReadyCode` своего хода);
+ * иной отказ — пусто.
+ */
+export const skippedOfError = <S>(error: unknown, notReadyCode: string): S[] => {
+  if (!(error instanceof ApiError) || refusalCode(error) !== notReadyCode) return [];
+  const skipped = (error.data as { skipped?: unknown } | undefined)?.skipped;
+  return Array.isArray(skipped) ? (skipped as S[]) : [];
+};
+
+/** Блок хода анализа или мира: то, что нужно общим правилам порядка и судьбы. */
+interface StepBlock {
+  index: number;
+  step: number;
+  outcome: string;
+  verdict: string;
+  failedReason: string | null;
+}
+
+/** Блоки по шагам, внутри шага — по номеру в ходе (ход анализа и ход мира). */
+export const sortItems = <I extends StepBlock>(items: I[]): I[] =>
+  [...items].sort((a, b) => a.step - b.step || a.index - b.index);
+
+/**
+ * Блок не записан штатно: шагу нечего добавить — причины нет и вердикт не «не удалось».
+ * Показывается нейтрально, а не отказом.
+ */
+export const isNothingToAdd = (item: StepBlock): boolean =>
+  item.outcome === 'none' && item.failedReason === null && item.verdict !== 'failed';
+
+/** Предложение блока ждёт решения редактора (ход анализа и ход мира). */
+export const isPending = (item: Pick<StepBlock, 'outcome'>): boolean => item.outcome === 'proposed';

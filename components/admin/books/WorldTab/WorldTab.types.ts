@@ -1,4 +1,5 @@
 import type { BookWorldPromptVersion } from '@/lib/admin/book-world-prompt-inputs';
+import type { SupportedLang } from '@/lib/i18n/lang';
 import type {
   BookVersionDetail,
   BookWorldSaveResponse,
@@ -16,6 +17,8 @@ export interface WorldTabProps {
    * (already in the loaded version) give the link to the public page of an entity.
    */
   version: BookWorldPromptVersion & Partial<Pick<BookVersionDetail, 'slug' | 'status'>>;
+  /** Language of the admin UI: links of the run panel to «LLM settings» */
+  lang: SupportedLang;
   /** «Read» mark and the dossier of the prompt inputs — `admin` only */
   isAdmin?: boolean;
   /**

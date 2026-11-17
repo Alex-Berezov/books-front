@@ -36,6 +36,9 @@ describe('WorldTab (F08-1)', () => {
   beforeAll(async () => {
     // Модуль проверок грузится лениво (zod): прогрев до тестов.
     await import('@/lib/admin/book-world-validation');
+    // Панель хода грузится лениво (`next/dynamic`): прогрев, чтобы её запрос успел уйти до проверки
+    // «запроса не было» — иначе счётчик молчал бы и при смонтированной панели.
+    await import('@/components/admin/books/WorldTab/WorldWrite');
   });
 
   beforeEach(() => {
@@ -101,6 +104,46 @@ describe('WorldTab (F08-1)', () => {
       renderWorldTab(true, true, override);
       await rowOf('raskolnikov');
       expect(screen.queryByRole('link')).toBeNull();
+    });
+  });
+
+  // F08-4b (`product.md` §17 п.6-7): ход «Write World» - только `admin` и только у версии ru/en.
+  describe('the run «Write World»', () => {
+    it('admin of an en version: the panel with its start button, the run is read', async () => {
+      renderWorldTab(true);
+      expect(await screen.findByRole('button', { name: 'Write World' })).toBeTruthy();
+      expect(screen.getByRole('region', { name: 'Write World' })).toBeTruthy();
+      await waitFor(() => expect(rec.runReads).toBe(1));
+    });
+
+    it('the list of the world failed to load: the panel of the run stays', async () => {
+      rec.listFails = true;
+      renderWorldTab(true);
+      expect(await screen.findByText(/Could not load the world/)).toBeTruthy();
+      expect(await screen.findByRole('button', { name: 'Write World' })).toBeTruthy();
+    });
+
+    it('admin of a ru version: the panel too', async () => {
+      renderWorldTab(true, true, { language: 'ru' });
+      expect(await screen.findByRole('button', { name: 'Write World' })).toBeTruthy();
+    });
+
+    it('admin of a version in another language: a hint, no panel and no run request', async () => {
+      renderWorldTab(true, true, { language: 'fr' });
+      await rowOf('raskolnikov');
+      expect(
+        screen.getByText('Write World is available for ru and en versions only.')
+      ).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Write World' })).toBeNull();
+      expect(rec.runReads).toBe(0);
+    });
+
+    it('a content manager does not see the run at all', async () => {
+      renderWorldTab(false);
+      await rowOf('raskolnikov');
+      expect(screen.queryByRole('button', { name: 'Write World' })).toBeNull();
+      expect(screen.queryByText(/Write World is available/)).toBeNull();
+      expect(rec.runReads).toBe(0);
     });
   });
 

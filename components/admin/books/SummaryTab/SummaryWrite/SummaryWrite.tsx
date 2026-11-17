@@ -23,6 +23,7 @@ import {
 import { SummaryWriteAcceptAll } from './SummaryWriteAcceptAll';
 import { SummaryWriteItemCard } from './SummaryWriteItemCard';
 import { useWrittenFields } from './useWrittenFields';
+import draftStyles from '@/components/admin/books/ContentDraft/ContentDraft.module.scss';
 
 export interface SummaryWriteProps {
   versionId: string;
@@ -125,7 +126,7 @@ export const SummaryWrite: FC<SummaryWriteProps> = ({ versionId, lang, onFieldsW
       )}
 
       {run && items.length > 0 && (
-        <div className={styles.items}>
+        <div className={draftStyles.items}>
           {items.map((item) => (
             <SummaryWriteItemCard
               key={`${run.id}:${item.index}`}

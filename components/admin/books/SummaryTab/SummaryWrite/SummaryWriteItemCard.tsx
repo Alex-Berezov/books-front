@@ -1,15 +1,17 @@
 'use client';
 
 import { useState, type FC } from 'react';
-import { isRegenPaused, type SummaryWriteActions } from '@/api/hooks';
-import { ItemCheck, ItemRegenerate, ItemResume } from '@/components/admin/books/ContentDraft';
-import { Button } from '@/components/admin/common/Button';
+import {
+  DraftItemCard,
+  ItemCheck,
+  useDraftItemAction,
+} from '@/components/admin/books/ContentDraft';
 import { ConfirmDialog } from '@/components/admin/shared';
+import type { SummaryWriteActions } from '@/api/hooks';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { SummaryChapterChangeBody, SummaryWriteItem } from '@/types/api-schema';
 import { ItemError } from './ItemError';
 import { ItemStatus } from './ItemStatus';
-import styles from './SummaryWrite.module.scss';
 import {
   chapterChangeOf,
   chapterChangeText,
@@ -54,34 +56,16 @@ export const SummaryWriteItemCard: FC<SummaryWriteItemCardProps> = ({
   onFieldsWritten,
   onDecided,
 }) => {
-  const [busy, setBusy] = useState(false);
   // Отказ — к тому тексту, на который ответил: новый текст или его судьба отказ снимают.
-  const [failure, setFailure] = useState<{ of: string; error: unknown } | null>(null);
+  const { busy, error, act: run } = useDraftItemAction(`${item.outcome}|${item.html}`);
   const [chapterChange, setChapterChange] = useState<SummaryChapterChangeBody | null>(null);
 
   const id = `summary-write-item-${item.index}`;
-  const shape = `${item.outcome}|${item.html}`;
-  const error = failure?.of === shape ? failure.error : null;
-  const locked = !ready || disabled || item.regenerating || busy;
   const vars = { id: runId, index: item.index };
   // Полный и «Очень кратко» — поля формы; разделы перечитывает свой список.
   const fields = fieldsOf([item]);
   const fieldsWritten = () => {
     if (fields.length > 0) onFieldsWritten(fields);
-  };
-
-  const run = async (action: () => Promise<unknown>, onError?: (e: unknown) => boolean) => {
-    setBusy(true);
-    setFailure(null);
-    try {
-      await action();
-      return true;
-    } catch (e) {
-      if (!onError?.(e)) setFailure({ of: shape, error: e });
-      return false;
-    } finally {
-      setBusy(false);
-    }
   };
 
   const accept = async (confirm: boolean) => {
@@ -108,50 +92,32 @@ export const SummaryWriteItemCard: FC<SummaryWriteItemCardProps> = ({
   };
 
   return (
-    <article className={styles.item} aria-labelledby={`${id}-title`}>
-      <h4 id={`${id}-title`} className={styles.itemTitle}>
-        {itemTitle(item)}
-      </h4>
-      <ItemCheck verdict={item.verdict} remarks={item.remarks} review={item.review} />
-      <ItemStatus item={item} ready={ready} blockedBy={blockedBy} />
-      {error !== null && <ItemError item={item} error={error} blockedBy={blockedBy} />}
-      {isRegenPaused(item) && item.regenOperationId && (
-        <ItemResume
-          operationId={item.regenOperationId}
-          pauseReason={item.regenPauseReason}
-          lang={lang}
-          disabled={!ready || disabled}
-          resume={actions.resume}
-          refusalText={refusalText}
-        />
-      )}
-
-      {ready && (
-        <div className={styles.actions}>
-          {isPending(item) && (
-            <>
-              <Button variant="primary" onClick={() => void accept(false)} disabled={locked}>
-                Accept
-              </Button>
-              <Button variant="ghost" onClick={() => void discard()} disabled={locked}>
-                Discard
-              </Button>
-            </>
-          )}
-          {!item.regenerating && (
-            <ItemRegenerate
-              id={id}
-              disabled={locked}
-              busy={busy}
-              hint="The result comes as a proposal unless the field is empty on an unpublished version."
-              onRegenerate={(remark) =>
-                run(() => actions.regenerate.mutateAsync(remark ? { ...vars, remark } : vars))
-              }
-            />
-          )}
-        </div>
-      )}
-
+    <DraftItemCard
+      id={id}
+      title={itemTitle(item)}
+      item={item}
+      lang={lang}
+      ready={ready}
+      disabled={disabled}
+      busy={busy}
+      check={<ItemCheck verdict={item.verdict} remarks={item.remarks} review={item.review} />}
+      status={
+        <>
+          <ItemStatus item={item} ready={ready} blockedBy={blockedBy} />
+          {error !== null && <ItemError item={item} error={error} blockedBy={blockedBy} />}
+        </>
+      }
+      resume={actions.resume}
+      refusalText={refusalText}
+      pending={isPending(item)}
+      onAccept={() => void accept(false)}
+      onDiscard={() => void discard()}
+      regenerate={{
+        hint: 'The result comes as a proposal unless the field is empty on an unpublished version.',
+        onRegenerate: (remark) =>
+          run(() => actions.regenerate.mutateAsync(remark ? { ...vars, remark } : vars)),
+      }}
+    >
       <ConfirmDialog
         isOpen={chapterChange !== null}
         title={`Change the chapters of section ${chapterChange?.number ?? ''}`}
@@ -163,6 +129,6 @@ export const SummaryWriteItemCard: FC<SummaryWriteItemCardProps> = ({
         }}
         onCancel={() => setChapterChange(null)}
       />
-    </article>
+    </DraftItemCard>
   );
 };

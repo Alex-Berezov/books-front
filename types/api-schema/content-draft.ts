@@ -1,13 +1,14 @@
 /**
- * Общее у ходов из досье — «Write Summary» (F06) и «Write Analysis» (F07): статус строки хода
+ * Общее у ходов из досье — «Write Summary» (F06), «Write Analysis» (F07) и «Write World» (F08): статус строки хода
  * и тело старта. Заготовки из досье сняты все (Summary F05-10 в F06-3, Analysis F05-11 в F07-3a):
  * маршрутов `drafts/:kind` больше нет. Источник формы —
  * `books/src/modules/translation/dto/content-draft-request.dto.ts` (тело старта).
  */
 
-import type { AnalysisAcceptAll, AnalysisWrite } from './analysis-write';
+import type { AnalysisAcceptAll, AnalysisWrite, AnalysisWriteValue } from './analysis-write';
 import type { LlmMoney } from './llm';
 import type { SummaryWrite } from './summary-write';
+import type { WorldAcceptAll, WorldWrite, WorldWriteValue } from './world-write';
 
 /** Пауза операции ход не меняет: он `building`, причина — `operation.pauseReason`. */
 export type ContentDraftStatus = 'building' | 'ready' | 'failed' | 'discarded';
@@ -15,12 +16,19 @@ export type ContentDraftStatus = 'building' | 'ready' | 'failed' | 'discarded';
 /**
  * Ответ общих ручек решений по ходу (`content-drafts/:id/items/:index/regenerate|accept|discard`,
  * `content-drafts/:id/discard-run`): форма зависит от вида строки хода, сервер выбирает её сам
- * (`oneOf` в схеме, решение арбитра `F07 | F07-1`, В6). Ход анализа отличает `steps`.
+ * (`oneOf` в схеме, решение арбитра `F07 | F07-1`, В6). Ход анализа и ход мира несут `steps`; ход
+ * мира отличает `candidates`.
  */
-export type ContentDraftRun = SummaryWrite | AnalysisWrite;
+export type ContentDraftRun = SummaryWrite | AnalysisWrite | WorldWrite;
 
-/** Ответ «Accept all» (`content-drafts/:id/accept-all`): ход пересказа или ход анализа со `skipped`. */
-export type ContentDraftAcceptAll = SummaryWrite | AnalysisAcceptAll;
+/** Ответ «Accept all» (`content-drafts/:id/accept-all`): ход пересказа или ход анализа и мира со `skipped`. */
+export type ContentDraftAcceptAll = SummaryWrite | AnalysisAcceptAll | WorldAcceptAll;
+
+/**
+ * Ответ `GET content-drafts/:id/items/:index` — содержимое предложения: форма по виду строки хода
+ * (`oneOf` в схеме): у хода анализа всегда есть поле `characters`, у хода мира — `aliases`.
+ */
+export type ContentDraftProposal = AnalysisWriteValue | WorldWriteValue;
 
 /** Тело старта хода (`POST .../drafts/summary_write|analysis_write`): пустой лимит — по умолчанию сервера. */
 export interface StartContentDraftRequest {

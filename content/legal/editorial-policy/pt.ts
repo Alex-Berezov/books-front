@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'De onde vêm os textos do Bibliaris, quem prepara os resumos e escreve as descrições, como são elaboradas as análises de livros, como os textos dos livros são preparados e como os erros são corrigidos.',
   title: 'Política editorial',
-  updatedAt: '2026-11-06',
+  updatedAt: '2026-11-17',
   toc: false,
   sections: [
     {
@@ -165,7 +165,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Uma página é preparada com um modelo de linguagem seguindo as instruções da redação, a partir do texto desta versão do livro. A redação lê a página e a publica ela mesma; uma página que não foi lida não é exibida no site.',
+              text: 'Uma página é preparada com um modelo de linguagem seguindo as instruções da redação, a partir do texto desta versão do livro. Numa página escrita diretamente no site, o modelo lê os capítulos em que o personagem aparece (num livro longo, os capítulos em que ele aparece com mais frequência e os resumos dos capítulos, em vez do texto inteiro); depois, um segundo modelo, de outro desenvolvedor, revisa a página e assinala os trechos duvidosos. Uma página também pode ser carregada já pronta: nesse caso, é preparada fora do site com as mesmas instruções. A redação lê a página e a publica ela mesma; uma página que não foi lida não é exibida no site.',
             },
           ],
         },
@@ -183,7 +183,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Tudo o que vem de fora do livro (crítica, protótipos, adaptações) entra apenas com uma fonte, e suas fontes são listadas na mesma página, abaixo do bloco.',
+              text: 'Tudo o que vem de fora do livro (crítica, protótipos, adaptações) entra apenas com uma fonte, e suas fontes são listadas na mesma página, abaixo do bloco. Numa página escrita diretamente no site, o site abre a página indicada em cada bloco e verifica se ela responde e menciona este livro ou o seu autor; uma fonte que não passa na verificação é retirada da lista do bloco, e um bloco em que nenhuma fonte é confirmada é removido. Essa verificação mostra que a fonte existe e diz respeito ao livro, não que diga a mesma coisa, por isso a redação lê esses blocos antes de publicar.',
             },
           ],
         },

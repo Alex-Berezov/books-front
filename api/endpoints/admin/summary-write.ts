@@ -10,15 +10,18 @@
  * `SUMMARY_FIELD_CHANGED` (`current`, `expectedNumber`), `SUMMARY_CHAPTER_CHANGE` (повтор
  * с `confirmChapterChange`), `ACCEPT_ALL_CHAPTER_CHANGE`, 400 `SUMMARY_ITEM_UNKNOWN`.
  *
- * Ручки решений по ходу общие с ходом анализа (F07-1b): ответ — `ContentDraftRun` по виду строки.
+ * Ручки решений по ходу общие у всех ходов (`content-draft.ts`): ответ — `ContentDraftRun` по виду строки.
  */
 
+import {
+  acceptAllContentDraftItems,
+  acceptContentDraftItem,
+  discardContentDraftItem,
+  discardContentDraftRun,
+  regenerateContentDraftItem,
+} from '@/api/endpoints/admin/content-draft';
 import { httpGetAuth, httpPostAuth } from '@/lib/http-client';
 import type {
-  AcceptSummaryItemRequest,
-  ContentDraftAcceptAll,
-  ContentDraftRun,
-  RegenerateSummaryItemRequest,
   StartContentDraftRequest,
   SummaryWrite,
   SummaryWriteEstimate,
@@ -47,41 +50,16 @@ export const startSummaryWrite = async (
   );
 
 /** Перегенерация одного текста своей операцией; замечание редактора уходит автору. */
-export const regenerateSummaryItem = async (
-  id: string,
-  index: number,
-  data: RegenerateSummaryItemRequest
-): Promise<ContentDraftRun> =>
-  httpPostAuth<ContentDraftRun>(
-    `/admin/content-drafts/${encodeURIComponent(id)}/items/${index}/regenerate`,
-    data
-  );
+export const regenerateSummaryItem = regenerateContentDraftItem;
 
 /** «Accept»: запись предложения в поле, если поле не менялось после предложения. */
-export const acceptSummaryItem = async (
-  id: string,
-  index: number,
-  data: AcceptSummaryItemRequest
-): Promise<ContentDraftRun> =>
-  httpPostAuth<ContentDraftRun>(
-    `/admin/content-drafts/${encodeURIComponent(id)}/items/${index}/accept`,
-    data
-  );
+export const acceptSummaryItem = acceptContentDraftItem;
 
 /** «Discard» предложения: поле не трогается. */
-export const discardSummaryItem = async (id: string, index: number): Promise<ContentDraftRun> =>
-  httpPostAuth<ContentDraftRun>(
-    `/admin/content-drafts/${encodeURIComponent(id)}/items/${index}/discard`,
-    {}
-  );
+export const discardSummaryItem = discardContentDraftItem;
 
 /** «Discard run»: строящийся отменяет свою операцию и перегенерации; поля не трогаются. */
-export const discardSummaryWriteRun = async (id: string): Promise<ContentDraftRun> =>
-  httpPostAuth<ContentDraftRun>(`/admin/content-drafts/${encodeURIComponent(id)}/discard-run`, {});
+export const discardSummaryWriteRun = discardContentDraftRun;
 
 /** «Accept all»: предложения по одному — разделы по номеру, затем полный и «Очень кратко». */
-export const acceptAllSummaryItems = async (id: string): Promise<ContentDraftAcceptAll> =>
-  httpPostAuth<ContentDraftAcceptAll>(
-    `/admin/content-drafts/${encodeURIComponent(id)}/accept-all`,
-    {}
-  );
+export const acceptAllSummaryItems = acceptAllContentDraftItems;

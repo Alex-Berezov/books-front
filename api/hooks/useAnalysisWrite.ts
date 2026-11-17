@@ -8,7 +8,7 @@
  * того же анализа хуки не шлют.
  */
 
-import { useIsMutating, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useIsMutating, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   acceptAllAnalysisItems,
   acceptAnalysisItem,
@@ -20,22 +20,14 @@ import {
   regenerateAnalysisItem,
   startAnalysisWrite,
 } from '@/api/endpoints/admin/analysis-write';
-import { resumeLlmOperation } from '@/api/endpoints/admin/llm';
-import type { ApiError } from '@/types/api';
-import type {
-  AnalysisWrite,
-  AnalysisWriteState,
-  ContentDraftAcceptAll,
-  ContentDraftRun,
-  LlmOperation,
-} from '@/types/api-schema';
+import type { AnalysisWrite, AnalysisWriteState } from '@/types/api-schema';
 import {
   analysisWriteKeys,
   CONTENT_DRAFT_LOCAL_CODES,
   DRAFT_RUN_REFETCH_MS,
   draftRunRefetchInterval,
 } from './draftKeys';
-import { useRebuildDossier } from './useRebuildDossier';
+import { useContentDraftActions } from './useContentDraftActions';
 
 // Общие отказы ходов из досье — через барель хуков, рядом с ходом анализа (как прежде у заготовки).
 export { analysisWriteKeys, CONTENT_DRAFT_LOCAL_CODES } from './draftKeys';
@@ -90,71 +82,29 @@ export const useAnalysisWriteProposal = (runId: string, index: number, enabled: 
     staleTime: 0,
   });
 
-interface ItemVars {
-  id: string;
-  index: number;
-}
-
 /**
- * Старт, «продолжить», перестройка досье и действия над блоками хода. После ответа — и при отказе:
- * 409 значит, что на экране устаревшее состояние, — ход перечитывается.
+ * Старт, «продолжить», перестройка досье и действия над блоками хода (`useContentDraftActions`).
+ * Запись блока пересобирает соседние предложения хода на месте (связи тем, источники шага 5:
+ * `syncLinks`, `afterSourcesWrite` бэкенда): после «Accept» и «Accept all» содержимое всех
+ * предложений хода перечитывается.
  */
 export const useAnalysisWriteActions = (versionId: string) => {
   const queryClient = useQueryClient();
-  const refresh = () =>
-    queryClient.invalidateQueries({ queryKey: analysisWriteKeys.latest(versionId) });
-
-  const start = useMutation<AnalysisWrite, ApiError, { limitUsd?: string }>({
-    mutationFn: (data) => startAnalysisWrite(versionId, data),
-    meta: CONTENT_DRAFT_LOCAL_CODES,
-    onSettled: refresh,
-  });
-  const resume = useMutation<LlmOperation, ApiError, { id: string; limitUsd?: string }>({
-    mutationFn: ({ id, limitUsd }) => resumeLlmOperation(id, limitUsd),
-    meta: CONTENT_DRAFT_LOCAL_CODES,
-    onSettled: refresh,
-  });
-  const discardRun = useMutation<ContentDraftRun, ApiError, string>({
-    mutationFn: (id) => discardAnalysisWriteRun(id),
-    // Отбрасывание хода блоков не трогает.
-    onSettled: refresh,
-  });
-  const regenerate = useMutation<ContentDraftRun, ApiError, ItemVars & { remark?: string }>({
-    mutationKey: analysisWriteKeys.writes(versionId),
-    mutationFn: ({ id, index, remark }) =>
+  return useContentDraftActions<AnalysisWrite, { expectedPrint?: string }>({
+    versionId,
+    latestKey: analysisWriteKeys.latest(versionId),
+    start: (data) => startAnalysisWrite(versionId, data),
+    regenerate: ({ id, index, remark }) =>
       regenerateAnalysisItem(id, index, remark ? { remark } : {}),
-    meta: CONTENT_DRAFT_LOCAL_CODES,
-    onSettled: (_data, _error, { id, index }) => {
-      // Прежнее содержимое предложения под этим номером больше не то, что придёт.
-      queryClient.removeQueries({ queryKey: analysisWriteKeys.proposal(id, index) });
-      return refresh();
-    },
-  });
-  /**
-   * Запись блока пересобирает соседние предложения хода на месте (связи тем, источники шага 5:
-   * `syncLinks`, `afterSourcesWrite` бэкенда): содержимое всех предложений хода перечитывается.
-   */
-  const refreshWithProposals = (runId: string) =>
-    Promise.all([
-      refresh(),
+    accept: ({ id, index, expectedPrint }) => acceptAnalysisItem(id, index, expectedPrint),
+    discardItem: ({ id, index }) => discardAnalysisItem(id, index),
+    discardRun: (id) => discardAnalysisWriteRun(id),
+    acceptAll: (id) => acceptAllAnalysisItems(id),
+    writesKey: analysisWriteKeys.writes(versionId),
+    proposalKey: analysisWriteKeys.proposal,
+    afterWrite: (runId) =>
       queryClient.invalidateQueries({ queryKey: analysisWriteKeys.proposals(runId) }),
-    ]);
-  const accept = useMutation<ContentDraftRun, ApiError, ItemVars & { expectedPrint?: string }>({
-    mutationKey: analysisWriteKeys.writes(versionId),
-    mutationFn: ({ id, index, expectedPrint }) => acceptAnalysisItem(id, index, expectedPrint),
-    onSettled: (_data, _error, { id }) => refreshWithProposals(id),
   });
-  const discardItem = useMutation<ContentDraftRun, ApiError, ItemVars>({
-    mutationFn: ({ id, index }) => discardAnalysisItem(id, index),
-    onSettled: refresh,
-  });
-  const acceptAll = useMutation<ContentDraftAcceptAll, ApiError, string>({
-    mutationKey: analysisWriteKeys.writes(versionId),
-    mutationFn: (id) => acceptAllAnalysisItems(id),
-    onSettled: (_data, _error, id) => refreshWithProposals(id),
-  });
-  const rebuildDossier = useRebuildDossier(versionId);
-  return { start, resume, discardRun, regenerate, accept, discardItem, acceptAll, rebuildDossier };
 };
 
 export type AnalysisWriteActions = ReturnType<typeof useAnalysisWriteActions>;

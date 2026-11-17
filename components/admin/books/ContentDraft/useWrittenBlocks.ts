@@ -1,9 +1,13 @@
 import { useEffect, useRef } from 'react';
-import type { AnalysisWrite } from '@/types/api-schema';
+/** Ход, как его видит хук: общее у хода анализа и хода мира. */
+interface WrittenBlocksRun {
+  id: string;
+  items: { index: number; outcome: string; regenerating: boolean }[];
+}
 
 /**
- * Прямые записи хода (пустые блоки неопубликованной версии) приходят опросом: новый блок
- * в `written` — форма анализа и ядро перечитываются.
+ * Прямые записи хода анализа и хода мира (пустые блоки неопубликованной версии или сущности) приходят опросом: новый блок
+ * в `written` — вкладка перечитывает свои данные (анализ — форму и ядро, мир — список и карточки).
  *
  * Первый ответ хода на версии с записанными блоками — тоже: форма могла заполниться из кэша
  * анализа раньше записи хода, и «Save analysis» вернул бы прежнее (несохранённую правку
@@ -15,7 +19,7 @@ import type { AnalysisWrite } from '@/types/api-schema';
  */
 export const useWrittenBlocks = (
   versionId: string,
-  run: AnalysisWrite | null | undefined,
+  run: WrittenBlocksRun | null | undefined,
   onBlocksWritten: () => void
 ): void => {
   const seen = useRef<{ runId: string; written: Set<number>; regen: Set<number> } | null>(null);
@@ -24,7 +28,8 @@ export const useWrittenBlocks = (
 
   useEffect(() => {
     if (run === undefined) return;
-    if (loadedFor.current !== versionId) seen.current = null;
+    const firstAnswer = loadedFor.current !== versionId;
+    if (firstAnswer) seen.current = null;
     loadedFor.current = versionId;
     if (run === null) return;
     const written = run.items.filter((i) => i.outcome === 'written').map((i) => i.index);

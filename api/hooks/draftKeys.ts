@@ -1,7 +1,7 @@
 /**
- * Ключи кэша ходов из досье — «Write Summary» (F06-3) и «Write Analysis» (F07-3a), их общие
+ * Ключи кэша ходов из досье — «Write Summary» (F06-3), «Write Analysis» (F07-3a) и «Write World» (F08-4b), их общие
  * отказы без общего тоста и общие правила опроса и перегенерации. Отдельным модулем: перестройка досье (`useRebuildDossier`) сбрасывает
- * оба хода, а сами хуки ходов зовут её — без кольца импортов.
+ * все ходы, а сами хуки ходов зовут её — без кольца импортов.
  */
 
 import { LLM_MODELS_UNAVAILABLE } from '@/api/endpoints/admin/llm';
@@ -31,6 +31,16 @@ export const analysisWriteKeys = {
   /** Содержимое предложения: ход и номер блока. */
   proposal: (runId: string, index: number) =>
     [...analysisWriteKeys.proposals(runId), index] as const,
+};
+
+export const worldWriteKeys = {
+  all: ['world-write'] as const,
+  latest: (versionId: string) => [...worldWriteKeys.all, 'latest', versionId] as const,
+  estimate: (versionId: string) => [...worldWriteKeys.all, 'estimate', versionId] as const,
+  /** Содержимое предложений хода: префикс всех номеров. */
+  proposals: (runId: string) => [...worldWriteKeys.all, 'proposal', runId] as const,
+  /** Содержимое предложения: ход и номер блока. */
+  proposal: (runId: string, index: number) => [...worldWriteKeys.proposals(runId), index] as const,
 };
 
 /** Пока ход пишется или перегенерирует текст или блок, он перечитывается с этим шагом. */

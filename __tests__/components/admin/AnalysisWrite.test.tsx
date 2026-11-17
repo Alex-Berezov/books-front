@@ -43,6 +43,7 @@ const hooks = vi.hoisted(() => ({
   fetching: [] as number[],
   proposalErrors: {} as Record<number, unknown>,
   proposalEnabled: [] as Array<[number, boolean]>,
+  refetchProposal: vi.fn(),
   estimate: undefined as unknown,
   actions: {} as Record<string, unknown>,
   /** Вызовы отметки «прочитано» (T184): версия и вид хода. */
@@ -81,6 +82,7 @@ vi.mock('@/api/hooks', async () => ({
       error,
       isError: error !== null,
       isFetching: enabled && hooks.fetching.includes(index),
+      refetch: hooks.refetchProposal,
     };
   },
   useBookAnalysis: () => ({
@@ -257,6 +259,7 @@ describe('AnalysisWrite (F07-3a)', () => {
     hooks.fetching = [];
     hooks.proposalErrors = {};
     hooks.proposalEnabled = [];
+    hooks.refetchProposal = vi.fn();
     hooks.estimate = undefined;
     coreState = core();
     saving = false;
@@ -520,6 +523,15 @@ describe('AnalysisWrite (F07-3a)', () => {
         )
       ).toBeInTheDocument();
       expect(within(c).getByRole('button', { name: 'Accept' })).toBeDisabled();
+    });
+
+    // F08-4b: анализ на общей карточке — отказ чтения предложения с «Retry», как у мира.
+    it('failed to load — Retry reads the proposal again', () => {
+      hooks.proposals[0] = undefined;
+      hooks.proposalErrors[0] = new Error('Failed to fetch');
+      view();
+      fireEvent.click(within(card('Main idea')).getByRole('button', { name: 'Retry' }));
+      expect(hooks.refetchProposal).toHaveBeenCalledTimes(1);
     });
   });
 

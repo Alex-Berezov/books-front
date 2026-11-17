@@ -456,11 +456,27 @@ export {
 } from './useAnalysisWrite';
 export type { AnalysisWriteActions } from './useAnalysisWrite';
 
+// World run «Write World» (F08-4b, admin only)
+export {
+  WORLD_WRITE_REFETCH_MS,
+  useWorldWrite,
+  useWorldWriteActions,
+  useWorldWriteEstimate,
+  useWorldWriteProposal,
+  worldWriteKeys,
+  worldWriteRefetchInterval,
+} from './useWorldWrite';
+export type { WorldWriteActions } from './useWorldWrite';
+
 // Editor «read» mark of the Summary and Analysis tabs (T184), admin only
 export { autoTextReadKeys, useAutoTextRead } from './useAutoTextRead';
 
 // Dossier rebuild shared by the analysis run and the summary run (F06-3, F07-3a, admin only)
 export { useRebuildDossier } from './useRebuildDossier';
+
+// Actions of every run from the dossier: summary, analysis, world (F06-3, F07-3a, F08-4b, admin only)
+export { useContentDraftActions } from './useContentDraftActions';
+export type { ContentDraftActionsConfig, DraftItemVars } from './useContentDraftActions';
 
 // Rights Intakes (continued: review imports, profile, agent manifest)
 export {

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CONTENT_DRAFT_LOCAL_CODES } from '@/api/hooks/draftKeys';
+import { CONTENT_DRAFT_LOCAL_CODES, worldWriteKeys } from '@/api/hooks/draftKeys';
 import {
   ANALYSIS_WRITE_REFETCH_MS,
   analysisWriteKeys,
@@ -249,6 +249,7 @@ describe('useAnalysisWriteActions', () => {
     expect(keys(spy)).toEqual([
       analysisWriteKeys.latest('v1'),
       summaryWriteKeys.latest('v1'),
+      worldWriteKeys.latest('v1'),
       dossierKeys.version('v1'),
       dossierKeys.estimate('v1'),
     ]);

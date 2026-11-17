@@ -29,28 +29,6 @@
   font-size: $font-size-sm;
 }
 
-.items {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-}
-
-.item {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-  padding: $spacing-md;
-  border: 1px solid $color-border-base;
-  border-radius: $border-radius-base;
-}
-
-.itemTitle {
-  margin: 0;
-  font-size: $font-size-base;
-  font-weight: $font-weight-semibold;
-  color: $color-text-primary;
-}
-
 .preview {
   padding: $spacing-sm;
   border: 1px solid $color-border-light;

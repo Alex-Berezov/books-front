@@ -1,12 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { writeEstimateText } from '@/components/admin/books/AnalysisTab/AnalysisWrite/analysisWrite.utils';
 import {
+  contentDraftKindOf,
+  droppedSourceText,
   dossierEstimateText,
   failureReason,
   refusalText,
+  skippedOfError,
 } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import { ApiError } from '@/types/api';
-import type { AnalysisWriteEstimate } from '@/types/api-schema';
+import type {
+  AnalysisWriteEstimate,
+  ContentDraftAcceptAll,
+  ContentDraftRun,
+} from '@/types/api-schema';
 
 /**
  * Общие подписи ходов из досье (F05-11, с F07-3a — у хода «Write Analysis»): оценка сверху
@@ -93,5 +100,80 @@ describe('contentDraft.utils', () => {
     expect(refused).toContain('will not be built');
     expect(refused).toContain('DOSSIER_TOO_LONG');
     expect(refused).not.toContain('built first');
+  });
+});
+
+// F08-4b: вид хода по форме ответа общей ручки и разбор обрыва «Accept all» — одни на все ходы.
+describe('contentDraftKindOf', () => {
+  const as = (body: object) => body as unknown as ContentDraftRun;
+
+  it('three forms: summary without steps, analysis with steps, world with candidates', () => {
+    expect(contentDraftKindOf(as({ id: 'd1', items: [] }))).toBe('summary_write');
+    expect(contentDraftKindOf(as({ id: 'd1', items: [], steps: [] }))).toBe('analysis_write');
+    expect(contentDraftKindOf(as({ id: 'd1', items: [], steps: [], candidates: [] }))).toBe(
+      'world_write'
+    );
+  });
+
+  it('a world run before the choice of characters (candidates: null) is still a world run', () => {
+    expect(contentDraftKindOf(as({ id: 'd1', steps: [], candidates: null }))).toBe('world_write');
+    expect(
+      contentDraftKindOf({
+        steps: [],
+        candidates: null,
+        skipped: [],
+      } as unknown as ContentDraftAcceptAll)
+    ).toBe('world_write');
+  });
+});
+
+describe('skippedOfError', () => {
+  const conflict = (data: object) =>
+    new ApiError({ statusCode: 409, message: 'refused', data: data as never });
+  const skipped = [{ index: 1, code: 'WORLD_BLOCK_CHANGED' }];
+
+  it('the skipped of its own «not ready» code', () => {
+    expect(
+      skippedOfError(conflict({ code: 'WORLD_WRITE_NOT_READY', skipped }), 'WORLD_WRITE_NOT_READY')
+    ).toEqual(skipped);
+  });
+
+  it('another code, a body without skipped, a skipped that is not a list, not an ApiError — nothing', () => {
+    expect(
+      skippedOfError(
+        conflict({ code: 'ANALYSIS_WRITE_NOT_READY', skipped }),
+        'WORLD_WRITE_NOT_READY'
+      )
+    ).toEqual([]);
+    expect(
+      skippedOfError(conflict({ code: 'WORLD_WRITE_NOT_READY' }), 'WORLD_WRITE_NOT_READY')
+    ).toEqual([]);
+    expect(
+      skippedOfError(
+        conflict({ code: 'WORLD_WRITE_NOT_READY', skipped: { index: 1 } }),
+        'WORLD_WRITE_NOT_READY'
+      )
+    ).toEqual([]);
+    expect(skippedOfError(new Error('offline'), 'WORLD_WRITE_NOT_READY')).toEqual([]);
+  });
+});
+
+// F08-4b: подписи, общие у ходов анализа и мира, лежат в одном месте.
+describe('shared failure and dropped-source texts', () => {
+  it('DRAFT_DATA_INVALID and EXTERNAL_UNVERIFIED in words for every run', () => {
+    expect(failureReason('DRAFT_DATA_INVALID')).toBe('the stored run data is broken');
+    expect(failureReason('EXTERNAL_UNVERIFIED')).toBe(
+      'no statement of the block was confirmed by a source'
+    );
+  });
+
+  it('a dropped source: title, host and the reason in words; an unknown reason as is', () => {
+    expect(droppedSourceText({ title: 'T', host: 'h.org', reason: 'SOURCE_UNREACHABLE' })).toBe(
+      'T (h.org) — did not open'
+    );
+    expect(droppedSourceText({ title: 'T', host: 'h.org', reason: 'SOURCE_UNRELATED' })).toBe(
+      'T (h.org) — names neither the book nor the author'
+    );
+    expect(droppedSourceText({ title: 'T', host: 'h.org', reason: 'NEW' })).toBe('T (h.org) — NEW');
   });
 });

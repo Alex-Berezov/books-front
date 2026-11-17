@@ -668,6 +668,7 @@ export type {
   AutoTextRead,
   AutoTextRunKind,
   ContentDraftAcceptAll,
+  ContentDraftProposal,
   MarkAutoTextReadRequest,
   ContentDraftRun,
   ContentDraftStatus,
@@ -699,7 +700,6 @@ export type {
 export type {
   AnalysisAcceptAll,
   AnalysisAcceptAllSkipCode,
-  AnalysisAcceptAllNotReadyBody,
   AnalysisAcceptAllSkipped,
   AnalysisBlockChangedBody,
   AnalysisWrite,
@@ -721,3 +721,29 @@ export type {
   AnalysisWriteValue,
   AnalysisWriteVerdict,
 } from './analysis-write';
+
+// World run «Write World» (F08-4b), admin only
+export type {
+  WorldAcceptAll,
+  WorldAcceptAllSkipCode,
+  WorldAcceptAllSkipped,
+  WorldBlockChangedBody,
+  WorldWrite,
+  WorldWriteBlock,
+  WorldWriteCandidate,
+  WorldWriteDroppedQuote,
+  WorldWriteDroppedSource,
+  WorldWriteEstimate,
+  WorldWriteFix,
+  WorldWriteFixCode,
+  WorldWriteItem,
+  WorldWriteItemOutcome,
+  WorldWriteRemark,
+  WorldWriteRemarkCode,
+  WorldWriteReview,
+  WorldWriteState,
+  WorldWriteStep,
+  WorldWriteStepKind,
+  WorldWriteValue,
+  WorldWriteVerdict,
+} from './world-write';

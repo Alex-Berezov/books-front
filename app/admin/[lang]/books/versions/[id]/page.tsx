@@ -233,6 +233,7 @@ const EditBookVersionPage: FC = () => {
                 version={version}
                 isAdmin={isAdmin}
                 isEditor={isEditor}
+                lang={lang}
               />
             }
           />

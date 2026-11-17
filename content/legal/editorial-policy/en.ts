@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'Where the texts on Bibliaris come from, who prepares the summaries and writes the descriptions, how book analyses are prepared, how book texts are prepared, and how mistakes are corrected.',
   title: 'Editorial Policy',
-  updatedAt: '2026-11-06',
+  updatedAt: '2026-11-17',
   toc: false,
   sections: [
     {
@@ -165,7 +165,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'A page is prepared with a language model following the editorial team’s instructions, from the text of this version of the book. The editorial team reads the page and publishes it itself; a page that has not been read is not shown on the site.',
+              text: 'A page is prepared with a language model following the editorial team’s instructions, from the text of this version of the book. For a page written directly on the site, the model reads the chapters where the character appears (for a long book, the chapters where the character appears most often and chapter summaries rather than the whole text), and a second model from a different developer then checks the page and marks doubtful passages. A page can also be uploaded ready-made: it is then prepared outside the site under the same instructions. The editorial team reads the page and publishes it itself; a page that has not been read is not shown on the site.',
             },
           ],
         },
@@ -183,7 +183,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Anything from outside the book — criticism, prototypes, adaptations — is included only with a source, and its sources are listed on the same page, under the block.',
+              text: 'Anything from outside the book — criticism, prototypes, adaptations — is included only with a source, and its sources are listed on the same page, under the block. For a page written directly on the site, the site opens the source named in the block and checks that it responds and mentions this book or its author; a source that fails the check is removed from the block’s list, and a block in which no source is confirmed is removed. This check shows that a source exists and concerns the book, not that it says the same thing, so the editorial team reads such blocks before publishing.',
             },
           ],
         },

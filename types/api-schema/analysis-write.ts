@@ -277,16 +277,6 @@ export interface AnalysisAcceptAll extends AnalysisWrite {
   skipped: AnalysisAcceptAllSkipped[];
 }
 
-/** Тело 409 `ANALYSIS_WRITE_NOT_READY` «Accept all»: что уже записано и что оставлено предложениями. */
-export interface AnalysisAcceptAllNotReadyBody {
-  code: 'ANALYSIS_WRITE_NOT_READY';
-  acceptedIndexes?: number[];
-  /** Пункт, на котором встал проход. */
-  stoppedIndex?: number;
-  /** Старый бэкенд поля не отдаёт. */
-  skipped?: AnalysisAcceptAllSkipped[];
-}
-
 /** Тело 409 `ANALYSIS_BLOCK_CHANGED` «Accept»: блок изменили после предложения. */
 export interface AnalysisBlockChangedBody {
   code: 'ANALYSIS_BLOCK_CHANGED';

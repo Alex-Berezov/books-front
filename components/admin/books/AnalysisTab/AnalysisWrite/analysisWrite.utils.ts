@@ -1,5 +1,8 @@
 import {
   DRAFT_FAILURES,
+  isNothingToAdd,
+  isPending,
+  sortItems,
   contextEstimateLines,
   failureReason,
   limitLine,
@@ -14,12 +17,10 @@ import { DOSSIER_REFUSED_TEXT } from '@/components/admin/translation-run/transla
 import { ApiError } from '@/types/api';
 import type {
   AnalysisAcceptAllSkipCode,
-  AnalysisAcceptAllNotReadyBody,
   AnalysisAcceptAllSkipped,
   AnalysisBlockChangedBody,
   AnalysisWrite,
   AnalysisWriteDroppedQuote,
-  AnalysisWriteDroppedSource,
   AnalysisWriteEstimate,
   AnalysisWriteItem,
   AnalysisWriteRemark,
@@ -71,19 +72,8 @@ export const itemTitle = (item: Pick<AnalysisWriteItem, 'target' | 'links'>): st
     ? `Theme links in ${TARGET_TITLES[item.target].toLowerCase()}`
     : TARGET_TITLES[item.target];
 
-/** Блоки по шагам, внутри шага — по номеру в ходе. */
-export const sortItems = (items: AnalysisWriteItem[]): AnalysisWriteItem[] =>
-  [...items].sort((a, b) => a.step - b.step || a.index - b.index);
-
-/**
- * Блок не записан штатно: шагу нечего добавить (связи тем без новых ключей, шаг не дал блока) —
- * причины нет и вердикт не «не удалось». Показывается нейтрально, а не отказом.
- */
-export const isNothingToAdd = (item: AnalysisWriteItem): boolean =>
-  item.outcome === 'none' && item.failedReason === null && item.verdict !== 'failed';
-
-/** Предложение ждёт решения редактора. */
-export const isPending = (item: AnalysisWriteItem): boolean => item.outcome === 'proposed';
+// Порядок блоков, «нечего добавить» и «предложение» — общие правила ходов анализа и мира.
+export { isNothingToAdd, isPending, sortItems };
 
 /**
  * «Regenerate» есть не у всех блоков: связи тем и `sources` отдельно не перегенерируются
@@ -179,9 +169,7 @@ export const itemRefusalText = (error: unknown, item: AnalysisWriteItem): string
 const RUN_FAILURES: Readonly<Record<string, string>> = {
   ...DRAFT_FAILURES,
   DRAFT_TOO_LONG: 'the book text does not fit the model even as chapter summaries',
-  DRAFT_DATA_INVALID: 'the stored run data is broken',
   IMPORT_INVALID: 'the block failed the analysis checks after the redo',
-  EXTERNAL_UNVERIFIED: 'no statement of the block was confirmed by a source',
   LIMIT_OUT: 'the list of sources is full',
 };
 
@@ -231,12 +219,6 @@ export const mayHaveWritten = (error: unknown): boolean =>
     refusalCode(error) !== 'ANALYSIS_BLOCK_CHANGED'
   );
 
-/** Пропущенные пункты из тела 409 `ANALYSIS_WRITE_NOT_READY` (обрыв «Accept all»); иной отказ — пусто. */
-export const skippedOfError = (error: unknown): AnalysisAcceptAllSkipped[] =>
-  error instanceof ApiError && refusalCode(error) === 'ANALYSIS_WRITE_NOT_READY'
-    ? ((error.data as unknown as AnalysisAcceptAllNotReadyBody | undefined)?.skipped ?? [])
-    : [];
-
 /** Почему «Accept all» оставил пункт предложением (решение арбитра `F07 | F07-3`, п.7). */
 const SKIP_TEXT: Record<AnalysisAcceptAllSkipCode, string> = {
   ANALYSIS_BLOCK_CHANGED: 'the editor changed the block',
@@ -271,11 +253,3 @@ const QUOTE_REASON: Record<AnalysisWriteDroppedQuote['reason'], string> = {
 
 export const droppedQuoteText = (q: AnalysisWriteDroppedQuote): string =>
   `«${q.text}» at ${q.path}${q.chapter !== null ? ` (chapter ${q.chapter})` : ''} — ${QUOTE_REASON[q.reason] ?? q.reason}`;
-
-const SOURCE_REASON: Record<AnalysisWriteDroppedSource['reason'], string> = {
-  SOURCE_UNREACHABLE: 'did not open',
-  SOURCE_UNRELATED: 'names neither the book nor the author',
-};
-
-export const droppedSourceText = (s: AnalysisWriteDroppedSource): string =>
-  `${s.title} (${s.host}) — ${SOURCE_REASON[s.reason] ?? s.reason}`;

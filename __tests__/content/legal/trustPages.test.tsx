@@ -96,6 +96,85 @@ describe('страницы доверия: состав', () => {
     }
   );
 
+  // F08-4b (Q11, `F08 | F08-4`): #world называет вторую модель, проверяющую страницу, и две оговорки -
+  // о длинной книге и о проверке источника (код видит, что источник открылся и про книгу, а не что
+  // он говорит то же самое). Обе проверки - только у страницы, написанной на сайте ходом «Write World»:
+  // импорт JSON их не проходит, поэтому фраза без этой оговорки - ложь (ревью F08-4b, п.1).
+  const WORLD_RUN_CLAIMS: Record<
+    SupportedLang,
+    {
+      reviewer: RegExp;
+      fetcher: RegExp;
+      blockDropped: RegExp;
+      longBook: RegExp;
+      notSame: RegExp;
+      bare: RegExp[];
+    }
+  > = {
+    en: {
+      reviewer:
+        /For a page written directly on the site[^.]*a second model from a different developer then checks the page and marks/u,
+      fetcher:
+        /For a page written directly on the site, the site opens the source named in the block/u,
+      blockDropped: /a block in which no source is confirmed is removed/u,
+      longBook: /for a long book/u,
+      notSame: /not that it says the same thing/u,
+      bare: [/(^|\. )A second model/u, /(^|\. )The site opens/u],
+    },
+    es: {
+      reviewer:
+        /En una página escrita directamente en el sitio[^.]*un segundo modelo de otro desarrollador revisa la página y marca/u,
+      fetcher: /En una página escrita directamente en el sitio, el sitio abre la página indicada/u,
+      blockDropped: /un bloque en el que ninguna fuente se confirma se elimina/u,
+      longBook: /en un libro largo/u,
+      notSame: /no que diga lo mismo/u,
+      bare: [/(^|\. )Después, un segundo modelo/u, /(^|\. )El sitio abre/u],
+    },
+    fr: {
+      reviewer:
+        /Pour une page écrite directement sur le site[^.]*un second modèle, d’un autre développeur, vérifie ensuite la page et signale/u,
+      fetcher: /Pour une page écrite directement sur le site, le site ouvre la page indiquée/u,
+      blockDropped: /un bloc dont aucune source n’est confirmée est supprimé/u,
+      longBook: /pour un livre long/u,
+      notSame: /non qu’elle dise la même chose/u,
+      bare: [/(^|\. )Un second modèle/u, /(^|\. )Le site ouvre/u],
+    },
+    pt: {
+      reviewer:
+        /Numa página escrita diretamente no site[^.]*um segundo modelo, de outro desenvolvedor, revisa a página e assinala/u,
+      fetcher: /Numa página escrita diretamente no site, o site abre a página indicada/u,
+      blockDropped: /um bloco em que nenhuma fonte é confirmada é removido/u,
+      longBook: /num livro longo/u,
+      notSame: /não que diga a mesma coisa/u,
+      bare: [/(^|\. )Depois, um segundo modelo/u, /(^|\. )O site abre/u],
+    },
+    ru: {
+      reviewer:
+        /Для страницы, которая пишется прямо на сайте[^.]*вторая модель другого разработчика проверяет страницу и отмечает/u,
+      fetcher:
+        /Для страницы, которая пишется прямо на сайте, сайт открывает источник, указанный в блоке/u,
+      blockDropped: /блок, у которого не подтвердился ни один источник, убирается/u,
+      longBook: /у длинной книги/u,
+      notSame: /но не что он говорит то же самое/u,
+      bare: [/(^|\. )Затем вторая модель/u, /(^|\. )Сайт открывает/u],
+    },
+  };
+
+  it.each(SUPPORTED_LANGS)(
+    '%s: #world - вторая модель и проверка источника только у страницы, написанной на сайте',
+    (lang) => {
+      const text = sectionText('editorial-policy', lang, ['world']);
+      const claims = WORLD_RUN_CLAIMS[lang];
+      expect(text).toMatch(claims.reviewer);
+      expect(text).toMatch(claims.fetcher);
+      // Решение арбитра F08-4b «Редполитика #world», Б: проверка по блоку, а не по утверждению.
+      expect(text).toMatch(claims.blockDropped);
+      expect(text).toMatch(claims.longBook);
+      expect(text).toMatch(claims.notSame);
+      for (const bare of claims.bare) expect(text).not.toMatch(bare);
+    }
+  );
+
   // F02-4 (решение арбитра 16.10.2026, `F02 | F02-4`, Р1): раздел о страницах авторов говорит,
   // откуда сведения, и не утверждает ни «пишут люди», ни «проверяется редакцией» (README F02).
   it.each(SUPPORTED_LANGS)('%s: #authors есть, без «пишут люди» и «проверяется»', (lang) => {

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { analysisWriteKeys } from '@/api/hooks/draftKeys';
+import { analysisWriteKeys, worldWriteKeys } from '@/api/hooks/draftKeys';
 import { summaryKeys } from '@/api/hooks/useBookSummary';
 import { dossierKeys } from '@/api/hooks/useDossier';
 import {
@@ -218,6 +218,7 @@ describe('useSummaryWriteActions', () => {
     expect(spy.mock.calls.map(([arg]) => (arg as { queryKey: unknown }).queryKey)).toEqual([
       analysisWriteKeys.latest('v1'),
       summaryWriteKeys.latest('v1'),
+      worldWriteKeys.latest('v1'),
       dossierKeys.version('v1'),
       dossierKeys.estimate('v1'),
     ]);

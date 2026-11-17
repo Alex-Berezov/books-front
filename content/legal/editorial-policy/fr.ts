@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'D’où viennent les textes de Bibliaris, qui prépare les résumés et écrit les descriptions, comment sont rédigées les analyses de livres, comment les textes des livres sont préparés et comment les erreurs sont corrigées.',
   title: 'Politique éditoriale',
-  updatedAt: '2026-11-06',
+  updatedAt: '2026-11-17',
   toc: false,
   sections: [
     {
@@ -167,7 +167,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Une page est préparée avec un modèle de langage selon les consignes de la rédaction, à partir du texte de cette version du livre. La rédaction relit la page et la publie elle-même ; une page non relue n’est pas affichée sur le site.',
+              text: 'Une page est préparée avec un modèle de langage selon les consignes de la rédaction, à partir du texte de cette version du livre. Pour une page écrite directement sur le site, le modèle lit les chapitres où apparaît le personnage (pour un livre long, les chapitres où il apparaît le plus souvent et les résumés des chapitres plutôt que le texte entier) ; un second modèle, d’un autre développeur, vérifie ensuite la page et signale les passages douteux. Une page peut aussi être importée toute prête : elle est alors rédigée hors du site selon les mêmes consignes. La rédaction relit la page et la publie elle-même ; une page non relue n’est pas affichée sur le site.',
             },
           ],
         },
@@ -185,7 +185,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Tout ce qui vient de l’extérieur du livre (critique, prototypes, adaptations) n’est inclus qu’avec une source, et ses sources sont listées sur la même page, sous le bloc.',
+              text: 'Tout ce qui vient de l’extérieur du livre (critique, prototypes, adaptations) n’est inclus qu’avec une source, et ses sources sont listées sur la même page, sous le bloc. Pour une page écrite directement sur le site, le site ouvre la page indiquée pour chaque bloc et vérifie qu’elle répond et mentionne ce livre ou son auteur ; une source qui ne passe pas la vérification est retirée de la liste du bloc, et un bloc dont aucune source n’est confirmée est supprimé. Cette vérification montre qu’une source existe et concerne le livre, non qu’elle dise la même chose ; c’est pourquoi la rédaction relit ces blocs avant de publier.',
             },
           ],
         },

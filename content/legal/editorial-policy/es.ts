@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'De dónde salen los textos de Bibliaris, quién prepara los resúmenes y escribe las descripciones, cómo se elaboran los análisis de libros, cómo se preparan los textos de los libros y cómo se corrigen los errores.',
   title: 'Política editorial',
-  updatedAt: '2026-11-06',
+  updatedAt: '2026-11-17',
   toc: false,
   sections: [
     {
@@ -172,7 +172,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Una página se prepara con un modelo de lenguaje siguiendo las instrucciones de la redacción, a partir del texto de esta versión del libro. La redacción lee la página y la publica ella misma; una página que no ha sido leída no se muestra en el sitio.',
+              text: 'Una página se prepara con un modelo de lenguaje siguiendo las instrucciones de la redacción, a partir del texto de esta versión del libro. En una página escrita directamente en el sitio, el modelo lee los capítulos en los que aparece el personaje (en un libro largo, los capítulos en los que aparece con más frecuencia y los resúmenes de los capítulos en lugar del texto completo); después, un segundo modelo de otro desarrollador revisa la página y marca los pasajes dudosos. Una página también puede cargarse ya terminada: entonces se prepara fuera del sitio con las mismas instrucciones. La redacción lee la página y la publica ella misma; una página que no ha sido leída no se muestra en el sitio.',
             },
           ],
         },
@@ -190,7 +190,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Todo lo que viene de fuera del libro (crítica, prototipos, adaptaciones) se incluye solo con una fuente, y sus fuentes se enumeran en la misma página, debajo del bloque.',
+              text: 'Todo lo que viene de fuera del libro (crítica, prototipos, adaptaciones) se incluye solo con una fuente, y sus fuentes se enumeran en la misma página, debajo del bloque. En una página escrita directamente en el sitio, el sitio abre la página indicada en cada bloque y comprueba que responde y menciona este libro o a su autor; una fuente que no lo cumple se quita de la lista del bloque, y un bloque en el que ninguna fuente se confirma se elimina. Esta comprobación muestra que la fuente existe y se refiere al libro, no que diga lo mismo, por lo que la redacción lee esos bloques antes de publicarlos.',
             },
           ],
         },

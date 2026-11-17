@@ -8,24 +8,30 @@ import {
   useAnalysisWriteProposal,
   useBookAnalysis,
 } from '@/api/hooks';
-import { AutoTextReadMark, WriteRunPanel } from '@/components/admin/books/ContentDraft';
+import {
+  AcceptAll,
+  AcceptAllOutcome,
+  AutoTextReadMark,
+  useAcceptAll,
+  useWrittenBlocks,
+  WriteRunPanel,
+} from '@/components/admin/books/ContentDraft';
 import type { SupportedLang } from '@/lib/i18n/lang';
-import styles from './AnalysisWrite.module.scss';
+import type { AnalysisAcceptAllSkipped, AnalysisWriteItem } from '@/types/api-schema';
 import {
   isPending,
   progressText,
   reasonText,
   refusalText,
+  skippedText,
   sortItems,
   startLossText,
   writeEstimateText,
 } from './analysisWrite.utils';
-import { AcceptAllOutcome, AnalysisWriteAcceptAll } from './AnalysisWriteAcceptAll';
 import { AnalysisWriteCore, type AnalysisCoreState } from './AnalysisWriteCore';
 import { AnalysisWriteItemCard } from './AnalysisWriteItemCard';
 import { AnalysisWriteSteps } from './AnalysisWriteSteps';
-import { useAcceptAll } from './useAcceptAll';
-import { useWrittenBlocks } from './useWrittenBlocks';
+import draftStyles from '@/components/admin/books/ContentDraft/ContentDraft.module.scss';
 
 export interface AnalysisWriteProps {
   versionId: string;
@@ -64,13 +70,15 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
   const items = run ? sortItems(run.items) : [];
   // «Accept all» берёт предложения; перегенерируемые сервер не пробует.
   const acceptable = items.filter((i) => isPending(i) && !i.regenerating);
-  const acceptAll = useAcceptAll(
+  const acceptAll = useAcceptAll<AnalysisAcceptAllSkipped, AnalysisWriteItem>({
+    kind: 'analysis_write',
     versionId,
     run,
-    actions.acceptAll,
-    actions.start.isPending,
-    onBlocksWritten
-  );
+    acceptAll: actions.acceptAll,
+    starting: actions.start.isPending,
+    // Записанное до отказа тоже в анализе: форма и ядро перечитываются в любом исходе.
+    onSettled: onBlocksWritten,
+  });
   const allResult = acceptAll.own;
   const saved = { sources: analysis.data?.sources, failed: analysis.isError };
   // Источники, проверенные этим ходом и ещё не принятые: предложение `sources`.
@@ -132,6 +140,8 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
           skipped={acceptAll.stopped.skipped}
           items={acceptAll.stopped.items}
           actionable={false}
+          refusalText={refusalText}
+          skippedText={skippedText}
         />
       )}
 
@@ -139,18 +149,20 @@ export const AnalysisWrite: FC<AnalysisWriteProps> = ({
 
       {/* Итог «Accept all» остаётся на экране и тогда, когда принимать уже нечего. */}
       {run && ready && (acceptable.length > 0 || allResult !== null) && (
-        <AnalysisWriteAcceptAll
+        <AcceptAll
           pending={actions.acceptAll.isPending}
           disabled={isError || saving || acceptable.length === 0}
           error={allResult?.error ?? null}
           skipped={allResult?.skipped ?? []}
           items={allResult?.items ?? run.items}
+          refusalText={refusalText}
+          skippedText={skippedText}
           onAcceptAll={() => void acceptAll.accept()}
         />
       )}
 
       {run && items.length > 0 && (
-        <div className={styles.items}>
+        <div className={draftStyles.items}>
           {items.map((item) => (
             <AnalysisWriteItemCard
               key={`${run.id}:${item.index}`}

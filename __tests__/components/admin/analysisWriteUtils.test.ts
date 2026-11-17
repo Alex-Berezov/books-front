@@ -6,11 +6,11 @@ import {
   mayHaveWritten,
   progressText,
   refusalTextOfCode,
-  skippedOfError,
   skippedText,
   sortItems,
   startLossText,
 } from '@/components/admin/books/AnalysisTab/AnalysisWrite/analysisWrite.utils';
+import { skippedOfError as draftSkippedOfError } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import { ApiError } from '@/types/api';
 import type { AnalysisWrite, AnalysisWriteItem, LlmOperation } from '@/types/api-schema';
 
@@ -152,6 +152,9 @@ describe('analysisWrite.utils', () => {
   });
 
   it('skippedOfError: the skipped of a stopped «Accept all» (T174, p.1); other errors — nothing', () => {
+    // Разбор общий у ходов анализа и мира (ревью F08-4b, п.2): код обрыва — свой у хода.
+    const skippedOfError = (error: unknown) =>
+      draftSkippedOfError(error, 'ANALYSIS_WRITE_NOT_READY');
     const skipped = [{ index: 1, code: 'ANALYSIS_WRITE_REFUSED' }];
     expect(skippedOfError(conflict('ANALYSIS_WRITE_NOT_READY', { skipped }))).toEqual(skipped);
     expect(skippedOfError(conflict('ANALYSIS_WRITE_NOT_READY'))).toEqual([]);

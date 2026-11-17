@@ -13,6 +13,7 @@ import { WorldEntityCard } from './WorldEntityCard';
 import { isWorldPublished, worldReadLabel, worldReadState } from './worldErrors';
 import { WorldPublicLink } from './WorldPublicLink';
 import styles from './WorldTab.module.scss';
+import { WorldWriteSection } from './WorldWriteSection';
 
 /**
  * Tab «World» (F08-1, `books-app-docs/features/F08-book-wiki/product.md` §17): the list of
@@ -43,26 +44,28 @@ export const WorldTab: FC<WorldTabProps> = ({ isEditor, ...props }) => {
 
 const WorldTabContent: FC<Omit<WorldTabProps, 'isEditor'>> = (props) => {
   const tab = useWorldTab(props);
-  const { isAdmin = false, versionId, version } = props;
+  const { isAdmin = false, lang, versionId, version } = props;
   const [importOpen, setImportOpen] = useState(false);
+  // Панель хода видна и без списка, на той же позиции (`null` — место шапки): не перемонтируется.
+  const run = isAdmin ? (
+    <WorldWriteSection versionId={versionId} language={version.language} lang={lang} />
+  ) : null;
 
-  if (tab.isLoading) {
+  if (tab.isLoading || tab.loadError || !tab.world) {
     return (
       <div className={styles.container}>
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
-  if (tab.loadError || !tab.world) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.error} role="alert">
-          <p>Could not load the world: {tab.loadError?.message ?? 'no data'}</p>
-          <Button type="button" variant="secondary" size="sm" onClick={tab.retryLoad}>
-            Retry
-          </Button>
-        </div>
+        {null}
+        {run}
+        {tab.isLoading ? (
+          <Spinner size="lg" />
+        ) : (
+          <div className={styles.error} role="alert">
+            <p>Could not load the world: {tab.loadError?.message ?? 'no data'}</p>
+            <Button type="button" variant="secondary" size="sm" onClick={tab.retryLoad}>
+              Retry
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -109,6 +112,7 @@ const WorldTabContent: FC<Omit<WorldTabProps, 'isEditor'>> = (props) => {
         </div>
       </div>
 
+      {run}
       {tab.validationFailed && (
         <div className={styles.error} role="alert">
           <p>Could not load data validation: entities cannot be checked or saved.</p>

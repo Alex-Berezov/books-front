@@ -60,7 +60,6 @@ const RUN_FAILURES: Readonly<Record<string, string>> = {
   // Сообщение заготовки («у версии нет текста глав») к разделу хода не подходит: нужен текст его глав.
   DRAFT_INPUT_MISSING: 'the chapters have no text, or the dossier is gone',
   DRAFT_NO_PLAN: 'the dossier has no plan of sections',
-  DRAFT_DATA_INVALID: 'the stored run data is broken',
   SUMMARY_WRITE_REFUSED: 'the field did not take the text',
 };
 

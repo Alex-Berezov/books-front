@@ -139,6 +139,10 @@ export interface WorldApi {
   deletes: string[];
   /** Строки списка мира; по умолчанию `LIST()`. */
   list: () => BookWorldEntitySummary[];
+  /** Список мира отвечает 500 (вкладка показывает отказ загрузки). */
+  listFails: boolean;
+  /** Сколько раз прочитан ход «Write World» (`GET drafts/world_write`, F08-4b). */
+  runReads: number;
   readReply: Reply;
   flagsReply: Reply;
   putReply: Reply;
@@ -162,6 +166,8 @@ export const installWorldApi = (): WorldApi => {
     entityPuts: [],
     deletes: [],
     list: LIST,
+    listFails: false,
+    runReads: 0,
     readReply: (key) => HttpResponse.json(row({ key }, { readAt: LANDED })),
     // Как бэкенд: `isIndexable` — поле строки, `isVisible` — служебное, в `editor`.
     flagsReply: (key, body) => {
@@ -197,6 +203,9 @@ export const installWorldApi = (): WorldApi => {
   server.use(
     http.get(WORLD, () => {
       api.gets.push('list');
+      if (api.listFails) {
+        return HttpResponse.json({ statusCode: 500, message: 'down' }, { status: 500 });
+      }
       return HttpResponse.json({
         language: 'en',
         alternates: [],
@@ -235,7 +244,12 @@ export const installWorldApi = (): WorldApi => {
     }),
     http.get(`${API}/admin/versions/v1/chapter-titles`, () => api.chaptersReply()),
     http.get(`${API}/versions/v1/analysis`, () => api.analysisReply()),
-    http.get(`${API}/admin/versions/v1/dossier`, () => HttpResponse.json(MISSING_DOSSIER))
+    http.get(`${API}/admin/versions/v1/dossier`, () => HttpResponse.json(MISSING_DOSSIER)),
+    // Ход «Write World» (F08-4b) у `admin`: хода нет.
+    http.get(`${API}/admin/versions/v1/drafts/world_write`, () => {
+      api.runReads += 1;
+      return HttpResponse.json({ draft: null });
+    })
   );
   return api;
 };
@@ -253,6 +267,7 @@ export const renderWorldTab = (
         version={{ ...version, ...versionOverride }}
         isAdmin={isAdmin}
         isEditor={isEditor}
+        lang="en"
       />
     </QueryClientProvider>
   );

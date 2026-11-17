@@ -1,15 +1,11 @@
 'use client';
 
 import type { FC } from 'react';
+import { droppedSourceText } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import type { AnalysisWrite } from '@/types/api-schema';
 import styles from './AnalysisWrite.module.scss';
-import {
-  EXTERNAL_STEP,
-  STEP_NAMES,
-  droppedQuoteText,
-  droppedSourceText,
-  reasonText,
-} from './analysisWrite.utils';
+import { EXTERNAL_STEP, STEP_NAMES, droppedQuoteText, reasonText } from './analysisWrite.utils';
+import draftStyles from '@/components/admin/books/ContentDraft/ContentDraft.module.scss';
 
 /**
  * Пройденные шаги хода (F07 `product.md` §4): «Step N of M: <шаг>», отказ шага с причиной и всё,
@@ -19,7 +15,7 @@ import {
 export const AnalysisWriteSteps: FC<{ run: AnalysisWrite }> = ({ run }) => {
   if (run.steps.length === 0) return null;
   return (
-    <div className={styles.steps} aria-label="Steps of the run">
+    <div className={draftStyles.steps} aria-label="Steps of the run">
       {run.steps.map((s) => {
         const quotes = run.droppedQuotes.filter((q) => q.step === s.step);
         const sources = s.step === EXTERNAL_STEP ? run.droppedSources : [];
@@ -35,7 +31,7 @@ export const AnalysisWriteSteps: FC<{ run: AnalysisWrite }> = ({ run }) => {
               )}
             </span>
             {hasDropped && (
-              <ul className={styles.list} aria-label={`Dropped at step ${s.step}`}>
+              <ul className={draftStyles.list} aria-label={`Dropped at step ${s.step}`}>
                 {s.dropped.map((d, i) => (
                   <li key={`fix-${i}`}>
                     {d.code} — {d.path}: {d.note}

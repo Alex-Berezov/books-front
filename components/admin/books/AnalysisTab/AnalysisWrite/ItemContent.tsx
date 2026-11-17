@@ -1,19 +1,16 @@
 'use client';
 
 import type { FC } from 'react';
+import {
+  ProposalStatus,
+  SourceLinks,
+  VerifyFactsNote,
+  type ProposalContent,
+} from '@/components/admin/books/ContentDraft';
 import type { AnalysisWriteItem, AnalysisWriteValue, BookAnalysisSource } from '@/types/api-schema';
 import styles from './AnalysisWrite.module.scss';
 import { EXTERNAL_STEP, refusalText } from './analysisWrite.utils';
-
-/** Содержимое предложения, как его видит карточка: свежее, перечитывается или отказ. */
-export interface ProposalContent {
-  /** Блок — предложение готового хода: содержимое запрашивается. */
-  wanted: boolean;
-  /** Свежее содержимое; `undefined` — нет или перечитывается (старое не показывается). */
-  value: AnalysisWriteValue | undefined;
-  loading: boolean;
-  error: unknown;
-}
+import draftStyles from '@/components/admin/books/ContentDraft/ContentDraft.module.scss';
 
 /**
  * Источники, проверенные этим ходом (предложение `sources`), — один запрос на весь ход выше, в
@@ -35,7 +32,7 @@ export interface SavedSources {
 
 export interface ItemContentProps {
   item: AnalysisWriteItem;
-  content: ProposalContent;
+  content: ProposalContent<AnalysisWriteValue>;
   /** Источники непринятого предложения `sources` этого хода; `null` — такого предложения нет. */
   runSources: RunSources | null;
   saved: SavedSources;
@@ -54,18 +51,6 @@ const LIST_FIELDS = [
   'timeline',
   'adaptations',
 ] as const satisfies readonly (keyof AnalysisWriteValue)[];
-
-const SourceLinks: FC<{ sources: BookAnalysisSource[] }> = ({ sources }) => (
-  <ul className={styles.list}>
-    {sources.map((s) => (
-      <li key={s.url}>
-        <a href={s.url} target="_blank" rel="noopener noreferrer nofollow">
-          {s.title}
-        </a>
-      </li>
-    ))}
-  </ul>
-);
 
 /** Сохранённые источники анализа — с честной подписью: в них могут быть и добавленные руками. */
 const SavedSourceList: FC<{ saved: SavedSources }> = ({ saved }) => {
@@ -107,27 +92,19 @@ export const ItemContent: FC<ItemContentProps> = ({ item, content, runSources, s
 
   return (
     <>
-      {content.wanted && content.error ? (
-        <p className={styles.error} role="alert">
-          Could not load the proposal: {refusalText(content.error)}
-        </p>
-      ) : null}
-      {content.wanted && content.loading && <p className={styles.hint}>Loading the proposal…</p>}
-      {value?.text != null && <pre className={styles.preview}>{value.text}</pre>}
+      <ProposalStatus content={content} refusal={refusalText} />
+      {value?.text != null && <pre className={draftStyles.preview}>{value.text}</pre>}
       {value &&
         LIST_FIELDS.map((field) =>
           value[field] ? (
-            <pre key={field} className={styles.preview}>
+            <pre key={field} className={draftStyles.preview}>
               {JSON.stringify(value[field], null, 2)}
             </pre>
           ) : null
         )}
       {external && (
         <div>
-          <p className={styles.verify}>
-            Verify facts: the code checked that each source opens and is about this book, not that
-            it says the same. Check dates and names against the sources.
-          </p>
+          <VerifyFactsNote />
           {own ? (
             <>
               <p className={styles.hint}>

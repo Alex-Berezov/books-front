@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { Button } from '@/components/admin/common/Button';
 import type { BookAnalysisWarning } from '@/types/api-schema';
 import styles from './AnalysisWrite.module.scss';
+import draftStyles from '@/components/admin/books/ContentDraft/ContentDraft.module.scss';
 
 /** Ядро сохранённого анализа — так, как его знает вкладка (одно состояние на вкладку). */
 export interface AnalysisCoreState {
@@ -42,7 +43,7 @@ export const AnalysisWriteCore: FC<{ core: AnalysisCoreState }> = ({ core }) => 
         <>
           <span>Core: not ready{core.missing.length > 0 ? ' — missing:' : '.'}</span>
           {core.missing.length > 0 && (
-            <ul className={styles.list}>
+            <ul className={draftStyles.list}>
               {core.missing.map((w) => (
                 <li key={w.path}>{w.message}</li>
               ))}
