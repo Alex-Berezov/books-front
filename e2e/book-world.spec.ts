@@ -114,10 +114,11 @@ test.describe('Book world: hero page (F08-3b, §5)', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
       'Anna Lark in World Acceptance: character analysis'
     );
-    // Порядок §5 точным списком: у полного героя сида есть все блоки (`seed-world.ts`).
-    const h2 = (await page.getByRole('heading', { level: 2 }).allTextContents()).filter(
-      (title) => title !== 'Bibliaris Editorial Team'
-    );
+    // Порядок §5 точным списком: у полного героя сида есть все блоки (`seed-world.ts`). Только
+    // содержимое страницы: у подвала сайта свой скрытый h2 «Footer navigation» (`Footer.tsx`).
+    const h2 = (
+      await page.locator('main').getByRole('heading', { level: 2 }).allTextContents()
+    ).filter((title) => title !== 'Bibliaris Editorial Team');
     expect(h2).toEqual([
       'About the character',
       'In brief',
@@ -212,7 +213,9 @@ test.describe('Book world: hero page (F08-3b, §5)', () => {
   test('minimal hero: blocks without data have neither heading nor TOC item', async ({ page }) => {
     await page.goto(entityUrl('en', SLUG.book, 'tom-reed'));
 
-    const h2 = await page.getByRole('heading', { level: 2 }).allTextContents();
+    const h2 = await page.locator('main').getByRole('heading', { level: 2 }).allTextContents();
+    // «Коротко» - часть ядра (§3): без него страницы нет, и пустой список не засчитывается за успех.
+    expect(h2).toContain('In brief');
     for (const absent of ['Appearance', 'Sources', 'On screen and stage', 'Prototypes']) {
       expect(h2).not.toContain(absent);
     }
