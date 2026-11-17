@@ -38,7 +38,8 @@ const textVersion = { id: 'v-text', isFree: true } as unknown as VersionPreview;
 const renderActions = (
   audioVersion: VersionPreview | null = null,
   hasSummary = false,
-  hasAnalysis = false
+  hasAnalysis = false,
+  hasWorld = false
 ) =>
   render(
     <BookActions
@@ -50,6 +51,8 @@ const renderActions = (
       audioVersion={audioVersion}
       hasSummary={hasSummary}
       hasAnalysis={hasAnalysis}
+      hasWorld={hasWorld}
+      worldLabel="Book world"
     />
   );
 
@@ -183,5 +186,17 @@ describe('BookActions — CTA hierarchy and bookshelf toggle', () => {
 
     renderActions(null, false, false);
     expect(screen.queryByRole('link', { name: /^analysis$/i })).toBeNull();
+  });
+
+  // F08-3 (Q7): ссылка «Мир книги» - только при публичных сущностях версии языка страницы.
+  it('ссылка на мир книги ведёт на /{lang}/book/{slug}/wiki и без мира не рисуется', () => {
+    const { unmount } = renderActions(null, false, false, true);
+    expect(screen.getByRole('link', { name: 'Book world' }).getAttribute('href')).toBe(
+      '/en/book/dracula/wiki'
+    );
+    unmount();
+
+    renderActions(null, false, false, false);
+    expect(screen.queryByRole('link', { name: 'Book world' })).toBeNull();
   });
 });

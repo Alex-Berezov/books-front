@@ -6,6 +6,7 @@ import {
   Headphones,
   FileText,
   Lightbulb,
+  Compass,
   Bookmark,
   BookmarkX,
   Check,
@@ -17,6 +18,7 @@ import { useBookshelf, useAddToBookshelf, useRemoveFromBookshelf } from '@/api/h
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { analysisPath } from '@/lib/seo/analysis-path';
 import { summaryPath } from '@/lib/seo/summary-path';
+import { worldPath } from '@/lib/seo/world-path';
 import { toast } from '@/lib/utils/toast';
 import type { VersionPreview } from '@/types/api-schema/books';
 import styles from './book.module.scss';
@@ -31,6 +33,10 @@ interface BookActionsProps {
   hasSummary: boolean;
   /** Анализ версии языка страницы - то же правило, что у страницы анализа (`pickAnalysisVersion`). */
   hasAnalysis: boolean;
+  /** Мир книги версии языка страницы (`versionHasWorld`, F08-3, решение арбитра Q7). */
+  hasWorld: boolean;
+  /** Метка ссылки «Мир книги» на языке страницы: считает сервер (`worldNavLabel`). */
+  worldLabel: string;
 }
 
 export default function BookActions({
@@ -42,6 +48,8 @@ export default function BookActions({
   audioVersion,
   hasSummary,
   hasAnalysis,
+  hasWorld,
+  worldLabel,
 }: BookActionsProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -160,6 +168,16 @@ export default function BookActions({
         >
           <Lightbulb size={18} aria-hidden="true" />
           {t('book.analysis')}
+        </Link>
+      )}
+
+      {hasWorld && versionId && (
+        <Link
+          href={`/${lang}${worldPath(slug)}`}
+          className={`${styles.ctaBase} ${styles.ctaTertiary}`}
+        >
+          <Compass size={18} aria-hidden="true" />
+          {worldLabel}
         </Link>
       )}
 

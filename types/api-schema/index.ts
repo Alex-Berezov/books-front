@@ -530,6 +530,7 @@ export type {
 export type {
   BookOverviewWorldKey,
   BookWorldAdaptation,
+  BookWorldAlternate,
   BookWorldArc,
   BookWorldArcStage,
   BookWorldChapterCount,
@@ -557,7 +558,13 @@ export type {
   SaveBookWorldEntityRequest,
   SaveBookWorldRequest,
   SetBookWorldFlagsRequest,
+  WorldBeaconRequest,
   WorldEntityType,
+  WorldSitemapEntity,
+  WorldSitemapItem,
+  WorldStatEvent,
+  WorldStatsResponse,
+  WorldStatsRow,
 } from './book-world';
 
 // Rights publication override (admin last resort, 27.09.2026)

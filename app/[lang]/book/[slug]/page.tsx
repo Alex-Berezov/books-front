@@ -9,13 +9,17 @@ import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { StarRating } from '@/components/public/books/StarRating';
 import { SmartBackButton } from '@/components/public/navigation/SmartBackButton';
 import { analysisSectionFlags } from '@/lib/book-analysis/format';
+import { fillTemplate } from '@/lib/book-world/format';
 import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
+import { getWorldStrings, worldNavLabel } from '@/lib/i18n/worldStrings';
 import { analysisPath, pickAnalysisVersion } from '@/lib/seo/book-analysis';
 import { pickSummaryVersion, summaryPath } from '@/lib/seo/book-summary';
+import { pickWorldPageVersion } from '@/lib/seo/book-world';
 import { noteDegraded } from '@/lib/seo/degraded';
 import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
+import { versionHasWorld, worldPath } from '@/lib/seo/world-path';
 import { handleContentFailure, isNotFoundError } from '@/lib/utils/content-failure';
 import { isOptimizableHost } from '@/lib/utils/image-host';
 import { serializeJsonLd } from '@/lib/utils/json-ld';
@@ -212,6 +216,9 @@ export default async function BookDetailPage({ params }: Props) {
   // входят. Анализ не прочитался - ссылок «Разбор» нет, страница книги от этого не падает.
   const analysisVersion = pickAnalysisVersion(book, supportedLang);
   const analysisHref = analysisVersion ? `/${supportedLang}${analysisPath(slug)}` : null;
+  // Мир книги (F08-3, Q7) - версия языка страницы: пункт и ссылка только при публичных сущностях.
+  const worldVersion = pickWorldPageVersion(book, supportedLang);
+  const hasWorld = worldVersion !== null && versionHasWorld(worldVersion);
   const analysisForLinks = analysisVersion
     ? await getCachedBookAnalysis(analysisVersion.id).catch((error: unknown) => {
         logError('Error loading book analysis for section links:', error);
@@ -363,6 +370,8 @@ export default async function BookDetailPage({ params }: Props) {
               audioVersion={audioVersion}
               hasSummary={hasSummary}
               hasAnalysis={analysisHref !== null}
+              hasWorld={hasWorld}
+              worldLabel={worldNavLabel(supportedLang)}
             />
 
             <BookTaxonomyChips lang={supportedLang} terms={book.tags ?? []} variant="tags" />
@@ -448,6 +457,13 @@ export default async function BookDetailPage({ params }: Props) {
           {analysisHref ? (
             <Link href={analysisHref} className={styles.summaryLink}>
               {analysisLinkOnBook.replace('{title}', activeVersion?.title || book.title)}
+            </Link>
+          ) : null}
+          {hasWorld ? (
+            <Link href={`/${supportedLang}${worldPath(slug)}`} className={styles.summaryLink}>
+              {fillTemplate(getWorldStrings(supportedLang).worldLinkOnBook, {
+                title: activeVersion?.title || book.title,
+              })}
             </Link>
           ) : null}
         </div>

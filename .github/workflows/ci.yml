@@ -474,6 +474,50 @@ jobs:
           done
           echo "книги приёмки вариантов пересказа на месте"
 
+          # 🔴 Шестая часть пробы - книга приёмки мира книги (`F08-3b`, `e2e/book-world.spec.ts`).
+          # Её заводит `books/prisma/seed-world.ts` (`F08-3a`); образ старше релиза с этим файлом
+          # её не создаст, и спека покраснела бы «404» на первой странице мира без диагноза.
+          # Счётчик `_count.worldEntities` версии (ручка обзора) - число публичных сущностей, а
+          # список `/api/versions/:id/world` обязан нести героев, которых открывает спека
+          # (`anna-lark`, `tom-reed`): правишь там, правь и здесь.
+          if ! curl -fsS "http://127.0.0.1:5000/api/en/books/world-acceptance/overview" -o "$RUNNER_TEMP/world-book.json" \
+            || ! id=$(jq -er '.versions[] | select(.language == "en" and (._count.worldEntities // 0) > 0) | .id' "$RUNNER_TEMP/world-book.json"); then
+            echo "::error::Книга приёмки мира en/world-acceptance не отдаётся или у версии en нет публичных сущностей."
+            echo "Похоже, образ ghcr.io/alex-berezov/books:latest старше F08-3a / v1.0.324 (books/prisma/seed-world.ts)."
+            exit 1
+          fi
+          if ! curl -fsS "http://127.0.0.1:5000/api/versions/${id}/world" -o "$RUNNER_TEMP/world.json" \
+            || ! jq -e '(.entities | type == "array")
+                        and ([.entities[].key] | index("anna-lark") != null and index("tom-reed") != null)' \
+                 "$RUNNER_TEMP/world.json" > /dev/null; then
+            echo "::error::Список мира /api/versions/${id}/world книги world-acceptance не несёт героев anna-lark и tom-reed."
+            echo "Похоже, образ ghcr.io/alex-berezov/books:latest старше F08-3a / v1.0.324, или сид books/prisma/seed-world.ts разошёлся со спекой e2e/book-world.spec.ts."
+            cat "$RUNNER_TEMP/world.json"
+            exit 1
+          fi
+          # Две книги краевых случаев той же спеки (`e2e/book-world.spec.ts`, `seed-world.ts`):
+          # `world-acceptance-noindex` - мир есть (`anna-lark` в списке), а SEO книги несёт
+          # редакторский `noindex` (страницы 200 с `noindex, follow`); `world-acceptance-hidden` -
+          # версия en есть, публичных сущностей ноль (`/wiki` - 404). Без этой проверки отсутствие
+          # книги в образе и «мир не закрылся» дают в спеке одинаковое «не тот статус».
+          if ! curl -fsS "http://127.0.0.1:5000/api/en/books/world-acceptance-noindex/overview" -o "$RUNNER_TEMP/world-noindex.json"             || ! nid=$(jq -er '.versions[] | select(.language == "en" and (._count.worldEntities // 0) > 0) | .id' "$RUNNER_TEMP/world-noindex.json")             || ! curl -fsS "http://127.0.0.1:5000/api/versions/${nid}/world" -o "$RUNNER_TEMP/world-noindex-list.json"             || ! jq -e '[.entities[].key] | index("anna-lark") != null' "$RUNNER_TEMP/world-noindex-list.json" > /dev/null; then
+            echo "::error::Книга приёмки мира en/world-acceptance-noindex не отдаётся или её мир не несёт героя anna-lark."
+            echo "Похоже, образ ghcr.io/alex-berezov/books:latest старше F08-3a / v1.0.324 (books/prisma/seed-world.ts)."
+            exit 1
+          fi
+          if ! curl -fsS "http://127.0.0.1:5000/api/en/seo/resolve?type=book&id=world-acceptance-noindex" -o "$RUNNER_TEMP/world-noindex-seo.json"             || ! jq -e '(.meta.robots // "") | test("noindex")' "$RUNNER_TEMP/world-noindex-seo.json" > /dev/null; then
+            echo "::error::SEO книги world-acceptance-noindex не несёт редакторский noindex (meta.robots)."
+            echo "Сид books/prisma/seed-world.ts разошёлся со спекой e2e/book-world.spec.ts."
+            cat "$RUNNER_TEMP/world-noindex-seo.json"
+            exit 1
+          fi
+          if ! curl -fsS "http://127.0.0.1:5000/api/en/books/world-acceptance-hidden/overview" -o "$RUNNER_TEMP/world-hidden.json"             || ! jq -e '[.versions[] | select(.language == "en")] | length > 0 and all(._count.worldEntities == 0)' "$RUNNER_TEMP/world-hidden.json" > /dev/null; then
+            echo "::error::Книга приёмки мира en/world-acceptance-hidden не отдаётся или у версии en есть публичные сущности (ожидался 0)."
+            echo "Похоже, образ ghcr.io/alex-berezov/books:latest старше F08-3a / v1.0.324, или сид books/prisma/seed-world.ts разошёлся со спекой e2e/book-world.spec.ts."
+            exit 1
+          fi
+          echo "книга приёмки мира на месте"
+
       # Сборка здесь потому, что lint, typecheck и тесты её не заменяют.
       # 08.08.2026 импорт `next/headers` в файл, общий для сервера и клиента,
       # прошёл все три проверки зелёными и упал только в деплое: запрет на такой

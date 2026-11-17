@@ -269,3 +269,65 @@ describe('страница книги: подпись редакции и «Об
     );
   });
 });
+
+// F08-3b: ссылка «Мир книги» на странице книги - по версии языка страницы (`pickWorldPageVersion`):
+// мир другой версии языка ссылку не ставит (`product.md` §1 п.3).
+describe('страница книги: ссылка «Мир книги»', () => {
+  let page: (typeof import('@/app/[lang]/book/[slug]/page'))['default'];
+
+  beforeAll(async () => {
+    page = (await import('@/app/[lang]/book/[slug]/page')).default;
+  }, MODULE_LOAD_TIMEOUT_MS);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getCachedBookAnalysis.mockReset();
+    mocks.getCachedBookAnalysis.mockResolvedValue(null);
+    mocks.getCachedBookSeo.mockResolvedValue(null);
+  });
+
+  const renderPage = async () =>
+    render(await page({ params: Promise.resolve({ lang: 'ru', slug: 'crime' }) }));
+
+  it('у версии языка страницы есть публичные сущности - ссылка на /wiki', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview({ language: 'ru', _count: { chapters: 1, audioChapters: 0, worldEntities: 2 } })
+    );
+    const { container } = await renderPage();
+    expect(container.querySelector('a[href="/ru/book/crime/wiki"]')?.textContent).toBe(
+      'Мир книги «Преступление и наказание»'
+    );
+  });
+
+  it('мир только у версии другого языка или счётчик 0 - ссылки нет', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview(
+        { language: 'ru', _count: { chapters: 1, audioChapters: 0, worldEntities: 0 } },
+        {
+          versions: [
+            {
+              id: 'v1',
+              type: 'text',
+              isFree: true,
+              title: 'Преступление и наказание',
+              translators: [],
+              language: 'ru',
+              _count: { chapters: 1, audioChapters: 0, worldEntities: 0 },
+            },
+            {
+              id: 'v2',
+              type: 'text',
+              isFree: true,
+              title: 'Crime and Punishment',
+              translators: [],
+              language: 'en',
+              _count: { chapters: 1, audioChapters: 0, worldEntities: 5 },
+            },
+          ],
+        }
+      )
+    );
+    const { container } = await renderPage();
+    expect(container.querySelector('a[href$="/wiki"]')).toBeNull();
+  });
+});

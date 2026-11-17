@@ -155,6 +155,48 @@ export const document: LegalDocument = {
       ],
     },
     {
+      id: 'world',
+      heading: 'Cómo se preparan las páginas del mundo del libro',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Las páginas del mundo del libro sobre los personajes las prepara la Redacción de Bibliaris.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Una página se prepara con un modelo de lenguaje siguiendo las instrucciones de la redacción, a partir del texto de esta versión del libro. La redacción lee la página y la publica ella misma; una página que no ha sido leída no se muestra en el sitio.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Las citas se cotejan literalmente con el texto del libro publicado en Bibliaris: una cita que no está en el texto se rechaza al cargar la página en la redacción, y una que deja de coincidir después de corregirse el texto se oculta del sitio. Una cita no confirmada no llega al sitio. El número de capítulo junto a una cita o una escena es el número del capítulo en esta versión del sitio; enlaza a ese capítulo en el lector solo si el capítulo existe. Los capítulos en los que aparece un personaje los cuenta un programa a partir del texto de los capítulos; no los escribe el modelo.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Todo lo que viene de fuera del libro (crítica, prototipos, adaptaciones) se incluye solo con una fuente, y sus fuentes se enumeran en la misma página, debajo del bloque.',
+            },
+          ],
+        },
+      ],
+    },
+    {
       id: 'translations',
       heading: 'Traducciones',
       blocks: [

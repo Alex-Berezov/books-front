@@ -16,6 +16,10 @@ const THEME_STRIP_MAX_CHAPTERS = 120;
  * цветом темы и ссылкой в читалку; под ней текстом «Главы: 1, 3, 7–9». Отмечаются только главы,
  * которые есть в версии, - полоса и подпись совпадают. Версия без глав или тема без существующих
  * глав - ничего. Цвет задаёт класс `.themeN` карточки темы (`--theme-color`).
+ *
+ * Обобщена под полосу присутствия героя мира книги (F08-3b, `product.md` §5 п.6): подпись и слово
+ * перед номерами глав - параметры, цвет - класс `colorClassName`, который выставляет
+ * `--theme-color`; без него клетки цвета ссылок страницы.
  */
 export function ThemeStrip({
   themeChapters,
@@ -23,6 +27,7 @@ export function ThemeStrip({
   linker,
   label,
   chaptersLabel,
+  colorClassName,
 }: {
   themeChapters: readonly number[] | null | undefined;
   /** Номера глав версии по возрастанию. */
@@ -30,6 +35,8 @@ export function ThemeStrip({
   linker: ChapterLinker;
   label: string;
   chaptersLabel: string;
+  /** Класс, задающий `--theme-color` полосы; нет - цвет основной ссылки. */
+  colorClassName?: string;
 }) {
   const existing = new Set(chapterNumbers);
   const marked = new Set((themeChapters ?? []).filter((n) => existing.has(n)));
@@ -39,7 +46,7 @@ export function ThemeStrip({
   const showCells = chapterNumbers.length <= THEME_STRIP_MAX_CHAPTERS;
 
   return (
-    <div className={styles.strip}>
+    <div className={colorClassName ? `${styles.strip} ${colorClassName}` : styles.strip}>
       {showCells ? (
         <ol className={styles.stripCells} aria-label={label}>
           {chapterNumbers.map((n) => {

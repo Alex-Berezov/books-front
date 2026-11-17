@@ -12,6 +12,17 @@ export function parseChapterParam(search: string): number | null {
   return parseOrdinal(new URLSearchParams(search).get(CHAPTER_PARAM));
 }
 
+/**
+ * Номер главы из `searchParams` серверной страницы (читалка и плеер): то же правило, что
+ * у `parseChapterParam`; параметр повторён (`?chapter=1&chapter=2`) - `null`.
+ */
+export function chapterFromSearchParams(
+  search: Record<string, string | string[] | undefined>
+): number | null {
+  const raw = search[CHAPTER_PARAM];
+  return typeof raw === 'string' ? parseOrdinal(raw) : null;
+}
+
 /** Строка запроса читалки на главе `n`: `?chapter=n`. */
 export function readerChapterQuery(n: number): string {
   return `?${CHAPTER_PARAM}=${n}`;
@@ -20,6 +31,14 @@ export function readerChapterQuery(n: number): string {
 /** Адрес читалки на главе `n`: `{bookHref}/read?chapter=n` - одно имя параметра на ссылку и читалку. */
 export function readerChapterHref(bookHref: string, n: number): string {
   return `${bookHref}/read${readerChapterQuery(n)}`;
+}
+
+/**
+ * Адрес плеера на аудиоглаве `n`: `{bookHref}/listen?chapter=n` - то же имя параметра, что у читалки
+ * («Слушать» у сцены мира книги, решение арбитра `F08 | F08-3` Q6).
+ */
+export function listenChapterHref(bookHref: string, n: number): string {
+  return `${bookHref}/listen${readerChapterQuery(n)}`;
 }
 
 /** Строка запроса без параметра главы: глава из ссылки применяется один раз за открытие. */

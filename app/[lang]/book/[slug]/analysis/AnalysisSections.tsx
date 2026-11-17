@@ -1,7 +1,6 @@
-import { Fragment } from 'react';
 import { analysisSectionFlags } from '@/lib/book-analysis/format';
 import { buildRelationMap } from '@/lib/book-analysis/relation-map';
-import type { AnalysisStrings } from '@/lib/i18n/analysisStrings';
+import { analysisRoleLabels, type AnalysisStrings } from '@/lib/i18n/analysisStrings';
 import type { BookAnalysisDetail } from '@/types/api-schema';
 import styles from './analysis.module.scss';
 import { ANALYSIS_ANCHORS } from './analysisAnchors';
@@ -10,13 +9,13 @@ import {
   CharactersList,
   KeyQuotesSection,
   Paragraphs,
-  Section,
   SpoilerNote,
   SymbolsList,
   ThemesList,
   type ChapterLinker,
 } from './AnalysisBlocks';
 import { buildLowerSections, type AnalysisSection } from './AnalysisLowerSections';
+import { PageSections } from './PageSections';
 import { RelationMap } from './RelationMap';
 
 interface AnalysisSectionsProps {
@@ -83,11 +82,7 @@ export function AnalysisSections({
             themes={themeIndex}
             linker={linker}
             labels={{
-              roles: {
-                main: strings.analysisRoleMain,
-                secondary: strings.analysisRoleSecondary,
-                minor: strings.analysisRoleMinor,
-              },
+              roles: analysisRoleLabels(strings),
               arcFrom: strings.analysisArcFrom,
               arcTo: strings.analysisArcTo,
               themeTags: strings.analysisThemeTags,
@@ -152,31 +147,5 @@ export function AnalysisSections({
 
   sections.push(...buildLowerSections({ analysis, linker, strings, faqTitle, has }));
 
-  if (sections.length === 0) return null;
-
-  return (
-    <>
-      <nav className={styles.toc} aria-labelledby="analysis-toc-title">
-        <p id="analysis-toc-title" className={styles.tocTitle}>
-          {tocTitle}
-        </p>
-        <ol className={styles.tocList}>
-          {sections.map((s) => (
-            <li key={s.id}>
-              <a href={`#${s.id}`}>{s.title}</a>
-            </li>
-          ))}
-        </ol>
-      </nav>
-      {sections.map((s) =>
-        s.standalone ? (
-          <Fragment key={s.id}>{s.body}</Fragment>
-        ) : (
-          <Section key={s.id} id={s.id} title={s.title}>
-            {s.body}
-          </Section>
-        )
-      )}
-    </>
-  );
+  return <PageSections sections={sections} tocTitle={tocTitle} tocId="analysis-toc-title" />;
 }

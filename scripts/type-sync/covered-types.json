@@ -150,6 +150,7 @@
   "GET /{lang}/tags",
   "GET /{lang}/tags/{slug}/books",
   "GET /{lang}/tags/{slug}/books/cards",
+  "GET /{lang}/world/sitemap",
   "PATCH /admin/contributors/{id}",
   "PATCH /admin/persons/{id}",
   "PATCH /admin/rights/actions/{actionId}",

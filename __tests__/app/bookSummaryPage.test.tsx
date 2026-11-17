@@ -709,3 +709,30 @@ describe('страница пересказа: метаданные', () => {
     });
   });
 });
+
+// F08-3b: пункт «Мир книги» в навигации пересказа (`summaryBookContext`) - по счётчику мира версии.
+describe('страница пересказа: пункт «Мир книги»', () => {
+  it('есть публичные сущности - пункт ведёт на /wiki', async () => {
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        versions: [
+          version('en', 'hamlet', 1, {
+            _count: { chapters: 3, audioChapters: 0, summaries: 1, worldEntities: 3 },
+          }),
+        ],
+      })
+    );
+    await renderPage();
+    const nav = screen.getByRole('navigation', { name: 'Book sections' });
+    expect(within(nav).getByRole('link', { name: 'Book world' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/wiki'
+    );
+  });
+
+  it('счётчика мира нет - пункта нет', async () => {
+    await renderPage();
+    const nav = screen.getByRole('navigation', { name: 'Book sections' });
+    expect(within(nav).queryByRole('link', { name: 'Book world' })).toBeNull();
+  });
+});

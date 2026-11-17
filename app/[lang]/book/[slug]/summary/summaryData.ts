@@ -7,6 +7,7 @@ import { handleContentFailure } from '@/lib/utils/content-failure';
 import { logError } from '@/lib/utils/log-error';
 import { parseOrdinal } from '@/lib/utils/ordinal-param';
 import type { BookOverview, VersionPreview } from '@/types/api-schema';
+import { assertOverviewCarriesCount } from '../overviewShape';
 
 /** Один запрос пересказа на рендер: его читают и `generateMetadata`, и сама страница. */
 export const getCachedBookSummary = cache((versionId: string) => getPublicBookSummary(versionId));
@@ -31,23 +32,15 @@ export function pickSectionLinks(items: unknown): SummarySectionLink[] {
 }
 
 /**
- * 🔴 Обзор книги без полей, по которым решается «есть ли пересказ», - отказ, а не ответ «пересказа
- * нет». Схема фронта написана руками: сузят белый список обзора на бэкенде - и без этой проверки
- * весь раздел ушёл бы в кэшируемый 404 при зелёных тестах (тот же довод был у старой страницы
- * `/summary/...`). Одна проверка на `/summary` и страницы его разделов (F04-3).
+ * Обзор несёт счётчик пересказов (`assertOverviewCarriesCount`): одна проверка на `/summary`
+ * и страницы его разделов (F04-3).
  */
 export function assertOverviewCarriesSummaryCount(
   book: BookOverview,
   supportedLang: string,
   slug: string
 ): void {
-  if (!Array.isArray(book.versions)) {
-    throw new Error(`Book overview for "${slug}" carries no versions array`);
-  }
-  const langVersion = book.versions.find((v) => v.language === supportedLang);
-  if (langVersion && typeof langVersion._count?.summaries !== 'number') {
-    throw new Error(`Book overview for "${slug}" carries no summary count`);
-  }
+  assertOverviewCarriesCount(book, supportedLang, slug, 'summaries', 'summary');
 }
 
 /**

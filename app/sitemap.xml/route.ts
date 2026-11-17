@@ -7,6 +7,11 @@ import {
   SUMMARY_SECTIONS_SITEMAP_PREFIX,
 } from '@/lib/sitemap/summary-sections';
 import { getBaseUrl, getBookSitemapUrls, buildSitemapIndexXml } from '@/lib/sitemap/utils';
+import {
+  fetchWorldSitemapTotal,
+  WORLD_SITEMAP_PAGE_SIZE,
+  WORLD_SITEMAP_PREFIX,
+} from '@/lib/sitemap/world';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,9 +34,10 @@ async function fetchBooksTotal(lang: string): Promise<number | null> {
 export async function GET() {
   const cleanBaseUrl = getBaseUrl();
 
-  // Разделы пересказа (F04-3) - своими файлами по тому же правилу счёта (`LEGACY-082`).
-  // Два счёта по очереди, а не десять запросов разом: лимитер отбивает параллельный всплеск
-  // с одного IP (`LEGACY-064`), а неизвестный счёт оставляет в индексе только файл 1.
+  // Разделы пересказа (F04-3) и мир книги (F08-3b) - своими файлами по тому же правилу счёта
+  // (`LEGACY-082`). Счёты семейств по очереди (внутри семейства - пять языков разом), а не
+  // пятнадцать запросов разом: лимитер отбивает параллельный всплеск с одного IP (`LEGACY-064`),
+  // а неизвестный счёт оставляет в индексе только файл 1.
   const bookSitemapUrls = await getBookSitemapUrls(cleanBaseUrl, SUPPORTED_LANGS, fetchBooksTotal);
   const summarySectionSitemapUrls = await getBookSitemapUrls(
     cleanBaseUrl,
@@ -39,11 +45,18 @@ export async function GET() {
     fetchSummarySectionsTotal,
     { prefix: SUMMARY_SECTIONS_SITEMAP_PREFIX, pageSize: SUMMARY_SECTIONS_SITEMAP_PAGE_SIZE }
   );
+  const worldSitemapUrls = await getBookSitemapUrls(
+    cleanBaseUrl,
+    SUPPORTED_LANGS,
+    fetchWorldSitemapTotal,
+    { prefix: WORLD_SITEMAP_PREFIX, pageSize: WORLD_SITEMAP_PAGE_SIZE }
+  );
 
   const sitemaps = [
     `${cleanBaseUrl}/sitemaps/sitemap-static.xml`,
     ...bookSitemapUrls,
     ...summarySectionSitemapUrls,
+    ...worldSitemapUrls,
     ...SUPPORTED_LANGS.flatMap((lang) => [
       `${cleanBaseUrl}/sitemaps/sitemap-categories-${lang}.xml`,
       `${cleanBaseUrl}/sitemaps/sitemap-genres-${lang}.xml`,

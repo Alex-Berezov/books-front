@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
-import { CHAPTER_PARAM, parseChapterParam, readerChapterQuery } from './chapterParam';
+import { chapterFromSearchParams, readerChapterQuery } from './chapterParam';
 import ReaderClient from './ReaderClient';
 
 export const metadata: Metadata = {
@@ -24,17 +24,10 @@ const readUrl =
   (bookSlug: string) =>
     `/${lang}/book/${bookSlug}/read${chapter === null ? '' : readerChapterQuery(chapter)}`;
 
-function chapterFromSearch(search: Record<string, string | string[] | undefined>): number | null {
-  const raw = search[CHAPTER_PARAM];
-  return typeof raw === 'string'
-    ? parseChapterParam(`?${CHAPTER_PARAM}=${encodeURIComponent(raw)}`)
-    : null;
-}
-
 export default async function Page({ params, searchParams }: Props) {
   const { lang, slug } = await params;
   const supportedLang = lang as SupportedLang;
-  const chapter = chapterFromSearch((await searchParams) ?? {});
+  const chapter = chapterFromSearchParams((await searchParams) ?? {});
 
   // 🔴 Книгу, которой нет, читалка до 06.09.2026 не отличала от книги без текстовой
   // версии: серверных запросов здесь не было ни одного, любой отказ бутстрапа

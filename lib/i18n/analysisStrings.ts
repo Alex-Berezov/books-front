@@ -1,5 +1,6 @@
 import 'server-only';
 import type { SupportedLang } from './lang';
+import type { BookAnalysisRole } from '@/types/api-schema';
 
 /**
  * Строки страницы анализа книги (`/{lang}/book/{slug}/analysis`) и ссылок на неё, которые читают только
@@ -259,3 +260,12 @@ export const analysisStrings: Record<SupportedLang, AnalysisStrings> = { en, es,
 
 export const getAnalysisStrings = (lang: SupportedLang): AnalysisStrings =>
   analysisStrings[lang] || analysisStrings.en;
+
+/** Подписи ролей героя (главный / второстепенный / эпизодический) - анализ и мир книги. */
+export function analysisRoleLabels(strings: AnalysisStrings): Record<BookAnalysisRole, string> {
+  return {
+    main: strings.analysisRoleMain,
+    secondary: strings.analysisRoleSecondary,
+    minor: strings.analysisRoleMinor,
+  };
+}

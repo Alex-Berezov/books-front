@@ -1,4 +1,5 @@
 import { errorCode, errorText } from '@/lib/admin/request-errors';
+import { worldEntityPath } from '@/lib/seo/world-path';
 import type { BookWorldEditor, BookWorldEntitySummary } from '@/types/api-schema';
 
 /** Текст отказа ручки мира книги: строки проверки сервера как есть (`lib/admin/request-errors.ts`). */
@@ -50,6 +51,19 @@ export const worldDeleteErrorText = (error: unknown): string =>
  */
 export const WORLD_HIDDEN_UNTIL_READ =
   'After saving, the page is hidden until an admin marks it read.';
+
+/**
+ * Public page of an entity (F08-3b, decision `F08 | F08-3` Q3): `/{lang}/book/{slug}/wiki/{key}`
+ * exists when the version is published, has its own slug and the entity is listed (`isListed`: the
+ * only condition of publicity). `null` — no page, no link.
+ */
+export const worldPublicPath = (
+  version: { language: string; slug?: string | null; status?: string },
+  entity: Pick<BookWorldEntitySummary, 'key' | 'editor'>
+): string | null =>
+  version.status === 'published' && version.slug && entity.editor?.isListed
+    ? `/${version.language}${worldEntityPath(version.slug, entity.key)}`
+    : null;
 
 export const isWorldPublished = (
   entity: Pick<BookWorldEntitySummary, 'editor'> | null | undefined

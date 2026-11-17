@@ -36,6 +36,7 @@ import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { BookOverview } from '@/types/api-schema';
 import styles from './player.module.scss';
+import { useLinkedChapter } from '../read/useLinkedChapter';
 
 function formatTime(seconds: number): string {
   if (!isFinite(seconds) || isNaN(seconds)) return '0:00';
@@ -131,6 +132,31 @@ export default function ListenClient({ params, initialBook }: Props) {
    */
   const hasUserNavigatedRef = useRef(false);
 
+  /**
+   * Глава открыта по ссылке `?chapter=N` («Слушать» у сцены мира книги, `F08 | F08-3` Q6) -
+   * по образцу `openedFromLinkRef` читалки.
+   *
+   * 🔴 Ссылка - это послушать сцену, а не переложить закладку: пока слушатель сам не сменил главу
+   * и не перемотал (`hasUserMovedRef`), место в книге не пишется. Play выбором места не считается -
+   * им слушают ту самую сцену, ради которой пришли по ссылке; без этого через пять секунд
+   * прослушивания throttle записал бы главу из ссылки поверх сохранённой двадцатой.
+   */
+  const openedFromLinkRef = useRef(false);
+  /** Слушатель сам сменил главу или перемотал - см. `openedFromLinkRef`. */
+  const hasUserMovedRef = useRef(false);
+
+  /**
+   * Аудиоглава из ссылки важнее сохранённого места и открывается с нуля. Ставится, как только
+   * пришёл список глав, не дожидаясь прогресса (`useLinkedChapter`): `openedFromLinkRef` не даёт
+   * восстановлению её перебить. Сохранение открывает восстановление, как и без ссылки: на 503
+   * прогресса место слушателя неизвестно, и писать его нельзя.
+   */
+  useLinkedChapter(chapters, (index) => {
+    openedFromLinkRef.current = true;
+    pendingSeekRef.current = null;
+    setCurrentChapterIndex(index);
+  });
+
   const currentChapter = chapters[currentChapterIndex];
 
   const recordViewMutation = useRecordView();
@@ -172,7 +198,8 @@ export default function ListenClient({ params, initialBook }: Props) {
     if (progressTarget === 'unknown') return;
     if (progressTarget === 'server' && (isServerProgressLoading || isServerProgressError)) return;
 
-    if (hasUserNavigatedRef.current) {
+    // Глава из ссылки уже стоит (`useLinkedChapter`) и важнее сохранённого места.
+    if (hasUserNavigatedRef.current || openedFromLinkRef.current) {
       setHasRestoredProgress(true);
       return;
     }
@@ -236,6 +263,8 @@ export default function ListenClient({ params, initialBook }: Props) {
       if (
         hasRestoredProgress &&
         progressTarget !== 'unknown' &&
+        // Глава из ссылки, а слушатель ещё не выбрал место сам - см. `openedFromLinkRef`.
+        (!openedFromLinkRef.current || hasUserMovedRef.current) &&
         now - lastSaveRef.current >= PROGRESS_SAVE_THROTTLE_MS &&
         currentChapter
       ) {
@@ -262,6 +291,12 @@ export default function ListenClient({ params, initialBook }: Props) {
     const onDurationChange = () => setDuration(audio.duration);
     const onEnded = () => {
       if (currentChapterIndex < chapters.length - 1) {
+        // Дослушал главу и остался в книге - это выбор места: после ссылки сохранение открывается
+        // (решение арбитра 17.11.2026 `F08 | F08-3b`, автопереход плеера). Последняя глава и play - нет.
+        // Те же отметки, что `markUserMoved`, - здесь refs напрямую: обработчик живёт в эффекте.
+        hasUserNavigatedRef.current = true;
+        pendingSeekRef.current = null;
+        hasUserMovedRef.current = true;
         setCurrentChapterIndex((i) => i + 1);
       } else {
         setIsPlaying(false);
@@ -369,8 +404,14 @@ export default function ListenClient({ params, initialBook }: Props) {
     pendingSeekRef.current = null;
   };
 
-  const goToChapter = (index: number) => {
+  /** Смена главы и перемотка - собственный выбор места: открывают сохранение после ссылки. */
+  const markUserMoved = () => {
     markUserNavigated();
+    hasUserMovedRef.current = true;
+  };
+
+  const goToChapter = (index: number) => {
+    markUserMoved();
     setCurrentChapterIndex(index);
   };
 
@@ -382,7 +423,7 @@ export default function ListenClient({ params, initialBook }: Props) {
   const handleSeek = (value: number) => {
     const audio = audioRef.current;
     if (!audio) return;
-    markUserNavigated();
+    markUserMoved();
     audio.currentTime = value;
     setCurrentTime(value);
   };
@@ -390,7 +431,7 @@ export default function ListenClient({ params, initialBook }: Props) {
   const handleSkip = (seconds: number) => {
     const audio = audioRef.current;
     if (!audio) return;
-    markUserNavigated();
+    markUserMoved();
     audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + seconds));
   };
 

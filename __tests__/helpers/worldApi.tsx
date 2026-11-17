@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { WorldTab } from '@/components/admin/books/WorldTab';
+import { WorldTab, type WorldTabProps } from '@/components/admin/books/WorldTab';
 import type {
   BookWorldEntityResponse,
   BookWorldEntitySaveResponse,
@@ -40,9 +40,11 @@ export const row = (
   short: 'A student',
   hasCore: true,
   isIndexable: true,
+  mentionFirst: null,
   updatedAt: '2026-11-14T09:00:00.000Z',
   editor: {
     isVisible: true,
+    isListed: false,
     readAt: null,
     autoTextAt: LANDED,
     firstPublishedAt: null,
@@ -69,6 +71,7 @@ export const LIST = (): BookWorldEntitySummary[] => [
 export const detail = (key: string): BookWorldEntityResponse => ({
   language: 'en',
   chapterNumbers: [1, 2],
+  alternates: [],
   entity: {
     ...row(
       { key, name: 'Sonya', updatedAt: ENTITY_SEEN },
@@ -134,6 +137,8 @@ export interface WorldApi {
   puts: { query: string; body: unknown }[];
   entityPuts: { key: string; query: string; body: unknown }[];
   deletes: string[];
+  /** Строки списка мира; по умолчанию `LIST()`. */
+  list: () => BookWorldEntitySummary[];
   readReply: Reply;
   flagsReply: Reply;
   putReply: Reply;
@@ -156,6 +161,7 @@ export const installWorldApi = (): WorldApi => {
     puts: [],
     entityPuts: [],
     deletes: [],
+    list: LIST,
     readReply: (key) => HttpResponse.json(row({ key }, { readAt: LANDED })),
     // Как бэкенд: `isIndexable` — поле строки, `isVisible` — служебное, в `editor`.
     flagsReply: (key, body) => {
@@ -193,7 +199,8 @@ export const installWorldApi = (): WorldApi => {
       api.gets.push('list');
       return HttpResponse.json({
         language: 'en',
-        entities: LIST(),
+        alternates: [],
+        entities: api.list(),
       } satisfies BookWorldListResponse);
     }),
     http.get(`${WORLD}/:key`, ({ params }) => {
@@ -233,11 +240,20 @@ export const installWorldApi = (): WorldApi => {
   return api;
 };
 
-export const renderWorldTab = (isAdmin: boolean, isEditor: boolean | null = true) => {
+export const renderWorldTab = (
+  isAdmin: boolean,
+  isEditor: boolean | null = true,
+  versionOverride: Partial<WorldTabProps['version']> = {}
+) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <WorldTab versionId="v1" version={version} isAdmin={isAdmin} isEditor={isEditor} />
+      <WorldTab
+        versionId="v1"
+        version={{ ...version, ...versionOverride }}
+        isAdmin={isAdmin}
+        isEditor={isEditor}
+      />
     </QueryClientProvider>
   );
   return { client };

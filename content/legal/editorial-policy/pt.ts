@@ -148,6 +148,48 @@ export const document: LegalDocument = {
       ],
     },
     {
+      id: 'world',
+      heading: 'Como são preparadas as páginas do mundo do livro',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'As páginas do mundo do livro sobre os personagens são preparadas pela Redação do Bibliaris.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Uma página é preparada com um modelo de linguagem seguindo as instruções da redação, a partir do texto desta versão do livro. A redação lê a página e a publica ela mesma; uma página que não foi lida não é exibida no site.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'As citações são conferidas literalmente com o texto do livro publicado no Bibliaris: uma citação que não está no texto é rejeitada ao ser carregada na redação, e uma que deixa de coincidir depois de o texto ser corrigido é ocultada do site. Uma citação não confirmada não chega ao site. O número do capítulo ao lado de uma citação ou de uma cena é o número do capítulo nesta versão no site; ele leva a esse capítulo no leitor apenas se o capítulo existir. Os capítulos em que um personagem aparece são contados por um programa a partir do texto dos capítulos, não escritos pelo modelo.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Tudo o que vem de fora do livro (crítica, protótipos, adaptações) entra apenas com uma fonte, e suas fontes são listadas na mesma página, abaixo do bloco.',
+            },
+          ],
+        },
+      ],
+    },
+    {
       id: 'translations',
       heading: 'Traduções',
       blocks: [

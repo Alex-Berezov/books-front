@@ -28,6 +28,8 @@ import type {
   BookListItem,
   BookAnalysisDetail,
   BookOverview,
+  BookWorldEntityResponse,
+  BookWorldListResponse,
   BookSummaryDetail,
   BookSummarySectionList,
   BookSummarySectionPage,
@@ -37,6 +39,7 @@ import type {
   CategoryTree,
   CategoryListItem,
   TagListItem,
+  WorldSitemapItem,
   ReaderBootstrapResponse,
   PageResponse,
   TagBookCardsResponse,
@@ -122,6 +125,31 @@ export const getPublicBookAnalysis = async (
 };
 
 /**
+ * Список мира книги для публичной страницы `/{lang}/book/{slug}/wiki` (F08-3b): только публичные
+ * сущности версии (`isListed`), кластер hreflang в `alternates`. Без токена и со страной
+ * «неизвестна» по тем же причинам, что анализ выше: ответ ложится в общий ISR-кэш, а редактору
+ * ручка отдаёт служебные поля. 404 - версии нет или она не опубликована.
+ */
+export const getPublicBookWorld = async (versionId: string): Promise<BookWorldListResponse> =>
+  httpGet<BookWorldListResponse>(`/versions/${versionId}/world`, {
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+    headers: { [VISITOR_COUNTRY_HEADER]: UNKNOWN_COUNTRY },
+  });
+
+/**
+ * Сущность мира книги для `/{lang}/book/{slug}/wiki/{key}`: те же правила, что у списка выше.
+ * 404 - сущности нет или она не публична (нет ядра, не прочитана, скрыта).
+ */
+export const getPublicBookWorldEntity = async (
+  versionId: string,
+  key: string
+): Promise<BookWorldEntityResponse> =>
+  httpGet<BookWorldEntityResponse>(`/versions/${versionId}/world/${encodeURIComponent(key)}`, {
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+    headers: { [VISITOR_COUNTRY_HEADER]: UNKNOWN_COUNTRY },
+  });
+
+/**
  * Раздел пересказа по номеру для публичной страницы `/{lang}/book/{slug}/summary/{n}` (F04-3).
  *
  * Без токена и со страной «неизвестна» - по тем же причинам, что анализ выше: ответ ложится в общий
@@ -164,6 +192,24 @@ export const getSummarySectionsSitemap = async (
   const query = new URLSearchParams({ page: String(page), limit: String(limit) });
   const endpoint = buildLangPath(lang, `/summary-sections/sitemap?${query.toString()}`);
   return httpGet<PaginatedResult<BookSummarySectionsSitemapItem>>(endpoint, {
+    language: lang,
+    cache: 'no-store',
+  });
+};
+
+/**
+ * Страница ручки карты мира книги (F08-3, решение арбитра `F08 | F08-3` Q1): элемент - опубликованная
+ * версия со слагом, её общая `/wiki`, индексируемые сущности и кластеры языков. Книги с `noindex`
+ * ручка не отдаёт (Q4). `cache: 'no-store'`, как у остальных выборок карты сайта.
+ */
+export const getPublicWorldSitemap = async (
+  lang: SupportedLang,
+  page: number,
+  limit: number
+): Promise<PaginatedResult<WorldSitemapItem>> => {
+  const query = new URLSearchParams({ page: String(page), limit: String(limit) });
+  const endpoint = buildLangPath(lang, `/world/sitemap?${query.toString()}`);
+  return httpGet<PaginatedResult<WorldSitemapItem>>(endpoint, {
     language: lang,
     cache: 'no-store',
   });

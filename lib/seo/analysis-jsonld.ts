@@ -26,14 +26,17 @@ export function bookSchemaId(lang: string, bookSchemaSlug: string): string {
   return `${buildLangUrl(lang, `/book/${bookSchemaSlug}`)}#book`;
 }
 
+/** Вход общего построителя: адрес страницы уже собран (`buildLangUrl`). */
+type EditorialArticleInput = Omit<AnalysisJsonLdInput, 'pageSlug'> & { url: string };
+
 /**
- * Разметка страницы анализа (`product.md` §22, `tech.md` §7): статья, автор - организация
- * «Редакция Bibliaris», как у пересказа (`summary-jsonld.ts`); даты публикации и правки
- * анализа; картинка - обложка; `about` - узел книги по её `@id`. `BreadcrumbList` выводят
- * видимые крошки (`Breadcrumbs`) - второй раз его здесь нет.
+ * Статья редакции на странице раздела книги (анализ F03, мир книги F08): автор - организация
+ * «Редакция Bibliaris», как у пересказа (`summary-jsonld.ts`); даты публикации и правки; картинка -
+ * обложка; `about` - узел книги по её `@id`. `BreadcrumbList` выводят видимые крошки
+ * (`Breadcrumbs`) - второй раз его здесь нет. Один построитель на разделы, разнится только `url`.
  */
-export function buildAnalysisArticleJsonLd(input: AnalysisJsonLdInput) {
-  const { lang, pageSlug, bookSchemaSlug, headline, editorialTeam, createdAt, updatedAt } = input;
+export function buildEditorialArticleJsonLd(input: EditorialArticleInput) {
+  const { lang, url, bookSchemaSlug, headline, editorialTeam, createdAt, updatedAt } = input;
   const organization = buildOrganizationJsonLd();
 
   return {
@@ -41,7 +44,7 @@ export function buildAnalysisArticleJsonLd(input: AnalysisJsonLdInput) {
     '@type': 'Article',
     headline,
     inLanguage: lang,
-    url: buildLangUrl(lang, analysisPath(pageSlug)),
+    url,
     datePublished: createdAt,
     dateModified: updatedAt,
     ...(input.coverUrl ? { image: input.coverUrl } : {}),
@@ -53,4 +56,16 @@ export function buildAnalysisArticleJsonLd(input: AnalysisJsonLdInput) {
     },
     about: { '@id': bookSchemaId(lang, bookSchemaSlug) },
   };
+}
+
+/**
+ * Разметка страницы анализа (`product.md` §22, `tech.md` §7): статья редакции
+ * (`buildEditorialArticleJsonLd`) с датами анализа на адресе `/analysis`.
+ */
+export function buildAnalysisArticleJsonLd(input: AnalysisJsonLdInput) {
+  const { pageSlug, ...rest } = input;
+  return buildEditorialArticleJsonLd({
+    ...rest,
+    url: buildLangUrl(input.lang, analysisPath(pageSlug)),
+  });
 }

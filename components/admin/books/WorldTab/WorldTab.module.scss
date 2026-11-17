@@ -170,3 +170,8 @@
   margin: $spacing-xs 0 0;
   padding-left: $spacing-md;
 }
+
+.publicLink {
+  color: $color-primary;
+  text-decoration: underline;
+}

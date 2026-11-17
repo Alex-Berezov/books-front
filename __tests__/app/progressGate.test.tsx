@@ -338,7 +338,7 @@ describe('ReaderClient: глава из адреса ?chapter=N', () => {
 
   const openWith = (search: string) => {
     window.history.replaceState(null, '', `/ru/book/hamlet/read${search}`);
-    render(<ReaderClient params={{ lang: 'ru', slug: 'hamlet' }} />);
+    return render(<ReaderClient params={{ lang: 'ru', slug: 'hamlet' }} />);
   };
 
   const wait = (ms: number) =>
@@ -447,6 +447,47 @@ describe('ReaderClient: глава из адреса ?chapter=N', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Вторая');
+  });
+
+  // 🔴 Общий хук `useLinkedChapter`: глава из ссылки не ждёт прогресса. У читалки прогресс едет
+  // в бутстрапе, а «место неизвестно» - это слияние, которое не закончилось (503 на очереди
+  // слияния держит `isSettled` до дедлайна провайдера). Возврат дефекта - применять главу
+  // только после `isSettled` - открывал бы главу 1 вместо главы из ссылки.
+  it('прогресс недоступен (слияние не закончилось) - глава из ссылки открыта, ничего не пишется', () => {
+    sessionState.data = { user: { id: 'u1' } };
+    sessionState.status = 'authenticated';
+    settleLater();
+    readerBootstrapResult.data = {
+      ...threeChapters,
+      lastProgress: { chapterNumber: 3, position: 0 },
+    };
+
+    openWith('?chapter=2');
+    wait(4000);
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Вторая');
+    expect(window.location.search).toBe('');
+    expect(mutate).toHaveBeenCalledTimes(0);
+  });
+
+  it('глава из ссылки стоит до isSettled, пришедшее восстановление её не перебивает и закладку не трогает', () => {
+    sessionState.data = { user: { id: 'u1' } };
+    sessionState.status = 'authenticated';
+    settleLater();
+    readerBootstrapResult.data = {
+      ...threeChapters,
+      lastProgress: { chapterNumber: 3, position: 0 },
+    };
+
+    const { rerender } = openWith('?chapter=2');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Вторая');
+
+    releaseSettle();
+    rerender(<ReaderClient params={{ lang: 'ru', slug: 'hamlet' }} />);
+    wait(4000);
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Вторая');
+    expect(mutate).toHaveBeenCalledTimes(0);
   });
 
   it.each(['abc', '0', '2.5', '-1', '99', ''])(

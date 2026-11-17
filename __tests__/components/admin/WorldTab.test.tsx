@@ -10,6 +10,7 @@ import {
   json409,
   LIST_NEWEST,
   renderWorldTab,
+  row,
   rowOf,
   type WorldApi,
 } from '../../helpers/worldApi';
@@ -67,8 +68,40 @@ describe('WorldTab (F08-1)', () => {
     const minor = await rowOf('lebezyatnikov');
     expect(minor.getByText('No model text')).toBeTruthy();
     expect(minor.queryByRole('button', { name: /as read/ })).toBeNull();
-    // Публичных страниц до F08-3 нет — и ссылки на них нет.
+    // Версия без slug и статуса (черновик) - ссылки на публичную страницу нет.
     expect(screen.queryByRole('link')).toBeNull();
+  });
+
+  // F08-3b (решение арбитра Q3): ссылка - при published && slug && editor.isListed.
+  describe('link to the public page', () => {
+    const listed = () => {
+      rec.list = () => [
+        row({}, { isListed: true }),
+        row({ key: 'sonya', name: 'Sonya' }, { isListed: false }),
+      ];
+    };
+
+    it('shows it for a listed entity of a published version with a slug, in the version language', async () => {
+      listed();
+      renderWorldTab(true, true, { status: 'published', slug: 'crime-and-punishment' });
+      const main = await rowOf('raskolnikov');
+      const link = main.getByRole('link', { name: 'Public page: raskolnikov' });
+      expect(link.getAttribute('href')).toBe('/en/book/crime-and-punishment/wiki/raskolnikov');
+      expect(link.getAttribute('target')).toBe('_blank');
+      expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+      expect((await rowOf('sonya')).queryByRole('link')).toBeNull();
+    });
+
+    it.each([
+      ['a draft version', { status: 'draft' as const, slug: 'crime' }],
+      ['a version without a slug', { status: 'published' as const, slug: null }],
+      ['a version without status data', {}],
+    ])('has no link for %s', async (_name, override) => {
+      listed();
+      renderWorldTab(true, true, override);
+      await rowOf('raskolnikov');
+      expect(screen.queryByRole('link')).toBeNull();
+    });
   });
 
   it('«Mark as read» posts the autoTextAt the tab showed to the read endpoint of that entity', async () => {

@@ -6,6 +6,7 @@ import { isRightsBlockedError } from '@/lib/errors';
 import { pickAnalysisPageVersion } from '@/lib/seo/book-analysis';
 import { handleContentFailure } from '@/lib/utils/content-failure';
 import type { BookOverview } from '@/types/api-schema';
+import { assertOverviewCarriesCount } from '../overviewShape';
 
 /** Один запрос анализа на рендер: его читают и `generateMetadata`, и сама страница. */
 export const getCachedBookAnalysis = cache((versionId: string) => getPublicBookAnalysis(versionId));
@@ -30,13 +31,7 @@ export async function loadAnalysisOrNotFound(
   supportedLang: string,
   slug: string
 ) {
-  if (!Array.isArray(book.versions)) {
-    throw new Error(`Book overview for "${slug}" carries no versions array`);
-  }
-  const langVersion = book.versions.find((v) => v.language === supportedLang);
-  if (langVersion && typeof langVersion._count?.analyses !== 'number') {
-    throw new Error(`Book overview for "${slug}" carries no analysis count`);
-  }
+  assertOverviewCarriesCount(book, supportedLang, slug, 'analyses', 'analysis');
 
   // Доступ - по версии языка и ответу ручки, а не по счётчику (`pickAnalysisPageVersion`).
   const version = pickAnalysisPageVersion(book, supportedLang);

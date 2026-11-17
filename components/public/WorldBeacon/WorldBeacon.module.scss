@@ -1,0 +1,6 @@
+@import '@/styles/tokens.scss';
+
+// Обёртка не участвует в вёрстке: страница выглядит так же, как без неё.
+.root {
+  display: contents;
+}

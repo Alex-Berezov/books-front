@@ -60,19 +60,41 @@ describe('страницы доверия: состав', () => {
     expect(ids('contact')).toEqual(['general', 'corrections', 'rights', 'privacy', 'response']);
   });
 
-  // F03-3: раздел об анализе книг (решение арбитра `F03 | F03-3`, В5) - цель подписи страницы анализа.
-  it('редакционная политика: якоря с #analysis, #translations и #authors, без #independence', () => {
+  // F03-3: раздел об анализе книг (решение арбитра `F03 | F03-3`, В5) - цель подписи страницы анализа;
+  // F08-3b: раздел #world - цель подписи страниц мира книги (`product.md` §12).
+  it('редакционная политика: якоря с #analysis, #world, #translations и #authors, без #independence', () => {
     expect(ids('editorial-policy')).toEqual([
       'who',
       'sources',
       'preparation',
       'summaries',
       'analysis',
+      'world',
       'translations',
       'authors',
       'corrections',
     ]);
   });
+
+  // F08-3b (`product.md` §12): #world говорит прямо, что цитаты сверены с текстом книги и
+  // неподтверждённая на сайт не попадает (импорт отбивает недословную, пересчёт прячет разошедшуюся),
+  // а не только что «инструкции требуют» дословности.
+  it.each(SUPPORTED_LANGS)(
+    '%s: #world - цитаты сверяются с текстом, неподтверждённые не на сайте',
+    (lang) => {
+      const text = sectionText('editorial-policy', lang, ['world']);
+      expect(text).toMatch(
+        /сверяются с текстом|checked word for word|se cotejan|sont vérifiées|são conferidas/iu
+      );
+      expect(text).toMatch(
+        /на сайт не попадает|does not reach the site|no llega al sitio|n’apparaît pas sur le site|não chega ao site/iu
+      );
+      expect(text).not.toMatch(
+        /инструкции требуют|instructions require|instrucciones exigen|instructions exigent|instruções exigem/iu
+      );
+      if (lang === 'pt') expect(text).not.toMatch(/\b(na|da) Bibliaris/u);
+    }
+  );
 
   // F02-4 (решение арбитра 16.10.2026, `F02 | F02-4`, Р1): раздел о страницах авторов говорит,
   // откуда сведения, и не утверждает ни «пишут люди», ни «проверяется редакцией» (README F02).

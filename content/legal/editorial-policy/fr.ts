@@ -150,6 +150,48 @@ export const document: LegalDocument = {
       ],
     },
     {
+      id: 'world',
+      heading: 'Comment sont préparées les pages de l’univers du livre',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Les pages de l’univers du livre consacrées aux personnages sont préparées par la Rédaction de Bibliaris.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Une page est préparée avec un modèle de langage selon les consignes de la rédaction, à partir du texte de cette version du livre. La rédaction relit la page et la publie elle-même ; une page non relue n’est pas affichée sur le site.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Les citations sont vérifiées mot pour mot avec le texte du livre publié sur Bibliaris : une citation absente du texte est rejetée lors de l’import de la page dans la rédaction, et une citation qui ne correspond plus au texte après sa correction est masquée sur le site. Une citation non confirmée n’apparaît pas sur le site. Le numéro de chapitre à côté d’une citation ou d’une scène est celui du chapitre dans cette version sur le site ; il renvoie à ce chapitre dans le lecteur seulement si le chapitre existe. Les chapitres où apparaît un personnage sont comptés par un programme à partir du texte des chapitres, ils ne sont pas écrits par le modèle.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Tout ce qui vient de l’extérieur du livre (critique, prototypes, adaptations) n’est inclus qu’avec une source, et ses sources sont listées sur la même page, sous le bloc.',
+            },
+          ],
+        },
+      ],
+    },
+    {
       id: 'translations',
       heading: 'Traductions',
       blocks: [

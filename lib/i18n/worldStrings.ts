@@ -1,0 +1,245 @@
+import 'server-only';
+import { fillTemplate } from '@/lib/book-world/format';
+import type { SupportedLang } from './lang';
+
+/**
+ * Строки страниц мира книги (`/{lang}/book/{slug}/wiki[/{key}]`, F08-3), которые читают только
+ * серверные компоненты; вынесены из `locales/*.json` по образцу `analysisStrings.ts`. Формулы h1,
+ * title и description - `product.md` §15. Подписи ролей, «Глава N» и общие заголовки берутся из
+ * `analysisStrings.ts` и словаря, здесь их нет. title общей - не отдельная строка, а
+ * `worldIndexMetaTitle`: h1 общей + « — {автор}» (§15), чтобы сниппет не расходился с h1.
+ * Паритет пяти языков стережёт тип и `__tests__/lib/i18n/worldStrings.test.ts`.
+ */
+
+const en = {
+  worldIndexTitle: '{title}: characters, places and world of the book',
+  worldIndexDescription:
+    '{title} by {author}: who the characters are, how they are connected and in which chapter each one first appears.',
+  worldEntityTitle: '{name} in {title}: character analysis',
+  worldEntityMetaTitle: '{name} in {title} by {author}: character analysis',
+  worldHeroesTitle: 'Characters',
+  worldLinksTitle: 'More about the book',
+  worldAnalysisLink: 'Analysis of the book',
+  worldLinkOnBook: 'Explore the world of {title}',
+  worldInfoboxTitle: 'About the character',
+  worldInfoRole: 'Role',
+  worldInfoPosition: 'Occupation or position',
+  worldInfoRelation: 'Relation to the main character',
+  worldInfoFirst: 'First appears',
+  worldInfoChapters: 'Chapters with the character',
+  worldShortTitle: 'In brief',
+  worldPresenceTitle: 'Presence across the chapters',
+  worldPresenceLabel: 'Chapters where {name} appears',
+  worldAppearanceTitle: 'Appearance',
+  worldCharacterTitle: 'Character',
+  worldArcTitle: 'Character path',
+  worldStageSpoiler: 'Spoiler',
+  worldScenesTitle: 'Key scenes',
+  worldReadScene: 'Read the scene',
+  worldListenScene: 'Listen',
+  worldRelationsTitle: 'Relationships',
+  worldCoPresenceTitle: 'Most often in the same chapters as',
+  worldQuotesTitle: 'Quotes',
+  worldCritiqueTitle: 'The character in criticism',
+  worldPrototypesTitle: 'Prototypes',
+  worldAdaptationsTitle: 'On screen and stage',
+  worldAdaptationPlayedBy: 'Played by {actor}',
+  worldSourcesTitle: 'Sources',
+  worldFaqTitle: 'Questions about {name}',
+  worldNextTitle: 'Next',
+  worldAnalysisThemes: 'Analysis: themes',
+  worldReadFirst: 'Read chapter {n}, where {name} first appears',
+  worldReadFromStart: 'Read from the beginning',
+};
+
+const es: WorldStrings = {
+  worldIndexTitle: '«{title}»: personajes, lugares y mundo del libro',
+  worldIndexDescription:
+    '«{title}», de {author}: quién es quién entre los personajes, cómo se relacionan y en qué capítulo aparece cada uno por primera vez.',
+  worldEntityTitle: '{name} en «{title}»: análisis del personaje',
+  worldEntityMetaTitle: '{name} en «{title}» de {author}: análisis del personaje',
+  worldHeroesTitle: 'Personajes',
+  worldLinksTitle: 'Más sobre el libro',
+  worldAnalysisLink: 'Análisis del libro',
+  worldLinkOnBook: 'Descubre el mundo de {title}',
+  worldInfoboxTitle: 'Sobre el personaje',
+  worldInfoRole: 'Papel',
+  worldInfoPosition: 'Ocupación o posición',
+  worldInfoRelation: 'Relación con el protagonista',
+  worldInfoFirst: 'Primera aparición',
+  worldInfoChapters: 'Capítulos con el personaje',
+  worldShortTitle: 'En breve',
+  worldPresenceTitle: 'Presencia por capítulos',
+  worldPresenceLabel: 'Capítulos en los que aparece {name}',
+  worldAppearanceTitle: 'Aspecto',
+  worldCharacterTitle: 'Carácter',
+  worldArcTitle: 'Recorrido del personaje',
+  worldStageSpoiler: 'Spoiler',
+  worldScenesTitle: 'Escenas clave',
+  worldReadScene: 'Leer la escena',
+  worldListenScene: 'Escuchar',
+  worldRelationsTitle: 'Relaciones',
+  worldCoPresenceTitle: 'Con quién coincide más a menudo en los capítulos',
+  worldQuotesTitle: 'Citas',
+  worldCritiqueTitle: 'El personaje en la crítica',
+  worldPrototypesTitle: 'Prototipos',
+  worldAdaptationsTitle: 'En la pantalla y en el escenario',
+  worldAdaptationPlayedBy: 'Interpretación de {actor}',
+  worldSourcesTitle: 'Fuentes',
+  worldFaqTitle: 'Preguntas sobre {name}',
+  worldNextTitle: 'A continuación',
+  worldAnalysisThemes: 'Análisis: temas',
+  worldReadFirst: 'Leer el capítulo {n}, donde aparece {name} por primera vez',
+  worldReadFromStart: 'Leer desde el principio',
+};
+
+const fr: WorldStrings = {
+  worldIndexTitle: '« {title} » : personnages, lieux et univers du livre',
+  worldIndexDescription:
+    '« {title} », de {author} : qui est qui parmi les personnages, comment ils sont liés et dans quel chapitre chacun apparaît pour la première fois.',
+  worldEntityTitle: '{name} dans « {title} » : analyse du personnage',
+  worldEntityMetaTitle: '{name} dans « {title} » de {author} : analyse du personnage',
+  worldHeroesTitle: 'Personnages',
+  worldLinksTitle: 'Plus sur le livre',
+  worldAnalysisLink: 'Analyse du livre',
+  worldLinkOnBook: 'Découvrir l’univers de {title}',
+  worldInfoboxTitle: 'Sur le personnage',
+  worldInfoRole: 'Rôle',
+  worldInfoPosition: 'Occupation ou situation',
+  worldInfoRelation: 'Lien avec le personnage principal',
+  worldInfoFirst: 'Première apparition',
+  worldInfoChapters: 'Chapitres avec le personnage',
+  worldShortTitle: 'En bref',
+  worldPresenceTitle: 'Présence par chapitres',
+  worldPresenceLabel: 'Chapitres où apparaît {name}',
+  worldAppearanceTitle: 'Apparence',
+  worldCharacterTitle: 'Caractère',
+  worldArcTitle: 'Parcours du personnage',
+  worldStageSpoiler: 'Spoiler',
+  worldScenesTitle: 'Scènes clés',
+  worldReadScene: 'Lire la scène',
+  worldListenScene: 'Écouter',
+  worldRelationsTitle: 'Relations',
+  worldCoPresenceTitle: 'Le plus souvent dans les mêmes chapitres que',
+  worldQuotesTitle: 'Citations',
+  worldCritiqueTitle: 'Le personnage dans la critique',
+  worldPrototypesTitle: 'Prototypes',
+  worldAdaptationsTitle: 'À l’écran et sur scène',
+  worldAdaptationPlayedBy: 'Interprétation : {actor}',
+  worldSourcesTitle: 'Sources',
+  worldFaqTitle: 'Questions sur {name}',
+  worldNextTitle: 'Ensuite',
+  worldAnalysisThemes: 'Analyse : thèmes',
+  worldReadFirst: 'Lire le chapitre {n}, où {name} apparaît pour la première fois',
+  worldReadFromStart: 'Lire depuis le début',
+};
+
+const pt: WorldStrings = {
+  worldIndexTitle: '«{title}»: personagens, lugares e mundo do livro',
+  worldIndexDescription:
+    '«{title}», de {author}: quem é quem entre os personagens, como se relacionam e em que capítulo cada um aparece pela primeira vez.',
+  worldEntityTitle: '{name} em «{title}»: análise do personagem',
+  worldEntityMetaTitle: '{name} em «{title}» de {author}: análise do personagem',
+  worldHeroesTitle: 'Personagens',
+  worldLinksTitle: 'Mais sobre o livro',
+  worldAnalysisLink: 'Análise do livro',
+  worldLinkOnBook: 'Descubra o mundo de {title}',
+  worldInfoboxTitle: 'Sobre o personagem',
+  worldInfoRole: 'Papel',
+  worldInfoPosition: 'Ocupação ou posição',
+  worldInfoRelation: 'Relação com o protagonista',
+  worldInfoFirst: 'Primeira aparição',
+  worldInfoChapters: 'Capítulos com o personagem',
+  worldShortTitle: 'Em resumo',
+  worldPresenceTitle: 'Presença nos capítulos',
+  worldPresenceLabel: 'Capítulos em que {name} aparece',
+  worldAppearanceTitle: 'Aparência',
+  worldCharacterTitle: 'Caráter',
+  worldArcTitle: 'Trajetória do personagem',
+  worldStageSpoiler: 'Spoiler',
+  worldScenesTitle: 'Cenas-chave',
+  worldReadScene: 'Ler a cena',
+  worldListenScene: 'Ouvir',
+  worldRelationsTitle: 'Relações',
+  worldCoPresenceTitle: 'Com quem mais aparece nos mesmos capítulos',
+  worldQuotesTitle: 'Citações',
+  worldCritiqueTitle: 'O personagem na crítica',
+  worldPrototypesTitle: 'Protótipos',
+  worldAdaptationsTitle: 'Na tela e no palco',
+  worldAdaptationPlayedBy: 'Interpretação de {actor}',
+  worldSourcesTitle: 'Fontes',
+  worldFaqTitle: 'Perguntas sobre {name}',
+  worldNextTitle: 'A seguir',
+  worldAnalysisThemes: 'Análise: temas',
+  worldReadFirst: 'Ler o capítulo {n}, onde {name} aparece pela primeira vez',
+  worldReadFromStart: 'Ler desde o início',
+};
+
+const ru: WorldStrings = {
+  worldIndexTitle: '«{title}»: мир книги — герои, места и понятия',
+  worldIndexDescription:
+    '«{title}», {author}: кто есть кто среди героев, как они связаны и в какой главе каждый появляется впервые.',
+  worldEntityTitle: '{name} в книге «{title}»: характеристика героя',
+  worldEntityMetaTitle: '{name} — характеристика героя «{title}», {author}',
+  worldHeroesTitle: 'Герои',
+  worldLinksTitle: 'Ещё о книге',
+  worldAnalysisLink: 'Анализ книги',
+  worldLinkOnBook: 'Мир книги «{title}»',
+  worldInfoboxTitle: 'О герое',
+  worldInfoRole: 'Роль',
+  worldInfoPosition: 'Занятие или положение',
+  worldInfoRelation: 'Кем приходится главному герою',
+  worldInfoFirst: 'Впервые',
+  worldInfoChapters: 'Глав с героем',
+  worldShortTitle: 'Коротко',
+  worldPresenceTitle: 'Присутствие по главам',
+  worldPresenceLabel: 'Главы, где есть {name}',
+  worldAppearanceTitle: 'Внешность',
+  worldCharacterTitle: 'Характер',
+  worldArcTitle: 'Путь героя',
+  worldStageSpoiler: 'Спойлер',
+  worldScenesTitle: 'Ключевые сцены',
+  worldReadScene: 'Читать сцену',
+  worldListenScene: 'Слушать',
+  worldRelationsTitle: 'Отношения',
+  worldCoPresenceTitle: 'Чаще всего в одних главах с',
+  worldQuotesTitle: 'Цитаты',
+  worldCritiqueTitle: 'Образ в критике',
+  worldPrototypesTitle: 'Прототипы',
+  worldAdaptationsTitle: 'В экранизациях',
+  worldAdaptationPlayedBy: 'В роли — {actor}',
+  worldSourcesTitle: 'Источники',
+  worldFaqTitle: 'Частые вопросы: {name}',
+  worldNextTitle: 'Дальше',
+  worldAnalysisThemes: 'Анализ: темы',
+  worldReadFirst: 'Читать главу {n}, где {name} появляется впервые',
+  worldReadFromStart: 'Читать с начала',
+};
+
+export type WorldStrings = { [K in keyof typeof en]: string };
+
+export const worldStrings: Record<SupportedLang, WorldStrings> = { en, es, fr, pt, ru };
+
+export const getWorldStrings = (lang: SupportedLang): WorldStrings =>
+  worldStrings[lang] || worldStrings.en;
+
+/** title общей страницы мира (`product.md` §15): h1 общей + « — {автор}», как у анализа. */
+export function worldIndexMetaTitle(lang: SupportedLang, title: string, author: string): string {
+  return `${fillTemplate(getWorldStrings(lang).worldIndexTitle, { title })} — ${author}`;
+}
+
+/**
+ * Название раздела «Мир книги» (`product.md` §1 п.2, §15): пункт навигации книги, крошка и подпись
+ * шапки. Считает сервер; клиентской кнопке книги (`BookActions`) метка приходит пропсом.
+ */
+const WORLD_NAV_LABELS: Record<SupportedLang, string> = {
+  en: 'Book world',
+  es: 'Mundo del libro',
+  fr: 'Univers du livre',
+  pt: 'Mundo do livro',
+  ru: 'Мир книги',
+};
+
+export function worldNavLabel(lang: SupportedLang): string {
+  return WORLD_NAV_LABELS[lang] ?? WORLD_NAV_LABELS.en;
+}

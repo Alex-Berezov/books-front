@@ -7,9 +7,11 @@ import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
 import { hasText } from '@/lib/book-analysis/format';
 import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
+import { worldNavLabel } from '@/lib/i18n/worldStrings';
 import { buildAnalysisArticleJsonLd } from '@/lib/seo/analysis-jsonld';
 import { analysisPageSlug, analysisPath } from '@/lib/seo/book-analysis';
 import { pickSummaryVersion, summaryPath } from '@/lib/seo/book-summary';
+import { versionHasWorld } from '@/lib/seo/world-path';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
 import { formatLongDateUtc } from '@/lib/utils/date';
 import { serializeJsonLd } from '@/lib/utils/json-ld';
@@ -97,12 +99,14 @@ export default async function BookAnalysisPage({ params }: Props) {
     hasSummary: Boolean(summary),
     // Пункт этой страницы - активный, он есть всегда; на других страницах книги пункт - по счётчику.
     hasAnalysis: true,
+    hasWorld: versionHasWorld(version),
     labels: {
       book: t.bookNavBook,
       read: t.read,
       listen: t.listen,
       summary: t.summary,
       analysis: t.analysis,
+      world: worldNavLabel(supportedLang),
     },
   });
 

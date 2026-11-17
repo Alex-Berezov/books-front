@@ -215,4 +215,142 @@ describe('LanguageSwitcher', () => {
       expect(pushMock).toHaveBeenCalledWith(expected);
     }
   );
+
+  // F08-3b: общая страница мира есть только у языков с публичными сущностями.
+  it('на странице мира книги предлагает только языки с миром', () => {
+    vi.spyOn(navigation, 'usePathname').mockReturnValue('/en/book/hamlet/wiki');
+    overview.data = {
+      versions: [
+        { language: 'en', slug: 'hamlet', _count: { worldEntities: 4 } },
+        { language: 'es', slug: 'hamlet-es', _count: { worldEntities: 0 } },
+        { language: 'fr', slug: 'hamlet-fr', _count: { worldEntities: 2 } },
+        { language: 'pt', slug: 'hamlet-pt' },
+      ],
+    };
+
+    render(<LanguageSwitcher />);
+    fireEvent.click(screen.getByLabelText('Select language'));
+
+    expect(screen.getByText(/FR/)).toBeInTheDocument();
+    expect(screen.queryByText(/ES/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/PT/)).not.toBeInTheDocument();
+  });
+
+  it('на странице мира текущий язык есть и при нулевом счётчике', () => {
+    vi.spyOn(navigation, 'usePathname').mockReturnValue('/en/book/hamlet/wiki');
+    overview.data = {
+      versions: [
+        { language: 'en', slug: 'hamlet', _count: { worldEntities: 0 } },
+        { language: 'fr', slug: 'hamlet-fr', _count: { worldEntities: 0 } },
+      ],
+    };
+
+    render(<LanguageSwitcher />);
+    fireEvent.click(screen.getByLabelText('Select language'));
+
+    // Кнопка выбора и пункт списка: свой язык остался в списке.
+    expect(screen.getAllByText(/EN/)).toHaveLength(2);
+    expect(screen.queryByText(/FR/)).not.toBeInTheDocument();
+  });
+
+  // F08-3b `product.md` §1 п.3, §19 п.5: на `/wiki/{key}` - только языки, у версии которых
+  // сущность с этим ключом публична (`worldKeys`); переход - на ту же сущность другого языка.
+  it('со страницы сущности /wiki/{key} ведёт на /wiki/{key} версии выбранного языка', () => {
+    const pushMock = vi.fn();
+    vi.spyOn(navigation, 'useRouter').mockReturnValue({
+      push: pushMock,
+      refresh: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      replace: vi.fn(),
+      prefetch: vi.fn(),
+    });
+    vi.spyOn(navigation, 'usePathname').mockReturnValue('/en/book/hamlet/wiki/ophelia');
+    overview.data = {
+      versions: [
+        {
+          language: 'en',
+          slug: 'hamlet',
+          _count: { worldEntities: 4 },
+          worldKeys: [{ key: 'ophelia', type: 'character', name: 'Ophelia', isIndexable: true }],
+        },
+        {
+          language: 'fr',
+          slug: 'hamlet-fr',
+          _count: { worldEntities: 2 },
+          worldKeys: [{ key: 'ophelia', type: 'character', name: 'Ophélie', isIndexable: true }],
+        },
+      ],
+    };
+
+    render(<LanguageSwitcher />);
+    fireEvent.click(screen.getByLabelText('Select language'));
+    fireEvent.click(screen.getByText(/FR/));
+
+    expect(pushMock).toHaveBeenCalledTimes(1);
+    expect(pushMock).toHaveBeenCalledWith('/fr/book/hamlet-fr/wiki/ophelia');
+  });
+
+  it('на странице сущности не предлагает язык, у версии которого нет этого ключа', () => {
+    vi.spyOn(navigation, 'usePathname').mockReturnValue('/en/book/hamlet/wiki/ophelia');
+    overview.data = {
+      versions: [
+        {
+          language: 'en',
+          slug: 'hamlet',
+          _count: { worldEntities: 4 },
+          worldKeys: [{ key: 'ophelia', type: 'character', name: 'Ophelia', isIndexable: true }],
+        },
+        // Мир есть, но этого героя в нём нет: общая `/wiki` открылась бы, сущность - 404.
+        {
+          language: 'es',
+          slug: 'hamlet-es',
+          _count: { worldEntities: 3 },
+          worldKeys: [{ key: 'hamlet', type: 'character', name: 'Hamlet', isIndexable: true }],
+        },
+        // Ключа нет в обзоре вовсе (бэкенд без поля) - сущность не подтверждена.
+        { language: 'pt', slug: 'hamlet-pt', _count: { worldEntities: 2 } },
+        // Снятое «Индексировать» страницу не закрывает (200 с `noindex`, §19 п.4) - язык есть.
+        {
+          language: 'fr',
+          slug: 'hamlet-fr',
+          _count: { worldEntities: 2 },
+          worldKeys: [{ key: 'ophelia', type: 'character', name: 'Ophélie', isIndexable: false }],
+        },
+      ],
+    };
+
+    render(<LanguageSwitcher />);
+    fireEvent.click(screen.getByLabelText('Select language'));
+
+    expect(screen.getByText(/FR/)).toBeInTheDocument();
+    expect(screen.queryByText(/ES/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/PT/)).not.toBeInTheDocument();
+  });
+
+  it('с общей /wiki ведёт на /wiki версии выбранного языка', () => {
+    const pushMock = vi.fn();
+    vi.spyOn(navigation, 'useRouter').mockReturnValue({
+      push: pushMock,
+      refresh: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      replace: vi.fn(),
+      prefetch: vi.fn(),
+    });
+    vi.spyOn(navigation, 'usePathname').mockReturnValue('/en/book/hamlet/wiki');
+    overview.data = {
+      versions: [
+        { language: 'en', slug: 'hamlet', _count: { worldEntities: 4 } },
+        { language: 'fr', slug: 'hamlet-fr', _count: { worldEntities: 2 } },
+      ],
+    };
+
+    render(<LanguageSwitcher />);
+    fireEvent.click(screen.getByLabelText('Select language'));
+    fireEvent.click(screen.getByText(/FR/));
+
+    expect(pushMock).toHaveBeenCalledTimes(1);
+    expect(pushMock).toHaveBeenCalledWith('/fr/book/hamlet-fr/wiki');
+  });
 });

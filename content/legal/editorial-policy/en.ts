@@ -148,6 +148,48 @@ export const document: LegalDocument = {
       ],
     },
     {
+      id: 'world',
+      heading: 'How book world pages are prepared',
+      blocks: [
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Book world pages about characters are prepared by the Bibliaris Editorial Team.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'A page is prepared with a language model following the editorial team’s instructions, from the text of this version of the book. The editorial team reads the page and publishes it itself; a page that has not been read is not shown on the site.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Quotations are checked word for word against the text of the book published on Bibliaris: a quotation that is not in the text is rejected when the page is loaded into the editorial system, and one that no longer matches after the text is corrected is hidden from the site. An unconfirmed quotation does not reach the site. The chapter number next to a quotation or a scene is the number of the chapter in this version on the site; it links to that chapter in the reader only if the chapter exists. The chapters where a character appears are counted by a program from the text of the chapters, not written by the model.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Anything from outside the book — criticism, prototypes, adaptations — is included only with a source, and its sources are listed on the same page, under the block.',
+            },
+          ],
+        },
+      ],
+    },
+    {
       id: 'translations',
       heading: 'Translations',
       blocks: [

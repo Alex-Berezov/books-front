@@ -11,12 +11,13 @@ import { ImportWorldModal } from './ImportWorldModal';
 import { useWorldTab } from './useWorldTab';
 import { WorldEntityCard } from './WorldEntityCard';
 import { isWorldPublished, worldReadLabel, worldReadState } from './worldErrors';
+import { WorldPublicLink } from './WorldPublicLink';
 import styles from './WorldTab.module.scss';
 
 /**
  * Tab «World» (F08-1, `books-app-docs/features/F08-book-wiki/product.md` §17): the list of
  * entities with the core, the read mark and the flags, the entity card, prompt inputs and the
- * JSON import of the whole version. Public pages arrive with F08-3: no link to them yet.
+ * JSON import of the whole version; a published version links to the public page of a listed entity.
  */
 export const WorldTab: FC<WorldTabProps> = ({ isEditor, ...props }) => {
   // Вкладка — для редакторов (`admin`, `content_manager`): прочим ручка отдаёт только публичные
@@ -184,20 +185,25 @@ const WorldTabContent: FC<Omit<WorldTabProps, 'isEditor'>> = (props) => {
                     />
                   </td>
                   <td>
-                    <Button
-                      type="button"
-                      variant="link"
-                      onClick={() => tab.select(entity.key)}
-                      ariaLabel={`Edit ${entity.key}`}
-                    >
-                      Edit
-                    </Button>
+                    <span className={styles.cellStack}>
+                      <Button
+                        type="button"
+                        variant="link"
+                        onClick={() => tab.select(entity.key)}
+                        ariaLabel={`Edit ${entity.key}`}
+                      >
+                        Edit
+                      </Button>
+                      <WorldPublicLink version={version} entity={entity} />
+                    </span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <p className={styles.hint}>Public pages of entities are not available yet.</p>
+          <p className={styles.hint}>
+            The public page link appears for a published version with a slug and a listed entity.
+          </p>
         </div>
       )}
 

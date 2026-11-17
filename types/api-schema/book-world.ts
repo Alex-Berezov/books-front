@@ -115,6 +115,8 @@ export interface BookWorldCharacterFields {
 /** Служебные поля — только редактору (`admin`, `content_manager`); анониму поля нет. */
 export interface BookWorldEditor {
   isVisible: boolean;
+  /** Публичная страница есть: `readAt` не раньше `autoTextAt`, `isVisible`, ядро (F08-3a, решение арбитра Q3). */
+  isListed: boolean;
   readAt: ISODate | null;
   /** Последняя запись текста моделью; `null` — модель текст не писала. */
   autoTextAt: ISODate | null;
@@ -151,12 +153,22 @@ export interface BookWorldEntitySummary {
   short: string | null;
   hasCore: boolean;
   isIndexable: boolean;
+  /** Первая глава присутствия (F08-3a, колонка `mentionFirst`); `null` — не посчитано или героя нет в текстах. */
+  mentionFirst: number | null;
   updatedAt: ISODate;
   editor?: BookWorldEditor;
 }
 
+/** Язык кластера hreflang мира книги и слаг версии этого языка (F08-3a). */
+export interface BookWorldAlternate {
+  language: SupportedLang;
+  slug: string;
+}
+
 export interface BookWorldListResponse {
   language: SupportedLang;
+  /** Кластер hreflang страницы; пусто — страница не индексируется (одно правило с картой сайта). */
+  alternates: BookWorldAlternate[];
   entities: BookWorldEntitySummary[];
 }
 
@@ -171,6 +183,8 @@ export interface BookWorldEntityResponse {
   /** Номера глав версии по возрастанию: `chapter` полей — только из этого списка. */
   chapterNumbers: number[];
   entity: BookWorldEntity;
+  /** Кластер hreflang страницы сущности; пусто — страница не индексируется. */
+  alternates: BookWorldAlternate[];
 }
 
 /** Сущность в теле записи. Ключа поля нет — поле не трогается (слияние на сервере). */
@@ -247,4 +261,53 @@ export interface BookOverviewWorldKey {
   type: WorldEntityType;
   name: string;
   isIndexable: boolean;
+}
+
+/** Сущность в карте сайта мира: `lastmod` — её `updatedAt`, `alternates` — языки, где она публична и индексируется. */
+export interface WorldSitemapEntity {
+  key: string;
+  lastmod: ISODate;
+  alternates: BookWorldAlternate[];
+}
+
+/** Элемент `GET :lang/world/sitemap`: опубликованная версия со слагом, её `/wiki` и индексируемые сущности. */
+export interface WorldSitemapItem {
+  slug: string;
+  lastmod: ISODate;
+  alternates: BookWorldAlternate[];
+  entities: WorldSitemapEntity[];
+}
+
+/** Событие страницы мира книги (`POST api/world/beacon`, 204; без идентификатора посетителя). */
+export type WorldStatEvent =
+  | 'view'
+  | 'to_reader'
+  | 'to_audio'
+  | 'to_world'
+  | 'to_analysis'
+  | 'to_summary'
+  | 'engaged';
+
+export interface WorldBeaconRequest {
+  bookVersionId: string;
+  /** Ключ сущности; нет поля — общая страница `/wiki`. */
+  key?: string;
+  event: WorldStatEvent;
+}
+
+export interface WorldStatsRow {
+  bookVersionId: string;
+  language: SupportedLang | null;
+  slug: string | null;
+  /** `null` — общая страница `/wiki`. */
+  key: string | null;
+  event: WorldStatEvent;
+  count: number;
+}
+
+export interface WorldStatsResponse {
+  from: string;
+  to: string;
+  isTruncated: boolean;
+  items: WorldStatsRow[];
 }

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { parseChapterParam } from '@/app/[lang]/book/[slug]/read/chapterParam';
+import {
+  chapterFromSearchParams,
+  parseChapterParam,
+} from '@/app/[lang]/book/[slug]/read/chapterParam';
 
 // Обёртка читалки над общим правилом номера (F04 T3): параметр `chapter` строки запроса.
 describe('parseChapterParam', () => {
@@ -12,5 +15,18 @@ describe('parseChapterParam', () => {
     ['', null],
   ])('%j -> %j', (search, expected) => {
     expect(parseChapterParam(search)).toBe(expected);
+  });
+});
+
+// Серверные страницы читалки и плеера: одна функция на обе (F08-3b).
+describe('chapterFromSearchParams', () => {
+  it.each([
+    [{ chapter: '3' }, 3],
+    [{ chapter: '03' }, null],
+    [{ chapter: ['1', '2'] }, null],
+    [{ chapter: 'abc' }, null],
+    [{}, null],
+  ])('%j -> %j', (search, expected) => {
+    expect(chapterFromSearchParams(search)).toBe(expected);
   });
 });

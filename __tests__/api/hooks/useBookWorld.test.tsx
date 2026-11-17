@@ -26,6 +26,7 @@ const row = (isIndexable: boolean): BookWorldEntitySummary => ({
   short: null,
   hasCore: false,
   isIndexable,
+  mentionFirst: null,
   updatedAt: '2026-11-14T09:00:00.000Z',
 });
 
@@ -38,7 +39,7 @@ const deferred = <T,>() => {
 describe('useSetBookWorldEntityFlags', () => {
   it('the answer of an earlier request that comes later does not overwrite the latest', async () => {
     const client = new QueryClient();
-    const list: BookWorldListResponse = { language: 'en', entities: [row(true)] };
+    const list: BookWorldListResponse = { language: 'en', alternates: [], entities: [row(true)] };
     client.setQueryData(bookWorldQueryKeys.list('v1'), list);
     const first = deferred<BookWorldEntitySummary>();
     const second = deferred<BookWorldEntitySummary>();
@@ -79,6 +80,7 @@ describe('useSetBookWorldEntityFlags', () => {
     const client = new QueryClient();
     client.setQueryData(bookWorldQueryKeys.list('v1'), {
       language: 'en',
+      alternates: [],
       entities: [row(true)],
     } satisfies BookWorldListResponse);
     const opened = detail('sonya');

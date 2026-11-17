@@ -1,0 +1,1 @@
+export { WorldBeacon } from './WorldBeacon';

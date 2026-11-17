@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { analysisPath } from '@/lib/seo/analysis-path';
 import { summaryPath } from '@/lib/seo/summary-path';
+import { worldPath } from '@/lib/seo/world-path';
 import styles from './BookSectionNav.module.scss';
 
-export type BookSectionKey = 'book' | 'read' | 'listen' | 'summary' | 'analysis';
+export type BookSectionKey = 'book' | 'read' | 'listen' | 'summary' | 'analysis' | 'world';
 
 export interface BookSectionNavItem {
   key: BookSectionKey;
@@ -29,6 +30,8 @@ interface BookSectionNavLabels {
   listen: string;
   summary: string;
   analysis: string;
+  /** Метка пункта «Мир книги» (`worldNavLabel(lang)`, пять языков). */
+  world: string;
 }
 
 /**
@@ -44,9 +47,11 @@ export function buildBookSectionNavItems(input: {
   hasSummary: boolean;
   /** Анализ версии языка страницы - по тому же правилу, что сама страница (`pickAnalysisVersion`). */
   hasAnalysis: boolean;
+  /** Мир книги версии языка страницы: `versionHasWorld(версия)` (F08-3, решение арбитра Q7). */
+  hasWorld: boolean;
   labels: BookSectionNavLabels;
 }): BookSectionNavItem[] {
-  const { lang, bookSlug, hasText, hasAudio, hasSummary, hasAnalysis, labels } = input;
+  const { lang, bookSlug, hasText, hasAudio, hasSummary, hasAnalysis, hasWorld, labels } = input;
   const bookHref = `/${lang}/book/${bookSlug}`;
   return [
     { key: 'book', label: labels.book, href: bookHref },
@@ -72,11 +77,20 @@ export function buildBookSectionNavItems(input: {
           },
         ]
       : []),
+    ...(hasWorld
+      ? [
+          {
+            key: 'world' as const,
+            label: labels.world,
+            href: `/${lang}${worldPath(bookSlug)}`,
+          },
+        ]
+      : []),
   ];
 }
 
 /**
- * Навигация по разделам одной книги: страница книги, чтение, аудио, пересказ, анализ.
+ * Навигация по разделам одной книги: страница книги, чтение, аудио, пересказ, анализ, мир книги.
  * Серверная - ссылки видны краулеру. Список собирает страница; новый раздел - новый пункт
  * списка, а не правка компонента.
  */

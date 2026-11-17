@@ -1,5 +1,9 @@
 import type { BookWorldPromptVersion } from '@/lib/admin/book-world-prompt-inputs';
-import type { BookWorldSaveResponse, BookWorldWarning } from '@/types/api-schema';
+import type {
+  BookVersionDetail,
+  BookWorldSaveResponse,
+  BookWorldWarning,
+} from '@/types/api-schema';
 
 /**
  * WorldTab component props
@@ -7,8 +11,11 @@ import type { BookWorldSaveResponse, BookWorldWarning } from '@/types/api-schema
 export interface WorldTabProps {
   /** Book version ID */
   versionId: string;
-  /** Version fields for «Prompt inputs» and the language check of the import */
-  version: BookWorldPromptVersion;
+  /**
+   * Version fields for «Prompt inputs» and the language check of the import; `slug` and `status`
+   * (already in the loaded version) give the link to the public page of an entity.
+   */
+  version: BookWorldPromptVersion & Partial<Pick<BookVersionDetail, 'slug' | 'status'>>;
   /** «Read» mark and the dossier of the prompt inputs — `admin` only */
   isAdmin?: boolean;
   /**

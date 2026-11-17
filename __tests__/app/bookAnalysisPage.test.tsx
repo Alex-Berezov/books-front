@@ -920,3 +920,39 @@ describe('страница анализа: низ страницы', () => {
     expect(screen.queryByText('Character relationships')).toBeNull();
   });
 });
+
+// F08-3b: пункт «Мир книги» в навигации анализа - по счётчику мира версии языка страницы.
+describe('страница анализа: пункт «Мир книги»', () => {
+  it('есть публичные сущности - пункт ведёт на /wiki; нет - пункта нет', async () => {
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        versions: [
+          version('en', 'hamlet', 1, {
+            _count: { chapters: 3, audioChapters: 0, summaries: 1, analyses: 1, worldEntities: 2 },
+          }),
+        ],
+      })
+    );
+    await renderPage();
+    const nav = screen.getByRole('navigation', { name: 'Book sections' });
+    expect(within(nav).getByRole('link', { name: 'Book world' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/wiki'
+    );
+  });
+
+  it('счётчик мира 0 - пункта нет', async () => {
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        versions: [
+          version('en', 'hamlet', 1, {
+            _count: { chapters: 3, audioChapters: 0, summaries: 1, analyses: 1, worldEntities: 0 },
+          }),
+        ],
+      })
+    );
+    await renderPage();
+    const nav = screen.getByRole('navigation', { name: 'Book sections' });
+    expect(within(nav).queryByRole('link', { name: 'Book world' })).toBeNull();
+  });
+});

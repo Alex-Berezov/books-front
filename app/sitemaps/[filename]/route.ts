@@ -40,6 +40,11 @@ import {
   sitemapUnavailable,
   type SitemapItem,
 } from '@/lib/sitemap/utils';
+import {
+  buildWorldSitemapItems,
+  parseWorldSitemapFile,
+  WORLD_SITEMAP_PREFIX,
+} from '@/lib/sitemap/world';
 import type {
   AuthorLetter,
   BookListItem,
@@ -338,6 +343,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
     }
     // Номер за пределами выдачи - 404, как у файлов книг; отказ - 503 ниже. Файл 1 индекс держит
     // и при неизвестном счёте (`LEGACY-082`): язык без разделов - пустой `<urlset>`, а не 404.
+    if (sitemapItems.length === 0 && upstreamFailures.length === 0 && file.page > 1) {
+      return new NextResponse('Sitemap not found', { status: 404 });
+    }
+  }
+  // 2б. Мир книги (F08-3b, решение арбитра `F08 | F08-3` Q1): sitemap-world-[lang]-[n].xml - одна
+  // страница ручки на файл; общая `/wiki` и страницы сущностей, сборка - `lib/sitemap/world.ts`.
+  else if (filename.startsWith(`${WORLD_SITEMAP_PREFIX}-`)) {
+    const file = parseWorldSitemapFile(filename, SUPPORTED_LANGS);
+    if (!file) {
+      return new NextResponse('Sitemap not found', { status: 404 });
+    }
+    try {
+      sitemapItems.push(...(await buildWorldSitemapItems(file.lang, file.page)));
+    } catch (error) {
+      noteFailure(`world ${file.lang} file${file.page}`, error);
+    }
+    // Как у разделов пересказа: номер за пределами выдачи - 404, отказ - 503; файл 1 индекс
+    // держит и при неизвестном счёте.
     if (sitemapItems.length === 0 && upstreamFailures.length === 0 && file.page > 1) {
       return new NextResponse('Sitemap not found', { status: 404 });
     }

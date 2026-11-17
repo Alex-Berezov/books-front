@@ -1,8 +1,14 @@
 import { getSummarySectionsSitemap } from '@/api/endpoints/public';
 import { summarySectionPath } from '@/lib/seo/summary-path';
 import { buildLangUrl } from '@/lib/seo/urls';
-import { fetchPageWindow, type SitemapItem } from '@/lib/sitemap/utils';
+import {
+  fetchPagedSitemapFile,
+  fetchPagedSitemapTotal,
+  isIsoDate,
+  parsePagedSitemapFile,
+} from '@/lib/sitemap/paged-sitemap';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { SitemapItem } from '@/lib/sitemap/utils';
 
 /**
  * Карта разделов пересказа (F04 `tech.md` T10): файл `sitemap-summary-sections-{lang}-{n}.xml` -
@@ -20,33 +26,14 @@ export const SUMMARY_SECTIONS_SITEMAP_PAGE_SIZE = 50;
 
 export const SUMMARY_SECTIONS_SITEMAP_PREFIX = 'sitemap-summary-sections';
 
-const FILE_PATTERN = new RegExp(
-  `^${SUMMARY_SECTIONS_SITEMAP_PREFIX}-([a-z]{2})-([1-9][0-9]*)\\.xml$`
-);
-
-/** Потолок `page` ручки (`SUMMARY_SECTIONS_SITEMAP_MAX_PAGE` на бэкенде): дальше - 404, а не 400 → 503. */
-const MAX_FILE_PAGE = 10_000;
-
-export function parseSummarySectionsSitemapFile(
+export const parseSummarySectionsSitemapFile = (
   filename: string,
   supportedLangs: readonly string[]
-): { lang: SupportedLang; page: number } | null {
-  const match = FILE_PATTERN.exec(filename);
-  if (!match || !supportedLangs.includes(match[1])) return null;
-  const page = Number(match[2]);
-  if (!Number.isInteger(page) || page < 1 || page > MAX_FILE_PAGE) return null;
-  return { lang: match[1] as SupportedLang, page };
-}
+) => parsePagedSitemapFile(SUMMARY_SECTIONS_SITEMAP_PREFIX, filename, supportedLangs);
 
 /** Число версий с разделами на языке - для индекса карты; `null` - счёт неизвестен (`LEGACY-082`). */
-export async function fetchSummarySectionsTotal(lang: string): Promise<number | null> {
-  const res = await getSummarySectionsSitemap(lang as SupportedLang, 1, 1);
-  const total = res?.pagination?.total;
-  return typeof total === 'number' && Number.isFinite(total) ? total : null;
-}
-
-const isIsoDate = (value: unknown): value is string =>
-  typeof value === 'string' && !Number.isNaN(Date.parse(value));
+export const fetchSummarySectionsTotal = (lang: string): Promise<number | null> =>
+  fetchPagedSitemapTotal(getSummarySectionsSitemap, lang);
 
 /**
  * Адреса одного файла. Усечённая страница, ответ не той формы или раздел без даты - отказ
@@ -59,12 +46,10 @@ export async function buildSummarySectionsSitemapItems(
   fetchPage = getSummarySectionsSitemap
 ): Promise<SitemapItem[]> {
   const where = `summary-sections ${lang} file${page}`;
-  // Окно из одной страницы: проверка полноты и одна повторная попытка на 429 лимитера
-  // (`LEGACY-064`) - те же, что у файлов книг.
-  const versions = await fetchPageWindow(
-    (p) => fetchPage(lang, p, SUMMARY_SECTIONS_SITEMAP_PAGE_SIZE),
+  const versions = await fetchPagedSitemapFile(
+    fetchPage,
+    lang,
     page,
-    1,
     SUMMARY_SECTIONS_SITEMAP_PAGE_SIZE,
     where
   );

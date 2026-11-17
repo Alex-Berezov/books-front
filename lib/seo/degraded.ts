@@ -21,6 +21,8 @@ export type DegradedSurface =
   /** Оглавление разделов на `/summary` (F04-3): отказ снимает блок, страница открыта. */
   | 'book-summary-sections-toc'
   | 'book-analysis'
+  /** Страницы мира книги `/wiki` и `/wiki/{key}` (F08-3b). */
+  | 'book-world'
   | 'sitemap-index'
   | 'sitemap-file';
 

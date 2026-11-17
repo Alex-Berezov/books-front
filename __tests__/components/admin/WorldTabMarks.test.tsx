@@ -66,6 +66,7 @@ describe('WorldTab marks and import (F08-1)', () => {
       http.get(WORLD, () =>
         HttpResponse.json({
           language: 'en',
+          alternates: [],
           entities: [published, ...LIST().slice(1)],
         } satisfies BookWorldListResponse)
       )
@@ -160,6 +161,7 @@ describe('WorldTab marks and import (F08-1)', () => {
             ? null
             : {
                 language: 'en',
+                alternates: [],
                 // Импорт поставил autoTextAt=now: прежняя отметка о прочтении sonya его не покрывает.
                 entities: LIST().map((e) =>
                   e.key === 'sonya' && e.editor

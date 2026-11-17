@@ -34,9 +34,9 @@ describe('buildRelationMap', () => {
     expect(map?.lines.map((l) => l.label)).toEqual(['brother / sister', 'servant']);
     // В списке каждая связь - отдельно со своим направлением.
     expect(map?.entries).toEqual([
-      { from: 'A', to: 'B', label: 'brother' },
-      { from: 'B', to: 'A', label: 'sister' },
-      { from: 'C', to: 'A', label: 'servant' },
+      { from: 'A', to: 'B', fromKey: 'a', toKey: 'b', label: 'brother' },
+      { from: 'B', to: 'A', fromKey: 'b', toKey: 'a', label: 'sister' },
+      { from: 'C', to: 'A', fromKey: 'c', toKey: 'a', label: 'servant' },
     ]);
   });
 

@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { isFaqItem, type analysisSectionFlags } from '@/lib/book-analysis/format';
+import type { PageSection } from './PageSections';
 import type { AnalysisStrings } from '@/lib/i18n/analysisStrings';
 import type { BookAnalysisDetail } from '@/types/api-schema';
 import styles from './analysis.module.scss';
@@ -15,13 +15,8 @@ import {
   StyleList,
 } from './AnalysisLowerBlocks';
 
-/** Раздел страницы анализа: `standalone` - раздел рисует свой заголовок сам (общий блок). */
-export interface AnalysisSection {
-  id: string;
-  title: string;
-  body: ReactNode;
-  standalone?: boolean;
-}
+/** Раздел страницы анализа - общий раздел страницы книги с оглавлением (`PageSections`). */
+export type AnalysisSection = PageSection;
 
 /**
  * Разделы низа страницы анализа (`product.md` §3, блоки 13-20) в порядке спецификации: контекст,

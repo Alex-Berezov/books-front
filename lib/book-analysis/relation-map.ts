@@ -36,10 +36,15 @@ export interface RelationMapLine {
   label: string;
 }
 
-/** Связь текстом со своим направлением: список на узком экране и подпись схемы. */
+/**
+ * Связь текстом со своим направлением: список на узком экране и подпись схемы. Ключи героев - для
+ * ссылок на их страницы (мир книги): по имени тёзки неразличимы.
+ */
 export interface RelationMapEntry {
   from: string;
   to: string;
+  fromKey: string;
+  toKey: string;
   label: string;
 }
 
@@ -112,7 +117,13 @@ export function buildRelationMap(characters: readonly BookAnalysisCharacter[]): 
       to: node(p.b.key),
       label: p.labels.join(' / '),
     })),
-    entries: entries.map((e) => ({ from: e.from.name, to: e.to.name, label: e.label })),
+    entries: entries.map((e) => ({
+      from: e.from.name,
+      to: e.to.name,
+      fromKey: e.from.key,
+      toKey: e.to.key,
+      label: e.label,
+    })),
   };
 }
 

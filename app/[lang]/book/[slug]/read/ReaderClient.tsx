@@ -18,8 +18,9 @@ import {
 } from '@/lib/reading-progress';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ReaderBootstrapChapter } from '@/types/api-schema';
-import { parseChapterParam, readerChapterQuery, withoutChapterParam } from './chapterParam';
+import { readerChapterQuery } from './chapterParam';
 import styles from './reader.module.scss';
+import { useLinkedChapter } from './useLinkedChapter';
 
 type Props = {
   params: { lang: string; slug: string };
@@ -89,21 +90,14 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
   const openedFromLinkRef = useRef(false);
 
   /**
-   * Номер главы из адреса - читается один раз, **в эффекте**, объявленном раньше эффектов
-   * восстановления и смены слага (эффекты идут в порядке объявления).
-   *
-   * 🔴 Не во время рендера: при переходе по `next/link` Next меняет адрес в `useInsertionEffect`
-   * той же фиксации, уже после рендера, - рендер увидел бы ещё адрес страницы анализа без
-   * `?chapter`. И не в каждом эффекте заново: восстановление снимает параметр с адреса, а эффект
-   * смены слага в той же фиксации прочитал бы его уже без главы.
+   * Глава из ссылки ставится, как только пришёл список глав (`useLinkedChapter`), - до
+   * `isSettled`: ссылка - выбор читателя, а не восстановление. Сохранение по-прежнему открывает
+   * восстановление после слияния, а `openedFromLinkRef` держит закладку нетронутой.
    */
-  const linkedChapterRef = useRef<number | null>(null);
-  const linkedChapterReadRef = useRef(false);
-  useEffect(() => {
-    if (linkedChapterReadRef.current) return;
-    linkedChapterReadRef.current = true;
-    linkedChapterRef.current = parseChapterParam(window.location.search);
-  }, []);
+  const linkedChapterRef = useLinkedChapter(chapters, (index) => {
+    setCurrentChapterIndex(index);
+    openedFromLinkRef.current = true;
+  });
 
   /**
    * Восстановление позиции — ровно один раз за открытие книги.
@@ -131,23 +125,8 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
       return;
     }
 
-    // Глава из ссылки важнее сохранённого места; номер не целый или главы нет - обычное
-    // восстановление. Страница читает параметр только для серверного редиректа на канонический
-    // слаг (решение арбитра `F03 | F03-3`, В2), место в книге по нему ставит клиент.
-    const linkedChapter = linkedChapterRef.current;
-    const linkedIdx =
-      linkedChapter === null ? -1 : chapters.findIndex((c) => c.number === linkedChapter);
-    if (linkedIdx !== -1) {
-      setCurrentChapterIndex(linkedIdx);
-      openedFromLinkRef.current = true;
-      // Глава из ссылки применяется один раз: оставь параметр в адресе - перезагрузка снова
-      // увела бы читателя с его места на главу из ссылки, и первый же переход записал бы её.
-      const { pathname, search, hash } = window.location;
-      window.history.replaceState(
-        window.history.state,
-        '',
-        `${pathname}${withoutChapterParam(search)}${hash}`
-      );
+    // Глава из ссылки уже стоит (`useLinkedChapter`) и важнее сохранённого места.
+    if (openedFromLinkRef.current) {
       setHasRestoredProgress(true);
       return;
     }
@@ -199,7 +178,7 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
         `/${lang}/book/${bootstrapData.slug}/read${linked ? readerChapterQuery(linked) : ''}`
       );
     }
-  }, [bootstrapData, slug, lang, router]);
+  }, [bootstrapData, slug, lang, router, linkedChapterRef]);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

@@ -4,17 +4,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useBookOverview } from '@/api/hooks/usePublic';
 import { FLAG_COMPONENTS } from '@/lib/i18n/FlagIcon';
-import {
-  getLangFromPath,
-  switchLangInPath,
-  SUPPORTED_LANGS,
-  type SupportedLang,
-} from '@/lib/i18n/lang';
+import { getLangFromPath, SUPPORTED_LANGS, type SupportedLang } from '@/lib/i18n/lang';
 import { getLanguageSelectOptions } from '@/lib/i18n/languageSelectOptions';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { versionHasAnalysis } from '@/lib/seo/analysis-path';
-import { versionHasSummary } from '@/lib/seo/summary-path';
 import styles from './LanguageSwitcher.module.scss';
+import { resolveSwitcherTarget } from './languageSwitcherTargets';
 
 function PublicLanguageSelect({
   currentLang,
@@ -110,51 +104,25 @@ export const LanguageSwitcher = () => {
     enabled: !!bookSlug,
   });
 
-  // Раздел пересказа `/summary/{n}` ведёт на `/summary` другого языка: каждый язык режет книгу
-  // на разделы по-своему, пары «раздел ↔ раздел» нет (F04 `product.md` §5).
-  const isSummarySectionPage = parts[2] === 'book' && parts[4] === 'summary' && Boolean(parts[5]);
-  const switchParts = isSummarySectionPage ? parts.slice(0, 5) : parts;
+  // Раздел страницы книги решает, какие языки предлагать и куда вести (`languageSwitcherTargets.ts`).
+  const target = resolveSwitcherTarget(parts);
 
   const handleLanguageChange = (newLang: string) => {
     const lang = newLang as SupportedLang;
-    let newPath = switchLangInPath(switchParts.join('/'), lang);
-
-    if (isBookRelated && book && book.versions) {
-      const targetVersion = book.versions.find((v) => v.language === lang) as
-        | ((typeof book.versions)[0] & { slug?: string })
-        | undefined;
-      if (targetVersion && targetVersion.slug) {
-        const updatedParts = [...switchParts];
-        updatedParts[1] = lang;
-        updatedParts[3] = targetVersion.slug;
-        newPath = updatedParts.join('/');
-      }
-    }
-
-    router.push(newPath);
+    const targetVersion =
+      isBookRelated && book?.versions ? book.versions.find((v) => v.language === lang) : undefined;
+    router.push(target.path(lang, targetVersion?.slug || null));
   };
 
-  // Страницы пересказа `/{lang}/book/{slug}/summary` и анализа `/{lang}/book/{slug}/analysis`
-  // есть только у языков с пересказом и анализом: другой язык отвечает 404. Правило то же, что
-  // у hreflang страницы (`versionHasSummary`, `versionHasAnalysis`).
-  const isSummaryPage = parts[2] === 'book' && parts[4] === 'summary';
-  const isAnalysisPage = parts[2] === 'book' && parts[4] === 'analysis';
-  const sectionFilter = isSummaryPage
-    ? versionHasSummary
-    : isAnalysisPage
-      ? versionHasAnalysis
-      : null;
   const availableLangs = new Set<string>();
   if (book && book.versions) {
     book.versions.forEach((v) => {
-      if (v.language && (!sectionFilter || sectionFilter(v))) {
+      if (v.language && (!target.has || target.has(v))) {
         availableLangs.add(v.language);
       }
     });
     // Счётчиков нет (неизвестно, у каких языков есть раздел) - только текущий язык, а не все.
-    // На странице анализа текущий язык есть всегда: страница открыта, даже если счётчик её языка
-    // отстал и равен 0 (доступ решает ручка, а не счётчик - решение арбитра `F03 | F03-2`).
-    if ((sectionFilter && availableLangs.size === 0) || isAnalysisPage) {
+    if ((target.has && availableLangs.size === 0) || target.keepCurrent) {
       availableLangs.add(currentLang);
     }
   }

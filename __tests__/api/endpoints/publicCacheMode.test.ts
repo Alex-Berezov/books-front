@@ -73,7 +73,13 @@ const ANCHORS = [
  * of the analysis for the indexable page `/{lang}/book/{slug}/analysis` (F03-2). 47 on 20.10.2026
  * (F04-3): `getPublicSummarySection` and `getPublicSummarySections` - server reads for
  * `/{lang}/book/{slug}/summary/{n}` and the `/summary` table of contents (`revalidate`), and
- * `getSummarySectionsSitemap` - the section sitemap files (`no-store`).
+ * `getSummarySectionsSitemap` - the section sitemap files (`no-store`). 51 on 16.11.2026 (F08-3b):
+ * `getPublicBookWorld` and `getPublicBookWorldEntity` - server reads for `/wiki` and `/wiki/{key}`
+ * (`revalidate`), `getPublicWorldSitemap` - the world sitemap files (`no-store`), and the bare `fetch` POST of `WorldBeacon` (`no-store`).
+ * 52 on 17.11.2026 (F08-3b /fix): `getPublicAudioChaptersForPage` - server read of one page of audio
+ * chapters (`AUDIO_CHAPTERS_PAGE_LIMIT`, as many as the player loads) for «Listen» on
+ * `/wiki/{key}` (`revalidate`); the `WorldBeacon` POST moved to
+ * `api/endpoints/public-world-beacon.ts` (`no-store`) and is counted there instead.
  *
  * 🔴 Сверка точная (`toBe`), а не «не меньше», — решение арбитра 22.09.2026
  * (`books-app-docs/ai-context/decisions-log.md`). Односторонний порог не ловил тихую
@@ -85,7 +91,7 @@ const ANCHORS = [
  * прогона. Снимка в отдельном файле и автообновления у него нет нарочно: менять его
  * должно быть ровно так же заметно, как и всё остальное в этом файле.
  */
-const EXPECTED_BLOCKS = 47;
+const EXPECTED_BLOCKS = 52;
 
 /** `httpGet<...>(` / `httpGetAuth<...>(` — the call site, not the import line. */
 const CALL_SITE = /\bhttpGet(?:Auth)?</g;
