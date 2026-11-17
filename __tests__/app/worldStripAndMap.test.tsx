@@ -1,4 +1,5 @@
 import { render } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { RelationMap } from '@/app/[lang]/book/[slug]/analysis/RelationMap';
 import { ThemeStrip } from '@/app/[lang]/book/[slug]/analysis/ThemeStrip';
@@ -94,6 +95,24 @@ describe('RelationMap: узлы-ссылки', () => {
     const { container } = render(<RelationMap map={map!} title="Relations" />);
     expect(container.querySelectorAll('a')).toHaveLength(0);
     expect(container.querySelector('li')?.textContent).toBe('Anna → friend → Boris');
+  });
+
+  // Строка связи анализа читается из сырого HTML сервера (e2e анализа, §24 п.7): без ссылок она
+  // одна, без комментариев-разделителей React между текстовыми узлами.
+  it('без nodeHref - строка связи в серверном HTML одним куском', () => {
+    const html = renderToString(<RelationMap map={map!} title="Relations" />);
+    expect(html).toContain('Anna → friend → Boris');
+  });
+
+  it('с nodeHref: конец связи без адреса склеивается с текстом связи в серверном HTML', () => {
+    const html = renderToString(
+      <RelationMap map={map!} title="Relations" nodeHref={(k) => (k === 'a' ? '/wiki/a' : null)} />
+    );
+    // Ссылка у Анны, Борис и Кора - текстом: « → friend → Boris» одним куском.
+    expect(html).toContain(' → friend → Boris</li>');
+    expect(html).toContain(' → foe → Cora</li>');
+    const none = renderToString(<RelationMap map={map!} title="Relations" nodeHref={() => null} />);
+    expect(none).toContain('Anna → friend → Boris');
   });
 
   it('с nodeHref - ссылки на узлах и в списке только там, где адрес есть', () => {

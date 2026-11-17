@@ -25,14 +25,42 @@ export function RelationMap({
   /** Адрес страницы героя по ключу узла (мир книги, F08-3b): узел и имя в списке - ссылки. `null` - без ссылки. */
   nodeHref?: (key: string) => string | null;
 }) {
-  const personRef = (name: string, key: string) => {
-    const href = nodeHref ? nodeHref(key) : null;
-    return href ? (
+  const hrefOf = (key: string) => (nodeHref ? nodeHref(key) : null);
+  /**
+   * Строка связи «Герой → связь → Герой»: соседние текстовые куски склеиваются в одну строку, где бы
+   * ни стояли ссылки. Иначе React разделит соседние текстовые узлы в серверном HTML комментарием
+   * `<!-- -->`, и строка перестанет читаться из сырого HTML (e2e анализа, F03 §24 п.7).
+   */
+  const relationLine = (e: RelationMapData['entries'][number]) => {
+    const fromHref = hrefOf(e.fromKey);
+    const toHref = hrefOf(e.toKey);
+    const middle = ` → ${e.label} → `;
+    const link = (href: string, name: string) => (
       <a href={href} className={styles.textLink}>
         {name}
       </a>
-    ) : (
-      name
+    );
+    if (!fromHref && !toHref) return `${e.from}${middle}${e.to}`;
+    if (!fromHref)
+      return (
+        <>
+          {`${e.from}${middle}`}
+          {toHref ? link(toHref, e.to) : e.to}
+        </>
+      );
+    if (!toHref)
+      return (
+        <>
+          {link(fromHref, e.from)}
+          {`${middle}${e.to}`}
+        </>
+      );
+    return (
+      <>
+        {link(fromHref, e.from)}
+        {middle}
+        {link(toHref, e.to)}
+      </>
     );
   };
   return (
@@ -89,11 +117,7 @@ export function RelationMap({
       <figcaption>
         <ul className={styles.relationList}>
           {map.entries.map((e, i) => (
-            <li key={i}>
-              {personRef(e.from, e.fromKey)}
-              {` → ${e.label} → `}
-              {personRef(e.to, e.toKey)}
-            </li>
+            <li key={i}>{relationLine(e)}</li>
           ))}
         </ul>
       </figcaption>
