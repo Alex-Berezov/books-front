@@ -165,6 +165,14 @@ const renderScreen = (language: string | null = 'es') => render(screenOf(languag
 const lastCall = () => hooks.chunkCalls.at(-1);
 
 describe('Экран кусков запуска (F05-7v-b)', () => {
+  it('назад — на экран перевода версии, откуда куски открываются', () => {
+    renderScreen();
+    expect(screen.getByRole('link', { name: 'Back to translation' })).toHaveAttribute(
+      'href',
+      '/admin/en/books/versions/v1/translation'
+    );
+  });
+
   it('по умолчанию — первая флагнутая глава; в списке есть несобранная глава хода', () => {
     renderScreen();
     expect(lastCall()?.chapter).toBe(2);

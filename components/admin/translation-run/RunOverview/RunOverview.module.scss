@@ -1,0 +1,93 @@
+@import '@/styles/tokens.scss';
+
+.card {
+  margin-bottom: $spacing-lg;
+  padding: $spacing-lg;
+  border: $border-width-base solid $color-border-base;
+  border-left-width: $border-width-accent;
+  border-radius: $border-radius-lg;
+  background: $color-background-primary;
+
+  &[data-outcome='done'] {
+    border-left-color: $color-success;
+  }
+
+  &[data-outcome='running'] {
+    border-left-color: $color-info;
+  }
+
+  &[data-outcome='paused'],
+  &[data-outcome='attention'] {
+    border-left-color: $color-warning;
+  }
+
+  &[data-outcome='cancelled'] {
+    border-left-color: $color-text-tertiary;
+  }
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: $spacing-md;
+}
+
+.status {
+  margin: 0;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+}
+
+.meta {
+  margin: $spacing-xs 0 0;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.totalLabel {
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.totalValue {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+}
+
+.problems {
+  margin: $spacing-md 0 0;
+  padding-left: $spacing-lg;
+  color: $color-warning-hover;
+}
+
+.table {
+  width: 100%;
+  margin-top: $spacing-md;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: $border-width-base solid $color-border-light;
+    text-align: right;
+  }
+
+  th:first-child {
+    text-align: left;
+  }
+}
+
+.alert {
+  margin-bottom: $spacing-lg;
+}
+
+.costAlert {
+  margin-top: $spacing-md;
+}

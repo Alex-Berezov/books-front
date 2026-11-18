@@ -75,7 +75,10 @@ export const TranslationChunks: FC<TranslationChunksProps> = ({
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Original | translation</h1>
-        <Link href={`/admin/${lang}/books/versions/${versionId}`}>Back to the version</Link>
+        {/* Куски открываются из деталей экрана перевода — назад туда же. */}
+        <Link href={`/admin/${lang}/books/versions/${versionId}/translation`}>
+          Back to translation
+        </Link>
       </div>
       {run.isError && (
         <Alert className={styles.alert} type="error" message={refusalText(run.error)} />

@@ -58,6 +58,7 @@ const report = (languages: TranslationReportLanguage[]): TranslationRunReport =>
   bookVersionId: 'v1',
   languages,
   costs: [{ stage: 'translate', model: 'a/b', calls: 3, costUsd: '1.20000000' }],
+  breakdown: { languages: [], dossierUsd: '0', unattributedUsd: '0' },
   inFlight: { calls: 0, reservedUsd: '0' },
   totalUsd: '1.20000000',
 });

@@ -34,7 +34,7 @@ const ProviderPause: FC<{
   pending: boolean;
   onResume: PausePanelProps['onResume'];
 }> = ({ pause, settings, pending, onResume }) => {
-  // Каталог нужен только здесь: страница версии без такой паузы его не грузит.
+  // Каталог нужен только здесь: экран перевода без такой паузы его не грузит.
   const models = useLlmModels();
   const options = useMemo(() => toModelOptions(models.data?.items ?? []), [models.data]);
   const [model, setModel] = useState<string | null>(null);

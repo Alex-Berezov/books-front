@@ -49,8 +49,12 @@ const buildingLine = (a: TranslationRunAnalysis): SectionLine => {
 };
 
 /** «Done» — ядро собрано и ни одного упавшего блока (решение арбитра `F07 | F07-3b`, В2). */
+export const isAnalysisComplete = (
+  a: Pick<TranslationRunAnalysis, 'failedItems' | 'coreReady'>
+): boolean => a.failedItems === 0 && a.coreReady;
+
 const readyLine = (a: TranslationRunAnalysis): SectionLine => {
-  if (a.failedItems === 0 && a.coreReady) {
+  if (isAnalysisComplete(a)) {
     return a.flaggedItems > 0
       ? {
           text: `Analysis: done, blocks with model flags: ${a.flaggedItems}`,

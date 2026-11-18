@@ -100,22 +100,6 @@ vi.mock('@/components/admin/books', () => {
   };
 });
 
-// Перевод книги (F05-7, история - F05-8): кнопка и блоки - заглушки с меткой, видно только,
-// нарисованы ли они.
-vi.mock('@/components/admin/translation-run', () => ({
-  TranslateButton: ({ versionId, bookId }: { versionId: string; bookId: string }) => (
-    <button type="button">
-      Translate to other languages {versionId} {bookId}
-    </button>
-  ),
-  TranslationRunBlock: (props: { versionId: string; bookId: string; lang: string }) => (
-    <section aria-label="Translation run" data-props={JSON.stringify(props)} />
-  ),
-  RunHistory: (props: { versionId: string; bookId: string; lang: string }) => (
-    <section aria-label="Translation history" data-props={JSON.stringify(props)} />
-  ),
-}));
-
 const chapter = (id: string, number: number, title: string, content: string) => ({
   id,
   bookVersionId: 'v1',
@@ -508,26 +492,22 @@ describe('Кнопка Compare Models на странице версии (F05-3)
   });
 });
 
-describe('Перевод книги на странице версии (F05-7)', () => {
+describe('Перевод книги на странице версии (F05-7; экран перевода отдельной страницей)', () => {
   beforeEach(() => {
     sessionResult.data = { user: { roles: ['admin'] } };
     sessionResult.status = 'authenticated';
+    push.mockClear();
   });
 
-  it('admin видит кнопку перевода этой версии, блок запуска и историю запусков', () => {
+  it('admin видит кнопку «Translation» — она ведёт на экран перевода версии; блока хода над вкладками нет', () => {
     render(<EditBookVersionPage />);
 
+    fireEvent.click(screen.getByRole('button', { name: 'Translation' }));
+    expect(push).toHaveBeenCalledWith('/admin/es/books/versions/version-42/translation');
     expect(
-      screen.getByRole('button', { name: 'Translate to other languages version-42 b1' })
-    ).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Translation run' })).toHaveAttribute(
-      'data-props',
-      JSON.stringify({ versionId: 'version-42', bookId: 'b1', lang: 'es' })
-    );
-    expect(screen.getByRole('region', { name: 'Translation history' })).toHaveAttribute(
-      'data-props',
-      JSON.stringify({ versionId: 'version-42', bookId: 'b1', lang: 'es' })
-    );
+      screen.queryByRole('button', { name: /Translate to other languages/ })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Translation run' })).not.toBeInTheDocument();
   });
 
   it.each([
@@ -539,17 +519,13 @@ describe('Перевод книги на странице версии (F05-7)',
       { user: { roles: ['admin'] }, error: 'RefreshFailed' },
       'authenticated',
     ],
-  ])('%s — ни кнопки, ни блока, ни истории', (_, data, status) => {
+  ])('%s — кнопки экрана перевода нет', (_, data, status) => {
     sessionResult.data = data;
     sessionResult.status = status;
 
     render(<EditBookVersionPage />);
 
-    expect(
-      screen.queryByRole('button', { name: /Translate to other languages/ })
-    ).not.toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Translation run' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Translation history' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Translation' })).not.toBeInTheDocument();
   });
 });
 

@@ -629,6 +629,36 @@ describe('Хуки запуска перевода', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('isLoading: пока списки читаются — да; ответ пришёл — нет', async () => {
+    const { wrapper } = setup();
+    const pending: Array<(v: unknown) => void> = [];
+    api.getBookTranslationRuns.mockImplementation(
+      () =>
+        new Promise((r) => {
+          pending.push(r);
+        })
+    );
+
+    const { result } = renderHook(() => useVersionTranslationRuns('b1', 'v1'), { wrapper });
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.runs).toEqual([]);
+    await waitFor(() => expect(pending).toHaveLength(2));
+    for (const r of pending) r(page([]));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.runs).toEqual([]);
+  });
+
+  it('isLoading: идущий запуск уже прочитан, «последний» ещё читается — не загрузка', async () => {
+    const { wrapper } = setup();
+    api.getBookTranslationRuns.mockImplementation((_: string, params: { active?: boolean }) =>
+      params.active ? Promise.resolve(page([item('live-es', 'active')])) : new Promise(() => {})
+    );
+
+    const { result } = renderHook(() => useVersionTranslationRuns('b1', 'v1'), { wrapper });
+    await waitFor(() => expect(result.current.runs.map((r) => r.id)).toEqual(['live-es']));
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it('оценка: порядок выбора языков не меняет запрос; пустой выбор не запрашивает', async () => {
     const { wrapper } = setup();
     api.getTranslationRunEstimate.mockResolvedValue({});

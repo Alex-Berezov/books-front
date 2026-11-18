@@ -13,7 +13,7 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import { refusalText } from '../translationRun.utils';
 import styles from './TranslationRunBlock.module.scss';
 
-// Блок хода и окна грузятся, только когда нужны: страница версии и так тяжёлая.
+// Блок хода и окна грузятся, только когда нужны: экран перевода версии и так тяжёлый.
 const RunProgress = dynamic(() => import('../RunProgress').then((m) => m.RunProgress), {
   ssr: false,
 });
@@ -69,8 +69,8 @@ const RunItem: FC<RunItemProps> = ({ runId, bookId, lang, onReport, onRestart })
 };
 
 /**
- * Запуски перевода этой версии на её странице (F05-7, `product.md` §2.3–§2.4) — страница рисует
- * блок только `admin`. Все идущие и на паузе (по запуску на язык), иначе последний; запусков нет —
+ * Запуски перевода этой версии в деталях экрана перевода (F05-7, `product.md` §2.3–§2.4) — экран
+ * пускает только `admin`. Все идущие и на паузе (по запуску на язык), иначе последний; запусков нет —
  * блока нет.
  */
 export const TranslationRunBlock: FC<TranslationRunBlockProps> = ({ versionId, bookId, lang }) => {

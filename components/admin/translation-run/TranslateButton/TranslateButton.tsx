@@ -8,7 +8,7 @@ import { Button } from '@/components/admin/common/Button';
 import { blockText, mismatchText } from '../translationRun.utils';
 import styles from './TranslateButton.module.scss';
 
-// Окно со своими списками и оценкой грузится по клику: страница версии и так тяжёлая.
+// Окно со своими списками и оценкой грузится по клику: экран перевода и так тяжёлый.
 const StartRunModal = dynamic(() => import('../StartRunModal').then((m) => m.StartRunModal), {
   ssr: false,
 });
@@ -19,8 +19,8 @@ export interface TranslateButtonProps {
 }
 
 /**
- * «Translate to other languages» в шапке версии (F05-7, `product.md` §2.1) — страница рисует
- * её только `admin`. Неактивна с подсказкой по причине `translation-source`; расхождение поля
+ * «Translate to other languages» в шапке экрана перевода версии (F05-7, `product.md` §2.1) —
+ * экран пускает только `admin`. Неактивна с подсказкой по причине `translation-source`; расхождение поля
  * «язык оригинала» видно рядом.
  */
 export const TranslateButton: FC<TranslateButtonProps> = ({ versionId, bookId }) => {

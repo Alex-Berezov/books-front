@@ -461,8 +461,19 @@ export interface TranslationRunReport {
   bookVersionId: string;
   languages: TranslationReportLanguage[];
   costs: Array<{ stage: string; model: string | null; calls: number; costUsd: LlmMoney }>;
+  breakdown: TranslationReportBreakdown;
   inFlight: { calls: number; reservedUsd: LlmMoney };
   totalUsd: LlmMoney;
+}
+
+/**
+ * Разбивка трат запуска для экрана отчёта: перевод и глоссарий по языкам, досье, остаток без
+ * языка; пересказ и анализ языка - `summary.spentUsd` и `analysis.spentUsd` его строки отчёта.
+ */
+export interface TranslationReportBreakdown {
+  languages: Array<{ language: SupportedLang; translationUsd: LlmMoney; glossaryUsd: LlmMoney }>;
+  dossierUsd: LlmMoney;
+  unattributedUsd: LlmMoney;
 }
 
 // ---------------------------------------------------------------------------

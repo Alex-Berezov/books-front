@@ -133,6 +133,9 @@ export const useVersionTranslationRuns = (bookId: string, versionId: string) => 
     runs: [...running, ...finished],
     // Отказ «последнего» прячет блок, только когда идущих нет: идущие показываются и без него.
     error: active.error ?? (running.length === 0 ? latest.error : null),
+    // Списки ещё не прочитаны: пустой `runs` — не «запусков нет» (экран перевода не пишет
+    // «не переводилась» до ответа).
+    isLoading: active.isLoading || (running.length === 0 && latest.isLoading),
     refetch: () => Promise.all([active.refetch(), latest.refetch()]),
   };
 };
@@ -154,7 +157,7 @@ export const useTranslationRunHistory = (bookId: string, versionId: string, page
         limit: RUN_HISTORY_PAGE_SIZE,
       }),
     placeholderData: keepPreviousData,
-    // Разделы Summary и Analysis пишутся после конца запуска, а запуск может уйти из блока версии
+    // Разделы Summary и Analysis пишутся после конца запуска, а запуск может уйти из блока хода
     // (там идущие и последний) — история сама держит их строки свежими, пока они не встали
     // (F06-5b, F07-3b).
     refetchInterval: (query) =>
@@ -201,7 +204,7 @@ const areSectionsInFlight = (
 
 /**
  * Строка списка запусков ещё «живая» — её отчёт перечитывается: идёт операция запуска или раздел
- * Summary или Analysis языка (одно правило на блок версии и историю).
+ * Summary или Analysis языка (одно правило на ход экрана перевода и историю).
  */
 export const isRunRowLive = (
   row: Pick<TranslationRunListItem, 'operation' | 'writeSummary' | 'writeAnalysis' | 'results'>

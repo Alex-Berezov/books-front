@@ -50,12 +50,17 @@ const buildingLine = (s: TranslationRunSummary): SectionLine => {
   return { text: `Summary: writing, sections ${s.sectionsDone}${planned}`, link: null };
 };
 
+/** Пересказ языка готов целиком: оба вида текста есть и ни один текст не упал. */
+export const isSummaryComplete = (
+  s: Pick<TranslationRunSummary, 'failedTexts' | 'fullDone' | 'briefDone'>
+): boolean => s.failedTexts === 0 && s.fullDone && s.briefDone;
+
 const readyLine = (s: TranslationRunSummary): SectionLine => {
   const missing = [
     ...(s.fullDone ? [] : ['no full summary']),
     ...(s.briefDone ? [] : ['no very short']),
   ];
-  if (s.failedTexts === 0 && missing.length === 0) {
+  if (isSummaryComplete(s)) {
     return s.flaggedTexts > 0
       ? {
           text: `Summary: done, texts with model flags: ${s.flaggedTexts}`,

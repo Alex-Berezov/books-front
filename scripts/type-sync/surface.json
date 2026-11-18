@@ -5363,6 +5363,13 @@
     "hasResponseSchema": true,
     "fields": [
       "bookVersionId",
+      "breakdown",
+      "breakdown.dossierUsd",
+      "breakdown.languages",
+      "breakdown.languages[].glossaryUsd",
+      "breakdown.languages[].language",
+      "breakdown.languages[].translationUsd",
+      "breakdown.unattributedUsd",
       "costs",
       "costs[].calls",
       "costs[].costUsd",

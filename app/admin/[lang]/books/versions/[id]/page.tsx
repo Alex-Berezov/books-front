@@ -24,11 +24,6 @@ import {
 } from '@/components/admin/books';
 import { Button } from '@/components/admin/common/Button';
 import { Spinner } from '@/components/admin/shared';
-import {
-  RunHistory,
-  TranslateButton,
-  TranslationRunBlock,
-} from '@/components/admin/translation-run';
 import { UserRole } from '@/lib/auth/constants';
 import { sessionEditorState } from '@/lib/auth/session-editor';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -176,7 +171,17 @@ const EditBookVersionPage: FC = () => {
                 Compare Models
               </Button>
             )}
-            {isAdmin && <TranslateButton versionId={versionId} bookId={version.bookId} />}
+            {isAdmin && (
+              <Button
+                variant="secondary"
+                leftIcon={<Languages size={16} />}
+                onClick={() =>
+                  router.push(`/admin/${lang}/books/versions/${versionId}/translation`)
+                }
+              >
+                Translation
+              </Button>
+            )}
             <Button
               type="submit"
               size="md"
@@ -202,12 +207,6 @@ const EditBookVersionPage: FC = () => {
 
       <div className={styles.contentLayout}>
         <div className={styles.mainContent}>
-          {isAdmin && (
-            <>
-              <TranslationRunBlock versionId={versionId} bookId={version.bookId} lang={lang} />
-              <RunHistory versionId={versionId} bookId={version.bookId} lang={lang} />
-            </>
-          )}
           <BookVersionTabs
             activeTab={activeTab}
             listenContent={<ListenContentTab versionId={versionId} />}
