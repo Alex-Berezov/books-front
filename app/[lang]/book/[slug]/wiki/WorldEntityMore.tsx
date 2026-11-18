@@ -11,13 +11,14 @@ import analysisStyles from '../analysis/analysis.module.scss';
 import { ANALYSIS_ANCHORS } from '../analysis/analysisAnchors';
 import { Paragraphs } from '../analysis/AnalysisBlocks';
 import { SourcesList } from '../analysis/AnalysisLowerBlocks';
+import { LinkedMark } from '../LinkedText';
 
 /**
  * Внешние блоки (`product.md` §5 п.12-13): критика, прототипы, экранизации - только при списке
  * источников, и сам список под ними. Без источников внешних блоков нет вовсе.
  */
 export function buildEntityExternalSections(input: WorldEntitySectionsInput): PageSection[] {
-  const { entity, strings } = input;
+  const { entity, strings, textLinks } = input;
   const sections: PageSection[] = [];
   const sources = (entity.sources ?? []).filter((s) => hasText(s.url));
   if (sources.length === 0) return sections;
@@ -33,7 +34,7 @@ export function buildEntityExternalSections(input: WorldEntitySectionsInput): Pa
       title,
       body: (
         <div className={analysisStyles.text}>
-          <Paragraphs text={text} />
+          <Paragraphs text={text} links={textLinks} />
         </div>
       ),
     });
@@ -58,7 +59,7 @@ export function buildEntityExternalSections(input: WorldEntitySectionsInput): Pa
                 </p>
               ) : null}
               <div className={analysisStyles.text}>
-                <Paragraphs text={a.differences} />
+                <Paragraphs text={a.differences} links={textLinks} />
               </div>
             </li>
           ))}
@@ -80,7 +81,7 @@ export function buildEntityExternalSections(input: WorldEntitySectionsInput): Pa
 
 /** Частые вопросы о герое (§5 п.14): только пары с вопросом и ответом. */
 export function buildEntityFaqSection(input: WorldEntitySectionsInput): PageSection | null {
-  const { entity, strings } = input;
+  const { entity, strings, textLinks } = input;
   const faq = (entity.faq ?? []).filter((f) => hasText(f.question) && hasText(f.answer));
   if (faq.length === 0) return null;
   return {
@@ -92,7 +93,7 @@ export function buildEntityFaqSection(input: WorldEntitySectionsInput): PageSect
           <div key={i} className={styles.faqItem}>
             <h3 className={analysisStyles.subTitle}>{f.question}</h3>
             <div className={analysisStyles.text}>
-              <Paragraphs text={f.answer} />
+              <Paragraphs text={f.answer} links={textLinks} />
             </div>
           </div>
         ))}
@@ -110,7 +111,7 @@ export function buildEntityNextSection(
   coPresence: readonly BookWorldCoPresence[],
   firstChapter: number | null
 ): PageSection | null {
-  const { entity, strings, people, links } = input;
+  const { entity, strings, people, links, textLinks } = input;
   const next = coPresence.slice(0, WORLD_NEXT_LIMIT).flatMap((c) => {
     const person = people.get(c.key);
     return person ? [{ key: c.key, person }] : [];
@@ -132,8 +133,15 @@ export function buildEntityNextSection(
                 </h3>
                 {hasText(person.short) ? (
                   <div className={analysisStyles.text}>
-                    <Paragraphs text={person.short} />
+                    <Paragraphs
+                      text={person.short}
+                      links={textLinks}
+                      linkedKey={person.href ? key : undefined}
+                    />
                   </div>
+                ) : person.href ? (
+                  // Заголовок уже ссылка: отметка нужна и без «Коротко».
+                  <LinkedMark links={textLinks} entityKey={key} />
                 ) : null}
               </li>
             ))}

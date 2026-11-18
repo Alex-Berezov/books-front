@@ -542,6 +542,7 @@ export type {
   BookWorldEntityResponse,
   BookWorldEntitySaveResponse,
   BookWorldEntitySummary,
+  BookWorldListEntity,
   BookWorldExpected,
   BookWorldFaq,
   BookWorldListResponse,

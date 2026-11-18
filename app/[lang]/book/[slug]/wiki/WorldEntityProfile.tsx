@@ -9,6 +9,7 @@ import { WORLD_ANCHORS } from './wikiAnchors';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
 import { ThemeStrip } from '../analysis/ThemeStrip';
+import { LinkedText } from '../LinkedText';
 
 /** Глава первого появления: поле списка, иначе первая глава упоминаний; нет - `null`. */
 export function entityFirstChapter(entity: WorldEntitySectionsInput['entity']): number | null {
@@ -20,7 +21,7 @@ export function entityFirstChapter(entity: WorldEntitySectionsInput['entity']): 
  * внешность, характер, путь. Раздел без данных не собирается.
  */
 export function buildEntityProfileSections(input: WorldEntitySectionsInput): PageSection[] {
-  const { entity, chapterNumbers, strings, analysisStrings, linker } = input;
+  const { entity, chapterNumbers, strings, analysisStrings, linker, textLinks } = input;
   const sections: PageSection[] = [];
   const roleLabels = analysisRoleLabels(analysisStrings);
 
@@ -68,7 +69,7 @@ export function buildEntityProfileSections(input: WorldEntitySectionsInput): Pag
       title: strings.worldShortTitle,
       body: (
         <div className={analysisStyles.mainIdea}>
-          <Paragraphs text={entity.short} />
+          <Paragraphs text={entity.short} links={textLinks} />
         </div>
       ),
     });
@@ -102,7 +103,7 @@ export function buildEntityProfileSections(input: WorldEntitySectionsInput): Pag
       title,
       body: (
         <div className={analysisStyles.text}>
-          <Paragraphs text={text} />
+          <Paragraphs text={text} links={textLinks} />
         </div>
       ),
     });
@@ -121,13 +122,17 @@ export function buildEntityProfileSections(input: WorldEntitySectionsInput): Pag
               {hasText(arc.from) ? (
                 <Fragment>
                   <dt>{analysisStrings.analysisArcFrom}</dt>
-                  <dd>{arc.from}</dd>
+                  <dd>
+                    <LinkedText text={arc.from} links={textLinks} />
+                  </dd>
                 </Fragment>
               ) : null}
               {hasText(arc.to) ? (
                 <Fragment>
                   <dt>{analysisStrings.analysisArcTo}</dt>
-                  <dd>{arc.to}</dd>
+                  <dd>
+                    <LinkedText text={arc.to} links={textLinks} />
+                  </dd>
                 </Fragment>
               ) : null}
             </dl>
@@ -146,7 +151,7 @@ export function buildEntityProfileSections(input: WorldEntitySectionsInput): Pag
                     <ChapterRef n={stage.chapter} linker={linker} />
                   </p>
                   <div className={analysisStyles.text}>
-                    <Paragraphs text={stage.text} />
+                    <Paragraphs text={stage.text} links={textLinks} />
                   </div>
                 </li>
               ))}

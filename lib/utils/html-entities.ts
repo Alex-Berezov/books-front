@@ -26,9 +26,15 @@ const HTML_ENTITIES: Record<string, string> = {
   rdquo: '”',
 };
 
+/**
+ * Одна сущность HTML: именованная или числовая (`&#8217;`, `&#x2014;`). Новый объект на каждый
+ * вызов: у глобального регэкспа есть `lastIndex`, общий экземпляр сдвигал бы чужой разбор.
+ */
+export const htmlEntityPattern = (): RegExp => /&(#x[0-9a-f]+|#\d+|[a-z]+);/gi;
+
 /** Именованные сущности из списка выше и любые числовые (`&#8217;`, `&#x2014;`). */
 export function decodeEntities(text: string): string {
-  return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, name: string) => {
+  return text.replace(htmlEntityPattern(), (whole, name: string) => {
     if (name[0] === '#') {
       const code =
         name[1] === 'x' || name[1] === 'X'

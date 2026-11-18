@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -12,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   getCachedBookSeo: vi.fn(),
   getCachedBookAnalysis: vi.fn(),
   extraDetailsProps: vi.fn(),
+  getPublicBookWorld: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -30,6 +32,11 @@ vi.mock('@/app/[lang]/book/[slug]/bookData', () => ({
   getCachedBookSeo: mocks.getCachedBookSeo,
 }));
 
+vi.mock('@/api/endpoints/public', async () => ({
+  ...(await vi.importActual<typeof import('@/api/endpoints/public')>('@/api/endpoints/public')),
+  getPublicBookWorld: mocks.getPublicBookWorld,
+}));
+
 vi.mock('@/lib/seo/retired-slug', () => ({ resolveRetiredSlug: vi.fn() }));
 
 vi.mock('@/app/[lang]/book/[slug]/analysis/analysisData', () => ({
@@ -38,9 +45,10 @@ vi.mock('@/app/[lang]/book/[slug]/analysis/analysisData', () => ({
 
 vi.mock('@/app/[lang]/book/[slug]/BookClientIslands', () => ({
   BookActions: () => null,
-  BookExtraDetails: (props: unknown) => {
+  // Слот «Герои книги» отрисован: его место внутри блока проверяет `bookExtraDetailsWorld.test.tsx`.
+  BookExtraDetails: (props: { heroesSlot?: ReactNode }) => {
     mocks.extraDetailsProps(props);
-    return null;
+    return <>{props.heroesSlot}</>;
   },
   BookRating: () => null,
   BookReviews: () => null,
@@ -284,6 +292,8 @@ describe('страница книги: ссылка «Мир книги»', () =
     mocks.getCachedBookAnalysis.mockReset();
     mocks.getCachedBookAnalysis.mockResolvedValue(null);
     mocks.getCachedBookSeo.mockResolvedValue(null);
+    mocks.getPublicBookWorld.mockReset();
+    mocks.getPublicBookWorld.mockResolvedValue({ language: 'ru', alternates: [], entities: [] });
   });
 
   const renderPage = async () =>
@@ -297,6 +307,40 @@ describe('страница книги: ссылка «Мир книги»', () =
     expect(container.querySelector('a[href="/ru/book/crime/wiki"]')?.textContent).toBe(
       'Мир книги «Преступление и наказание»'
     );
+  });
+
+  it('у версии свой слаг: «Мир книги» и «Герои книги» - на один адрес мира (Q14)', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview({
+        language: 'ru',
+        slug: 'prestuplenie',
+        _count: { chapters: 1, audioChapters: 0, worldEntities: 1 },
+      })
+    );
+    mocks.getPublicBookWorld.mockResolvedValue({
+      language: 'ru',
+      alternates: [],
+      entities: [
+        {
+          key: 'raskolnikov',
+          type: 'character',
+          name: 'Раскольников',
+          role: 'main',
+          short: null,
+          hasCore: true,
+          isIndexable: true,
+          mentionFirst: 1,
+          updatedAt: '2026-11-01T00:00:00.000Z',
+          forms: ['Раскольников'],
+        },
+      ],
+    });
+    const { container } = await renderPage();
+    expect(container.querySelector('a[href="/ru/book/prestuplenie/wiki"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/ru/book/crime/wiki"]')).toBeNull();
+    expect(
+      container.querySelector('a[href="/ru/book/prestuplenie/wiki/raskolnikov"]')?.textContent
+    ).toBe('Раскольников');
   });
 
   it('мир только у версии другого языка или счётчик 0 - ссылки нет', async () => {
@@ -329,5 +373,198 @@ describe('страница книги: ссылка «Мир книги»', () =
     );
     const { container } = await renderPage();
     expect(container.querySelector('a[href$="/wiki"]')).toBeNull();
+  });
+});
+
+// F08-5: «Подробнее о герое» по имени карточки (Q3) и блок «Герои книги» на странице книги.
+describe('страница книги: перелинковка мира (F08-5)', () => {
+  let page: (typeof import('@/app/[lang]/book/[slug]/page'))['default'];
+
+  beforeAll(async () => {
+    page = (await import('@/app/[lang]/book/[slug]/page')).default;
+  }, MODULE_LOAD_TIMEOUT_MS);
+
+  const hero = (key: string, name: string, forms: string[], extra = {}) => ({
+    key,
+    type: 'character',
+    name,
+    role: 'main',
+    short: null,
+    hasCore: true,
+    isIndexable: true,
+    mentionFirst: 1,
+    updatedAt: '2026-11-01T00:00:00.000Z',
+    forms,
+    ...extra,
+  });
+  const withWorld = () =>
+    overview({
+      language: 'ru',
+      _count: { chapters: 3, worldEntities: 3 },
+      characters: [
+        { name: 'Раскольников', description: 'студент' },
+        { name: 'Соня', description: 'дочь' },
+        { name: 'constructor', description: 'нет' },
+      ],
+    });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getCachedBookAnalysis.mockReset();
+    mocks.getCachedBookAnalysis.mockResolvedValue(null);
+    mocks.getCachedBookSeo.mockResolvedValue(null);
+    mocks.getPublicBookWorld.mockReset();
+    mocks.getPublicBookWorld.mockResolvedValue({
+      language: 'ru',
+      alternates: [],
+      entities: [
+        hero('raskolnikov', 'Раскольников', ['Раскольников', 'Родион']),
+        // Форма «Соня» у двух сущностей - карточка без ссылки (Q3).
+        hero('sonya', 'Соня', ['Соня']),
+        hero('sonya2', 'Соня Мармеладова', ['Соня'], { role: null }),
+      ],
+    });
+  });
+
+  const renderPage = async () =>
+    render(await page({ params: Promise.resolve({ lang: 'ru', slug: 'crime' }) }));
+
+  it('карточке по имени - страница героя; тёзка и имя-свойство объекта ссылки не получают', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(withWorld());
+    await renderPage();
+    const props = mocks.extraDetailsProps.mock.calls[0][0] as {
+      characterPages: Record<string, string>;
+      characterMore: string;
+    };
+    expect(props.characterPages).toEqual({ Раскольников: '/ru/book/crime/wiki/raskolnikov' });
+    expect(props.characterMore).toBe('Подробнее о герое');
+  });
+
+  it('карточки героев - версии другого языка (фолбэк): ссылок по чужому индексу нет', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview(
+        { language: 'en', characters: [{ name: 'Раскольников', description: 'student' }] },
+        {
+          versions: [
+            {
+              id: 'v1',
+              type: 'text',
+              isFree: true,
+              title: 'Crime and Punishment',
+              translators: [],
+              language: 'en',
+              characters: [{ name: 'Раскольников', description: 'student' }],
+            },
+            {
+              id: 'v2',
+              type: 'text',
+              isFree: true,
+              title: 'Преступление и наказание',
+              translators: [],
+              language: 'ru',
+              _count: { chapters: 3, worldEntities: 3 },
+            },
+          ],
+        }
+      )
+    );
+    await renderPage();
+    expect(mocks.getPublicBookWorld).toHaveBeenCalled();
+    const props = mocks.extraDetailsProps.mock.calls[0][0] as {
+      characterPages: Record<string, string>;
+    };
+    expect(props.characterPages).toEqual({});
+  });
+
+  it('персонаж без name (запись до LEGACY-402): страница живая, у остальных ссылки на месте', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview({
+        language: 'ru',
+        _count: { chapters: 3, worldEntities: 3 },
+        characters: [
+          { description: 'без имени' },
+          { name: 'Раскольников', description: 'студент' },
+        ],
+      })
+    );
+    const { container } = await renderPage();
+    const props = mocks.extraDetailsProps.mock.calls[0][0] as {
+      characterPages: Record<string, string>;
+    };
+    expect(props.characterPages).toEqual({ Раскольников: '/ru/book/crime/wiki/raskolnikov' });
+    expect(container.querySelector('h1')).not.toBeNull();
+  });
+
+  it('имя карточки совпало с формой места - «Подробнее о герое» не ставится', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview({
+        language: 'ru',
+        _count: { chapters: 3, worldEntities: 2 },
+        characters: [{ name: 'Петербург', description: 'город как герой' }],
+      })
+    );
+    mocks.getPublicBookWorld.mockResolvedValue({
+      language: 'ru',
+      alternates: [],
+      entities: [
+        hero('raskolnikov', 'Раскольников', ['Раскольников']),
+        hero('petersburg', 'Петербург', ['Петербург'], { type: 'place', role: null }),
+      ],
+    });
+    await renderPage();
+    const props = mocks.extraDetailsProps.mock.calls[0][0] as {
+      characterPages: Record<string, string>;
+    };
+    expect(props.characterPages).toEqual({});
+  });
+
+  it('имя карточки - форма героя и форма места сразу: ссылки нет (Q3, круг 3)', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(
+      overview({
+        language: 'ru',
+        _count: { chapters: 3, worldEntities: 2 },
+        characters: [{ name: 'Петербург', description: 'город как герой' }],
+      })
+    );
+    mocks.getPublicBookWorld.mockResolvedValue({
+      language: 'ru',
+      alternates: [],
+      entities: [
+        hero('piter', 'Питер', ['Петербург']),
+        hero('petersburg', 'Петербург', ['Петербург'], { type: 'place', role: null }),
+      ],
+    });
+    await renderPage();
+    const props = mocks.extraDetailsProps.mock.calls[0][0] as {
+      characterPages: Record<string, string>;
+    };
+    expect(props.characterPages).toEqual({});
+  });
+
+  it('блок «Герои книги»: main первыми, ссылки на страницы героев', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(withWorld());
+    const { container } = await renderPage();
+    const heading = [...container.querySelectorAll('h2')].find(
+      (h) => h.textContent === 'Герои книги'
+    );
+    const links = [...heading!.closest('section')!.querySelectorAll('a')].map((a) =>
+      a.getAttribute('href')
+    );
+    expect(links).toEqual([
+      '/ru/book/crime/wiki/raskolnikov',
+      '/ru/book/crime/wiki/sonya',
+      '/ru/book/crime/wiki/sonya2',
+    ]);
+  });
+
+  it('сбой списка мира: страница остаётся, ссылок и блока нет', async () => {
+    mocks.getCachedBookOverview.mockResolvedValue(withWorld());
+    mocks.getPublicBookWorld.mockRejectedValue(new Error('down'));
+    const { container } = await renderPage();
+    const props = mocks.extraDetailsProps.mock.calls[0][0] as { characterPages: object };
+    expect(props.characterPages).toEqual({});
+    expect([...container.querySelectorAll('h2')].some((h) => h.textContent === 'Герои книги')).toBe(
+      false
+    );
   });
 });

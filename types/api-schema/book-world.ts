@@ -165,11 +165,16 @@ export interface BookWorldAlternate {
   slug: string;
 }
 
+/** Строка списка мира: читателю — ещё формы имени для перелинковки (F08-5a); редактору и на странице сущности forms нет. */
+export interface BookWorldListEntity extends BookWorldEntitySummary {
+  forms?: string[];
+}
+
 export interface BookWorldListResponse {
   language: SupportedLang;
   /** Кластер hreflang страницы; пусто — страница не индексируется (одно правило с картой сайта). */
   alternates: BookWorldAlternate[];
-  entities: BookWorldEntitySummary[];
+  entities: BookWorldListEntity[];
 }
 
 export interface BookWorldEntity

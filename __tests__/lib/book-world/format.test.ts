@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   fillTemplate,
+  pickBookHeroes,
   isLastThirdChapter,
   presenceChapters,
   rankCoPresence,
@@ -91,5 +92,47 @@ describe('fillTemplate: подстановка в шаблон строки', ()
       'Tom $& Co — Book $1'
     );
     expect(fillTemplate('Chapter {n}', { n: 3 })).toBe('Chapter 3');
+  });
+});
+
+describe('pickBookHeroes (F08-5, Q4)', () => {
+  const h = (
+    key: string,
+    role: string | null,
+    mentionFirst: number | null,
+    type = 'character'
+  ) => ({
+    key,
+    type,
+    hasCore: true,
+    role,
+    mentionFirst,
+  });
+
+  it('main первыми, затем по первой главе (пустые в конце), затем по ключу', () => {
+    const list = [
+      h('d', null, null),
+      h('c', null, 1),
+      h('b', 'main', 5),
+      h('a', 'main', 5),
+      h('e', null, 1),
+    ];
+    expect(pickBookHeroes(list).map((e) => e.key)).toEqual(['a', 'b', 'c', 'e', 'd']);
+  });
+
+  it('только герои со страницей и не больше шести', () => {
+    const list = [
+      ...Array.from({ length: 8 }, (_, i) => h(`k${i}`, null, i)),
+      h('place', null, 0, 'place'),
+      { ...h('nocore', 'main', 0), hasCore: false },
+    ];
+    const picked = pickBookHeroes(list).map((e) => e.key);
+    expect(picked).toEqual(['k0', 'k1', 'k2', 'k3', 'k4', 'k5']);
+  });
+
+  it('строка редактора в блок не попадает (как и в ссылки текста)', () => {
+    expect(
+      pickBookHeroes([{ ...h('ed', 'main', 1), editor: {} }, h('ok', null, 2)]).map((e) => e.key)
+    ).toEqual(['ok']);
   });
 });

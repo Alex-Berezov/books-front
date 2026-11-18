@@ -3,6 +3,7 @@ import { hasText } from '@/lib/book-analysis/format';
 import { analysisRoleLabels, type AnalysisStrings } from '@/lib/i18n/analysisStrings';
 import type { PageSection } from '../analysis/PageSections';
 import type { RelationMap as RelationMapData } from '@/lib/book-analysis/relation-map';
+import type { LinkSession } from '@/lib/book-world/link-entities';
 import type { WorldStrings } from '@/lib/i18n/worldStrings';
 import type { BookWorldEntitySummary } from '@/types/api-schema';
 import styles from './wiki.module.scss';
@@ -10,6 +11,7 @@ import { WORLD_ANCHORS } from './wikiAnchors';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ChapterRef, Paragraphs, type ChapterLinker } from '../analysis/AnalysisBlocks';
 import { RelationMap } from '../analysis/RelationMap';
+import { LinkedMark } from '../LinkedText';
 
 export interface WorldIndexSectionsInput {
   /** Публичные сущности версии (список читателя отдаёт только их). */
@@ -21,6 +23,8 @@ export interface WorldIndexSectionsInput {
   entityHref: (key: string) => string;
   /** Карта отношений из анализа книги; `null` - рисовать нечего. */
   relationMap: RelationMapData | null;
+  /** Сессия ссылок страницы для текстов (F08-5, решение арбитра Q9); `null` - без перелинковки. */
+  textLinks: LinkSession | null;
   links: {
     analysis: string | null;
     summary: { href: string; label: string } | null;
@@ -35,7 +39,7 @@ export interface WorldIndexSectionsInput {
  * Раздел без данных не выводится (§1 п.5).
  */
 export function buildIndexSections(input: WorldIndexSectionsInput): PageSection[] {
-  const { characters, strings, analysisStrings, linker, relationMap, links } = input;
+  const { characters, strings, analysisStrings, linker, relationMap, textLinks, links } = input;
   const sections: PageSection[] = [];
   const roleLabels = analysisRoleLabels(analysisStrings);
 
@@ -55,9 +59,12 @@ export function buildIndexSections(input: WorldIndexSectionsInput): PageSection[
               </h3>
               {hasText(c.short) ? (
                 <div className={analysisStyles.text}>
-                  <Paragraphs text={c.short} />
+                  <Paragraphs text={c.short} links={textLinks} linkedKey={c.key} />
                 </div>
-              ) : null}
+              ) : (
+                // Заголовок уже ссылка: отметка нужна и без «Коротко».
+                <LinkedMark links={textLinks} entityKey={c.key} />
+              )}
               {typeof c.mentionFirst === 'number' ? (
                 <p className={analysisStyles.cardMeta}>
                   {strings.worldInfoFirst}: <ChapterRef n={c.mentionFirst} linker={linker} />

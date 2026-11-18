@@ -15,7 +15,7 @@ import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getWorldStrings, worldNavLabel } from '@/lib/i18n/worldStrings';
 import { analysisPath, pickAnalysisVersion } from '@/lib/seo/book-analysis';
 import { pickSummaryVersion, summaryPath } from '@/lib/seo/book-summary';
-import { pickWorldPageVersion } from '@/lib/seo/book-world';
+import { pickWorldPageVersion, worldPageSlug } from '@/lib/seo/book-world';
 import { noteDegraded } from '@/lib/seo/degraded';
 import { resolveRetiredSlug } from '@/lib/seo/retired-slug';
 import { toPublicAlternates, toPublicJsonLd, toPublicUrl } from '@/lib/seo/urls';
@@ -31,11 +31,14 @@ import { buildAnalysisSectionLinks } from './analysis/analysisAnchors';
 import { getCachedBookAnalysis } from './analysis/analysisData';
 import { resolveAuthorHref } from './authorHref';
 import styles from './book.module.scss';
+import { BOOK_ANCHORS } from './bookAnchors';
 import { BookActions, BookExtraDetails, BookRating, BookReviews } from './BookClientIslands';
 import { getCachedBookOverview, getCachedBookSeo } from './bookData';
 import { BookTaxonomyChips } from './BookTaxonomyChips';
 import DescriptionWrapper from './DescriptionWrapper';
 import { RelatedBooksSection } from './RelatedBooksSection';
+import { WorldHeroesBlock } from './WorldHeroesBlock';
+import { buildBookPageWorld, loadLinkEntities } from './worldLinks';
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>;
@@ -219,12 +222,30 @@ export default async function BookDetailPage({ params }: Props) {
   // Мир книги (F08-3, Q7) - версия языка страницы: пункт и ссылка только при публичных сущностях.
   const worldVersion = pickWorldPageVersion(book, supportedLang);
   const hasWorld = worldVersion !== null && versionHasWorld(worldVersion);
-  const analysisForLinks = analysisVersion
-    ? await getCachedBookAnalysis(analysisVersion.id).catch((error: unknown) => {
-        logError('Error loading book analysis for section links:', error);
-        return null;
-      })
-    : null;
+  // Список мира (перелинковка F08-5) и анализ (ссылки «Разбор») независимы - одним заходом.
+  const [worldEntities, analysisForLinks] = await Promise.all([
+    loadLinkEntities(worldVersion),
+    analysisVersion
+      ? getCachedBookAnalysis(analysisVersion.id).catch((error: unknown) => {
+          logError('Error loading book analysis for section links:', error);
+          return null;
+        })
+      : Promise.resolve(null),
+  ]);
+  // «Подробнее о герое» на карточке по имени (решение арбитра `F08 | F08-5` Q3); отказ - без ссылок.
+  const worldStrings = getWorldStrings(supportedLang);
+  const worldSlug = worldVersion ? worldPageSlug(worldVersion, book, slug) : slug;
+  const { heroes, characterPages } = buildBookPageWorld({
+    lang: supportedLang,
+    worldSlug,
+    entities: worldEntities,
+    // Карточки героев - той же версии языка, что и список мира: иначе имена другого языка
+    // ищутся в чужом индексе (фолбэк `versions[0]`).
+    characters:
+      activeVersion && activeVersion.language === worldVersion?.language
+        ? (activeVersion.characters ?? [])
+        : [],
+  });
   const analysisSections = analysisForLinks?.hasCore
     ? analysisSectionFlags(analysisForLinks)
     : null;
@@ -460,8 +481,8 @@ export default async function BookDetailPage({ params }: Props) {
             </Link>
           ) : null}
           {hasWorld ? (
-            <Link href={`/${supportedLang}${worldPath(slug)}`} className={styles.summaryLink}>
-              {fillTemplate(getWorldStrings(supportedLang).worldLinkOnBook, {
+            <Link href={`/${supportedLang}${worldPath(worldSlug)}`} className={styles.summaryLink}>
+              {fillTemplate(worldStrings.worldLinkOnBook, {
                 title: activeVersion?.title || book.title,
               })}
             </Link>
@@ -478,7 +499,21 @@ export default async function BookDetailPage({ params }: Props) {
         )}
 
         {activeVersion && (
-          <BookExtraDetails activeVersion={activeVersion} analysisLinks={analysisLinks} />
+          <BookExtraDetails
+            activeVersion={activeVersion}
+            analysisLinks={analysisLinks}
+            characterPages={characterPages}
+            characterMore={worldStrings.worldCardMore}
+            heroesSlot={
+              <WorldHeroesBlock
+                id={BOOK_ANCHORS.heroes}
+                title={worldStrings.worldBookHeroesTitle}
+                heroes={heroes}
+                lang={supportedLang}
+                worldSlug={worldSlug}
+              />
+            }
+          />
         )}
 
         {versionId && (

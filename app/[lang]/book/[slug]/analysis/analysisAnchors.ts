@@ -12,6 +12,8 @@ export const ANALYSIS_ANCHORS = {
   keyQuotes: 'key-quotes',
   titleMeaning: 'title-meaning',
   endingMeaning: 'ending',
+  /** «Герои книги» (F08-5, решение арбитра Q10): между финалом и нижними разделами. */
+  heroes: 'analysis-heroes',
   context: 'context',
   style: 'style',
   reception: 'reception',

@@ -4,9 +4,11 @@ import { notFound, redirect } from 'next/navigation';
 import { RichTextContent } from '@/components/common/RichTextContent';
 import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
+import { linkHtml } from '@/lib/book-world/link-entities';
 import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getSummaryStrings } from '@/lib/i18n/summaryStrings';
+import { pickSummaryVersion } from '@/lib/seo/book-summary';
 import { buildSummarySectionJsonLd } from '@/lib/seo/summary-jsonld';
 import { SUMMARY_BRIEF_ANCHOR, summaryPath, summarySectionPath } from '@/lib/seo/summary-path';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
@@ -21,6 +23,7 @@ import { BookSectionNav } from '../../BookSectionNav';
 import { BookContinueBlock } from '../../BookSubpageActions';
 import { BookSubpageHero } from '../../BookSubpageHero';
 import { readerChapterHref } from '../../read/chapterParam';
+import { loadLinkEntities, makeLinkSession } from '../../worldLinks';
 import styles from '../summary.module.scss';
 import { buildSummaryBookContext } from '../summaryBookContext';
 import { SummarySectionsToc } from '../SummarySectionsToc';
@@ -56,6 +59,8 @@ export default async function SummarySectionPage({ params }: Props) {
   // 307, а не 308, как у пересказа (решение арбитра 06.09.2026).
   if (book.slug && book.slug !== slug) redirect(sectionUrl(book.slug));
 
+  // Список мира (F08-5) параллельно с разделом, версия - правилом загрузчика; не отклоняется.
+  const worldEntitiesLoad = loadLinkEntities(pickSummaryVersion(book, supportedLang));
   const { version, section, plainText, sections } = await loadSectionOrNotFound(
     book,
     supportedLang,
@@ -63,6 +68,13 @@ export default async function SummarySectionPage({ params }: Props) {
     n
   );
 
+  const linkSession = makeLinkSession({
+    entities: await worldEntitiesLoad,
+    lang: supportedLang,
+    book,
+    version,
+    routeSlug: slug,
+  });
   const dict = getDictionary(supportedLang);
   const strings = getSummaryStrings(supportedLang);
   const ctx = buildSummaryBookContext({ book, version, lang: supportedLang, slug, dict });
@@ -164,7 +176,7 @@ export default async function SummarySectionPage({ params }: Props) {
             </p>
             <RichTextContent
               html={section.text}
-              transformSafeHtml={demoteH1}
+              transformSafeHtml={(safeHtml) => linkHtml(demoteH1(safeHtml), linkSession)}
               className={styles.text}
             />
             {chapterHref && (

@@ -1,6 +1,8 @@
 import { render, screen, within } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ANALYSIS_ANCHORS } from '@/app/[lang]/book/[slug]/analysis/analysisAnchors';
+import { readerChapterHref } from '@/app/[lang]/book/[slug]/read/chapterParam';
 import { buildLangUrl } from '@/lib/seo/urls';
 import { ApiError } from '@/types/api';
 
@@ -24,6 +26,7 @@ const mocks = vi.hoisted(() => ({
   pathname: '/en/book/hamlet/analysis',
   getBookOverview: vi.fn(),
   getPublicBookAnalysis: vi.fn(),
+  getPublicBookWorld: vi.fn(),
   resolveSeo: vi.fn(),
   resolveRetiredSlug: vi.fn(),
 }));
@@ -43,6 +46,7 @@ vi.mock('@/api/endpoints/public', async () => {
     ...actual,
     getBookOverview: mocks.getBookOverview,
     getPublicBookAnalysis: mocks.getPublicBookAnalysis,
+    getPublicBookWorld: mocks.getPublicBookWorld,
     resolveSeo: mocks.resolveSeo,
   };
 });
@@ -954,5 +958,273 @@ describe('страница анализа: пункт «Мир книги»', ()
     await renderPage();
     const nav = screen.getByRole('navigation', { name: 'Book sections' });
     expect(within(nav).queryByRole('link', { name: 'Book world' })).toBeNull();
+  });
+});
+
+// F08-5, решение арбитра Q9: сессия ссылок создаётся страницей и идёт вниз пропом `links` -
+// первое упоминание на странице ссылкой, дальше текстом; отказ списка мира - ссылок нет.
+describe('страница анализа: перелинковка мира (F08-5)', () => {
+  const worldEntity = (key: string, name: string, extra = {}) => ({
+    key,
+    type: 'character',
+    name,
+    role: 'main',
+    short: null,
+    hasCore: true,
+    isIndexable: true,
+    mentionFirst: 1,
+    updatedAt: '2026-10-18T10:00:00.000Z',
+    forms: [name],
+    ...extra,
+  });
+  const sectionOf = (id: string) => document.getElementById(id)!;
+
+  beforeEach(() => {
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        versions: [
+          version('en', 'hamlet', 1, {
+            _count: { chapters: 3, audioChapters: 0, summaries: 1, analyses: 1, worldEntities: 4 },
+          }),
+        ],
+      })
+    );
+    mocks.getPublicBookWorld.mockReset();
+    mocks.getPublicBookWorld.mockResolvedValue({
+      language: 'en',
+      alternates: [],
+      entities: [
+        worldEntity('hamlet', 'Hamlet'),
+        worldEntity('horatio', 'Horatio', { role: 'secondary', mentionFirst: 2 }),
+        worldEntity('laertes', 'Laertes', { role: 'secondary', mentionFirst: 3 }),
+        worldEntity('ghost', 'Ghost', { role: null, hasCore: false }),
+        worldEntity('polonius', 'Polonius', { role: 'secondary', mentionFirst: 4 }),
+        // Герои без карточки в анализе: их первое упоминание - в тексте (Q13 и «первое место»).
+        worldEntity('yorick', 'Yorick', { role: 'minor', mentionFirst: 5 }),
+        worldEntity('osric', 'Osric', { role: 'minor', mentionFirst: 5 }),
+        worldEntity('fortinbras', 'Fortinbras', { role: 'minor', mentionFirst: 5 }),
+        worldEntity('rosencrantz', 'Rosencrantz', { role: 'minor', mentionFirst: 5 }),
+        worldEntity('elsinore', 'Elsinore', { type: 'place', role: null, mentionFirst: 1 }),
+        // Вне блока «Герои книги» (предел 6): их первое упоминание - в нижних разделах.
+        worldEntity('reynaldo', 'Reynaldo', { role: 'minor', mentionFirst: 9 }),
+        worldEntity('guildenstern', 'Guildenstern', { role: 'minor', mentionFirst: 9 }),
+      ],
+    });
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      ...FULL,
+      characters: [
+        { key: 'ophelia', name: 'Ophelia', role: 'secondary', description: 'Breaks.' },
+        {
+          key: 'hamlet',
+          name: 'Prince Hamlet',
+          role: 'main',
+          description: 'Hamlet delays.',
+          arc: { from: 'Grieving son', to: 'Fatalist, unlike Horatio' },
+        },
+      ],
+      titleMeaning: 'Yorick is the jester. See Chapter 2, not Chapter 9. The Ghost waits.',
+      endingMeaning: 'Yorick dies too.',
+      discussionQuestions: ['Is Reynaldo a mirror?'],
+      faq: [{ question: 'Who hides?', answer: 'Guildenstern hides behind the arras.' }],
+    });
+  });
+
+  it('имя героя - ссылка в первом месте страницы, дальше текстом', async () => {
+    await renderPage();
+    const first = within(sectionOf(ANALYSIS_ANCHORS.titleMeaning));
+    expect(first.getByRole('link', { name: 'Yorick' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/wiki/yorick'
+    );
+    const ending = sectionOf(ANALYSIS_ANCHORS.endingMeaning);
+    expect(within(ending).queryByRole('link', { name: 'Yorick' })).toBeNull();
+    expect(ending.textContent).toContain('Yorick dies too.');
+    // Герой без ядра страницы не имеет - текстом.
+    expect(first.queryByRole('link', { name: 'Ghost' })).toBeNull();
+  });
+
+  it('«Глава N» существующей главы - ссылка в читалку, несуществующей - текст', async () => {
+    await renderPage();
+    const section = within(sectionOf(ANALYSIS_ANCHORS.titleMeaning));
+    expect(section.getByRole('link', { name: 'Chapter 2' })).toHaveAttribute(
+      'href',
+      readerChapterHref('/en/book/hamlet', 2)
+    );
+    expect(section.queryByRole('link', { name: 'Chapter 9' })).toBeNull();
+  });
+
+  it('поля мимо абзацев: путь героя и вопрос для обсуждения тоже со ссылками', async () => {
+    await renderPage();
+    const characters = within(sectionOf(ANALYSIS_ANCHORS.characters));
+    expect(characters.getByRole('link', { name: 'Horatio' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/wiki/horatio'
+    );
+    const discussion = within(sectionOf(ANALYSIS_ANCHORS.discussion));
+    expect(discussion.getByRole('link', { name: 'Reynaldo' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/wiki/reynaldo'
+    );
+  });
+
+  it('ответ FAQ анализа - тоже со ссылкой (решение арбитра F08 | F08-5b, FAQ)', async () => {
+    await renderPage();
+    const faq = within(sectionOf(ANALYSIS_ANCHORS.faq));
+    expect(faq.getByRole('link', { name: 'Guildenstern' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/wiki/guildenstern'
+    );
+  });
+
+  it('герой из блока «Герои книги» в нижнем разделе (FAQ) - не вторая ссылка', async () => {
+    const analysis = await mocks.getPublicBookAnalysis();
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      ...analysis,
+      faq: [{ question: 'Who hides?', answer: 'Polonius hides behind the arras.' }],
+    });
+    await renderPage();
+    expect(
+      within(sectionOf(ANALYSIS_ANCHORS.heroes).closest('section')!).getByRole('link', {
+        name: 'Polonius',
+      })
+    ).toHaveAttribute('href', '/en/book/hamlet/wiki/polonius');
+    const faq = sectionOf(ANALYSIS_ANCHORS.faq);
+    expect(faq.textContent).toContain('Polonius hides behind the arras.');
+    expect(within(faq).queryByRole('link', { name: 'Polonius' })).toBeNull();
+  });
+
+  it('«Подробнее о герое» - только на карточке героя со страницей', async () => {
+    await renderPage();
+    const more = within(sectionOf(ANALYSIS_ANCHORS.characters)).getAllByRole('link', {
+      name: 'More about the character',
+    });
+    expect(more).toHaveLength(1);
+    expect(more[0]).toHaveAttribute('href', '/en/book/hamlet/wiki/hamlet');
+  });
+
+  it('«Герои книги» - отдельный раздел перед нижними разделами и в оглавлении', async () => {
+    await renderPage();
+    const h2 = h2Texts();
+    const heroes = h2.indexOf('Characters in this book');
+    expect(heroes).toBeGreaterThan(h2.indexOf('Meaning of the ending'));
+    expect(heroes).toBeLessThan(h2.indexOf('Discussion questions'));
+    const toc = screen.getByRole('navigation', { name: 'Contents' });
+    expect(within(toc).getByRole('link', { name: 'Characters in this book' })).toHaveAttribute(
+      'href',
+      `#${ANALYSIS_ANCHORS.heroes}`
+    );
+  });
+
+  it('список мира запрашивается, не дожидаясь анализа', async () => {
+    let worldFirst = false;
+    const response = await mocks.getPublicBookAnalysis();
+    mocks.getPublicBookAnalysis.mockImplementation(async () => {
+      worldFirst = mocks.getPublicBookWorld.mock.calls.length > 0;
+      return response;
+    });
+    await renderPage();
+    expect(worldFirst).toBe(true);
+  });
+
+  it('описание героя с «Подробнее о герое»: его имя в описании - текст', async () => {
+    await renderPage();
+    const card = within(sectionOf(ANALYSIS_ANCHORS.characters))
+      .getByRole('link', { name: 'More about the character' })
+      .closest('li')!;
+    expect(card.textContent).toContain('Hamlet delays.');
+    expect(within(card).queryByRole('link', { name: 'Hamlet' })).toBeNull();
+  });
+
+  it('Q13: рассказчик и место действия карточки произведения - со ссылками', async () => {
+    const analysis = await mocks.getPublicBookAnalysis();
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      ...analysis,
+      facts: { genre: 'Osric drama', narrator: 'Osric tells it', settingPlace: 'Elsinore' },
+    });
+    await renderPage();
+    const facts = within(sectionOf(ANALYSIS_ANCHORS.facts));
+    expect(facts.getByRole('link', { name: 'Osric' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/wiki/osric'
+    );
+    expect(facts.getByRole('link', { name: 'Elsinore' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/wiki/elsinore'
+    );
+    // Жанр - не из списка Q13: текстом (первое упоминание Osric уходит в рассказчика).
+    expect(facts.getByText('Osric drama')).toBeInTheDocument();
+  });
+
+  it('Q13: толкование цитаты темы - со ссылкой, текст цитаты - текстом', async () => {
+    const analysis = await mocks.getPublicBookAnalysis();
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      ...analysis,
+      themes: [
+        {
+          ...FULL.themes[0],
+          quotes: [
+            { text: 'Fortinbras marches.', chapter: 5, comment: 'Fortinbras acts, unlike him.' },
+          ],
+        },
+      ],
+    });
+    await renderPage();
+    const quote = sectionOf(ANALYSIS_ANCHORS.themes).querySelector('blockquote')!;
+    const links = within(quote).getAllByRole('link', { name: 'Fortinbras' });
+    expect(links).toHaveLength(1);
+    expect(links[0].closest('p')!.textContent).toBe('Fortinbras acts, unlike him.');
+  });
+
+  it('Q13: толкование ключевой цитаты - со ссылкой, текст цитаты и «кто говорит» - текстом', async () => {
+    const analysis = await mocks.getPublicBookAnalysis();
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      ...analysis,
+      keyQuotes: [
+        {
+          text: 'Rosencrantz, you are here.',
+          chapter: 2,
+          speakerKey: 'hamlet',
+          interpretation: 'Rosencrantz is a spy.',
+        },
+      ],
+    });
+    await renderPage();
+    const section = sectionOf(ANALYSIS_ANCHORS.keyQuotes);
+    const links = within(section).getAllByRole('link', { name: 'Rosencrantz' });
+    expect(links).toHaveLength(1);
+    expect(links[0].closest('p')!.textContent).toBe('Rosencrantz is a spy.');
+    expect(within(section).queryByRole('link', { name: /Hamlet/ })).toBeNull();
+  });
+
+  it('старая запись без event у события хронологии и без myth: страница рендерится', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      ...FULL,
+      timeline: [
+        { year: '1564', kind: 'author' },
+        { year: '1599', event: 'Yorick on the Globe stage', kind: 'epoch' },
+        { year: '1603', event: 'First quarto', kind: 'book' },
+      ],
+      misreadings: [{ explanation: 'He feigns madness.' }],
+    });
+    await renderPage();
+    const context = sectionOf(ANALYSIS_ANCHORS.context);
+    expect(context.textContent).toContain('1564');
+    expect(within(context).getByRole('link', { name: 'Yorick' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/wiki/yorick'
+    );
+    expect(sectionOf(ANALYSIS_ANCHORS.misreadings).textContent).toContain('He feigns madness.');
+  });
+
+  it('отказ списка мира: ссылок на героев нет, раздела «Герои книги» нет', async () => {
+    mocks.getPublicBookWorld.mockRejectedValue(new ApiError({ message: 'boom', statusCode: 500 }));
+    await renderPage();
+    const worldHrefs = screen
+      .getAllByRole('link')
+      .filter((a) => a.getAttribute('href')?.includes('/wiki/'));
+    expect(worldHrefs).toEqual([]);
+    expect(screen.queryByRole('link', { name: 'More about the character' })).toBeNull();
+    expect(screen.queryByText('Characters in this book')).toBeNull();
+    expect(sectionOf(ANALYSIS_ANCHORS.titleMeaning).textContent).toContain('Yorick is the jester.');
   });
 });

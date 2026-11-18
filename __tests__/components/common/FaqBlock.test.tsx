@@ -27,3 +27,30 @@ describe('FaqBlock JSON-LD', () => {
     expect(JSON.parse(ldJson()).mainEntity[0].acceptedAnswer.text).toBe(HOSTILE);
   });
 });
+
+// F08-5b: видимый ответ может прийти разметкой (ссылки перелинковки анализа); JSON-LD - из строки.
+describe('FaqBlock: answerNode', () => {
+  it('с answerNode рисуется элемент, JSON-LD остаётся из строки answer', () => {
+    const { container } = render(
+      <FaqBlock
+        items={[
+          {
+            question: 'Q?',
+            answer: 'Hamlet waits',
+            answerNode: <strong data-node="linked">Hamlet waits</strong>,
+          },
+        ]}
+      />
+    );
+    expect(container.querySelector('[data-node="linked"]')?.textContent).toBe('Hamlet waits');
+    const ld = container.querySelector('script[type="application/ld+json"]')?.innerHTML ?? '';
+    expect(ld).toContain('Hamlet waits');
+    expect(ld).not.toContain('data-node');
+  });
+
+  it('без answerNode рисуется строка', () => {
+    const { container } = render(<FaqBlock items={[{ question: 'Q?', answer: 'plain answer' }]} />);
+    expect(container.textContent).toContain('plain answer');
+    expect(container.querySelector('[data-node]')).toBeNull();
+  });
+});

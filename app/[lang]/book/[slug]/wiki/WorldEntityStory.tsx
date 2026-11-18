@@ -10,6 +10,7 @@ import { WORLD_ANCHORS } from './wikiAnchors';
 import { WorldPersonRef } from './WorldPersonRef';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
+import { LinkedMark } from '../LinkedText';
 
 /**
  * Разделы о герое в книге (`product.md` §5 п.9-п.11): ключевые сцены со ссылками «Читать сцену» и
@@ -20,7 +21,7 @@ export function buildEntityStorySections(
   input: WorldEntitySectionsInput,
   coPresence: readonly BookWorldCoPresence[]
 ): PageSection[] {
-  const { entity, strings, linker, people } = input;
+  const { entity, strings, linker, textLinks, people } = input;
   const sections: PageSection[] = [];
 
   const scenes = entity.scenes ?? [];
@@ -44,7 +45,7 @@ export function buildEntityStorySections(
                   <ChapterRef n={scene.chapter} linker={linker} />
                 </p>
                 <div className={analysisStyles.text}>
-                  <Paragraphs text={scene.text} />
+                  <Paragraphs text={scene.text} links={textLinks} />
                 </div>
                 {readHref || listenHref ? (
                   <p className={styles.sceneActions}>
@@ -89,6 +90,7 @@ export function buildEntityStorySections(
               {relations.map((r, i) => (
                 <li key={`${r.to}-${i}`}>
                   {r.label} → <WorldPersonRef person={r.person} />
+                  {r.person.href ? <LinkedMark links={textLinks} entityKey={r.to} /> : null}
                 </li>
               ))}
             </ul>
@@ -100,6 +102,7 @@ export function buildEntityStorySections(
                 {neighbours.map((c) => (
                   <li key={c.key}>
                     <WorldPersonRef person={c.person} />
+                    {c.person.href ? <LinkedMark links={textLinks} entityKey={c.key} /> : null}
                   </li>
                 ))}
               </ul>

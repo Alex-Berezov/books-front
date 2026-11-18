@@ -1010,3 +1010,158 @@ describe('пять языков', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(h1);
   });
 });
+
+// F08-5, решение арбитра Q9: сессия ссылок создаётся страницей мира и идёт в построители разделов
+// полем входа; на общей странице «глава N» не ссылка (Q6), на странице героя нет ссылки на себя.
+describe('мир книги: перелинковка мира (F08-5)', () => {
+  const withForms = (entities: Record<string, unknown>[]) =>
+    entities.map((e) => ({ ...e, forms: [e.name as string] }));
+  // Абзац целиком: ссылка внутри делит текст на узлы, поиск по своему тексту узла его не найдёт.
+  const paragraph = (text: string) =>
+    screen.getByText((_, el) => el?.tagName === 'P' && el.textContent === text);
+
+  beforeEach(() => {
+    mocks.getPublicBookWorld.mockReset();
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST,
+      entities: withForms([
+        ...LIST.entities.filter((e) => e.key !== 'tom'),
+        summary('tom', 'Tom Reed', {
+          role: 'secondary',
+          mentionFirst: 2,
+          short: 'Follows Anna Lark into Chapter 3.',
+        }),
+      ]),
+    });
+  });
+
+  it('общая /wiki: первое упоминание героя - ссылка, «Глава N» в тексте - не ссылка', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST,
+      entities: withForms([
+        summary('anna', 'Anna Lark', { short: 'Anna Lark trusts Tom Reed.' }),
+        summary('tom', 'Tom Reed', {
+          role: 'secondary',
+          mentionFirst: 2,
+          short: 'Follows Anna Lark into Chapter 3.',
+        }),
+      ]),
+    });
+    await renderIndex();
+    // Карточка Тома ниже: в «Коротко» Анны его имя - первое упоминание и ссылка.
+    expect(within(paragraph('Anna Lark trusts Tom Reed.')).getByRole('link')).toHaveAttribute(
+      'href',
+      '/en/book/world-book/wiki/tom'
+    );
+    const tom = paragraph('Follows Anna Lark into Chapter 3.');
+    expect(within(tom).queryAllByRole('link')).toEqual([]);
+  });
+
+  it('общая /wiki: имя героя в «Коротко» его карточки - не ссылка, заголовок уже ведёт туда', async () => {
+    await renderIndex();
+    expect(within(paragraph('Anna Lark in brief.')).queryAllByRole('link')).toEqual([]);
+    expect(within(paragraph('Bea Moss in brief.')).queryAllByRole('link')).toEqual([]);
+  });
+
+  it('страница героя, «Дальше»: имя соседа в «Коротко» его карточки - не ссылка', async () => {
+    await renderEntity();
+    const next = document.getElementById('next')!;
+    expect(within(next).getByRole('link', { name: 'Tom Reed' }).closest('h3')).not.toBeNull();
+    const short = within(next).getByText(
+      (_, el) => el?.tagName === 'P' && el.textContent === 'Bea Moss in brief.'
+    );
+    expect(within(short).queryAllByRole('link')).toEqual([]);
+  });
+
+  it('общая /wiki: у карточки без «Коротко» герой дальше по странице - не ссылка', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST,
+      entities: withForms([
+        summary('anna', 'Anna Lark', { short: null }),
+        summary('tom', 'Tom Reed', {
+          role: 'secondary',
+          mentionFirst: 2,
+          short: 'Follows Anna Lark.',
+        }),
+      ]),
+    });
+    await renderIndex();
+    expect(within(paragraph('Follows Anna Lark.')).queryAllByRole('link')).toEqual([]);
+  });
+
+  // Q14: у версии свой слаг (не слаг книги) - заголовок карточки и ссылка в тексте на один адрес.
+  const ownSlugBook = () =>
+    makeBook({ versions: [version('en', 'world-en', 3), version('ru', 'mir-kniga', 1)] });
+
+  it('общая /wiki, свой слаг версии: заголовок и текст ведут на один адрес героя', async () => {
+    mocks.getBookOverview.mockResolvedValue(ownSlugBook());
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST,
+      entities: withForms([
+        summary('anna', 'Anna Lark', { short: 'Anna Lark trusts Tom Reed.' }),
+        summary('tom', 'Tom Reed', { role: 'secondary', mentionFirst: 2 }),
+      ]),
+    });
+    await renderIndex();
+    const inText = within(paragraph('Anna Lark trusts Tom Reed.')).getByRole('link');
+    const title = screen.getByRole('heading', { level: 3, name: /Tom Reed/ });
+    expect(inText).toHaveAttribute('href', '/en/book/world-en/wiki/tom');
+    expect(within(title).getByRole('link')).toHaveAttribute('href', inText.getAttribute('href'));
+  });
+
+  it('страница героя: герой из «Связей» и «Вместе» в тексте ниже - не ссылка', async () => {
+    // Cal - только в «Связях» (в соседях первые три: Zed, Tom, Bea), Bea - только в соседях.
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse({
+        ...ENTITY_FULL,
+        relations: [{ to: 'cal', label: 'Cousin of' }],
+        faq: [{ question: 'Who helps?', answer: 'Cal Dune and Bea Moss help.' }],
+      })
+    );
+    await renderEntity();
+    const relations = within(document.getElementById('relations')!);
+    expect(relations.getByRole('link', { name: 'Cal Dune' })).toBeInTheDocument();
+    expect(relations.getByRole('link', { name: 'Bea Moss' })).toBeInTheDocument();
+    const faq = within(document.getElementById('faq')!);
+    expect(faq.getByText('Cal Dune and Bea Moss help.')).toBeInTheDocument();
+    expect(faq.queryAllByRole('link')).toEqual([]);
+  });
+
+  it('страница героя, свой слаг версии: текст и карточка «Дальше» - один адрес соседа', async () => {
+    mocks.getBookOverview.mockResolvedValue(ownSlugBook());
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse({ ...ENTITY_FULL, short: 'Anna Lark trusts Tom Reed.' })
+    );
+    await renderEntity();
+    const inText = within(document.getElementById('in-brief')!).getByRole('link', {
+      name: 'Tom Reed',
+    });
+    const card = within(document.getElementById('next')!).getByRole('link', { name: 'Tom Reed' });
+    expect(inText).toHaveAttribute('href', '/en/book/world-en/wiki/tom');
+    expect(card).toHaveAttribute('href', inText.getAttribute('href'));
+  });
+
+  it('страница героя: на себя ссылки нет, на другого героя и на главу - есть', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse({
+        ...ENTITY_FULL,
+        short: 'Anna Lark trusts Tom Reed.',
+        character: 'Steady since Chapter 2.',
+        arc: { ...ENTITY_FULL.arc, to: 'A guide for Bea Moss' },
+      })
+    );
+    await renderEntity();
+    const short = within(document.getElementById('in-brief')!);
+    expect(short.queryByRole('link', { name: 'Anna Lark' })).toBeNull();
+    expect(short.getByRole('link', { name: 'Tom Reed' })).toHaveAttribute(
+      'href',
+      '/en/book/world-book/wiki/tom'
+    );
+    expect(
+      within(document.getElementById('character')!).getByRole('link', { name: 'Chapter 2' })
+    ).toHaveAttribute('href', '/en/book/world-book/read?chapter=2');
+    expect(
+      within(document.getElementById('path')!).getByRole('link', { name: 'Bea Moss' })
+    ).toHaveAttribute('href', '/en/book/world-book/wiki/bea');
+  });
+});

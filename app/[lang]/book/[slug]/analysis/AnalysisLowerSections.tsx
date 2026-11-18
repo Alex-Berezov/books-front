@@ -1,11 +1,13 @@
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { isFaqItem, type analysisSectionFlags } from '@/lib/book-analysis/format';
 import type { PageSection } from './PageSections';
+import type { LinkSession } from '@/lib/book-world/link-entities';
 import type { AnalysisStrings } from '@/lib/i18n/analysisStrings';
 import type { BookAnalysisDetail } from '@/types/api-schema';
 import styles from './analysis.module.scss';
 import { ANALYSIS_ANCHORS } from './analysisAnchors';
 import { Paragraphs, type ChapterLinker } from './AnalysisBlocks';
+import { LinkedText } from '../LinkedText';
 import {
   AdaptationsList,
   ContextBlock,
@@ -26,12 +28,14 @@ export type AnalysisSection = PageSection;
 export function buildLowerSections({
   analysis,
   linker,
+  links,
   strings,
   faqTitle,
   has,
 }: {
   analysis: BookAnalysisDetail;
   linker: ChapterLinker;
+  links: LinkSession | null;
   strings: AnalysisStrings;
   faqTitle: string;
   has: ReturnType<typeof analysisSectionFlags>;
@@ -45,6 +49,7 @@ export function buildLowerSections({
         <ContextBlock
           text={analysis.context}
           timeline={analysis.timeline}
+          links={links}
           timelineTitle={strings.analysisTimelineTitle}
           kindLabels={{
             author: strings.analysisTimelineAuthor,
@@ -59,7 +64,7 @@ export function buildLowerSections({
     out.push({
       id: ANALYSIS_ANCHORS.style,
       title: strings.analysisStyleTitle,
-      body: <StyleList items={analysis.style ?? []} linker={linker} />,
+      body: <StyleList items={analysis.style ?? []} linker={linker} links={links} />,
     });
   }
   if (has.reception) {
@@ -68,7 +73,7 @@ export function buildLowerSections({
       title: strings.analysisReceptionTitle,
       body: (
         <div className={styles.text}>
-          <Paragraphs text={analysis.reception} />
+          <Paragraphs text={analysis.reception} links={links} />
         </div>
       ),
     });
@@ -80,6 +85,7 @@ export function buildLowerSections({
       body: (
         <AdaptationsList
           items={analysis.adaptations ?? []}
+          links={links}
           kindLabels={{
             film: strings.analysisAdaptationFilm,
             series: strings.analysisAdaptationSeries,
@@ -96,6 +102,7 @@ export function buildLowerSections({
       body: (
         <MisreadingsList
           items={analysis.misreadings ?? []}
+          links={links}
           mythLabel={strings.analysisMisreadingMyth}
           truthLabel={strings.analysisMisreadingTruth}
         />
@@ -106,7 +113,7 @@ export function buildLowerSections({
     out.push({
       id: ANALYSIS_ANCHORS.discussion,
       title: strings.analysisDiscussionTitle,
-      body: <DiscussionList questions={analysis.discussionQuestions ?? []} />,
+      body: <DiscussionList questions={analysis.discussionQuestions ?? []} links={links} />,
     });
   }
   if (has.faq) {
@@ -118,7 +125,10 @@ export function buildLowerSections({
       body: (
         <FaqBlock
           id={ANALYSIS_ANCHORS.faq}
-          items={(analysis.faq ?? []).filter(isFaqItem)}
+          items={(analysis.faq ?? []).filter(isFaqItem).map((item) => ({
+            ...item,
+            answerNode: <LinkedText text={item.answer} links={links} />,
+          }))}
           title={faqTitle}
           showJsonLd={false}
           className={styles.faqSection}

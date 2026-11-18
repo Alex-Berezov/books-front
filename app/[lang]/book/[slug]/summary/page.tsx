@@ -5,17 +5,18 @@ import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { RichTextContent } from '@/components/common/RichTextContent';
 import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
+import { pickBookHeroes } from '@/lib/book-world/format';
 import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getSummaryStrings } from '@/lib/i18n/summaryStrings';
-import { summaryPath } from '@/lib/seo/book-summary';
+import { getWorldStrings } from '@/lib/i18n/worldStrings';
+import { pickSummaryVersion, summaryPath } from '@/lib/seo/book-summary';
+import { worldPageSlug } from '@/lib/seo/book-world';
 import { buildSummaryArticleJsonLd } from '@/lib/seo/summary-jsonld';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
 import { formatLongDateUtc } from '@/lib/utils/date';
-import { anchorHeadings, demoteH1 } from '@/lib/utils/heading-anchors';
 import { serializeJsonLd } from '@/lib/utils/json-ld';
 import { readingMinutes } from '@/lib/utils/reading-time';
-import { sanitizeRichHtml } from '@/lib/utils/rich-html';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import { BookSectionNav } from '../BookSectionNav';
@@ -25,25 +26,19 @@ import styles from './summary.module.scss';
 import { buildSummaryBookContext } from './summaryBookContext';
 import { SummaryBrief } from './SummaryBrief';
 import { loadSummaryOrNotFound } from './summaryData';
+import { prepareSummaryHtml, SUMMARY_HEROES_ANCHOR } from './summaryHtml';
 import { buildSummaryMetadata } from './summaryMetadata';
 import { buildExploreLinks, SummaryMoreBlocks } from './SummaryMoreBlocks';
 import { SummarySectionsToc } from './SummarySectionsToc';
 import { SummarySidebar } from './SummarySidebar';
+import { WorldHeroesBlock } from '../WorldHeroesBlock';
+import { loadLinkEntities, makeLinkSession } from '../worldLinks';
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>;
 };
 
 export const revalidate = 300;
-
-/** Префикс якорей разделов пересказа: тот же у оглавления и у `RichTextContent`. */
-const SUMMARY_ANCHOR_PREFIX = 'part';
-
-/** С какого числа разделов `h2` в сайдбаре появляется оглавление. */
-const SUMMARY_TOC_MIN_SECTIONS = 2;
-
-const anchorSummaryHeadings = (safeHtml: string) =>
-  anchorHeadings(demoteH1(safeHtml), SUMMARY_ANCHOR_PREFIX, 'h2').html;
 
 const summaryUrl = (lang: string) => (bookSlug: string) => `/${lang}${summaryPath(bookSlug)}`;
 
@@ -68,12 +63,22 @@ export default async function BookSummaryPage({ params }: Props) {
     redirect(summaryUrl(lang)(book.slug));
   }
 
+  // Список мира (F08-5) параллельно с пересказом, версия - правилом загрузчика; не отклоняется.
+  const worldEntitiesLoad = loadLinkEntities(pickSummaryVersion(book, supportedLang));
   const { version, summary, plainText, brief, sections } = await loadSummaryOrNotFound(
     book,
     supportedLang,
     slug
   );
-
+  const worldEntities = await worldEntitiesLoad;
+  const linkSession = makeLinkSession({
+    entities: worldEntities,
+    lang: supportedLang,
+    book,
+    version,
+    routeSlug: slug,
+  });
+  const summaryText = prepareSummaryHtml(summary.summary, linkSession);
   const dict = getDictionary(supportedLang);
   const summaryStrings = getSummaryStrings(supportedLang);
   const {
@@ -93,12 +98,6 @@ export default async function BookSummaryPage({ params }: Props) {
   const readingTime = dict.book.summaryReadingTime.replace(
     '{minutes}',
     String(readingMinutes(plainText))
-  );
-
-  const { anchors } = anchorHeadings(
-    demoteH1(sanitizeRichHtml(summary.summary)),
-    SUMMARY_ANCHOR_PREFIX,
-    'h2'
   );
 
   const exploreLinks = buildExploreLinks(bookHref, version, analysisHref, {
@@ -202,7 +201,7 @@ export default async function BookSummaryPage({ params }: Props) {
             )}
             <RichTextContent
               html={summary.summary}
-              transformSafeHtml={anchorSummaryHeadings}
+              transformSafeHtml={summaryText.transform}
               className={styles.text}
             />
           </article>
@@ -217,7 +216,7 @@ export default async function BookSummaryPage({ params }: Props) {
               { label: dict.book.summaryReadingTimeLabel, value: readingTime },
             ]}
             tocTitle={dict.common.tableOfContents}
-            toc={anchors.length >= SUMMARY_TOC_MIN_SECTIONS ? anchors : []}
+            toc={summaryText.toc}
           />
         </div>
 
@@ -227,6 +226,14 @@ export default async function BookSummaryPage({ params }: Props) {
           continueTitle={dict.book.summaryContinueTitle}
           read={readHref ? { href: readHref, label: dict.book.readFullBook } : null}
           listen={listenHref ? { href: listenHref, label: dict.book.listenAudiobook } : null}
+        />
+
+        <WorldHeroesBlock
+          id={SUMMARY_HEROES_ANCHOR}
+          title={getWorldStrings(supportedLang).worldBookHeroesTitle}
+          heroes={pickBookHeroes(worldEntities)}
+          lang={supportedLang}
+          worldSlug={worldPageSlug(version, book, slug)}
         />
 
         <Suspense fallback={null}>

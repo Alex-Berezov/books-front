@@ -8,6 +8,11 @@ import styles from './FaqBlock.module.scss';
 export interface FaqItem {
   question: string;
   answer: string;
+  /**
+   * Видимый ответ разметкой - ссылки перелинковки анализа (F08-5b, решение арбитра). JSON-LD всегда из
+   * строки `answer`.
+   */
+  answerNode?: ReactNode;
 }
 
 export interface FaqBlockProps {
@@ -58,7 +63,7 @@ export const FaqBlock: FC<FaqBlockProps> = ({
         {items.map((item, index) => (
           <details key={index} className={styles.item}>
             <summary className={styles.question}>{item.question}</summary>
-            <div className={styles.answer}>{item.answer}</div>
+            <div className={styles.answer}>{item.answerNode ?? item.answer}</div>
           </details>
         ))}
       </div>

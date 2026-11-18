@@ -221,3 +221,44 @@
   font-weight: $font-weight-bold;
   color: var(--public-foreground);
 }
+
+// Список ссылок-плашек подстраниц книги: «Узнать больше о книге», «Герои книги» (F08-5).
+@mixin pill-link-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  a {
+    display: inline-block;
+    padding: $spacing-xs $spacing-md;
+    border: 1px solid var(--public-border);
+    border-radius: $border-radius-full;
+    color: var(--public-foreground);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--public-primary);
+      border-color: var(--public-primary);
+    }
+  }
+}
+
+// Толкование под цитатой: общий QuotesBlock и толкование ключевой цитаты анализа (F08-5, Q13).
+@mixin quote-comment {
+  margin: 0;
+  font-size: $font-size-sm;
+  line-height: $line-height-relaxed;
+  color: var(--public-foreground);
+}
+
+// Ссылка внутри текста подстраниц книги: анализ, мир, перелинковка (F08-5).
+@mixin text-link {
+  color: var(--public-primary);
+
+  &:hover {
+    color: var(--public-primary-hover);
+  }
+}

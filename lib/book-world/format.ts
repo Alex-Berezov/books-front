@@ -1,4 +1,5 @@
 import type { BookWorldCoPresence } from '@/types/api-schema';
+import { isLinkableEntity } from './link-entities';
 
 /**
  * Чистые правила страниц мира книги (F08-3b, `product.md` §5): без зависимостей от React и API,
@@ -72,4 +73,33 @@ export function fillTemplate(template: string, values: Record<string, string | n
     (acc, [key, value]) => acc.split(`{${key}}`).join(String(value)),
     template
   );
+}
+
+/** Сколько героев в блоке «Герои книги» (`product.md` §11 п.4). */
+export const WORLD_HEROES_BLOCK_LIMIT = 6;
+
+/**
+ * Герои для блока «Герои книги» (решение арбитра `F08 | F08-5` Q4): публичные герои со страницей
+ * (то же правило, что у ссылок в тексте: с ядром, не строка редактора);
+ * `main` первыми, затем по первой главе присутствия (пустые в конце), затем по ключу.
+ */
+export function pickBookHeroes<
+  T extends {
+    key: string;
+    type: string;
+    hasCore: boolean;
+    role: string | null;
+    mentionFirst: number | null;
+    editor?: unknown;
+  },
+>(entities: readonly T[]): T[] {
+  const rank = (e: T) => (e.role === 'main' ? 0 : 1);
+  const first = (e: T) => e.mentionFirst ?? Number.POSITIVE_INFINITY;
+  return entities
+    .filter((e) => e.type === 'character' && isLinkableEntity(e))
+    .sort(
+      (a, b) =>
+        rank(a) - rank(b) || first(a) - first(b) || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)
+    )
+    .slice(0, WORLD_HEROES_BLOCK_LIMIT);
 }

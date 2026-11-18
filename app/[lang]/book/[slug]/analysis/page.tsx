@@ -1,16 +1,16 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { buildEditionNotesRows } from '@/components/public/books/EditionNotes/editionNotesRows';
 import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
-import { hasText } from '@/lib/book-analysis/format';
+import { pickBookHeroes } from '@/lib/book-world/format';
 import { getAnalysisStrings } from '@/lib/i18n/analysisStrings';
 import { getDictionary } from '@/lib/i18n/dictionaries';
-import { worldNavLabel } from '@/lib/i18n/worldStrings';
+import { getWorldStrings, worldNavLabel } from '@/lib/i18n/worldStrings';
 import { buildAnalysisArticleJsonLd } from '@/lib/seo/analysis-jsonld';
-import { analysisPageSlug, analysisPath } from '@/lib/seo/book-analysis';
+import { analysisPageSlug, analysisPath, pickAnalysisPageVersion } from '@/lib/seo/book-analysis';
 import { pickSummaryVersion, summaryPath } from '@/lib/seo/book-summary';
+import { worldPageSlug } from '@/lib/seo/book-world';
 import { versionHasWorld } from '@/lib/seo/world-path';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
 import { formatLongDateUtc } from '@/lib/utils/date';
@@ -26,9 +26,11 @@ import styles from './analysis.module.scss';
 import { ANALYSIS_ANCHORS } from './analysisAnchors';
 import { FactsCard, Paragraphs, Section, type ChapterLinker } from './AnalysisBlocks';
 import { loadAnalysisOrNotFound } from './analysisData';
+import { buildAnalysisFactRows } from './analysisFacts';
 import { buildAnalysisMetadata } from './analysisMetadata';
 import { AnalysisSections } from './AnalysisSections';
 import { readerChapterHref } from '../read/chapterParam';
+import { loadLinkEntities, makeLinkSession } from '../worldLinks';
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>;
@@ -59,6 +61,8 @@ export default async function BookAnalysisPage({ params }: Props) {
     redirect(analysisUrl(lang)(book.slug));
   }
 
+  // Список мира (F08-5) параллельно с анализом, версия - правилом загрузчика; не отклоняется.
+  const worldEntitiesLoad = loadLinkEntities(pickAnalysisPageVersion(book, supportedLang));
   const { version, analysis } = await loadAnalysisOrNotFound(book, supportedLang, slug);
 
   const dict = getDictionary(supportedLang);
@@ -91,6 +95,17 @@ export default async function BookAnalysisPage({ params }: Props) {
     href: (n) => (chapterNumbers.has(n) ? readerChapterHref(bookHref, n) : null),
   };
 
+  const worldEntities = await worldEntitiesLoad;
+  const links = makeLinkSession({
+    entities: worldEntities,
+    lang: supportedLang,
+    book,
+    version,
+    routeSlug: slug,
+    chapter: { template: analysisT.analysisChapter, href: linker.href },
+  });
+  const worldStrings = getWorldStrings(supportedLang);
+
   const navItems = buildBookSectionNavItems({
     lang: supportedLang,
     bookSlug,
@@ -110,35 +125,17 @@ export default async function BookAnalysisPage({ params }: Props) {
     },
   });
 
-  // Карточка произведения (§4): порядок строк - как в спецификации; год первой публикации и язык
-  // оригинала - из данных версии (то же правило, что блок «Об издании»), остальное - из анализа.
-  const facts = analysis.facts ?? {};
-  const editionRows = buildEditionNotesRows(
+  const factRows = buildAnalysisFactRows(
+    analysis,
     {
       version,
       firstPublishedYear: book.firstPublishedYear,
       shownTitle: title,
       lang: supportedLang,
     },
-    {
-      firstPublished: t.editionFirstPublished,
-      originalLanguage: t.editionOriginalLanguage,
-      originalTitle: t.editionOriginalTitle,
-      translator: t.editionTranslator,
-    }
+    t,
+    analysisT
   );
-  const editionValue = (label: string) => editionRows.find((r) => r.label === label)?.value;
-  const factRows = [
-    { label: t.summaryGenre, value: facts.genre },
-    { label: analysisT.analysisFactMovement, value: facts.movement },
-    { label: analysisT.analysisFactWrittenYears, value: facts.writtenYears },
-    { label: t.editionFirstPublished, value: editionValue(t.editionFirstPublished) },
-    { label: analysisT.analysisFactSettingPlace, value: facts.settingPlace },
-    { label: analysisT.analysisFactSettingTime, value: facts.settingTime },
-    { label: analysisT.analysisFactNarrator, value: facts.narrator },
-    { label: analysisT.analysisFactStructure, value: facts.structure },
-    { label: t.editionOriginalLanguage, value: editionValue(t.editionOriginalLanguage) },
-  ].filter((row): row is { label: string; value: string } => hasText(row.value));
 
   // Подпись (§20) - всегда: страница есть только при ядре; дата - при разборчивой дате изменения.
   const updatedAt = new Date(analysis.updatedAt);
@@ -193,6 +190,7 @@ export default async function BookAnalysisPage({ params }: Props) {
             id={ANALYSIS_ANCHORS.facts}
             title={analysisT.analysisFactsTitle}
             rows={factRows}
+            links={links}
             actions={
               <BookCtaButtons read={read} listen={listen} className={styles.factActions}>
                 {summary ? (
@@ -206,16 +204,24 @@ export default async function BookAnalysisPage({ params }: Props) {
 
           <Section id={ANALYSIS_ANCHORS.mainIdea} title={analysisT.analysisMainIdeaTitle}>
             <div className={styles.mainIdea}>
-              <Paragraphs text={analysis.mainIdea} />
+              <Paragraphs text={analysis.mainIdea} links={links} />
             </div>
           </Section>
 
           <AnalysisSections
             analysis={analysis}
             linker={linker}
+            links={links}
             strings={analysisT}
             tocTitle={dict.common.tableOfContents}
             faqTitle={t.faqTitle}
+            characterMore={worldStrings.worldCardMore}
+            heroes={{
+              title: worldStrings.worldBookHeroesTitle,
+              heroes: pickBookHeroes(worldEntities),
+              lang: supportedLang,
+              worldSlug: worldPageSlug(version, book, slug),
+            }}
           />
 
           {/* Подпись ведёт на раздел редполитики об анализе (решение арбитра `F03 | F03-3`, В5). */}

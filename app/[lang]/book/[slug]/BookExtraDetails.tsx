@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import Link from 'next/link';
 import { FaqBlock } from '@/components/common/FaqBlock/FaqBlock';
 import { QuotesBlock } from '@/components/common/QuotesBlock/QuotesBlock';
@@ -22,9 +22,23 @@ export interface AnalysisSectionLinks {
 interface BookExtraDetailsProps {
   activeVersion: BookOverview['versions'][0] | null;
   analysisLinks?: AnalysisSectionLinks | null;
+  /** Страница героя по имени карточки и подпись ссылки (F08-5): нет страницы - нет записи. */
+  characterPages?: Record<string, string>;
+  characterMore?: string;
+  /**
+   * «Герои книги» (F08-5, решение арбитра `F08 | F08-5` Q4) - серверный узел: стоит сразу после
+   * персонажей, а без персонажей - на их месте.
+   */
+  heroesSlot?: ReactNode;
 }
 
-export default function BookExtraDetails({ activeVersion, analysisLinks }: BookExtraDetailsProps) {
+export default function BookExtraDetails({
+  activeVersion,
+  analysisLinks,
+  characterPages,
+  characterMore,
+  heroesSlot,
+}: BookExtraDetailsProps) {
   const { t } = useTranslation();
 
   if (!activeVersion) return null;
@@ -66,11 +80,18 @@ export default function BookExtraDetails({ activeVersion, analysisLinks }: BookE
               <div key={char.name} className={styles.characterCard}>
                 <div className={styles.charName}>{char.name}</div>
                 <div className={styles.charDesc}>{char.description}</div>
+                {characterMore && characterPages && Object.hasOwn(characterPages, char.name) ? (
+                  <Link href={characterPages[char.name]} className={styles.analysisLink}>
+                    {characterMore}
+                  </Link>
+                ) : null}
               </div>
             ))}
           </div>
         </section>
       )}
+
+      {heroesSlot}
 
       {/* Quotes Section */}
       {activeVersion.quotes && activeVersion.quotes.length > 0 && (

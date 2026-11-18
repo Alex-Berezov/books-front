@@ -1,4 +1,5 @@
 import type { ChapterLinker } from '../analysis/AnalysisBlocks';
+import type { LinkSession } from '@/lib/book-world/link-entities';
 import type { AnalysisStrings } from '@/lib/i18n/analysisStrings';
 import type { WorldStrings } from '@/lib/i18n/worldStrings';
 import type { BookWorldEntity } from '@/types/api-schema';
@@ -17,6 +18,8 @@ export interface WorldEntitySectionsInput {
   strings: WorldStrings;
   analysisStrings: AnalysisStrings;
   linker: ChapterLinker;
+  /** Сессия ссылок страницы для текстов (F08-5, решение арбитра Q9); `null` - без перелинковки. */
+  textLinks: LinkSession | null;
   /** Герои по ключу: публичные из списка мира и запасные имена из анализа. */
   people: ReadonlyMap<string, WorldPerson>;
   /** Номера аудиоглав версии: «Слушать» - только на существующую. */

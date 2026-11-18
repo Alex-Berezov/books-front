@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildLangUrl } from '@/lib/seo/urls';
 import { ApiError } from '@/types/api';
@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => ({
   }),
   getBookOverview: vi.fn(),
   getPublicSummarySection: vi.fn(),
+  getPublicBookWorld: vi.fn(),
   resolveSeo: vi.fn(),
   resolveRetiredSlug: vi.fn(),
 }));
@@ -40,6 +41,7 @@ vi.mock('@/api/endpoints/public', async () => {
     ...actual,
     getBookOverview: mocks.getBookOverview,
     getPublicSummarySection: mocks.getPublicSummarySection,
+    getPublicBookWorld: mocks.getPublicBookWorld,
     resolveSeo: mocks.resolveSeo,
   };
 });
@@ -404,5 +406,77 @@ describe('страница раздела: метаданные', () => {
       new ApiError({ message: 'Boom', statusCode: 500 })
     );
     await expect(metadataFor('2')).rejects.toThrow('Boom');
+  });
+});
+
+// F08-5: перелинковка текста раздела - имя героя со страницей ссылкой, заголовки не трогаются.
+describe('страница раздела: перелинковка мира (F08-5)', () => {
+  const worldVersion = () => ({
+    ...version('en', 'oblomov', 1),
+    _count: { chapters: 3, audioChapters: 0, summaries: 1, analyses: 0, worldEntities: 1 },
+  });
+
+  beforeEach(() => {
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({ versions: [worldVersion(), version('fr', 'oblomov-fr', 1)] })
+    );
+    mocks.getPublicSummarySection.mockImplementation((_id: string, n: number) =>
+      Promise.resolve(
+        section(n, {
+          text: '<h1>Oblomov dreams</h1><p>Text of part 2. Oblomov lies on his sofa.</p>',
+        })
+      )
+    );
+    mocks.getPublicBookWorld.mockReset();
+    mocks.getPublicBookWorld.mockResolvedValue({
+      language: 'en',
+      alternates: [],
+      entities: [
+        {
+          key: 'oblomov',
+          type: 'character',
+          name: 'Oblomov',
+          role: 'main',
+          short: null,
+          hasCore: true,
+          isIndexable: true,
+          mentionFirst: 1,
+          updatedAt: CONTENT_DATE,
+          forms: ['Oblomov'],
+        },
+      ],
+    });
+  });
+
+  it('имя героя в тексте раздела - ссылка на его страницу, в заголовке - нет', async () => {
+    const { container } = await renderPage('2');
+    expect(mocks.getPublicBookWorld).toHaveBeenCalledWith('v-en');
+    const paragraph = [...container.querySelectorAll('p')].find(
+      (p) => p.textContent === 'Text of part 2. Oblomov lies on his sofa.'
+    )!;
+    expect(within(paragraph).getByRole('link', { name: 'Oblomov' })).toHaveAttribute(
+      'href',
+      '/en/book/oblomov/wiki/oblomov'
+    );
+    // h1 редактора понижен до h2 (`demoteH1`), ссылок в заголовке нет.
+    const heading = screen.getByRole('heading', { level: 2, name: 'Oblomov dreams' });
+    expect(within(heading).queryAllByRole('link')).toEqual([]);
+  });
+
+  it('список мира запрашивается, не дожидаясь раздела', async () => {
+    let worldFirst = false;
+    mocks.getPublicSummarySection.mockImplementation(async (_id: string, n: number) => {
+      worldFirst = mocks.getPublicBookWorld.mock.calls.length > 0;
+      return section(n);
+    });
+    await renderPage('2');
+    expect(worldFirst).toBe(true);
+  });
+
+  it('отказ списка мира: раздел на месте, ссылок на героев нет', async () => {
+    mocks.getPublicBookWorld.mockRejectedValue(new ApiError({ message: 'boom', statusCode: 500 }));
+    const { container } = await renderPage('2');
+    expect(container.textContent).toContain('Text of part 2. Oblomov lies on his sofa.');
+    expect(container.querySelector('a[href*="/wiki/"]')).toBeNull();
   });
 });

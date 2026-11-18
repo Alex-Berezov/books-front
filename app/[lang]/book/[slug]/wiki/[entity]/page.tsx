@@ -6,7 +6,7 @@ import { fillTemplate } from '@/lib/book-world/format';
 import { worldNavLabel } from '@/lib/i18n/worldStrings';
 import { isWorldEntityKey } from '@/lib/seo/book-world';
 import { buildWorldArticleJsonLd } from '@/lib/seo/world-jsonld';
-import { worldEntityPath, worldPath } from '@/lib/seo/world-path';
+import { worldPath } from '@/lib/seo/world-path';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
 import { serializeJsonLd } from '@/lib/utils/json-ld';
 import type { WorldPerson } from '../worldEntityTypes';
@@ -16,6 +16,7 @@ import { PageSections } from '../../analysis/PageSections';
 import { BookSectionNav } from '../../BookSectionNav';
 import { BookSubpageHero } from '../../BookSubpageHero';
 import { listenChapterHref, readerChapterHref } from '../../read/chapterParam';
+import { makeLinkSession, worldEntityHref } from '../../worldLinks';
 import styles from '../wiki.module.scss';
 import { loadWorldEntityOrNotFound } from '../wikiData';
 import { buildWorldEntityMetadata } from '../wikiMetadata';
@@ -28,8 +29,9 @@ type Props = {
 
 export const revalidate = 300;
 
+// Адрес маршрута для перехода со старого слага книги: тот же помощник, слаг - книги (редирект).
 const entityUrl = (lang: string, key: string) => (bookSlug: string) =>
-  `/${lang}${worldEntityPath(bookSlug, key)}`;
+  worldEntityHref(lang, bookSlug, key);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, slug, entity } = await params;
@@ -68,13 +70,24 @@ export default async function BookWorldEntityPage({ params }: Props) {
   const chapterSet = new Set(ctx.read ? chapterNumbers : []);
   const linker = buildChapterLinker(ctx.bookHref, ctx.analysisStrings.analysisChapter, chapterSet);
 
+  // Перелинковка (F08-5): имена других героев и «глава N» в текстах; на себя ссылки нет.
+  const textLinks = makeLinkSession({
+    entities,
+    lang: supportedLang,
+    book,
+    version,
+    routeSlug: slug,
+    selfKey: key,
+    chapter: { template: ctx.analysisStrings.analysisChapter, href: linker.href },
+  });
+
   // Герои для ссылок: запасные имена из анализа, поверх них - публичные сущности со страницей.
   const people = new Map<string, WorldPerson>();
   for (const c of analysis?.characters ?? []) people.set(c.key, { name: c.name, href: null });
   for (const e of entities) {
     people.set(e.key, {
       name: e.name,
-      href: `/${supportedLang}${worldEntityPath(ctx.bookSlug, e.key)}`,
+      href: worldEntityHref(supportedLang, ctx.ownSlug, e.key),
       short: e.short,
     });
   }
@@ -85,6 +98,7 @@ export default async function BookWorldEntityPage({ params }: Props) {
     strings,
     analysisStrings: ctx.analysisStrings,
     linker,
+    textLinks,
     people,
     audioChapters,
     listenHref: ctx.listen ? (n) => listenChapterHref(ctx.bookHref, n) : null,

@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { degradedCounters, resetDegradedCounters } from '@/lib/seo/degraded';
 import { buildLangUrl } from '@/lib/seo/urls';
 import { ApiError } from '@/types/api';
 
@@ -23,6 +24,7 @@ const mocks = vi.hoisted(() => ({
   getBookOverview: vi.fn(),
   getPublicBookSummary: vi.fn(),
   getPublicSummarySections: vi.fn(),
+  getPublicBookWorld: vi.fn(),
   resolveSeo: vi.fn(),
   resolveRetiredSlug: vi.fn(),
 }));
@@ -43,6 +45,7 @@ vi.mock('@/api/endpoints/public', async () => {
     getBookOverview: mocks.getBookOverview,
     getPublicBookSummary: mocks.getPublicBookSummary,
     getPublicSummarySections: mocks.getPublicSummarySections,
+    getPublicBookWorld: mocks.getPublicBookWorld,
     resolveSeo: mocks.resolveSeo,
   };
 });
@@ -734,5 +737,136 @@ describe('страница пересказа: пункт «Мир книги»'
     await renderPage();
     const nav = screen.getByRole('navigation', { name: 'Book sections' });
     expect(within(nav).queryByRole('link', { name: 'Book world' })).toBeNull();
+  });
+});
+
+// F08-5: перелинковка пересказа - первое упоминание героя со страницей ссылкой, блок «Герои книги».
+describe('страница пересказа: перелинковка мира (F08-5)', () => {
+  const worldEntity = (key: string, name: string, forms: string[], extra = {}) => ({
+    key,
+    type: 'character',
+    name,
+    role: 'main',
+    short: null,
+    hasCore: true,
+    isIndexable: true,
+    mentionFirst: 1,
+    updatedAt: UPDATED_AT,
+    forms,
+    ...extra,
+  });
+  const withWorld = () =>
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        versions: [
+          version('en', 'hamlet', 1, {
+            _count: { chapters: 3, audioChapters: 0, summaries: 1, worldEntities: 2 },
+          }),
+        ],
+      })
+    );
+
+  beforeEach(() => {
+    withWorld();
+    mocks.getPublicBookWorld.mockReset();
+    mocks.getPublicBookWorld.mockResolvedValue({
+      language: 'en',
+      alternates: [],
+      entities: [
+        worldEntity('hamlet', 'Hamlet', ['Hamlet']),
+        worldEntity('ghost', 'Ghost', ['Ghost'], { role: null, hasCore: false }),
+      ],
+    });
+  });
+
+  it('первое упоминание - ссылка на страницу героя, второе остаётся текстом', async () => {
+    await renderPage();
+    const article = screen.getByRole('article');
+    const links = within(article).getAllByRole('link', { name: 'Hamlet' });
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute('href', '/en/book/hamlet/wiki/hamlet');
+    expect(article.textContent).toContain('Hamlet feigns madness.');
+  });
+
+  it('герой без ядра ссылкой не становится', async () => {
+    // С заглавной: строчное «ghost» ссылкой не стало бы и у героя со страницей (Q11).
+    mocks.getPublicBookSummary.mockResolvedValue({
+      ...SUMMARY,
+      summary: '<h2>Act I</h2><p>The Ghost appears to Hamlet.</p>',
+    });
+    await renderPage();
+    expect(screen.getByRole('article').textContent).toContain('The Ghost appears');
+    expect(within(screen.getByRole('article')).queryByRole('link', { name: 'Ghost' })).toBeNull();
+  });
+
+  it('блок «Герои книги» ведёт на страницу героя', async () => {
+    await renderPage();
+    const block = screen
+      .getByRole('heading', { name: 'Characters in this book' })
+      .closest('section')!;
+    expect(within(block).getByRole('link', { name: 'Hamlet' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/wiki/hamlet'
+    );
+  });
+
+  it('сбой списка мира: страница остаётся, ссылок и блока нет', async () => {
+    resetDegradedCounters();
+    mocks.getPublicBookWorld.mockRejectedValue(new ApiError({ message: 'boom', statusCode: 500 }));
+    await renderPage();
+    expect(within(screen.getByRole('article')).queryByRole('link', { name: 'Hamlet' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Characters in this book' })).toBeNull();
+    // Выпавший блок посчитан в журнале деградаций, а не только в логе ошибок.
+    expect(degradedCounters()['book-world:bundle-unreadable:dropped-block']).toBe(1);
+  });
+
+  it.each([404, 451])('список мира %i - тихо: без ссылок, без счёта деградаций', async (code) => {
+    resetDegradedCounters();
+    mocks.getPublicBookWorld.mockRejectedValue(new ApiError({ message: 'x', statusCode: code }));
+    await renderPage();
+    expect(within(screen.getByRole('article')).queryByRole('link', { name: 'Hamlet' })).toBeNull();
+    expect(degradedCounters()['book-world:bundle-unreadable:dropped-block']).toBeUndefined();
+  });
+
+  it('ответ списка мира без entities - не «мира нет», а деградация в журнале', async () => {
+    resetDegradedCounters();
+    mocks.getPublicBookWorld.mockResolvedValue({ language: 'en', alternates: [] });
+    await renderPage();
+    expect(within(screen.getByRole('article')).queryByRole('link', { name: 'Hamlet' })).toBeNull();
+    expect(degradedCounters()['book-world:bundle-unreadable:dropped-block']).toBe(1);
+  });
+
+  it('список мира запрашивается, не дожидаясь пересказа', async () => {
+    let worldFirst = false;
+    mocks.getPublicBookSummary.mockImplementation(async () => {
+      worldFirst = mocks.getPublicBookWorld.mock.calls.length > 0;
+      return SUMMARY;
+    });
+    await renderPage();
+    expect(worldFirst).toBe(true);
+  });
+
+  it('снимок до и после: статья с миром без ссылок мира равна статье без мира', async () => {
+    const first = await renderPage();
+    const withLinks = first.container.querySelector('article')!.innerHTML;
+    first.unmount();
+    mocks.getBookOverview.mockResolvedValue(makeBook());
+    const plain = (await renderPage()).container.querySelector('article')!.innerHTML;
+
+    // Текст пересказа на месте: заголовок с якорем и имя героя.
+    expect(plain).toMatch(/<h2 id="part-[^"]+">Act I<\/h2>/);
+    expect(plain).toContain('The ghost appears to Hamlet.');
+    expect(withLinks).toContain('<a href="/en/book/hamlet/wiki/hamlet"');
+    const stripped = withLinks.replace(
+      /<a href="\/en\/book\/[^"]+\/wiki\/[^"]+"[^>]*>([^<]*)<\/a>/g,
+      '$1'
+    );
+    expect(stripped).toBe(plain);
+  });
+
+  it('у версии нет мира по счётчику - список не запрашивается', async () => {
+    mocks.getBookOverview.mockResolvedValue(makeBook());
+    await renderPage();
+    expect(mocks.getPublicBookWorld).not.toHaveBeenCalled();
   });
 });

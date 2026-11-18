@@ -50,6 +50,8 @@ const en = {
   worldAnalysisThemes: 'Analysis: themes',
   worldReadFirst: 'Read chapter {n}, where {name} first appears',
   worldReadFromStart: 'Read from the beginning',
+  worldBookHeroesTitle: 'Characters in this book',
+  worldCardMore: 'More about the character',
 };
 
 const es: WorldStrings = {
@@ -91,6 +93,8 @@ const es: WorldStrings = {
   worldAnalysisThemes: 'Análisis: temas',
   worldReadFirst: 'Leer el capítulo {n}, donde aparece {name} por primera vez',
   worldReadFromStart: 'Leer desde el principio',
+  worldBookHeroesTitle: 'Personajes del libro',
+  worldCardMore: 'Más sobre el personaje',
 };
 
 const fr: WorldStrings = {
@@ -132,6 +136,8 @@ const fr: WorldStrings = {
   worldAnalysisThemes: 'Analyse : thèmes',
   worldReadFirst: 'Lire le chapitre {n}, où {name} apparaît pour la première fois',
   worldReadFromStart: 'Lire depuis le début',
+  worldBookHeroesTitle: 'Personnages du livre',
+  worldCardMore: 'En savoir plus sur le personnage',
 };
 
 const pt: WorldStrings = {
@@ -173,6 +179,8 @@ const pt: WorldStrings = {
   worldAnalysisThemes: 'Análise: temas',
   worldReadFirst: 'Ler o capítulo {n}, onde {name} aparece pela primeira vez',
   worldReadFromStart: 'Ler desde o início',
+  worldBookHeroesTitle: 'Personagens do livro',
+  worldCardMore: 'Saiba mais sobre o personagem',
 };
 
 const ru: WorldStrings = {
@@ -214,6 +222,8 @@ const ru: WorldStrings = {
   worldAnalysisThemes: 'Анализ: темы',
   worldReadFirst: 'Читать главу {n}, где {name} появляется впервые',
   worldReadFromStart: 'Читать с начала',
+  worldBookHeroesTitle: 'Герои книги',
+  worldCardMore: 'Подробнее о герое',
 };
 
 export type WorldStrings = { [K in keyof typeof en]: string };

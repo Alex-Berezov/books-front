@@ -7,4 +7,5 @@ export const BOOK_ANCHORS = {
   characters: 'characters',
   symbols: 'symbols',
   quotes: 'quotes',
+  heroes: 'book-heroes',
 } as const;

@@ -6,7 +6,7 @@ import { buildRelationMap } from '@/lib/book-analysis/relation-map';
 import { fillTemplate, updatedAtRange } from '@/lib/book-world/format';
 import { worldNavLabel } from '@/lib/i18n/worldStrings';
 import { buildWorldArticleJsonLd } from '@/lib/seo/world-jsonld';
-import { worldEntityPath, worldPath } from '@/lib/seo/world-path';
+import { worldPath } from '@/lib/seo/world-path';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
 import { serializeJsonLd } from '@/lib/utils/json-ld';
 import type { SupportedLang } from '@/lib/i18n/lang';
@@ -20,6 +20,7 @@ import { buildWorldPageContext, formatWorldDate } from './wikiPageContext';
 import { buildIndexSections } from './WorldIndexSections';
 import { PageSections } from '../analysis/PageSections';
 import { readerChapterHref } from '../read/chapterParam';
+import { makeLinkSession, worldEntityHref } from '../worldLinks';
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>;
@@ -70,13 +71,23 @@ export default async function BookWorldPage({ params }: Props) {
     href: (n: number) => (ctx.read ? readerChapterHref(ctx.bookHref, n) : null),
   };
 
+  // Перелинковка (F08-5): имена героев в текстах карточек; «глава N» на общей странице не ссылается (Q6).
+  const textLinks = makeLinkSession({
+    entities: world.entities,
+    lang: supportedLang,
+    book,
+    version,
+    routeSlug: slug,
+  });
+
   const sections = buildIndexSections({
     characters,
     strings,
     analysisStrings: ctx.analysisStrings,
     linker,
-    entityHref: (key) => `/${supportedLang}${worldEntityPath(ctx.bookSlug, key)}`,
+    entityHref: (key) => worldEntityHref(supportedLang, ctx.ownSlug, key),
     relationMap,
+    textLinks,
     links: {
       analysis: ctx.analysisHref,
       summary: ctx.summary,

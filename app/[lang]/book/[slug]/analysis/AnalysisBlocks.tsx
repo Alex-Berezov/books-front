@@ -2,7 +2,13 @@ import { Fragment, type ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { QuotesBlock, type QuoteItem } from '@/components/common/QuotesBlock/QuotesBlock';
-import { sortCharacters, splitParagraphs, themeColorIndex } from '@/lib/book-analysis/format';
+import {
+  hasText,
+  sortCharacters,
+  splitParagraphs,
+  themeColorIndex,
+} from '@/lib/book-analysis/format';
+import { markLinked, type LinkSession } from '@/lib/book-world/link-entities';
 import type {
   BookAnalysisCharacter,
   BookAnalysisKeyQuote,
@@ -12,6 +18,7 @@ import type {
   BookAnalysisTheme,
 } from '@/types/api-schema';
 import styles from './analysis.module.scss';
+import { LinkedText } from '../LinkedText';
 import { ThemeStrip } from './ThemeStrip';
 
 /**
@@ -46,11 +53,27 @@ export function ChapterRef({
   );
 }
 
-export function Paragraphs({ text }: { text: string | null | undefined }) {
+export function Paragraphs({
+  text,
+  links,
+  linkedKey,
+}: {
+  text: string | null | undefined;
+  /** Сессия ссылок страницы (решение арбитра `F08 | F08-5b` Q9); `null` - без перелинковки. */
+  links: LinkSession | null;
+  /**
+   * Сущность, на которую уже ведёт заголовок карточки: её имя в тексте - не ссылка и слот не тратит
+   * (§11 п.1). Отметка - в рендере, то есть в порядке документа, как и само «первое упоминание».
+   */
+  linkedKey?: string;
+}) {
+  if (linkedKey) markLinked(links, linkedKey);
   return (
     <>
       {splitParagraphs(text).map((p, i) => (
-        <p key={i}>{p}</p>
+        <p key={i}>
+          <LinkedText text={p} links={links} />
+        </p>
       ))}
     </>
   );
@@ -115,10 +138,13 @@ export function ThemeTags({
 export function QuoteBlock({
   quote,
   linker,
+  links,
   extra,
 }: {
   quote: BookAnalysisQuote & { comment?: string | null };
   linker: ChapterLinker;
+  /** Сессия ссылок страницы: только для толкования `comment`, текст цитаты - как есть (Q13). */
+  links: LinkSession | null;
   extra?: ReactNode;
 }) {
   const chapter = quote.chapter ?? null;
@@ -131,7 +157,11 @@ export function QuoteBlock({
           {chapter !== null && <ChapterRef n={chapter} linker={linker} />}
         </footer>
       )}
-      {quote.comment ? <p className={styles.quoteMeta}>{quote.comment}</p> : null}
+      {quote.comment ? (
+        <p className={styles.quoteMeta}>
+          <LinkedText text={quote.comment} links={links} />
+        </p>
+      ) : null}
     </blockquote>
   );
 }
@@ -171,11 +201,13 @@ export interface ThemeStripLabels {
 export function ThemesList({
   themes,
   linker,
+  links,
   chapterNumbers,
   stripLabels,
 }: {
   themes: readonly BookAnalysisTheme[];
   linker: ChapterLinker;
+  links: LinkSession | null;
   /** Номера глав версии: по ним полоса «где звучит тема» (F03-3, §9). */
   chapterNumbers: readonly number[];
   stripLabels: ThemeStripLabels;
@@ -189,7 +221,7 @@ export function ThemesList({
         >
           <h3 className={styles.cardTitle}>{theme.title}</h3>
           <div className={styles.text}>
-            <Paragraphs text={theme.interpretation} />
+            <Paragraphs text={theme.interpretation} links={links} />
           </div>
           <ThemeStrip
             themeChapters={theme.chapters}
@@ -199,7 +231,7 @@ export function ThemesList({
             chaptersLabel={stripLabels.chapters}
           />
           {(theme.quotes ?? []).slice(0, 3).map((q, qi) => (
-            <QuoteBlock key={qi} quote={q} linker={linker} />
+            <QuoteBlock key={qi} quote={q} linker={linker} links={links} />
           ))}
         </li>
       ))}
@@ -212,50 +244,72 @@ export interface CharacterLabels {
   arcFrom: string;
   arcTo: string;
   themeTags: string;
+  /** «Подробнее о герое» - ссылка на страницу героя в мире книги. */
+  more: string;
 }
 
 export function CharactersList({
   characters,
   themes,
   linker,
+  links,
   labels,
 }: {
   characters: readonly BookAnalysisCharacter[];
   themes: ThemeIndex;
   linker: ChapterLinker;
+  links: LinkSession | null;
   labels: CharacterLabels;
 }) {
   return (
     <ul className={styles.cards}>
-      {sortCharacters(characters).map((c) => (
-        <li key={c.key} className={styles.card}>
-          <h3 className={styles.cardTitle}>
-            {c.name}
-            <span className={styles.role}>{labels.roles[c.role]}</span>
-          </h3>
-          <div className={styles.text}>
-            <Paragraphs text={c.description} />
-          </div>
-          {c.arc && (c.arc.from || c.arc.to) ? (
-            <dl className={styles.arc}>
-              {c.arc.from ? (
-                <Fragment>
-                  <dt>{labels.arcFrom}</dt>
-                  <dd>{c.arc.from}</dd>
-                </Fragment>
-              ) : null}
-              {c.arc.to ? (
-                <Fragment>
-                  <dt>{labels.arcTo}</dt>
-                  <dd>{c.arc.to}</dd>
-                </Fragment>
-              ) : null}
-            </dl>
-          ) : null}
-          {c.quote?.text ? <QuoteBlock quote={c.quote} linker={linker} /> : null}
-          <ThemeTags keys={c.themeKeys} themes={themes} label={labels.themeTags} />
-        </li>
-      ))}
+      {sortCharacters(characters).map((c) => {
+        const pageHref = links?.index.pageHref.get(c.key);
+        return (
+          <li key={c.key} className={styles.card}>
+            <h3 className={styles.cardTitle}>
+              {c.name}
+              <span className={styles.role}>{labels.roles[c.role]}</span>
+            </h3>
+            <div className={styles.text}>
+              <Paragraphs
+                text={c.description}
+                links={links}
+                linkedKey={pageHref ? c.key : undefined}
+              />
+            </div>
+            {c.arc && (c.arc.from || c.arc.to) ? (
+              <dl className={styles.arc}>
+                {c.arc.from ? (
+                  <Fragment>
+                    <dt>{labels.arcFrom}</dt>
+                    <dd>
+                      <LinkedText text={c.arc.from} links={links} />
+                    </dd>
+                  </Fragment>
+                ) : null}
+                {c.arc.to ? (
+                  <Fragment>
+                    <dt>{labels.arcTo}</dt>
+                    <dd>
+                      <LinkedText text={c.arc.to} links={links} />
+                    </dd>
+                  </Fragment>
+                ) : null}
+              </dl>
+            ) : null}
+            {c.quote?.text ? <QuoteBlock quote={c.quote} linker={linker} links={links} /> : null}
+            <ThemeTags keys={c.themeKeys} themes={themes} label={labels.themeTags} />
+            {pageHref ? (
+              <p>
+                <Link href={pageHref} className={styles.textLink}>
+                  {labels.more}
+                </Link>
+              </p>
+            ) : null}
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -263,10 +317,12 @@ export function CharactersList({
 export function SymbolsList({
   symbols,
   linker,
+  links,
   chaptersLabel,
 }: {
   symbols: readonly BookAnalysisSymbol[];
   linker: ChapterLinker;
+  links: LinkSession | null;
   chaptersLabel: string;
 }) {
   return (
@@ -275,10 +331,10 @@ export function SymbolsList({
         <li key={`${s.title}-${i}`} className={styles.card}>
           <h3 className={styles.cardTitle}>{s.title}</h3>
           <div className={styles.text}>
-            <Paragraphs text={s.interpretation} />
+            <Paragraphs text={s.interpretation} links={links} />
           </div>
           <ChapterList chapters={s.chapters} linker={linker} label={chaptersLabel} />
-          {s.quote?.text ? <QuoteBlock quote={s.quote} linker={linker} /> : null}
+          {s.quote?.text ? <QuoteBlock quote={s.quote} linker={linker} links={links} /> : null}
         </li>
       ))}
     </ul>
@@ -297,6 +353,7 @@ export function KeyQuotesSection({
   speakers,
   themes,
   linker,
+  links,
   themeTagsLabel,
 }: {
   id: string;
@@ -306,6 +363,8 @@ export function KeyQuotesSection({
   speakers: ReadonlyMap<string, string>;
   themes: ThemeIndex;
   linker: ChapterLinker;
+  /** Сессия ссылок страницы: толкование со ссылками, текст цитаты и «кто говорит» - текстом (Q13). */
+  links: LinkSession | null;
   themeTagsLabel: string;
 }) {
   // «Кто говорит» - текстом (§11), ссылкой только глава: имя героя не ведёт в читалку.
@@ -315,9 +374,14 @@ export function KeyQuotesSection({
     return {
       text: q.text,
       ...(speaker ? { author: speaker } : {}),
-      comment: splitParagraphs(q.interpretation),
+      // Толкование - узлом, а не строками `comment`: строки общего блока ссылок не несут.
       extra: (
         <>
+          {hasText(q.interpretation) ? (
+            <div className={styles.quoteComment}>
+              <Paragraphs text={q.interpretation} links={links} />
+            </div>
+          ) : null}
           {chapter !== null ? (
             <p className={styles.quoteMeta}>
               <ChapterRef n={chapter} linker={linker} />
@@ -343,6 +407,8 @@ export function SpoilerNote({ text }: { text: string }) {
 export interface FactRow {
   label: string;
   value: string;
+  /** Значение - текст со ссылками на героев (рассказчик, место действия; Q13). */
+  linked?: boolean;
 }
 
 /**
@@ -353,11 +419,13 @@ export function FactsCard({
   id,
   title,
   rows,
+  links,
   actions,
 }: {
   id: string;
   title: string;
   rows: FactRow[];
+  links: LinkSession | null;
   actions: ReactNode;
 }) {
   if (rows.length === 0) return <>{actions}</>;
@@ -367,7 +435,7 @@ export function FactsCard({
         {rows.map((row) => (
           <div key={row.label} className={styles.fact}>
             <dt>{row.label}</dt>
-            <dd>{row.value}</dd>
+            <dd>{row.linked ? <LinkedText text={row.value} links={links} /> : row.value}</dd>
           </div>
         ))}
       </dl>

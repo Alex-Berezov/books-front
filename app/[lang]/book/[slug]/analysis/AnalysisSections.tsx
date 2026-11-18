@@ -1,6 +1,7 @@
 import { analysisSectionFlags } from '@/lib/book-analysis/format';
 import { buildRelationMap } from '@/lib/book-analysis/relation-map';
 import { analysisRoleLabels, type AnalysisStrings } from '@/lib/i18n/analysisStrings';
+import type { LinkSession } from '@/lib/book-world/link-entities';
 import type { BookAnalysisDetail } from '@/types/api-schema';
 import styles from './analysis.module.scss';
 import { ANALYSIS_ANCHORS } from './analysisAnchors';
@@ -17,14 +18,21 @@ import {
 import { buildLowerSections, type AnalysisSection } from './AnalysisLowerSections';
 import { PageSections } from './PageSections';
 import { RelationMap } from './RelationMap';
+import { WorldHeroesBlock, type WorldHeroesBlockProps } from '../WorldHeroesBlock';
 
 interface AnalysisSectionsProps {
   analysis: BookAnalysisDetail;
   linker: ChapterLinker;
+  /** Сессия ссылок страницы (F08-5, решение арбитра Q9); `null` - тексты без перелинковки. */
+  links: LinkSession | null;
   strings: AnalysisStrings;
   tocTitle: string;
   /** Заголовок FAQ - тот же, что у пересказа (`book.faqTitle`, §19). */
   faqTitle: string;
+  /** «Подробнее о герое» на карточке героя (F08-5). */
+  characterMore: string;
+  /** «Герои книги» (F08-5, решение арбитра Q10): герои, уже отобранные страницей (`pickBookHeroes`). */
+  heroes: Omit<WorldHeroesBlockProps, 'id' | 'links'>;
 }
 
 /**
@@ -36,9 +44,12 @@ interface AnalysisSectionsProps {
 export function AnalysisSections({
   analysis,
   linker,
+  links,
   strings,
   tocTitle,
   faqTitle,
+  characterMore,
+  heroes,
 }: AnalysisSectionsProps) {
   const themes = analysis.themes ?? [];
   const characters = analysis.characters ?? [];
@@ -59,6 +70,7 @@ export function AnalysisSections({
         <ThemesList
           themes={themes}
           linker={linker}
+          links={links}
           chapterNumbers={analysis.chapterNumbers}
           stripLabels={{
             strip: strings.analysisThemeStripLabel,
@@ -81,11 +93,13 @@ export function AnalysisSections({
             characters={characters}
             themes={themeIndex}
             linker={linker}
+            links={links}
             labels={{
               roles: analysisRoleLabels(strings),
               arcFrom: strings.analysisArcFrom,
               arcTo: strings.analysisArcTo,
               themeTags: strings.analysisThemeTags,
+              more: characterMore,
             }}
           />
         </>
@@ -97,7 +111,12 @@ export function AnalysisSections({
       id: ANALYSIS_ANCHORS.symbols,
       title: strings.analysisSymbolsTitle,
       body: (
-        <SymbolsList symbols={symbols} linker={linker} chaptersLabel={strings.analysisChapters} />
+        <SymbolsList
+          symbols={symbols}
+          linker={linker}
+          links={links}
+          chaptersLabel={strings.analysisChapters}
+        />
       ),
     });
   }
@@ -114,6 +133,7 @@ export function AnalysisSections({
           speakers={speakers}
           themes={themeIndex}
           linker={linker}
+          links={links}
           themeTagsLabel={strings.analysisThemeTags}
         />
       ),
@@ -125,7 +145,7 @@ export function AnalysisSections({
       title: strings.analysisTitleMeaningTitle,
       body: (
         <div className={styles.text}>
-          <Paragraphs text={analysis.titleMeaning} />
+          <Paragraphs text={analysis.titleMeaning} links={links} />
         </div>
       ),
     });
@@ -138,14 +158,24 @@ export function AnalysisSections({
         <>
           <SpoilerNote text={strings.analysisEndingSpoiler} />
           <div className={styles.text}>
-            <Paragraphs text={analysis.endingMeaning} />
+            <Paragraphs text={analysis.endingMeaning} links={links} />
           </div>
         </>
       ),
     });
   }
 
-  sections.push(...buildLowerSections({ analysis, linker, strings, faqTitle, has }));
+  // «Герои книги» - перед нижними разделами (решение арбитра Q10); героев нет - раздела нет.
+  if (heroes.heroes.length > 0) {
+    sections.push({
+      id: ANALYSIS_ANCHORS.heroes,
+      title: heroes.title,
+      standalone: true,
+      body: <WorldHeroesBlock id={ANALYSIS_ANCHORS.heroes} {...heroes} links={links} />,
+    });
+  }
+
+  sections.push(...buildLowerSections({ analysis, linker, links, strings, faqTitle, has }));
 
   return <PageSections sections={sections} tocTitle={tocTitle} tocId="analysis-toc-title" />;
 }
