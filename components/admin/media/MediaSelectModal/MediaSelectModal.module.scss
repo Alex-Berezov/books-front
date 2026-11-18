@@ -101,3 +101,9 @@
     color: $color-primary-hover;
   }
 }
+
+// Previous results kept on screen while the next page or query loads.
+.stale {
+  opacity: 0.5;
+  transition: opacity $transition-fast;
+}

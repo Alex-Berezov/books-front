@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { UploadCloud } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useDropzone } from 'react-dropzone';
@@ -11,7 +11,12 @@ import styles from './MediaUpload.module.scss';
 import { UploadProgress, type UploadFile } from './UploadProgress';
 
 interface MediaUploadProps {
-  onUploadComplete?: () => void;
+  /**
+   * Called once the dropped batch is done: how many files made it out of how
+   * many were tried. Not called if the dropzone was unmounted meanwhile - the
+   * batch keeps uploading, but whoever hosted it has moved on.
+   */
+  onUploadComplete?: (uploaded: number, attempted: number) => void;
   /**
    * Narrows what the dropzone accepts. Without it a picker restricted to images
    * still let an admin upload a pdf, answered "uploaded successfully" and then
@@ -39,6 +44,13 @@ export const MediaUpload = ({ onUploadComplete, acceptTypes }: MediaUploadProps)
   const [files, setFiles] = useState<UploadFile[]>([]);
   const { mutateAsync: upload } = useUploadMedia();
   const { enqueueSnackbar } = useSnackbar();
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -52,6 +64,7 @@ export const MediaUpload = ({ onUploadComplete, acceptTypes }: MediaUploadProps)
       setFiles((prev) => [...newFiles, ...prev]);
 
       // Process uploads
+      let uploaded = 0;
       for (const fileItem of newFiles) {
         // Update status to uploading
         setFiles((prev) =>
@@ -63,6 +76,7 @@ export const MediaUpload = ({ onUploadComplete, acceptTypes }: MediaUploadProps)
           formData.append('file', fileItem.file);
 
           await upload(formData);
+          uploaded += 1;
 
           // Update status to success
           setFiles((prev) =>
@@ -86,7 +100,7 @@ export const MediaUpload = ({ onUploadComplete, acceptTypes }: MediaUploadProps)
         }
       }
 
-      onUploadComplete?.();
+      if (mounted.current) onUploadComplete?.(uploaded, newFiles.length);
     },
     [upload, enqueueSnackbar, onUploadComplete]
   );

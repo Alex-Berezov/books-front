@@ -1,6 +1,6 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { keepPreviousData, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MediaSelectModal } from '@/components/admin/media/MediaSelectModal';
 import type { MediaFile } from '@/types/api-schema/media';
 
@@ -42,6 +42,10 @@ const renderModal = (allowedTypes?: MediaFile['type'][]) => {
 };
 
 describe('MediaSelectModal allowedTypes', () => {
+  beforeEach(() => {
+    useMediaFiles.mockReset();
+  });
+
   it('hides files of other types when the caller restricts them', async () => {
     useMediaFiles.mockReturnValue({
       data: {
@@ -68,7 +72,10 @@ describe('MediaSelectModal allowedTypes', () => {
     renderModal(['image']);
 
     await waitFor(() => expect(useMediaFiles).toHaveBeenCalled());
-    expect(useMediaFiles).toHaveBeenCalledWith(expect.objectContaining({ type: 'image' }));
+    expect(useMediaFiles).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'image' }),
+      expect.objectContaining({ placeholderData: keepPreviousData })
+    );
   });
 
   it('shows everything when the caller sets no restriction', async () => {

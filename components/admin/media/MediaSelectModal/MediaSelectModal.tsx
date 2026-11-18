@@ -2,9 +2,12 @@
 
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
+import { keepPreviousData } from '@tanstack/react-query';
 import { useMediaFiles } from '@/api/hooks/useMedia';
 import { Button } from '@/components/admin/common/Button';
 import { Modal } from '@/components/admin/common/Modal';
+import { Pagination } from '@/components/admin/shared/Pagination';
+import { MEDIA_SELECT_PAGE_SIZE } from '@/lib/constants/pagination';
 import type { MediaSelectModalProps } from './MediaSelectModal.types';
 import type { MediaFile, MediaType } from '@/types/api-schema/media';
 import { MediaGrid } from '../MediaGrid';
@@ -32,14 +35,28 @@ export const MediaSelectModal: FC<MediaSelectModalProps> = (props) => {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<MediaType | 'all'>(defaultTypeFilter);
   const [selectedFile, setSelectedFile] = useState<MediaFile | null>(null);
+  const [page, setPage] = useState(1);
 
-  // Fetch media files
-  const { data, isLoading, isError, refetch } = useMediaFiles({
-    page: 1,
-    limit: 50, // Load more for the modal
-    search: search || undefined,
-    type: typeFilter === 'all' ? undefined : typeFilter,
-  });
+  // Keeping the previous page on screen while the next one loads stops the
+  // grid and the page switcher from collapsing into "Loading..." on every click.
+  const { data, isLoading, isError, isPlaceholderData, refetch } = useMediaFiles(
+    {
+      page,
+      limit: MEDIA_SELECT_PAGE_SIZE,
+      search: search || undefined,
+      type: typeFilter === 'all' ? undefined : typeFilter,
+    },
+    { placeholderData: keepPreviousData }
+  );
+  const totalPages = data?.pagination.totalPages ?? 0;
+  // Files deleted elsewhere can shrink the library under the open modal: a page
+  // past the new end would show an empty grid with no page highlighted.
+  // An emptied list has no pages at all; it is page 1 then, not the old one.
+  useEffect(() => {
+    if (!data || isPlaceholderData) return;
+    const lastPage = Math.max(totalPages, 1);
+    if (page > lastPage) setPage(lastPage);
+  }, [data, isPlaceholderData, totalPages, page]);
 
   // Second line of defence: the request above narrows by a single type only,
   // so a caller allowing two kinds still needs the list filtered here.
@@ -53,6 +70,7 @@ export const MediaSelectModal: FC<MediaSelectModalProps> = (props) => {
       setActiveTab('library');
       setSearch('');
       setTypeFilter(defaultTypeFilter);
+      setPage(1);
       // We don't reset selectedFile here to allow persistence if needed,
       // but usually we might want to find the file by initialSelectedUrl if we had the full list.
       // For now, we start with no selection in the modal unless the user clicks.
@@ -60,12 +78,41 @@ export const MediaSelectModal: FC<MediaSelectModalProps> = (props) => {
     }
   }, [isOpen, defaultTypeFilter]);
 
-  const handleUploadComplete = () => {
-    refetch();
-    setActiveTab('library');
+  // A new search or filter starts from its own first page: staying on page 4
+  // of the previous result could land past the end of the new one.
+  const startNewQuery = () => {
+    setPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    startNewQuery();
+  };
+
+  const handleTypeFilterChange = (value: MediaType | 'all') => {
+    setTypeFilter(value);
+    startNewQuery();
+  };
+
+  // `MediaUpload` reports only while its tab is still open, so this never
+  // yanks a user who has gone back to browsing the library.
+  const handleUploadComplete = (uploaded: number, attempted: number) => {
+    // Nothing made it: keep the place in the library as it was.
+    if (uploaded === 0) return;
+    // The list is newest first, so the fresh upload is on page 1 - but only of
+    // the unfiltered list: a search left over from before could hide it. The
+    // upload mutation itself invalidates the media lists.
+    setSearch('');
+    setTypeFilter(defaultTypeFilter);
+    startNewQuery();
+    // Some files failed: stay on the upload tab, where their errors are listed.
+    if (uploaded === attempted) setActiveTab('library');
   };
 
   const handleFileSelect = (file: MediaFile) => {
+    // Dimmed results belong to the previous page or query, not to what is
+    // being asked for now.
+    if (isPlaceholderData) return;
     // The grid only ever shows permitted files, but the guard costs nothing and
     // keeps the promise of `allowedTypes` true whatever the grid does later.
     if (restrictedTo && !restrictedTo.includes(file.type)) return;
@@ -117,9 +164,9 @@ export const MediaSelectModal: FC<MediaSelectModalProps> = (props) => {
             <div className={styles.libraryContainer}>
               <MediaToolbar
                 search={search}
-                onSearchChange={setSearch}
+                onSearchChange={handleSearchChange}
                 typeFilter={typeFilter}
-                onTypeFilterChange={setTypeFilter}
+                onTypeFilterChange={handleTypeFilterChange}
                 availableTypes={restrictedTo ?? undefined}
                 viewMode="grid" // Always grid in modal for now
                 onViewModeChange={() => {}} // Disable view toggle in modal
@@ -136,9 +183,28 @@ export const MediaSelectModal: FC<MediaSelectModalProps> = (props) => {
                     <button type="button" className={styles.retry} onClick={() => refetch()}>
                       Try again
                     </button>
+                    {/* The page switcher is gone with the failed page; without
+                        this a page that keeps failing traps the user on it. */}
+                    {page > 1 && (
+                      <>
+                        {' '}
+                        <button type="button" className={styles.retry} onClick={() => setPage(1)}>
+                          Back to the first page
+                        </button>
+                      </>
+                    )}
                   </div>
                 ) : (
-                  <div className={selectedFile ? styles.hasSelection : ''}>
+                  // Old results stay on screen while the next query loads;
+                  // dimmed, so they are not taken for the answer to it.
+                  <div
+                    className={
+                      [selectedFile && styles.hasSelection, isPlaceholderData && styles.stale]
+                        .filter(Boolean)
+                        .join(' ') || undefined
+                    }
+                    aria-busy={isPlaceholderData}
+                  >
                     <MediaGrid
                       files={visibleFiles}
                       onSelect={handleFileSelect}
@@ -147,6 +213,10 @@ export const MediaSelectModal: FC<MediaSelectModalProps> = (props) => {
                   </div>
                 )}
               </div>
+
+              {!isError && (
+                <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+              )}
             </div>
           )}
         </div>

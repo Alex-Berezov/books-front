@@ -7,3 +7,6 @@
  * длины (найдено ревью при закрытии `LEGACY-218`).
  */
 export const USER_ACTIVITIES_PAGE_SIZE = 10;
+
+/** Страница медиабиблиотеки в модалке выбора файла (обложки, OG, картинка в редакторе). */
+export const MEDIA_SELECT_PAGE_SIZE = 50;
