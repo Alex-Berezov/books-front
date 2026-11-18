@@ -55,6 +55,27 @@
   &.xl {
     max-width: 1140px;
   }
+
+  // Most of the screen, for content that is the point of the window (a media
+  // library to pick from): fixed height so the inner layout can fill it.
+  &.full {
+    width: 94vw;
+    max-width: 1600px;
+    height: 92vh;
+    height: 92dvh; // Mobile toolbars eat into vh; dvh is the visible height
+    max-height: 92vh;
+    max-height: 92dvh;
+
+    .header {
+      padding: $spacing-sm $spacing-lg;
+    }
+
+    .body {
+      display: flex;
+      flex-direction: column;
+      padding: $spacing-sm $spacing-lg $spacing-md;
+    }
+  }
 }
 
 @keyframes slideUp {

@@ -17,7 +17,7 @@ export interface ModalProps {
   /** Confirm button variant */
   confirmVariant?: 'primary' | 'danger' | 'warning' | 'success';
   /** Modal size */
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   /** Loading state */
   isLoading?: boolean;
   /** Whether confirm button is disabled */

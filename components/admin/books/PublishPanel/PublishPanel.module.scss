@@ -5,6 +5,7 @@
 @import '@/styles/tokens.scss';
 
 .panel {
+  min-width: 0;
   background: $color-background-primary;
   border: 1px solid $color-border-base;
   border-radius: $border-radius-lg;
@@ -138,6 +139,7 @@
 
 .warningText {
   margin: 0;
+  overflow-wrap: anywhere;
   font-size: $font-size-sm;
   color: $color-text-primary;
   line-height: $line-height-base;
@@ -172,8 +174,11 @@
   list-style: none;
 }
 
+// Label, message and badge stack: side by side, a long Russian label held on
+// one line pushed the message past the right edge of the sidebar.
 .reasonItem {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
   gap: $spacing-xs;
   padding: $spacing-xs 0;
@@ -186,27 +191,26 @@
 }
 
 .reasonCode {
-  flex-shrink: 0;
+  max-width: 100%;
   font-family: $font-family-mono;
   font-size: $font-size-xs;
   color: $color-text-secondary;
-  min-width: fit-content;
-  white-space: nowrap;
 }
 
 .reasonMessage {
+  max-width: 100%;
   color: $color-text-primary;
+  overflow-wrap: anywhere; // Gate messages carry ids and URLs with no break points
 }
 
 /* Preparation stage (WP-H) */
 .preparationBlockedBadge {
-  flex-shrink: 0;
+  max-width: 100%;
   padding: 0 $spacing-xs;
   border-radius: $border-radius-sm;
   background: rgba($color-error, 0.12);
   color: $color-error;
   font-size: $font-size-xs;
-  white-space: nowrap;
 }
 
 .preparationNote {
@@ -218,13 +222,12 @@
 
 /* Blocker lifted by the admin last-resort decision (27.09.2026) */
 .supervisorOverriddenBadge {
-  flex-shrink: 0;
+  max-width: 100%;
   padding: 0 $spacing-xs;
   border-radius: $border-radius-sm;
   background: rgba($color-warning, 0.16);
   color: $color-warning;
   font-size: $font-size-xs;
-  white-space: nowrap;
 }
 
 /* Publication gate - check in flight (WP-A.5) */

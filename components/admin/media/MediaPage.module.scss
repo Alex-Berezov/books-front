@@ -92,6 +92,42 @@
   gap: $spacing-md;
 }
 
+// Picker modal: about a third smaller, previews in book-cover proportions so a
+// cover shows whole instead of a crop of its middle. The column width is tied
+// to `sizes` of the compact `<Image>` in `MediaGrid.tsx`: change both together.
+.gridCompact {
+  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+  gap: $spacing-sm;
+
+  .preview {
+    height: auto;
+    aspect-ratio: 2 / 3;
+  }
+
+  .card {
+    min-width: 0;
+  }
+
+  .info {
+    padding: $spacing-xs $spacing-sm;
+    min-width: 0;
+  }
+
+  .filename {
+    @include text-ellipsis;
+    font-size: $font-size-xs;
+    color: $color-text-primary;
+  }
+
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    gap: $spacing-xs;
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+  }
+}
+
 .card {
   display: flex;
   flex-direction: column;

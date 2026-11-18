@@ -131,7 +131,7 @@ export const MediaSelectModal: FC<MediaSelectModalProps> = (props) => {
       isOpen={isOpen}
       onCancel={onClose}
       title="Select Media"
-      size="xl"
+      size="full"
       showFooter={false} // We implement our own footer
     >
       <div className={styles.container}>
@@ -206,6 +206,7 @@ export const MediaSelectModal: FC<MediaSelectModalProps> = (props) => {
                     aria-busy={isPlaceholderData}
                   >
                     <MediaGrid
+                      compact
                       files={visibleFiles}
                       onSelect={handleFileSelect}
                       selectedId={selectedFile?.id}
@@ -234,7 +235,7 @@ export const MediaSelectModal: FC<MediaSelectModalProps> = (props) => {
                     className={styles.previewThumb}
                   />
                 )}
-                <span>{selectedFile.filename}</span>
+                <span className={styles.selectedName}>{selectedFile.filename}</span>
               </>
             )}
           </div>

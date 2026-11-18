@@ -195,7 +195,7 @@ export const MyComponent = () => {
 | `confirmText`         | `string`                                                | ❌       | `'Confirm'` | Confirm button text                                     |
 | `cancelText`          | `string`                                                | ❌       | `'Cancel'`  | Cancel button text                                      |
 | `confirmVariant`      | `'primary'` \| `'danger'` \| `'warning'` \| `'success'` | ❌       | `'primary'` | Confirm button style variant                            |
-| `size`                | `'sm'` \| `'md'` \| `'lg'` \| `'xl'`                    | ❌       | `'md'`      | Modal size                                              |
+| `size`                | `'sm'` \| `'md'` \| `'lg'` \| `'xl'` \| `'full'`        | ❌       | `'md'`      | Modal size; `full` - fixed 92% of the screen, body flex |
 | `isLoading`           | `boolean`                                               | ❌       | `false`     | Loading state (disables buttons)                        |
 | `isConfirmDisabled`   | `boolean`                                               | ❌       | `false`     | Disables the confirm button                             |
 | `showFooter`          | `boolean`                                               | ❌       | `true`      | Show footer buttons                                     |

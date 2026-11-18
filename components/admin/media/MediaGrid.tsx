@@ -13,6 +13,8 @@ interface MediaGridProps {
   onDelete?: (file: MediaFile) => void;
   onCopyUrl?: (file: MediaFile) => void;
   selectedId?: string;
+  /** Smaller cards in book-cover proportions, for the picker modal */
+  compact?: boolean;
 }
 
 export const MediaGrid: FC<MediaGridProps> = ({
@@ -21,6 +23,7 @@ export const MediaGrid: FC<MediaGridProps> = ({
   onDelete,
   onCopyUrl,
   selectedId,
+  compact = false,
 }) => {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
@@ -44,7 +47,7 @@ export const MediaGrid: FC<MediaGridProps> = ({
   };
 
   return (
-    <div className={styles.grid}>
+    <div className={compact ? `${styles.grid} ${styles.gridCompact}` : styles.grid}>
       {files.map((file) => (
         <div
           key={file.id}
@@ -64,7 +67,13 @@ export const MediaGrid: FC<MediaGridProps> = ({
                 src={file.url}
                 alt={file.filename}
                 fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                sizes={
+                  // Compact columns start at 135px (`.gridCompact`) and widen to fill
+                  // the row; one column on a phone takes the whole width.
+                  compact
+                    ? '(max-width: 480px) 100vw, 300px'
+                    : '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+                }
                 style={{ objectFit: 'cover' }}
                 unoptimized={!isOptimizableHost(file.url)}
                 onError={() => handleImageError(file.id)}

@@ -14,21 +14,36 @@
 
 .topRow {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
-  gap: $spacing-lg;
+  gap: $spacing-md $spacing-lg;
 }
 
+// Title takes what the buttons leave; below ~300px it gives the buttons
+// their own line instead of being squeezed into a column of words.
 .titleGroup {
   display: flex;
   align-items: flex-start;
   gap: $spacing-md;
+  flex: 1 1 300px;
+  min-width: 0;
 }
 
+// On a laptop the six buttons do not fit next to the title: they wrap as whole
+// buttons onto the next line, never breaking a label into two.
 .actionsGroup {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
-  gap: $spacing-md;
+  gap: $spacing-sm;
+  max-width: 100%;
+  margin-left: auto; // Alone on a wrapped line it still sits on the right
+
+  > * {
+    white-space: nowrap;
+  }
 }
 
 .backArrow {
@@ -105,6 +120,7 @@
 .versionMeta {
   color: $color-text-secondary;
   font-size: $font-size-sm;
+  overflow-wrap: anywhere;
 }
 
 .slugMeta {
@@ -139,6 +155,8 @@
 }
 
 .sidebar {
+  min-width: 0;
+
   @media (max-width: $breakpoint-md) {
     order: -1; // Show on top on mobile
   }
