@@ -562,27 +562,36 @@ jobs:
 
       # Зеркало раннера `azure.archive.ubuntu.com` 11.11.2026 четыре прогона подряд не резолвилось,
       # и `playwright install --with-deps` не ставил шрифты браузера (T190, решение арбитра
-      # в decisions-log.md). Из списка зеркал раннера (`mirror+file:`) убирается только Azure:
-      # apt идёт на следующие зеркала списка (archive.ubuntu.com), запасная цепочка остаётся. Остался адрес
-      # Azure или список опустел - шаг красный, подмена не прошла молча. Шаг снимается отдельной
-      # правкой, когда зеркало Azure снова резолвится (`getent hosts azure.archive.ubuntu.com` на раннере).
+      # в decisions-log.md). 18.11.2026 то же сделано с региональным зеркалом EC2
+      # (`<регион>.ec2.archive.ubuntu.com`): оно отвечало, но установка браузера шла 7.5-7.9 минуты
+      # вместо 3.7, и job трижды подряд упёрся в `timeout-minutes` (CI 44375273895; решение арбитра
+      # в decisions-log.md по делу media-modal-pagination, по образцу T190 | LEGACY-499).
+      # Из списка зеркал раннера (`mirror+file:`) убираются Azure и EC2: apt идёт на следующие
+      # зеркала списка (archive.ubuntu.com), запасная цепочка остаётся. Остался адрес Azure или EC2,
+      # или список опустел - шаг красный, подмена не прошла молча. Каждая часть снимается своей
+      # правкой: Azure - когда он снова резолвится (`getent hosts azure.archive.ubuntu.com` на раннере),
+      # EC2 - когда пробный прогон без его удаления укладывает «Install Playwright browser» в ~4 минуты.
       - name: Point apt at the main Ubuntu mirror
         run: |
           if [ -f /etc/apt/apt-mirrors.txt ]; then
-            sudo sed -i -e '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+            sudo sed -i -e '/azure\.archive\.ubuntu\.com/d' -e '/\.ec2\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
           fi
           for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do
             if [ -f "$f" ]; then
-              sudo sed -i -e 's|https\?://azure\.archive\.ubuntu\.com|https://archive.ubuntu.com|g' "$f"
+              sudo sed -i -e 's|https\?://azure\.archive\.ubuntu\.com|https://archive.ubuntu.com|g' -e 's|https\?://[a-z0-9-]*\.ec2\.archive\.ubuntu\.com|https://archive.ubuntu.com|g' "$f"
             fi
           done
           if grep -qsE '^[^#]*azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*; then
             echo "::error::apt still points at azure.archive.ubuntu.com"
             exit 1
           fi
+          if grep -qsE '^[^#]*\.ec2\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*; then
+            echo "::error::apt still points at an ec2.archive.ubuntu.com mirror"
+            exit 1
+          fi
           if [ -f /etc/apt/apt-mirrors.txt ]; then
             if ! grep -qE '^[[:space:]]*[^#[:space:]]' /etc/apt/apt-mirrors.txt; then
-              echo "::error::apt mirror list is empty after removing azure.archive.ubuntu.com"
+              echo "::error::apt mirror list is empty after removing the azure and ec2 mirrors"
               exit 1
             fi
             cat /etc/apt/apt-mirrors.txt
