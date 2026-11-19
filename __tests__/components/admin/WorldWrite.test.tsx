@@ -212,7 +212,9 @@ describe('WorldWrite (F08-4b)', () => {
       fireEvent.click(button('Write World'));
       const dialog = screen.getByRole('dialog');
       expect(
-        within(dialog).getByText(/The world: 2 main characters, up to \$1\.2\./)
+        within(dialog).getByText(
+          /The world: at most 2 characters \(main and secondary\), up to \$1\.2\./
+        )
       ).toBeInTheDocument();
       expect(within(dialog).getByText(/Operation limit: \$1\.8\./)).toBeInTheDocument();
       fireEvent.click(within(dialog).getByRole('button', { name: 'Start' }));

@@ -167,7 +167,8 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
         </label>
         <span className={styles.hint}>
           JSON: aliasExclusions — not counted anywhere: an ordinary word, or a surname a namesake
-          shares; if the hero then has no chapters, limit it to the namesake&apos;s chapters below
+          shares; if the hero then has no chapters, take the surname out of here and limit it to the
+          namesake&apos;s chapters below
         </span>
         <textarea
           id="world-alias-exclusions"
@@ -184,9 +185,9 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
           Excluded chapters per name form (one per line: form: chapters)
         </label>
         <span className={styles.hint}>
-          JSON: aliasChapterExclusions — namesakes, e.g. Simon: 6, 15: only this form, only these
-          chapters; the form is the name or one of the name forms (else no effect), each case its
-          own line
+          JSON: aliasChapterExclusions — namesakes, e.g. the line «Simon: 6, 15» drops only this
+          form, only in these chapters; the form is the name or one of the name forms (else no
+          effect), each grammatical case its own line
         </span>
         <textarea
           id="world-alias-chapter-exclusions"

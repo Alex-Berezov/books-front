@@ -152,12 +152,15 @@ const RUN_FAILURES: Readonly<Record<string, string>> = {
 
 export const reasonText = (reason: string | null): string => failureReason(reason, RUN_FAILURES);
 
-/** Окно подтверждения старта: что строится первым, сколько героев и сколько стоит сверху. */
+/**
+ * Окно подтверждения старта: что строится первым, сколько героев и сколько стоит сверху. Герои - верхняя
+ * граница: главные и второстепенные до порога глав (решение арбитра `F08 | F08-8b` Q1).
+ */
 export const writeEstimateText = (estimate: WorldWriteEstimate): string => {
   const upper = estimate.upperBound ? ' (the dossier or the glossary is not built yet)' : '';
   return [
     ...contextEstimateLines(estimate),
-    `The world: ${estimate.candidates} main ${estimate.candidates === 1 ? 'character' : 'characters'}, up to ${formatMoney(estimate.stageUsd)}${upper}.`,
+    `The world: at most ${estimate.candidates} ${estimate.candidates === 1 ? 'character' : 'characters'} (main and secondary), up to ${formatMoney(estimate.stageUsd)}${upper}.`,
     limitLine(estimate.suggestedLimitUsd),
   ].join(' ');
 };

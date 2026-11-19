@@ -2,9 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   progressText,
   refusalText,
+  writeEstimateText,
 } from '@/components/admin/books/WorldTab/WorldWrite/worldWrite.utils';
 import { ApiError } from '@/types/api';
-import type { WorldWrite, WorldWriteStep } from '@/types/api-schema';
+import type { WorldWrite, WorldWriteEstimate, WorldWriteStep } from '@/types/api-schema';
 
 /** F08-4b: подписи отказов хода мира — только свои коды таблицы, прочее — общей подписью ходов. */
 
@@ -84,5 +85,26 @@ describe('worldWrite.utils progressText', () => {
 
   it('no candidate under the number: the step without a name', () => {
     expect(progressText(run(1, { candidates: [] }))).toBe('Step 2 of 3: Page…');
+  });
+});
+
+describe('worldWrite.utils writeEstimateText (F08-8b)', () => {
+  const estimate = (candidates: number): WorldWriteEstimate => ({
+    dossier: null,
+    glossary: null,
+    candidates,
+    stageUsd: '0.5',
+    upperBound: false,
+    suggestedLimitUsd: '1',
+  });
+
+  it('names the number of characters as an upper bound of main and secondary ones', () => {
+    expect(writeEstimateText(estimate(3))).toContain(
+      'The world: at most 3 characters (main and secondary), up to $0.5.'
+    );
+  });
+
+  it('one character - singular', () => {
+    expect(writeEstimateText(estimate(1))).toContain('at most 1 character (main and secondary)');
   });
 });
