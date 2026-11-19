@@ -18,6 +18,7 @@ const FIELD_PATHS = [
   'name',
   'aliases',
   'aliasExclusions',
+  'aliasChapterExclusions',
   ...BOOK_WORLD_TEXT_FIELDS.map((f) => f.path),
   ...BOOK_WORLD_LIST_FIELDS.map((f) => f.path),
 ];
@@ -165,8 +166,8 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
           Excluded name forms (one per line)
         </label>
         <span className={styles.hint}>
-          JSON: aliasExclusions — an excluded form is not counted anywhere, real mentions included:
-          use it for a form that matches an ordinary word, not for namesakes
+          JSON: aliasExclusions — not counted anywhere: an ordinary word, or a surname a namesake
+          shares; if the hero then has no chapters, limit it to the namesake&apos;s chapters below
         </span>
         <textarea
           id="world-alias-exclusions"
@@ -176,6 +177,25 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
           onChange={(e) => set({ aliasExclusions: e.target.value })}
         />
         <FieldIssues issues={issuesFor('aliasExclusions')} />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="world-alias-chapter-exclusions">
+          Excluded chapters per name form (one per line: form: chapters)
+        </label>
+        <span className={styles.hint}>
+          JSON: aliasChapterExclusions — namesakes, e.g. Simon: 6, 15: only this form, only these
+          chapters; the form is the name or one of the name forms (else no effect), each case its
+          own line
+        </span>
+        <textarea
+          id="world-alias-chapter-exclusions"
+          className={styles.textarea}
+          rows={2}
+          value={form.aliasChapterExclusions}
+          onChange={(e) => set({ aliasChapterExclusions: e.target.value })}
+        />
+        <FieldIssues issues={issuesFor('aliasChapterExclusions')} />
       </div>
 
       {BOOK_WORLD_TEXT_FIELDS.map((field) => (

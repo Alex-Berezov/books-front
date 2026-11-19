@@ -534,6 +534,7 @@ export type {
   BookWorldArc,
   BookWorldArcStage,
   BookWorldChapterCount,
+  BookWorldChapterExclusion,
   BookWorldCharacterFields,
   BookWorldCoPresence,
   BookWorldEditor,

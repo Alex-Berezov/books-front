@@ -18,6 +18,10 @@ export interface WorldEntityFormValues {
    * Иначе поле не уходит вовсе, чтобы не стереть сохранённые исключения, которых форма не видела.
    */
   aliasExclusionsKnown: boolean;
+  /** Исключённые главы у формы (F08-8a): строка на форму, `форма: 3, 15`. */
+  aliasChapterExclusions: string;
+  /** Как `aliasExclusionsKnown`: поле пришло с сервером или сущность новая. */
+  aliasChapterExclusionsKnown: boolean;
   texts: Record<BookWorldTextKey, string>;
   /** JSON-текст списков; пусто — списка нет. */
   lists: Record<BookWorldListKey, string>;
@@ -33,6 +37,11 @@ export const formFromWorldEntity = (entity: BookWorldEntity | null): WorldEntity
   aliases: (entity?.aliases ?? []).join('\n'),
   aliasExclusions: (entity?.editor?.aliasExclusions ?? []).join('\n'),
   aliasExclusionsKnown: entity === null || entity.editor?.aliasExclusions !== undefined,
+  aliasChapterExclusions: (entity?.editor?.aliasChapterExclusions ?? [])
+    .map((e) => `${e.form}: ${e.chapters.join(', ')}`)
+    .join('\n'),
+  aliasChapterExclusionsKnown:
+    entity === null || entity.editor?.aliasChapterExclusions !== undefined,
   texts: {
     short: entity?.short ?? '',
     position: entity?.profile?.position ?? '',

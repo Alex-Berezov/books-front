@@ -14,12 +14,18 @@ export {
 } from '@/lib/admin/book-analysis-blocks';
 export type { DataIssue as BookWorldIssue } from '@/lib/admin/data-issue';
 
+/** Форм имени у сущности; исключённых глав — по записи на имя и каждую форму (`F08-8a`). */
+const WORLD_ALIASES = 30;
+
 /** `tech.md` §3 и техбриф `F08-1` §3. */
 export const BOOK_WORLD_LIMITS = {
   entities: 100,
   name: A.title,
-  aliases: 30,
+  aliases: WORLD_ALIASES,
   alias: A.title,
+  // Исключённые главы у формы (F08-8a, решение арбитра `F08 | F08-8a` п.5): имя и все формы.
+  chapterExclusions: WORLD_ALIASES + 1,
+  chapterExclusionChapters: 500,
   short: A.mainIdea,
   profileField: A.title,
   appearance: A.mediumText,

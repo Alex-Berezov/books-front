@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { BOOK_WORLD_LIMITS } from '@/lib/admin/book-world-blocks';
 import { formFromWorldEntity } from '@/lib/admin/book-world-form-state';
 import {
   buildWorldPromptInputsText,
@@ -8,6 +9,7 @@ import {
   analyzeBookWorldEntityImport,
   analyzeBookWorldImport,
   checkBookWorldImport,
+  parseChapterExclusions,
   worldEntityRequestFromForm,
 } from '@/lib/admin/book-world-validation';
 import type { BookWorldEntity, DossierStatus } from '@/types/api-schema';
@@ -150,6 +152,73 @@ describe('aliasExclusions (F08-2)', () => {
     expect(checkBookWorldImport(withExclusions(['Rodya']), 'en').errors).toEqual([]);
     expect(checkBookWorldImport(withExclusions([' ']), 'en').errors.map((e) => e.path)).toEqual([
       'entities.0.aliasExclusions.0',
+    ]);
+  });
+});
+
+describe('aliasChapterExclusions (F08-8a)', () => {
+  const withChapters = (aliasChapterExclusions: unknown) => {
+    const body = structuredClone(en);
+    return { ...body, entities: [{ ...body.entities[0], aliasChapterExclusions }] };
+  };
+  const paths = (value: unknown) =>
+    checkBookWorldImport(withChapters(value), 'en').errors.map((e) => e.path);
+
+  it('the import takes chapters per form; garbage is refused by path', () => {
+    expect(paths([{ form: 'Rodya', chapters: [2, 15] }])).toEqual([]);
+    expect(paths(null)).toEqual([]);
+    expect(paths([{ form: 'Rodya', chapters: [0] }])).toEqual([
+      'entities.0.aliasChapterExclusions.0.chapters.0',
+    ]);
+    expect(paths([{ form: 'Rodya', chapters: [1.5] }])).toEqual([
+      'entities.0.aliasChapterExclusions.0.chapters.0',
+    ]);
+    expect(paths([{ form: 'Rodya', chapters: [] }])).toEqual([
+      'entities.0.aliasChapterExclusions.0.chapters',
+    ]);
+    expect(paths([{ form: ' ', chapters: [1] }])).toEqual([
+      'entities.0.aliasChapterExclusions.0.form',
+    ]);
+    expect(paths([{ form: 'Rodya', chapters: [1], note: 'x' }])).toEqual([
+      'entities.0.aliasChapterExclusions.0.note',
+    ]);
+    expect(
+      paths(
+        Array.from({ length: BOOK_WORLD_LIMITS.chapterExclusions + 1 }, () => ({
+          form: 'R',
+          chapters: [1],
+        }))
+      )
+    ).toEqual(['entities.0.aliasChapterExclusions']);
+  });
+});
+
+describe('parseChapterExclusions (F08-8a)', () => {
+  it('the form runs to the last colon; blank lines are skipped', () => {
+    expect(parseChapterExclusions('Mr. X: Y: 3, 4\n\n  Simon :6  ')).toEqual({
+      list: [
+        { form: 'Mr. X: Y', chapters: [3, 4] },
+        { form: 'Simon', chapters: [6] },
+      ],
+      errors: [],
+    });
+  });
+
+  it.each([
+    ['no colon', 'Simon 6'],
+    ['no form', ': 6'],
+    ['no chapters', 'Simon:'],
+    ['an empty number', 'Simon: 2,,3'],
+    ['a trailing comma', 'Simon: 2,'],
+    ['not a number', 'Simon: six'],
+  ])('a line with %s is an error that names the line', (_label, line) => {
+    const { list, errors } = parseChapterExclusions(`Peter: 1\n${line}`);
+    expect(list).toEqual([{ form: 'Peter', chapters: [1] }]);
+    expect(errors).toEqual([
+      {
+        path: 'aliasChapterExclusions.1',
+        message: expect.stringContaining(`line "${line.trim()}"`),
+      },
     ]);
   });
 });

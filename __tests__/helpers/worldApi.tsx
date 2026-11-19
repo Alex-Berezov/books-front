@@ -75,7 +75,12 @@ export const detail = (key: string): BookWorldEntityResponse => ({
   entity: {
     ...row(
       { key, name: 'Sonya', updatedAt: ENTITY_SEEN },
-      { aliasExclusions: null, stale: [], mentionsAt: '2026-11-14T10:00:00.000Z' }
+      {
+        aliasExclusions: null,
+        aliasChapterExclusions: null,
+        stale: [],
+        mentionsAt: '2026-11-14T10:00:00.000Z',
+      }
     ),
     aliases: ['Sonya'],
     profile: null,

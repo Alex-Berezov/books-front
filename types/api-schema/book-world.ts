@@ -112,6 +112,12 @@ export interface BookWorldCharacterFields {
   sources: BookWorldSource[] | null;
 }
 
+/** Форма имени и главы, где она не считается — тёзки внутри одной формы (F08-8a). */
+export interface BookWorldChapterExclusion {
+  form: string;
+  chapters: number[];
+}
+
 /** Служебные поля — только редактору (`admin`, `content_manager`); анониму поля нет. */
 export interface BookWorldEditor {
   isVisible: boolean;
@@ -127,6 +133,8 @@ export interface BookWorldEditor {
   mentionChapters: number | null;
   /** Только на странице сущности: формы имени, исключённые из подсчёта (F08-2). */
   aliasExclusions?: string[] | null;
+  /** Только на странице сущности: главы, где форма имени не считается (F08-8a). */
+  aliasChapterExclusions?: BookWorldChapterExclusion[] | null;
   /**
    * Только на странице сущности: пункты, не сошедшиеся с текстом версии на последнем пересчёте
    * (`quotes.2` — цитаты нет дословно или главы нет; `scenes.0`, `arc.stages.1` — главы нет).
@@ -201,6 +209,8 @@ export type BookWorldEntityInput = {
   role?: BookWorldRole | null;
   /** Формы имени, исключённые из подсчёта присутствия (ложные совпадения с обычным словом). */
   aliasExclusions?: string[] | null;
+  /** Главы, где форма не считается (тёзки, F08-8a): только эта форма, только эти главы. */
+  aliasChapterExclusions?: BookWorldChapterExclusion[] | null;
 } & Partial<BookWorldCharacterFields>;
 
 /** Тело `PUT versions/:id/world`: вся версия; сущности вне тела не трогаются. */

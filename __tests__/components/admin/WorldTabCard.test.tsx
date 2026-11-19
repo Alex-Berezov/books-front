@@ -254,6 +254,113 @@ describe('WorldTab entity card (F08-1)', () => {
     expect(rec.entityPuts[0].body).not.toHaveProperty('aliasExclusions');
   });
 
+  describe('F08-8a: excluded chapters per name form', () => {
+    const label = 'Excluded chapters per name form (one per line: form: chapters)';
+    const withChapterExclusions = () => {
+      const base = detail('sonya');
+      return HttpResponse.json({
+        ...base,
+        entity: {
+          ...base.entity,
+          editor: {
+            ...base.entity.editor!,
+            aliasChapterExclusions: [{ form: 'Sonya', chapters: [2, 5] }],
+          },
+        },
+      });
+    };
+
+    it('shows the saved lines and sends the edited ones parsed', async () => {
+      rec.entityPutReply = () => saved();
+      rec.entityReply = withChapterExclusions;
+      const card = await openSonya();
+      const field = (await card.findByLabelText(label)) as HTMLTextAreaElement;
+      expect(field.value).toBe('Sonya: 2, 5');
+      fireEvent.change(field, { target: { value: 'Sonya: 2, 5, 7\n  Sonechka :3  ' } });
+      fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+      await waitFor(() => expect(rec.entityPuts).toHaveLength(1));
+      expect(rec.entityPuts[0].body).toMatchObject({
+        aliasChapterExclusions: [
+          { form: 'Sonya', chapters: [2, 5, 7] },
+          { form: 'Sonechka', chapters: [3] },
+        ],
+      });
+    });
+
+    it('cleared in the form go as null', async () => {
+      rec.entityPutReply = () => saved();
+      rec.entityReply = withChapterExclusions;
+      const card = await openSonya();
+      fireEvent.change(await card.findByLabelText(label), { target: { value: ' ' } });
+      fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+      await waitFor(() => expect(rec.entityPuts).toHaveLength(1));
+      expect(rec.entityPuts[0].body).toHaveProperty('aliasChapterExclusions', null);
+    });
+
+    const withoutField = () => {
+      const base = detail('sonya');
+      const { aliasChapterExclusions: _dropped, ...editor } = base.entity.editor!;
+      return HttpResponse.json({ ...base, entity: { ...base.entity, editor } });
+    };
+
+    it('a card without the field from the server does not wipe it on save', async () => {
+      rec.entityPutReply = () => saved();
+      rec.entityReply = withoutField;
+      const card = await openSonya();
+      fireEvent.change(await card.findByLabelText('Short'), { target: { value: 'New short' } });
+      fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+      await waitFor(() => expect(rec.entityPuts).toHaveLength(1));
+      expect(rec.entityPuts[0].body).not.toHaveProperty('aliasChapterExclusions');
+    });
+
+    it('a line without chapters is an error under the field, nothing is sent', async () => {
+      rec.entityPutReply = () => saved();
+      rec.entityReply = withChapterExclusions;
+      const card = await openSonya();
+      fireEvent.change(await card.findByLabelText(label), { target: { value: 'Sonya: 2, x' } });
+      fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+      expect(
+        await card.findByText(/line "Sonya: 2, x": expected "form: chapter, chapter"/)
+      ).toBeTruthy();
+      expect(rec.entityPuts).toHaveLength(0);
+    });
+
+    it('a chapter the schema refuses is an error under the field, nothing is sent', async () => {
+      rec.entityPutReply = () => saved();
+      const card = await openSonya();
+      fireEvent.change(await card.findByLabelText(label), { target: { value: 'Sonya: 0' } });
+      fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+      const field = (await card.findByLabelText(label)).closest('div')!;
+      await waitFor(() =>
+        expect(
+          within(field as HTMLElement).getByText(/aliasChapterExclusions\.0\.chapters\.0/)
+        ).toBeTruthy()
+      );
+      expect(rec.entityPuts).toHaveLength(0);
+    });
+
+    it('a saved card with an empty field sends null, not nothing', async () => {
+      rec.entityPutReply = () => saved();
+      const card = await openSonya();
+      fireEvent.change(await card.findByLabelText('Short'), { target: { value: 'New short' } });
+      fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+      await waitFor(() => expect(rec.entityPuts).toHaveLength(1));
+      expect(rec.entityPuts[0].body).toHaveProperty('aliasChapterExclusions', null);
+    });
+
+    it('lines typed into a card the server sent none for are sent', async () => {
+      rec.entityPutReply = () => saved();
+      rec.entityReply = withoutField;
+      const card = await openSonya();
+      fireEvent.change(await card.findByLabelText(label), { target: { value: 'Sonya: 4' } });
+      fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
+      await waitFor(() => expect(rec.entityPuts).toHaveLength(1));
+      expect(rec.entityPuts[0].body).toMatchObject({
+        aliasChapterExclusions: [{ form: 'Sonya', chapters: [4] }],
+      });
+    });
+  });
+
   it('F08-2: a saved entity not counted yet says the recount is coming', async () => {
     const base = detail('sonya');
     rec.entityReply = () =>
