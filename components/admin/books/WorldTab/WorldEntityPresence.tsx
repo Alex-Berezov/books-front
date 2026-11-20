@@ -7,6 +7,8 @@ import styles from './WorldTab.module.scss';
 const chaptersLabel = (n: number) => `${n} ${n === 1 ? 'chapter' : 'chapters'}`;
 
 interface WorldEntityPresenceProps {
+  /** Пара героев (F08-8c): общие главы, которые считает бэкенд; поправить их можно только текстом глав. */
+  isPair?: boolean;
   /** Посчитанное присутствие (F08-2); `null` — ещё не посчитано. */
   mentions: BookWorldMentions | null;
   isNew: boolean;
@@ -45,6 +47,7 @@ const ReloadPresence: FC<{ label: string; onReload: () => void; error: string | 
  * очереди после записи сущности и правки глав (решение арбитра `F08 | F08-2` R2).
  */
 export const WorldEntityPresence: FC<WorldEntityPresenceProps> = ({
+  isPair = false,
   mentions,
   isNew,
   versionHasChapters,
@@ -77,6 +80,16 @@ export const WorldEntityPresence: FC<WorldEntityPresenceProps> = ({
         onReload={onReload}
         error={reloadError}
       />
+    );
+  }
+  if (isPair) {
+    return mentions.chapters.length === 0 ? (
+      <span>The two characters are not found together in any chapter</span>
+    ) : (
+      <span>
+        {chaptersLabel(mentions.chapters.length)} with both characters (read-only):{' '}
+        {mentions.chapters.join(', ')}
+      </span>
     );
   }
   if (mentions.chapters.length === 0) {

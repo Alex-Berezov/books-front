@@ -21,4 +21,9 @@ export const WORLD_ANCHORS = {
   sources: 'sources',
   faq: 'faq',
   next: 'next',
+  compare: 'compare',
+  pairCommon: 'shared-chapters',
+  pairBonds: 'bonds',
+  pairDifferences: 'differences',
+  pairConclusion: 'conclusion',
 } as const;

@@ -1,4 +1,5 @@
 import { fillTemplate } from '@/lib/book-world/format';
+import { pairDisplayName } from '@/lib/book-world/pair';
 import { isRightsBlockedError } from '@/lib/errors';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getWorldStrings, worldIndexMetaTitle } from '@/lib/i18n/worldStrings';
@@ -14,10 +15,13 @@ import { robotsHasNoindex } from '@/lib/seo/robots-noindex';
 import { buildLangUrl } from '@/lib/seo/urls';
 import { worldEntityPath, worldPath } from '@/lib/seo/world-path';
 import { isNotFoundError } from '@/lib/utils/content-failure';
+import { logError } from '@/lib/utils/log-error';
 import type { SupportedLang } from '@/lib/i18n/lang';
+import type { VersionPreview } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import { getCachedBookOverview, getCachedBookSeo } from '../bookData';
-import { getCachedBookWorld, getCachedBookWorldEntity } from './wikiData';
+import { analysisOf, getCachedBookWorld, getCachedBookWorldEntity } from './wikiData';
+import { buildWorldPeople } from './worldPeople';
 
 const NOINDEX = { index: false, follow: true } as const;
 
@@ -115,6 +119,28 @@ export async function buildWorldIndexMetadata(
 }
 
 /**
+ * Имя пары для title (F08-8c) - тем же путём, что h1 страницы (`buildWorldPeople`): список мира, затем
+ * анализ, затем имя сущности. Список не загрузился - отказ в журнале, имена из анализа или имя
+ * сущности (мета от этого не падает).
+ */
+async function pairDisplayNameForMeta(
+  version: VersionPreview,
+  key: string,
+  fallback: string,
+  template: string
+): Promise<string> {
+  const [world, analysis] = await Promise.all([
+    getCachedBookWorld(version.id).catch((error: unknown) => {
+      logError('Error loading book world list for pair metadata:', error);
+      return null;
+    }),
+    analysisOf(version),
+  ]);
+  const people = buildWorldPeople(world?.entities ?? [], analysis?.characters, () => null);
+  return pairDisplayName(template, key, (k) => people.get(k)?.name, fallback);
+}
+
+/**
  * Мета страницы сущности: title и description по §15 («Коротко» до 160 знаков), canonical на себя,
  * hreflang - поле `alternates` ответа сущности. `isIndexable=false` и редакторский `noindex` книги -
  * `noindex, follow` и вне hreflang.
@@ -140,11 +166,14 @@ export async function buildWorldEntityMetadata(
     const strings = getWorldStrings(supportedLang);
     const title = version.title || book.title;
     const author = version.author || book.author || dict.book.unknownAuthor;
-    const metaTitle = fillTemplate(strings.worldEntityMetaTitle, {
-      name: entity.name,
-      title,
-      author,
-    });
+    const metaTitle =
+      entity.type === 'pair'
+        ? fillTemplate(strings.worldPairMetaTitle, {
+            names: await pairDisplayNameForMeta(version, key, entity.name, strings.worldPairNames),
+            title,
+            author,
+          })
+        : fillTemplate(strings.worldEntityMetaTitle, { name: entity.name, title, author });
     const description = describeWorld(entity.short);
     const canonical = buildLangUrl(
       supportedLang,

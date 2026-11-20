@@ -28,10 +28,36 @@ export interface WorldEntitySectionsInput {
   listenHref: ((n: number) => string) | null;
   /** Адрес читалки на главе `n` или `null`, если главы нет в версии. */
   readerHref: (n: number) => string | null;
+  /**
+   * Публичные пары героя (F08-8c): строкой в «Отношениях», по одной на пару, по ключу пары. Пустой
+   * список - пар нет или ни одна не публична.
+   */
+  pairLinks: readonly WorldPairLink[];
   links: {
     analysis: string | null;
     /** У анализа есть темы: ссылка «Анализ: темы» ведёт на `#themes`, иначе - на анализ без якоря. */
     analysisHasThemes: boolean;
     summary: { href: string; label: string } | null;
   };
+}
+
+/** Ссылка героя на публичную пару: ключ пары, адрес и имя «{a} и {b}» в порядке ключа. */
+export interface WorldPairLink {
+  key: string;
+  href: string;
+  names: string;
+}
+
+/** Герой пары: ключ и данные для ссылки (`null` - имени нет ни в списке мира, ни в анализе). */
+export interface WorldPairMember {
+  key: string;
+  person: WorldPerson | null;
+}
+
+/** Вход разделов страницы пары (F08-8c): общий вход страницы сущности плюс герои ключа. */
+export interface WorldPairSectionsInput extends WorldEntitySectionsInput {
+  /** Герои ключа `{a}--{b}`: первый и второй. */
+  members: readonly [WorldPairMember, WorldPairMember];
+  /** Имя пары для заголовков: «{a} и {b}» формулой языка. */
+  names: string;
 }

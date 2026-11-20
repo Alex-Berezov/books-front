@@ -6,6 +6,7 @@ import type { WorldEntitySectionsInput } from './worldEntityTypes';
 import type { PageSection } from '../analysis/PageSections';
 import styles from './wiki.module.scss';
 import { WORLD_ANCHORS } from './wikiAnchors';
+import { buildEntityShortSection } from './WorldEntityMore';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
 import { ThemeStrip } from '../analysis/ThemeStrip';
@@ -63,17 +64,8 @@ export function buildEntityProfileSections(input: WorldEntitySectionsInput): Pag
     });
   }
 
-  if (hasText(entity.short)) {
-    sections.push({
-      id: WORLD_ANCHORS.short,
-      title: strings.worldShortTitle,
-      body: (
-        <div className={analysisStyles.mainIdea}>
-          <Paragraphs text={entity.short} links={textLinks} />
-        </div>
-      ),
-    });
-  }
+  const short = buildEntityShortSection(input);
+  if (short) sections.push(short);
 
   if (present.length > 0) {
     sections.push({

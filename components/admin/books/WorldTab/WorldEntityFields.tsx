@@ -1,43 +1,41 @@
 import type { Dispatch, FC, SetStateAction } from 'react';
 import {
-  BOOK_WORLD_LIST_FIELDS,
-  BOOK_WORLD_ROLES,
-  BOOK_WORLD_TEXT_FIELDS,
+  worldListFieldsOf,
+  worldTextFieldsOf,
   type BookWorldIssue,
 } from '@/lib/admin/book-world-blocks';
-import { formatDataIssue } from '@/lib/admin/data-issue';
 import type { WorldRecountNotice } from './useWorldRecountNotice';
 import type { WorldEntityFormValues } from '@/lib/admin/book-world-form-state';
 import type { BookWorldMentions, WorldEntityType } from '@/types/api-schema';
+import { WorldCharacterNameForms, WorldCharacterRole } from './WorldCharacterFields';
 import { WorldEntityPresence, WorldEntityStale } from './WorldEntityPresence';
+import { FieldIssues, matchesIssuePath } from './WorldFieldIssues';
 import styles from './WorldTab.module.scss';
 
-/** Поля формы со своим местом для ошибок — по пути поля тела записи. */
-const FIELD_PATHS = [
+/** Пути полей формы героя для форм имени и исключений — у пары этих полей нет. */
+const CHARACTER_NAME_PATHS = ['aliases', 'aliasExclusions', 'aliasChapterExclusions'];
+
+/**
+ * Поля формы со своим местом для ошибок у сущности типа `type` — по пути поля тела записи. Только
+ * поля, которые карточка этого типа показывает: ошибка на поле другого типа (`compare` у героя,
+ * `aliasChapterExclusions.0` у пары) своего места не имеет.
+ */
+const fieldPathsOf = (type: WorldEntityType): string[] => [
   'key',
   'name',
-  'aliases',
-  'aliasExclusions',
-  'aliasChapterExclusions',
-  ...BOOK_WORLD_TEXT_FIELDS.map((f) => f.path),
-  ...BOOK_WORLD_LIST_FIELDS.map((f) => f.path),
+  ...(type === 'pair' ? [] : CHARACTER_NAME_PATHS),
+  ...worldTextFieldsOf(type).map((f) => f.path),
+  ...worldListFieldsOf(type).map((f) => f.path),
 ];
 
-const matches = (issue: BookWorldIssue, path: string) =>
-  issue.path === path || issue.path.startsWith(`${path}.`);
-
-/** Ошибки без своего поля (роль, тип, язык) — в общем списке под формой. */
-export const unplacedIssues = (issues: BookWorldIssue[]): BookWorldIssue[] =>
-  issues.filter((i) => !FIELD_PATHS.some((path) => matches(i, path)));
-
-export const FieldIssues: FC<{ issues: BookWorldIssue[] }> = ({ issues }) =>
-  issues.length > 0 ? (
-    <ul className={`${styles.issueList} ${styles.error}`}>
-      {issues.map((issue, idx) => (
-        <li key={idx}>{formatDataIssue(issue)}</li>
-      ))}
-    </ul>
-  ) : null;
+/** Ошибки без своего поля в карточке типа `type` (роль, тип, язык, поле другого типа) — в общем списке. */
+export const unplacedIssues = (
+  issues: BookWorldIssue[],
+  type: WorldEntityType
+): BookWorldIssue[] => {
+  const paths = fieldPathsOf(type);
+  return issues.filter((i) => !paths.some((path) => matchesIssuePath(i, path)));
+};
 
 interface WorldEntityFieldsProps {
   form: WorldEntityFormValues;
@@ -59,7 +57,11 @@ interface WorldEntityFieldsProps {
   presenceReloadError: string | null;
 }
 
-/** Поля героя (`tech.md` §3): тексты — полем, списки — JSON, формы имени — по строке. */
+/**
+ * Поля героя (`tech.md` §3): тексты — полем, списки — JSON, формы имени — по строке. У пары (F08-8c)
+ * свои поля и общие; роли, форм имени, исключений и полей героя у неё нет, а присутствие — общие
+ * главы героев, только чтение.
+ */
 export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
   form,
   setForm,
@@ -74,7 +76,8 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
   presenceReloadError,
 }) => {
   const isNew = entityKey === null;
-  const issuesFor = (path: string) => issues.filter((i) => matches(i, path));
+  const isPair = type === 'pair';
+  const issuesFor = (path: string) => issues.filter((i) => matchesIssuePath(i, path));
   const set = (patch: Partial<WorldEntityFormValues>) => setForm((prev) => ({ ...prev, ...patch }));
 
   return (
@@ -113,27 +116,11 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
           />
           <FieldIssues issues={issuesFor('name')} />
         </div>
+        {!isPair && <WorldCharacterRole form={form} set={set} />}
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="world-role">
-            Role
-          </label>
-          <select
-            id="world-role"
-            className={styles.input}
-            value={form.role}
-            onChange={(e) => set({ role: e.target.value as WorldEntityFormValues['role'] })}
-          >
-            <option value="">none</option>
-            {BOOK_WORLD_ROLES.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className={styles.field}>
-          <span className={styles.label}>Presence</span>
+          <span className={styles.label}>{isPair ? 'Shared chapters' : 'Presence'}</span>
           <WorldEntityPresence
+            isPair={isPair}
             mentions={mentions}
             isNew={isNew}
             versionHasChapters={versionHasChapters}
@@ -146,60 +133,9 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
 
       <WorldEntityStale stale={stale} />
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="world-aliases">
-          Name forms (one per line)
-        </label>
-        <span className={styles.hint}>JSON: aliases</span>
-        <textarea
-          id="world-aliases"
-          className={styles.textarea}
-          rows={3}
-          value={form.aliases}
-          onChange={(e) => set({ aliases: e.target.value })}
-        />
-        <FieldIssues issues={issuesFor('aliases')} />
-      </div>
+      {!isPair && <WorldCharacterNameForms form={form} set={set} issuesFor={issuesFor} />}
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="world-alias-exclusions">
-          Excluded name forms (one per line)
-        </label>
-        <span className={styles.hint}>
-          JSON: aliasExclusions — not counted anywhere: an ordinary word, or a surname a namesake
-          shares; if the hero then has no chapters, take the surname out of here and limit it to the
-          namesake&apos;s chapters below
-        </span>
-        <textarea
-          id="world-alias-exclusions"
-          className={styles.textarea}
-          rows={2}
-          value={form.aliasExclusions}
-          onChange={(e) => set({ aliasExclusions: e.target.value })}
-        />
-        <FieldIssues issues={issuesFor('aliasExclusions')} />
-      </div>
-
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="world-alias-chapter-exclusions">
-          Excluded chapters per name form (one per line: form: chapters)
-        </label>
-        <span className={styles.hint}>
-          JSON: aliasChapterExclusions — namesakes, e.g. the line «Simon: 6, 15» drops only this
-          form, only in these chapters; the form is the name or one of the name forms (else no
-          effect), each grammatical case its own line
-        </span>
-        <textarea
-          id="world-alias-chapter-exclusions"
-          className={styles.textarea}
-          rows={2}
-          value={form.aliasChapterExclusions}
-          onChange={(e) => set({ aliasChapterExclusions: e.target.value })}
-        />
-        <FieldIssues issues={issuesFor('aliasChapterExclusions')} />
-      </div>
-
-      {BOOK_WORLD_TEXT_FIELDS.map((field) => (
+      {worldTextFieldsOf(type).map((field) => (
         <div key={field.key} className={styles.field}>
           <label className={styles.label} htmlFor={`world-text-${field.key}`}>
             {field.label}
@@ -219,7 +155,7 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
         </div>
       ))}
 
-      {BOOK_WORLD_LIST_FIELDS.map((field) => {
+      {worldListFieldsOf(type).map((field) => {
         const fieldIssues = issuesFor(field.path);
         const id = `world-list-${field.key}`;
         const text = form.lists[field.key];

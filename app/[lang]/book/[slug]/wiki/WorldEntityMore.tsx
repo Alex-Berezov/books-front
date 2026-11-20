@@ -1,15 +1,16 @@
 import Link from 'next/link';
-import { hasText } from '@/lib/book-analysis/format';
+import { QuotesBlock, type QuoteItem } from '@/components/common/QuotesBlock/QuotesBlock';
+import { hasText, splitParagraphs } from '@/lib/book-analysis/format';
 import { fillTemplate, WORLD_NEXT_LIMIT } from '@/lib/book-world/format';
 import type { WorldEntitySectionsInput } from './worldEntityTypes';
 import type { PageSection } from '../analysis/PageSections';
-import type { BookWorldCoPresence } from '@/types/api-schema';
+import type { BookWorldCoPresence, BookWorldQuote } from '@/types/api-schema';
 import styles from './wiki.module.scss';
 import { WORLD_ANCHORS } from './wikiAnchors';
 import { WorldPersonRef } from './WorldPersonRef';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ANALYSIS_ANCHORS } from '../analysis/analysisAnchors';
-import { Paragraphs } from '../analysis/AnalysisBlocks';
+import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
 import { SourcesList } from '../analysis/AnalysisLowerBlocks';
 import { LinkedMark } from '../LinkedText';
 
@@ -77,6 +78,62 @@ export function buildEntityExternalSections(input: WorldEntitySectionsInput): Pa
     });
   }
   return sections;
+}
+
+/** «Коротко» (§5 п.5, у пары - `product.md` §6): «Коротко» сущности; нет текста - раздела нет. */
+export function buildEntityShortSection(input: WorldEntitySectionsInput): PageSection | null {
+  const { entity, strings, textLinks } = input;
+  if (!hasText(entity.short)) return null;
+  return {
+    id: WORLD_ANCHORS.short,
+    title: strings.worldShortTitle,
+    body: (
+      <div className={analysisStyles.mainIdea}>
+        <Paragraphs text={entity.short} links={textLinks} />
+      </div>
+    ),
+  };
+}
+
+/**
+ * Цитаты сущности (§5 п.11, у пары - `product.md` §6): текст, подпись автора, толкование и глава.
+ * Подпись даёт `authorOf` (герой - имя говорящего, пара - «кто → о ком»); `undefined` - без подписи.
+ * Цитат нет - раздела нет.
+ */
+export function buildEntityQuotesSection(
+  input: WorldEntitySectionsInput,
+  title: string,
+  authorOf: (quote: BookWorldQuote) => string | undefined
+): PageSection | null {
+  const { entity, linker } = input;
+  const quotes = entity.quotes ?? [];
+  if (quotes.length === 0) return null;
+  const items: QuoteItem[] = quotes.map((q) => {
+    const author = authorOf(q);
+    return {
+      text: q.text,
+      ...(author ? { author } : {}),
+      comment: splitParagraphs(q.interpretation),
+      extra: (
+        <p className={analysisStyles.quoteMeta}>
+          <ChapterRef n={q.chapter} linker={linker} />
+        </p>
+      ),
+    };
+  });
+  return {
+    id: WORLD_ANCHORS.quotes,
+    title,
+    standalone: true,
+    body: (
+      <QuotesBlock
+        id={WORLD_ANCHORS.quotes}
+        title={title}
+        items={items}
+        className={analysisStyles.quotesSection}
+      />
+    ),
+  };
 }
 
 /** Частые вопросы о герое (§5 п.14): только пары с вопросом и ответом. */

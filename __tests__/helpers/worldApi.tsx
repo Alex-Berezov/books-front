@@ -93,6 +93,10 @@ export const detail = (key: string): BookWorldEntityResponse => ({
     critique: null,
     prototypes: null,
     adaptations: null,
+    compare: null,
+    bonds: null,
+    differences: null,
+    conclusion: null,
     faq: null,
     sources: null,
     mentions: {

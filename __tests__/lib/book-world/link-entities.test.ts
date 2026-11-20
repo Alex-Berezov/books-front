@@ -437,3 +437,30 @@ describe('F08-5b круг 5: непарные кавычки, код, закры
     );
   });
 });
+
+describe('пара героев не цель перелинковки (F08-8c)', () => {
+  const anna = entity('anna', ['Анна']);
+  const petr = entity('petr', ['Пётр']);
+  // Бэкенд формы пары не отдаёт (`forms: []`), но имя «Анна и Пётр» всё равно не должно мешать.
+  const pair = entity('anna--petr', [], { type: 'pair', name: 'Анна и Пётр' });
+  const withForms = entity('anna--petr', ['Анна и Пётр'], { type: 'pair', name: 'Анна и Пётр' });
+
+  it('имена героев внутри имени пары в тексте остаются ссылками на героев', () => {
+    for (const p of [pair, withForms]) {
+      const s = createLinkSession(buildLinkIndex([anna, petr, p], hrefOf));
+      expect(linkText('Анна и Пётр шли вместе.', s).map((x) => x.kind)).toEqual([
+        'entity',
+        'text',
+        'entity',
+        'text',
+      ]);
+    }
+  });
+
+  it('страницы пары нет ни среди целей по имени, ни среди карточек героев', () => {
+    const index = buildLinkIndex([anna, petr, withForms], hrefOf);
+    expect(index.byForm.has(foldMention('Анна и Пётр'))).toBe(false);
+    expect(index.pageHref.has('anna--petr')).toBe(false);
+    expect(entityHrefByName(index, 'Анна и Пётр', 'character')).toBeNull();
+  });
+});

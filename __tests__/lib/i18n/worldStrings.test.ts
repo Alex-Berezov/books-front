@@ -62,6 +62,47 @@ describe('строки мира книги: пять языков (F08-3b, produ
     expect(worldStrings.pt.worldEntityTitle).toMatch(/análise do personagem/);
   });
 
+  it('формулы пары героев: h1 по product.md §15 на ru и en, имена и книга подставляются на всех языках (F08-8c)', async () => {
+    const { worldStrings } = await load();
+    expect(worldStrings.ru.worldPairTitle).toBe('{names}: сравнительная характеристика');
+    expect(worldStrings.en.worldPairTitle).toBe('{names}: character comparison');
+    expect(worldStrings.ru.worldPairNames).toBe('{a} и {b}');
+    expect(worldStrings.en.worldPairNames).toBe('{a} and {b}');
+    for (const lang of SUPPORTED_LANGS) {
+      const s = worldStrings[lang];
+      expect(placeholders(s.worldPairNames)).toEqual(['a', 'b']);
+      expect(placeholders(s.worldPairTitle)).toEqual(['names']);
+      expect(placeholders(s.worldPairMetaTitle)).toEqual(['author', 'names', 'title']);
+    }
+    for (const lang of SUPPORTED_LANGS.filter((l) => l !== 'en')) {
+      expect(worldStrings[lang].worldPairTitle).not.toBe(worldStrings.en.worldPairTitle);
+    }
+    expect(worldStrings.es.worldPairTitle).toMatch(/comparación de personajes/);
+    expect(worldStrings.fr.worldPairTitle).toMatch(/comparaison des personnages/);
+    expect(worldStrings.pt.worldPairTitle).toMatch(/comparação de personagens/);
+  });
+
+  it('ключи пары worldPair*: непусты на пяти языках и переведены (F08-8c)', async () => {
+    const { worldStrings } = await load();
+    const pairKeys = Object.keys(worldStrings.en).filter((k) => k.startsWith('worldPair'));
+    expect(pairKeys.length).toBeGreaterThan(0);
+    // Совпадает с en по праву: во французском «Conclusion» пишется так же.
+    const sameAsEn = new Set(['fr.worldPairConclusionTitle']);
+    for (const lang of SUPPORTED_LANGS) {
+      for (const key of pairKeys) {
+        const value = worldStrings[lang][key as keyof (typeof worldStrings)['en']];
+        expect(value.trim(), `${lang}.${key}`).not.toBe('');
+        if (lang === 'en' || sameAsEn.has(`${lang}.${key}`)) continue;
+        expect(value, `${lang}.${key}`).not.toBe(
+          worldStrings.en[key as keyof (typeof worldStrings)['en']]
+        );
+      }
+    }
+    // Ссылка на пару: в ru - без глагола, после «Сравнить» имена в именительном падеже ломают фразу.
+    expect(worldStrings.ru.worldPairLink).toBe('{names}: сравнительная характеристика');
+    expect(worldStrings.pt.worldPairFeature).toBe('Característica');
+  });
+
   it('описание общей страницы подставляет книгу и автора и умещается в 160 знаков', async () => {
     const { worldStrings } = await load();
     for (const lang of SUPPORTED_LANGS) {

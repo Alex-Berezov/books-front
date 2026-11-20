@@ -8,6 +8,7 @@ import { test, expect } from '@playwright/test';
  * - `world-acceptance` - герои `anna-lark` (полный, `en` и `ru`), `tom-reed` (минимальный),
  *   `mira-vale` (`isIndexable=false`); 404 - `ned-fox` (скрыт), `sam-holt` (не прочитан),
  *   `lou-grey` (без ядра). У `en` есть аудиоглава 1, у главы 2 аудио нет;
+ * - `anna-lark--tom-reed` (в `world-acceptance`) - пара героев `F08-8c`, только `en`, `isListed=true`;
  * - `world-acceptance-noindex` - редакторский `noindex` книги: мир есть, но закрыт от индекса;
  * - `world-acceptance-hidden` - сущность скрыта: `/wiki` - 404.
  *
@@ -252,12 +253,149 @@ test.describe('Book world: hero page (F08-3b, §5)', () => {
   });
 });
 
+const PAIR = 'anna-lark--tom-reed';
+
+test.describe('Book world: pair page (F08-8c, §6)', () => {
+  test('h1, blocks in order, TOC equals the h2 list', async ({ page }) => {
+    const response = await page.goto(entityUrl('en', SLUG.book, PAIR));
+    expect(response?.status()).toBe(200);
+
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Anna Lark and Tom Reed: character comparison'
+    );
+    const h2 = (
+      await page.locator('main').getByRole('heading', { level: 2 }).allTextContents()
+    ).filter((title) => title !== 'Bibliaris Editorial Team');
+    expect(h2).toEqual([
+      'In brief',
+      'Comparison',
+      'Chapters they share',
+      'What connects them',
+      'What sets them apart',
+      'Quotes about each other',
+      'Conclusion',
+      'Questions about Anna Lark and Tom Reed',
+      'The characters',
+    ]);
+    const toc = await page
+      .locator('nav[aria-labelledby="world-toc-title"] a')
+      .evaluateAll((links) => links.map((a) => a.textContent));
+    expect(toc).toEqual(h2);
+  });
+
+  test('comparison table: a row per feature, both heroes as columns, chapters open the reader', async ({
+    page,
+  }) => {
+    await page.goto(entityUrl('en', SLUG.book, PAIR));
+    const table = page.locator('#compare table');
+    await expect(table.getByRole('columnheader')).toHaveText(['Feature', 'Anna Lark', 'Tom Reed']);
+    await expect(table.locator('tbody tr')).toHaveCount(4);
+    await expect(table.getByRole('rowheader', { name: 'Work' })).toBeVisible();
+    await expect(table.getByRole('link', { name: 'Chapter 1' }).first()).toHaveAttribute(
+      'href',
+      `/en/book/${SLUG.book}/read?chapter=1`
+    );
+  });
+
+  test('shared chapters, quote about each other and links to both heroes', async ({ page }) => {
+    await page.goto(entityUrl('en', SLUG.book, PAIR));
+    await expect(page.locator('#shared-chapters')).toContainText('Chapters: 1–3');
+    await expect(page.locator('#quotes')).toContainText('Anna Lark → Tom Reed');
+    const next = page.locator('#next');
+    await expect(next.getByRole('link', { name: 'Anna Lark', exact: true })).toHaveAttribute(
+      'href',
+      entityUrl('en', SLUG.book, 'anna-lark')
+    );
+    await expect(next.getByRole('link', { name: 'Tom Reed', exact: true })).toHaveAttribute(
+      'href',
+      entityUrl('en', SLUG.book, 'tom-reed')
+    );
+  });
+
+  test('text is in the server HTML and the page is indexable', async ({ page, request }) => {
+    const html = await (await request.get(entityUrl('en', SLUG.book, PAIR))).text();
+    expect(html).toContain('Service text: the crossing binds them.');
+    await page.goto(entityUrl('en', SLUG.book, PAIR));
+    expect((await robots(page)).join(',')).not.toContain('noindex');
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      new RegExp(`/en/book/${SLUG.book}/wiki/${PAIR}$`)
+    );
+  });
+
+  test('the hero page links to the pair from its own row in the relationships', async ({
+    page,
+  }) => {
+    await page.goto(entityUrl('en', SLUG.book, 'anna-lark'));
+    const link = page.locator('#relations').getByRole('link', { name: /^Compare / });
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveText('Compare Anna Lark and Tom Reed');
+    await expect(link).toHaveAttribute('href', entityUrl('en', SLUG.book, PAIR));
+    await link.click();
+    await expect(page).toHaveURL(new RegExp(`/wiki/${PAIR}$`));
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Anna Lark and Tom Reed: character comparison'
+    );
+  });
+
+  test('the partner page links to the same pair (key in alphabetical order)', async ({ page }) => {
+    await page.goto(entityUrl('en', SLUG.book, 'tom-reed'));
+    // Публичная пара героя - своей строкой «Отношений», ровно одна, с теми же именами в порядке ключа.
+    const links = page.locator('#relations').getByRole('link', { name: /^Compare / });
+    await expect(links).toHaveCount(1);
+    await expect(links).toHaveText('Compare Anna Lark and Tom Reed');
+    await expect(links).toHaveAttribute('href', entityUrl('en', SLUG.book, PAIR));
+  });
+
+  test('the pair is not among the heroes of the general page and the book page', async ({
+    page,
+  }) => {
+    await page.goto(wikiUrl('en', SLUG.book));
+    await expect(page.locator('#characters a[href$="--tom-reed"]')).toHaveCount(0);
+    await expect(page.locator(`a[href$="/wiki/${PAIR}"]`)).toHaveCount(0);
+    await page.goto(`/en/book/${SLUG.book}`);
+    await expect(page.locator(`a[href$="/wiki/${PAIR}"]`)).toHaveCount(0);
+  });
+
+  test('no ru page: the pair exists only in en', async ({ page }) => {
+    const response = await page.goto(entityUrl('ru', SLUG.book, PAIR));
+    expect(response?.status()).toBe(404);
+  });
+
+  test('the key not in alphabetical order has no page: 404', async ({ page }) => {
+    const response = await page.goto(entityUrl('en', SLUG.book, 'tom-reed--anna-lark'));
+    expect(response?.status()).toBe(404);
+  });
+});
+
 test.describe('Book world: phone width (F08-3b, §1 п.8)', () => {
   test.use({ viewport: { width: 375, height: 800 } });
+
+  test('pair page: the table is stacked, each cell is labelled with its hero', async ({ page }) => {
+    await page.goto(entityUrl('en', SLUG.book, PAIR));
+    const cell = page.locator('#compare tbody tr').first().locator('td').first();
+    await expect(cell).toBeVisible();
+    expect(await cell.evaluate((td) => getComputedStyle(td).display)).toBe('block');
+    expect(await cell.getAttribute('data-label')).toBe('Anna Lark');
+    // Шапка таблицы на узком экране скрыта приёмом sr-only (1×1 px, clip): для чтения с экрана
+    // она остаётся, глазу её нет - подпись героя в самой ячейке. `toBeInViewport` этого не видит.
+    const thead = page.locator('#compare thead');
+    const box = await thead.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box?.width ?? Infinity).toBeLessThanOrEqual(1);
+    expect(box?.height ?? Infinity).toBeLessThanOrEqual(1);
+    expect(
+      await thead.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return { position: style.position, overflow: style.overflow, clip: style.clip };
+      })
+    ).toEqual({ position: 'absolute', overflow: 'hidden', clip: 'rect(0px, 0px, 0px, 0px)' });
+  });
 
   for (const [name, url] of [
     ['general page', wikiUrl('en', SLUG.book)],
     ['hero page', entityUrl('en', SLUG.book, 'anna-lark')],
+    ['pair page', entityUrl('en', SLUG.book, PAIR)],
   ] as const) {
     test(`${name}: no horizontal scroll`, async ({ page }) => {
       await page.goto(url);

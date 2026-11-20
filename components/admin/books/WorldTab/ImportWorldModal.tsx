@@ -36,7 +36,7 @@ const TEXTS: Record<WorldImportMode, { title: string; placeholder: string; hint:
   "language": "en",
   "entities": [{ "key": "raskolnikov", "type": "character", "name": "…", "short": "…" }]
 }`,
-    hint: 'Paste JSON of the whole version. Entities missing from the JSON stay as they are; fields missing from an entity stay as they are; null, "" or [] clears a field; a list replaces the previous one entirely.',
+    hint: 'Paste JSON of the whole version. Entities missing from the JSON stay as they are; fields missing from an entity stay as they are; null, "" or [] clears a field; a list replaces the previous one entirely. A pair of characters: type "pair", key "a--b" (two character keys in alphabetical order), fields compare, bonds, differences, quotes (with speakerKey and aboutKey), conclusion, faq.',
   },
   entity: {
     title: 'Import entity JSON',

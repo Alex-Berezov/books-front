@@ -1,12 +1,12 @@
 import Link from 'next/link';
-import { QuotesBlock, type QuoteItem } from '@/components/common/QuotesBlock/QuotesBlock';
-import { hasText, splitParagraphs } from '@/lib/book-analysis/format';
-import { WORLD_CO_PRESENCE_LIMIT } from '@/lib/book-world/format';
+import { hasText } from '@/lib/book-analysis/format';
+import { fillTemplate, WORLD_CO_PRESENCE_LIMIT } from '@/lib/book-world/format';
 import type { WorldEntitySectionsInput, WorldPerson } from './worldEntityTypes';
 import type { PageSection } from '../analysis/PageSections';
 import type { BookWorldCoPresence } from '@/types/api-schema';
 import styles from './wiki.module.scss';
 import { WORLD_ANCHORS } from './wikiAnchors';
+import { buildEntityQuotesSection } from './WorldEntityMore';
 import { WorldPersonRef } from './WorldPersonRef';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
@@ -21,7 +21,7 @@ export function buildEntityStorySections(
   input: WorldEntitySectionsInput,
   coPresence: readonly BookWorldCoPresence[]
 ): PageSection[] {
-  const { entity, strings, linker, textLinks, people } = input;
+  const { entity, strings, linker, textLinks, people, pairLinks } = input;
   const sections: PageSection[] = [];
 
   const scenes = entity.scenes ?? [];
@@ -79,7 +79,7 @@ export function buildEntityStorySections(
     const person: WorldPerson | undefined = people.get(c.key);
     return person ? [{ key: c.key, person }] : [];
   });
-  if (relations.length > 0 || neighbours.length > 0) {
+  if (relations.length > 0 || neighbours.length > 0 || pairLinks.length > 0) {
     sections.push({
       id: WORLD_ANCHORS.relations,
       title: strings.worldRelationsTitle,
@@ -91,6 +91,18 @@ export function buildEntityStorySections(
                 <li key={`${r.to}-${i}`}>
                   {r.label} → <WorldPersonRef person={r.person} />
                   {r.person.href ? <LinkedMark links={textLinks} entityKey={r.to} /> : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {/* «Сравнение»: каждая публичная пара героя - своей строкой (F08-8c, `product.md` §5 п.10). */}
+          {pairLinks.length > 0 ? (
+            <ul className={styles.plainList}>
+              {pairLinks.map((p) => (
+                <li key={p.key}>
+                  <Link href={p.href} className={analysisStyles.textLink}>
+                    {fillTemplate(strings.worldPairLink, { names: p.names })}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -113,35 +125,10 @@ export function buildEntityStorySections(
     });
   }
 
-  const quotes = entity.quotes ?? [];
-  if (quotes.length > 0) {
-    const items: QuoteItem[] = quotes.map((q) => {
-      const speaker = q.speakerKey ? people.get(q.speakerKey)?.name : undefined;
-      return {
-        text: q.text,
-        ...(speaker ? { author: speaker } : {}),
-        comment: splitParagraphs(q.interpretation),
-        extra: (
-          <p className={analysisStyles.quoteMeta}>
-            <ChapterRef n={q.chapter} linker={linker} />
-          </p>
-        ),
-      };
-    });
-    sections.push({
-      id: WORLD_ANCHORS.quotes,
-      title: strings.worldQuotesTitle,
-      standalone: true,
-      body: (
-        <QuotesBlock
-          id={WORLD_ANCHORS.quotes}
-          title={strings.worldQuotesTitle}
-          items={items}
-          className={analysisStyles.quotesSection}
-        />
-      ),
-    });
-  }
+  const quotes = buildEntityQuotesSection(input, strings.worldQuotesTitle, (q) =>
+    q.speakerKey ? people.get(q.speakerKey)?.name : undefined
+  );
+  if (quotes) sections.push(quotes);
 
   return sections;
 }

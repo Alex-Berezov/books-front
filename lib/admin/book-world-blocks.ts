@@ -41,6 +41,8 @@ export const BOOK_WORLD_LIMITS = {
   prototypes: A.mediumText,
   adaptations: A.adaptations,
   faq: 8,
+  // Пара героев (F08-8c): строк сравнения 0-8 (нижние 4 - условие ядра на бэкенде, не лимит записи).
+  compare: 8,
   sources: A.sources,
   title: A.title,
   text: A.mediumText,
@@ -52,39 +54,64 @@ export const BOOK_WORLD_LIMITS = {
   adaptationYear: A.adaptationYear,
 } as const;
 
-/** Типы, которые запись принимает в F08-1: только герой (`tech.md` §3). */
-export const BOOK_WORLD_WRITABLE_TYPES = ['character'] as const;
+const CHARACTER = ['character'] as const;
+const PAIR = ['pair'] as const;
+const BOTH = ['character', 'pair'] as const;
 
 /**
  * Текстовые поля карточки героя — полем формы: подпись — по-человечески, путь — как у поля тела
  * записи (им же подписаны ошибки сервера, он виден подсказкой).
  */
 export const BOOK_WORLD_TEXT_FIELDS = [
-  { key: 'short', path: 'short', label: 'Short', rows: 3 },
-  { key: 'position', path: 'profile.position', label: 'Profile: position', rows: 2 },
+  { key: 'short', path: 'short', label: 'Short', rows: 3, kinds: BOTH },
+  {
+    key: 'position',
+    path: 'profile.position',
+    label: 'Profile: position',
+    rows: 2,
+    kinds: CHARACTER,
+  },
   {
     key: 'relationToMain',
     path: 'profile.relationToMain',
     label: 'Profile: relation to the main hero',
     rows: 2,
+    kinds: CHARACTER,
   },
-  { key: 'appearance', path: 'appearance', label: 'Appearance', rows: 4 },
-  { key: 'character', path: 'character', label: 'Character', rows: 6 },
-  { key: 'arcFrom', path: 'arc.from', label: 'Arc: at the start', rows: 3 },
-  { key: 'arcTo', path: 'arc.to', label: 'Arc: at the end', rows: 3 },
-  { key: 'critique', path: 'critique', label: 'Critique', rows: 5 },
-  { key: 'prototypes', path: 'prototypes', label: 'Prototypes', rows: 4 },
+  { key: 'appearance', path: 'appearance', label: 'Appearance', rows: 4, kinds: CHARACTER },
+  { key: 'character', path: 'character', label: 'Character', rows: 6, kinds: CHARACTER },
+  { key: 'arcFrom', path: 'arc.from', label: 'Arc: at the start', rows: 3, kinds: CHARACTER },
+  { key: 'arcTo', path: 'arc.to', label: 'Arc: at the end', rows: 3, kinds: CHARACTER },
+  { key: 'critique', path: 'critique', label: 'Critique', rows: 5, kinds: CHARACTER },
+  { key: 'prototypes', path: 'prototypes', label: 'Prototypes', rows: 4, kinds: CHARACTER },
+  // Поля пары (F08-8c): у героя их нет, у пары нет полей героя.
+  { key: 'bonds', path: 'bonds', label: 'Pair: what binds them', rows: 4, kinds: PAIR },
+  {
+    key: 'differences',
+    path: 'differences',
+    label: 'Pair: what sets them apart',
+    rows: 4,
+    kinds: PAIR,
+  },
+  { key: 'conclusion', path: 'conclusion', label: 'Pair: conclusion', rows: 4, kinds: PAIR },
 ] as const;
 export type BookWorldTextKey = (typeof BOOK_WORLD_TEXT_FIELDS)[number]['key'];
 
 /** Списки карточки — JSON-редактором, как у анализа; путь — как у поля тела записи. */
 export const BOOK_WORLD_LIST_FIELDS = [
-  { key: 'stages', path: 'arc.stages', label: 'Arc: stages' },
-  { key: 'scenes', path: 'scenes', label: 'Key scenes' },
-  { key: 'relations', path: 'relations', label: 'Relations' },
-  { key: 'quotes', path: 'quotes', label: 'Quotes' },
-  { key: 'adaptations', path: 'adaptations', label: 'Adaptations' },
-  { key: 'faq', path: 'faq', label: 'FAQ' },
-  { key: 'sources', path: 'sources', label: 'Sources' },
+  { key: 'stages', path: 'arc.stages', label: 'Arc: stages', kinds: CHARACTER },
+  { key: 'scenes', path: 'scenes', label: 'Key scenes', kinds: CHARACTER },
+  { key: 'relations', path: 'relations', label: 'Relations', kinds: CHARACTER },
+  { key: 'compare', path: 'compare', label: 'Pair: comparison table', kinds: PAIR },
+  { key: 'quotes', path: 'quotes', label: 'Quotes', kinds: BOTH },
+  { key: 'adaptations', path: 'adaptations', label: 'Adaptations', kinds: CHARACTER },
+  { key: 'faq', path: 'faq', label: 'FAQ', kinds: BOTH },
+  { key: 'sources', path: 'sources', label: 'Sources', kinds: CHARACTER },
 ] as const;
 export type BookWorldListKey = (typeof BOOK_WORLD_LIST_FIELDS)[number]['key'];
+
+/** Поля карточки сущности этого типа: у пары - свои и общие (`short`, `quotes`, `faq`), без полей героя. */
+export const worldTextFieldsOf = (type: string) =>
+  BOOK_WORLD_TEXT_FIELDS.filter((f) => (f.kinds as readonly string[]).includes(type));
+export const worldListFieldsOf = (type: string) =>
+  BOOK_WORLD_LIST_FIELDS.filter((f) => (f.kinds as readonly string[]).includes(type));

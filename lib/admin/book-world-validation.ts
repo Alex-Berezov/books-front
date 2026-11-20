@@ -1,4 +1,4 @@
-import { BOOK_WORLD_LIST_FIELDS, type BookWorldIssue } from '@/lib/admin/book-world-blocks';
+import { worldListFieldsOf, type BookWorldIssue } from '@/lib/admin/book-world-blocks';
 import {
   checkBookWorldEntityImport,
   checkBookWorldEntityRequest,
@@ -108,7 +108,7 @@ export const worldEntityRequestFromForm = (
 ): { data: SaveBookWorldEntityRequest | null; errors: BookWorldIssue[] } => {
   const errors: BookWorldIssue[] = [];
   const lists: Record<string, unknown> = {};
-  for (const field of BOOK_WORLD_LIST_FIELDS) {
+  for (const field of worldListFieldsOf(type)) {
     const raw = values.lists[field.key].trim();
     if (!raw) {
       lists[field.key] = null;
@@ -125,6 +125,21 @@ export const worldEntityRequestFromForm = (
   if (errors.length > 0) return { data: null, errors };
 
   const t = values.texts;
+  if (type === 'pair') {
+    // Пара (F08-8c): только поля пары и общие; полей героя у неё нет (бэкенд отбивает 400).
+    return checkBookWorldEntityRequest({
+      language,
+      type,
+      name: values.name.trim(),
+      short: text(t.short),
+      compare: lists.compare,
+      bonds: text(t.bonds),
+      differences: text(t.differences),
+      quotes: lists.quotes,
+      conclusion: text(t.conclusion),
+      faq: lists.faq,
+    });
+  }
   const position = text(t.position);
   const relationToMain = text(t.relationToMain);
   const arcFrom = text(t.arcFrom);

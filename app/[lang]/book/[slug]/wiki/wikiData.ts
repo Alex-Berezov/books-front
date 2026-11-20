@@ -46,7 +46,8 @@ export const getCachedAnalysisOrNull = cache((versionId: string) =>
     })
 );
 
-const analysisOf = (version: VersionPreview) =>
+/** Анализ версии или `null` (нет анализа по счётчику обзора, отказ - в журнале). */
+export const analysisOf = (version: VersionPreview) =>
   versionHasAnalysis(version) ? getCachedAnalysisOrNull(version.id) : Promise.resolve(null);
 
 /**

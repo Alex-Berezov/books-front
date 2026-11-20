@@ -54,3 +54,57 @@
 .faqItem {
   margin-bottom: $spacing-md;
 }
+
+// Таблица сравнения пары (F08-8c): признак и два героя; на узком экране строка раскладывается
+// блоками с подписью героя из `data-label`.
+.compareWrap {
+  min-width: 0;
+}
+
+.compareTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-base;
+  line-height: $line-height-relaxed;
+
+  th,
+  td {
+    padding: $spacing-sm $spacing-md;
+    border: $border-width-base solid var(--public-border);
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    margin: 0 0 $spacing-xs;
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+
+    tr,
+    th,
+    td {
+      display: block;
+      width: 100%;
+    }
+
+    tr {
+      margin-bottom: $spacing-md;
+    }
+
+    td::before {
+      content: attr(data-label);
+      display: block;
+      font-weight: $font-weight-medium;
+      opacity: 0.7;
+    }
+  }
+}

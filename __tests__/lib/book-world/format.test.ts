@@ -130,6 +130,11 @@ describe('pickBookHeroes (F08-5, Q4)', () => {
     expect(picked).toEqual(['k0', 'k1', 'k2', 'k3', 'k4', 'k5']);
   });
 
+  it('пара героев в блок «Герои книги» не попадает (F08-8c)', () => {
+    const list = [h('a', 'main', 1), h('a--b', null, 1, 'pair'), h('b', null, 2)];
+    expect(pickBookHeroes(list).map((e) => e.key)).toEqual(['a', 'b']);
+  });
+
   it('строка редактора в блок не попадает (как и в ссылки текста)', () => {
     expect(
       pickBookHeroes([{ ...h('ed', 'main', 1), editor: {} }, h('ok', null, 2)]).map((e) => e.key)

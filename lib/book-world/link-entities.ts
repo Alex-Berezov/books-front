@@ -109,10 +109,13 @@ export interface LinkIndex {
  * находится. Сущность без `forms` (бэкенд не отдал) сама ссылки не получает, но владеет своим именем как помеха: чужая форма с тем же именем ссылки не даёт (ложная ссылка хуже пропущенной).
  */
 export function buildLinkIndex(
-  entities: readonly BookWorldListEntity[],
+  allEntities: readonly BookWorldListEntity[],
   hrefOf: (key: string) => string,
   chapter?: ChapterRule | null
 ): LinkIndex {
+  // Пара героев (F08-8c) - не цель перелинковки по имени: её имя «А и Б» не должно ни ссылаться, ни
+  // занимать в тексте место имён героев внутри себя (решение `F08 | F08-8c`, `product.md` §5 п.10).
+  const entities = allEntities.filter((e) => e.type !== 'pair');
   const owners = new Map<string, Set<string>>();
   const variants = new Set<string>();
   const capitals = new Set<string>();

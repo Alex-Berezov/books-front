@@ -3,7 +3,6 @@ import {
   BOOK_WORLD_KEY_REGEX,
   BOOK_WORLD_LIMITS as L,
   BOOK_WORLD_ROLES,
-  BOOK_WORLD_WRITABLE_TYPES,
   type BookWorldIssue,
 } from '@/lib/admin/book-world-blocks';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
@@ -42,6 +41,20 @@ const list = <T extends z.ZodType>(item: T, max: number) => z.array(item).max(ma
 /** Поле тела записи: `null`, `[]` и `''` — «очистить», ключа нет — «не трогать». */
 const clearable = <T extends z.ZodType>(schema: T) => schema.nullable().optional();
 
+const optionalKey = () =>
+  z
+    .union([key(), z.literal('')])
+    .nullable()
+    .optional()
+    .transform((value) => (value ? value : null));
+
+const quoteShape = () => ({
+  text: requiredText(L.quote),
+  chapter: chapter(),
+  speakerKey: optionalKey(),
+  interpretation: requiredText(L.interpretation),
+});
+
 export const BOOK_WORLD_LIST_SCHEMAS = {
   stages: list(
     z.strictObject({
@@ -67,18 +80,22 @@ export const BOOK_WORLD_LIST_SCHEMAS = {
     L.scenes
   ),
   relations: list(z.strictObject({ to: key(), label: requiredText(L.label) }), L.relations),
-  quotes: list(
-    z.strictObject({
-      text: requiredText(L.quote),
-      chapter: chapter(),
-      speakerKey: z
-        .union([key(), z.literal('')])
-        .nullable()
-        .optional()
-        .transform((value) => (value ? value : null)),
-      interpretation: requiredText(L.interpretation),
-    }),
+  quotes: list(z.strictObject(quoteShape()), L.quotes),
+  // Цитата пары (F08-8c): кто говорит и о ком - оба обязательны и непусты (`checkWorldPair` бэкенда);
+  // что оба - разные герои ключа пары, проверяет бэкенд на слитой записи.
+  pairQuotes: list(
+    z.strictObject({ ...quoteShape(), speakerKey: key(), aboutKey: key() }),
     L.quotes
+  ),
+  compare: list(
+    z.strictObject({
+      feature: requiredText(L.title),
+      a: requiredText(L.text),
+      chapterA: chapter(),
+      b: requiredText(L.text),
+      chapterB: chapter(),
+    }),
+    L.compare
   ),
   adaptations: list(
     z.strictObject({
@@ -148,11 +165,25 @@ const characterFields = {
   sources: clearable(BOOK_WORLD_LIST_SCHEMAS.sources),
 };
 
-const entitySchema = z.strictObject({
-  key: key(),
-  type: z.enum(BOOK_WORLD_WRITABLE_TYPES),
-  ...characterFields,
-});
+/**
+ * Поля пары героев (F08-8c): имя, «коротко», сравнение, связи, различия, цитаты друг о друге, вывод,
+ * частые вопросы. Полей героя у пары нет (бэкенд отбивает 400), поэтому схема их не знает.
+ */
+const pairFields = {
+  name: requiredText(L.name).optional(),
+  short: clearable(z.string().trim().max(L.short)),
+  compare: clearable(BOOK_WORLD_LIST_SCHEMAS.compare),
+  bonds: clearable(z.string().trim().max(L.text)),
+  differences: clearable(z.string().trim().max(L.text)),
+  quotes: clearable(BOOK_WORLD_LIST_SCHEMAS.pairQuotes),
+  conclusion: clearable(z.string().trim().max(L.text)),
+  faq: clearable(BOOK_WORLD_LIST_SCHEMAS.faq),
+};
+
+const entitySchema = z.discriminatedUnion('type', [
+  z.strictObject({ key: key(), type: z.literal('character'), ...characterFields }),
+  z.strictObject({ key: key(), type: z.literal('pair'), ...pairFields }),
+]);
 
 const importSchema = z
   .strictObject({
@@ -170,11 +201,14 @@ const importSchema = z
   });
 
 /** Тело `PUT versions/:id/world/:key`: ключ — в адресе, в теле его нет. */
-const entityRequestSchema = z.strictObject({
-  language: z.enum(SUPPORTED_LANGS),
-  type: z.enum(BOOK_WORLD_WRITABLE_TYPES),
-  ...characterFields,
-});
+const entityRequestSchema = z.discriminatedUnion('type', [
+  z.strictObject({
+    language: z.enum(SUPPORTED_LANGS),
+    type: z.literal('character'),
+    ...characterFields,
+  }),
+  z.strictObject({ language: z.enum(SUPPORTED_LANGS), type: z.literal('pair'), ...pairFields }),
+]);
 
 export const toWorldIssues = (error: z.ZodError, prefix = ''): BookWorldIssue[] =>
   error.issues.flatMap((issue) => {
@@ -218,12 +252,20 @@ export const checkBookWorldEntityRequest = (
 };
 
 /** JSON импорта одной сущности: `{language, key, type, ...поля}`. */
-const entityImportSchema = z.strictObject({
-  language: z.enum(SUPPORTED_LANGS),
-  key: key().optional(),
-  type: z.enum(BOOK_WORLD_WRITABLE_TYPES),
-  ...characterFields,
-});
+const entityImportSchema = z.discriminatedUnion('type', [
+  z.strictObject({
+    language: z.enum(SUPPORTED_LANGS),
+    key: key().optional(),
+    type: z.literal('character'),
+    ...characterFields,
+  }),
+  z.strictObject({
+    language: z.enum(SUPPORTED_LANGS),
+    key: key().optional(),
+    type: z.literal('pair'),
+    ...pairFields,
+  }),
+]);
 
 /** Импорт одной сущности: ключ адреса и тело записи (ключ — в адресе, в теле его нет). */
 export interface BookWorldEntityImport {

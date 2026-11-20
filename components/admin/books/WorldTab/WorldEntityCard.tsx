@@ -7,8 +7,9 @@ import { Spinner } from '@/components/admin/shared';
 import { formatDataIssue } from '@/lib/admin/data-issue';
 import { ImportWorldModal } from './ImportWorldModal';
 import { useWorldEntityCard, type WorldEntityCardOptions } from './useWorldEntityCard';
-import { FieldIssues, unplacedIssues, WorldEntityFields } from './WorldEntityFields';
+import { unplacedIssues, WorldEntityFields } from './WorldEntityFields';
 import { isWorldPublished, WORLD_HIDDEN_UNTIL_READ, worldReadLabel } from './worldErrors';
+import { FieldIssues } from './WorldFieldIssues';
 import styles from './WorldTab.module.scss';
 
 interface WorldEntityCardProps extends WorldEntityCardOptions {
@@ -52,6 +53,7 @@ export const WorldEntityCard: FC<WorldEntityCardProps> = (props) => {
 
   const { entity, lastCheck } = card;
   const editor = entity?.editor;
+  const entityType = entity?.type ?? 'character';
 
   return (
     <section className={styles.card} aria-label={label}>
@@ -84,7 +86,7 @@ export const WorldEntityCard: FC<WorldEntityCardProps> = (props) => {
         setForm={card.setForm}
         issues={card.issues}
         entityKey={entityKey}
-        type={entity?.type ?? 'character'}
+        type={entityType}
         mentions={entity?.mentions ?? null}
         stale={entity?.editor?.stale ?? []}
         versionHasChapters={card.chapterNumbers === null ? null : card.chapterNumbers.length > 0}
@@ -96,7 +98,7 @@ export const WorldEntityCard: FC<WorldEntityCardProps> = (props) => {
       {card.issues.length > 0 && (
         <div className={styles.error} role="alert">
           <p>Fix the errors in the fields first, nothing was saved.</p>
-          <FieldIssues issues={unplacedIssues(card.issues)} />
+          <FieldIssues issues={unplacedIssues(card.issues, entityType)} />
         </div>
       )}
       {card.serverError && (

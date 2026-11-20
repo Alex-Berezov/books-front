@@ -3,13 +3,15 @@ import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
 import { WorldBeacon } from '@/components/public/WorldBeacon';
 import { fillTemplate } from '@/lib/book-world/format';
+import { canonicalPairMembers, pairDisplayName } from '@/lib/book-world/pair';
 import { worldNavLabel } from '@/lib/i18n/worldStrings';
 import { isWorldEntityKey } from '@/lib/seo/book-world';
 import { buildWorldArticleJsonLd } from '@/lib/seo/world-jsonld';
 import { worldPath } from '@/lib/seo/world-path';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
 import { serializeJsonLd } from '@/lib/utils/json-ld';
-import type { WorldPerson } from '../worldEntityTypes';
+import { logError } from '@/lib/utils/log-error';
+import type { WorldEntitySectionsInput, WorldPairMember } from '../worldEntityTypes';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import { PageSections } from '../../analysis/PageSections';
@@ -22,6 +24,8 @@ import { loadWorldEntityOrNotFound } from '../wikiData';
 import { buildWorldEntityMetadata } from '../wikiMetadata';
 import { buildChapterLinker, buildWorldPageContext, formatWorldDate } from '../wikiPageContext';
 import { buildEntitySections } from '../WorldEntitySections';
+import { buildPairSections } from '../WorldPairSections';
+import { buildWorldPeople, worldPairLinks } from '../worldPeople';
 
 type Props = {
   params: Promise<{ lang: string; slug: string; entity: string }>;
@@ -39,7 +43,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * Страница героя (F08-3b, `product.md` §5): серверный рендер. Есть, только если ручка отдала
+ * Страница героя (F08-3b, `product.md` §5) или пары героев (F08-8c, §6; ключ `{a}--{b}`, тип `pair`):
+ * серверный рендер. Есть, только если ручка отдала
  * сущность (ядро, «прочитано», показ включён), иначе 404. `isIndexable=false` - открыта, но
  * `noindex, follow` (мета).
  */
@@ -63,6 +68,12 @@ export default async function BookWorldEntityPage({ params }: Props) {
     key
   );
   const { entity, chapterNumbers } = detail;
+  // Пара с ключом не в каноническом виде (`a---b`, `b--a`, `a--a`) - не страница героя и не пары: 404.
+  const pairKeys = entity.type === 'pair' ? canonicalPairMembers(key) : null;
+  if (entity.type === 'pair' && !pairKeys) {
+    logError('Book world pair with a non-canonical key:', key);
+    notFound();
+  }
   const ctx = buildWorldPageContext({ book, version, lang: supportedLang, slug });
   const { strings, t } = ctx;
 
@@ -82,17 +93,22 @@ export default async function BookWorldEntityPage({ params }: Props) {
   });
 
   // Герои для ссылок: запасные имена из анализа, поверх них - публичные сущности со страницей.
-  const people = new Map<string, WorldPerson>();
-  for (const c of analysis?.characters ?? []) people.set(c.key, { name: c.name, href: null });
-  for (const e of entities) {
-    people.set(e.key, {
-      name: e.name,
-      href: worldEntityHref(supportedLang, ctx.ownSlug, e.key),
-      short: e.short,
-    });
-  }
+  const hrefOf = (k: string) => worldEntityHref(supportedLang, ctx.ownSlug, k);
+  const people = buildWorldPeople(entities, analysis?.characters, hrefOf);
 
-  const sections = buildEntitySections({
+  // Публичные пары героя из списка мира (бэкенд отдаёт только публичные) - строками в «Отношениях».
+  const pairLinks =
+    entity.type === 'character'
+      ? worldPairLinks({
+          entities,
+          heroKey: key,
+          people,
+          namesTemplate: strings.worldPairNames,
+          hrefOf,
+        })
+      : [];
+
+  const sectionsInput: WorldEntitySectionsInput = {
     entity,
     chapterNumbers,
     strings,
@@ -108,9 +124,26 @@ export default async function BookWorldEntityPage({ params }: Props) {
       analysisHasThemes: (analysis?.themes?.length ?? 0) > 0,
       summary: ctx.summary,
     },
-  });
+    pairLinks,
+  };
 
-  const pageTitle = fillTemplate(strings.worldEntityTitle, { name: entity.name, title: ctx.title });
+  // Страница пары: имена героев - из списка мира и анализа; нет имени - имя сущности как есть.
+  const members = pairKeys
+    ? (pairKeys.map((k): WorldPairMember => ({ key: k, person: people.get(k) ?? null })) as [
+        WorldPairMember,
+        WorldPairMember,
+      ])
+    : null;
+  const names = members
+    ? pairDisplayName(strings.worldPairNames, key, (k) => people.get(k)?.name, entity.name)
+    : entity.name;
+  const sections = members
+    ? buildPairSections({ ...sectionsInput, members, names })
+    : buildEntitySections(sectionsInput);
+
+  const pageTitle = members
+    ? fillTemplate(strings.worldPairTitle, { names })
+    : fillTemplate(strings.worldEntityTitle, { name: entity.name, title: ctx.title });
 
   const jsonLd = buildWorldArticleJsonLd({
     lang: supportedLang,
@@ -139,7 +172,7 @@ export default async function BookWorldEntityPage({ params }: Props) {
               { label: ctx.dict.breadcrumb.home, href: `/${supportedLang}` },
               { label: ctx.title, href: ctx.bookCardHref },
               { label: worldNavLabel(supportedLang), href: worldHref },
-              { label: entity.name },
+              { label: names },
             ]}
           />
 

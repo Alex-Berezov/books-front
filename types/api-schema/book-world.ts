@@ -9,7 +9,7 @@ import type { BookAnalysisRole } from './book-analysis';
 import type { ISODate } from './common';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
-/** Тип сущности; в F08-1 запись принимает только `character`, прочие — пачками своего типа. */
+/** Тип сущности; запись принимает `character` и `pair` (F08-8c), прочие — пачками своего типа. */
 export type WorldEntityType = 'character' | 'pair' | 'place' | 'object' | 'term' | 'event';
 
 export type BookWorldRole = BookAnalysisRole;
@@ -48,8 +48,23 @@ export interface BookWorldRelation {
 export interface BookWorldQuote {
   text: string;
   chapter: number;
+  /** Кто говорит: герой мира или анализа; обязателен у пары (F08-8c) — герой пары. */
   speakerKey?: string | null;
+  /** Только у пары (F08-8c): герой пары, о котором цитата; вместе с `speakerKey` — оба героя пары, разные. */
+  aboutKey?: string | null;
   interpretation: string;
+}
+
+/**
+ * Строка таблицы сравнения пары (F08-8c): признак и как он у первого (`a`) и второго (`b`) героя
+ * ключа `{a}--{b}`, каждая сторона — со своей главой версии.
+ */
+export interface BookWorldCompare {
+  feature: string;
+  a: string;
+  chapterA: number;
+  b: string;
+  chapterB: number;
 }
 
 export interface BookWorldAdaptation {
@@ -110,6 +125,18 @@ export interface BookWorldCharacterFields {
   adaptations: BookWorldAdaptation[] | null;
   faq: BookWorldFaq[] | null;
   sources: BookWorldSource[] | null;
+}
+
+/**
+ * Поля пары героев (F08-8c, `tech.md` §3): тело записи и ответ. У героя их нет, у пары нет полей героя
+ * (кроме `short`, `quotes`, `faq`). Строки сравнения, которые не сошлись с текстом версии, читателю
+ * бэкенд не отдаёт.
+ */
+export interface BookWorldPairFields {
+  compare: BookWorldCompare[] | null;
+  bonds: string | null;
+  differences: string | null;
+  conclusion: string | null;
 }
 
 /** Форма имени и главы, где она не считается — тёзки внутри одной формы (F08-8a). */
@@ -186,7 +213,7 @@ export interface BookWorldListResponse {
 }
 
 export interface BookWorldEntity
-  extends BookWorldEntitySummary, Omit<BookWorldCharacterFields, 'short'> {
+  extends BookWorldEntitySummary, Omit<BookWorldCharacterFields, 'short'>, BookWorldPairFields {
   mentions: BookWorldMentions | null;
   createdAt: ISODate;
 }
@@ -211,7 +238,8 @@ export type BookWorldEntityInput = {
   aliasExclusions?: string[] | null;
   /** Главы, где форма не считается (тёзки, F08-8a): только эта форма, только эти главы. */
   aliasChapterExclusions?: BookWorldChapterExclusion[] | null;
-} & Partial<BookWorldCharacterFields>;
+} & Partial<BookWorldCharacterFields> &
+  Partial<BookWorldPairFields>;
 
 /** Тело `PUT versions/:id/world`: вся версия; сущности вне тела не трогаются. */
 export interface SaveBookWorldRequest {
