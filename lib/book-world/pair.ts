@@ -1,3 +1,4 @@
+import { hasText } from '@/lib/book-analysis/format';
 import { fillTemplate } from './format';
 
 /**
@@ -52,7 +53,7 @@ export function pairNames(
   fallback: string
 ): string {
   const [a, b] = names;
-  return a && b ? fillTemplate(template, { a, b }) : fallback;
+  return hasText(a) && hasText(b) ? fillTemplate(template, { a, b }) : fallback;
 }
 
 /**

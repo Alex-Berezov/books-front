@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { canonicalPairMembers, pairDisplayName, pairKey, pairMembers } from '@/lib/book-world/pair';
+import {
+  canonicalPairMembers,
+  pairDisplayName,
+  pairKey,
+  pairMembers,
+  pairNames,
+} from '@/lib/book-world/pair';
 
 /**
  * Ключ пары героев (F08-8c): разбор - копия `pairMembers` из
@@ -74,5 +80,12 @@ describe('pairDisplayName', () => {
   it('нет имени героя или кривой ключ - имя сущности', () => {
     expect(pairDisplayName('{a} and {b}', 'anna--zed', nameOf, 'Pair')).toBe('Pair');
     expect(pairDisplayName('{a} and {b}', 'anna---tom', nameOf, 'Pair')).toBe('Pair');
+  });
+
+  it('имя героя из пробелов - имя сущности, а не «   and Tom»', () => {
+    const blank = (k: string) => (k === 'anna' ? '   ' : names.get(k));
+    expect(pairDisplayName('{a} and {b}', 'anna--tom', blank, 'Pair')).toBe('Pair');
+    expect(pairNames('{a} and {b}', ['   ', 'Tom'], 'Pair')).toBe('Pair');
+    expect(pairNames('{a} and {b}', ['Anna', '   '], 'Pair')).toBe('Pair');
   });
 });

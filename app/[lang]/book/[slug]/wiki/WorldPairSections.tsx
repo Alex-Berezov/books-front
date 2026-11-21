@@ -121,8 +121,10 @@ export function buildPairSections(input: WorldPairSectionsInput): PageSection[] 
     });
   }
 
-  const nameOf = (key: string | null | undefined) =>
-    members.find((m) => m.key === key)?.person?.name;
+  const nameOf = (key: string | null | undefined) => {
+    const member = members.find((m) => m.key === key);
+    return member ? memberName(member) : undefined;
+  };
   const quotes = buildEntityQuotesSection(input, strings.worldPairQuotesTitle, (q) => {
     // «Кто сказал → о ком»: имена только героев ключа пары. Нет имени говорящего - без подписи:
     // имя того, о ком цитата, автором не ставится.

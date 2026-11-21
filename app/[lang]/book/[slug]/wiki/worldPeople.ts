@@ -1,3 +1,4 @@
+import { hasText } from '@/lib/book-analysis/format';
 import { isLinkableEntity } from '@/lib/book-world/link-entities';
 import { canonicalPairMembers, pairDisplayName, pairMembers } from '@/lib/book-world/pair';
 import type { WorldPairLink, WorldPerson } from './worldEntityTypes';
@@ -15,8 +16,11 @@ export function buildWorldPeople(
 ): Map<string, WorldPerson> {
   const people = new Map<string, WorldPerson>();
   for (const c of analysisCharacters ?? []) people.set(c.key, { name: c.name, href: null });
-  for (const e of entities)
-    people.set(e.key, { name: e.name, href: hrefOf(e.key), short: e.short });
+  for (const e of entities) {
+    // Имя из пробелов - не имя: остаётся запасное имя героя из анализа (F08-8e-6).
+    const name = hasText(e.name) ? e.name : (people.get(e.key)?.name ?? e.name);
+    people.set(e.key, { name, href: hrefOf(e.key), short: e.short });
+  }
   return people;
 }
 

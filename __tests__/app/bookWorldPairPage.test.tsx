@@ -461,6 +461,17 @@ describe('страница пары героев', () => {
     );
   });
 
+  it('имя говорящего из пробелов - цитата без подписи, а не « → Tom Reed»', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST_WITH_PAIR,
+      entities: LIST_WITH_PAIR.entities.map((e) => (e.key === 'anna' ? { ...e, name: '   ' } : e)),
+    } as BookWorldListResponse);
+    const { container } = await renderEntity(PAIR_KEY);
+    const quotes = container.querySelector('#quotes') as HTMLElement;
+    expect(quotes).toHaveTextContent('He never let the lamp go out.');
+    expect(quotes).not.toHaveTextContent('→');
+  });
+
   it.each([
     ['нет первого героя', (e: { key: string }) => e.key !== 'anna', (e: object) => e],
     ['нет второго героя', (e: { key: string }) => e.key !== 'tom', (e: object) => e],
@@ -544,6 +555,26 @@ describe('страница пары героев', () => {
       expect.any(ApiError)
     );
     expect(vi.mocked(logError)).toHaveBeenCalledTimes(1);
+  });
+
+  it('имя героя в списке мира из пробелов - h1 и title берут имя из анализа', async () => {
+    const book = makeBook();
+    book.versions[0]._count.analyses = 1;
+    mocks.getBookOverview.mockResolvedValue(book);
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST_WITH_PAIR,
+      entities: LIST_WITH_PAIR.entities.map((e) => (e.key === 'anna' ? { ...e, name: '   ' } : e)),
+    } as BookWorldListResponse);
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      characters: [{ key: 'anna', name: 'Anna of the analysis' }],
+    });
+    await renderEntity(PAIR_KEY);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Anna of the analysis and Tom Reed: character comparison'
+    );
+    expect((await entityMeta(PAIR_KEY)).title).toBe(
+      'Anna of the analysis and Tom Reed in World Book by Jane Writer: character comparison'
+    );
   });
 
   it('пять языков: h1 пары по формуле языка', async () => {

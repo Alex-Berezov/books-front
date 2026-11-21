@@ -200,7 +200,7 @@ export interface WorldWriteStep {
   /** 2 — текст единственной переделки. */
   attempt: number;
   outcome: 'done' | 'failed';
-  /** Почему шаг не дал текста: `DRAFT_TOO_LONG`, `DRAFT_INVALID_RESPONSE`, `WORLD_CHARACTER_NOT_FOUND`; шаг пары без вызова — `WORLD_PAIR_MEMBER_MISSING`, `WORLD_PAIR_KEY_TAKEN`, `WORLD_PAIR_NOT_FOUNDED`, `WORLD_MENTIONS_MOVED`. */
+  /** Почему шаг не дал текста: `DRAFT_TOO_LONG`, `DRAFT_INVALID_RESPONSE`, `WORLD_CHARACTER_NOT_FOUND`; шаг пары без вызова — `WORLD_PAIR_MEMBER_MISSING`, `WORLD_PAIR_KEY_TAKEN`, `WORLD_PAIR_NOT_FOUNDED` (пара не связана в анализе и без общих глав — новая и заведённая; либо новая пара не проходит условие заведения по сохранённому присутствию), `WORLD_MENTIONS_MOVED`. */
   failedReason: string | null;
   authorModel: string | null;
   review: WorldWriteReview | null;
