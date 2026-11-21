@@ -177,6 +177,11 @@ export interface WorldWriteLeftOut {
   /** Ключ героя или пары; у `PAIR_KEY_INVALID` — ключи героев через `--`. */
   key: string;
   reason: WorldWriteSkipReason;
+  /**
+   * Имена для подписи: героя — одно, пары — двух героев в порядке ключа (ключ `PAIR_KEY_INVALID`
+   * не разобрать); пусто у хода, записанного до поля — подписью служит ключ.
+   */
+  names: string[];
   /** Главы героя (`BELOW_MIN_CHAPTERS`) или общие главы пары; иначе `null`. */
   chapters: number | null;
 }

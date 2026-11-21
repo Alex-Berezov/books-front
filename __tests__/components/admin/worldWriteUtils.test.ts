@@ -11,7 +11,8 @@ import {
   writeEstimateText,
 } from '@/components/admin/books/WorldTab/WorldWrite/worldWrite.utils';
 import { ApiError } from '@/types/api';
-import type { WorldWrite, WorldWriteEstimate, WorldWriteStep } from '@/types/api-schema';
+import type { WorldWrite, WorldWriteEstimate, WorldWriteLeftOut } from '@/types/api-schema';
+import { item, run as runFixture, step as stepFixture } from '../../fixtures/worldWrite';
 
 /** F08-4b: подписи отказов хода мира — только свои коды таблицы, прочее — общей подписью ходов. */
 
@@ -43,32 +44,20 @@ describe('worldWrite.utils refusalText', () => {
 });
 
 describe('worldWrite.utils progressText', () => {
-  const step = (n: number): WorldWriteStep => ({
-    step: n,
-    kind: n === 0 ? 'select' : n % 2 === 1 ? 'page' : 'external',
-    key: n === 0 ? null : 'anna',
-    verdict: 'ok',
-    remarks: [],
-    attempt: 1,
-    outcome: 'done',
-    failedReason: null,
-    authorModel: null,
-    review: null,
-    source: null,
-    dropped: [],
-  });
+  const step = (n: number) =>
+    stepFixture({
+      step: n,
+      kind: n === 0 ? 'select' : n % 2 === 1 ? 'page' : 'external',
+      key: n === 0 ? null : 'anna',
+    });
   const run = (done: number, patch: Partial<WorldWrite> = {}): WorldWrite =>
-    ({
-      id: 'd1',
+    runFixture({
       status: 'building',
-      waitingFor: null,
-      operation: { id: 'op', status: 'active', pauseReason: null },
       stepsTotal: 3,
-      candidates: [{ key: 'anna', name: 'Anna', aliases: [], chapters: [1] }],
       steps: Array.from({ length: done }, (_, n) => step(n)),
       items: [],
       ...patch,
-    }) as unknown as WorldWrite;
+    });
 
   it('the characters are not chosen yet (stepsTotal null): step 1, the choice', () => {
     expect(progressText(run(0, { stepsTotal: null, candidates: null }))).toBe(
@@ -119,11 +108,8 @@ describe('worldWrite.utils writeEstimateText (F08-8b)', () => {
 
 describe('worldWrite.utils pairs (F08-8e)', () => {
   const pairRun = (done: number, patch: Partial<WorldWrite> = {}): WorldWrite =>
-    ({
-      id: 'd1',
+    runFixture({
       status: 'building',
-      waitingFor: null,
-      operation: { id: 'op', status: 'active', pauseReason: null },
       // выбор + 3 героя по два шага + 2 пары
       stepsTotal: 9,
       candidates: [
@@ -135,10 +121,10 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
         { key: 'anna--boris', a: 'anna', b: 'boris', linked: true, chapters: [1, 2] },
         { key: 'anna--clara', a: 'anna', b: 'clara', linked: false, chapters: [3] },
       ],
-      steps: Array.from({ length: done }, (_, n) => ({ step: n })),
+      steps: Array.from({ length: done }, (_, n) => stepFixture({ step: n })),
       items: [],
       ...patch,
-    }) as unknown as WorldWrite;
+    });
 
   it('steps after the heroes are counted as pair steps, with their own count', () => {
     // шаги героев: 1-6; пара 1 — шаг с номером 7 (done = 7 -> «Step 8»)
@@ -155,18 +141,16 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
 
   it('titles of the pair step and of its blocks name both heroes', () => {
     const run = pairRun(0);
-    expect(stepTitle(run, { kind: 'pair', key: 'anna--boris' } as never)).toBe(
+    expect(stepTitle(run, stepFixture({ kind: 'pair', key: 'anna--boris' }))).toBe(
       'Pair: Anna and Boris'
     );
-    expect(itemTitle(run, { key: 'anna--boris', block: 'compare' } as never)).toBe(
+    expect(itemTitle(run, item({ key: 'anna--boris', block: 'compare' }))).toBe(
       'Anna and Boris: Comparison'
     );
-    expect(itemTitle(run, { key: 'anna--boris', block: 'bonds' } as never)).toBe(
+    expect(itemTitle(run, item({ key: 'anna--boris', block: 'bonds' }))).toBe(
       'Anna and Boris: What links them'
     );
-    expect(itemTitle(run, { key: 'anna', block: 'short' } as never)).toBe(
-      'Anna: Short description'
-    );
+    expect(itemTitle(run, item({ key: 'anna', block: 'short' }))).toBe('Anna: Short description');
   });
 
   it('a hero key with "--" that is not a pair of the run stays a hero name (LEGACY-507)', () => {
@@ -174,15 +158,15 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
       candidates: [{ key: 'old--hero', name: 'Old Hero', aliases: [], chapters: [1] }],
       pairs: [],
     });
-    expect(itemTitle(run, { key: 'old--hero', block: 'short' } as never)).toBe(
+    expect(itemTitle(run, item({ key: 'old--hero', block: 'short' }))).toBe(
       'Old Hero: Short description'
     );
   });
 
   it('a pair step without a key (the pair is missing under its number) is a pair step, not the choice', () => {
-    expect(stepTitle(pairRun(0), { kind: 'pair', key: null } as never)).toBe('Pair');
-    expect(stepTitle(pairRun(0), { kind: 'page', key: null } as never)).toBe('Page');
-    expect(stepTitle(pairRun(0), { kind: 'select', key: null } as never)).toBe(
+    expect(stepTitle(pairRun(0), stepFixture({ kind: 'pair', key: null }))).toBe('Pair');
+    expect(stepTitle(pairRun(0), stepFixture({ kind: 'page', key: null }))).toBe('Page');
+    expect(stepTitle(pairRun(0), stepFixture({ kind: 'select', key: null }))).toBe(
       'Choice of characters and name forms'
     );
   });
@@ -191,7 +175,7 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
     const run = pairRun(0, {
       pairs: [{ key: 'anna--zed', a: 'anna', b: 'zed', linked: false, chapters: [1] }],
     });
-    expect(stepTitle(run, { kind: 'pair', key: 'anna--zed' } as never)).toBe('Pair: anna--zed');
+    expect(stepTitle(run, stepFixture({ kind: 'pair', key: 'anna--zed' }))).toBe('Pair: anna--zed');
   });
 
   it('the estimate names the pairs only when there are some', () => {
@@ -210,13 +194,21 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
     expect(writeEstimateText({ ...base, pairs: 0 })).not.toContain('pair');
   });
 
+  const skip = (patch: Partial<WorldWriteLeftOut>): WorldWriteLeftOut => ({
+    key: 'x',
+    reason: 'BELOW_MIN_CHAPTERS',
+    names: [],
+    chapters: null,
+    ...patch,
+  });
+
   it('left-out characters and pairs with the reason; no pairs without a sample', () => {
     const run = pairRun(0);
-    expect(leftOutText(run, { key: 'x--y', reason: 'PAIRS_MAX', chapters: 3 })).toBe(
+    expect(leftOutText(run, skip({ key: 'x--y', reason: 'PAIRS_MAX', chapters: 3 }))).toBe(
       'x--y (3 common chapters): over the limit of pairs per run.'
     );
     // Отсеянная пара героев хода — по именам героев, хотя в `pairs` её нет.
-    expect(leftOutText(run, { key: 'boris--clara', reason: 'PAIRS_MAX', chapters: 1 })).toBe(
+    expect(leftOutText(run, skip({ key: 'boris--clara', reason: 'PAIRS_MAX', chapters: 1 }))).toBe(
       'Boris and Clara (1 common chapter): over the limit of pairs per run.'
     );
     expect(pairsOffText({ pairsOff: 'WORLD_PAIR_LANGUAGE' })).toContain('no pair sample');
@@ -257,7 +249,78 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
       'Boris and Clara (1 common chapter): over the limit of pairs per run.',
     ],
   ] as const)('left out %s: the full line', (reason, key, chapters, line) => {
-    expect(leftOutText(pairRun(0, { pairs: [] }), { key, reason, chapters })).toBe(line);
+    expect(leftOutText(pairRun(0, { pairs: [] }), skip({ key, reason, chapters }))).toBe(line);
+  });
+
+  it('a left-out entry names its characters from its own names, not from the run candidates', () => {
+    const run = pairRun(0, { pairs: [] });
+    expect(
+      leftOutText(
+        run,
+        skip({ key: 'dan', reason: 'BELOW_MIN_CHAPTERS', names: ['Dan'], chapters: 1 })
+      )
+    ).toBe('Dan (1 chapter): a secondary character in fewer chapters than the threshold.');
+    expect(
+      leftOutText(
+        run,
+        skip({ key: 'old--hero', reason: 'KEY_PAIR_FORM', names: ['Old Hero'], chapters: null })
+      )
+    ).toContain('Old Hero: the character key');
+  });
+
+  it('a pair key with "-" at the joint is not parsed: the names of the entry, not the key', () => {
+    expect(
+      leftOutText(
+        pairRun(0),
+        skip({
+          key: 'ivan---petr',
+          reason: 'PAIR_KEY_INVALID',
+          names: ['Ivan-', 'Petr'],
+          chapters: 2,
+        })
+      )
+    ).toBe(
+      'Ivan- and Petr (2 common chapters): no valid pair key for these two characters (too long, or "-" at the joint).'
+    );
+  });
+
+  it('incomplete names fall back to the key the same way for a hero and a pair', () => {
+    const run = pairRun(0, { pairs: [] });
+    expect(leftOutText(run, skip({ key: 'zed', names: [''], chapters: 1 }))).toMatch(
+      /^zed \(1 chapter\)/
+    );
+    // Одно имя у пары — не «Ivan and undefined»: подпись по ключу (герои ключа среди кандидатов).
+    expect(
+      leftOutText(
+        run,
+        skip({ key: 'anna--boris', reason: 'PAIRS_MAX', names: ['Anna'], chapters: 1 })
+      )
+    ).toMatch(/^Anna and Boris \(1 common chapter\)/);
+  });
+
+  it('an answer without the field at all (the backend before its tag): the key stands in', () => {
+    const { names: _dropped, ...legacy } = skip({ key: 'dan', chapters: 1 });
+    // Поле обязательно в типе, поэтому ответ без него собран из записи с отрезанным полем.
+    expect(leftOutText(pairRun(0), legacy as WorldWriteLeftOut)).toMatch(/^dan \(1 chapter\)/);
+  });
+
+  it('a run saved before the names: the key stands in (a pair key is still read as a pair)', () => {
+    expect(leftOutText(pairRun(0), skip({ key: 'zed', chapters: 1 }))).toContain('zed (1 chapter)');
+    expect(
+      leftOutText(pairRun(0), skip({ key: 'ivan---petr', reason: 'PAIR_KEY_INVALID' }))
+    ).toMatch(/^ivan---petr: /);
+  });
+
+  it('a code the table does not know is shown as it is, not as undefined', () => {
+    // Бэкенд новее фронта: незнакомые вид шага, причина отсева и причина «нет пар» не пропадают.
+    const unknown = (v: string) => v as never;
+    expect(stepTitle(pairRun(0), stepFixture({ kind: unknown('review'), key: 'anna' }))).toBe(
+      'review: Anna'
+    );
+    expect(leftOutText(pairRun(0), skip({ key: 'zed', reason: unknown('NEW_REASON') }))).toBe(
+      'zed: NEW_REASON.'
+    );
+    expect(pairsOffText({ pairsOff: unknown('NEW_OFF') })).toBe('NEW_OFF');
   });
 
   it.each([

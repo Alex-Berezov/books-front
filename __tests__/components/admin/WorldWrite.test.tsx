@@ -3,13 +3,8 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WorldWrite } from '@/components/admin/books/WorldTab/WorldWrite';
 import { ApiError } from '@/types/api';
-import type {
-  LlmOperation,
-  WorldWrite as WorldWriteRun,
-  WorldWriteItem,
-  WorldWriteStep,
-  WorldWriteValue,
-} from '@/types/api-schema';
+import type { WorldWrite as WorldWriteRun, WorldWriteValue } from '@/types/api-schema';
+import { item, operation, run, step } from '../../fixtures/worldWrite';
 
 /**
  * F08-4b: панель хода «Write World» во вкладке World — старт с оценкой, ход по шагам, пауза
@@ -81,76 +76,6 @@ const actions = () =>
     | 'rebuildDossier',
     Mutation
   >;
-
-const operation = (patch: Partial<LlmOperation> = {}): LlmOperation => ({
-  id: 'op-1',
-  kind: 'draft',
-  status: 'done',
-  pauseReason: null,
-  bookVersionId: 'v1',
-  limitUsd: '2',
-  reservedUsd: '0',
-  spentUsd: '0.5',
-  createdAt: '2026-11-17T00:00:00.000Z',
-  updatedAt: '2026-11-17T00:00:00.000Z',
-  ...patch,
-});
-
-const item = (patch: Partial<WorldWriteItem> = {}): WorldWriteItem => ({
-  index: 0,
-  key: 'anna',
-  block: 'short',
-  step: 1,
-  verdict: 'ok',
-  remarks: [],
-  review: { kind: 'answered', model: 'openai/gpt-6-luna' },
-  outcome: 'proposed',
-  failedReason: null,
-  regenFailedReason: null,
-  regenerating: false,
-  regenOperationId: null,
-  regenOperationStatus: null,
-  regenPauseReason: null,
-  ...patch,
-});
-
-const step = (patch: Partial<WorldWriteStep> = {}): WorldWriteStep => ({
-  step: 0,
-  kind: 'select',
-  key: null,
-  verdict: 'ok',
-  remarks: [],
-  attempt: 1,
-  outcome: 'done',
-  failedReason: null,
-  authorModel: 'a',
-  review: { kind: 'answered', model: 'm' },
-  source: 'text',
-  dropped: [],
-  ...patch,
-});
-
-const run = (patch: Partial<WorldWriteRun> = {}): WorldWriteRun => ({
-  id: 'd1',
-  bookVersionId: 'v1',
-  status: 'ready',
-  language: 'ru',
-  failedReason: null,
-  waitingFor: null,
-  operation: operation(),
-  stepsTotal: 3,
-  candidates: [{ key: 'anna', name: 'Anna', aliases: ['Annie'], chapters: [1, 2] }],
-  pairs: [],
-  leftOut: [],
-  pairsOff: null,
-  steps: [],
-  items: [item()],
-  droppedQuotes: [],
-  droppedSources: [],
-  createdAt: '2026-11-17T00:00:00.000Z',
-  updatedAt: '2026-11-17T00:00:00.000Z',
-  ...patch,
-});
 
 const value = (patch: Partial<WorldWriteValue> = {}): WorldWriteValue => ({
   print: 'print-1',
@@ -422,8 +347,8 @@ describe('WorldWrite (F08-4b)', () => {
         ],
         pairs: [{ key: 'anna--boris', a: 'anna', b: 'boris', linked: true, chapters: [1, 2] }],
         leftOut: [
-          { key: 'dan', reason: 'BELOW_MIN_CHAPTERS', chapters: 1 },
-          { key: 'ev--fa', reason: 'PAIRS_MAX', chapters: 4 },
+          { key: 'dan', reason: 'BELOW_MIN_CHAPTERS', names: ['Dan'], chapters: 1 },
+          { key: 'ev--fa', reason: 'PAIRS_MAX', names: ['Ev', 'Fa'], chapters: 4 },
         ],
         stepsTotal: 6,
         steps: [
@@ -455,11 +380,11 @@ describe('WorldWrite (F08-4b)', () => {
       const left = screen.getByRole('list', { name: 'Left out of the run' });
       expect(
         within(left).getByText(
-          'dan (1 chapter): a secondary character in fewer chapters than the threshold.'
+          'Dan (1 chapter): a secondary character in fewer chapters than the threshold.'
         )
       ).toBeInTheDocument();
       expect(
-        within(left).getByText('ev--fa (4 common chapters): over the limit of pairs per run.')
+        within(left).getByText('Ev and Fa (4 common chapters): over the limit of pairs per run.')
       ).toBeInTheDocument();
       const dropped = screen.getByRole('list', { name: 'Dropped at step 6' });
       expect(within(dropped).getByText(/Quote dropped: «Pair words»/)).toBeInTheDocument();
@@ -555,13 +480,13 @@ describe('WorldWrite (F08-4b)', () => {
       hooks.run = run({
         steps: [],
         items: [],
-        leftOut: [{ key: 'dan', reason: 'BELOW_MIN_CHAPTERS', chapters: 1 }],
+        leftOut: [{ key: 'dan', reason: 'BELOW_MIN_CHAPTERS', names: ['Dan'], chapters: 1 }],
       });
       view();
       const left = screen.getByRole('list', { name: 'Left out of the run' });
       expect(
         within(left).getByText(
-          'dan (1 chapter): a secondary character in fewer chapters than the threshold.'
+          'Dan (1 chapter): a secondary character in fewer chapters than the threshold.'
         )
       ).toBeInTheDocument();
     });
@@ -572,7 +497,7 @@ describe('WorldWrite (F08-4b)', () => {
       expect(screen.queryByLabelText('Steps of the run')).toBeNull();
     });
 
-    it('the quotes dropped at a pair step and the pairs of the run are listed', () => {
+    it('a finished pair step on one common chapter: the pair line and the done outcome', () => {
       hooks.run = run({
         candidates: [
           { key: 'anna', name: 'Anna', aliases: [], chapters: [1] },
@@ -581,19 +506,12 @@ describe('WorldWrite (F08-4b)', () => {
         pairs: [{ key: 'anna--boris', a: 'anna', b: 'boris', linked: false, chapters: [3] }],
         stepsTotal: 6,
         steps: [step(), step({ step: 5, kind: 'pair', key: 'anna--boris' })],
-        droppedQuotes: [
-          { key: 'anna--boris', chapter: 3, text: 'About him', reason: 'CHAPTER_UNKNOWN' },
-        ],
         items: [],
       });
       view();
       expect(screen.getByText('Pairs: Anna and Boris (1 common chapter).')).toBeInTheDocument();
       expect(screen.getByText(/Step 6 of 6: Pair: Anna and Boris — done/)).toBeInTheDocument();
-      expect(
-        within(screen.getByRole('list', { name: 'Dropped at step 6' })).getByText(
-          'Quote dropped: «About him» (chapter 3) — the version has no such chapter'
-        )
-      ).toBeInTheDocument();
+      expect(screen.queryByRole('list', { name: /Dropped at step/ })).toBeNull();
     });
 
     it('no pairs for a language without a sample: the run says so', () => {

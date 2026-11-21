@@ -14,7 +14,7 @@ import {
 } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import { DOSSIER_REFUSED_TEXT } from '@/components/admin/translation-run/translationRun.utils';
-import { pairDisplayName } from '@/lib/book-world/pair';
+import { pairDisplayName, pairNames } from '@/lib/book-world/pair';
 import { ApiError } from '@/types/api';
 import type {
   WorldAcceptAllSkipCode,
@@ -72,12 +72,20 @@ export const characterName = (run: Pick<WorldWrite, 'candidates'>, key: string):
 /** Что нужно для имён хода: кандидаты-герои и пары (имя пары — по её героям). */
 export type RunNames = Pick<WorldWrite, 'candidates'> & Partial<Pick<WorldWrite, 'pairs'>>;
 
+/** Имя пары в подписях админки: «{Имя} and {Имя}». */
+const PAIR_NAME_TEMPLATE = '{a} and {b}';
+
 /**
  * Имя пары по ключу `{a}--{b}` (общий разбор ключа сайта, `lib/book-world/pair.ts`): «Имя and Имя»
  * по кандидатам хода; ключ не разбирается или героя нет среди кандидатов — сам ключ.
  */
 const pairName = (run: RunNames, key: string): string =>
-  pairDisplayName('{a} and {b}', key, (k) => run.candidates?.find((c) => c.key === k)?.name, key);
+  pairDisplayName(
+    PAIR_NAME_TEMPLATE,
+    key,
+    (k) => run.candidates?.find((c) => c.key === k)?.name,
+    key
+  );
 
 /**
  * Имя сущности хода: пара хода (по `pairs`, а не по виду ключа: заведённый герой с `--` остался,
@@ -282,10 +290,18 @@ const PAIR_SKIPS: ReadonlySet<WorldWriteSkipReason> = new Set([
   'PAIRS_MAX',
 ]);
 
-/** Герой или пара, которых шаг выбора оставил за ходом: имя по ключу, причина, главы. */
+/**
+ * Герой или пара, которых шаг выбора оставил за ходом: имя, причина, главы. Имя — из `names` записи
+ * (героя нет среди кандидатов, ключ пары `PAIR_KEY_INVALID` не разобрать); записи без имён — по ключу.
+ */
 export const leftOutText = (run: RunNames, skip: WorldWriteLeftOut): string => {
-  const name = PAIR_SKIPS.has(skip.reason) ? pairName(run, skip.key) : characterName(run, skip.key);
-  const chapterWord = PAIR_SKIPS.has(skip.reason) ? 'common chapter' : 'chapter';
+  const isPair = PAIR_SKIPS.has(skip.reason);
+  // `?? []`: ответ бэкенда до тега с полем (окно выката) и ход, записанный до поля.
+  const [first, second] = skip.names ?? [];
+  const name = isPair
+    ? pairNames(PAIR_NAME_TEMPLATE, [first, second], pairName(run, skip.key))
+    : first || characterName(run, skip.key);
+  const chapterWord = isPair ? 'common chapter' : 'chapter';
   const chapters = skip.chapters === null ? '' : ` (${pluralWord(skip.chapters, chapterWord)})`;
   return `${name}${chapters}: ${SKIP_REASON_TEXT[skip.reason] ?? skip.reason}.`;
 };
