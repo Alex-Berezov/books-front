@@ -1,5 +1,5 @@
 import { fillTemplate } from '@/lib/book-world/format';
-import { pairDisplayName } from '@/lib/book-world/pair';
+import { canonicalPairMembers, pairDisplayName } from '@/lib/book-world/pair';
 import { isRightsBlockedError } from '@/lib/errors';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { getWorldStrings, worldIndexMetaTitle } from '@/lib/i18n/worldStrings';
@@ -163,6 +163,9 @@ export async function buildWorldEntityMetadata(
     if (!book || !version || !detail) return { robots: NOINDEX };
 
     const { entity } = detail;
+    // Пара с неканоническим ключом (`b--a`, `a--a`) - не страница: сама страница отвечает 404
+    // (`page.tsx`), мета - как у 404: без title пары, canonical и hreflang.
+    if (entity.type === 'pair' && canonicalPairMembers(key) === null) return { robots: NOINDEX };
     const strings = getWorldStrings(supportedLang);
     const title = version.title || book.title;
     const author = version.author || book.author || dict.book.unknownAuthor;

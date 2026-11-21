@@ -48,11 +48,59 @@ const optionalKey = () =>
     .optional()
     .transform((value) => (value ? value : null));
 
+type EntityKind = 'pair' | 'character';
+
+/**
+ * Поле не своего типа (у пары - поле героя, у героя - поле пары): бэкенд принимает его пустым - после
+ * слияния (`compactBlock`) оно пусто, а `checkWorldTypeFields` (`books/src/modules/book-world/world-refs.ts`)
+ * отбивает только непустое. Пустое - по виду поля, как его пропускает DTO бэкенда
+ * (`books/src/modules/book-world/dto/update-book-world.dto.ts`): у списка `null` и `[]`, у текста `null`
+ * и строка из пробелов, у «профиля» `null` и объект с пустыми полями, у роли и пути - `null`. Пустое
+ * уходит в тело записи как `null` - «очистить», как у бэкенда (ключа нет - «не трогать»): иначе при смене
+ * типа старое значение осталось бы и бэкенд отбил бы запись. Непустое - ошибка с путём и тем же смыслом,
+ * что у бэкенда. Копия правила бэкенда - менять вместе (`ai-context/folder-structure.md`).
+ */
+const notAField = (kind: EntityKind) => ({ error: `not a field of a ${kind}` });
+
+const cleared = <T extends z.ZodType>(schema: T) =>
+  schema.optional().transform((value) => (value === undefined ? undefined : null));
+
+const emptyText = () => z.string().trim().max(0);
+
+const foreignList = (kind: EntityKind) =>
+  cleared(z.union([z.null(), z.array(z.never()).max(0)], notAField(kind)));
+
+const foreignText = (kind: EntityKind) =>
+  cleared(z.union([z.null(), emptyText()], notAField(kind)));
+
+const foreignObject = (kind: EntityKind) => cleared(z.null(notAField(kind)));
+
+const PROFILE_KEYS: ReadonlySet<string> = new Set(['position', 'relationToMain']);
+
+/** `null` или объект только из полей «профиля», каждое - `null` или строка из пробелов. */
+const isEmptyProfile = (value: unknown): boolean =>
+  value === null ||
+  (typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.entries(value).every(
+      ([k, v]) => PROFILE_KEYS.has(k) && (v === null || (typeof v === 'string' && v.trim() === ''))
+    ));
+
+/** «Профиль» героя у пары: `null` или объект с пустыми полями (`BookWorldProfileDto`, `compactBlock`). */
+const foreignProfile = (kind: EntityKind) =>
+  cleared(z.unknown().refine(isEmptyProfile, notAField(kind)));
+
 const quoteShape = () => ({
   text: requiredText(L.quote),
   chapter: chapter(),
   speakerKey: optionalKey(),
   interpretation: requiredText(L.interpretation),
+});
+
+/** Цитата героя: `aboutKey` - поле цитаты пары, у героя принимается только пустым (как бэкенд). */
+const characterQuoteShape = () => ({
+  ...quoteShape(),
+  aboutKey: foreignText('character'),
 });
 
 export const BOOK_WORLD_LIST_SCHEMAS = {
@@ -80,7 +128,7 @@ export const BOOK_WORLD_LIST_SCHEMAS = {
     L.scenes
   ),
   relations: list(z.strictObject({ to: key(), label: requiredText(L.label) }), L.relations),
-  quotes: list(z.strictObject(quoteShape()), L.quotes),
+  quotes: list(z.strictObject(characterQuoteShape()), L.quotes),
   // Цитата пары (F08-8c): кто говорит и о ком - оба обязательны и непусты (`checkWorldPair` бэкенда);
   // что оба - разные герои ключа пары, проверяет бэкенд на слитой записи.
   pairQuotes: list(
@@ -163,11 +211,17 @@ const characterFields = {
   adaptations: clearable(BOOK_WORLD_LIST_SCHEMAS.adaptations),
   faq: clearable(BOOK_WORLD_LIST_SCHEMAS.faq),
   sources: clearable(BOOK_WORLD_LIST_SCHEMAS.sources),
+  // Поля пары - у героя только пустыми.
+  compare: foreignList('character'),
+  bonds: foreignText('character'),
+  differences: foreignText('character'),
+  conclusion: foreignText('character'),
 };
 
 /**
  * Поля пары героев (F08-8c): имя, «коротко», сравнение, связи, различия, цитаты друг о друге, вывод,
- * частые вопросы. Полей героя у пары нет (бэкенд отбивает 400), поэтому схема их не знает.
+ * частые вопросы. Полей героя у пары нет: непустое бэкенд отбивает 400, пустое принимает
+ * (`foreignList`, `foreignText`, `foreignObject`, `foreignProfile`).
  */
 const pairFields = {
   name: requiredText(L.name).optional(),
@@ -178,6 +232,21 @@ const pairFields = {
   quotes: clearable(BOOK_WORLD_LIST_SCHEMAS.pairQuotes),
   conclusion: clearable(z.string().trim().max(L.text)),
   faq: clearable(BOOK_WORLD_LIST_SCHEMAS.faq),
+  // Поля героя - у пары только пустыми.
+  role: foreignObject('pair'),
+  aliases: foreignList('pair'),
+  aliasExclusions: foreignList('pair'),
+  aliasChapterExclusions: foreignList('pair'),
+  profile: foreignProfile('pair'),
+  appearance: foreignText('pair'),
+  character: foreignText('pair'),
+  arc: foreignObject('pair'),
+  scenes: foreignList('pair'),
+  relations: foreignList('pair'),
+  critique: foreignText('pair'),
+  prototypes: foreignText('pair'),
+  adaptations: foreignList('pair'),
+  sources: foreignList('pair'),
 };
 
 const entitySchema = z.discriminatedUnion('type', [

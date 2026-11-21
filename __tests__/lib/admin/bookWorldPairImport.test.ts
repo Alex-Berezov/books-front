@@ -14,7 +14,8 @@ import { detail } from '../../helpers/worldApi';
 
 /**
  * F08-8c: пара героев в импорте и записи админки. Форма - `books/.../dto/book-world-blocks.dto.ts`:
- * поля пары у героя и поля героя у пары бэкенд отбивает 400, фронт - ошибкой с путём.
+ * непустые поля пары у героя и поля героя у пары бэкенд отбивает 400, фронт - ошибкой с путём;
+ * пустые (`null`, `""`, `[]`) бэкенд принимает - фронт тоже и выкидывает их из тела.
  */
 
 const compareRow = (i: number) => ({
@@ -92,10 +93,97 @@ describe('пара героев: импорт и запись (F08-8c)', () => {
   });
 
   it('поле героя у пары - неизвестный ключ с путём (бэкенд: 400)', () => {
-    expect(paths(world(pair({ aliases: ['Anna'], role: 'main' })))).toEqual([
+    // Порядок ошибок схема не держит (их показывают списком по путям) - сравнение без порядка.
+    expect(paths(world(pair({ aliases: ['Anna'], role: 'main' }))).sort()).toEqual([
       'entities.0.aliases',
       'entities.0.role',
     ]);
+  });
+
+  // Пустое - по виду поля, как его пропускает DTO бэкенда: список - null и [], текст - null и пробелы,
+  // «профиль» - null и объект с пустыми полями, роль и путь - null
+  // (`books/src/modules/book-world/dto/update-book-world.dto.ts`). В тело уходит `null` - «очистить».
+  const characterOnly = {
+    role: null,
+    aliases: [],
+    aliasExclusions: null,
+    aliasChapterExclusions: [],
+    profile: { position: '  ' },
+    appearance: '',
+    character: '   ',
+    arc: null,
+    scenes: [],
+    relations: null,
+    critique: null,
+    prototypes: '',
+    adaptations: [],
+    sources: null,
+  };
+  const pairOnly = { compare: [], bonds: '', differences: '  ', conclusion: null };
+  // Тело уходит JSON: поле со значением undefined в него не попадает.
+  const body = (data: unknown) => JSON.parse(JSON.stringify(data ?? null));
+
+  it('все 14 полей героя у пары пустыми принимаются и уходят как null - «очистить», как бэкенд', () => {
+    const result = checkBookWorldImport(world(pair(characterOnly)), 'en');
+    expect(result.errors).toEqual([]);
+    const [entity] = body(result.data?.entities);
+    for (const key of Object.keys(characterOnly)) expect(entity[key]).toBeNull();
+    // Ключа нет - «не трогать»: в теле его нет и сейчас.
+    const [plain] = body(checkBookWorldImport(world(pair()), 'en').data?.entities);
+    for (const key of Object.keys(characterOnly)) expect(plain).not.toHaveProperty(key);
+  });
+
+  it('пустое не своего вида у пары - ошибка «not a field of a pair», как 400 бэкенда', () => {
+    const issues = (patch: Record<string, unknown>) =>
+      checkBookWorldImport(world(pair(patch)), 'en').errors;
+    // "" у списка (DTO: @IsArray), [] у текста (IsString), "" у роли, непустой «профиль», пустой путь
+    // (у пути `from`/`to` обязательны).
+    for (const patch of [
+      { aliases: '' },
+      { appearance: [] },
+      { role: '' },
+      { profile: { position: 'Clerk' } },
+      { arc: {} },
+    ]) {
+      const [key] = Object.keys(patch);
+      expect(issues(patch)).toEqual([
+        { path: `entities.0.${key}`, message: 'not a field of a pair' },
+      ]);
+    }
+    expect(issues({ aliases: ['Anna'] })).toEqual([
+      { path: 'entities.0.aliases', message: 'not a field of a pair' },
+    ]);
+  });
+
+  it('«профиль» у пары: null, {} и поля из пробелов или null - пусто; лишний ключ - отказ (BookWorldProfileDto)', () => {
+    for (const profile of [
+      null,
+      {},
+      { relationToMain: null },
+      { position: ' ', relationToMain: '' },
+    ]) {
+      const result = checkBookWorldImport(world(pair({ profile })), 'en');
+      expect(result.errors).toEqual([]);
+      expect(body(result.data?.entities)[0].profile).toBeNull();
+    }
+    expect(paths(world(pair({ profile: { occupation: null } })))).toEqual(['entities.0.profile']);
+  });
+
+  it('все 4 поля пары у героя пустыми и aboutKey пустым в цитате героя принимаются и уходят как null', () => {
+    for (const aboutKey of [null, '', '  ']) {
+      const character = {
+        key: 'anna',
+        type: 'character',
+        name: 'Anna',
+        ...pairOnly,
+        quotes: [{ text: 'x', chapter: 1, aboutKey, interpretation: 'y' }],
+      };
+      const result = checkBookWorldImport(world(character), 'en');
+      expect(result.errors).toEqual([]);
+      const [entity] = body(result.data?.entities);
+      for (const key of Object.keys(pairOnly)) expect(entity[key]).toBeNull();
+      expect(entity.quotes[0].aboutKey).toBeNull();
+    }
   });
 
   it('поле пары у героя и aboutKey в цитате героя - неизвестные ключи', () => {

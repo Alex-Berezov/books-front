@@ -8,7 +8,9 @@ import { test, expect } from '@playwright/test';
  * - `world-acceptance` - герои `anna-lark` (полный, `en` и `ru`), `tom-reed` (минимальный),
  *   `mira-vale` (`isIndexable=false`); 404 - `ned-fox` (скрыт), `sam-holt` (не прочитан),
  *   `lou-grey` (без ядра). У `en` есть аудиоглава 1, у главы 2 аудио нет;
- * - `anna-lark--tom-reed` (в `world-acceptance`) - пара героев `F08-8c`, только `en`, `isListed=true`;
+ * - `anna-lark--tom-reed` (в `world-acceptance`) - пара героев `F08-8c`, только `en`, `isListed=true`:
+ *   «коротко», четыре строки сравнения (Work, At the bridge, At the end, Who leads), общие главы 1-3,
+ *   связи, различия, одна цитата Анны о Томе (глава 3), вывод, один вопрос; на `ru` пары нет - 404;
  * - `world-acceptance-noindex` - редакторский `noindex` книги: мир есть, но закрыт от индекса;
  * - `world-acceptance-hidden` - сущность скрыта: `/wiki` - 404.
  *
@@ -362,7 +364,9 @@ test.describe('Book world: pair page (F08-8c, §6)', () => {
     expect(response?.status()).toBe(404);
   });
 
-  test('the key not in alphabetical order has no page: 404', async ({ page }) => {
+  // Итог адреса, а не ветка: 404 отдаёт бэкенд или страница (`canonicalPairMembers`); ветку фронта
+  // держит `__tests__/app/bookWorldPairPage.test.tsx` (неканонический ключ при ответе ручки).
+  test('the key not in alphabetical order answers 404', async ({ page }) => {
     const response = await page.goto(entityUrl('en', SLUG.book, 'tom-reed--anna-lark'));
     expect(response?.status()).toBe(404);
   });
@@ -377,19 +381,18 @@ test.describe('Book world: phone width (F08-3b, §1 п.8)', () => {
     await expect(cell).toBeVisible();
     expect(await cell.evaluate((td) => getComputedStyle(td).display)).toBe('block');
     expect(await cell.getAttribute('data-label')).toBe('Anna Lark');
-    // Шапка таблицы на узком экране скрыта приёмом sr-only (1×1 px, clip): для чтения с экрана
-    // она остаётся, глазу её нет - подпись героя в самой ячейке. `toBeInViewport` этого не видит.
+    // Шапка таблицы на узком экране скрыта приёмом sr-only: глазу её нет (не больше 1×1 px) - подпись
+    // героя в самой ячейке; для чтения с экрана она остаётся - заголовки столбцов в дереве доступности.
+    // Способ скрытия (clip, clip-path) не утверждается: проверяется итог. `toBeInViewport` этого не видит.
     const thead = page.locator('#compare thead');
     const box = await thead.boundingBox();
     expect(box).not.toBeNull();
     expect(box?.width ?? Infinity).toBeLessThanOrEqual(1);
     expect(box?.height ?? Infinity).toBeLessThanOrEqual(1);
-    expect(
-      await thead.evaluate((el) => {
-        const style = getComputedStyle(el);
-        return { position: style.position, overflow: style.overflow, clip: style.clip };
-      })
-    ).toEqual({ position: 'absolute', overflow: 'hidden', clip: 'rect(0px, 0px, 0px, 0px)' });
+    const table = page.locator('#compare table');
+    for (const name of ['Anna Lark', 'Tom Reed']) {
+      await expect(table.getByRole('columnheader', { name, exact: true })).toHaveCount(1);
+    }
   });
 
   for (const [name, url] of [

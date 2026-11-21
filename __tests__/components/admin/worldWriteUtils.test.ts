@@ -326,7 +326,10 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
   it.each([
     ['WORLD_PAIR_MEMBER_MISSING', 'a character of the pair is not in the world of this version'],
     ['WORLD_PAIR_KEY_TAKEN', 'the key of the pair is taken by an entity of another type'],
-    ['WORLD_PAIR_NOT_FOUNDED', 'the pair is not in enough common chapters to be created'],
+    [
+      'WORLD_PAIR_NOT_FOUNDED',
+      'the pair is not linked in the analysis and its counted shared chapters are too few',
+    ],
     ['WORLD_MENTIONS_MOVED', 'the chapter text moved while the presence was recounted'],
   ])('pair step failure without a call %s is named', (code, text) => {
     expect(reasonText(code)).toBe(text);

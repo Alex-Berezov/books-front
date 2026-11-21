@@ -35,6 +35,18 @@ export const WorldCharacterRole: FC<WorldCharacterFieldProps> = ({ form, set }) 
   </div>
 );
 
+/**
+ * Пути тела записи у форм имени и исключений героя — один перечень на поля ниже и на места ошибок
+ * карточки (`WorldEntityFields.tsx`); у пары этих полей нет.
+ */
+const NAME_PATH = {
+  aliases: 'aliases',
+  exclusions: 'aliasExclusions',
+  chapterExclusions: 'aliasChapterExclusions',
+} as const satisfies Record<string, keyof WorldEntityFormValues>;
+
+export const CHARACTER_NAME_PATHS: readonly string[] = Object.values(NAME_PATH);
+
 interface WorldCharacterNameFormsProps extends WorldCharacterFieldProps {
   /** Ошибки поля по пути тела записи. */
   issuesFor: (path: string) => BookWorldIssue[];
@@ -58,7 +70,7 @@ export const WorldCharacterNameForms: FC<WorldCharacterNameFormsProps> = ({
         value={form.aliases}
         onChange={(e) => set({ aliases: e.target.value })}
       />
-      <FieldIssues issues={issuesFor('aliases')} />
+      <FieldIssues issues={issuesFor(NAME_PATH.aliases)} />
     </div>
 
     <div className={styles.field}>
@@ -77,7 +89,7 @@ export const WorldCharacterNameForms: FC<WorldCharacterNameFormsProps> = ({
         value={form.aliasExclusions}
         onChange={(e) => set({ aliasExclusions: e.target.value })}
       />
-      <FieldIssues issues={issuesFor('aliasExclusions')} />
+      <FieldIssues issues={issuesFor(NAME_PATH.exclusions)} />
     </div>
 
     <div className={styles.field}>
@@ -96,7 +108,7 @@ export const WorldCharacterNameForms: FC<WorldCharacterNameFormsProps> = ({
         value={form.aliasChapterExclusions}
         onChange={(e) => set({ aliasChapterExclusions: e.target.value })}
       />
-      <FieldIssues issues={issuesFor('aliasChapterExclusions')} />
+      <FieldIssues issues={issuesFor(NAME_PATH.chapterExclusions)} />
     </div>
   </>
 );

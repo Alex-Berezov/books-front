@@ -391,7 +391,7 @@ describe('страница пары героев', () => {
     ['не по алфавиту', 'tom--anna'],
     ['один герой', 'anna--anna'],
   ])(
-    'type pair с неканоническим ключом (%s): 404, не шаблон героя; отказ в журнале',
+    'type pair с неканоническим ключом (%s): 404 и noindex в мете, не шаблон героя; отказ в журнале',
     async (_label, key) => {
       mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse({ ...PAIR_ENTITY, key }));
       await expect(renderEntity(key)).rejects.toThrow('NEXT_NOT_FOUND');
@@ -401,6 +401,8 @@ describe('страница пары героев', () => {
         key
       );
       expect(vi.mocked(logError)).toHaveBeenCalledTimes(1);
+      // Мета - как у 404: noindex без title пары, canonical и hreflang.
+      expect(await entityMeta(key)).toEqual({ robots: { index: false, follow: true } });
     }
   );
 
@@ -439,21 +441,16 @@ describe('страница пары героев', () => {
       })
     );
     const { container } = await renderEntity(PAIR_KEY);
+    // Имени героя нет - таблицы сравнения нет (блок без данных, `product.md` §1 п.5): ни «—», ни ключа.
     expect(h2Texts()).toEqual([
       'In brief',
-      'Comparison',
       'Chapters they share',
       'Quotes about each other',
       'The characters',
     ]);
-    const table = container.querySelector('table') as HTMLElement;
-    expect(
-      within(table)
-        .getAllByRole('columnheader')
-        .map((h) => h.textContent)
-    ).toEqual(['Feature', '—', 'Tom Reed']);
-    expect(within(table).getAllByRole('row')).toHaveLength(2);
-    expect(within(table).queryByRole('rowheader', { name: 'Fate' })).toBeNull();
+    expect(container.querySelector('table')).toBeNull();
+    expect(container).not.toHaveTextContent('—');
+    expect(container).not.toHaveTextContent('Maps the road.');
     // Говорящего не назвать - цитата без подписи, имя того, о ком она, автором не ставится.
     const quotes = container.querySelector('#quotes') as HTMLElement;
     expect(quotes).toHaveTextContent('He never let the lamp go out.');
@@ -462,6 +459,51 @@ describe('страница пары героев', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
       'Anna Lark and Tom Reed: character comparison'
     );
+  });
+
+  it.each([
+    ['нет первого героя', (e: { key: string }) => e.key !== 'anna', (e: object) => e],
+    ['нет второго героя', (e: { key: string }) => e.key !== 'tom', (e: object) => e],
+    [
+      'имя второго героя из пробелов',
+      () => true,
+      (e: { key: string; name: string }) => (e.key === 'tom' ? { ...e, name: '   ' } : e),
+    ],
+  ])('таблицы сравнения нет, если у героя нет имени: %s', async (_label, keep, patch) => {
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST_WITH_PAIR,
+      entities: LIST_WITH_PAIR.entities.filter(keep).map(patch),
+    } as BookWorldListResponse);
+    const { container } = await renderEntity(PAIR_KEY);
+    expect(h2Texts()).not.toContain('Comparison');
+    expect(container.querySelector('table')).toBeNull();
+  });
+
+  it('таблица сравнения: строка со стороной без текста отфильтрована, шапка - имена обоих героев', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse({
+        ...PAIR_ENTITY,
+        compare: [
+          {
+            feature: 'Work',
+            a: 'Maps the road.',
+            chapterA: 1,
+            b: 'Lights the lamps.',
+            chapterB: 2,
+          },
+          { feature: 'Fate', a: 'Leads.', chapterA: 3, b: '  ', chapterB: 3 },
+        ],
+      })
+    );
+    const { container } = await renderEntity(PAIR_KEY);
+    const table = container.querySelector('table') as HTMLElement;
+    expect(
+      within(table)
+        .getAllByRole('columnheader')
+        .map((h) => h.textContent)
+    ).toEqual(['Feature', 'Anna Lark', 'Tom Reed']);
+    expect(within(table).getAllByRole('row')).toHaveLength(2);
+    expect(within(table).queryByRole('rowheader', { name: 'Fate' })).toBeNull();
   });
 
   it('хлебная крошка и title пары - те же имена, что в h1, а не имя сущности', async () => {

@@ -14,10 +14,14 @@ import analysisStyles from '../analysis/analysis.module.scss';
 import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
 import { ThemeStrip } from '../analysis/ThemeStrip';
 
-/** Имени героя нет ни в списке мира, ни в анализе: сырой ключ читателю не показывается. */
-const UNKNOWN_NAME = '—';
-
-const memberName = (member: WorldPairMember) => member.person?.name ?? UNKNOWN_NAME;
+/**
+ * Имя героя пары для таблицы сравнения; нет ни в списке мира, ни в анализе - `undefined`, и таблицы
+ * нет: блок без данных не выводится (`product.md` §1 п.5), сырой ключ и «—» читателю не показываются.
+ */
+const memberName = (member: WorldPairMember): string | undefined => {
+  const name = member.person?.name;
+  return hasText(name) ? name : undefined;
+};
 
 /**
  * Разделы страницы пары героев (`product.md` §6): «Коротко», таблица сравнения с главами,
@@ -37,7 +41,9 @@ export function buildPairSections(input: WorldPairSectionsInput): PageSection[] 
   const compare = (entity.compare ?? []).filter(
     (row) => hasText(row.feature) && hasText(row.a) && hasText(row.b)
   );
-  if (compare.length > 0) {
+  const firstName = memberName(first);
+  const secondName = memberName(second);
+  if (compare.length > 0 && firstName !== undefined && secondName !== undefined) {
     sections.push({
       id: WORLD_ANCHORS.compare,
       title: strings.worldPairCompareTitle,
@@ -47,21 +53,21 @@ export function buildPairSections(input: WorldPairSectionsInput): PageSection[] 
             <thead>
               <tr>
                 <th scope="col">{strings.worldPairFeature}</th>
-                <th scope="col">{memberName(first)}</th>
-                <th scope="col">{memberName(second)}</th>
+                <th scope="col">{firstName}</th>
+                <th scope="col">{secondName}</th>
               </tr>
             </thead>
             <tbody>
               {compare.map((row, i) => (
                 <tr key={`${row.feature}-${i}`}>
                   <th scope="row">{row.feature}</th>
-                  <td data-label={memberName(first)}>
+                  <td data-label={firstName}>
                     <p>{row.a}</p>
                     <p className={analysisStyles.cardMeta}>
                       <ChapterRef n={row.chapterA} linker={linker} />
                     </p>
                   </td>
-                  <td data-label={memberName(second)}>
+                  <td data-label={secondName}>
                     <p>{row.b}</p>
                     <p className={analysisStyles.cardMeta}>
                       <ChapterRef n={row.chapterB} linker={linker} />

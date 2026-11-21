@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pairDisplayName, pairKey, pairMembers } from '@/lib/book-world/pair';
+import { canonicalPairMembers, pairDisplayName, pairKey, pairMembers } from '@/lib/book-world/pair';
 
 /**
  * Ключ пары героев (F08-8c): разбор - копия `pairMembers` из
@@ -37,6 +37,26 @@ describe('pairKey: по алфавиту по коду символа', () => {
     ['item10', 'item9', 'item10--item9'],
   ])('%s + %s → %s', (x, y, expected) => {
     expect(pairKey(x, y)).toBe(expected);
+  });
+});
+
+describe('canonicalPairMembers: канонический ключ, как checkWorldPair бэкенда', () => {
+  it.each([
+    ['anna--tom', ['anna', 'tom']],
+    ['anna-lark--tom-reed', ['anna-lark', 'tom-reed']],
+    // Ключи с цифрами и дефисом: порядок по коду символа (дефис < цифра < буква).
+    ['9--b', ['9', 'b']],
+    ['a-1--a1', ['a-1', 'a1']],
+    ['item10--item9', ['item10', 'item9']],
+    // Не по алфавиту, один герой дважды, кривой разбор - не страница пары.
+    ['tom--anna', null],
+    ['b--9', null],
+    ['item9--item10', null],
+    ['a--a', null],
+    ['a---b', null],
+    ['anna', null],
+  ])('%s → %j', (key, expected) => {
+    expect(canonicalPairMembers(key)).toEqual(expected);
   });
 });
 
