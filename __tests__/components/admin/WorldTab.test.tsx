@@ -195,17 +195,30 @@ describe('WorldTab (F08-1)', () => {
     expect(key.value).toBe('sonya');
     expect(key.readOnly).toBe(true);
     expect((card.getByLabelText('Name') as HTMLInputElement).value).toBe('Sonya');
+    // LEGACY-507: подсказка о `--` только у ключа нового героя — у сохранённой сущности ключ не меняется.
+    expect(
+      card.queryByText(
+        'A new character key must not contain "--": it is reserved for pairs of characters.'
+      )
+    ).toBeNull();
 
     fireEvent.click(card.getByRole('button', { name: 'Close' }));
     fireEvent.click(screen.getByRole('button', { name: 'New character' }));
     const fresh = within(await screen.findByRole('region', { name: 'New entity' }));
     expect((fresh.getByLabelText('Key') as HTMLInputElement).readOnly).toBe(false);
+    expect(
+      fresh.getByText(
+        'A new character key must not contain "--": it is reserved for pairs of characters.'
+      )
+    ).toBeInTheDocument();
   });
 
   it('import: a dry run first, then the write checked against the newest updatedAt the list showed (R6)', async () => {
     renderWorldTab(true);
     await rowOf('sonya');
     fireEvent.click(screen.getByRole('button', { name: 'Import JSON' }));
+    // LEGACY-507: окно всей версии называет правило ключа героя.
+    expect(screen.getByText(/A new character key must not contain "--"\./)).toBeInTheDocument();
     fireEvent.change(screen.getByRole('textbox', { name: 'Import world JSON' }), {
       target: { value: JSON.stringify(en) },
     });
@@ -225,6 +238,8 @@ describe('WorldTab (F08-1)', () => {
   const importIntoCard = async (region: string, json: unknown) => {
     const card = within(await screen.findByRole('region', { name: region }));
     fireEvent.click(await card.findByRole('button', { name: 'Import JSON' }));
+    // LEGACY-507: окно одной сущности тоже называет правило ключа героя.
+    expect(screen.getByText(/A new character key must not contain "--"\./)).toBeInTheDocument();
     fireEvent.change(screen.getByRole('textbox', { name: 'Import entity JSON' }), {
       target: { value: JSON.stringify(json) },
     });

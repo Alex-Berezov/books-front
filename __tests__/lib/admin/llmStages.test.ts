@@ -8,8 +8,8 @@ import {
 
 describe('llm-stages', () => {
   it('каждому этапу настроек — название без подчёркиваний и пояснение', () => {
-    // 22 этапа реестра бэкенда на 17.11.2026 (`*_STAGE` в модулях перевода, `T187`; +4 хода мира F08-4a).
-    expect(Object.keys(LLM_STAGE_LABELS)).toHaveLength(22);
+    // 23 этапа реестра бэкенда на 21.11.2026 (`*_STAGE` в модулях перевода, `T187`; +4 хода мира F08-4a, +1 страница пары F08-8e).
+    expect(Object.keys(LLM_STAGE_LABELS)).toHaveLength(23);
     for (const [stage, label] of Object.entries(LLM_STAGE_LABELS)) {
       expect(label.title, stage).not.toContain('_');
       expect(label.title, stage).not.toBe(stage);
@@ -21,11 +21,13 @@ describe('llm-stages', () => {
     expect({
       world_select: llmStageLabel('world_select').title,
       world_page_write: llmStageLabel('world_page_write').title,
+      world_pair_write: llmStageLabel('world_pair_write').title,
       world_external_write: llmStageLabel('world_external_write').title,
       world_review: llmStageLabel('world_review').title,
     }).toEqual({
       world_select: 'Мир: герои и формы имени',
       world_page_write: 'Мир: страница героя',
+      world_pair_write: 'Мир: страница пары',
       world_external_write: 'Мир: внешние блоки',
       world_review: 'Мир: проверка',
     });

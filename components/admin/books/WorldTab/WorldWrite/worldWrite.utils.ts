@@ -7,12 +7,14 @@ import {
   failureReason,
   limitLine,
   operationStatusText,
+  pluralWord,
   refusalCode,
   refusalText as draftRefusalText,
   runStartLossText,
 } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import { DOSSIER_REFUSED_TEXT } from '@/components/admin/translation-run/translationRun.utils';
+import { pairDisplayName } from '@/lib/book-world/pair';
 import { ApiError } from '@/types/api';
 import type {
   WorldAcceptAllSkipCode,
@@ -23,7 +25,11 @@ import type {
   WorldWriteDroppedQuote,
   WorldWriteEstimate,
   WorldWriteItem,
+  WorldWriteLeftOut,
+  WorldWritePair,
+  WorldWritePairsOff,
   WorldWriteRemark,
+  WorldWriteSkipReason,
   WorldWriteStep,
 } from '@/types/api-schema';
 
@@ -53,14 +59,35 @@ const BLOCK_TITLES: Record<WorldWriteBlock, string> = {
   critique: 'Critique',
   prototypes: 'Prototypes',
   adaptations: 'Adaptations',
+  compare: 'Comparison',
+  bonds: 'What links them',
+  differences: 'What sets them apart',
+  conclusion: 'Conclusion',
 };
 
 /** Имя героя по ключу из кандидатов хода; кандидатов ещё нет или ключ чужой — сам ключ. */
 export const characterName = (run: Pick<WorldWrite, 'candidates'>, key: string): string =>
   run.candidates?.find((c) => c.key === key)?.name ?? key;
 
-export const itemTitle = (run: Pick<WorldWrite, 'candidates'>, item: WorldWriteItem): string =>
-  `${characterName(run, item.key)}: ${BLOCK_TITLES[item.block] ?? item.block}`;
+/** Что нужно для имён хода: кандидаты-герои и пары (имя пары — по её героям). */
+export type RunNames = Pick<WorldWrite, 'candidates'> & Partial<Pick<WorldWrite, 'pairs'>>;
+
+/**
+ * Имя пары по ключу `{a}--{b}` (общий разбор ключа сайта, `lib/book-world/pair.ts`): «Имя and Имя»
+ * по кандидатам хода; ключ не разбирается или героя нет среди кандидатов — сам ключ.
+ */
+const pairName = (run: RunNames, key: string): string =>
+  pairDisplayName('{a} and {b}', key, (k) => run.candidates?.find((c) => c.key === k)?.name, key);
+
+/**
+ * Имя сущности хода: пара хода (по `pairs`, а не по виду ключа: заведённый герой с `--` остался,
+ * `LEGACY-507`) — имя пары, иначе имя героя или сам ключ.
+ */
+export const entityName = (run: RunNames, key: string): string =>
+  run.pairs?.some((p) => p.key === key) ? pairName(run, key) : characterName(run, key);
+
+export const itemTitle = (run: RunNames, item: WorldWriteItem): string =>
+  `${entityName(run, item.key)}: ${BLOCK_TITLES[item.block] ?? item.block}`;
 
 // Порядок блоков, «нечего добавить» и «предложение» — общие правила ходов анализа и мира.
 export { isNothingToAdd, isPending, sortItems };
@@ -80,14 +107,43 @@ export const checkOf = (
   review: item.review,
 });
 
-/** Название шага: «Choice of name forms», «Page: Name», «External blocks: Name». */
-export const stepTitle = (run: Pick<WorldWrite, 'candidates'>, step: WorldWriteStep): string => {
-  if (step.kind === 'select' || step.key === null) return 'Choice of characters and name forms';
-  const name = characterName(run, step.key);
-  return step.kind === 'page' ? `Page: ${name}` : `External blocks: ${name}`;
+const STEP_KIND_TITLES: Record<Exclude<WorldWriteStep['kind'], 'select'>, string> = {
+  page: 'Page',
+  external: 'External blocks',
+  pair: 'Pair',
 };
 
-/** Ход пишется: какой шаг сейчас; чего ждёт; пауза — причиной. Шаги: 0 — выбор, затем на героя два. */
+/** Название шага: «Choice of name forms», «Page: Name», «External blocks: Name», «Pair: A and B». */
+export const stepTitle = (run: RunNames, step: WorldWriteStep): string => {
+  if (step.kind === 'select') return 'Choice of characters and name forms';
+  const kind = STEP_KIND_TITLES[step.kind] ?? step.kind;
+  // Шаг пары, не нашедший пару под своим номером, бэкенд пишет с `key: null` (`DRAFT_DATA_INVALID`).
+  return step.key === null ? kind : `${kind}: ${entityName(run, step.key)}`;
+};
+
+/**
+ * Что пишет шаг с номером `step` (с 0): после шагов героев (`2 · героев`) идут шаги пар, по одному
+ * на пару (`F08-8e`, `stepAt` бэкенда): нечётный шаг героя — страница, чётный — внешние блоки.
+ * Пары или героя под этим номером нет (ответ разошёлся со счётом) — тот же вид шага без имени.
+ * Копия нумерации stepAt из books/src/modules/translation/world-write/world-write.data.ts; менять вместе.
+ */
+const stepAhead = (
+  run: WorldWrite,
+  step: number
+): { title: string; name?: string; pairNo?: number } => {
+  const heroSteps = (run.candidates?.length ?? 0) * 2;
+  const pairIndex = step - 1 - heroSteps;
+  if (step > heroSteps) {
+    const pair = run.pairs?.[pairIndex];
+    return pair
+      ? { title: 'Pair', name: entityName(run, pair.key), pairNo: pairIndex + 1 }
+      : { title: 'Pair' };
+  }
+  const candidate = run.candidates?.[Math.floor((step - 1) / 2)];
+  return { title: (step - 1) % 2 === 0 ? 'Page' : 'External blocks', name: candidate?.name };
+};
+
+/** Ход пишется: какой шаг сейчас; чего ждёт; пауза — причиной. Шаги: 0 — выбор, затем на героя два, затем по одному на пару. */
 export const progressText = (run: WorldWrite): string => {
   const done = run.steps.length;
   const total = run.stepsTotal;
@@ -98,10 +154,11 @@ export const progressText = (run: WorldWrite): string => {
     // Все шаги пройдены, ход дописывает записи: шага сверх счёта не выдумываем.
     writing = `Step ${total} of ${total}: finishing…`;
   } else {
-    const kind = (done - 1) % 2 === 0 ? 'Page' : 'External blocks';
-    // Кандидата под этим номером нет (ответ хода разошёлся со счётом) — шаг без имени.
-    const candidate = run.candidates?.[Math.floor((done - 1) / 2)];
-    writing = `Step ${done + 1} of ${total}: ${kind}${candidate ? `: ${candidate.name}` : ''}…`;
+    // Кандидата или пары под этим номером нет (ответ хода разошёлся со счётом) — шаг без имени.
+    const next = stepAhead(run, done);
+    const pairs = run.pairs?.length ?? 0;
+    const count = next.pairNo !== undefined ? ` (pair ${next.pairNo} of ${pairs})` : '';
+    writing = `Step ${done + 1} of ${total}: ${next.title}${next.name ? `: ${next.name}` : ''}${count}…`;
   }
   return operationStatusText(run.operation, run.waitingFor, writing);
 };
@@ -146,6 +203,10 @@ const RUN_FAILURES: Readonly<Record<string, string>> = {
   WORLD_ANALYSIS_MISSING: 'the version has no analysis with a main character',
   WORLD_CHARACTER_NOT_FOUND: 'the name forms found the character in no chapter',
   WORLD_PAGE_MISSING: 'the page of the character was not written',
+  WORLD_PAIR_MEMBER_MISSING: 'a character of the pair is not in the world of this version',
+  WORLD_PAIR_KEY_TAKEN: 'the key of the pair is taken by an entity of another type',
+  WORLD_PAIR_NOT_FOUNDED: 'the pair is not in enough common chapters to be created',
+  WORLD_MENTIONS_MOVED: 'the chapter text moved while the presence was recounted',
   WORLD_WRITE_REFUSED: 'the world import refused the write',
   IMPORT_INVALID: 'the block failed the world checks after the redo',
 };
@@ -158,9 +219,11 @@ export const reasonText = (reason: string | null): string => failureReason(reaso
  */
 export const writeEstimateText = (estimate: WorldWriteEstimate): string => {
   const upper = estimate.upperBound ? ' (the dossier or the glossary is not built yet)' : '';
+  const pairsPart =
+    estimate.pairs > 0 ? `, at most ${pluralWord(estimate.pairs, 'character pair')}` : '';
   return [
     ...contextEstimateLines(estimate),
-    `The world: at most ${estimate.candidates} ${estimate.candidates === 1 ? 'character' : 'characters'} (main and secondary), up to ${formatMoney(estimate.stageUsd)}${upper}.`,
+    `The world: at most ${estimate.candidates} ${estimate.candidates === 1 ? 'character' : 'characters'} (main and secondary)${pairsPart}, up to ${formatMoney(estimate.stageUsd)}${upper}.`,
     limitLine(estimate.suggestedLimitUsd),
   ].join(' ');
 };
@@ -189,7 +252,7 @@ const SKIP_HINT: Record<WorldAcceptAllSkipCode, string> = {
 
 /** Строка пропущенного пункта; `actionable: false` — ход не готов, кнопок у пунктов нет. */
 export const skippedText = (
-  run: Pick<WorldWrite, 'candidates'>,
+  run: RunNames,
   skipped: WorldAcceptAllSkipped,
   item: WorldWriteItem | undefined,
   actionable = true
@@ -203,3 +266,45 @@ const QUOTE_REASON: Record<WorldWriteDroppedQuote['reason'], string> = {
 
 export const droppedQuoteText = (q: WorldWriteDroppedQuote): string =>
   `«${q.text}»${q.chapter !== null ? ` (chapter ${q.chapter})` : ''} — ${QUOTE_REASON[q.reason] ?? q.reason}`;
+
+const SKIP_REASON_TEXT: Record<WorldWriteSkipReason, string> = {
+  BELOW_MIN_CHAPTERS: 'a secondary character in fewer chapters than the threshold',
+  KEY_PAIR_FORM: 'the character key holds "--", reserved for pairs: the character is not written',
+  PAIR_KEY_INVALID: 'no valid pair key for these two characters (too long, or "-" at the joint)',
+  PAIR_KEY_TAKEN: 'the pair key is taken by an entity of another type',
+  PAIRS_MAX: 'over the limit of pairs per run',
+};
+
+/** Причины отсева пары: ключ такой записи — ключ пары (`PAIR_KEY_INVALID` — как вышел бы), а не героя. */
+const PAIR_SKIPS: ReadonlySet<WorldWriteSkipReason> = new Set([
+  'PAIR_KEY_INVALID',
+  'PAIR_KEY_TAKEN',
+  'PAIRS_MAX',
+]);
+
+/** Герой или пара, которых шаг выбора оставил за ходом: имя по ключу, причина, главы. */
+export const leftOutText = (run: RunNames, skip: WorldWriteLeftOut): string => {
+  const name = PAIR_SKIPS.has(skip.reason) ? pairName(run, skip.key) : characterName(run, skip.key);
+  const chapterWord = PAIR_SKIPS.has(skip.reason) ? 'common chapter' : 'chapter';
+  const chapters = skip.chapters === null ? '' : ` (${pluralWord(skip.chapters, chapterWord)})`;
+  return `${name}${chapters}: ${SKIP_REASON_TEXT[skip.reason] ?? skip.reason}.`;
+};
+
+/**
+ * Нет части ядра страницы на момент шага: блок и что дописать; страница записана как есть. Снимок шага:
+ * перегенерация или правка руками его не меняют - поэтому так и сказано.
+ */
+export const coreMissingText = (remark: WorldWriteRemark): string =>
+  `The step left the core without ${Object.hasOwn(BLOCK_TITLES, remark.where) ? BLOCK_TITLES[remark.where as WorldWriteBlock] : remark.where}: ${remark.note}`;
+
+const PAIRS_OFF_TEXT: Record<WorldWritePairsOff, string> = {
+  WORLD_PAIR_LANGUAGE: 'No pairs in this run: the language has no pair sample yet.',
+};
+
+/** Ход не пишет пар: причина словами; `null` — пары есть или выбор не прошёл. */
+export const pairsOffText = (run: Pick<WorldWrite, 'pairsOff'>): string | null =>
+  run.pairsOff == null ? null : (PAIRS_OFF_TEXT[run.pairsOff] ?? run.pairsOff);
+
+/** Пара в списке пар хода: имя, общие главы, связь в анализе. */
+export const pairLine = (run: RunNames, pair: WorldWritePair): string =>
+  `${entityName(run, pair.key)} (${pluralWord(pair.chapters.length, 'common chapter')}${pair.linked ? ', linked in the analysis' : ''})`;

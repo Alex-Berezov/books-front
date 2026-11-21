@@ -140,6 +140,9 @@ const run = (patch: Partial<WorldWriteRun> = {}): WorldWriteRun => ({
   operation: operation(),
   stepsTotal: 3,
   candidates: [{ key: 'anna', name: 'Anna', aliases: ['Annie'], chapters: [1, 2] }],
+  pairs: [],
+  leftOut: [],
+  pairsOff: null,
   steps: [],
   items: [item()],
   droppedQuotes: [],
@@ -160,6 +163,7 @@ const value = (patch: Partial<WorldWriteValue> = {}): WorldWriteValue => ({
   quotes: null,
   faq: null,
   adaptations: null,
+  compare: null,
   sources: null,
   ...patch,
 });
@@ -204,6 +208,7 @@ describe('WorldWrite (F08-4b)', () => {
         dossier: null,
         glossary: null,
         candidates: 2,
+        pairs: 1,
         stageUsd: '1.2',
         upperBound: false,
         suggestedLimitUsd: '1.8',
@@ -213,7 +218,7 @@ describe('WorldWrite (F08-4b)', () => {
       const dialog = screen.getByRole('dialog');
       expect(
         within(dialog).getByText(
-          /The world: at most 2 characters \(main and secondary\), up to \$1\.2\./
+          /The world: at most 2 characters \(main and secondary\), at most 1 character pair, up to \$1\.2\./
         )
       ).toBeInTheDocument();
       expect(within(dialog).getByText(/Operation limit: \$1\.8\./)).toBeInTheDocument();
@@ -407,6 +412,197 @@ describe('WorldWrite (F08-4b)', () => {
       expect(within(c).getByText('Model flags (1)')).toBeInTheDocument();
       expect(within(c).getByText(/Too general/)).toBeInTheDocument();
       expect(within(c).getByText('Checked by the model, not by a human.')).toBeInTheDocument();
+    });
+
+    it('pairs: the pair step, its dropped quotes, the left out characters and pairs with the reason', () => {
+      hooks.run = run({
+        candidates: [
+          { key: 'anna', name: 'Anna', aliases: [], chapters: [1] },
+          { key: 'boris', name: 'Boris', aliases: [], chapters: [1] },
+        ],
+        pairs: [{ key: 'anna--boris', a: 'anna', b: 'boris', linked: true, chapters: [1, 2] }],
+        leftOut: [
+          { key: 'dan', reason: 'BELOW_MIN_CHAPTERS', chapters: 1 },
+          { key: 'ev--fa', reason: 'PAIRS_MAX', chapters: 4 },
+        ],
+        stepsTotal: 6,
+        steps: [
+          step(),
+          step({
+            step: 5,
+            kind: 'pair',
+            key: 'anna--boris',
+            outcome: 'failed',
+            failedReason: 'WORLD_PAIR_KEY_TAKEN',
+          }),
+        ],
+        droppedQuotes: [
+          { key: 'anna--boris', chapter: 2, text: 'Pair words', reason: 'QUOTE_NOT_VERBATIM' },
+        ],
+        items: [item({ key: 'anna--boris', block: 'compare' })],
+      });
+      hooks.proposals = {
+        0: value({ compare: [{ feature: 'Age', a: 'young', chapterA: 1, b: 'old', chapterB: 2 }] }),
+      };
+      view();
+      expect(
+        screen.getByText('Pairs: Anna and Boris (2 common chapters, linked in the analysis).')
+      ).toBeInTheDocument();
+      expect(screen.getByText(/Step 6 of 6: Pair: Anna and Boris —/)).toBeInTheDocument();
+      expect(
+        screen.getByText('failed: the key of the pair is taken by an entity of another type')
+      ).toBeInTheDocument();
+      const left = screen.getByRole('list', { name: 'Left out of the run' });
+      expect(
+        within(left).getByText(
+          'dan (1 chapter): a secondary character in fewer chapters than the threshold.'
+        )
+      ).toBeInTheDocument();
+      expect(
+        within(left).getByText('ev--fa (4 common chapters): over the limit of pairs per run.')
+      ).toBeInTheDocument();
+      const dropped = screen.getByRole('list', { name: 'Dropped at step 6' });
+      expect(within(dropped).getByText(/Quote dropped: «Pair words»/)).toBeInTheDocument();
+      const c = card('Anna and Boris: Comparison');
+      expect(within(c).getByText(/"feature": "Age"/)).toBeInTheDocument();
+    });
+
+    it('a pair page written without part of its core: the step names what is missing', () => {
+      hooks.run = run({
+        candidates: [
+          { key: 'anna', name: 'Anna', aliases: [], chapters: [1] },
+          { key: 'boris', name: 'Boris', aliases: [], chapters: [1] },
+        ],
+        pairs: [{ key: 'anna--boris', a: 'anna', b: 'boris', linked: true, chapters: [1] }],
+        stepsTotal: 6,
+        steps: [
+          step(),
+          step({
+            step: 5,
+            kind: 'pair',
+            key: 'anna--boris',
+            verdict: 'flags',
+            remarks: [
+              {
+                code: 'CORE_MISSING',
+                where: 'conclusion',
+                note: 'Write the conclusion.',
+                by: 'code',
+              },
+              { code: 'STYLE_POOR', where: 'short', note: 'Shorter.', by: 'model' },
+            ],
+          }),
+        ],
+        items: [],
+      });
+      view();
+      const core = screen.getByRole('list', { name: 'Core missing at step 6' });
+      expect(
+        within(core).getByText('The step left the core without Conclusion: Write the conclusion.')
+      ).toBeInTheDocument();
+      expect(within(core).queryByText(/Shorter/)).toBeNull();
+    });
+
+    it('CORE_MISSING of a block that has its card (compare too short) is shown on the card, not twice', () => {
+      const remark = {
+        code: 'CORE_MISSING' as const,
+        where: 'compare',
+        note: 'Four rows at least.',
+        by: 'code' as const,
+      };
+      hooks.run = run({
+        candidates: [
+          { key: 'anna', name: 'Anna', aliases: [], chapters: [1] },
+          { key: 'boris', name: 'Boris', aliases: [], chapters: [1] },
+        ],
+        pairs: [{ key: 'anna--boris', a: 'anna', b: 'boris', linked: true, chapters: [1] }],
+        stepsTotal: 6,
+        steps: [
+          step(),
+          step({ step: 5, kind: 'pair', key: 'anna--boris', verdict: 'flags', remarks: [remark] }),
+        ],
+        items: [
+          item({
+            key: 'anna--boris',
+            block: 'compare',
+            step: 5,
+            verdict: 'flags',
+            remarks: [remark],
+          }),
+        ],
+      });
+      view();
+      expect(screen.queryByRole('list', { name: 'Core missing at step 6' })).toBeNull();
+      expect(
+        within(card('Anna and Boris: Comparison')).getByText(/Four rows at least/)
+      ).toBeInTheDocument();
+    });
+
+    it('a step without CORE_MISSING has no core list, other remarks included', () => {
+      hooks.run = run({
+        steps: [
+          step({
+            verdict: 'flags',
+            remarks: [{ code: 'STYLE_POOR', where: 'short', note: 'Shorter.', by: 'model' }],
+          }),
+        ],
+      });
+      view();
+      expect(screen.queryByRole('list', { name: /Core missing/ })).toBeNull();
+    });
+
+    it('no steps yet, only left-out characters: the list is shown', () => {
+      hooks.run = run({
+        steps: [],
+        items: [],
+        leftOut: [{ key: 'dan', reason: 'BELOW_MIN_CHAPTERS', chapters: 1 }],
+      });
+      view();
+      const left = screen.getByRole('list', { name: 'Left out of the run' });
+      expect(
+        within(left).getByText(
+          'dan (1 chapter): a secondary character in fewer chapters than the threshold.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('no steps, nothing left out, pairs not off: no block of steps', () => {
+      hooks.run = run({ steps: [], items: [] });
+      view();
+      expect(screen.queryByLabelText('Steps of the run')).toBeNull();
+    });
+
+    it('the quotes dropped at a pair step and the pairs of the run are listed', () => {
+      hooks.run = run({
+        candidates: [
+          { key: 'anna', name: 'Anna', aliases: [], chapters: [1] },
+          { key: 'boris', name: 'Boris', aliases: [], chapters: [1] },
+        ],
+        pairs: [{ key: 'anna--boris', a: 'anna', b: 'boris', linked: false, chapters: [3] }],
+        stepsTotal: 6,
+        steps: [step(), step({ step: 5, kind: 'pair', key: 'anna--boris' })],
+        droppedQuotes: [
+          { key: 'anna--boris', chapter: 3, text: 'About him', reason: 'CHAPTER_UNKNOWN' },
+        ],
+        items: [],
+      });
+      view();
+      expect(screen.getByText('Pairs: Anna and Boris (1 common chapter).')).toBeInTheDocument();
+      expect(screen.getByText(/Step 6 of 6: Pair: Anna and Boris — done/)).toBeInTheDocument();
+      expect(
+        within(screen.getByRole('list', { name: 'Dropped at step 6' })).getByText(
+          'Quote dropped: «About him» (chapter 3) — the version has no such chapter'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('no pairs for a language without a sample: the run says so', () => {
+      // Шагов ещё нет (ответ после выбора без шагов): причина всё равно видна.
+      hooks.run = run({ pairsOff: 'WORLD_PAIR_LANGUAGE', steps: [] });
+      view();
+      expect(
+        screen.getByText(/No pairs in this run: the language has no pair sample yet/)
+      ).toBeInTheDocument();
     });
 
     it('an external block: «Verify facts» and its own verified sources', () => {

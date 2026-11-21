@@ -9,8 +9,12 @@ import type { WorldEntityFormValues } from '@/lib/admin/book-world-form-state';
 import type { BookWorldMentions, WorldEntityType } from '@/types/api-schema';
 import { WorldCharacterNameForms, WorldCharacterRole } from './WorldCharacterFields';
 import { WorldEntityPresence, WorldEntityStale } from './WorldEntityPresence';
+import { CHARACTER_KEY_RULE } from './worldErrors';
 import { FieldIssues, matchesIssuePath } from './WorldFieldIssues';
 import styles from './WorldTab.module.scss';
+
+/** Подсказка у ключа нового героя (`LEGACY-507`). */
+const CHARACTER_KEY_HINT = `${CHARACTER_KEY_RULE}: it is reserved for pairs of characters.`;
 
 /** Пути полей формы героя для форм имени и исключений — у пары этих полей нет. */
 const CHARACTER_NAME_PATHS = ['aliases', 'aliasExclusions', 'aliasChapterExclusions'];
@@ -98,6 +102,7 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
           {!isNew && (
             <span className={styles.hint}>The key of a saved entity does not change.</span>
           )}
+          {isNew && !isPair && <span className={styles.hint}>{CHARACTER_KEY_HINT}</span>}
           <FieldIssues issues={issuesFor('key')} />
         </div>
         <div className={styles.field}>

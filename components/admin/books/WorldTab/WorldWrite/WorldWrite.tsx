@@ -24,6 +24,7 @@ import type {
 import {
   isPending,
   progressText,
+  type RunNames,
   reasonText,
   refusalText,
   skippedText,
@@ -43,7 +44,7 @@ export interface WorldWriteProps {
 
 /** Строка пропущенного пункта «Accept all» с именем героя этого хода. */
 const skippedLine =
-  (run: Pick<WorldRun, 'candidates'> | null) =>
+  (run: RunNames | null) =>
   (skipped: WorldAcceptAllSkipped, item: WorldWriteItem | undefined, actionable: boolean) =>
     skippedText(run ?? { candidates: null }, skipped, item, actionable);
 

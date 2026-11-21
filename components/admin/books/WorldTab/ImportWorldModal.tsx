@@ -7,7 +7,7 @@ import type {
   JsonImportPreview,
   JsonImportResult,
 } from '@/components/admin/common/JsonImportPreviewModal';
-import { WORLD_HIDDEN_UNTIL_READ } from './worldErrors';
+import { CHARACTER_KEY_RULE, WORLD_HIDDEN_UNTIL_READ } from './worldErrors';
 import styles from './WorldTab.module.scss';
 
 /** Режим окна: вся версия (`PUT .../world`) или одна сущность (`PUT .../world/:key`). */
@@ -36,7 +36,7 @@ const TEXTS: Record<WorldImportMode, { title: string; placeholder: string; hint:
   "language": "en",
   "entities": [{ "key": "raskolnikov", "type": "character", "name": "…", "short": "…" }]
 }`,
-    hint: 'Paste JSON of the whole version. Entities missing from the JSON stay as they are; fields missing from an entity stay as they are; null, "" or [] clears a field; a list replaces the previous one entirely. A pair of characters: type "pair", key "a--b" (two character keys in alphabetical order), fields compare, bonds, differences, quotes (with speakerKey and aboutKey), conclusion, faq.',
+    hint: `Paste JSON of the whole version. Entities missing from the JSON stay as they are; fields missing from an entity stay as they are; null, "" or [] clears a field; a list replaces the previous one entirely. A pair of characters: type "pair", key "a--b" (two character keys in alphabetical order), fields compare, bonds, differences, quotes (with speakerKey and aboutKey), conclusion, faq. ${CHARACTER_KEY_RULE}.`,
   },
   entity: {
     title: 'Import entity JSON',
@@ -46,7 +46,7 @@ const TEXTS: Record<WorldImportMode, { title: string; placeholder: string; hint:
   "type": "character",
   "short": "…"
 }`,
-    hint: 'Paste JSON of one entity: language, key, type and its fields. The entity is written at once: fields missing from the JSON stay as they are; null, "" or [] clears a field; a list replaces the previous one entirely. Unsaved edits in the card are replaced by the saved entity.',
+    hint: `Paste JSON of one entity: language, key, type and its fields. The entity is written at once: fields missing from the JSON stay as they are; null, "" or [] clears a field; a list replaces the previous one entirely. Unsaved edits in the card are replaced by the saved entity. ${CHARACTER_KEY_RULE}.`,
   },
 };
 

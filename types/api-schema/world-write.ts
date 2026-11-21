@@ -11,6 +11,7 @@ import type { BookAnalysisFaq, BookAnalysisSource } from './book-analysis';
 import type {
   BookWorldAdaptation,
   BookWorldArc,
+  BookWorldCompare,
   BookWorldProfile,
   BookWorldQuote,
   BookWorldRelation,
@@ -29,7 +30,9 @@ export interface WorldWriteEstimate {
   glossary: CompareContextLine | null;
   /** До N героев: главные и второстепенные анализа версии до порога глав второстепенных (`F08 | F08-8b` Q1); на каждого — страница. */
   candidates: number;
-  /** Оценка сверху: выбор форм имени, на героя (главного и второстепенного до порога глав) страница и внешние блоки, проверяющая каждого шага, × 2 прохода. */
+  /** До N страниц пар (`F08-8e`): min(10, герои·(герои−1)/2), 0 на языке без эталона пары; цена пар уже в `stageUsd`. */
+  pairs: number;
+  /** Оценка сверху: выбор форм имени, на героя (главного и второстепенного до порога глав) страница и внешние блоки, затем до `pairs` страниц пар, проверяющая каждого шага, × 2 прохода. */
   stageUsd: LlmMoney;
   /** Досье или глоссарий не готовы: их размер — по их этапам. */
   upperBound: boolean;
@@ -52,6 +55,7 @@ export type WorldWriteRemarkCode =
   | 'GENERIC'
   | 'CONTRADICTION'
   | 'RETELLING'
+  | 'CORE_MISSING'
   | 'SHORT_SPOILER'
   | 'EXTERNAL_DOUBT'
   | 'EXTERNAL_CHECK'
@@ -78,7 +82,7 @@ export interface WorldWriteReview {
 
 export type WorldWriteVerdict = 'ok' | 'flags' | 'failed';
 
-/** Блок сущности: страница героя, затем внешние блоки (`WORLD_BLOCKS`). */
+/** Блок сущности: страница героя, внешние блоки, блоки пары (`WORLD_BLOCKS`). */
 export type WorldWriteBlock =
   | 'aliases'
   | 'short'
@@ -92,10 +96,14 @@ export type WorldWriteBlock =
   | 'faq'
   | 'critique'
   | 'prototypes'
-  | 'adaptations';
+  | 'adaptations'
+  | 'compare'
+  | 'bonds'
+  | 'differences'
+  | 'conclusion';
 
-/** Вид шага: выбор героев и форм имени, страница героя, внешние блоки героя. */
-export type WorldWriteStepKind = 'select' | 'page' | 'external';
+/** Вид шага: выбор героев и форм имени, страница героя, внешние блоки героя, страница пары (`F08-8e`). */
+export type WorldWriteStepKind = 'select' | 'page' | 'external' | 'pair';
 
 /** Что код снял без переделки (`WORLD_FIX_CODES`). */
 export type WorldWriteFixCode =
@@ -144,18 +152,50 @@ export interface WorldWriteCandidate {
   chapters: number[];
 }
 
+/** Пара хода (`F08-8e`): два героя-кандидата хода, шаг пары — после шагов героев. */
+export interface WorldWritePair {
+  /** Ключ пары `{a}--{b}`. */
+  key: string;
+  a: string;
+  b: string;
+  /** Герои связаны в анализе версии. */
+  linked: boolean;
+  /** Общие главы героев (считано на шаге выбора). */
+  chapters: number[];
+}
+
+/** Почему герой или пара в ход не вошли (`WORLD_SKIP_REASONS`): вызова не было. */
+export type WorldWriteSkipReason =
+  | 'BELOW_MIN_CHAPTERS'
+  | 'KEY_PAIR_FORM'
+  | 'PAIR_KEY_INVALID'
+  | 'PAIR_KEY_TAKEN'
+  | 'PAIRS_MAX';
+
+/** Отсеянный шагом выбора герой или пара. */
+export interface WorldWriteLeftOut {
+  /** Ключ героя или пары; у `PAIR_KEY_INVALID` — ключи героев через `--`. */
+  key: string;
+  reason: WorldWriteSkipReason;
+  /** Главы героя (`BELOW_MIN_CHAPTERS`) или общие главы пары; иначе `null`. */
+  chapters: number | null;
+}
+
+/** Ход не пишет пар: `WORLD_PAIR_LANGUAGE` — у языка нет эталона пары. */
+export type WorldWritePairsOff = 'WORLD_PAIR_LANGUAGE';
+
 export interface WorldWriteStep {
-  /** 0 — выбор форм имени, затем на героя страница и внешние блоки. */
+  /** 0 — выбор форм имени, затем на героя страница и внешние блоки, затем по шагу на пару (`F08-8e`). */
   step: number;
   kind: WorldWriteStepKind;
-  /** Ключ героя; у шага выбора — `null`. */
+  /** Ключ героя или пары; у шага выбора — `null`. */
   key: string | null;
   verdict: WorldWriteVerdict;
   remarks: WorldWriteRemark[];
   /** 2 — текст единственной переделки. */
   attempt: number;
   outcome: 'done' | 'failed';
-  /** Почему шаг не дал текста: `DRAFT_TOO_LONG`, `DRAFT_INVALID_RESPONSE`, `WORLD_CHARACTER_NOT_FOUND`. */
+  /** Почему шаг не дал текста: `DRAFT_TOO_LONG`, `DRAFT_INVALID_RESPONSE`, `WORLD_CHARACTER_NOT_FOUND`; шаг пары без вызова — `WORLD_PAIR_MEMBER_MISSING`, `WORLD_PAIR_KEY_TAKEN`, `WORLD_PAIR_NOT_FOUNDED`, `WORLD_MENTIONS_MOVED`. */
   failedReason: string | null;
   authorModel: string | null;
   review: WorldWriteReview | null;
@@ -212,10 +252,16 @@ export interface WorldWrite {
   /** Чего ждёт: досье или глоссарий строятся своими операциями. */
   waitingFor: 'dossier' | 'glossary' | null;
   operation: LlmOperation;
-  /** Шагов хода: 1 + 2 на героя; `null` — герои ещё не выбраны. */
+  /** Шагов хода: 1 + 2 на героя + 1 на пару; `null` — герои ещё не выбраны. */
   stepsTotal: number | null;
   /** Кандидаты; `null` — герои ещё не выбраны. */
   candidates: WorldWriteCandidate[] | null;
+  /** Пары хода, их шаги идут после шагов героев; `null` — герои ещё не выбраны; `[]` — ход до `F08-8e`. */
+  pairs: WorldWritePair[] | null;
+  /** Герои и пары, которых шаг выбора оставил за ходом, с причиной. */
+  leftOut: WorldWriteLeftOut[];
+  /** Пар нет и почему; `null` — есть или выбор ещё не прошёл. */
+  pairsOff: WorldWritePairsOff | null;
   /** Пройденные шаги по порядку. */
   steps: WorldWriteStep[];
   items: WorldWriteItem[];
@@ -237,7 +283,7 @@ export interface WorldWriteState {
  * «Accept» добавит их к источникам сущности).
  */
 export interface WorldWriteValue {
-  /** `short`, `appearance`, `character`, `critique`, `prototypes`. */
+  /** `short`, `appearance`, `character`, `critique`, `prototypes`, `bonds`, `differences`, `conclusion`. */
   text: string | null;
   aliases: string[] | null;
   profile: BookWorldProfile | null;
@@ -247,6 +293,8 @@ export interface WorldWriteValue {
   quotes: BookWorldQuote[] | null;
   faq: BookAnalysisFaq[] | null;
   adaptations: BookWorldAdaptation[] | null;
+  /** Таблица сравнения пары. */
+  compare: BookWorldCompare[] | null;
   sources: BookAnalysisSource[] | null;
   /** Отпечаток предложения: «Accept» отдаёт его как `expectedPrint`. */
   print: string;

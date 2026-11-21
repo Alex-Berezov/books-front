@@ -2,6 +2,9 @@ import { errorCode, errorText } from '@/lib/admin/request-errors';
 import { worldEntityPath } from '@/lib/seo/world-path';
 import type { BookWorldEditor, BookWorldEntitySummary } from '@/types/api-schema';
 
+/** `LEGACY-507`: ключ нового героя с `--` сервер отказывает 400 — это вид ключа пары. Одно правило на карточку и окно импорта. */
+export const CHARACTER_KEY_RULE = 'A new character key must not contain "--"';
+
 /** Текст отказа ручки мира книги: строки проверки сервера как есть (`lib/admin/request-errors.ts`). */
 export const worldErrorText = (error: unknown): string => errorText(error, 'Request failed');
 

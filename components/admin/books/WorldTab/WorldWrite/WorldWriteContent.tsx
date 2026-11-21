@@ -21,6 +21,7 @@ const STRUCT_FIELDS = [
   'quotes',
   'faq',
   'adaptations',
+  'compare',
 ] as const satisfies readonly (keyof WorldWriteValue)[];
 
 /** Поле есть и не пустой список: пустой список не рисуется «[]». */

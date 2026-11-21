@@ -91,6 +91,7 @@ describe('WorldTab pair card (F08-8c)', () => {
     expect(card.getByLabelText('Pair: conclusion')).toHaveValue('One leads.');
     expect(card.getByLabelText('Quotes')).toHaveValue(JSON.stringify(QUOTES, null, 2));
     expect(card.getByText('Shared chapters')).toBeInTheDocument();
+    expect(card.queryByText(/must not contain "--"/)).toBeNull();
     expect(card.getByText(/2 chapters with both characters \(read-only\)/)).toBeInTheDocument();
     for (const label of [
       'Role',
@@ -161,6 +162,15 @@ describe('WorldTab pair card (F08-8c)', () => {
         target: { value: JSON.stringify(json) },
       });
     };
+
+    it('подсказка окна называет правило ключа героя (LEGACY-507)', async () => {
+      renderWorldTab(true);
+      await rowOf('sonya');
+      fireEvent.click(screen.getByRole('button', { name: 'Import JSON' }));
+      expect(
+        await screen.findByText(/A new character key must not contain "--"\./)
+      ).toBeInTheDocument();
+    });
 
     it('JSON пары принимается: пробное сохранение уходит, Import доступен', async () => {
       await pasteImport(pairJson(QUOTES[0]));
