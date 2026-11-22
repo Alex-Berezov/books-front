@@ -154,7 +154,7 @@ describe('WorldWrite (F08-4b)', () => {
 
     it.each([
       ['WORLD_ANALYSIS_MISSING', 'write the analysis first'],
-      ['WORLD_LANGUAGE_UNSUPPORTED', 'only ru and en versions'],
+      ['WORLD_LANGUAGE_UNSUPPORTED', 'does not take versions in this language'],
     ])('a start refused %s says why in words', (code, text) => {
       hooks.run = null;
       actions().start.error = conflict(code);

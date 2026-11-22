@@ -14,6 +14,9 @@ import {
 } from '@/lib/admin/book-world-validation';
 import type { BookWorldEntity, DossierStatus } from '@/types/api-schema';
 import en from '../../fixtures/example-world.en.json';
+import es from '../../fixtures/example-world.es.json';
+import fr from '../../fixtures/example-world.fr.json';
+import pt from '../../fixtures/example-world.pt.json';
 import ru from '../../fixtures/example-world.ru.json';
 
 /**
@@ -40,6 +43,9 @@ describe('book world import (F08-1)', () => {
   it.each([
     ['en', en],
     ['ru', ru],
+    ['es', es],
+    ['fr', fr],
+    ['pt', pt],
   ])('the reference example %s passes the check as is', (lang, example) => {
     const result = checkBookWorldImport(structuredClone(example), lang);
     expect(result.errors).toEqual([]);

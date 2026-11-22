@@ -181,7 +181,7 @@ const REFUSALS: Record<string, string> = {
   DOSSIER_TOO_LONG: DOSSIER_REFUSED_TEXT,
   WORLD_ANALYSIS_MISSING:
     'The version has no analysis with a main character: write the analysis first.',
-  WORLD_LANGUAGE_UNSUPPORTED: 'Write World takes only ru and en versions for now.',
+  WORLD_LANGUAGE_UNSUPPORTED: 'Write World does not take versions in this language.',
   WORLD_WRITE_NOT_READY: 'The run is not ready any more: it is being written, failed or discarded.',
   WORLD_REGEN_IN_PROGRESS: 'This block is being regenerated: wait until it finishes.',
   WORLD_ITEM_NOT_PROPOSED: 'This block is no longer a proposal: reload the tab.',

@@ -9,6 +9,9 @@ import {
 } from '@/lib/admin/book-world-validation';
 import type { BookWorldEntity } from '@/types/api-schema';
 import pairEn from '../../fixtures/example-world-pair.en.json';
+import pairEs from '../../fixtures/example-world-pair.es.json';
+import pairFr from '../../fixtures/example-world-pair.fr.json';
+import pairPt from '../../fixtures/example-world-pair.pt.json';
 import pairRu from '../../fixtures/example-world-pair.ru.json';
 import { detail } from '../../helpers/worldApi';
 
@@ -255,6 +258,9 @@ describe('pair reference example (F08-8c-2)', () => {
   it.each([
     ['en', pairEn],
     ['ru', pairRu],
+    ['es', pairEs],
+    ['fr', pairFr],
+    ['pt', pairPt],
   ])('the pair reference example %s passes the check as is', (lang, example) => {
     const result = checkBookWorldImport(structuredClone(example), lang);
     expect(result.errors).toEqual([]);

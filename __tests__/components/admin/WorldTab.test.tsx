@@ -107,7 +107,7 @@ describe('WorldTab (F08-1)', () => {
     });
   });
 
-  // F08-4b (`product.md` §17 п.6-7): ход «Write World» - только `admin` и только у версии ru/en.
+  // F08-4b (`product.md` §17 п.6-7): ход «Write World» - только `admin` и только у версии языка хода (F08-9: пять языков).
   describe('the run «Write World»', () => {
     it('admin of an en version: the panel with its start button, the run is read', async () => {
       renderWorldTab(true);
@@ -128,11 +128,20 @@ describe('WorldTab (F08-1)', () => {
       expect(await screen.findByRole('button', { name: 'Write World' })).toBeTruthy();
     });
 
-    it('admin of a version in another language: a hint, no panel and no run request', async () => {
-      renderWorldTab(true, true, { language: 'fr' });
+    it.each(['es', 'fr', 'pt'] as const)(
+      'admin of a %s version: the panel too (F08-9)',
+      async (language) => {
+        renderWorldTab(true, true, { language });
+        expect(await screen.findByRole('button', { name: 'Write World' })).toBeTruthy();
+      }
+    );
+
+    it('admin of a version in a language without a sample: a hint, no panel and no run request', async () => {
+      // Язык вне enum версии - подставной: страж нового языка (решение `F08 | F08-9` Q2).
+      renderWorldTab(true, true, { language: 'de' as never });
       await rowOf('raskolnikov');
       expect(
-        screen.getByText('Write World is available for ru and en versions only.')
+        screen.getByText('Write World is not available for versions in this language.')
       ).toBeTruthy();
       expect(screen.queryByRole('button', { name: 'Write World' })).toBeNull();
       expect(rec.runReads).toBe(0);
@@ -142,7 +151,7 @@ describe('WorldTab (F08-1)', () => {
       renderWorldTab(false);
       await rowOf('raskolnikov');
       expect(screen.queryByRole('button', { name: 'Write World' })).toBeNull();
-      expect(screen.queryByText(/Write World is available/)).toBeNull();
+      expect(screen.queryByText(/Write World is not available/)).toBeNull();
       expect(rec.runReads).toBe(0);
     });
   });

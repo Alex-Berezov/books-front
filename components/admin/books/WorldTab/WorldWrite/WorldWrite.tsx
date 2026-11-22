@@ -37,7 +37,7 @@ import { WorldWriteSteps } from './WorldWriteSteps';
 import draftStyles from '@/components/admin/books/ContentDraft/ContentDraft.module.scss';
 
 export interface WorldWriteProps {
-  /** Версия языка `ru` или `en`: остальные сервер отказывает (`WORLD_LANGUAGE_UNSUPPORTED`). */
+  /** Версия языка хода (`WORLD_WRITE_LANGUAGES`): остальные сервер отказывает (`WORLD_LANGUAGE_UNSUPPORTED`). */
   versionId: string;
   lang: SupportedLang;
 }
