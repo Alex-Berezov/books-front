@@ -157,7 +157,7 @@ const ENTITY_FULL = {
     ],
   },
   scenes: [
-    { chapter: 1, title: 'The map scene', text: 'Opening.' },
+    { chapter: 1, title: 'The map scene', text: 'Opening.', paragraph: 4 },
     { chapter: 2, title: 'The bridge scene', text: 'Crossing.' },
   ],
   relations: [
@@ -626,6 +626,17 @@ describe('страница героя: полный герой', () => {
     const { container } = await renderEntity();
     expect(container.querySelectorAll('#presence ol')).toHaveLength(0);
     expect(container.querySelector('#presence')).toHaveTextContent('Chapters: 1–3, 7, 9–12');
+  });
+
+  // F08-10a: абзац сцены из хода - в ссылке читалки; сцена без абзаца ведёт на главу.
+  it('«Читать сцену» открывает абзац сцены, без абзаца - главу', async () => {
+    const { container } = await renderEntity();
+    const scenes = container.querySelector('#scenes') as HTMLElement;
+    const read = within(scenes).getAllByRole('link', { name: 'Read the scene' });
+    expect(read.map((a) => a.getAttribute('href'))).toEqual([
+      '/en/book/world-book/read?chapter=1&p=4',
+      '/en/book/world-book/read?chapter=2',
+    ]);
   });
 
   it('«Слушать» - только у сцены с аудиоглавой того же номера', async () => {

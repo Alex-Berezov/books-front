@@ -160,21 +160,25 @@ test.describe('Book world: hero page (F08-3b, §5)', () => {
     await expect(
       scenes.locator('li', { hasText: 'The bridge' }).getByRole('link', { name: 'Listen' })
     ).toHaveCount(0);
+    // Абзац сцены считает бэкенд из присутствия (`books/prisma/seed-world.ts`, `MENTIONS_EN`): у
+    // героя в главе 1 это абзац 1 (`F08-10a`).
     await expect(scenes.getByRole('link', { name: 'Read the scene' }).first()).toHaveAttribute(
       'href',
-      `/en/book/${SLUG.book}/read?chapter=1`
+      `/en/book/${SLUG.book}/read?chapter=1&p=1`
     );
   });
 
-  // Читалка снимает `?chapter` с адреса, как только открыла главу (`useLinkedChapter`), поэтому
-  // ждём адрес уже без параметра, а главу проверяем по содержимому (`books/prisma/seed-world.ts`:
-  // «Chapter 1», первый абзац главы 1).
-  test('a chapter link opens that chapter in the reader', async ({ page }) => {
+  // Читалка снимает `?chapter` и `&p` с адреса, как только открыла главу (`useLinkedChapter`),
+  // поэтому ждём адрес уже без параметров, а главу и абзац проверяем по содержимому
+  // (`books/prisma/seed-world.ts`: «Chapter 1», абзац 1 главы 1 - первая форма имени героя).
+  test('a scene link opens that chapter in the reader on the scene paragraph', async ({ page }) => {
     await page.goto(entityUrl('en', SLUG.book, 'anna-lark'));
     await page.locator('#scenes').getByRole('link', { name: 'Read the scene' }).first().click();
     await expect(page).toHaveURL(new RegExp(`/en/book/${SLUG.book}/read$`));
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Chapter 1');
-    await expect(page.getByText('Anna Lark opened the old map at dawn.')).toBeVisible();
+    await expect(page.locator('[class*="linkedParagraph"]')).toHaveText(
+      'Anna Lark opened the old map at dawn.'
+    );
   });
 
   test('"Listen" opens the player on the audio chapter of the scene', async ({ page }) => {

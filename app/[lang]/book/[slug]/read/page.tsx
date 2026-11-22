@@ -2,7 +2,11 @@ import { redirect } from 'next/navigation';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
-import { chapterFromSearchParams, readerChapterQuery } from './chapterParam';
+import {
+  chapterFromSearchParams,
+  paragraphFromSearchParams,
+  readerChapterQuery,
+} from './chapterParam';
 import ReaderClient from './ReaderClient';
 
 export const metadata: Metadata = {
@@ -15,26 +19,29 @@ type Props = {
 };
 
 /**
- * Адрес читалки книги; `chapter` - номер главы из ссылки «глава N»: редирект на канонический
- * слаг или по истории слагов его не теряет (решение арбитра `F03 | F03-3`, В2). Остальная
- * строка запроса не переносится, номер - только прошедший `parseChapterParam`.
+ * Адрес читалки книги; `chapter` - номер главы из ссылки «глава N», `paragraph` - абзац сцены
+ * (`?chapter=N&p=K`, `F08-10a`): редирект на канонический слаг или по истории слагов их не теряет
+ * (решение арбитра `F03 | F03-3`, В2). Остальная строка запроса не переносится, номера - только
+ * прошедшие `parseOrdinal`; абзац без главы не переносится.
  */
 const readUrl =
-  (lang: string, chapter: number | null = null) =>
+  (lang: string, chapter: number | null = null, paragraph: number | null = null) =>
   (bookSlug: string) =>
-    `/${lang}/book/${bookSlug}/read${chapter === null ? '' : readerChapterQuery(chapter)}`;
+    `/${lang}/book/${bookSlug}/read${chapter === null ? '' : readerChapterQuery(chapter, paragraph)}`;
 
 export default async function Page({ params, searchParams }: Props) {
   const { lang, slug } = await params;
   const supportedLang = lang as SupportedLang;
-  const chapter = chapterFromSearchParams((await searchParams) ?? {});
+  const search = (await searchParams) ?? {};
+  const chapter = chapterFromSearchParams(search);
+  const paragraph = paragraphFromSearchParams(search);
 
   // 🔴 Книгу, которой нет, читалка до 06.09.2026 не отличала от книги без текстовой
   // версии: серверных запросов здесь не было ни одного, любой отказ бутстрапа
   // доезжал до клиента и показывался тем же экраном при HTTP 200 (LEGACY-084).
   // Снять этот запрос ради скорости открытия — значит вернуть soft-404 обратно:
   // статус ответа задаётся здесь и больше нигде.
-  const book = await resolveBookForSubroute(supportedLang, slug, readUrl(lang, chapter));
+  const book = await resolveBookForSubroute(supportedLang, slug, readUrl(lang, chapter, paragraph));
 
   // 🔴 307, а не 308 (решение арбитра 06.09.2026). Канонический слаг здесь —
   // не свойство адреса, а результат разбора языка по набору опубликованных
@@ -42,7 +49,7 @@ export default async function Page({ params, searchParams }: Props) {
   // снятия публикации. Бессрочно кэшированный браузером 308 закрепил бы один
   // ответ, и кодом его уже не отозвать. 308 остаётся только истории слагов.
   if (book.slug && book.slug !== slug) {
-    redirect(readUrl(lang, chapter)(book.slug));
+    redirect(readUrl(lang, chapter, paragraph)(book.slug));
   }
 
   // `book.slug || slug`: проверка выше уже считает поле ненадёжным, и уезжать

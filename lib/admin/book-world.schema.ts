@@ -117,9 +117,11 @@ export const BOOK_WORLD_LIST_SCHEMAS = {
       chapter: chapter(),
       title: requiredText(L.title),
       text: requiredText(L.text),
+      // Номер абзаца с 1, как `@Min(1)` бэкенда (решение арбитра `F08 | F08-10a` Q2); при чтении
+      // бэкенд всё равно считает его сам из присутствия.
       paragraph: z
         .int()
-        .min(0)
+        .min(1)
         .max(L.paragraph)
         .nullable()
         .optional()

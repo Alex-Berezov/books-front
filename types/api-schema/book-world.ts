@@ -35,6 +35,10 @@ export interface BookWorldScene {
   chapter: number;
   title: string;
   text: string;
+  /**
+   * Номер абзаца главы с 1 (`?chapter=N&p=K` читалки): бэкенд считает его при чтении - первый абзац
+   * с формой имени (`F08-10a`); `null` - формы в главе нет.
+   */
   paragraph?: number | null;
 }
 

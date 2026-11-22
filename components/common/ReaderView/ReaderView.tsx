@@ -10,6 +10,7 @@ import { ReaderDrawer } from './ReaderDrawer';
 import { ReaderSettings } from './ReaderSettings';
 import { DEFAULT_LINE_HEIGHT_INDEX } from './ReaderView.constants';
 import styles from './ReaderView.module.scss';
+import { useLinkedParagraph } from './useLinkedParagraph';
 
 const lineHeightMap: Record<LineHeightIndex, string> = {
   0: styles.lineHeight12,
@@ -44,7 +45,8 @@ const themeMap: Record<Theme, string> = {
  * very same view a reader gets, without writing anybody's reading progress.
  */
 export const ReaderView: FC<ReaderViewProps> = (props) => {
-  const { title, chapters, currentChapterIndex, onChapterChange, onBack, notice } = props;
+  const { title, chapters, currentChapterIndex, onChapterChange, onBack, notice, linkedParagraph } =
+    props;
   const { t } = useTranslation();
 
   const [fontSize, setFontSize] = useState<FontSize>('md');
@@ -55,6 +57,7 @@ export const ReaderView: FC<ReaderViewProps> = (props) => {
   const [showSettings, setShowSettings] = useState(false);
 
   const contentRef = useRef<HTMLDivElement>(null);
+  const chapterBodyRef = useRef<HTMLDivElement>(null);
   const progressFillRef = useRef<HTMLDivElement>(null);
 
   const currentChapter = chapters[currentChapterIndex];
@@ -70,6 +73,8 @@ export const ReaderView: FC<ReaderViewProps> = (props) => {
     }
     window.scrollTo(0, 0);
   }, [currentChapterId]);
+
+  useLinkedParagraph(chapterBodyRef, currentChapter, linkedParagraph, styles.linkedParagraph);
 
   // The bar width is computed, so it goes in as a css variable through the ref:
   // a `style` prop is a lint error here (LEGACY-050).
@@ -182,10 +187,12 @@ export const ReaderView: FC<ReaderViewProps> = (props) => {
           {currentChapter ? (
             <article>
               <h1 className={styles.chapterHeader}>{currentChapter.title}</h1>
-              <RichTextContent
-                html={currentChapter.content || ''}
-                className={`${styles.chapterBody} ${fontSizeMap[fontSize]} ${lineHeightMap[lineHeightIndex]}`}
-              />
+              <div ref={chapterBodyRef}>
+                <RichTextContent
+                  html={currentChapter.content || ''}
+                  className={`${styles.chapterBody} ${fontSizeMap[fontSize]} ${lineHeightMap[lineHeightIndex]}`}
+                />
+              </div>
             </article>
           ) : (
             <div className={styles.emptyState}>

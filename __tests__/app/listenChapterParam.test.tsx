@@ -143,6 +143,16 @@ describe('ListenClient: глава из ссылки ?chapter=N', () => {
     expect(window.location.search).toBe('?utm=world');
   });
 
+  // F08-10a: абзац сцены `&p=K` плеер не читает - глава открыта, `p` снят вместе с `chapter`.
+  it('абзац ссылки плеер не читает: глава открыта, оба параметра сняты', () => {
+    openAt('?chapter=2&p=3');
+
+    render(<ListenClient params={{ lang: 'ru', slug: 'hamlet' }} />);
+
+    expect(screen.getByText('Вторая')).toBeInTheDocument();
+    expect(window.location.search).toBe('');
+  });
+
   it.each(['?chapter=9', '?chapter=abc', '?chapter=0'])(
     'неизвестный номер или мусор (%s) - восстановлено сохранённое место',
     (search) => {

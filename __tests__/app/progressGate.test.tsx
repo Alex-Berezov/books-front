@@ -506,3 +506,163 @@ describe('ReaderClient: глава из адреса ?chapter=N', () => {
     }
   );
 });
+
+/**
+ * Абзац сцены `?chapter=N&p=K` (`F08-10a`, решение арбитра `F08 | F08-10` Q2): глава открыта,
+ * абзац K по правилу бэкенда прокручен и подсвечен, оба параметра сняты; неверный `p` - начало
+ * главы без подсветки; закладка не перезаписана до действия читателя.
+ */
+describe('ReaderClient: абзац из адреса ?chapter=N&p=K', () => {
+  const scrolled: Element[] = [];
+  const book = {
+    versionId: 'v1',
+    slug: 'hamlet',
+    title: 'Hamlet',
+    chapters: [
+      { id: 'c1', number: 1, title: 'Первая', content: '<p>1</p>' },
+      {
+        id: 'c2',
+        number: 2,
+        title: 'Вторая',
+        content: '<h2>Утро</h2><p> </p><p>Второй абзац.</p><hr><p>Абзац сцены.</p>',
+      },
+      { id: 'c3', number: 3, title: 'Третья', content: 'Plain one.\n\nPlain two.' },
+    ],
+  };
+  const openWith = (search: string) => {
+    window.history.replaceState(null, '', `/ru/book/hamlet/read${search}`);
+    return render(<ReaderClient params={{ lang: 'ru', slug: 'hamlet' }} />);
+  };
+  const highlighted = (container: HTMLElement) =>
+    [...container.querySelectorAll('[class*="linkedParagraph"]')].map((e) => e.textContent);
+
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    mutate.mockClear();
+    clearLocalProgress();
+    syncState.isSettled = true;
+    readerBootstrapResult.data = book;
+    readerBootstrapResult.isLoading = false;
+    readerBootstrapResult.error = null;
+    scrolled.length = 0;
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolled.push(this);
+    };
+  });
+
+  afterEach(() => {
+    // jsdom своего `scrollIntoView` не держит: подмена не должна пережить блок.
+    Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+    vi.useRealTimers();
+    clearLocalProgress();
+    window.history.replaceState(null, '', '/');
+  });
+
+  // 🔴 Возврат дефекта: считать абзацы по одним `p` - подсветится «Абзац сцены.» вместо второго.
+  it('открывает главу на абзаце K, подсвечивает его и снимает оба параметра', () => {
+    sessionState.data = null;
+    sessionState.status = 'unauthenticated';
+
+    const { container } = openWith('?chapter=2&p=2&utm=x');
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Вторая');
+    expect(highlighted(container)).toEqual(['Второй абзац.']);
+    expect(scrolled.map((e) => e.textContent)).toEqual(['Второй абзац.']);
+    expect(window.location.search).toBe('?utm=x');
+  });
+
+  // 🔴 Порядок эффектов: прокрутка к абзацу идёт после прокрутки главы в начало, иначе
+  // `scrollTo(0, 0)` сбросил бы абзац (`useLinkedParagraph`).
+  it('прокрутка к абзацу идёт после прокрутки главы в начало', () => {
+    sessionState.data = null;
+    sessionState.status = 'unauthenticated';
+    const calls: string[] = [];
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => calls.push('top'));
+    Element.prototype.scrollIntoView = function () {
+      calls.push('paragraph');
+    };
+
+    openWith('?chapter=2&p=2');
+
+    expect(calls.at(-1)).toBe('paragraph');
+    expect(calls).toContain('top');
+    scrollTo.mockRestore();
+  });
+
+  it.each(['9', '0', 'abc'])('p=%s - глава открыта в начале, без подсветки', (raw) => {
+    sessionState.data = null;
+    sessionState.status = 'unauthenticated';
+
+    const { container } = openWith(`?chapter=2&p=${raw}`);
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Вторая');
+    expect(highlighted(container)).toEqual([]);
+    expect(scrolled).toEqual([]);
+    // Глава найдена - оба параметра сняты и при неверном абзаце.
+    expect(window.location.search).toBe('');
+  });
+
+  it('plain-глава номер абзаца не держит - начало главы', () => {
+    sessionState.data = null;
+    sessionState.status = 'unauthenticated';
+
+    const { container } = openWith('?chapter=3&p=1');
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Третья');
+    expect(highlighted(container)).toEqual([]);
+  });
+
+  it('p без chapter не действует', () => {
+    sessionState.data = null;
+    sessionState.status = 'unauthenticated';
+
+    const { container } = openWith('?p=2');
+
+    expect(highlighted(container)).toEqual([]);
+  });
+
+  it('сохранённый прогресс не перезаписан абзацем из ссылки, а после перехода читателя - пишется', () => {
+    sessionState.data = { user: { id: 'u1' } };
+    sessionState.status = 'authenticated';
+    readerBootstrapResult.data = { ...book, lastProgress: { chapterNumber: 3, position: 0 } };
+
+    openWith('?chapter=2&p=3');
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(mutate).toHaveBeenCalledTimes(0);
+
+    // Контроль: в этом окружении запись идёт, как только читатель сам сменил главу.
+    fireEvent.click(screen.getByLabelText('Следующая глава'));
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(mutate).toHaveBeenCalledWith({ chapterNumber: 3, position: 0 });
+  });
+
+  it('смена слага переносит и главу, и абзац', () => {
+    sessionState.data = null;
+    sessionState.status = 'unauthenticated';
+    routerReplace.mockClear();
+    readerBootstrapResult.data = { ...book, slug: 'hamlet-new' };
+
+    openWith('?chapter=2&p=2');
+
+    expect(routerReplace).toHaveBeenCalledWith('/ru/book/hamlet-new/read?chapter=2&p=2');
+  });
+
+  it('абзац применяется один раз: ушёл с главы и вернулся - без повторной прокрутки и подсветки', () => {
+    sessionState.data = null;
+    sessionState.status = 'unauthenticated';
+
+    const { container } = openWith('?chapter=2&p=2');
+    expect(scrolled).toHaveLength(1);
+
+    fireEvent.click(screen.getByLabelText('Следующая глава'));
+    fireEvent.click(screen.getByLabelText('Предыдущая глава'));
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Вторая');
+    expect(scrolled).toHaveLength(1);
+    expect(highlighted(container)).toEqual([]);
+  });
+});

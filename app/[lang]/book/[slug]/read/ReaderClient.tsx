@@ -16,6 +16,7 @@ import {
   useProgressIdentity,
   useProgressSync,
 } from '@/lib/reading-progress';
+import type { ReaderLinkedParagraph } from '@/components/common/ReaderView';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { ReaderBootstrapChapter } from '@/types/api-schema';
 import { readerChapterQuery } from './chapterParam';
@@ -88,15 +89,20 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
    * другой смысл («что уже записано»).
    */
   const openedFromLinkRef = useRef(false);
+  const [linkedParagraph, setLinkedParagraph] = useState<ReaderLinkedParagraph | null>(null);
 
   /**
    * Глава из ссылки ставится, как только пришёл список глав (`useLinkedChapter`), - до
    * `isSettled`: ссылка - выбор читателя, а не восстановление. Сохранение по-прежнему открывает
    * восстановление после слияния, а `openedFromLinkRef` держит закладку нетронутой.
    */
-  const linkedChapterRef = useLinkedChapter(chapters, (index) => {
+  const linkedPlaceRef = useLinkedChapter(chapters, (index, paragraph) => {
     setCurrentChapterIndex(index);
     openedFromLinkRef.current = true;
+    // Абзац сцены (`F08-10a`) - вместе с главой, одной фиксацией: прокрутка к нему идёт после
+    // прокрутки главы в начало (`ReaderView`).
+    const chapterId = chapters[index]?.id;
+    if (paragraph !== null && chapterId) setLinkedParagraph({ chapterId, n: paragraph });
   });
 
   /**
@@ -172,13 +178,14 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
    */
   useEffect(() => {
     if (bootstrapData && bootstrapData.slug && bootstrapData.slug !== slug) {
-      // Строка запроса сохраняется: `?chapter=N` из ссылки анализа иначе терялся бы при смене слага.
-      const linked = linkedChapterRef.current;
+      // Место из ссылки сохраняется: `?chapter=N` анализа и `&p=K` сцены мира иначе терялись бы
+      // при смене слага.
+      const { chapter, paragraph } = linkedPlaceRef.current;
       router.replace(
-        `/${lang}/book/${bootstrapData.slug}/read${linked ? readerChapterQuery(linked) : ''}`
+        `/${lang}/book/${bootstrapData.slug}/read${chapter ? readerChapterQuery(chapter, paragraph) : ''}`
       );
     }
-  }, [bootstrapData, slug, lang, router, linkedChapterRef]);
+  }, [bootstrapData, slug, lang, router, linkedPlaceRef]);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -328,6 +335,7 @@ export default function ReaderClient({ params, hasTextVersion }: Props) {
       currentChapterIndex={currentChapterIndex}
       onChapterChange={goToChapter}
       onBack={goBack}
+      linkedParagraph={linkedParagraph}
     />
   );
 }

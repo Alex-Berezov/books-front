@@ -1,7 +1,13 @@
 'use client';
 
 import { useEffect, useRef, type MutableRefObject } from 'react';
-import { parseChapterParam, withoutChapterParam } from './chapterParam';
+import { parseChapterParam, parseParagraphParam, withoutChapterParam } from './chapterParam';
+
+/** Место из ссылки: глава `?chapter=N` и абзац `&p=K` (`F08-10a`). */
+export interface LinkedPlace {
+  chapter: number | null;
+  paragraph: number | null;
+}
 
 /**
  * Глава из ссылки `?chapter=N` - общая для читалки (F03-2, ссылки «глава N» анализа) и плеера
@@ -22,14 +28,17 @@ import { parseChapterParam, withoutChapterParam } from './chapterParam';
  * и эффект смены слага читалки в той же фиксации прочитал бы адрес уже без главы (канонический
  * слаг и место в книге - решение арбитра `F03 | F03-3`, В2).
  *
- * Возвращает номер из адреса (`null` - не было или мусор): читалке он нужен, чтобы смена слага
- * не потеряла главу.
+ * Абзац `&p=K` (`F08-10a`) читается тем же разом и уходит вторым аргументом `onLinked`: его
+ * применяет читалка, плеер его не читает.
+ *
+ * Возвращает место из адреса - номер главы и абзаца (`null` - не было или мусор): читалке оно
+ * нужно, чтобы смена слага не потеряла ни главу, ни абзац.
  */
 export function useLinkedChapter(
   chapters: readonly { number: number }[],
-  onLinked: (index: number) => void
-): MutableRefObject<number | null> {
-  const linkedChapterRef = useRef<number | null>(null);
+  onLinked: (index: number, paragraph: number | null) => void
+): MutableRefObject<LinkedPlace> {
+  const placeRef = useRef<LinkedPlace>({ chapter: null, paragraph: null });
   const readRef = useRef(false);
   const appliedRef = useRef(false);
   const onLinkedRef = useRef(onLinked);
@@ -38,16 +47,19 @@ export function useLinkedChapter(
   useEffect(() => {
     if (readRef.current) return;
     readRef.current = true;
-    linkedChapterRef.current = parseChapterParam(window.location.search);
+    placeRef.current = {
+      chapter: parseChapterParam(window.location.search),
+      paragraph: parseParagraphParam(window.location.search),
+    };
   }, []);
 
   useEffect(() => {
     if (appliedRef.current || chapters.length === 0) return;
     appliedRef.current = true;
-    const linked = linkedChapterRef.current;
+    const { chapter: linked, paragraph } = placeRef.current;
     const index = linked === null ? -1 : chapters.findIndex((c) => c.number === linked);
     if (index === -1) return;
-    onLinkedRef.current(index);
+    onLinkedRef.current(index, paragraph);
     const { pathname, search, hash } = window.location;
     window.history.replaceState(
       window.history.state,
@@ -56,5 +68,5 @@ export function useLinkedChapter(
     );
   }, [chapters]);
 
-  return linkedChapterRef;
+  return placeRef;
 }

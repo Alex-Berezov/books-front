@@ -1,7 +1,10 @@
 import { decodeEntities } from './html-entities';
 
-/** Знаки нулевой ширины: не пробел для `\s`, но и не текст. */
-const INVISIBLE_CHARS = /[\u00ad\u200b-\u200d\u2060\ufeff]/g;
+/**
+ * Знаки нулевой ширины: не пробел для `\s`, но и не текст. Одно правило на видимый текст и на абзацы
+ * читалки (`components/common/ReaderView/readerParagraphs.ts`).
+ */
+export const INVISIBLE_CHARS = /[\u00ad\u200b-\u200d\u2060\ufeff]/g;
 
 /**
  * Видимый текст HTML из редактора: без тегов, сущности расшифрованы, знаки нулевой ширины сняты,

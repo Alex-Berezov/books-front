@@ -11,6 +11,15 @@ export interface ReaderViewChapter {
   content?: string;
 }
 
+/**
+ * Абзац главы из ссылки «Читать сцену» (`?chapter=N&p=K`, `F08-10a`): `n` - номер абзаца с 1
+ * по правилу `readerParagraphs`. Применяется один раз на объект, когда на экране эта глава.
+ */
+export interface ReaderLinkedParagraph {
+  chapterId: string;
+  n: number;
+}
+
 export interface ReaderViewProps {
   /** Book title in the header. */
   title?: string;
@@ -24,4 +33,6 @@ export interface ReaderViewProps {
   onBack: () => void;
   /** Optional strip between the header and the text, e.g. the admin draft notice. */
   notice?: ReactNode;
+  /** Абзац из ссылки: прокрутить к нему и подсветить; неверный номер - глава остаётся в начале. */
+  linkedParagraph?: ReaderLinkedParagraph | null;
 }

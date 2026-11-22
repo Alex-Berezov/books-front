@@ -157,6 +157,28 @@ describe('reader route - номер главы на переходах', () => {
     expect(mocks.permanentRedirect).toHaveBeenCalledWith('/en/book/hamlet-new/read?chapter=12');
   });
 
+  // F08-10a: абзац сцены `&p=K` переносится вместе с главой, без главы - нет.
+  it('307 и 308 переносят ?chapter=N&p=K; p без главы и мусорный p - нет', async () => {
+    mocks.getBookOverview.mockResolvedValue({ slug: 'hamlet-canonical', versions: [] });
+    await expect(run('hamlet-old', { chapter: '3', p: '5' })).rejects.toThrow('NEXT_REDIRECT');
+    expect(mocks.redirect).toHaveBeenCalledWith('/en/book/hamlet-canonical/read?chapter=3&p=5');
+
+    mocks.redirect.mockClear();
+    await expect(run('hamlet-old', { p: '5' })).rejects.toThrow('NEXT_REDIRECT');
+    expect(mocks.redirect).toHaveBeenCalledWith('/en/book/hamlet-canonical/read');
+
+    mocks.redirect.mockClear();
+    await expect(run('hamlet-old', { chapter: '3', p: '0' })).rejects.toThrow('NEXT_REDIRECT');
+    expect(mocks.redirect).toHaveBeenCalledWith('/en/book/hamlet-canonical/read?chapter=3');
+
+    mocks.getBookOverview.mockRejectedValue(notFoundError());
+    mocks.resolveRetiredSlug.mockResolvedValue('hamlet-new');
+    await expect(run('hamlet-old', { chapter: '12', p: '2' })).rejects.toThrow(
+      'NEXT_PERMANENT_REDIRECT'
+    );
+    expect(mocks.permanentRedirect).toHaveBeenCalledWith('/en/book/hamlet-new/read?chapter=12&p=2');
+  });
+
   it('мусорный номер и прочие параметры не переносятся', async () => {
     mocks.getBookOverview.mockResolvedValue({ slug: 'hamlet-canonical', versions: [] });
 

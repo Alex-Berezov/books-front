@@ -26,8 +26,11 @@ export interface WorldEntitySectionsInput {
   audioChapters: ReadonlySet<number>;
   /** Адрес плеера на аудиоглаве `n`; `null` - аудио у книги нет. */
   listenHref: ((n: number) => string) | null;
-  /** Адрес читалки на главе `n` или `null`, если главы нет в версии. */
-  readerHref: (n: number) => string | null;
+  /**
+   * Адрес читалки на главе `n` или `null`, если главы нет в версии; с абзацем `p` - на абзаце сцены
+   * (`?chapter=n&p=p`, `F08-10a`).
+   */
+  readerHref: (n: number, p?: number | null) => string | null;
   /**
    * Публичные пары героя (F08-8c): строкой в «Отношениях», по одной на пару, по ключу пары. Пустой
    * список - пар нет или ни одна не публична.

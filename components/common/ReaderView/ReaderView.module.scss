@@ -234,6 +234,12 @@
   transition: font-size 0.15s ease;
 }
 
+// Абзац из ссылки «Читать сцену» (`?chapter=N&p=K`, F08-10a): класс ставит `showLinkedParagraph`.
+.linkedParagraph {
+  background-color: rgba($color-primary, 0.12);
+  border-radius: $border-radius-sm;
+}
+
 // Font sizes
 .fontSizeSm {
   font-size: 15px;

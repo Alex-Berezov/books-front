@@ -17,7 +17,7 @@ import type { Metadata } from 'next';
 import { PageSections } from '../../analysis/PageSections';
 import { BookSectionNav } from '../../BookSectionNav';
 import { BookSubpageHero } from '../../BookSubpageHero';
-import { listenChapterHref, readerChapterHref } from '../../read/chapterParam';
+import { listenChapterHref, readerSceneHref } from '../../read/chapterParam';
 import { makeLinkSession, worldEntityHref } from '../../worldLinks';
 import styles from '../wiki.module.scss';
 import { loadWorldEntityOrNotFound } from '../wikiData';
@@ -118,7 +118,7 @@ export default async function BookWorldEntityPage({ params }: Props) {
     people,
     audioChapters,
     listenHref: ctx.listen ? (n) => listenChapterHref(ctx.bookHref, n) : null,
-    readerHref: (n) => (chapterSet.has(n) ? readerChapterHref(ctx.bookHref, n) : null),
+    readerHref: (n, p = null) => (chapterSet.has(n) ? readerSceneHref(ctx.bookHref, n, p) : null),
     links: {
       analysis: ctx.analysisHref,
       analysisHasThemes: (analysis?.themes?.length ?? 0) > 0,

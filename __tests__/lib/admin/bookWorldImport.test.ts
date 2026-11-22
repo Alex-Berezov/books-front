@@ -115,6 +115,20 @@ describe('book world import (F08-1)', () => {
   });
 });
 
+// F08-10a, решение арбитра `F08 | F08-10a` Q2: номер абзаца сцены с 1, как `@Min(1)` бэкенда.
+describe('scene paragraph bound (F08-10a)', () => {
+  const withParagraph = (paragraph: unknown) =>
+    spoilt((e) => {
+      e.scenes = [{ chapter: 1, title: 'T', text: 'S', paragraph }];
+    });
+
+  it('0 is refused, 1 and null pass', () => {
+    expect(paths(withParagraph(0))).toEqual(['entities.0.scenes.0.paragraph']);
+    expect(paths(withParagraph(1))).toEqual([]);
+    expect(paths(withParagraph(null))).toEqual([]);
+  });
+});
+
 describe('book world import of one entity (F08-1)', () => {
   const one = (patch: Record<string, unknown> = {}) =>
     JSON.stringify({ ...structuredClone(en.entities[0]), language: 'en', ...patch });

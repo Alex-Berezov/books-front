@@ -32,7 +32,8 @@ export function buildEntityStorySections(
       body: (
         <ul className={analysisStyles.cards}>
           {scenes.map((scene, i) => {
-            const readHref = input.readerHref(scene.chapter);
+            // «Читать сцену» - на абзаце сцены, если ход его нашёл (`F08-10a`).
+            const readHref = input.readerHref(scene.chapter, scene.paragraph ?? null);
             // «Слушать» - на аудиоглаву того же номера, только если она есть (Q6).
             const listenHref =
               input.listenHref && input.audioChapters.has(scene.chapter)
