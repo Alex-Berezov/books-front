@@ -58,6 +58,7 @@ const run = {
   ],
   writeSummary: false,
   writeAnalysis: true,
+  writeWorld: false,
   createdAt: '2026-11-16T12:25:39.000Z',
 } as unknown as TranslationRun;
 
@@ -240,5 +241,72 @@ describe('RunOverview', () => {
     expect(screen.getByTestId('run-outcome')).toHaveTextContent('In progress');
     expect(screen.getByText('translation paused')).toBeInTheDocument();
     expect(screen.getByText(/Resume or cancel it under “Details” below/)).toBeInTheDocument();
+  });
+  it('F08-9b: Write World — колонка World в разбивке и строка проблемы мира', () => {
+    state.run = {
+      ...state.run,
+      data: {
+        ...run,
+        writeWorld: true,
+        languages: [
+          {
+            ...run.languages[0],
+            analysis: { ...run.languages[0].analysis!, coreReady: true },
+            world: { status: 'failed', operationStatus: 'failed', failedItems: 0, flaggedItems: 0 },
+          },
+        ],
+      } as unknown as TranslationRun,
+    };
+    state.report = {
+      ...state.report,
+      data: {
+        ...report,
+        languages: [
+          {
+            language: 'fr',
+            summary: null,
+            analysis: { spentUsd: '0.3' },
+            world: { spentUsd: '0.2' },
+          },
+        ],
+      } as unknown as TranslationRunReport,
+    };
+    render(<RunOverview runId="r1" bookId="b1" />);
+
+    expect(screen.getByText('FR: world failed')).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    expect(within(table).getByRole('columnheader', { name: 'World' })).toBeInTheDocument();
+    const fr = within(table).getByRole('row', { name: /FR/ });
+    expect(
+      within(fr)
+        .getAllByRole('cell')
+        .map((c) => c.textContent)
+    ).toEqual(['$1.25', '$0.3', '$0.2', '$1.75']);
+  });
+
+  it('F08-9b: анализ на паузе, мир его ждёт — исход «Paused», а не «In progress» (решение арбитра F08 | F08-9b-2)', () => {
+    state.run = {
+      ...state.run,
+      data: {
+        ...run,
+        writeWorld: true,
+        languages: [
+          {
+            ...run.languages[0],
+            analysis: {
+              ...run.languages[0].analysis!,
+              status: 'building',
+              operationStatus: 'paused',
+              pauseReason: 'LIMIT_REACHED',
+            },
+            world: { status: 'pending', operationStatus: null, failedItems: 0, flaggedItems: 0 },
+          },
+        ],
+      } as unknown as TranslationRun,
+    };
+    render(<RunOverview runId="r1" bookId="b1" />);
+
+    expect(screen.getByTestId('run-outcome')).toHaveTextContent('Paused — needs your action');
+    expect(screen.getByText('FR: analysis paused')).toBeInTheDocument();
   });
 });

@@ -157,7 +157,9 @@ export interface TranslationRunLanguageEstimate {
   summaryUsd: LlmMoney | null;
   /** Write Analysis (F07-3b): верхняя оценка хода анализа по главам исходника; `null` — без `writeAnalysis`. */
   analysisUsd: LlmMoney | null;
-  /** Перевод языка плюс `summaryUsd` и `analysisUsd`. */
+  /** Write World (F08-9b): верхняя оценка автозапуска мира по главам исходника; `null` — без `writeWorld`. */
+  worldUsd: LlmMoney | null;
+  /** Перевод языка плюс `summaryUsd`, `analysisUsd` и `worldUsd`. */
   totalUsd: LlmMoney;
 }
 
@@ -176,7 +178,9 @@ export interface TranslationRunEstimate {
   summaryUsd: LlmMoney | null;
   /** Write Analysis всех языков: своя операция и свой лимит, в `minLimitUsd` не входит; `null` — без `writeAnalysis`. */
   analysisUsd: LlmMoney | null;
-  /** Перевод, досье и глоссарии плюс `summaryUsd` и `analysisUsd`. */
+  /** Write World всех языков: свои операции и лимиты, в `minLimitUsd` не входит; `null` — без `writeWorld`. */
+  worldUsd: LlmMoney | null;
+  /** Перевод, досье и глоссарии плюс `summaryUsd`, `analysisUsd` и `worldUsd`. */
   totalUsd: LlmMoney;
   /** Лимит запуска не ниже этого: досье и глоссарии строятся первыми. */
   minLimitUsd: LlmMoney;
@@ -195,6 +199,8 @@ export interface TranslationRunEstimateParams {
   writeSummary?: boolean;
   /** Write Analysis (F07-3b): ход анализа языка стартует сам по концу языка, независимо от `writeSummary`. */
   writeAnalysis?: boolean;
+  /** Write World (F08-9b): ход мира языка стартует сам после готового анализа; нужен `writeAnalysis` (иначе 400 `WORLD_NEEDS_ANALYSIS`). */
+  writeWorld?: boolean;
 }
 
 /** Тело `POST /admin/versions/:id/translation-runs`. */
@@ -282,6 +288,28 @@ export interface TranslationRunAnalysis {
   spentUsd: LlmMoney;
 }
 
+/**
+ * Мир языка запуска (`TranslationRunWorldDto`, F08-9b): статусы и причины — как у строк Summary и
+ * Analysis; единица хода — шаг, счёт — блоки. `null` у языка — мира нет или язык не `done`.
+ */
+export interface TranslationRunWorld {
+  status: TranslationRunSummaryStatus;
+  /** Всегда у `skipped` и `failed`: код пропуска, отказа старта (`WORLD_ANALYSIS_MISSING`) или срыва хода. */
+  reason: string | null;
+  /** Черновик, на вкладке World которого идёт ход. */
+  draftId: string | null;
+  operationStatus: LlmOperation['status'] | null;
+  pauseReason: LlmOperation['pauseReason'];
+  stepsDone: number;
+  /** `null` — выбор героев не пройден. */
+  stepsTotal: number | null;
+  /** Блоки с флагами модели по правилу вкладки World (без `EXTERNAL_CHECK`). */
+  flaggedItems: number;
+  /** Блоки, которые не удалось написать. */
+  failedItems: number;
+  spentUsd: LlmMoney;
+}
+
 /** Язык в ходе запуска. */
 export interface TranslationRunLanguage {
   language: SupportedLang;
@@ -311,6 +339,7 @@ export interface TranslationRunLanguage {
   draftVersionId: string | null;
   summary: TranslationRunSummary | null;
   analysis: TranslationRunAnalysis | null;
+  world: TranslationRunWorld | null;
 }
 
 /** Ответ `GET /admin/translation-runs/:id`, старта и кнопок запуска. */
@@ -328,6 +357,8 @@ export interface TranslationRun {
   writeSummary: boolean;
   /** Write Analysis включён у запуска. */
   writeAnalysis: boolean;
+  /** Write World включён у запуска. */
+  writeWorld: boolean;
   createdAt: string;
 }
 
@@ -355,6 +386,7 @@ export interface TranslationRunLanguageResult {
   draftVersionId: string | null;
   summary: TranslationRunSummary | null;
   analysis: TranslationRunAnalysis | null;
+  world: TranslationRunWorld | null;
 }
 
 /** Строка `GET /admin/books/:bookId/translation-runs`. */
@@ -374,6 +406,7 @@ export interface TranslationRunListItem {
   costUsd: string;
   writeSummary: boolean;
   writeAnalysis: boolean;
+  writeWorld: boolean;
   results: TranslationRunLanguageResult[];
 }
 
@@ -439,6 +472,7 @@ export interface TranslationReportLanguage {
   draftCreatedAt: string | null;
   summary: TranslationRunSummary | null;
   analysis: TranslationRunAnalysis | null;
+  world: TranslationRunWorld | null;
   flaggedChunks: number;
   flaggedChapters: number;
   /** Имя автора по глоссарию; null - этап полей версии не дошёл или автора нет ни у исходника, ни в ответе (F05-17). */

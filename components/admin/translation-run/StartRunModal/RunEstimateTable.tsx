@@ -10,19 +10,23 @@ export interface RunEstimateTableProps {
   estimate: TranslationRunEstimate;
 }
 
-/** Разделы, которые итог включает сверх перевода: Summary и Analysis со своими суммами. */
+/** Разделы, которые итог включает сверх перевода: Summary, Analysis и World со своими суммами. */
 const includedText = (estimate: TranslationRunEstimate): string => {
   const parts = [
     ...(estimate.summaryUsd !== null ? [`Summary ${formatMoney(estimate.summaryUsd)}`] : []),
     ...(estimate.analysisUsd !== null ? [`Analysis ${formatMoney(estimate.analysisUsd)}`] : []),
+    // `?? null`: ответ прежнего бэкенда поля `worldUsd` не несёт вовсе (окно выката, F08-9b).
+    ...((estimate.worldUsd ?? null) !== null ? [`World ${formatMoney(estimate.worldUsd)}`] : []),
   ];
-  return parts.length > 0 ? `, including ${parts.join(' and ')}` : '';
+  if (parts.length === 0) return '';
+  const last = parts[parts.length - 1];
+  return `, including ${parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${last}` : last}`;
 };
 
 /**
  * Оценка окна запуска (F05-7, `product.md` §2.2; F06-5b, §5; F07-3b): досье и глоссарии своими
- * лимитами, перевод по языкам, Summary и Analysis по языкам отдельными строками и итог — перевод
- * плюс оба раздела.
+ * лимитами, перевод по языкам, Summary, Analysis и World по языкам отдельными строками и итог —
+ * перевод плюс разделы (F08-9b).
  */
 export const RunEstimateTable: FC<RunEstimateTableProps> = ({ estimate }) => (
   <table className={styles.estimate}>
@@ -68,6 +72,14 @@ export const RunEstimateTable: FC<RunEstimateTableProps> = ({ estimate }) => (
           <tr key={`analysis-${l.language}`}>
             <td>Analysis {l.language.toUpperCase()} (own limit)</td>
             <td>{formatMoney(l.analysisUsd)}</td>
+          </tr>
+        ) : null
+      )}
+      {estimate.languages.map((l) =>
+        (l.worldUsd ?? null) !== null ? (
+          <tr key={`world-${l.language}`}>
+            <td>World {l.language.toUpperCase()} (own limit)</td>
+            <td>{formatMoney(l.worldUsd)}</td>
           </tr>
         ) : null
       )}

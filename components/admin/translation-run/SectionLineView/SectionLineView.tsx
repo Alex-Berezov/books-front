@@ -9,14 +9,14 @@ export interface SectionLineViewProps {
   /** `null` — строки нет. */
   line: SectionLine | null;
   /** Вкладка раздела на странице версии языка. */
-  tab: Extract<TabType, 'summary' | 'analysis'>;
+  tab: Extract<TabType, 'summary' | 'analysis' | 'world'>;
   /** Версия языка: вкладка раздела живёт на её странице. */
   draftVersionId: string | null;
   lang: SupportedLang;
 }
 
 /**
- * Строка раздела языка запуска (Summary F06-5b, Analysis F07-3b) со ссылкой на вкладку раздела
+ * Строка раздела языка запуска (Summary F06-5b, Analysis F07-3b, World F08-9b) со ссылкой на вкладку раздела
  * там, где за ней нужно идти; версии нет (черновик удалён) — без ссылки.
  */
 export const SectionLineView: FC<SectionLineViewProps> = ({ line, tab, draftVersionId, lang }) => {

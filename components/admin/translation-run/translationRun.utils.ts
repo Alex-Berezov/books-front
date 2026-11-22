@@ -176,13 +176,15 @@ export const startRunRequest = (
   translateModel: string | null,
   limit: string,
   writeSummary = false,
-  writeAnalysis = false
+  writeAnalysis = false,
+  writeWorld = false
 ): StartTranslationRunRequest => ({
   languages,
   ...(translateModel ? { translateModel } : {}),
   // Явное `false` не шлём: бэкенд читает отсутствие как «выключено».
   ...(writeSummary ? { writeSummary: true } : {}),
   ...(writeAnalysis ? { writeAnalysis: true } : {}),
+  ...(writeWorld ? { writeWorld: true } : {}),
   ...(limit.trim() ? { limitUsd: limit.trim() } : {}),
 });
 

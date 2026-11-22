@@ -61,6 +61,7 @@ const language = (over: Partial<TranslationRunLanguage> = {}): TranslationRunLan
   draftVersionId: null,
   summary: null,
   analysis: null,
+  world: null,
   ...over,
 });
 
@@ -75,6 +76,7 @@ const translationRun = (over: Partial<TranslationRun> = {}): TranslationRun => (
   languages: [language()],
   writeSummary: false,
   writeAnalysis: false,
+  writeWorld: false,
   createdAt: '2026-10-24T00:00:00.000Z',
   ...over,
 });
@@ -334,6 +336,12 @@ describe('Тело старта и отказы', () => {
     expect(startRunRequest(['es'], null, '', false, true)).toEqual({
       languages: ['es'],
       writeAnalysis: true,
+    });
+    // Write World (F08-9b) - шестым аргументом; выключенный не уходит.
+    expect(startRunRequest(['es'], null, '', false, true, true)).toEqual({
+      languages: ['es'],
+      writeAnalysis: true,
+      writeWorld: true,
     });
     expect(startRunRequest(['es'], 'a/b', '5')).toEqual({
       languages: ['es'],

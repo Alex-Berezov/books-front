@@ -10,10 +10,11 @@ import type {
 } from '@/types/api-schema';
 import { isAnalysisComplete } from './analysisLine.utils';
 import { isSummaryComplete } from './summaryLine.utils';
+import { isWorldComplete } from './worldLine.utils';
 
 /**
  * Сводка запуска для экрана перевода версии: одним взглядом — закончена ли работа целиком
- * (перевод, досье и глоссарии, Summary и Analysis всех языков) и сколько она стоила. Подробные
+ * (перевод, досье и глоссарии, Summary, Analysis и World всех языков) и сколько она стоила. Подробные
  * строки хода — ниже, в деталях (RunProgress, история).
  */
 
@@ -29,7 +30,7 @@ export interface RunOutcome {
   languagesTotal: number;
   /** Что-то стоит на паузе (строка проблемы) — нужен «Resume» или «Cancel», и при «In progress». */
   hasPause: boolean;
-  /** Пометок модели к проверке: куски перевода, тексты Summary, блоки Analysis. */
+  /** Пометок модели к проверке: куски перевода, тексты Summary, блоки Analysis и World. */
   modelFlags: number;
 }
 
@@ -50,7 +51,7 @@ const code = (language: string): string => language.toUpperCase();
  * (пауза — сразу, даже пока другие языки ещё переводятся).
  */
 const sectionProblem = (
-  name: 'summary' | 'analysis',
+  name: 'summary' | 'analysis' | 'world',
   enabled: boolean,
   languageDone: boolean,
   section: Pick<TranslationRunSummary, 'status' | 'operationStatus'> | null,
@@ -112,6 +113,13 @@ const languageProblems = (run: TranslationRun): string[] =>
         l.analysis,
         l.analysis !== null && isAnalysisComplete(l.analysis)
       ),
+      sectionProblem(
+        'world',
+        run.writeWorld,
+        done,
+        l.world ?? null,
+        l.world != null && isWorldComplete(l.world)
+      ),
     ].filter((p): p is string => p !== null);
     return parts.length === 0 ? [] : [`${code(l.language)}: ${parts.join(', ')}`];
   });
@@ -122,7 +130,7 @@ const PAUSED = 'paused';
 const isPaused = (problems: readonly string[]): boolean => problems.some((p) => p.includes(PAUSED));
 
 const outcomeKind = (run: TranslationRun, problems: string[]): RunOutcomeKind => {
-  // Идёт сам запуск, его досье или глоссарий, либо Summary/Analysis языка — то же правило, что
+  // Идёт сам запуск, его досье или глоссарий, либо Summary/Analysis/World языка — то же правило, что
   // держит опрос хода.
   if (translationRunRefetchInterval(run) !== false) return 'running';
   if (isPaused(problems)) return 'paused';
@@ -152,7 +160,11 @@ export const runOutcome = (run: TranslationRun): RunOutcome => {
     languagesTotal: run.languages.length,
     modelFlags: run.languages.reduce(
       (sum, l) =>
-        sum + l.flaggedChunks + (l.summary?.flaggedTexts ?? 0) + (l.analysis?.flaggedItems ?? 0),
+        sum +
+        l.flaggedChunks +
+        (l.summary?.flaggedTexts ?? 0) +
+        (l.analysis?.flaggedItems ?? 0) +
+        (l.world?.flaggedItems ?? 0),
       0
     ),
   };
@@ -164,6 +176,7 @@ export interface CostRow {
   translationUsd: string | null;
   summaryUsd: string | null;
   analysisUsd: string | null;
+  worldUsd: string | null;
   totalUsd: string | null;
 }
 
@@ -187,15 +200,17 @@ export const costRows = (report: TranslationRunReport): CostRow[] => {
     const translationUsd = addMoney(b.translationUsd, b.glossaryUsd);
     const summaryUsd = l?.summary?.spentUsd ?? null;
     const analysisUsd = l?.analysis?.spentUsd ?? null;
+    const worldUsd = l?.world?.spentUsd ?? null;
     return {
       label: code(b.language),
       translationUsd,
       summaryUsd,
       analysisUsd,
+      worldUsd,
       totalUsd:
         translationUsd === null
           ? null
-          : addMoney(translationUsd, summaryUsd ?? ZERO, analysisUsd ?? ZERO),
+          : addMoney(translationUsd, summaryUsd ?? ZERO, analysisUsd ?? ZERO, worldUsd ?? ZERO),
     };
   });
   // Общие строки (досье, остаток) — не перевод: сумма только в итоге строки.
@@ -204,6 +219,7 @@ export const costRows = (report: TranslationRunReport): CostRow[] => {
     translationUsd: null,
     summaryUsd: null,
     analysisUsd: null,
+    worldUsd: null,
     totalUsd: usd,
   });
   return [

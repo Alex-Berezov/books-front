@@ -131,6 +131,11 @@ describe('слаг языковой версии', () => {
       expect(renderHook(() => useBookVersionLogic('version-ru')).result.current.activeTab).toBe(
         'analysis'
       );
+      // F08-9b: «Open the World tab» из строки World запуска.
+      window.history.pushState({}, '', '/admin/en/books/versions/version-ru?tab=world');
+      expect(renderHook(() => useBookVersionLogic('version-ru')).result.current.activeTab).toBe(
+        'world'
+      );
       window.history.pushState({}, '', '/admin/en/books/versions/version-ru?tab=nonsense');
       expect(renderHook(() => useBookVersionLogic('version-ru')).result.current.activeTab).toBe(
         'overview'

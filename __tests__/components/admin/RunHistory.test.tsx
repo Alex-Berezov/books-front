@@ -42,11 +42,12 @@ vi.mock('next/dynamic', () => ({
       live: boolean;
       writeSummary: boolean;
       writeAnalysis: boolean;
+      writeWorld: boolean;
       onClose: () => void;
     }) => (
       <div
         role="dialog"
-        aria-label={`report ${props.runId} live=${String(props.live)}${props.writeSummary ? ' summary' : ''}${props.writeAnalysis ? ' analysis' : ''}`}
+        aria-label={`report ${props.runId} live=${String(props.live)}${props.writeSummary ? ' summary' : ''}${props.writeAnalysis ? ' analysis' : ''}${props.writeWorld ? ' world' : ''}`}
       >
         <button type="button" onClick={props.onClose}>
           Close report
@@ -87,6 +88,7 @@ const item = (
   costUsd: '1.25000000',
   writeSummary: false,
   writeAnalysis: false,
+  writeWorld: false,
   results: [
     {
       language: 'es',
@@ -96,6 +98,7 @@ const item = (
       draftVersionId: 'draft-es',
       summary: null,
       analysis: null,
+      world: null,
     },
   ],
   ...over,
@@ -148,6 +151,7 @@ describe('RunHistory', () => {
             draftVersionId: null,
             summary: null,
             analysis: null,
+            world: null,
           },
           {
             language: 'ru',
@@ -157,6 +161,7 @@ describe('RunHistory', () => {
             draftVersionId: null,
             summary: null,
             analysis: null,
+            world: null,
           },
           {
             language: 'pt',
@@ -166,6 +171,7 @@ describe('RunHistory', () => {
             draftVersionId: null,
             summary: null,
             analysis: null,
+            world: null,
           },
         ],
       }),
@@ -194,6 +200,7 @@ describe('RunHistory', () => {
             draftVersionId: null,
             summary: null,
             analysis: null,
+            world: null,
           },
           {
             language: 'fr',
@@ -203,6 +210,7 @@ describe('RunHistory', () => {
             draftVersionId: null,
             summary: null,
             analysis: null,
+            world: null,
           },
         ],
       }),
@@ -306,6 +314,7 @@ describe('RunHistory', () => {
       item('run-s', 'done', {
         writeSummary: true,
         writeAnalysis: false,
+        writeWorld: false,
         results: [
           {
             language: 'es',
@@ -315,6 +324,7 @@ describe('RunHistory', () => {
             draftVersionId: 'draft-es',
             summary,
             analysis: null,
+            world: null,
           },
         ],
       }),
@@ -333,6 +343,7 @@ describe('RunHistory', () => {
       item('run-a', 'done', {
         writeSummary: false,
         writeAnalysis: true,
+        writeWorld: false,
         results: [
           {
             language: 'es',
@@ -354,6 +365,7 @@ describe('RunHistory', () => {
               coreReady: false,
               spentUsd: '0.1',
             },
+            world: null,
           },
         ],
       }),
@@ -365,6 +377,45 @@ describe('RunHistory', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Report' }));
     expect(
       screen.getByRole('dialog', { name: 'report run-a live=true analysis' })
+    ).toBeInTheDocument();
+  });
+  it('F08-9b: Write World - строка мира под языком; отчёт живой, пока мир ждёт или пишет, и знает про мир', () => {
+    show([
+      item('run-w', 'done', {
+        writeSummary: false,
+        writeAnalysis: true,
+        writeWorld: true,
+        results: [
+          {
+            language: 'es',
+            status: 'done',
+            reason: null,
+            reasonText: null,
+            draftVersionId: 'draft-es',
+            summary: null,
+            analysis: null,
+            world: {
+              status: 'building',
+              reason: null,
+              draftId: 'w2',
+              operationStatus: 'active',
+              pauseReason: null,
+              stepsDone: 1,
+              stepsTotal: 4,
+              flaggedItems: 0,
+              failedItems: 0,
+              spentUsd: '0.1',
+            },
+          },
+        ],
+      }),
+    ]);
+    render(<RunHistory versionId="v1" bookId="b1" lang="en" />);
+
+    expect(screen.getByText('World: writing, step 2 of 4')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Report' }));
+    expect(
+      screen.getByRole('dialog', { name: 'report run-w live=true analysis world' })
     ).toBeInTheDocument();
   });
 });

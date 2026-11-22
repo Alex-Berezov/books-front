@@ -8,6 +8,7 @@ import type {
   TranslationRunLanguage,
   TranslationRunReport,
   TranslationRunSummary,
+  TranslationRunWorld,
 } from '@/types/api-schema';
 
 /** Сводка экрана перевода: закончено ли всё и разбивка трат. */
@@ -77,6 +78,7 @@ const language = (over: Partial<TranslationRunLanguage> = {}): TranslationRunLan
   draftVersionId: 'dv',
   summary: summary(),
   analysis: analysis(),
+  world: null,
   ...over,
 });
 
@@ -91,6 +93,7 @@ const run = (over: Partial<TranslationRun> = {}): TranslationRun => ({
   languages: [language()],
   writeSummary: true,
   writeAnalysis: true,
+  writeWorld: false,
   createdAt: '2026-11-16T00:00:00.000Z',
   ...over,
 });
@@ -216,14 +219,23 @@ describe('costRows', () => {
         translationUsd: '0.45',
         summaryUsd: '0.2',
         analysisUsd: '0.3',
+        worldUsd: null,
         totalUsd: '0.95',
       },
-      { label: 'FR', translationUsd: '0.5', summaryUsd: '0.1', analysisUsd: null, totalUsd: '0.6' },
+      {
+        label: 'FR',
+        translationUsd: '0.5',
+        summaryUsd: '0.1',
+        analysisUsd: null,
+        worldUsd: null,
+        totalUsd: '0.6',
+      },
       {
         label: 'Dossier (all languages)',
         translationUsd: null,
         summaryUsd: null,
         analysisUsd: null,
+        worldUsd: null,
         totalUsd: '0.01',
       },
     ]);
@@ -304,7 +316,14 @@ describe('costRows: отказы формы', () => {
       })
     );
     expect(rows).toEqual([
-      { label: 'ES', translationUsd: '0.4', summaryUsd: 'abc', analysisUsd: null, totalUsd: null },
+      {
+        label: 'ES',
+        translationUsd: '0.4',
+        summaryUsd: 'abc',
+        analysisUsd: null,
+        worldUsd: null,
+        totalUsd: null,
+      },
     ]);
   });
 
@@ -374,6 +393,7 @@ describe('runOutcome: раздел без операции, пауза при и
             stage: 'translate',
             summary: null,
             analysis: null,
+            world: null,
           }),
         ],
       })
@@ -405,6 +425,7 @@ describe('runOutcome: пауза самого запуска видна, пок�
             stage: 'translate',
             summary: null,
             analysis: null,
+            world: null,
           }),
         ],
       })
@@ -462,5 +483,61 @@ describe('runOutcome: общая пауза досье у законченног
     );
     expect(o.kind).toBe('cancelled');
     expect(o.problems).not.toContain('dossier or glossary paused');
+  });
+});
+
+const world = (over: Partial<TranslationRunWorld> = {}): TranslationRunWorld => ({
+  status: 'ready',
+  reason: null,
+  draftId: 'w1',
+  operationStatus: 'done',
+  pauseReason: null,
+  stepsDone: 7,
+  stepsTotal: 7,
+  flaggedItems: 0,
+  failedItems: 0,
+  spentUsd: '0.4',
+  ...over,
+});
+
+describe('Write World в сводке запуска (F08-9b)', () => {
+  const withWorld = (w: TranslationRunWorld | null) =>
+    run({ writeWorld: true, languages: [language({ world: w })] });
+
+  it('мир готов - проблем нет; флаги модели входят в счёт пометок', () => {
+    expect(runOutcome(withWorld(world())).problems).toEqual([]);
+    const flagged = runOutcome(withWorld(world({ flaggedItems: 3 })));
+    expect(flagged.modelFlags).toBe(runOutcome(withWorld(world())).modelFlags + 3);
+  });
+
+  it('мир не доделан - строка проблемы по языку', () => {
+    expect(runOutcome(withWorld(null)).problems).toEqual(['ES: world not written yet']);
+    expect(runOutcome(withWorld(world({ status: 'failed' }))).problems).toEqual([
+      'ES: world failed',
+    ]);
+    expect(runOutcome(withWorld(world({ failedItems: 1 }))).problems).toEqual([
+      'ES: world partly done',
+    ]);
+  });
+
+  it('без Write World у запуска мир проблемой не бывает', () => {
+    const r = run({ writeWorld: false, languages: [language({ world: null })] });
+    expect(runOutcome(r).problems).toEqual([]);
+  });
+
+  it('траты World - в строке языка и в её сумме', () => {
+    const rows = costRows(
+      report({
+        languages: [
+          reportLanguage({ language: 'es', summary: null, analysis: null, world: world() }),
+        ],
+        breakdown: {
+          languages: [{ language: 'es', translationUsd: '0.4', glossaryUsd: '0.05' }],
+          dossierUsd: '0',
+          unattributedUsd: '0',
+        },
+      })
+    );
+    expect(rows[0]).toMatchObject({ label: 'ES', worldUsd: '0.4', totalUsd: '0.85' });
   });
 });

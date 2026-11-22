@@ -7,6 +7,7 @@ import {
   progressText,
   reasonText,
   refusalText,
+  refusalTextOfCode,
   stepTitle,
   writeEstimateText,
 } from '@/components/admin/books/WorldTab/WorldWrite/worldWrite.utils';
@@ -41,6 +42,18 @@ describe('worldWrite.utils refusalText', () => {
       expect(refusalText(conflict(code))).toBe('common refusal');
     }
   );
+});
+
+describe('worldWrite.utils refusalTextOfCode (F08-9b)', () => {
+  it('свой код - своей подписью, код ходов из досье - их подписью, чужой - undefined', () => {
+    expect(refusalTextOfCode('WORLD_LANGUAGE_UNSUPPORTED')).toBe(
+      'Write World does not take versions in this language.'
+    );
+    expect(refusalTextOfCode('DOSSIER_STALE')).toBe(
+      'The book text changed after the dossier was built: rebuild the dossier.'
+    );
+    expect(refusalTextOfCode('SOMETHING_ELSE')).toBeUndefined();
+  });
 });
 
 describe('worldWrite.utils progressText', () => {

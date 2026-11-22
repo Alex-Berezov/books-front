@@ -113,6 +113,7 @@ export const TranslationRunBlock: FC<TranslationRunBlockProps> = ({ versionId, b
           live={reported !== undefined && isRunRowLive(reported)}
           writeSummary={reported?.writeSummary ?? false}
           writeAnalysis={reported?.writeAnalysis ?? false}
+          writeWorld={reported?.writeWorld ?? false}
           onClose={() => setReportRunId(null)}
         />
       )}

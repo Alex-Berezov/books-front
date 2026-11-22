@@ -626,6 +626,7 @@ export type {
   TranslationRunLanguageResult,
   TranslationRunLanguageStatus,
   TranslationRunAnalysis,
+  TranslationRunWorld,
   TranslationRunSummary,
   TranslationRunSummaryStatus,
   TranslationRunListItem,

@@ -10,6 +10,7 @@ import {
   pluralWord,
   refusalCode,
   refusalText as draftRefusalText,
+  refusalTextOfCode as draftRefusalTextOfCode,
   runStartLossText,
 } from '@/components/admin/books/ContentDraft/contentDraft.utils';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
@@ -191,6 +192,10 @@ const REFUSALS: Record<string, string> = {
   WORLD_ITEM_NOT_REGENERABLE:
     'Name forms are not regenerated on their own: they come from the choice of characters.',
 };
+
+/** Подпись отказа хода по коду: своя, затем ходов из досье и запуска; чужой код — `undefined`. */
+export const refusalTextOfCode = (code: string): string | undefined =>
+  Object.hasOwn(REFUSALS, code) ? REFUSALS[code] : draftRefusalTextOfCode(code);
 
 export const refusalText = (error: unknown): string => {
   const code = refusalCode(error);

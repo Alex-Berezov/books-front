@@ -33,6 +33,7 @@ describe('runHistory.utils', () => {
       draftVersionId: null,
       summary: null,
       analysis: null,
+      world: null,
     };
     expect(languageResultText({ ...base, status: 'failed', reason: null })).toBe('ES: Failed.');
     expect(

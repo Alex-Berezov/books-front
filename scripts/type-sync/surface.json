@@ -2039,6 +2039,17 @@
       "items[].results[].summary.sectionsDone",
       "items[].results[].summary.spentUsd",
       "items[].results[].summary.status",
+      "items[].results[].world",
+      "items[].results[].world.draftId",
+      "items[].results[].world.failedItems",
+      "items[].results[].world.flaggedItems",
+      "items[].results[].world.operationStatus",
+      "items[].results[].world.pauseReason",
+      "items[].results[].world.reason",
+      "items[].results[].world.spentUsd",
+      "items[].results[].world.status",
+      "items[].results[].world.stepsDone",
+      "items[].results[].world.stepsTotal",
       "items[].sourceLanguage",
       "items[].stageModels",
       "items[].stageModels.check_semantic",
@@ -2047,6 +2058,7 @@
       "items[].stageModels.translate",
       "items[].writeAnalysis",
       "items[].writeSummary",
+      "items[].writeWorld",
       "pagination",
       "pagination.limit",
       "pagination.page",
@@ -5276,6 +5288,17 @@
       "languages[].summary.sectionsDone",
       "languages[].summary.spentUsd",
       "languages[].summary.status",
+      "languages[].world",
+      "languages[].world.draftId",
+      "languages[].world.failedItems",
+      "languages[].world.flaggedItems",
+      "languages[].world.operationStatus",
+      "languages[].world.pauseReason",
+      "languages[].world.reason",
+      "languages[].world.spentUsd",
+      "languages[].world.status",
+      "languages[].world.stepsDone",
+      "languages[].world.stepsTotal",
       "operation",
       "operation.bookVersionId",
       "operation.createdAt",
@@ -5305,7 +5328,8 @@
       "stageModels.metadata",
       "stageModels.translate",
       "writeAnalysis",
-      "writeSummary"
+      "writeSummary",
+      "writeWorld"
     ]
   },
   {
@@ -5456,6 +5480,17 @@
       "languages[].summary.spentUsd",
       "languages[].summary.status",
       "languages[].takenChapters",
+      "languages[].world",
+      "languages[].world.draftId",
+      "languages[].world.failedItems",
+      "languages[].world.flaggedItems",
+      "languages[].world.operationStatus",
+      "languages[].world.pauseReason",
+      "languages[].world.reason",
+      "languages[].world.spentUsd",
+      "languages[].world.status",
+      "languages[].world.stepsDone",
+      "languages[].world.stepsTotal",
       "languages[].writtenChapters",
       "totalUsd"
     ]
@@ -7447,13 +7482,15 @@
       "languages[].summaryUsd",
       "languages[].totalUsd",
       "languages[].translateUsd",
+      "languages[].worldUsd",
       "minLimitUsd",
       "nearLimitChapters",
       "summaryUsd",
       "totalUsd",
       "translateModel",
       "translationsUsd",
-      "upperBound"
+      "upperBound",
+      "worldUsd"
     ]
   },
   {
@@ -15102,6 +15139,17 @@
       "languages[].summary.sectionsDone",
       "languages[].summary.spentUsd",
       "languages[].summary.status",
+      "languages[].world",
+      "languages[].world.draftId",
+      "languages[].world.failedItems",
+      "languages[].world.flaggedItems",
+      "languages[].world.operationStatus",
+      "languages[].world.pauseReason",
+      "languages[].world.reason",
+      "languages[].world.spentUsd",
+      "languages[].world.status",
+      "languages[].world.stepsDone",
+      "languages[].world.stepsTotal",
       "operation",
       "operation.bookVersionId",
       "operation.createdAt",
@@ -15131,7 +15179,8 @@
       "stageModels.metadata",
       "stageModels.translate",
       "writeAnalysis",
-      "writeSummary"
+      "writeSummary",
+      "writeWorld"
     ]
   },
   {
@@ -15185,6 +15234,17 @@
       "languages[].summary.sectionsDone",
       "languages[].summary.spentUsd",
       "languages[].summary.status",
+      "languages[].world",
+      "languages[].world.draftId",
+      "languages[].world.failedItems",
+      "languages[].world.flaggedItems",
+      "languages[].world.operationStatus",
+      "languages[].world.pauseReason",
+      "languages[].world.reason",
+      "languages[].world.spentUsd",
+      "languages[].world.status",
+      "languages[].world.stepsDone",
+      "languages[].world.stepsTotal",
       "operation",
       "operation.bookVersionId",
       "operation.createdAt",
@@ -15214,7 +15274,8 @@
       "stageModels.metadata",
       "stageModels.translate",
       "writeAnalysis",
-      "writeSummary"
+      "writeSummary",
+      "writeWorld"
     ]
   },
   {
@@ -15268,6 +15329,17 @@
       "languages[].summary.sectionsDone",
       "languages[].summary.spentUsd",
       "languages[].summary.status",
+      "languages[].world",
+      "languages[].world.draftId",
+      "languages[].world.failedItems",
+      "languages[].world.flaggedItems",
+      "languages[].world.operationStatus",
+      "languages[].world.pauseReason",
+      "languages[].world.reason",
+      "languages[].world.spentUsd",
+      "languages[].world.status",
+      "languages[].world.stepsDone",
+      "languages[].world.stepsTotal",
       "operation",
       "operation.bookVersionId",
       "operation.createdAt",
@@ -15297,7 +15369,8 @@
       "stageModels.metadata",
       "stageModels.translate",
       "writeAnalysis",
-      "writeSummary"
+      "writeSummary",
+      "writeWorld"
     ]
   },
   {
@@ -15912,6 +15985,17 @@
       "languages[].summary.sectionsDone",
       "languages[].summary.spentUsd",
       "languages[].summary.status",
+      "languages[].world",
+      "languages[].world.draftId",
+      "languages[].world.failedItems",
+      "languages[].world.flaggedItems",
+      "languages[].world.operationStatus",
+      "languages[].world.pauseReason",
+      "languages[].world.reason",
+      "languages[].world.spentUsd",
+      "languages[].world.status",
+      "languages[].world.stepsDone",
+      "languages[].world.stepsTotal",
       "operation",
       "operation.bookVersionId",
       "operation.createdAt",
@@ -15941,7 +16025,8 @@
       "stageModels.metadata",
       "stageModels.translate",
       "writeAnalysis",
-      "writeSummary"
+      "writeSummary",
+      "writeWorld"
     ]
   },
   {

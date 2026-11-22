@@ -114,6 +114,7 @@ const estimateData: TranslationRunEstimate = {
       metadataUsd: '0.01',
       summaryUsd: null,
       analysisUsd: null,
+      worldUsd: null,
       totalUsd: '1.31',
     },
   ],
@@ -121,6 +122,7 @@ const estimateData: TranslationRunEstimate = {
   translationsUsd: '1.31',
   summaryUsd: null,
   analysisUsd: null,
+  worldUsd: null,
   totalUsd: '1.81',
   minLimitUsd: '0.75',
   defaultLimitUsd: '20',
@@ -407,6 +409,77 @@ describe('Окно запуска перевода (F05-7)', () => {
     expect(hooks.estimateParams.at(-1)).toEqual({ languages: ['es'], writeSummary: true });
     expect(hooks.mutate).toHaveBeenCalledTimes(1);
     expect(hooks.mutate).toHaveBeenCalledWith({ languages: ['es'], writeSummary: true });
+  });
+
+  it('Write World выключен по умолчанию; включение шлёт writeWorld, снятие Analysis снимает и World (F08-9b)', () => {
+    ready();
+    renderModal();
+
+    const worldBox = screen.getByRole('checkbox', { name: 'Write World' });
+    expect(worldBox).not.toBeChecked();
+    expect(worldBox).toBeEnabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    expect(hooks.estimateParams.at(-1)).toEqual({
+      languages: ['es'],
+      writeSummary: true,
+      writeAnalysis: true,
+    });
+
+    fireEvent.click(worldBox);
+    expect(hooks.estimateParams.at(-1)).toEqual({
+      languages: ['es'],
+      writeSummary: true,
+      writeAnalysis: true,
+      writeWorld: true,
+    });
+
+    // Analysis снят - World неактивен и из запроса уходит.
+    const analysis = screen.getByRole('checkbox', { name: 'Write Analysis' });
+    fireEvent.click(analysis);
+    expect(screen.getByRole('checkbox', { name: 'Write World' })).toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'Write World' })).not.toBeChecked();
+    expect(hooks.estimateParams.at(-1)).toEqual({ languages: ['es'], writeSummary: true });
+
+    // Analysis вернули - World остаётся выключенным: включать его заново.
+    fireEvent.click(analysis);
+    expect(screen.getByRole('checkbox', { name: 'Write World' })).not.toBeChecked();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Write World' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    expect(hooks.mutate).toHaveBeenCalledTimes(1);
+    expect(hooks.mutate).toHaveBeenCalledWith({
+      languages: ['es'],
+      writeSummary: true,
+      writeAnalysis: true,
+      writeWorld: true,
+    });
+  });
+
+  it('оценка с World: строка языка и «including Summary, Analysis and World» (F08-9b)', () => {
+    ready({
+      data: {
+        ...estimateData,
+        languages: [
+          {
+            ...estimateData.languages[0],
+            summaryUsd: '0.5',
+            analysisUsd: '0.7',
+            worldUsd: '1.1',
+            totalUsd: '3.11',
+          },
+        ],
+        summaryUsd: '0.5',
+        analysisUsd: '0.7',
+        worldUsd: '1.1',
+        totalUsd: '3.61',
+      },
+    });
+    renderModal();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+
+    expect(screen.getByText('World ES (own limit)')).toBeInTheDocument();
+    expect(
+      screen.getByText(/including Summary \$0\.5.*, Analysis \$0\.7 and World \$1\.1/)
+    ).toBeInTheDocument();
   });
 
   it('оценка только с Analysis: итог «including Analysis $X» без «and» (F07-3b)', () => {

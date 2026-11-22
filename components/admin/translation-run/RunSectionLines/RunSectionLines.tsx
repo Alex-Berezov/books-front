@@ -4,17 +4,22 @@ import type {
   TranslationRunAnalysis,
   TranslationRunLanguageStatus,
   TranslationRunSummary,
+  TranslationRunWorld,
 } from '@/types/api-schema';
 import { AnalysisLineView } from '../AnalysisLineView';
+import { SectionLineView } from '../SectionLineView';
 import { SummaryLineView } from '../SummaryLineView';
+import { worldLineOf } from '../worldLine.utils';
 
 export interface RunSectionLinesProps {
   writeSummary: boolean;
   writeAnalysis: boolean;
+  writeWorld: boolean;
   language: {
     status: TranslationRunLanguageStatus;
     summary: TranslationRunSummary | null;
     analysis: TranslationRunAnalysis | null;
+    world: TranslationRunWorld | null;
   };
   draftVersionId: string | null;
   lang: SupportedLang;
@@ -23,12 +28,13 @@ export interface RunSectionLinesProps {
 }
 
 /**
- * Строки включённых у запуска разделов языка — Summary и Analysis — каждая своей строкой; одно
- * место на ход и историю запуска (F06-5b, F07-3b).
+ * Строки включённых у запуска разделов языка — Summary, Analysis и World — каждая своей строкой;
+ * одно место на ход и историю запуска (F06-5b, F07-3b, F08-9b).
  */
 export const RunSectionLines: FC<RunSectionLinesProps> = ({
   writeSummary,
   writeAnalysis,
+  writeWorld,
   language,
   draftVersionId,
   lang,
@@ -50,6 +56,21 @@ export const RunSectionLines: FC<RunSectionLinesProps> = ({
         <AnalysisLineView
           writeAnalysis
           language={language}
+          draftVersionId={draftVersionId}
+          lang={lang}
+        />
+      </div>
+    )}
+    {writeWorld && (
+      <div className={className}>
+        <SectionLineView
+          // `?? null`: ответ прежнего бэкенда поля `world` не несёт вовсе (окно выката, F08-9b).
+          line={worldLineOf(true, {
+            status: language.status,
+            world: language.world ?? null,
+            analysis: language.analysis,
+          })}
+          tab="world"
           draftVersionId={draftVersionId}
           lang={lang}
         />

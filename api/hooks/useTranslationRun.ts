@@ -42,6 +42,7 @@ import type {
   TranslationRunEstimateParams,
   TranslationRunListItem,
   TranslationRunAnalysis,
+  TranslationRunWorld,
   TranslationRunSummary,
 } from '@/types/api-schema';
 import { invalidateBookWorld } from './useBookWorld';
@@ -157,9 +158,9 @@ export const useTranslationRunHistory = (bookId: string, versionId: string, page
         limit: RUN_HISTORY_PAGE_SIZE,
       }),
     placeholderData: keepPreviousData,
-    // Разделы Summary и Analysis пишутся после конца запуска, а запуск может уйти из блока хода
-    // (там идущие и последний) — история сама держит их строки свежими, пока они не встали
-    // (F06-5b, F07-3b).
+    // Разделы Summary, Analysis и World пишутся после конца запуска, а запуск может уйти из блока
+    // хода (там идущие и последний) — история сама держит их строки свежими, пока они не встали
+    // (F06-5b, F07-3b, F08-9b).
     refetchInterval: (query) =>
       query.state.status !== 'error' &&
       (query.state.data?.items ?? []).some((r) => areSectionsInFlight(r, r.results))
@@ -183,6 +184,38 @@ export const isAnalysisInFlight = (
   languages: ReadonlyArray<{ analysis: TranslationRunAnalysis | null }>
 ): boolean => languages.some(({ analysis }) => isSectionInFlight(analysis));
 
+/**
+ * Мир какого-то языка ещё идёт сам (F08-9b). `pending` мира бэкенд держит без срока, пока ждёт
+ * анализа своего языка, в том числе на паузе анализа (решение арбитра `F08 | F08-9b-1` (4)), —
+ * поэтому `pending` не идёт, пока анализ того же языка не в руках запуска: ход `building`, а его
+ * операция стоит (пауза, срыв, отмена) или не из запуска (`null` — перезапущен на вкладке), либо
+ * автозапуск анализа пропущен или отброшен (`skipped`, `discarded`: ход ведут на вкладке Analysis)
+ * — исход экрана берёт паузу или проблему от строки Analysis (решение арбитра `F08 | F08-9b-2`).
+ * Цена: когда ручной ход анализа кончится и мир стартует сам, строка World обновится только
+ * при перечитывании страницы — вечный опрос дороже. Анализ идёт, ждёт старта, ещё не появился,
+ * готов или упал — идёт: бэкенд сам доведёт мир до старта или до `WORLD_ANALYSIS_MISSING`.
+ * Принятый край: анализ запуска готов, а поверх идёт ручной ход анализа версии на вкладке и встал
+ * на паузу — бэкенд ждёт его без срока, и опрос идёт, пока ход не сдвинется (фронт ручной ход
+ * версии не различает; потолок опроса показал бы ложную остановку). Прочее — то же правило, что
+ * у Summary и Analysis.
+ */
+export const isWorldInFlight = (
+  languages: ReadonlyArray<{
+    world: TranslationRunWorld | null;
+    analysis: TranslationRunAnalysis | null;
+  }>
+): boolean =>
+  languages.some(({ world, analysis }) =>
+    world?.status === 'pending'
+      ? // `== null`: ответ прежнего бэкенда поля `analysis` может не нести вовсе.
+        analysis == null ||
+        analysis.status === 'pending' ||
+        analysis.status === 'ready' ||
+        analysis.status === 'failed' ||
+        isSectionInFlight(analysis)
+      : isSectionInFlight(world)
+  );
+
 const isSectionInFlight = (
   s: Pick<TranslationRunSummary, 'status' | 'operationStatus'> | null
 ): boolean =>
@@ -191,23 +224,30 @@ const isSectionInFlight = (
     // `done` при `building` — окно между закрытием операции и записью статуса хода.
     (s.status === 'building' && (s.operationStatus === 'active' || s.operationStatus === 'done')));
 
-/** Включённый у запуска раздел какого-то языка ещё идёт сам (Summary или Analysis). */
+/** Включённый у запуска раздел какого-то языка ещё идёт сам (Summary, Analysis или World). */
 const areSectionsInFlight = (
-  run: { writeSummary: boolean; writeAnalysis: boolean },
+  run: { writeSummary: boolean; writeAnalysis: boolean; writeWorld: boolean },
   languages: ReadonlyArray<{
     summary: TranslationRunSummary | null;
     analysis: TranslationRunAnalysis | null;
+    world: TranslationRunWorld | null;
   }>
 ): boolean =>
   (run.writeSummary && isSummaryInFlight(languages)) ||
-  (run.writeAnalysis && isAnalysisInFlight(languages));
+  (run.writeAnalysis && isAnalysisInFlight(languages)) ||
+  // `?? null`: ответ прежнего бэкенда поля `world` не несёт вовсе (окно выката, F08-9b).
+  (run.writeWorld &&
+    isWorldInFlight(languages.map((l) => ({ world: l.world ?? null, analysis: l.analysis }))));
 
 /**
  * Строка списка запусков ещё «живая» — её отчёт перечитывается: идёт операция запуска или раздел
- * Summary или Analysis языка (одно правило на ход экрана перевода и историю).
+ * Summary, Analysis или World языка (одно правило на ход экрана перевода и историю).
  */
 export const isRunRowLive = (
-  row: Pick<TranslationRunListItem, 'operation' | 'writeSummary' | 'writeAnalysis' | 'results'>
+  row: Pick<
+    TranslationRunListItem,
+    'operation' | 'writeSummary' | 'writeAnalysis' | 'writeWorld' | 'results'
+  >
 ): boolean => row.operation.status === 'active' || areSectionsInFlight(row, row.results);
 
 /** Идёт сам запуск или одна из его операций досье и глоссария. */
@@ -281,10 +321,10 @@ export const useTranslationRun = (id: string | null, bookId: string) => {
     queryFn: async () => {
       const before = queryClient.getQueryData<TranslationRun>(translationRunKeys.detail(id ?? ''));
       const run = await getTranslationRun(id as string);
-      // Запуск или раздел Summary/Analysis языка встал на этом чтении (конец, отмена, пауза — в том числе
-      // из другой вкладки): языки и списки иначе остались бы «в процессе» до перезагрузки. Конец
-      // запуска сбрасывает их сразу, не дожидаясь раздела, который ещё пишет (F06-5b). Стоящий ход,
-      // прочитанный заново, ничего не сбрасывает — сброс только на переходе.
+      // Запуск или раздел Summary/Analysis/World языка встал на этом чтении (конец, отмена, пауза —
+      // в том числе из другой вкладки): языки и списки иначе остались бы «в процессе» до
+      // перезагрузки. Конец запуска сбрасывает их сразу, не дожидаясь раздела, который ещё пишет
+      // (F06-5b). Стоящий ход, прочитанный заново, ничего не сбрасывает — сброс только на переходе.
       if (
         before !== undefined &&
         ((isRunWorking(before) && !isRunWorking(run)) ||

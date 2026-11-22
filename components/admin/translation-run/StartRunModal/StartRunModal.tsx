@@ -27,6 +27,7 @@ import {
   toModelOptions,
 } from '../translationRun.utils';
 import { RunEstimateTable } from './RunEstimateTable';
+import { RUN_SECTIONS_DEFAULT, RunSectionToggles, type RunSections } from './RunSectionToggles';
 import styles from './StartRunModal.module.scss';
 
 export interface StartRunModalProps {
@@ -70,10 +71,12 @@ export const StartRunModal: FC<StartRunModalProps> = ({
   const [languages, setLanguages] = useState<SupportedLang[]>([]);
   const [translateModel, setTranslateModel] = useState<string | null>(null);
   const [limit, setLimit] = useState('');
-  // Write Summary включён по умолчанию (F06, `product.md` §5): раздел языка пишется сам по его концу.
-  const [writeSummary, setWriteSummary] = useState(true);
-  // Write Analysis — так же, независимо от Write Summary (F07-3b, `product.md` §8 п.12).
-  const [writeAnalysis, setWriteAnalysis] = useState(true);
+  // Разделы, которые пишутся сами по концу языка; умолчания и связь World с Analysis —
+  // `RUN_SECTIONS_DEFAULT` и `RunSectionToggles`.
+  const [sections, setSections] = useState<RunSections>(RUN_SECTIONS_DEFAULT);
+  const { writeSummary, writeAnalysis } = sections;
+  // Без Analysis World не уходит ни в оценку, ни в старт (400 `WORLD_NEEDS_ANALYSIS`).
+  const worldOn = sections.writeWorld && writeAnalysis;
 
   const params: TranslationRunEstimateParams | null =
     languages.length > 0
@@ -82,6 +85,7 @@ export const StartRunModal: FC<StartRunModalProps> = ({
           ...(translateModel ? { translateModel } : {}),
           ...(writeSummary ? { writeSummary: true } : {}),
           ...(writeAnalysis ? { writeAnalysis: true } : {}),
+          ...(worldOn ? { writeWorld: true } : {}),
         }
       : null;
   const estimate = useTranslationRunEstimate(versionId, params);
@@ -116,7 +120,7 @@ export const StartRunModal: FC<StartRunModalProps> = ({
       onConfirm={() => {
         if (canStart) {
           start.mutate(
-            startRunRequest(languages, translateModel, limit, writeSummary, writeAnalysis)
+            startRunRequest(languages, translateModel, limit, writeSummary, writeAnalysis, worldOn)
           );
         }
       }}
@@ -168,24 +172,7 @@ export const StartRunModal: FC<StartRunModalProps> = ({
       {settings.isError && <Alert type="error" message={refusalText(settings.error)} />}
       {models.isError && <Alert type="error" message={refusalText(models.error)} />}
 
-      <div className={styles.field}>
-        <Checkbox checked={writeSummary} onChange={(e) => setWriteSummary(e.target.checked)}>
-          Write Summary
-        </Checkbox>
-        <span className={styles.muted}>
-          When a language is translated, its summary starts on the Summary tab of its version. It is
-          paid from its own limit: the run limit below does not cover it.
-        </span>
-      </div>
-      <div className={styles.field}>
-        <Checkbox checked={writeAnalysis} onChange={(e) => setWriteAnalysis(e.target.checked)}>
-          Write Analysis
-        </Checkbox>
-        <span className={styles.muted}>
-          When a language is translated, its analysis starts on the Analysis tab of its version. It
-          is paid from its own limit: the run limit below does not cover it.
-        </span>
-      </div>
+      <RunSectionToggles value={sections} onChange={setSections} />
 
       {estimate.isFetching && <Spin />}
       {estimate.isError && <Alert type="error" message={refusalText(estimate.error)} />}

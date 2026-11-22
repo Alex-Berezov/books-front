@@ -80,6 +80,7 @@ const run = (id: string): TranslationRun => ({
   languages: [],
   writeSummary: false,
   writeAnalysis: false,
+  writeWorld: false,
   createdAt: '2026-10-24T00:00:00.000Z',
 });
 const source: TranslationSource = {

@@ -25,6 +25,7 @@ const reportLanguage = (over: Partial<TranslationReportLanguage>): TranslationRe
   status: 'done',
   summary: null,
   analysis: null,
+  world: null,
   reason: null,
   reasonText: null,
   draftVersionId: 'draft-es',
@@ -277,5 +278,51 @@ describe('Отчёт запуска (F05-7)', () => {
         (_, el) => el?.tagName === 'P' && el.textContent === 'Analysis: done · spent $0.4'
       )
     ).toBeInTheDocument();
+  });
+  it('F08-9b: строка мира с тратами и ссылкой на вкладку World, траты World отдельной строкой стоимости; без Write World — ни того, ни другого', () => {
+    hooks.report = {
+      ...report([
+        reportLanguage({
+          world: {
+            status: 'ready',
+            reason: null,
+            draftId: 'cw',
+            operationStatus: 'done',
+            pauseReason: null,
+            stepsDone: 7,
+            stepsTotal: 7,
+            flaggedItems: 2,
+            failedItems: 0,
+            spentUsd: '0.70000000',
+          },
+        }),
+        reportLanguage({ language: 'fr', status: 'failed', draftVersionId: null }),
+      ]),
+      totalUsd: '1.90000000',
+    };
+    const { unmount } = render(
+      <RunReportModal runId="r1" lang="en" writeAnalysis writeWorld onClose={vi.fn()} />
+    );
+
+    expect(
+      screen.getByText(
+        (_, el) =>
+          el?.tagName === 'P' &&
+          el.textContent ===
+            'World: done, blocks with model flags: 2. Open the World tab · spent $0.7'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open the World tab' })).toHaveAttribute(
+      'href',
+      '/admin/en/books/versions/draft-es?tab=world'
+    );
+    expect(screen.getByText('World: not started — translation failed')).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'World' }).closest('tr')).toHaveTextContent('$0.7');
+    unmount();
+
+    hooks.report = report([reportLanguage({})]);
+    render(<RunReportModal runId="r1" lang="en" writeAnalysis onClose={vi.fn()} />);
+    expect(screen.queryByText(/^World:/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('cell', { name: 'World' })).not.toBeInTheDocument();
   });
 });

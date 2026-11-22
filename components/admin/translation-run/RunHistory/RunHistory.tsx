@@ -105,6 +105,7 @@ export const RunHistory: FC<RunHistoryProps> = ({ versionId, bookId, lang }) => 
                         <RunSectionLines
                           writeSummary={run.writeSummary}
                           writeAnalysis={run.writeAnalysis}
+                          writeWorld={run.writeWorld}
                           language={r}
                           draftVersionId={r.draftVersionId}
                           lang={lang}
@@ -135,6 +136,7 @@ export const RunHistory: FC<RunHistoryProps> = ({ versionId, bookId, lang }) => 
           live={reported !== undefined && isRunRowLive(reported)}
           writeSummary={reported?.writeSummary ?? false}
           writeAnalysis={reported?.writeAnalysis ?? false}
+          writeWorld={reported?.writeWorld ?? false}
           onClose={() => setReportRunId(null)}
         />
       )}

@@ -7,7 +7,7 @@ import type {
 import { operationPauseText } from './translationRun.utils';
 
 /**
- * Общая часть строк разделов языка запуска — Summary (F06-5b) и Analysis (F07-3b): порядок разбора
+ * Общая часть строк разделов языка запуска — Summary (F06-5b), Analysis (F07-3b) и World (F08-9b): порядок разбора
  * причины, пауза и остановка хода, «не начат» и «ждёт», ссылка на вкладку. Свои у раздела — только
  * таблица кодов автозапуска, фразы вкладки, ход и «готов».
  */
@@ -33,7 +33,7 @@ export const inlinePhrase = (text: string): string =>
 
 /** Подписи раздела: имя в строке, ссылки на вкладку, коды автозапуска и фразы вкладки. */
 export interface SectionTexts {
-  name: 'Summary' | 'Analysis';
+  name: 'Summary' | 'Analysis' | 'World';
   openTab: string;
   writeOnTab: string;
   autostart: Readonly<Record<string, string>>;

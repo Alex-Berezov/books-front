@@ -90,8 +90,8 @@ export const RunOverview: FC<RunOverviewProps> = ({ runId, bookId }) => {
       )}
       {outcome.modelFlags > 0 && outcome.kind !== 'running' && (
         <p className={styles.meta}>
-          Model flags to review: {outcome.modelFlags} (see the details below and the Summary and
-          Analysis tabs)
+          Model flags to review: {outcome.modelFlags} (see the details below and the Summary,
+          Analysis and World tabs)
         </p>
       )}
 
@@ -115,6 +115,7 @@ export const RunOverview: FC<RunOverviewProps> = ({ runId, bookId }) => {
               <th scope="col">Translation</th>
               {run.data.writeSummary && <th scope="col">Summary</th>}
               {run.data.writeAnalysis && <th scope="col">Analysis</th>}
+              {run.data.writeWorld && <th scope="col">World</th>}
               <th scope="col">Total</th>
             </tr>
           </thead>
@@ -125,6 +126,7 @@ export const RunOverview: FC<RunOverviewProps> = ({ runId, bookId }) => {
                 <td>{formatMoney(r.translationUsd)}</td>
                 {run.data.writeSummary && <td>{formatMoney(r.summaryUsd)}</td>}
                 {run.data.writeAnalysis && <td>{formatMoney(r.analysisUsd)}</td>}
+                {run.data.writeWorld && <td>{formatMoney(r.worldUsd)}</td>}
                 <td>{formatMoney(r.totalUsd)}</td>
               </tr>
             ))}

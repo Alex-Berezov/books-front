@@ -167,6 +167,7 @@ export const RunProgress: FC<RunProgressProps> = ({ run, bookId, lang, onReport,
                 <RunSectionLines
                   writeSummary={run.writeSummary}
                   writeAnalysis={run.writeAnalysis}
+                  writeWorld={run.writeWorld}
                   language={l}
                   draftVersionId={l.draftVersionId}
                   lang={lang}

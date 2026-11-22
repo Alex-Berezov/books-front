@@ -70,6 +70,7 @@ const language = (over: Partial<TranslationRunLanguage> = {}): TranslationRunLan
   draftVersionId: null,
   summary: null,
   analysis: null,
+  world: null,
   ...over,
 });
 
@@ -84,6 +85,7 @@ const run = (over: Partial<TranslationRun> = {}): TranslationRun => ({
   languages: [language()],
   writeSummary: false,
   writeAnalysis: false,
+  writeWorld: false,
   createdAt: '2026-10-24T00:00:00.000Z',
   ...over,
 });
@@ -424,6 +426,7 @@ describe('Блок запуска перевода (F05-7)', () => {
       run({
         writeSummary: true,
         writeAnalysis: false,
+        writeWorld: false,
         languages: [
           language({ language: 'es', status: 'running' }),
           language({
@@ -461,6 +464,47 @@ describe('Блок запуска перевода (F05-7)', () => {
     );
   });
 
+  it('F08-9b: Write World — строка мира под языком в ходе, ожидание анализа и ссылка на вкладку World', () => {
+    const world = (over: object) => ({
+      status: 'pending' as const,
+      reason: null,
+      draftId: null,
+      operationStatus: null,
+      pauseReason: null,
+      stepsDone: 0,
+      stepsTotal: null,
+      flaggedItems: 0,
+      failedItems: 0,
+      spentUsd: '0',
+      ...over,
+    });
+    renderBlock(
+      run({
+        writeSummary: false,
+        writeAnalysis: true,
+        writeWorld: true,
+        languages: [
+          language({ language: 'es', status: 'running' }),
+          language({
+            language: 'fr',
+            status: 'done',
+            draftVersionId: 'draft-fr',
+            world: world({ status: 'failed', reason: 'WORLD_ANALYSIS_MISSING', draftId: 'w1' }),
+          }),
+        ],
+      })
+    );
+
+    expect(screen.getByText('World: waiting for translation')).toBeInTheDocument();
+    expect(
+      screen.getByText(/^World: failed — the analysis of this language is not ready/)
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open the World tab' })).toHaveAttribute(
+      'href',
+      '/admin/en/books/versions/draft-fr?tab=world'
+    );
+  });
+
   it('F06-5b: без Write Summary строки раздела нет', () => {
     renderBlock(run({ writeSummary: false }));
     expect(screen.queryByText(/^Summary:/)).not.toBeInTheDocument();
@@ -471,6 +515,7 @@ describe('Блок запуска перевода (F05-7)', () => {
       run({
         writeSummary: false,
         writeAnalysis: true,
+        writeWorld: false,
         languages: [
           language({ language: 'es', status: 'running' }),
           language({
@@ -505,6 +550,7 @@ describe('Блок запуска перевода (F05-7)', () => {
       run({
         writeSummary: true,
         writeAnalysis: true,
+        writeWorld: false,
         languages: [language({ language: 'es', status: 'running' })],
       })
     );

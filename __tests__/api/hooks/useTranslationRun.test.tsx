@@ -7,6 +7,7 @@ import {
   RUN_HISTORY_PAGE_SIZE,
   translationRunKeys,
   isAnalysisInFlight,
+  isWorldInFlight,
   isRunRowLive,
   isSummaryInFlight,
   translationRunRefetchInterval,
@@ -84,6 +85,7 @@ const language = (over: Partial<TranslationRunLanguage> = {}): TranslationRunLan
   draftVersionId: 'draft-es',
   summary: null,
   analysis: null,
+  world: null,
   ...over,
 });
 
@@ -98,6 +100,7 @@ const run = (over: Partial<TranslationRun> = {}): TranslationRun => ({
   languages: [],
   writeSummary: false,
   writeAnalysis: false,
+  writeWorld: false,
   createdAt: '2026-10-24T00:00:00.000Z',
   ...over,
 });
@@ -115,6 +118,7 @@ const item = (id: string, status: LlmOperation['status']): TranslationRunListIte
   costUsd: '0.00000000',
   writeSummary: false,
   writeAnalysis: false,
+  writeWorld: false,
   results: [],
 });
 
@@ -251,6 +255,7 @@ describe('Опрос хода запуска (решение арбитра F05 
       operation: operation({ status: 'done' }),
       writeSummary: false,
       writeAnalysis: true,
+      writeWorld: false,
       results: [
         {
           language: 'es' as const,
@@ -260,11 +265,113 @@ describe('Опрос хода запуска (решение арбитра F05 
           draftVersionId: 'draft-es',
           summary: null,
           analysis: analysisLine({}),
+          world: null,
         },
       ],
     };
     expect(isRunRowLive(row)).toBe(true);
     expect(isRunRowLive({ ...row, writeAnalysis: false })).toBe(false);
+  });
+
+  it('isWorldInFlight и живость строки истории - по миру языка (F08-9b)', () => {
+    const w = (
+      status: 'pending' | 'building' | 'ready',
+      operationStatus: LlmOperation['status'] | null = null
+    ) => ({
+      status,
+      reason: null,
+      draftId: null,
+      operationStatus,
+      pauseReason: null,
+      stepsDone: 0,
+      stepsTotal: null,
+      flaggedItems: 0,
+      failedItems: 0,
+      spentUsd: '0',
+    });
+    const live = analysisLine({});
+    const paused = analysisLine({ operationStatus: 'paused', pauseReason: 'LIMIT_REACHED' });
+    const ready = analysisLine({ status: 'ready', operationStatus: 'done', coreReady: true });
+    const failed = analysisLine({ status: 'failed', operationStatus: 'failed' });
+    // `pending` мира не идёт, только пока ход анализа языка застрял (`building`, операция стоит);
+    // готовый или кончившийся анализ бэкенд сам доводит до старта мира или `WORLD_ANALYSIS_MISSING`.
+    expect(isWorldInFlight([{ world: null, analysis: live }])).toBe(false);
+    expect(isWorldInFlight([{ world: w('pending'), analysis: live }])).toBe(true);
+    expect(isWorldInFlight([{ world: w('pending'), analysis: null }])).toBe(true);
+    expect(isWorldInFlight([{ world: w('pending'), analysis: ready }])).toBe(true);
+    expect(isWorldInFlight([{ world: w('pending'), analysis: failed }])).toBe(true);
+    expect(isWorldInFlight([{ world: w('pending'), analysis: paused }])).toBe(false);
+    // Анализ ведут на вкладке (автозапуск пропущен или отброшен) — мир ждёт не запуска: без опроса.
+    expect(
+      isWorldInFlight([
+        {
+          world: w('pending'),
+          analysis: analysisLine({ status: 'skipped', operationStatus: null }),
+        },
+      ])
+    ).toBe(false);
+    expect(
+      isWorldInFlight([
+        {
+          world: w('pending'),
+          analysis: analysisLine({ status: 'discarded', operationStatus: null }),
+        },
+      ])
+    ).toBe(false);
+    expect(
+      isWorldInFlight([{ world: w('pending'), analysis: analysisLine({ operationStatus: null }) }])
+    ).toBe(false);
+    expect(
+      isWorldInFlight([
+        { world: w('pending'), analysis: analysisLine({ operationStatus: 'cancelled' }) },
+      ])
+    ).toBe(false);
+    // Ход мира — общее правило разделов, от анализа не зависит.
+    expect(isWorldInFlight([{ world: w('building', 'active'), analysis: ready }])).toBe(true);
+    expect(isWorldInFlight([{ world: w('building', 'paused'), analysis: ready }])).toBe(false);
+    expect(isWorldInFlight([{ world: w('ready', 'done'), analysis: ready }])).toBe(false);
+
+    // Опрос хода: анализ на паузе и мир его ждёт — опрос встаёт (решение арбитра `F08 | F08-9b-2`).
+    const withWorld = (analysis: TranslationRunAnalysis | null) =>
+      run({
+        operation: operation({ status: 'done' }),
+        writeSummary: false,
+        writeAnalysis: true,
+        writeWorld: true,
+        languages: [language({ status: 'done', summary: null, analysis, world: w('pending') })],
+      });
+    expect(translationRunRefetchInterval(withWorld(paused))).toBe(false);
+    expect(translationRunRefetchInterval(withWorld(live))).toBe(5_000);
+    expect(translationRunRefetchInterval(withWorld(ready))).toBe(5_000);
+    expect(translationRunRefetchInterval(withWorld(null))).toBe(5_000);
+    expect(translationRunRefetchInterval({ ...withWorld(paused), writeAnalysis: false })).toBe(
+      false
+    );
+    // Ответ прежнего бэкенда без поля `world` — без опроса и без падения.
+    const old = withWorld(live);
+    delete (old.languages[0] as Partial<TranslationRunLanguage>).world;
+    expect(translationRunRefetchInterval({ ...old, writeAnalysis: false })).toBe(false);
+    const row = {
+      operation: operation({ status: 'done' }),
+      writeSummary: false,
+      writeAnalysis: true,
+      writeWorld: true,
+      results: [
+        {
+          language: 'es' as const,
+          status: 'done' as const,
+          reason: null,
+          reasonText: null,
+          draftVersionId: 'draft-es',
+          summary: null,
+          // Анализ готов: строку держит живой ожидание мира, а не анализ.
+          analysis: ready,
+          world: w('pending'),
+        },
+      ],
+    };
+    expect(isRunRowLive(row)).toBe(true);
+    expect(isRunRowLive({ ...row, writeWorld: false })).toBe(false);
   });
 
   it('isSummaryInFlight — по строкам списка запусков', () => {
@@ -286,6 +393,7 @@ const summaryRun = (runStatus: LlmOperation['status'], summary: TranslationRunSu
     operation: operation({ status: runStatus }),
     writeSummary: true,
     writeAnalysis: false,
+    writeWorld: false,
     languages: [language({ status: 'done', summary })],
   });
 
@@ -295,6 +403,7 @@ const analysisRun = (analysis: TranslationRunAnalysis) =>
     operation: operation({ status: 'done' }),
     writeSummary: false,
     writeAnalysis: true,
+    writeWorld: false,
     languages: [language({ status: 'done', summary: null, analysis })],
   });
 
@@ -707,6 +816,7 @@ describe('Хуки запуска перевода', () => {
       ...item('w', 'done'),
       writeSummary: true,
       writeAnalysis: false,
+      writeWorld: false,
       results: [
         {
           language: 'es' as const,
@@ -716,6 +826,7 @@ describe('Хуки запуска перевода', () => {
           draftVersionId: 'draft-es',
           summary: writingSummary,
           analysis: null,
+          world: null,
         },
       ],
     };
@@ -726,6 +837,7 @@ describe('Хуки запуска перевода', () => {
       ...writing,
       writeSummary: false,
       writeAnalysis: true,
+      writeWorld: false,
       results: [{ ...writing.results[0], summary: null, analysis: writingAnalysis }],
     };
     expect(interval({ state: { status: 'success', data: page([analysing]) } })).toBe(5_000);
