@@ -10,9 +10,12 @@ import { useWorldEntityCard, type WorldEntityCardOptions } from './useWorldEntit
 import { unplacedIssues, WorldEntityFields } from './WorldEntityFields';
 import { isWorldPublished, WORLD_HIDDEN_UNTIL_READ, worldReadLabel } from './worldErrors';
 import { FieldIssues } from './WorldFieldIssues';
+import { WorldImagePanel } from './WorldImagePanel';
 import styles from './WorldTab.module.scss';
 
 interface WorldEntityCardProps extends WorldEntityCardOptions {
+  /** Ручки иллюстрации — только `admin` (решение `F08 | F08-11` Р5): остальным панели нет. */
+  isAdmin: boolean;
   /** Модуль проверок не загрузился: окно импорта показывает повтор. */
   validationFailed: boolean;
   onRetryValidation: () => void;
@@ -25,7 +28,7 @@ interface WorldEntityCardProps extends WorldEntityCardOptions {
  * Логика — `useWorldEntityCard`, поля — `WorldEntityFields`.
  */
 export const WorldEntityCard: FC<WorldEntityCardProps> = (props) => {
-  const { entityKey, validation, validationFailed, onRetryValidation, onClose } = props;
+  const { entityKey, isAdmin, validation, validationFailed, onRetryValidation, onClose } = props;
   const card = useWorldEntityCard(props);
   const [importOpen, setImportOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -94,6 +97,10 @@ export const WorldEntityCard: FC<WorldEntityCardProps> = (props) => {
         onReloadPresence={card.reloadPresence}
         presenceReloadError={card.presenceReloadError}
       />
+
+      {isAdmin && entityKey !== null && entity && entityType === 'character' && (
+        <WorldImagePanel versionId={props.versionId} entityKey={entityKey} name={entity.name} />
+      )}
 
       {card.issues.length > 0 && (
         <div className={styles.error} role="alert">

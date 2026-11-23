@@ -175,3 +175,30 @@
   color: $color-primary;
   text-decoration: underline;
 }
+
+.imagePanel {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.imageRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+}
+
+.imageFigure {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin: 0;
+}
+
+.image {
+  width: 12rem;
+  max-width: 100%;
+  height: auto;
+  border: $border-width-base solid $color-border-light;
+  border-radius: $border-radius-base;
+}

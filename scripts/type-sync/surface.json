@@ -7510,6 +7510,31 @@
     ]
   },
   {
+    "route": "GET /admin/versions/{id}/world/{key}/image",
+    "hasResponseSchema": true,
+    "fields": [
+      "accepted",
+      "accepted.height",
+      "accepted.mediaId",
+      "accepted.url",
+      "accepted.width",
+      "acceptedAt",
+      "allowed",
+      "estimateUsd",
+      "generation",
+      "generation.failedReason",
+      "generation.operationId",
+      "generation.spentUsd",
+      "generation.status",
+      "key",
+      "pending",
+      "pending.height",
+      "pending.mediaId",
+      "pending.url",
+      "pending.width"
+    ]
+  },
+  {
     "route": "GET /books",
     "hasResponseSchema": true,
     "fields": [
@@ -16031,6 +16056,56 @@
       "writeAnalysis",
       "writeSummary",
       "writeWorld"
+    ]
+  },
+  {
+    "route": "POST /admin/versions/{id}/world/{key}/image",
+    "hasResponseSchema": true,
+    "fields": [
+      "accepted",
+      "accepted.height",
+      "accepted.mediaId",
+      "accepted.url",
+      "accepted.width",
+      "acceptedAt",
+      "allowed",
+      "estimateUsd",
+      "generation",
+      "generation.failedReason",
+      "generation.operationId",
+      "generation.spentUsd",
+      "generation.status",
+      "key",
+      "pending",
+      "pending.height",
+      "pending.mediaId",
+      "pending.url",
+      "pending.width"
+    ]
+  },
+  {
+    "route": "POST /admin/versions/{id}/world/{key}/image/accept",
+    "hasResponseSchema": true,
+    "fields": [
+      "accepted",
+      "accepted.height",
+      "accepted.mediaId",
+      "accepted.url",
+      "accepted.width",
+      "acceptedAt",
+      "allowed",
+      "estimateUsd",
+      "generation",
+      "generation.failedReason",
+      "generation.operationId",
+      "generation.spentUsd",
+      "generation.status",
+      "key",
+      "pending",
+      "pending.height",
+      "pending.mediaId",
+      "pending.url",
+      "pending.width"
     ]
   },
   {

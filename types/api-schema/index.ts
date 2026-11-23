@@ -528,6 +528,7 @@ export type {
 
 // Book world (F08-1, 14.11.2026)
 export type {
+  AcceptWorldImageRequest,
   BookOverviewWorldKey,
   BookWorldAdaptation,
   BookWorldAlternate,
@@ -565,6 +566,9 @@ export type {
   SetBookWorldFlagsRequest,
   WorldBeaconRequest,
   WorldEntityType,
+  WorldImageFile,
+  WorldImageGeneration,
+  WorldImageState,
   WorldSitemapEntity,
   WorldSitemapItem,
   WorldStatEvent,

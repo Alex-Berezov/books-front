@@ -31,6 +31,12 @@ export const bookWorldQueryKeys = {
   entities: (versionId: string) => [...bookWorldQueryKeys.all, 'entity', versionId] as const,
   entity: (versionId: string, key: string) =>
     [...bookWorldQueryKeys.entities(versionId), key] as const,
+  /**
+   * Иллюстрация героя (F08-11b) — под ключом сущности: запись, импорт и удаление сущности, которые
+   * сбрасывают карточку, сбрасывают и её (`allowed` зависит от роли и внешности).
+   */
+  image: (versionId: string, key: string) =>
+    [...bookWorldQueryKeys.entity(versionId, key), 'image'] as const,
 };
 
 /** Позиция ключа сущности в `bookWorldQueryKeys.entity` — из самой фабрики, не числом. */
@@ -177,6 +183,8 @@ export const useSaveBookWorldEntity = () => {
       // Пересчёт поставлен на всю версию: карточки соседей перечитываются, своя — из ответа.
       if (res.recountQueued) invalidateBookWorld(queryClient, versionId, key);
       else void queryClient.invalidateQueries({ queryKey: bookWorldQueryKeys.list(versionId) });
+      // Роль и внешность могли смениться: можно ли иллюстрацию — перечитать (F08-11b).
+      void queryClient.invalidateQueries({ queryKey: bookWorldQueryKeys.image(versionId, key) });
       // Сохранённая сущность пришла в ответе — карточка берёт её, второго GET нет.
       const entity = res.entity;
       if (!entity) {

@@ -7,6 +7,7 @@
 
 import type { BookAnalysisRole } from './book-analysis';
 import type { ISODate } from './common';
+import type { LlmOperation } from './llm';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /** Тип сущности; запись принимает `character` и `pair` (F08-8c), прочие — пачками своего типа. */
@@ -241,6 +242,45 @@ export interface BookWorldImage {
   url: string;
   width: number | null;
   height: number | null;
+}
+
+/** Файл иллюстрации во вкладке World: публичный адрес, размеры из заголовка и id медиа для «Accept» (F08-11a). */
+export interface WorldImageFile extends BookWorldImage {
+  mediaId: string;
+}
+
+/** Последняя генерация иллюстрации: статус операции и причина отказа - код задачи (F08-11a). */
+export interface WorldImageGeneration {
+  operationId: string;
+  status: LlmOperation['status'];
+  /**
+   * Код отказа: `WORLD_IMAGE_NOT_IMAGE`, `WORLD_IMAGE_TOO_SMALL`, `WORLD_IMAGE_TOO_LARGE`,
+   * `WORLD_IMAGE_INPUT_MISSING` или код LLM (`LLM_INSUFFICIENT_FUNDS`, `LLM_UNAVAILABLE`...);
+   * `null` - идёт или удалась.
+   */
+  failedReason: string | null;
+  /** Потрачено на эту генерацию, USD (десятичная строка). */
+  spentUsd: string;
+}
+
+/** Иллюстрация героя во вкладке World: принятая, ожидающая принятия и последняя генерация (F08-11a). */
+export interface WorldImageState {
+  key: string;
+  /** Герой `main`/`secondary` с текстом внешности: иллюстрация возможна. */
+  allowed: boolean;
+  /** Принятая: её видит сайт. */
+  accepted: WorldImageFile | null;
+  acceptedAt: string | null;
+  /** Сгенерированная и ждущая «Accept»: сайт её не показывает никогда. */
+  pending: WorldImageFile | null;
+  generation: WorldImageGeneration | null;
+  /** Потолок одной генерации, USD (десятичная строка). */
+  estimateUsd: string;
+}
+
+/** Тело `POST .../image/accept`: какую ожидающую картинку видел администратор. */
+export interface AcceptWorldImageRequest {
+  pendingMediaId: string;
 }
 
 /** Сущность в теле записи. Ключа поля нет — поле не трогается (слияние на сервере). */

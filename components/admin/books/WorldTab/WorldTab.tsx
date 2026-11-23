@@ -217,14 +217,11 @@ const WorldTabContent: FC<Omit<WorldTabProps, 'isEditor'>> = (props) => {
           versionId={versionId}
           language={version.language}
           entityKey={tab.selected}
+          isAdmin={isAdmin}
           validation={tab.validation}
           validationFailed={tab.validationFailed}
           onRetryValidation={tab.retryValidation}
-          initialCheck={
-            tab.createdCheck && tab.createdCheck.key === tab.selected
-              ? tab.createdCheck.check
-              : null
-          }
+          initialCheck={tab.createdCheck?.key === tab.selected ? tab.createdCheck.check : null}
           onClose={() => tab.select(undefined)}
           onCreated={tab.openCreated}
         />
