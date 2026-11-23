@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { getPublicBookWorld, getPublicBookWorldEntity } from '@/api/endpoints/public';
 import { ApiError } from '@/types/api';
+import type { BookWorldEntityResponse } from '@/types/api-schema';
 import { server } from '../../msw/server';
 
 /**
@@ -38,16 +39,25 @@ describe('getPublicBookWorld и getPublicBookWorldEntity', () => {
         url = new URL(request.url).pathname;
         country = request.headers.get('x-visitor-country');
         authorization = request.headers.get('authorization');
+        // Ответ - по рукописному типу (F08-11a): поле `image` и его форма сверяются `tsc`.
         return HttpResponse.json({
           language: 'en',
           chapterNumbers: [1],
-          entity: {},
+          entity: {} as BookWorldEntityResponse['entity'],
           alternates: [],
-        });
+          image: { url: 'https://media.example/illustrations/a.png', width: 1536, height: null },
+        } satisfies BookWorldEntityResponse);
       })
     );
 
-    await getPublicBookWorldEntity('ver-1', 'anna-lark');
+    const res = await getPublicBookWorldEntity('ver-1', 'anna-lark');
+
+    // F08-11a: принятая иллюстрация доходит как пришла, размер без заголовка - null.
+    expect(res.image).toEqual({
+      url: 'https://media.example/illustrations/a.png',
+      width: 1536,
+      height: null,
+    });
 
     expect(url).toBe('/api/versions/ver-1/world/anna-lark');
     expect(country).toBe('XX');

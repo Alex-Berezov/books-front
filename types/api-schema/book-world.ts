@@ -229,6 +229,18 @@ export interface BookWorldEntityResponse {
   entity: BookWorldEntity;
   /** Кластер hreflang страницы сущности; пусто — страница не индексируется. */
   alternates: BookWorldAlternate[];
+  /**
+   * Принятая иллюстрация сущности (F08-11a): одна на книгу и ключ, общая для всех языков; `null` —
+   * нет или ещё не принята. Ожидающая принятия картинка сюда не попадает никогда, редактору тоже.
+   */
+  image: BookWorldImage | null;
+}
+
+/** Иллюстрация сущности: абсолютный адрес исходника и размеры из заголовка файла (F08-11a). */
+export interface BookWorldImage {
+  url: string;
+  width: number | null;
+  height: number | null;
 }
 
 /** Сущность в теле записи. Ключа поля нет — поле не трогается (слияние на сервере). */

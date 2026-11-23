@@ -8436,6 +8436,10 @@
       "entity.sources[].url",
       "entity.type",
       "entity.updatedAt",
+      "image",
+      "image.height",
+      "image.url",
+      "image.width",
       "language"
     ]
   },

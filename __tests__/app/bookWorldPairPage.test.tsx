@@ -234,6 +234,7 @@ const entityResponse = (entity: BookWorldEntity): BookWorldEntityResponse => ({
   chapterNumbers: [1, 2, 3],
   entity,
   alternates: ALTERNATES,
+  image: null,
 });
 
 const loadEntity = () => import('@/app/[lang]/book/[slug]/wiki/[entity]/page');

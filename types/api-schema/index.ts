@@ -547,6 +547,7 @@ export type {
   BookWorldListEntity,
   BookWorldExpected,
   BookWorldFaq,
+  BookWorldImage,
   BookWorldListResponse,
   BookWorldMentions,
   BookWorldPairFields,

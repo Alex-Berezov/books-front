@@ -72,6 +72,7 @@ export const detail = (key: string): BookWorldEntityResponse => ({
   language: 'en',
   chapterNumbers: [1, 2],
   alternates: [],
+  image: null,
   entity: {
     ...row(
       { key, name: 'Sonya', updatedAt: ENTITY_SEEN },

@@ -233,6 +233,7 @@ const entityResponse = (entity: Record<string, unknown>, over: Record<string, un
   chapterNumbers: [1, 2, 3],
   entity,
   alternates: ALTERNATES,
+  image: null,
   ...over,
 });
 
