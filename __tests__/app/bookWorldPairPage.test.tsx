@@ -272,6 +272,20 @@ beforeEach(() => {
 });
 
 describe('страница пары героев', () => {
+  it('картинка в ответе пары не выводится и не идёт в Article.image (Р5, F08-11c)', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue({
+      ...entityResponse(PAIR_ENTITY),
+      image: {
+        url: 'https://media.bibliaris.com/illustrations/pair.png',
+        width: 1200,
+        height: 1200,
+      },
+    });
+    const { container } = await renderEntity(PAIR_KEY);
+    expect(container.querySelector('figure')).toBeNull();
+    expect(container.innerHTML).not.toContain('pair.png');
+  });
+
   it('h1 «{Имя} и {Имя}: сравнительная характеристика», порядок разделов, оглавление ровно из них', async () => {
     await renderEntity(PAIR_KEY);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(

@@ -131,3 +131,26 @@
     }
   }
 }
+
+// Иллюстрация героя (F08-11c): на телефоне по ширине экрана, на широком окне не больше колонки.
+.illustration {
+  max-width: $layout-max-width-sm;
+  margin: 0 0 $spacing-md;
+}
+
+.illustrationImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: $border-radius-lg;
+}
+
+.illustrationCaption {
+  margin-top: $spacing-xs;
+  font-size: $font-size-sm;
+  opacity: 0.7;
+
+  a {
+    color: inherit;
+  }
+}

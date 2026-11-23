@@ -2,7 +2,7 @@ import type { ChapterLinker } from '../analysis/AnalysisBlocks';
 import type { LinkSession } from '@/lib/book-world/link-entities';
 import type { AnalysisStrings } from '@/lib/i18n/analysisStrings';
 import type { WorldStrings } from '@/lib/i18n/worldStrings';
-import type { BookWorldEntity } from '@/types/api-schema';
+import type { BookWorldEntity, BookWorldImage } from '@/types/api-schema';
 
 /** Герой версии для ссылок: имя, адрес страницы (только у публичных) и «Коротко» для карточки. */
 export interface WorldPerson {
@@ -12,8 +12,18 @@ export interface WorldPerson {
   short?: string | null;
 }
 
+/** Иллюстрация героя на странице (F08-11c): файл, готовые `alt` и подпись, адрес редполитики. */
+export interface WorldIllustration {
+  image: BookWorldImage;
+  alt: string;
+  caption: string;
+  policyHref: string;
+}
+
 export interface WorldEntitySectionsInput {
   entity: BookWorldEntity;
+  /** Принятая иллюстрация героя; `null` - нет (у пары и не-героя тоже нет). */
+  illustration: WorldIllustration | null;
   /**
    * Текстовая версия книги на языке страницы (`versionIds.text`): под ней читалка пишет прогресс,
    * по нему спойлер-остров сворачивает элементы (`F08-10b`). `null` - текста нет, свёртки нет.

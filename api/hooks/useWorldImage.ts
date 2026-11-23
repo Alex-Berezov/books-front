@@ -14,23 +14,30 @@ import { bookWorldQueryKeys } from './useBookWorld';
 /** Пока генерация идёт, состояние перечитывается с этим шагом. */
 const WORLD_IMAGE_POLL_MS = 3000;
 
+/**
+ * На паузе — реже: генерацию могут продолжить или отменить в другом месте (другая вкладка,
+ * «LLM settings»), и отказ «уже идёт» снимается только по новому состоянию (решение `F08 | F08-11c`).
+ */
+const WORLD_IMAGE_PAUSED_POLL_MS = 10000;
+
 /** Идёт ли генерация: пока да, вкладка опрашивает ручку состояния и не даёт начать вторую. */
 export const isWorldImageRunning = (state: WorldImageState | undefined) =>
   state?.generation?.status === 'active';
 
 /**
- * Состояние иллюстрации; ручки только `admin` — панель зовут только ему. Отказ перечитывания
- * останавливает опрос: панель показывает его с «Retry», а не стучит в ручку каждые 3 с.
+ * Состояние иллюстрации; ручки только `admin` — панель зовут только ему. Идущая генерация
+ * перечитывается каждые 3 с, на паузе — каждые 10 с. Отказ перечитывания останавливает опрос: панель показывает его с «Retry», а не стучит в ручку каждые 3 с.
  */
 export const useWorldImage = (versionId: string, key: string) =>
   useQuery({
     queryKey: bookWorldQueryKeys.image(versionId, key),
     queryFn: () => getWorldImage(versionId, key),
     staleTime: 0,
-    refetchInterval: (query) =>
-      query.state.status !== 'error' && isWorldImageRunning(query.state.data)
-        ? WORLD_IMAGE_POLL_MS
-        : false,
+    refetchInterval: (query) => {
+      if (query.state.status === 'error') return false;
+      if (isWorldImageRunning(query.state.data)) return WORLD_IMAGE_POLL_MS;
+      return query.state.data?.generation?.status === 'paused' ? WORLD_IMAGE_PAUSED_POLL_MS : false;
+    },
   });
 
 /** «Generate»/«Regenerate»: ответ 202 несёт новое состояние — идущую генерацию. */

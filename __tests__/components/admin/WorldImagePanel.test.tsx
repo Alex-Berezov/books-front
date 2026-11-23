@@ -129,6 +129,17 @@ describe('WorldImagePanel (F08-11b)', () => {
     );
   });
 
+  it('a pending picture while a new generation runs: Accept is locked (F08-11c, tail of 11b)', async () => {
+    server.use(
+      http.get(URL_IMAGE, () =>
+        HttpResponse.json(state({ pending: file('p1'), generation: generation() }))
+      )
+    );
+    renderPanel();
+    expect(await screen.findByText('Generating the illustration…')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled();
+  });
+
   it('Regenerate posts once and shows the running state with the button locked', async () => {
     let posts = 0;
     server.use(
@@ -352,6 +363,56 @@ describe('WorldImagePanel (F08-11b)', () => {
     await vi.advanceTimersByTimeAsync(9000);
     expect(gets).toBe(2);
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+  });
+
+  it('409 «already running» on a paused generation goes away when the paused poll sees a new generation', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    let moved = false;
+    server.use(
+      http.get(URL_IMAGE, () =>
+        HttpResponse.json(
+          moved
+            ? state({ generation: generation({ operationId: 'op2', status: 'failed' }) })
+            : state({ generation: generation({ status: 'paused' }) })
+        )
+      ),
+      http.post(URL_IMAGE, () => conflict('WORLD_IMAGE_IN_PROGRESS'))
+    );
+    renderPanel();
+    fireEvent.click(await screen.findByRole('button', { name: 'Generate' }));
+    expect(await screen.findByText(/already running/)).toBeInTheDocument();
+    // Перечитывание из onError отдало ту же паузу - строка отказа стоит.
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(screen.getByText(/already running/)).toBeInTheDocument();
+    // Генерацию сдвинули в другом месте: опрос паузы (10 с) приносит новое состояние без клика.
+    moved = true;
+    await vi.advanceTimersByTimeAsync(10000);
+    await waitFor(() => expect(screen.queryByText(/already running/)).toBeNull());
+  });
+
+  it('409 whose re-read already shows another generation keeps the refusal line', async () => {
+    let gets = 0;
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    server.use(
+      http.get(URL_IMAGE, async () => {
+        gets += 1;
+        // Перечитывание из onError держится до явного отпуска: снимок ключа - после него.
+        if (gets > 1) await held;
+        return HttpResponse.json(
+          gets === 1 ? state() : state({ generation: generation({ status: 'paused' }) })
+        );
+      }),
+      http.post(URL_IMAGE, () => conflict('WORLD_IMAGE_IN_PROGRESS'))
+    );
+    const client = renderPanel();
+    fireEvent.click(await screen.findByRole('button', { name: 'Generate' }));
+    expect(await screen.findByText(/already running/)).toBeInTheDocument();
+    await waitFor(() => expect(gets).toBe(2));
+    release();
+    await waitFor(() => expect(client.isFetching()).toBe(0));
+    expect(await screen.findByText(/The generation is paused/)).toBeInTheDocument();
+    expect(screen.getByText(/already running/)).toBeInTheDocument();
   });
 
   it('409 on Generate shows the server code as text and re-reads the state', async () => {

@@ -11,6 +11,7 @@ import { Button } from '@/components/admin/common/Button';
 import { formatMoney } from '@/components/admin/llm-settings/LlmSettings/llmSettings.utils';
 import { Spinner } from '@/components/admin/shared';
 import { isServerFailure } from '@/lib/admin/request-errors';
+import { worldImageSize } from '@/lib/book-world/image';
 import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { WorldImageFile } from '@/types/api-schema';
 import {
@@ -26,9 +27,6 @@ interface WorldImagePanelProps {
   name: string;
 }
 
-/** Размер стороны, если сервер не прочёл размеры файла: портрет 1:1 от 1200 px (`tech.md` §10). */
-const PREVIEW_SIDE = 1200;
-
 const Figure: FC<{ title: string; file: WorldImageFile; name: string }> = ({
   title,
   file,
@@ -38,8 +36,7 @@ const Figure: FC<{ title: string; file: WorldImageFile; name: string }> = ({
     <Image
       src={file.url}
       alt={`${name}: ${title}`}
-      width={file.width ?? PREVIEW_SIDE}
-      height={file.height ?? PREVIEW_SIDE}
+      {...worldImageSize(file)}
       sizes="12rem"
       unoptimized={!isOptimizableHost(file.url)}
       className={styles.image}
@@ -64,6 +61,7 @@ export const WorldImagePanel: FC<WorldImagePanelProps> = ({ versionId, entityKey
   const state = query.data;
   const running = isWorldImageRunning(state);
   const wasRunning = useRef(running);
+  const errorGenerationKey = useRef<string | null>(null);
   const { reset: resetGenerate } = generate;
   const { reset: resetAccept } = accept;
 
@@ -75,6 +73,28 @@ export const WorldImagePanel: FC<WorldImagePanelProps> = ({ versionId, entityKey
     }
     wasRunning.current = running;
   }, [running, resetGenerate, resetAccept]);
+
+  // Отказ Generate (409 «уже идёт» при паузе на идущем шаге) снимается, когда генерация в состоянии
+  // сменилась (решение `F08 | F08-11c`, хвост 11b). Снимок ключа берётся после перечитывания из
+  // `onError` (`!isFetching`): само это перечитывание сообщение не съедает.
+  const generationKey = state?.generation
+    ? `${state.generation.operationId}:${state.generation.status}`
+    : '';
+  const generateFailed = generate.error !== null;
+  const fetching = query.isFetching;
+  useEffect(() => {
+    if (!generateFailed) {
+      errorGenerationKey.current = null;
+      return;
+    }
+    if (fetching) return;
+    if (errorGenerationKey.current === null) {
+      errorGenerationKey.current = generationKey;
+    } else if (errorGenerationKey.current !== generationKey) {
+      errorGenerationKey.current = null;
+      resetGenerate();
+    }
+  }, [generateFailed, fetching, generationKey, resetGenerate]);
 
   if (!state) {
     return (

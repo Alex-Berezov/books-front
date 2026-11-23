@@ -1,7 +1,11 @@
 import { Fragment, type ReactNode } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { hasText } from '@/lib/book-analysis/format';
 import { fillTemplate, isLastThirdChapter, presenceChapters } from '@/lib/book-world/format';
+import { worldImageSize } from '@/lib/book-world/image';
 import { analysisRoleLabels } from '@/lib/i18n/analysisStrings';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { WorldEntitySectionsInput } from './worldEntityTypes';
 import type { PageSection } from '../analysis/PageSections';
 import styles from './wiki.module.scss';
@@ -48,19 +52,39 @@ export function buildEntityProfileSections(input: WorldEntitySectionsInput): Pag
   if (present.length > 0) {
     infoRows.push({ label: strings.worldInfoChapters, value: present.length });
   }
-  if (infoRows.length > 0) {
+  const { illustration } = input;
+  if (infoRows.length > 0 || illustration) {
     sections.push({
       id: WORLD_ANCHORS.about,
       title: strings.worldInfoboxTitle,
       body: (
-        <dl className={analysisStyles.facts}>
-          {infoRows.map((row) => (
-            <div key={row.label} className={analysisStyles.fact}>
-              <dt>{row.label}</dt>
-              <dd>{row.value}</dd>
-            </div>
-          ))}
-        </dl>
+        <>
+          {illustration ? (
+            <figure className={styles.illustration}>
+              <Image
+                src={illustration.image.url}
+                alt={illustration.alt}
+                {...worldImageSize(illustration.image)}
+                sizes="100vw"
+                unoptimized={!isOptimizableHost(illustration.image.url)}
+                className={styles.illustrationImage}
+              />
+              <figcaption className={styles.illustrationCaption}>
+                <Link href={illustration.policyHref}>{illustration.caption}</Link>
+              </figcaption>
+            </figure>
+          ) : null}
+          {infoRows.length > 0 ? (
+            <dl className={analysisStyles.facts}>
+              {infoRows.map((row) => (
+                <div key={row.label} className={analysisStyles.fact}>
+                  <dt>{row.label}</dt>
+                  <dd>{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+        </>
       ),
     });
   }

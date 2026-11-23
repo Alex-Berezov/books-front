@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'De onde vêm os textos do Bibliaris, quem prepara os resumos e escreve as descrições, como são elaboradas as análises de livros, como os textos dos livros são preparados e como os erros são corrigidos.',
   title: 'Política editorial',
-  updatedAt: '2026-11-17',
+  updatedAt: '2026-11-23',
   toc: false,
   sections: [
     {
@@ -184,6 +184,15 @@ export const document: LegalDocument = {
             {
               kind: 'text',
               text: 'Tudo o que vem de fora do livro (crítica, protótipos, adaptações) entra apenas com uma fonte, e suas fontes são listadas na mesma página, abaixo do bloco. Numa página escrita diretamente no site, o site abre a página indicada em cada bloco e verifica se ela responde e menciona este livro ou o seu autor; uma fonte que não passa na verificação é retirada da lista do bloco, e um bloco em que nenhuma fonte é confirmada é removido. Essa verificação mostra que a fonte existe e diz respeito ao livro, não que diga a mesma coisa, por isso a redação lê esses blocos antes de publicar.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'As ilustrações dos personagens são criadas com um modelo de geração de imagens a partir da descrição da aparência do personagem no texto do livro, sem os rostos de atores reais de adaptações para o cinema e a TV e sem imitar artistas reconhecíveis. A redação revisa e aceita cada ilustração antes de publicá-la, e cada ilustração leva uma legenda com link para esta seção. Uma ilustração é uma interpretação visual, não um retrato tirado do livro; a mesma ilustração serve a todas as versões de idioma da página.',
             },
           ],
         },

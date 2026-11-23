@@ -11,7 +11,11 @@ import { worldPath } from '@/lib/seo/world-path';
 import { resolveBookForSubroute } from '@/lib/utils/book-route-guard';
 import { serializeJsonLd } from '@/lib/utils/json-ld';
 import { logError } from '@/lib/utils/log-error';
-import type { WorldEntitySectionsInput, WorldPairMember } from '../worldEntityTypes';
+import type {
+  WorldEntitySectionsInput,
+  WorldIllustration,
+  WorldPairMember,
+} from '../worldEntityTypes';
 import type { SupportedLang } from '@/lib/i18n/lang';
 import type { Metadata } from 'next';
 import { PageSections } from '../../analysis/PageSections';
@@ -108,8 +112,20 @@ export default async function BookWorldEntityPage({ params }: Props) {
         })
       : [];
 
+  // Иллюстрация (F08-11c): только у героя; `alt` и подпись - по языку страницы, файл общий.
+  const image = entity.type === 'character' ? (detail.image ?? null) : null;
+  const illustration: WorldIllustration | null = image
+    ? {
+        image,
+        alt: fillTemplate(strings.worldImageAlt, { name: entity.name, title: ctx.title }),
+        caption: strings.worldImageCaption,
+        policyHref: `/${supportedLang}/editorial-policy#world`,
+      }
+    : null;
+
   const sectionsInput: WorldEntitySectionsInput = {
     entity,
+    illustration,
     progressVersionId: book.versionIds?.text ?? null,
     chapterNumbers,
     strings,
@@ -155,7 +171,7 @@ export default async function BookWorldEntityPage({ params }: Props) {
     editorialTeam: t.editorialTeam,
     createdAt: entity.createdAt,
     updatedAt: entity.updatedAt,
-    coverUrl: book.coverUrl,
+    coverUrl: image?.url ?? book.coverUrl,
   });
 
   const worldHref = `/${supportedLang}${worldPath(ctx.bookSlug)}`;

@@ -805,6 +805,146 @@ describe('страница героя: полный герой', () => {
   });
 });
 
+describe('страница героя: иллюстрация (F08-11c)', () => {
+  const IMAGE = {
+    url: 'https://media.bibliaris.com/illustrations/anna.png',
+    width: 1200,
+    height: 1200,
+  };
+
+  beforeEach(() => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(ENTITY_FULL, { image: IMAGE }));
+  });
+
+  it('принятая картинка: alt, подпись со ссылкой на редполитику и Article.image', async () => {
+    const { container } = await renderEntity();
+    const img = container.querySelector('figure img') as HTMLImageElement;
+    expect(img).not.toBeNull();
+    expect(img.alt).toBe('Anna Lark, illustration for the book “World Book”');
+    const caption = within(container.querySelector('figure') as HTMLElement).getByRole('link', {
+      name: 'Editorial illustration, created with AI',
+    });
+    expect(caption).toHaveAttribute('href', '/en/editorial-policy#world');
+    const data = JSON.parse(
+      container.querySelector('script[type="application/ld+json"]')?.textContent ?? '{}'
+    );
+    expect(data.image).toBe(IMAGE.url);
+  });
+
+  it('ru: alt и подпись по языку, ссылка - на русскую редполитику', async () => {
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        versions: [version('en', 'world-book', 3), version('ru', 'mir-kniga', 3)],
+        slug: 'mir-kniga',
+      })
+    );
+    const { container } = await renderEntity('anna', 'ru', 'mir-kniga');
+    const figure = container.querySelector('figure') as HTMLElement;
+    expect((figure.querySelector('img') as HTMLImageElement).alt).toBe(
+      'Anna Lark, иллюстрация к книге «Мир-книга»'
+    );
+    expect(
+      within(figure).getByRole('link', { name: 'Иллюстрация редакции, создана с помощью ИИ' })
+    ).toHaveAttribute('href', '/ru/editorial-policy#world');
+  });
+
+  it('одна сторона неизвестна: квадрат запасной стороны, а не ложная пропорция', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse(ENTITY_FULL, { image: { ...IMAGE, width: 1600, height: null } })
+    );
+    const { container } = await renderEntity();
+    const img = container.querySelector('figure img') as HTMLImageElement;
+    expect(img.getAttribute('width')).toBe('1200');
+    expect(img.getAttribute('height')).toBe('1200');
+  });
+
+  it('свой хост - через оптимизатор', async () => {
+    const { container } = await renderEntity();
+    expect((container.querySelector('figure img') as HTMLImageElement).src).toContain(
+      '/_next/image'
+    );
+  });
+
+  it('хост вне оптимизатора: исходник как есть, без /_next/image', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse(ENTITY_FULL, { image: { ...IMAGE, url: 'https://other.example/a.png' } })
+    );
+    const { container } = await renderEntity();
+    expect((container.querySelector('figure img') as HTMLImageElement).getAttribute('src')).toBe(
+      'https://other.example/a.png'
+    );
+  });
+
+  it.each([
+    [
+      'en',
+      'Editorial illustration, created with AI',
+      'Anna Lark, illustration for the book “World Book”',
+    ],
+    [
+      'es',
+      'Ilustración de la redacción, creada con IA',
+      'Anna Lark, ilustración del libro «World Book»',
+    ],
+    [
+      'fr',
+      'Illustration de la rédaction, créée avec l’IA',
+      'Anna Lark, illustration du livre « World Book »',
+    ],
+    ['pt', 'Ilustração da redação, criada com IA', 'Anna Lark, ilustração do livro «World Book»'],
+    [
+      'ru',
+      'Иллюстрация редакции, создана с помощью ИИ',
+      'Anna Lark, иллюстрация к книге «Мир-книга»',
+    ],
+  ])('%s: подпись, полный alt, ссылка на редполитику языка', async (lang, caption, altFull) => {
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({ versions: [version(lang, 'world-book', 3)], slug: 'world-book' })
+    );
+    const { container } = await renderEntity('anna', lang);
+    const figure = container.querySelector('figure') as HTMLElement;
+    const alt = (figure.querySelector('img') as HTMLImageElement).alt;
+    expect(alt).toBe(altFull);
+    expect(within(figure).getByRole('link', { name: caption })).toHaveAttribute(
+      'href',
+      `/${lang}/editorial-policy#world`
+    );
+  });
+
+  it('герой без строк инфобокса: раздел есть ради картинки, пустого списка нет', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse(ENTITY_MINIMAL, { image: IMAGE })
+    );
+    const { container } = await renderEntity('tom');
+    const about = container.querySelector('#about') as HTMLElement;
+    expect(about.querySelector('figure img')).not.toBeNull();
+    expect(about.querySelector('dl')).toBeNull();
+  });
+
+  it('не герой: картинки из ответа нет ни на странице, ни в Article.image', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse({ ...ENTITY_FULL, type: 'place' }, { image: IMAGE })
+    );
+    const { container } = await renderEntity();
+    expect(container.querySelector('figure')).toBeNull();
+    const data = JSON.parse(
+      container.querySelector('script[type="application/ld+json"]')?.textContent ?? '{}'
+    );
+    expect(data.image).toBe('https://cdn.bibliaris.com/world.jpg');
+  });
+
+  it('картинки нет: ни фигуры, ни подписи, Article.image - обложка', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(ENTITY_FULL));
+    const { container } = await renderEntity();
+    expect(container.querySelector('figure')).toBeNull();
+    expect(container).not.toHaveTextContent('Editorial illustration');
+    const data = JSON.parse(
+      container.querySelector('script[type="application/ld+json"]')?.textContent ?? '{}'
+    );
+    expect(data.image).toBe('https://cdn.bibliaris.com/world.jpg');
+  });
+});
+
 describe('страница героя: минимальный герой и краевые случаи', () => {
   beforeEach(() => {
     mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(ENTITY_MINIMAL));
