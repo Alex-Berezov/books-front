@@ -1,5 +1,6 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { quoteCardClassName } from '@/components/common/QuotesBlock/QuotesBlock';
 import { ApiError } from '@/types/api';
 import type { BookWorldAlternate } from '@/types/api-schema';
 
@@ -65,6 +66,23 @@ vi.mock('@/lib/utils/log-error', () => ({ logError: mocks.logError }));
 
 vi.mock('@/app/[lang]/book/[slug]/RelatedBooksSection', () => ({
   RelatedBooksSection: () => null,
+}));
+
+// Спойлер-остров (`F08-10b`) берёт сессию и прогресс на клиенте; здесь - аноним без прогресса,
+// так же, как страницу видит краулер.
+const spoiler = vi.hoisted(() => ({
+  session: { data: null as unknown, status: 'unauthenticated' },
+  progress: undefined as unknown,
+  versionIds: [] as string[],
+}));
+
+vi.mock('next-auth/react', () => ({ useSession: () => spoiler.session }));
+
+vi.mock('@/api/hooks/useProgress', () => ({
+  useProgress: (versionId: string) => {
+    spoiler.versionIds.push(versionId);
+    return { data: spoiler.progress };
+  },
 }));
 
 // Счётчик - клиентская обёртка с `fetch` на монтировании: здесь проверяется страница, а не он, -
@@ -1174,5 +1192,86 @@ describe('мир книги: перелинковка мира (F08-5)', () => {
     expect(
       within(document.getElementById('path')!).getByRole('link', { name: 'Bea Moss' })
     ).toHaveAttribute('href', '/en/book/world-book/wiki/bea');
+  });
+});
+
+describe('страница героя: спойлер-остров (F08-10b)', () => {
+  const signedInAtChapter = (chapterNumber: number) => {
+    spoiler.session = { data: { user: { id: 'u1' } }, status: 'authenticated' };
+    spoiler.progress = { chapterNumber };
+  };
+
+  afterEach(() => {
+    spoiler.session = { data: null, status: 'unauthenticated' };
+    spoiler.progress = undefined;
+  });
+
+  it('серверный HTML одинаков у анонима и у вошедшего с прогрессом: весь текст в нём, свёртки нет', async () => {
+    const { renderToString } = await import('react-dom/server');
+    const { default: Page } = await loadEntity();
+    const params = () => Promise.resolve({ lang: 'en', slug: 'world-book', entity: 'anna' });
+    const anonymous = renderToString(await Page({ params: params() }));
+    signedInAtChapter(1);
+    const reader = renderToString(await Page({ params: params() }));
+    expect(reader).toBe(anonymous);
+    expect(anonymous).toContain('Closes the map.');
+    expect(anonymous).not.toContain('Opens after chapter');
+  });
+
+  it('вошедший на главе 1: этапы, сцена и цитата с главой больше - свёрнуты; описание, глава 1 и цитата вне глав версии - нет', async () => {
+    signedInAtChapter(1);
+    await renderEntity();
+    expect(screen.getAllByRole('button', { name: 'reveal now' })).toHaveLength(4);
+    // Глава 2 - и этап, и сцена.
+    expect(screen.getAllByText('Opens after chapter 2', { exact: false })).toHaveLength(2);
+    expect(screen.getByText('Closes the map.').closest('[hidden]')).not.toBeNull();
+    expect(screen.getByText('Crossing.').closest('[hidden]')).not.toBeNull();
+    expect(screen.getByText(/Quote three\./).closest('[hidden]')).not.toBeNull();
+    expect(screen.getByText('Reads the signs.').closest('[hidden]')).toBeNull();
+    expect(screen.getByText('Opening.').closest('[hidden]')).toBeNull();
+    // Свёрнутая цитата - в ячейке с рамкой карточки `QuotesBlock`, этап - без неё.
+    // Глава 3 - и этап, и цитата: в рамке ровно одна ячейка.
+    const cells = screen
+      .getAllByText('Opens after chapter 3', { exact: false })
+      .map((n) => n.closest('p')!.parentElement!.className);
+    expect(cells.filter((c) => c === quoteCardClassName)).toHaveLength(1);
+    expect(cells).toHaveLength(2);
+    for (const n of screen.getAllByText('Opens after chapter 2', { exact: false })) {
+      expect(n.closest('p')!.parentElement!.className).not.toBe(quoteCardClassName);
+    }
+    // Глава 7 вне `chapterNumbers` версии - «блок без главы» (Q5), не сворачивается.
+    expect(screen.getByText(/Quote seven\./).closest('[hidden]')).toBeNull();
+  });
+
+  it('прогресс - текстовой версии языка (`versionIds.text`), а не версии мира; без текста свёртки нет', async () => {
+    signedInAtChapter(1);
+    spoiler.versionIds.length = 0;
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({ versionIds: { text: 't-en', audio: 'a-en' } })
+    );
+    await renderEntity();
+    expect(new Set(spoiler.versionIds)).toEqual(new Set(['t-en']));
+    expect(screen.getAllByRole('button', { name: 'reveal now' }).length).toBeGreaterThan(0);
+    cleanup();
+
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({ versionIds: { text: null, audio: 'a-en' } })
+    );
+    await renderEntity();
+    expect(screen.queryByRole('button', { name: 'reveal now' })).toBeNull();
+    expect(document.querySelector('[hidden]')).toBeNull();
+  });
+
+  it('аноним видит всё раскрытым', async () => {
+    await renderEntity();
+    expect(screen.queryByRole('button', { name: 'reveal now' })).toBeNull();
+    expect(document.querySelector('[hidden]')).toBeNull();
+  });
+
+  it('подпись - на языке страницы', async () => {
+    signedInAtChapter(1);
+    await renderEntity('anna', 'ru');
+    expect(screen.getAllByRole('button', { name: 'раскрыть сейчас' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Откроется после главы 2', { exact: false })).toHaveLength(2);
   });
 });

@@ -43,4 +43,25 @@ describe('QuotesBlock', () => {
     expect(screen.getByText('Second.')).toBeInTheDocument();
     expect(screen.getByText('tag')).toBeInTheDocument();
   });
+  it('wrapItem получает карточку и номер цитаты; без пропа карточки - прямые дети сетки (F08-10b)', () => {
+    const seen: number[] = [];
+    const { container } = render(
+      <QuotesBlock
+        items={[{ text: 'One' }, { text: 'Two' }]}
+        wrapItem={(card, index) => {
+          seen.push(index);
+          return <div data-wrap={index}>{card}</div>;
+        }}
+      />
+    );
+    expect(seen).toEqual([0, 1]);
+    expect(container.querySelector('[data-wrap="1"] blockquote')).toHaveTextContent('Two');
+
+    const plain = render(<QuotesBlock items={[{ text: 'One' }, { text: 'Two' }]} />);
+    const cards = plain.container.querySelectorAll('blockquote');
+    expect(cards).toHaveLength(2);
+    expect(cards[0].parentElement).toBe(cards[1].parentElement);
+    expect(cards[0].parentElement?.tagName).toBe('DIV');
+    expect(cards[0].parentElement?.querySelector(':scope > [data-wrap]')).toBeNull();
+  });
 });

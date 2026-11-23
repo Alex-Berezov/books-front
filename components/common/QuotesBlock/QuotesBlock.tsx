@@ -1,4 +1,4 @@
-import type { FC, ReactNode } from 'react';
+import { Fragment, type FC, type ReactNode } from 'react';
 import Link from 'next/link';
 import styles from './QuotesBlock.module.scss';
 
@@ -23,7 +23,18 @@ export interface QuotesBlockProps {
   id?: string;
   /** Под заголовком, до цитат (ссылка «Разбор» на странице книги, F03-3) - как у соседних разделов. */
   titleExtra?: ReactNode;
+  /**
+   * Обёртка карточки цитаты по её номеру (спойлер-остров мира, `F08-10b`). Без пропа карточка
+   * выводится как есть - так у анализа.
+   */
+  wrapItem?: (card: ReactNode, index: number) => ReactNode;
 }
+
+/**
+ * Класс карточки цитаты: обёртка `wrapItem`, которая ставит в ячейку сетки своё содержимое (подпись
+ * свёрнутой цитаты, `F08-10b`), берёт рамку отсюда, а не копией стиля.
+ */
+export const quoteCardClassName = styles.card;
 
 export const QuotesBlock: FC<QuotesBlockProps> = ({
   items,
@@ -32,6 +43,7 @@ export const QuotesBlock: FC<QuotesBlockProps> = ({
   icon,
   id,
   titleExtra,
+  wrapItem,
 }) => {
   if (!items || items.length === 0) return null;
 
@@ -43,27 +55,30 @@ export const QuotesBlock: FC<QuotesBlockProps> = ({
       </h2>
       {titleExtra}
       <div className={styles.grid}>
-        {items.map((item, index) => (
-          <blockquote key={index} className={styles.card}>
-            <p className={styles.text}>&ldquo;{item.text}&rdquo;</p>
-            {(item.source || item.author) && (
-              <cite className={styles.source}>
-                —{' '}
-                {item.sourceHref ? (
-                  <Link href={item.sourceHref}>{item.source || item.author}</Link>
-                ) : (
-                  item.source || item.author
-                )}
-              </cite>
-            )}
-            {item.comment?.map((paragraph, i) => (
-              <p key={i} className={styles.comment}>
-                {paragraph}
-              </p>
-            ))}
-            {item.extra}
-          </blockquote>
-        ))}
+        {items.map((item, index) => {
+          const card = (
+            <blockquote className={styles.card}>
+              <p className={styles.text}>&ldquo;{item.text}&rdquo;</p>
+              {(item.source || item.author) && (
+                <cite className={styles.source}>
+                  —{' '}
+                  {item.sourceHref ? (
+                    <Link href={item.sourceHref}>{item.source || item.author}</Link>
+                  ) : (
+                    item.source || item.author
+                  )}
+                </cite>
+              )}
+              {item.comment?.map((paragraph, i) => (
+                <p key={i} className={styles.comment}>
+                  {paragraph}
+                </p>
+              ))}
+              {item.extra}
+            </blockquote>
+          );
+          return <Fragment key={index}>{wrapItem ? wrapItem(card, index) : card}</Fragment>;
+        })}
       </div>
     </section>
   );

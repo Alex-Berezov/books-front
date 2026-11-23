@@ -51,6 +51,29 @@
   font-weight: $font-weight-medium;
 }
 
+// Спойлер-остров (`F08-10b`, `WorldSpoilerGate.tsx`): обёртка не меняет раскладку раскрытого
+// элемента; `hidden` перебивается только у раскрытого, иначе `display: contents` вернул бы текст.
+.spoilerBody:not([hidden]) {
+  display: contents;
+}
+
+.spoilerNotice {
+  margin: 0;
+  color: var(--public-foreground);
+  font-size: $font-size-sm;
+  opacity: 0.75;
+}
+
+.spoilerReveal {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--public-primary);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .faqItem {
   margin-bottom: $spacing-md;
 }

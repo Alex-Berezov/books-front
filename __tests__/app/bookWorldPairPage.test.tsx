@@ -1,5 +1,5 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildLangUrl } from '@/lib/seo/urls';
 import { logError } from '@/lib/utils/log-error';
 import { ApiError } from '@/types/api';
@@ -59,6 +59,17 @@ vi.mock('@/api/endpoints/public', async () => {
 vi.mock('@/api/endpoints/public-audio', () => ({
   getPublicAudioChaptersForPage: mocks.getPublicAudioChapters,
 }));
+
+// Спойлер-остров (`F08-10b`) берёт сессию и прогресс на клиенте; здесь - аноним без прогресса,
+// так же, как страницу видит краулер.
+const spoiler = vi.hoisted(() => ({
+  session: { data: null as unknown, status: 'unauthenticated' },
+  progress: undefined as unknown,
+}));
+
+vi.mock('next-auth/react', () => ({ useSession: () => spoiler.session }));
+
+vi.mock('@/api/hooks/useProgress', () => ({ useProgress: () => ({ data: spoiler.progress }) }));
 
 vi.mock('@/lib/seo/retired-slug', () => ({ resolveRetiredSlug: mocks.resolveRetiredSlug }));
 vi.mock('@/lib/seo/degraded', () => ({ noteDegraded: vi.fn() }));
@@ -767,5 +778,26 @@ describe('пара: ссылки с героя и исключения', () => {
         alternates: { languages: { en: pairUrl, 'x-default': pairUrl } },
       },
     ]);
+  });
+});
+
+describe('пара: спойлер-остров (F08-10b, решение `F08 | F08-10b` Q4)', () => {
+  beforeEach(() => {
+    spoiler.session = { data: { user: { id: 'u1' } }, status: 'authenticated' };
+    spoiler.progress = { chapterNumber: 1 };
+  });
+
+  afterEach(() => {
+    spoiler.session = { data: null, status: 'unauthenticated' };
+    spoiler.progress = undefined;
+  });
+
+  it('цитата с главой больше главы читателя свёрнута; таблица сравнения не сворачивается', async () => {
+    await renderEntity(PAIR_KEY);
+    expect(screen.getByText(/He never let the lamp go out\./).closest('[hidden]')).not.toBeNull();
+    expect(screen.getByText('Opens after chapter 3', { exact: false })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'reveal now' })).toBeInTheDocument();
+    expect(screen.getByText('Stays.').closest('[hidden]')).toBeNull();
+    expect(screen.getByText('Leads.').closest('[hidden]')).toBeNull();
   });
 });

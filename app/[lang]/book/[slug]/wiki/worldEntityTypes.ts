@@ -14,6 +14,12 @@ export interface WorldPerson {
 
 export interface WorldEntitySectionsInput {
   entity: BookWorldEntity;
+  /**
+   * Текстовая версия книги на языке страницы (`versionIds.text`): под ней читалка пишет прогресс,
+   * по нему спойлер-остров сворачивает элементы (`F08-10b`). `null` - текста нет, свёртки нет.
+   * Не версия мира: та берётся первой версией языка и может оказаться аудио.
+   */
+  progressVersionId: string | null;
   chapterNumbers: readonly number[];
   strings: WorldStrings;
   analysisStrings: AnalysisStrings;

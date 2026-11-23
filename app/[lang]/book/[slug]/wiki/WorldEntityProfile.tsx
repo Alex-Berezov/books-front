@@ -7,6 +7,7 @@ import type { PageSection } from '../analysis/PageSections';
 import styles from './wiki.module.scss';
 import { WORLD_ANCHORS } from './wikiAnchors';
 import { buildEntityShortSection } from './WorldEntityMore';
+import { withSpoilerGate } from './worldSpoiler';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
 import { ThemeStrip } from '../analysis/ThemeStrip';
@@ -133,18 +134,24 @@ export function buildEntityProfileSections(input: WorldEntitySectionsInput): Pag
             <ol className={analysisStyles.timeline}>
               {stages.map((stage, i) => (
                 <li key={`${stage.chapter}-${i}`} className={analysisStyles.timelineItem}>
-                  <h3 className={analysisStyles.subTitle}>
-                    {stage.title}
-                    {isLastThirdChapter(stage.chapter, chapterNumbers) ? (
-                      <span className={styles.spoilerTag}>{strings.worldStageSpoiler}</span>
-                    ) : null}
-                  </h3>
-                  <p className={analysisStyles.cardMeta}>
-                    <ChapterRef n={stage.chapter} linker={linker} />
-                  </p>
-                  <div className={analysisStyles.text}>
-                    <Paragraphs text={stage.text} links={textLinks} />
-                  </div>
+                  {withSpoilerGate(
+                    input,
+                    stage.chapter,
+                    <>
+                      <h3 className={analysisStyles.subTitle}>
+                        {stage.title}
+                        {isLastThirdChapter(stage.chapter, chapterNumbers) ? (
+                          <span className={styles.spoilerTag}>{strings.worldStageSpoiler}</span>
+                        ) : null}
+                      </h3>
+                      <p className={analysisStyles.cardMeta}>
+                        <ChapterRef n={stage.chapter} linker={linker} />
+                      </p>
+                      <div className={analysisStyles.text}>
+                        <Paragraphs text={stage.text} links={textLinks} />
+                      </div>
+                    </>
+                  )}
                 </li>
               ))}
             </ol>

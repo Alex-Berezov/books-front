@@ -1,5 +1,9 @@
 import Link from 'next/link';
-import { QuotesBlock, type QuoteItem } from '@/components/common/QuotesBlock/QuotesBlock';
+import {
+  QuotesBlock,
+  quoteCardClassName,
+  type QuoteItem,
+} from '@/components/common/QuotesBlock/QuotesBlock';
 import { hasText, splitParagraphs } from '@/lib/book-analysis/format';
 import { fillTemplate, WORLD_NEXT_LIMIT } from '@/lib/book-world/format';
 import type { WorldEntitySectionsInput } from './worldEntityTypes';
@@ -8,6 +12,7 @@ import type { BookWorldCoPresence, BookWorldQuote } from '@/types/api-schema';
 import styles from './wiki.module.scss';
 import { WORLD_ANCHORS } from './wikiAnchors';
 import { WorldPersonRef } from './WorldPersonRef';
+import { withSpoilerGate } from './worldSpoiler';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ANALYSIS_ANCHORS } from '../analysis/analysisAnchors';
 import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
@@ -131,6 +136,9 @@ export function buildEntityQuotesSection(
         title={title}
         items={items}
         className={analysisStyles.quotesSection}
+        wrapItem={(card, index) =>
+          withSpoilerGate(input, quotes[index].chapter, card, quoteCardClassName)
+        }
       />
     ),
   };

@@ -8,6 +8,7 @@ import styles from './wiki.module.scss';
 import { WORLD_ANCHORS } from './wikiAnchors';
 import { buildEntityQuotesSection } from './WorldEntityMore';
 import { WorldPersonRef } from './WorldPersonRef';
+import { withSpoilerGate } from './worldSpoiler';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
 import { LinkedMark } from '../LinkedText';
@@ -41,27 +42,41 @@ export function buildEntityStorySections(
                 : null;
             return (
               <li key={`${scene.chapter}-${i}`} className={analysisStyles.card}>
-                <h3 className={analysisStyles.cardTitle}>{scene.title}</h3>
-                <p className={analysisStyles.cardMeta}>
-                  <ChapterRef n={scene.chapter} linker={linker} />
-                </p>
-                <div className={analysisStyles.text}>
-                  <Paragraphs text={scene.text} links={textLinks} />
-                </div>
-                {readHref || listenHref ? (
-                  <p className={styles.sceneActions}>
-                    {readHref ? (
-                      <Link href={readHref} prefetch={false} className={analysisStyles.textLink}>
-                        {strings.worldReadScene}
-                      </Link>
+                {withSpoilerGate(
+                  input,
+                  scene.chapter,
+                  <>
+                    <h3 className={analysisStyles.cardTitle}>{scene.title}</h3>
+                    <p className={analysisStyles.cardMeta}>
+                      <ChapterRef n={scene.chapter} linker={linker} />
+                    </p>
+                    <div className={analysisStyles.text}>
+                      <Paragraphs text={scene.text} links={textLinks} />
+                    </div>
+                    {readHref || listenHref ? (
+                      <p className={styles.sceneActions}>
+                        {readHref ? (
+                          <Link
+                            href={readHref}
+                            prefetch={false}
+                            className={analysisStyles.textLink}
+                          >
+                            {strings.worldReadScene}
+                          </Link>
+                        ) : null}
+                        {listenHref ? (
+                          <Link
+                            href={listenHref}
+                            prefetch={false}
+                            className={analysisStyles.textLink}
+                          >
+                            {strings.worldListenScene}
+                          </Link>
+                        ) : null}
+                      </p>
                     ) : null}
-                    {listenHref ? (
-                      <Link href={listenHref} prefetch={false} className={analysisStyles.textLink}>
-                        {strings.worldListenScene}
-                      </Link>
-                    ) : null}
-                  </p>
-                ) : null}
+                  </>
+                )}
               </li>
             );
           })}

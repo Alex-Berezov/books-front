@@ -110,6 +110,7 @@ export default async function BookWorldEntityPage({ params }: Props) {
 
   const sectionsInput: WorldEntitySectionsInput = {
     entity,
+    progressVersionId: book.versionIds?.text ?? null,
     chapterNumbers,
     strings,
     analysisStrings: ctx.analysisStrings,
