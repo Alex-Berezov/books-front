@@ -111,23 +111,10 @@ export const setBookWorldEntityFlags = async (
     data
   );
 
-/** Illustration of a hero (F08-11a): accepted, pending and the latest generation. `admin` only. */
+/** Illustration of a hero (F08-11a): accepted and pending. `admin` only. */
 export const getWorldImage = async (versionId: string, key: string): Promise<WorldImageState> =>
   httpGetAuth<WorldImageState>(
     `/admin/versions/${encodeURIComponent(versionId)}/world/${encodeURIComponent(key)}/image`
-  );
-
-/**
- * «Generate»/«Regenerate» — 202, the result becomes pending. 409 `WORLD_IMAGE_IN_PROGRESS`,
- * `WORLD_IMAGE_NOT_ALLOWED`, `WORLD_IMAGE_NO_APPEARANCE`, `LLM_CEILING_REACHED`.
- */
-export const generateWorldImage = async (
-  versionId: string,
-  key: string
-): Promise<WorldImageState> =>
-  httpPostAuth<WorldImageState>(
-    `/admin/versions/${encodeURIComponent(versionId)}/world/${encodeURIComponent(key)}/image`,
-    {}
   );
 
 /** «Accept» — 409 `WORLD_IMAGE_NONE`, `WORLD_IMAGE_CHANGED`, `WORLD_IMAGE_NOT_ALLOWED`. */

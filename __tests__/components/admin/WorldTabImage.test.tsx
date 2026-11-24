@@ -17,7 +17,7 @@ import { server } from '../../msw/server';
 
 /**
  * F08-11b: панель иллюстрации в карточке героя — только у `admin` (ручки `@Roles(Admin)`, решение
- * `F08 | F08-11` Р5); запись сущности перечитывает её (`allowed` зависит от роли и внешности).
+ * `F08 | F08-11` Р5); запись сущности перечитывает её (`allowed` зависит от роли героя).
  */
 
 vi.mock('next-auth/react', () => ({
@@ -33,12 +33,10 @@ const PAIR_KEY = 'anna--tom';
 const imageState = (allowed: boolean): WorldImageState => ({
   key: 'sonya',
   allowed,
-  roleAllowed: true,
+  roleAllowed: allowed,
   accepted: null,
   acceptedAt: null,
   pending: null,
-  generation: null,
-  estimateUsd: '0.25',
 });
 
 describe('WorldTab illustration panel (F08-11b)', () => {
@@ -106,13 +104,11 @@ describe('WorldTab illustration panel (F08-11b)', () => {
         recountQueued: false,
       } satisfies BookWorldEntitySaveResponse);
     const card = await openSonya(true);
-    expect(
-      await card.findByText(/A new illustration needs a main or secondary/)
-    ).toBeInTheDocument();
-    expect(card.queryByRole('button', { name: 'Generate' })).toBeNull();
+    expect(await card.findByText('No illustration yet.')).toBeInTheDocument();
+    expect(card.getByText(/Only main and secondary/)).toBeInTheDocument();
     fireEvent.change(await card.findByLabelText('Short'), { target: { value: 'New short' } });
     fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
-    expect(await card.findByRole('button', { name: 'Generate' })).toBeInTheDocument();
+    await waitFor(() => expect(card.queryByText(/Only main and secondary/)).toBeNull());
     await waitFor(() => expect(imageGets).toBe(2));
   });
 });

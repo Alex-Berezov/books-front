@@ -4,12 +4,12 @@ import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { bookWorldQueryKeys } from '@/api/hooks';
 import { WorldImagePanel } from '@/components/admin/books/WorldTab/WorldImagePanel';
-import type { WorldImageGeneration, WorldImageState } from '@/types/api-schema';
+import type { WorldImageState } from '@/types/api-schema';
 import { server } from '../../msw/server';
 
 /**
- * F08-11b: иллюстрация героя во вкладке World - превью, Generate/Regenerate, Accept, опрос
- * идущей генерации, причины отказа, отказы ручек.
+ * F08-11b: иллюстрация героя во вкладке World - превью принятой и ожидающей, Accept, отказы ручек.
+ * F08-11d: сайт картинки не генерирует - ни Generate/Regenerate, ни цены, ни опроса.
  */
 
 vi.mock('next-auth/react', () => ({
@@ -25,14 +25,6 @@ const file = (mediaId: string) => ({
   height: 1200,
   mediaId,
 });
-const generation = (patch: Partial<WorldImageGeneration> = {}): WorldImageGeneration => ({
-  operationId: 'op1',
-  status: 'active',
-  pauseReason: null,
-  failedReason: null,
-  spentUsd: '0',
-  ...patch,
-});
 const state = (patch: Partial<WorldImageState> = {}): WorldImageState => ({
   key: 'sonya',
   allowed: true,
@@ -40,8 +32,6 @@ const state = (patch: Partial<WorldImageState> = {}): WorldImageState => ({
   accepted: null,
   acceptedAt: null,
   pending: null,
-  generation: null,
-  estimateUsd: '0.25000000',
   ...patch,
 });
 const conflict = (code: string) =>
@@ -57,17 +47,35 @@ const renderPanel = () => {
   return client;
 };
 
-describe('WorldImagePanel (F08-11b)', () => {
+const NO_GENERATION = /^(Generate|Regenerate)$/;
+const PRICE = /per image|\$/;
+
+describe('WorldImagePanel (F08-11b, F08-11d)', () => {
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  it('no picture: Generate, estimate, nothing to accept', async () => {
+  it('no picture: a short line, no Generate, no price, nothing to accept', async () => {
     server.use(http.get(URL_IMAGE, () => HttpResponse.json(state())));
     renderPanel();
-    expect(await screen.findByRole('button', { name: 'Generate' })).toBeEnabled();
-    expect(screen.getByText(/Up to \$0\.25 per image/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull();
+    expect(await screen.findByText('No illustration yet.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: NO_GENERATION })).toBeNull();
+    expect(screen.queryByText(PRICE)).toBeNull();
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('pending picture: Accept, no Regenerate and no price', async () => {
+    server.use(
+      http.get(URL_IMAGE, () =>
+        HttpResponse.json(state({ accepted: file('old'), pending: file('new') }))
+      )
+    );
+    renderPanel();
+    expect(await screen.findByRole('button', { name: 'Accept' })).toBeEnabled();
+    expect(screen.getByRole('img', { name: 'Sonya: Accepted' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Sonya: Waiting for Accept' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: NO_GENERATION })).toBeNull();
+    expect(screen.queryByText(PRICE)).toBeNull();
   });
 
   it('pending picture: Accept sends its mediaId and the accepted one replaces it', async () => {
@@ -85,7 +93,11 @@ describe('WorldImagePanel (F08-11b)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Accept' }));
     await waitFor(() => expect(body).toEqual({ pendingMediaId: 'new' }));
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull());
-    expect(screen.getByRole('button', { name: 'Regenerate' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Sonya: Accepted' })).toHaveAttribute(
+      'src',
+      expect.stringContaining('new')
+    );
+    expect(screen.queryByRole('button')).toBeNull();
   });
 
   it('Accept re-reads only the entity card (its `image`), not the illustration again', async () => {
@@ -121,7 +133,7 @@ describe('WorldImagePanel (F08-11b)', () => {
     );
     renderPanel();
     fireEvent.click(await screen.findByRole('button', { name: 'Accept' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(/regenerated meanwhile/);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/replaced meanwhile/);
     await waitFor(() => expect(gets).toBe(2));
     await waitFor(() =>
       expect(screen.getByRole('img', { name: 'Sonya: Waiting for Accept' })).toHaveAttribute(
@@ -131,321 +143,39 @@ describe('WorldImagePanel (F08-11b)', () => {
     );
   });
 
-  it('a pending picture while a new generation runs: Accept is locked (F08-11c, tail of 11b)', async () => {
-    server.use(
-      http.get(URL_IMAGE, () =>
-        HttpResponse.json(state({ pending: file('p1'), generation: generation() }))
-      )
-    );
-    renderPanel();
-    expect(await screen.findByText('Generating the illustration…')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled();
-  });
-
-  it('Regenerate posts once and shows the running state with the button locked', async () => {
+  it('5xx on Accept is left to the global toast: no line in the panel', async () => {
     let posts = 0;
     server.use(
-      http.get(URL_IMAGE, () => HttpResponse.json(state({ accepted: file('old') }))),
-      http.post(URL_IMAGE, () => {
-        posts += 1;
-        return HttpResponse.json(state({ accepted: file('old'), generation: generation() }), {
-          status: 202,
-        });
-      })
-    );
-    renderPanel();
-    fireEvent.click(await screen.findByRole('button', { name: 'Regenerate' }));
-    expect(await screen.findByText('Generating the illustration…')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Regenerate' })).toBeDisabled();
-    expect(posts).toBe(1);
-  });
-
-  it('re-reads every 3 s while active, shows the pending picture and stops after', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    let gets = 0;
-    server.use(
-      http.get(URL_IMAGE, () => {
-        gets += 1;
-        return HttpResponse.json(
-          gets < 2
-            ? state({ generation: generation() })
-            : state({ pending: file('new'), generation: generation({ status: 'done' }) })
-        );
-      })
-    );
-    renderPanel();
-    expect(await screen.findByText('Generating the illustration…')).toBeInTheDocument();
-    expect(gets).toBe(1);
-    await vi.advanceTimersByTimeAsync(3000);
-    expect(await screen.findByRole('button', { name: 'Accept' })).toBeEnabled();
-    expect(screen.queryByText('Generating the illustration…')).toBeNull();
-    expect(gets).toBe(2);
-    await vi.advanceTimersByTimeAsync(9000);
-    expect(gets).toBe(2);
-  });
-
-  it('a refusal of Generate goes away when the running generation ends', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    let gets = 0;
-    server.use(
-      http.get(URL_IMAGE, () => {
-        gets += 1;
-        if (gets === 1) return HttpResponse.json(state());
-        if (gets === 2) return HttpResponse.json(state({ generation: generation() }));
-        return HttpResponse.json(
-          state({ pending: file('new'), generation: generation({ status: 'done' }) })
-        );
-      }),
-      http.post(URL_IMAGE, () => conflict('WORLD_IMAGE_IN_PROGRESS'))
-    );
-    renderPanel();
-    fireEvent.click(await screen.findByRole('button', { name: 'Generate' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(/already running/);
-    await vi.advanceTimersByTimeAsync(3000);
-    expect(await screen.findByRole('button', { name: 'Accept' })).toBeInTheDocument();
-    expect(screen.queryByRole('alert')).toBeNull();
-  });
-
-  it('failed generation names the reason', async () => {
-    server.use(
-      http.get(URL_IMAGE, () =>
-        HttpResponse.json(
-          state({
-            generation: generation({ status: 'failed', failedReason: 'WORLD_IMAGE_NOT_IMAGE' }),
-          })
-        )
-      )
-    );
-    renderPanel();
-    expect(await screen.findByRole('alert')).toHaveTextContent(/not a PNG, JPEG or WEBP/);
-  });
-
-  it('failure without a code: a general phrase', async () => {
-    server.use(
-      http.get(URL_IMAGE, () =>
-        HttpResponse.json(state({ generation: generation({ status: 'failed' }) }))
-      )
-    );
-    renderPanel();
-    expect(await screen.findByRole('alert')).toHaveTextContent('The generation failed.');
-  });
-
-  it('unknown failure code is shown as is', async () => {
-    server.use(
-      http.get(URL_IMAGE, () =>
-        HttpResponse.json(
-          state({ generation: generation({ status: 'failed', failedReason: 'SOMETHING_NEW' }) })
-        )
-      )
-    );
-    renderPanel();
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'The generation failed: SOMETHING_NEW.'
-    );
-  });
-
-  it('paused with a reason: the status and the reason', async () => {
-    server.use(
-      http.get(URL_IMAGE, () =>
-        HttpResponse.json(
-          state({
-            generation: generation({ status: 'paused', failedReason: 'LLM_INSUFFICIENT_FUNDS' }),
-          })
-        )
-      )
-    );
-    renderPanel();
-    expect(
-      await screen.findByText(/^The (generation is paused|last generation was cancelled)/)
-    ).toHaveTextContent(
-      /The generation is paused\. The OpenRouter balance .* Generate to replace it./
-    );
-    expect(screen.queryByRole('alert')).toBeNull();
-  });
-
-  it('paused first generation: the advice names the Generate button, a common LLM code as a phrase', async () => {
-    server.use(
-      http.get(URL_IMAGE, () =>
-        HttpResponse.json(
-          state({
-            generation: generation({ status: 'paused', failedReason: 'LLM_CEILING_REACHED' }),
-          })
-        )
-      )
-    );
-    renderPanel();
-    expect(await screen.findByText(/^The generation is paused/)).toHaveTextContent(
-      'The generation is paused. The spending ceiling is reached: raise it in LLM settings. Generate to replace it.'
-    );
-    expect(screen.getByRole('button', { name: 'Generate' })).toBeEnabled();
-  });
-
-  it.each([
-    [
-      'LLM_BUDGET_EXCEEDED:operation',
-      'The generation cost more than its limit: generate again or choose a cheaper image model in LLM settings.',
-    ],
-    ['LLM_BUDGET_EXCEEDED:ceiling', 'The spending ceiling is reached: raise it in LLM settings.'],
-  ])('failed on the budget during the step (%s): advice for that limit', async (code, text) => {
-    server.use(
-      http.get(URL_IMAGE, () =>
-        HttpResponse.json(
-          state({ generation: generation({ status: 'failed', failedReason: code }) })
-        )
-      )
-    );
-    renderPanel();
-    expect(await screen.findByRole('alert')).toHaveTextContent(text);
-  });
-
-  it('paused with a picture: the advice names the Regenerate button', async () => {
-    server.use(
-      http.get(URL_IMAGE, () =>
-        HttpResponse.json(
-          state({ accepted: file('old'), generation: generation({ status: 'paused' }) })
-        )
-      )
-    );
-    renderPanel();
-    expect(await screen.findByText(/^The generation is paused/)).toHaveTextContent(
-      'The generation is paused. Regenerate to replace it.'
-    );
-    expect(screen.getByRole('button', { name: 'Regenerate' })).toBeEnabled();
-  });
-
-  it('paused with an unknown code: the code as a reason, not «failed»', async () => {
-    server.use(
-      http.get(URL_IMAGE, () =>
-        HttpResponse.json(
-          state({ generation: generation({ status: 'paused', failedReason: 'SOMETHING_NEW' }) })
-        )
-      )
-    );
-    renderPanel();
-    const line = await screen.findByText(/^The generation is paused/);
-    expect(line).toHaveTextContent('Reason: SOMETHING_NEW.');
-    expect(line).not.toHaveTextContent('failed');
-  });
-
-  it('cancelled: the status line, its reason, no alert', async () => {
-    server.use(
-      http.get(URL_IMAGE, () =>
-        HttpResponse.json(
-          state({
-            generation: generation({ status: 'cancelled', failedReason: 'LLM_UNAVAILABLE' }),
-          })
-        )
-      )
-    );
-    renderPanel();
-    expect(
-      await screen.findByText(/^The (generation is paused|last generation was cancelled)/)
-    ).toHaveTextContent('The last generation was cancelled. The image model is unavailable now.');
-    expect(screen.queryByRole('alert')).toBeNull();
-  });
-
-  it('a failed re-read while running stops the polling and offers Retry', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    let gets = 0;
-    server.use(
-      http.get(URL_IMAGE, () => {
-        gets += 1;
-        return gets < 2
-          ? HttpResponse.json(state({ generation: generation() }))
-          : HttpResponse.json({ statusCode: 502, message: 'down' }, { status: 502 });
-      })
-    );
-    renderPanel();
-    expect(await screen.findByText('Generating the illustration…')).toBeInTheDocument();
-    await vi.advanceTimersByTimeAsync(3000);
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      /Could not refresh the illustration/
-    );
-    expect(gets).toBe(2);
-    await vi.advanceTimersByTimeAsync(9000);
-    expect(gets).toBe(2);
-    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
-  });
-
-  it('409 «already running» on a paused generation goes away when the paused poll sees a new generation', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    let moved = false;
-    server.use(
-      http.get(URL_IMAGE, () =>
-        HttpResponse.json(
-          moved
-            ? state({ generation: generation({ operationId: 'op2', status: 'failed' }) })
-            : state({ generation: generation({ status: 'paused' }) })
-        )
-      ),
-      http.post(URL_IMAGE, () => conflict('WORLD_IMAGE_IN_PROGRESS'))
-    );
-    renderPanel();
-    fireEvent.click(await screen.findByRole('button', { name: 'Generate' }));
-    expect(await screen.findByText(/already running/)).toBeInTheDocument();
-    // Перечитывание из onError отдало ту же паузу - строка отказа стоит.
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(screen.getByText(/already running/)).toBeInTheDocument();
-    // Генерацию сдвинули в другом месте: опрос паузы (10 с) приносит новое состояние без клика.
-    moved = true;
-    await vi.advanceTimersByTimeAsync(10000);
-    await waitFor(() => expect(screen.queryByText(/already running/)).toBeNull());
-  });
-
-  it('409 whose re-read already shows another generation keeps the refusal line', async () => {
-    let gets = 0;
-    let release!: () => void;
-    const held = new Promise<void>((resolve) => (release = resolve));
-    server.use(
-      http.get(URL_IMAGE, async () => {
-        gets += 1;
-        // Перечитывание из onError держится до явного отпуска: снимок ключа - после него.
-        if (gets > 1) await held;
-        return HttpResponse.json(
-          gets === 1 ? state() : state({ generation: generation({ status: 'paused' }) })
-        );
-      }),
-      http.post(URL_IMAGE, () => conflict('WORLD_IMAGE_IN_PROGRESS'))
-    );
-    const client = renderPanel();
-    fireEvent.click(await screen.findByRole('button', { name: 'Generate' }));
-    expect(await screen.findByText(/already running/)).toBeInTheDocument();
-    await waitFor(() => expect(gets).toBe(2));
-    release();
-    await waitFor(() => expect(client.isFetching()).toBe(0));
-    expect(await screen.findByText(/The generation is paused/)).toBeInTheDocument();
-    expect(screen.getByText(/already running/)).toBeInTheDocument();
-  });
-
-  it('409 on Generate shows the server code as text and re-reads the state', async () => {
-    let gets = 0;
-    server.use(
-      http.get(URL_IMAGE, () => {
-        gets += 1;
-        return HttpResponse.json(state());
-      }),
-      http.post(URL_IMAGE, () => conflict('WORLD_IMAGE_NO_APPEARANCE'))
-    );
-    renderPanel();
-    fireEvent.click(await screen.findByRole('button', { name: 'Generate' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(/no appearance text/);
-    await waitFor(() => expect(gets).toBe(2));
-  });
-
-  it('5xx on Generate is left to the global toast: no line in the panel', async () => {
-    let posts = 0;
-    server.use(
-      http.get(URL_IMAGE, () => HttpResponse.json(state())),
-      http.post(URL_IMAGE, () => {
+      http.get(URL_IMAGE, () => HttpResponse.json(state({ pending: file('new') }))),
+      http.post(`${URL_IMAGE}/accept`, () => {
         posts += 1;
         return HttpResponse.json({ statusCode: 502, message: 'down' }, { status: 502 });
       })
     );
     renderPanel();
-    fireEvent.click(await screen.findByRole('button', { name: 'Generate' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Accept' }));
     await waitFor(() => expect(posts).toBe(1));
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Generate' })).toBeEnabled());
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Accept' })).toBeEnabled());
     expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('the state is not polled: nothing is generating on the site', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    let gets = 0;
+    server.use(
+      http.get(URL_IMAGE, () => {
+        gets += 1;
+        // Старый бэкенд (до тега F08-11d-1) ещё шлёт `generation`: прежняя панель по нему опрашивала.
+        return HttpResponse.json({
+          ...state({ pending: file('new') }),
+          generation: { operationId: 'op-1', status: 'active', pauseReason: null },
+        });
+      })
+    );
+    renderPanel();
+    expect(await screen.findByRole('button', { name: 'Accept' })).toBeInTheDocument();
+    await vi.advanceTimersByTimeAsync(15000);
+    expect(gets).toBe(1);
   });
 
   it('load error: Retry reads again', async () => {
@@ -461,28 +191,77 @@ describe('WorldImagePanel (F08-11b)', () => {
     renderPanel();
     expect(await screen.findByRole('alert')).toHaveTextContent(/Could not load the illustration/);
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
-    expect(await screen.findByRole('button', { name: 'Generate' })).toBeInTheDocument();
+    expect(await screen.findByText('No illustration yet.')).toBeInTheDocument();
   });
 
-  it('not allowed: the explanation, no buttons', async () => {
-    server.use(http.get(URL_IMAGE, () => HttpResponse.json(state({ allowed: false }))));
+  it('a failed re-read keeps the pictures and offers Retry', async () => {
+    let gets = 0;
+    server.use(
+      http.get(URL_IMAGE, () => {
+        gets += 1;
+        return gets < 2
+          ? HttpResponse.json(state({ pending: file('new') }))
+          : HttpResponse.json({ statusCode: 404, message: 'none' }, { status: 404 });
+      })
+    );
+    const client = renderPanel();
+    expect(await screen.findByRole('button', { name: 'Accept' })).toBeInTheDocument();
+    void client.invalidateQueries({ queryKey: bookWorldQueryKeys.image('v1', 'sonya') });
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      /Could not refresh the illustration/
+    );
+    expect(screen.getByRole('img', { name: 'Sonya: Waiting for Accept' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+  });
+
+  it('not allowed: the role hint, no buttons', async () => {
+    server.use(
+      http.get(URL_IMAGE, () => HttpResponse.json(state({ allowed: false, roleAllowed: false })))
+    );
     renderPanel();
+    expect(await screen.findByText('No illustration yet.')).toBeInTheDocument();
     expect(
-      await screen.findByText(/A new illustration needs a main or secondary/)
+      screen.getByText('Only main and secondary characters get an illustration.')
     ).toBeInTheDocument();
     expect(screen.queryByRole('button')).toBeNull();
   });
 
-  it('not allowed with pictures: they stay visible, Accept stays (the server checks the role)', async () => {
+  it('old backend: allowed=false (no appearance) but roleAllowed - Accept stays, no role hint', async () => {
     server.use(
       http.get(URL_IMAGE, () =>
-        HttpResponse.json(state({ allowed: false, accepted: file('old'), pending: file('new') }))
+        HttpResponse.json(state({ allowed: false, roleAllowed: true, pending: file('new') }))
+      )
+    );
+    renderPanel();
+    expect(await screen.findByRole('button', { name: 'Accept' })).toBeEnabled();
+    expect(screen.queryByText(/Only main and secondary/)).toBeNull();
+  });
+
+  it('allowed: no role hint', async () => {
+    server.use(http.get(URL_IMAGE, () => HttpResponse.json(state())));
+    renderPanel();
+    expect(await screen.findByText('No illustration yet.')).toBeInTheDocument();
+    expect(screen.queryByText(/Only main and secondary/)).toBeNull();
+  });
+
+  it('not allowed with pictures: they stay visible, no Accept, the role hint', async () => {
+    server.use(
+      http.get(URL_IMAGE, () =>
+        HttpResponse.json(
+          state({
+            allowed: false,
+            roleAllowed: false,
+            accepted: file('old'),
+            pending: file('new'),
+          })
+        )
       )
     );
     renderPanel();
     expect(await screen.findByRole('img', { name: 'Sonya: Accepted' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Sonya: Waiting for Accept' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Accept' })).toBeEnabled();
-    expect(screen.queryByRole('button', { name: /Generate/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull();
+    expect(screen.getByText(/Only main and secondary/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: NO_GENERATION })).toBeNull();
   });
 });

@@ -260,7 +260,7 @@ export const installWorldApi = (): WorldApi => {
       api.deletes.push(String(params.key));
       return api.deleteReply(String(params.key), null, '');
     }),
-    // Иллюстрация героя (F08-11b): панель админа в карточке — пусто, генерировать нельзя.
+    // Иллюстрация героя (F08-11b): панель админа в карточке — пусто, иллюстрация не положена.
     http.get(`${API}/admin/versions/v1/world/:key/image`, ({ params }) =>
       HttpResponse.json({
         key: String(params.key),
@@ -269,8 +269,6 @@ export const installWorldApi = (): WorldApi => {
         accepted: null,
         acceptedAt: null,
         pending: null,
-        generation: null,
-        estimateUsd: '0.25',
       } satisfies WorldImageState)
     ),
     http.get(`${API}/admin/versions/v1/chapter-titles`, () => api.chaptersReply()),

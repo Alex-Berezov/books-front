@@ -1,7 +1,7 @@
 /**
  * F08-11c (хвосты ревью 11b, решение `F08 | F08-11b`): ключ картинки героя лежит под ключом
- * сущности — импорт, пересчёт и удаление сбрасывают его вместе с карточкой; ответ 202 «Generate»
- * и ответ «Accept» отменяют летящее перечитывание до записи своего состояния в кэш.
+ * сущности — импорт, пересчёт и удаление сбрасывают его вместе с карточкой; ответ «Accept»
+ * отменяет летящее перечитывание до записи своего состояния в кэш (генерации нет с F08-11d).
  */
 import React, { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -11,7 +11,6 @@ import {
   bookWorldQueryKeys,
   useAcceptWorldImage,
   useDeleteBookWorldEntity,
-  useGenerateWorldImage,
   useSaveBookWorld,
   useSaveBookWorldEntity,
 } from '@/api/hooks';
@@ -35,11 +34,7 @@ vi.mock('@/api/endpoints/admin/bookWorld', async (importOriginal) => ({
     recountQueued: true,
   })),
   deleteBookWorldEntity: vi.fn(async () => undefined),
-  generateWorldImage: vi.fn(async () => ({
-    ...STATE,
-    generation: { status: 'active', pauseReason: null },
-  })),
-  acceptWorldImage: vi.fn(async () => ({ ...STATE, generation: null })),
+  acceptWorldImage: vi.fn(async () => ({ ...STATE, accepted: { mediaId: 'm1' } })),
 }));
 
 const seeded = () => {
@@ -82,35 +77,24 @@ describe('illustration cache key (F08-11c)', () => {
     expect(client.getQueryData(bookWorldQueryKeys.image('v1', 'b'))).toBeDefined();
   });
 
-  it.each([
-    ['Generate 202', 'active'],
-    ['Accept', null],
-  ])(
-    '%s: a re-read in flight does not overwrite the state from the response',
-    async (name, status) => {
-      const { client, wrapper } = seeded();
-      const key = bookWorldQueryKeys.image('v1', 'a');
-      let late!: (value: unknown) => void;
-      const inflight = client
-        .fetchQuery({ queryKey: key, queryFn: () => new Promise((resolve) => (late = resolve)) })
-        .catch(() => undefined);
-      if (name === 'Accept') {
-        const { result } = renderHook(() => useAcceptWorldImage(), { wrapper });
-        await act(() => result.current.mutateAsync({ versionId: 'v1', key: 'a', mediaId: 'm1' }));
-      } else {
-        const { result } = renderHook(() => useGenerateWorldImage(), { wrapper });
-        await act(() => result.current.mutateAsync({ versionId: 'v1', key: 'a' }));
-      }
-      // Запоздавший ответ старого GET: без отмены он затёр бы состояние из ответа мутации.
-      late({ ...STATE, generation: { status: 'stale' } });
-      // Ждём, пока старый GET дойдёт до конца: отменённый - отказом, неотменённый - записью в кэш.
-      await act(async () => {
-        await inflight;
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-      expect(client.isFetching()).toBe(0);
-      const state = client.getQueryData<{ generation: { status: string } | null }>(key);
-      expect(state?.generation?.status ?? null).toBe(status);
-    }
-  );
+  it('Accept: a re-read in flight does not overwrite the state from the response', async () => {
+    const { client, wrapper } = seeded();
+    const key = bookWorldQueryKeys.image('v1', 'a');
+    let late!: (value: unknown) => void;
+    const inflight = client
+      .fetchQuery({ queryKey: key, queryFn: () => new Promise((resolve) => (late = resolve)) })
+      .catch(() => undefined);
+    const { result } = renderHook(() => useAcceptWorldImage(), { wrapper });
+    await act(() => result.current.mutateAsync({ versionId: 'v1', key: 'a', mediaId: 'm1' }));
+    // Запоздавший ответ старого GET: без отмены он затёр бы состояние из ответа мутации.
+    late({ ...STATE, accepted: { mediaId: 'stale' } });
+    // Ждём, пока старый GET дойдёт до конца: отменённый - отказом, неотменённый - записью в кэш.
+    await act(async () => {
+      await inflight;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(client.isFetching()).toBe(0);
+    const state = client.getQueryData<{ accepted: { mediaId: string } | null }>(key);
+    expect(state?.accepted?.mediaId ?? null).toBe('m1');
+  });
 });

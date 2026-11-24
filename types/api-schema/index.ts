@@ -573,7 +573,6 @@ export type {
   WorldEntityType,
   WorldGeoReason,
   WorldImageFile,
-  WorldImageGeneration,
   WorldImageState,
   WorldPlaceKind,
   WorldSitemapEntity,

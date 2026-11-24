@@ -93,12 +93,7 @@ export {
   useSaveBookWorldEntity,
   useSetBookWorldEntityFlags,
 } from './useBookWorld';
-export {
-  isWorldImageRunning,
-  useAcceptWorldImage,
-  useGenerateWorldImage,
-  useWorldImage,
-} from './useWorldImage';
+export { useAcceptWorldImage, useWorldImage } from './useWorldImage';
 
 // Chapters
 export {

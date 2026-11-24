@@ -269,7 +269,6 @@
   "POST /admin/versions/{id}/rights-content-hash/check",
   "POST /admin/versions/{id}/translation-compare",
   "POST /admin/versions/{id}/translation-runs",
-  "POST /admin/versions/{id}/world/{key}/image",
   "POST /admin/versions/{id}/world/{key}/image/accept",
   "POST /admin/{lang}/pages",
   "POST /auth/register",

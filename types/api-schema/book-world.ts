@@ -7,7 +7,6 @@
 
 import type { BookAnalysisRole } from './book-analysis';
 import type { ISODate } from './common';
-import type { LlmOperation } from './llm';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
 /** Тип сущности; запись принимает `character`, `pair` (F08-8c) и `place` (F08-12a), прочие — пачками своего типа. */
@@ -331,40 +330,21 @@ export interface WorldImageFile extends BookWorldImage {
   mediaId: string;
 }
 
-/** Последняя генерация иллюстрации: статус операции и причина отказа - код задачи (F08-11a). */
-export interface WorldImageGeneration {
-  operationId: string;
-  status: LlmOperation['status'];
-  /** Почему генерация на паузе (`status: paused`), например потолок трат; иначе `null` (F08-12a, хвост F08-11b). */
-  pauseReason: LlmOperation['pauseReason'];
-  /**
-   * Код отказа: `WORLD_IMAGE_NOT_IMAGE`, `WORLD_IMAGE_TOO_SMALL`, `WORLD_IMAGE_TOO_LARGE`,
-   * `WORLD_IMAGE_INPUT_MISSING` или код LLM (`LLM_INSUFFICIENT_FUNDS`, `LLM_UNAVAILABLE`...);
-   * `null` - идёт или удалась.
-   */
-  failedReason: string | null;
-  /** Потрачено на эту генерацию, USD (десятичная строка). */
-  spentUsd: string;
-}
-
-/** Иллюстрация героя во вкладке World: принятая, ожидающая принятия и последняя генерация (F08-11a). */
+/** Иллюстрация героя во вкладке World: принятая и ожидающая принятия (F08-11a, без генерации с F08-11d). */
 export interface WorldImageState {
   key: string;
-  /** Герой `main`/`secondary` с текстом внешности: иллюстрация возможна. */
+  /** Герой `main`/`secondary`: иллюстрация возможна (с F08-11d только по роли, без условия внешности). */
   allowed: boolean;
   /**
-   * Тип и роль допускают иллюстрацию — независимо от текста внешности (F08-12a, хвост F08-11b):
-   * `false` — Generate и Accept отвечают 409 `WORLD_IMAGE_NOT_ALLOWED`.
+   * Тип и роль допускают иллюстрацию (F08-12a, хвост F08-11b): `false` — «Accept» отвечает
+   * 409 `WORLD_IMAGE_NOT_ALLOWED`.
    */
   roleAllowed: boolean;
   /** Принятая: её видит сайт. */
   accepted: WorldImageFile | null;
   acceptedAt: string | null;
-  /** Сгенерированная и ждущая «Accept»: сайт её не показывает никогда. */
+  /** Ждущая «Accept»: сайт её не показывает никогда. */
   pending: WorldImageFile | null;
-  generation: WorldImageGeneration | null;
-  /** Потолок одной генерации, USD (десятичная строка). */
-  estimateUsd: string;
 }
 
 /** Тело `POST .../image/accept`: какую ожидающую картинку видел администратор. */
