@@ -16,7 +16,14 @@ import {
   useSaveBookWorldEntity,
 } from '@/api/hooks';
 
-const STATE = { key: 'a', allowed: true, accepted: null, acceptedAt: null, pending: null };
+const STATE = {
+  key: 'a',
+  allowed: true,
+  roleAllowed: true,
+  accepted: null,
+  acceptedAt: null,
+  pending: null,
+};
 
 vi.mock('@/api/endpoints/admin/bookWorld', async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -28,7 +35,10 @@ vi.mock('@/api/endpoints/admin/bookWorld', async (importOriginal) => ({
     recountQueued: true,
   })),
   deleteBookWorldEntity: vi.fn(async () => undefined),
-  generateWorldImage: vi.fn(async () => ({ ...STATE, generation: { status: 'active' } })),
+  generateWorldImage: vi.fn(async () => ({
+    ...STATE,
+    generation: { status: 'active', pauseReason: null },
+  })),
   acceptWorldImage: vi.fn(async () => ({ ...STATE, generation: null })),
 }));
 

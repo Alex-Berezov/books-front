@@ -157,6 +157,7 @@ const LIST = {
     summary('bea', 'Bea Moss', { role: 'minor' }),
     summary('cal', 'Cal Dune', { role: 'minor' }),
   ],
+  places: [],
 };
 
 const ENTITY_FULL = {
@@ -194,6 +195,12 @@ const ENTITY_FULL = {
   ],
   faq: [{ question: 'Who is Anna Lark?', answer: 'The mapmaker.' }],
   sources: [{ title: 'Service source', url: 'https://example.com/source' }],
+  kind: null,
+  location: null,
+  significance: null,
+  description: null,
+  wikidataId: null,
+  point: null,
   mentions: {
     chapters: [1, 2, 3, 9],
     first: 1,

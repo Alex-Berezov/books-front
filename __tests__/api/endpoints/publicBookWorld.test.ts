@@ -17,7 +17,7 @@ describe('getPublicBookWorld и getPublicBookWorldEntity', () => {
       http.get('http://localhost:5000/api/versions/:versionId/world', ({ request }) => {
         authorization = request.headers.get('authorization');
         country = request.headers.get('x-visitor-country');
-        return HttpResponse.json({ language: 'en', alternates: [], entities: [] });
+        return HttpResponse.json({ language: 'en', alternates: [], entities: [], places: [] });
       })
     );
 
@@ -25,6 +25,7 @@ describe('getPublicBookWorld и getPublicBookWorldEntity', () => {
       language: 'en',
       alternates: [],
       entities: [],
+      places: [],
     });
     expect(authorization).toBeNull();
     expect(country).toBe('XX');

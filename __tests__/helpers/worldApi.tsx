@@ -95,6 +95,12 @@ export const detail = (key: string): BookWorldEntityResponse => ({
     critique: null,
     prototypes: null,
     adaptations: null,
+    kind: null,
+    location: null,
+    significance: null,
+    description: null,
+    wikidataId: null,
+    point: null,
     compare: null,
     bonds: null,
     differences: null,
@@ -221,6 +227,7 @@ export const installWorldApi = (): WorldApi => {
         language: 'en',
         alternates: [],
         entities: api.list(),
+        places: [],
       } satisfies BookWorldListResponse);
     }),
     http.get(`${WORLD}/:key`, ({ params }) => {
@@ -258,6 +265,7 @@ export const installWorldApi = (): WorldApi => {
       HttpResponse.json({
         key: String(params.key),
         allowed: false,
+        roleAllowed: false,
         accepted: null,
         acceptedAt: null,
         pending: null,

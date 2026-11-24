@@ -10,7 +10,7 @@ import type { ISODate } from './common';
 import type { LlmOperation } from './llm';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
-/** Тип сущности; запись принимает `character` и `pair` (F08-8c), прочие — пачками своего типа. */
+/** Тип сущности; запись принимает `character`, `pair` (F08-8c) и `place` (F08-12a), прочие — пачками своего типа. */
 export type WorldEntityType = 'character' | 'pair' | 'place' | 'object' | 'term' | 'event';
 
 export type BookWorldRole = BookAnalysisRole;
@@ -144,6 +144,72 @@ export interface BookWorldPairFields {
   conclusion: string | null;
 }
 
+/** Место реальное или вымышленное (F08-12a); точка на карте — только у реального. */
+export type WorldPlaceKind = 'real' | 'fictional';
+
+/**
+ * Поля места (F08-12a, решение арбитра `F08 | F08-12` Q1): тело записи и ответ. У героя и пары их нет;
+ * у места из полей героя есть только `short`, `scenes`, `quotes` (`speakerKey` — герой), `faq` и формы имени.
+ * `wikidataId` — только у реального места: координаты бэкенд читает из Wikidata сам, во входе их нет.
+ */
+export interface BookWorldPlaceFields {
+  kind: WorldPlaceKind | null;
+  location: string | null;
+  significance: string | null;
+  description: string | null;
+  wikidataId: string | null;
+}
+
+/** Проверенная точка реального места: координаты из Wikidata P625 и страница источника (F08-12a). */
+export interface BookWorldPoint {
+  lat: number;
+  lng: number;
+  sourceUrl: string;
+}
+
+/**
+ * Почему у места нет точки (F08-12a); `unavailable` — для текущих номера и названий проверки нет
+ * (Wikidata не ответила или проверка ещё не прошла), повторится при записи.
+ */
+export type WorldGeoReason =
+  | 'not_found'
+  | 'no_coordinates'
+  | 'not_earth'
+  | 'out_of_range'
+  | 'name_mismatch'
+  | 'unavailable';
+
+/** Итог последней проверки координат места — только редактору (F08-12a). */
+export interface BookWorldGeoCheck {
+  wikidataId: string;
+  /** `null` — проверки для текущих номера и названий нет (`reason: 'unavailable'`). */
+  checkedAt: ISODate | null;
+  /** `null` — точка есть. */
+  reason: WorldGeoReason | null;
+}
+
+/** Сцена места на общей странице: без текста, только ссылка на главу (F08-12a). */
+export interface BookWorldPlaceScene {
+  title: string;
+  chapter: number;
+  paragraph: number | null;
+}
+
+/**
+ * Место на общей странице `/wiki` — текстовым списком и точкой карты (F08-12a, решение арбитра
+ * `F08 | F08-12` Q4): и место без своей страницы (`hasPage: false`), карточкой без ссылки.
+ */
+export interface BookWorldPlaceCard {
+  key: string;
+  name: string;
+  short: string | null;
+  kind: WorldPlaceKind | null;
+  location: string | null;
+  hasPage: boolean;
+  point: BookWorldPoint | null;
+  scenes: BookWorldPlaceScene[];
+}
+
 /** Форма имени и главы, где она не считается — тёзки внутри одной формы (F08-8a). */
 export interface BookWorldChapterExclusion {
   form: string;
@@ -183,6 +249,11 @@ export interface BookWorldEditor {
    * (решение арбитра `F08 | F08-2` S5).
    */
   recountPending?: boolean;
+  /**
+   * Только на странице места (F08-12a): проверка координат для текущих номера и названий (то же
+   * правило, что `point`); `null` — место вымышленное, без номера или не место.
+   */
+  geo?: BookWorldGeoCheck | null;
 }
 
 export interface BookWorldEntitySummary {
@@ -215,11 +286,22 @@ export interface BookWorldListResponse {
   /** Кластер hreflang страницы; пусто — страница не индексируется (одно правило с картой сайта). */
   alternates: BookWorldAlternate[];
   entities: BookWorldListEntity[];
+  /**
+   * Места общей страницы (F08-12a): «показывать», «прочитано», рубильник мест на бэкенде; пусто, пока
+   * страниц мест нет на сайте (F08-12c). Один и тот же набор редактору и читателю.
+   */
+  places: BookWorldPlaceCard[];
 }
 
 export interface BookWorldEntity
-  extends BookWorldEntitySummary, Omit<BookWorldCharacterFields, 'short'>, BookWorldPairFields {
+  extends
+    BookWorldEntitySummary,
+    Omit<BookWorldCharacterFields, 'short'>,
+    BookWorldPairFields,
+    BookWorldPlaceFields {
   mentions: BookWorldMentions | null;
+  /** Только у места (F08-12a): проверенная точка для текущего `wikidataId`; иначе `null`. */
+  point: BookWorldPoint | null;
   createdAt: ISODate;
 }
 
@@ -253,6 +335,8 @@ export interface WorldImageFile extends BookWorldImage {
 export interface WorldImageGeneration {
   operationId: string;
   status: LlmOperation['status'];
+  /** Почему генерация на паузе (`status: paused`), например потолок трат; иначе `null` (F08-12a, хвост F08-11b). */
+  pauseReason: LlmOperation['pauseReason'];
   /**
    * Код отказа: `WORLD_IMAGE_NOT_IMAGE`, `WORLD_IMAGE_TOO_SMALL`, `WORLD_IMAGE_TOO_LARGE`,
    * `WORLD_IMAGE_INPUT_MISSING` или код LLM (`LLM_INSUFFICIENT_FUNDS`, `LLM_UNAVAILABLE`...);
@@ -268,6 +352,11 @@ export interface WorldImageState {
   key: string;
   /** Герой `main`/`secondary` с текстом внешности: иллюстрация возможна. */
   allowed: boolean;
+  /**
+   * Тип и роль допускают иллюстрацию — независимо от текста внешности (F08-12a, хвост F08-11b):
+   * `false` — Generate и Accept отвечают 409 `WORLD_IMAGE_NOT_ALLOWED`.
+   */
+  roleAllowed: boolean;
   /** Принятая: её видит сайт. */
   accepted: WorldImageFile | null;
   acceptedAt: string | null;
@@ -295,7 +384,8 @@ export type BookWorldEntityInput = {
   /** Главы, где форма не считается (тёзки, F08-8a): только эта форма, только эти главы. */
   aliasChapterExclusions?: BookWorldChapterExclusion[] | null;
 } & Partial<BookWorldCharacterFields> &
-  Partial<BookWorldPairFields>;
+  Partial<BookWorldPairFields> &
+  Partial<BookWorldPlaceFields>;
 
 /** Тело `PUT versions/:id/world`: вся версия; сущности вне тела не трогаются. */
 export interface SaveBookWorldRequest {

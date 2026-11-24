@@ -28,6 +28,7 @@ const file = (mediaId: string) => ({
 const generation = (patch: Partial<WorldImageGeneration> = {}): WorldImageGeneration => ({
   operationId: 'op1',
   status: 'active',
+  pauseReason: null,
   failedReason: null,
   spentUsd: '0',
   ...patch,
@@ -35,6 +36,7 @@ const generation = (patch: Partial<WorldImageGeneration> = {}): WorldImageGenera
 const state = (patch: Partial<WorldImageState> = {}): WorldImageState => ({
   key: 'sonya',
   allowed: true,
+  roleAllowed: true,
   accepted: null,
   acceptedAt: null,
   pending: null,

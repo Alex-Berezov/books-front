@@ -68,6 +68,7 @@ describe('WorldTab marks and import (F08-1)', () => {
           language: 'en',
           alternates: [],
           entities: [published, ...LIST().slice(1)],
+          places: [],
         } satisfies BookWorldListResponse)
       )
     );
@@ -168,6 +169,7 @@ describe('WorldTab marks and import (F08-1)', () => {
                     ? { ...e, editor: { ...e.editor, autoTextAt: IMPORTED } }
                     : e
                 ),
+                places: [],
               },
         entities: [{ key: 'sonya', created: false, hasCore: false, warnings: [] }],
       } satisfies BookWorldSaveResponse);

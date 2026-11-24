@@ -157,6 +157,7 @@ const LIST: BookWorldListResponse = {
     { ...summary('tom', 'Tom Reed', { role: 'secondary' }), forms: ['Tom Reed'] },
     { ...summary('zed', 'Zed Park', { role: 'minor' }), forms: ['Zed Park'] },
   ],
+  places: [],
 };
 const LIST_WITH_PAIR: BookWorldListResponse = {
   ...LIST,
@@ -175,6 +176,12 @@ const PAIR_ENTITY: BookWorldEntity = {
   critique: null,
   prototypes: null,
   adaptations: null,
+  kind: null,
+  location: null,
+  significance: null,
+  description: null,
+  wikidataId: null,
+  point: null,
   sources: null,
   compare: [
     { feature: 'Work', a: 'Maps the road.', chapterA: 1, b: 'Lights the lamps.', chapterB: 2 },
@@ -214,6 +221,12 @@ const HERO = (
   critique: null,
   prototypes: null,
   adaptations: null,
+  kind: null,
+  location: null,
+  significance: null,
+  description: null,
+  wikidataId: null,
+  point: null,
   compare: null,
   bonds: null,
   differences: null,

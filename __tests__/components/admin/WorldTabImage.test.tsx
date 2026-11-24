@@ -33,6 +33,7 @@ const PAIR_KEY = 'anna--tom';
 const imageState = (allowed: boolean): WorldImageState => ({
   key: 'sonya',
   allowed,
+  roleAllowed: true,
   accepted: null,
   acceptedAt: null,
   pending: null,
