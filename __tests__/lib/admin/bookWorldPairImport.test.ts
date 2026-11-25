@@ -158,6 +158,16 @@ describe('пара героев: импорт и запись (F08-8c)', () => {
     ]);
   });
 
+  // F08-11d-2: ТЗ на иллюстрацию - поле героя; у пары непустое отбивается, как 400 бэкенда.
+  it('ТЗ на иллюстрацию у пары: непустое - отказ на пути поля, пустое уходит как null', () => {
+    expect(paths(world(pair({ imageBrief: 'Square portrait.' })))).toEqual([
+      'entities.0.imageBrief',
+    ]);
+    const result = checkBookWorldImport(world(pair({ imageBrief: '' })), 'en');
+    expect(result.errors).toEqual([]);
+    expect(body(result.data?.entities)[0].imageBrief).toBeNull();
+  });
+
   it('«профиль» у пары: null, {} и поля из пробелов или null - пусто; лишний ключ - отказ (BookWorldProfileDto)', () => {
     for (const profile of [
       null,

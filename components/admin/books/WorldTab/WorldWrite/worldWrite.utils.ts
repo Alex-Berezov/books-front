@@ -64,6 +64,7 @@ const BLOCK_TITLES: Record<WorldWriteBlock, string> = {
   bonds: 'What links them',
   differences: 'What sets them apart',
   conclusion: 'Conclusion',
+  imageBrief: 'Illustration brief',
 };
 
 /** Имя героя по ключу из кандидатов хода; кандидатов ещё нет или ключ чужой — сам ключ. */

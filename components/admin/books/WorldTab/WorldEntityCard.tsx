@@ -10,6 +10,7 @@ import { useWorldEntityCard, type WorldEntityCardOptions } from './useWorldEntit
 import { unplacedIssues, WorldEntityFields } from './WorldEntityFields';
 import { isWorldPublished, WORLD_HIDDEN_UNTIL_READ, worldReadLabel } from './worldErrors';
 import { FieldIssues } from './WorldFieldIssues';
+import { WorldImageBrief } from './WorldImageBrief';
 import { WorldImagePanel } from './WorldImagePanel';
 import styles from './WorldTab.module.scss';
 
@@ -97,6 +98,8 @@ export const WorldEntityCard: FC<WorldEntityCardProps> = (props) => {
         onReloadPresence={card.reloadPresence}
         presenceReloadError={card.presenceReloadError}
       />
+
+      {entity && <WorldImageBrief entity={entity} />}
 
       {isAdmin && entityKey !== null && entity && entityType === 'character' && (
         <WorldImagePanel versionId={props.versionId} entityKey={entityKey} name={entity.name} />

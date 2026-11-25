@@ -213,6 +213,8 @@ const characterFields = {
   adaptations: clearable(BOOK_WORLD_LIST_SCHEMAS.adaptations),
   faq: clearable(BOOK_WORLD_LIST_SCHEMAS.faq),
   sources: clearable(BOOK_WORLD_LIST_SCHEMAS.sources),
+  // ТЗ на иллюстрацию (F08-11d-2): у героя любой роли, по-английски; читателю не отдаётся.
+  imageBrief: clearable(z.string().trim().max(L.imageBrief)),
   // Поля пары - у героя только пустыми.
   compare: foreignList('character'),
   bonds: foreignText('character'),
@@ -249,6 +251,7 @@ const pairFields = {
   prototypes: foreignText('pair'),
   adaptations: foreignList('pair'),
   sources: foreignList('pair'),
+  imageBrief: foreignText('pair'),
 };
 
 const entitySchema = z.discriminatedUnion('type', [

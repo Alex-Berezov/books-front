@@ -100,7 +100,9 @@ export type WorldWriteBlock =
   | 'compare'
   | 'bonds'
   | 'differences'
-  | 'conclusion';
+  | 'conclusion'
+  /** ТЗ на иллюстрацию героя для редакции (F08-11d-2), по-английски. */
+  | 'imageBrief';
 
 /** Вид шага: выбор героев и форм имени, страница героя, внешние блоки героя, страница пары (`F08-8e`). */
 export type WorldWriteStepKind = 'select' | 'page' | 'external' | 'pair';
@@ -115,7 +117,11 @@ export type WorldWriteFixCode =
   | 'KEY_UNKNOWN'
   | 'SOURCE_UNREACHABLE'
   | 'SOURCE_UNRELATED'
-  | 'SOURCE_UNVERIFIED';
+  | 'SOURCE_UNVERIFIED'
+  /** ТЗ без «Внешности» снято кодом (F08-11d-2). */
+  | 'BRIEF_WITHOUT_APPEARANCE'
+  /** ТЗ у героя не `main`/`secondary` снято кодом (F08-11d-2). */
+  | 'BRIEF_NOT_ALLOWED';
 
 export interface WorldWriteFix {
   code: WorldWriteFixCode;
@@ -288,7 +294,7 @@ export interface WorldWriteState {
  * «Accept» добавит их к источникам сущности).
  */
 export interface WorldWriteValue {
-  /** `short`, `appearance`, `character`, `critique`, `prototypes`, `bonds`, `differences`, `conclusion`. */
+  /** `short`, `appearance`, `character`, `critique`, `prototypes`, `bonds`, `differences`, `conclusion`, `imageBrief`. */
   text: string | null;
   aliases: string[] | null;
   profile: BookWorldProfile | null;

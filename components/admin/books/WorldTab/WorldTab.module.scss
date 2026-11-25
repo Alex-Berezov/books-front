@@ -176,6 +176,19 @@
   text-decoration: underline;
 }
 
+.briefPanel {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.briefText {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
 .imagePanel {
   display: flex;
   flex-direction: column;

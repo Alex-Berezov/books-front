@@ -52,7 +52,15 @@ export const BOOK_WORLD_LIMITS = {
   chapter: A.chapter,
   paragraph: 10_000,
   adaptationYear: A.adaptationYear,
+  // ТЗ на иллюстрацию героя (F08-11d-2): только импорт и ход, в карточке поля нет (`F08 | F08-11d-2`).
+  imageBrief: A.mediumText,
 } as const;
+
+/**
+ * Роли героя, которому положена иллюстрация и ТЗ на неё (F08-11d-2). Копия `WORLD_IMAGE_ROLES`
+ * из `books/src/modules/book-world/world-image-public.ts` — change both together.
+ */
+export const WORLD_IMAGE_ROLES: readonly string[] = ['main', 'secondary'];
 
 const CHARACTER = ['character'] as const;
 const PAIR = ['pair'] as const;

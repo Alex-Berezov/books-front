@@ -253,6 +253,16 @@ export interface BookWorldEditor {
    * правило, что `point`); `null` — место вымышленное, без номера или не место.
    */
   geo?: BookWorldGeoCheck | null;
+  /**
+   * Только на странице сущности: ТЗ на иллюстрацию этой версии (по-английски, с названием книги
+   * и автором; F08-11d-2); `null` — не написано. Читателю не отдаётся.
+   */
+  imageBrief?: string | null;
+  /**
+   * Только на странице сущности: ТЗ написано не по текущей «Внешности» или до проверки (F08-11d-2) —
+   * его надо перегенерировать; ТЗ нет — `false`.
+   */
+  imageBriefStale?: boolean;
 }
 
 export interface BookWorldEntitySummary {
@@ -363,6 +373,11 @@ export type BookWorldEntityInput = {
   aliasExclusions?: string[] | null;
   /** Главы, где форма не считается (тёзки, F08-8a): только эта форма, только эти главы. */
   aliasChapterExclusions?: BookWorldChapterExclusion[] | null;
+  /**
+   * ТЗ на иллюстрацию героя (F08-11d-2): только запись, читателю не отдаётся — редактор видит его
+   * в `editor.imageBrief`. Карточка поля не шлёт, ТЗ при её сохранении не меняется.
+   */
+  imageBrief?: string | null;
 } & Partial<BookWorldCharacterFields> &
   Partial<BookWorldPairFields> &
   Partial<BookWorldPlaceFields>;

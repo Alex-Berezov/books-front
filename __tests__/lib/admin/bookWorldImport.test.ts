@@ -52,6 +52,34 @@ describe('book world import (F08-1)', () => {
     expect(result.data?.entities.length).toBe((example as Example).entities.length);
   });
 
+  // F08-11d-2: ТЗ на иллюстрацию - поле героя (решение `F08 | F08-11d` Q3), предел - как на бэкенде.
+  it('the illustration brief: the reference example carries it; over the limit - an error on its path', () => {
+    expect((en as Example).entities.every((e) => typeof e.imageBrief === 'string')).toBe(true);
+    const at = spoilt((e) => {
+      e.imageBrief = 'x'.repeat(BOOK_WORLD_LIMITS.imageBrief);
+    });
+    expect(paths(at)).toEqual([]);
+    const over = spoilt((e) => {
+      e.imageBrief = 'x'.repeat(BOOK_WORLD_LIMITS.imageBrief + 1);
+    });
+    expect(paths(over)).toEqual(['entities.0.imageBrief']);
+  });
+
+  // Решение `F08 | F08-11d-2` (импорт): ТЗ принимается у героя любой роли и без «Внешности» и уходит в тело.
+  it('the illustration brief reaches the request body for any role, with or without appearance', () => {
+    const input = spoilt((e) => {
+      e.role = 'minor';
+      e.appearance = null;
+      e.imageBrief = '  Square 1:1 portrait.  ';
+    });
+    const result = checkBookWorldImport(structuredClone(input), 'en');
+    expect(result.errors).toEqual([]);
+    expect(result.data?.entities[0]).toMatchObject({
+      role: 'minor',
+      imageBrief: 'Square 1:1 portrait.',
+    });
+  });
+
   it('13 quotes: the error is on the quotes list path', () => {
     const input = spoilt((e) => {
       const quotes = e.quotes as unknown[];

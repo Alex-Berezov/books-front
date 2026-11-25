@@ -164,6 +164,10 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
       'Anna and Boris: What links them'
     );
     expect(itemTitle(run, item({ key: 'anna', block: 'short' }))).toBe('Anna: Short description');
+    // F08-11d-2: пункт ТЗ на иллюстрацию.
+    expect(itemTitle(run, item({ key: 'anna', block: 'imageBrief' }))).toBe(
+      'Anna: Illustration brief'
+    );
   });
 
   it('a hero key with "--" that is not a pair of the run stays a hero name (LEGACY-507)', () => {
