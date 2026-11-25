@@ -94,7 +94,7 @@
     "*.{ts,tsx,js,jsx}": [
       "eslint --fix",
       "prettier --write",
-      "vitest related --run"
+      "vitest related --run --maxWorkers=4"
     ],
     "*.{json,md}": [
       "prettier --write"

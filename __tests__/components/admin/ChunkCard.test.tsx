@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChunkCard } from '@/components/admin/translation-chunks/TranslationChunks/ChunkCard';
 import { ApiError } from '@/types/api';
 import type { TranslationChunk, TranslationChunkRetry } from '@/types/api-schema';
+import { buttonByText, findButtonByText } from '../../helpers/cheapQueries';
 
 /**
  * F05-7v-b: кусок «оригинал | перевод» — блоки по номеру, кнопки у любого куска и их
@@ -137,26 +138,26 @@ describe('ChunkCard', () => {
 
   it('у куска главы идёт повтор — кнопки неактивны с подсказкой', () => {
     renderCard(chunkOf(), { pairBusy: true });
-    expect(screen.getByRole('button', { name: 'Translate again' })).toBeDisabled();
+    expect(buttonByText('Translate again')).toBeDisabled();
     expect(screen.getByText(/Another piece of this language is being retried/)).toBeInTheDocument();
   });
 
   it('открытие формы отмечает кусок: под фильтром он не пропадёт', () => {
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    fireEvent.click(buttonByText('Edit'));
     expect(onTouch).toHaveBeenCalledTimes(1);
   });
 
   it('кнопки повтора и правки — у куска без флага', () => {
     renderCard(chunkOf());
-    expect(screen.getByRole('button', { name: 'Translate again' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Edit' })).toBeEnabled();
+    expect(buttonByText('Translate again')).toBeEnabled();
+    expect(buttonByText('Edit')).toBeEnabled();
   });
 
   it('запуск переводит язык — кнопки неактивны с подсказкой', () => {
     renderCard(chunkOf(), { runActive: true });
-    expect(screen.getByRole('button', { name: 'Translate again' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Edit' })).toBeDisabled();
+    expect(buttonByText('Translate again')).toBeDisabled();
+    expect(buttonByText('Edit')).toBeDisabled();
     expect(screen.getByText('Pause the run to retry or edit a piece.')).toBeInTheDocument();
   });
 
@@ -169,8 +170,8 @@ describe('ChunkCard', () => {
 
   it('повтор: лимит обязателен, пустая модель не уходит, один вызов', () => {
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Translate again' }));
-    const start = screen.getByRole('button', { name: 'Start the retry' });
+    fireEvent.click(buttonByText('Translate again'));
+    const start = buttonByText('Start the retry');
     expect(start).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Limit, $'), { target: { value: '0.5' } });
     fireEvent.click(start);
@@ -183,11 +184,11 @@ describe('ChunkCard', () => {
 
   it('повтор другой моделью — модель в теле', () => {
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Translate again' }));
+    fireEvent.click(buttonByText('Translate again'));
     fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Model of the retry' }));
     fireEvent.click(screen.getAllByText(/Other/).at(-1) as HTMLElement);
     fireEvent.change(screen.getByLabelText('Limit, $'), { target: { value: '1' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Start the retry' }));
+    fireEvent.click(buttonByText('Start the retry'));
     expect(hooks.actions.retry.mutate).toHaveBeenCalledTimes(1);
     expect(hooks.actions.retry.mutate).toHaveBeenCalledWith(
       { chunkId: 'c1', data: { model: 'x/other', limitUsd: '1' } },
@@ -197,43 +198,43 @@ describe('ChunkCard', () => {
 
   it('открытие формы снимает отказ и итог прошлого раза', () => {
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Translate again' }));
+    fireEvent.click(buttonByText('Translate again'));
     expect(hooks.actions.retry.reset).toHaveBeenCalled();
     expect(hooks.actions.edit.reset).toHaveBeenCalled();
   });
 
   it('черновик не черновик или не прочитан — предупреждение до кнопки повтора, кнопка активна', () => {
     renderCard(chunkOf(), { notDraft: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Translate again' }));
+    fireEvent.click(buttonByText('Translate again'));
     expect(
       screen.getByText(/the retry is paid, but the chapter may not be rewritten/)
     ).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Limit, $'), { target: { value: '1' } });
-    expect(screen.getByRole('button', { name: 'Start the retry' })).toBeEnabled();
+    expect(buttonByText('Start the retry')).toBeEnabled();
   });
 
   it('новый повтор при попытке на паузе — только через подтверждение с потраченным', async () => {
     renderCard(chunkOf({ retry: pausedRetry }));
-    fireEvent.click(screen.getByRole('button', { name: 'Translate again' }));
+    fireEvent.click(buttonByText('Translate again'));
     fireEvent.change(screen.getByLabelText('Limit, $'), { target: { value: '1' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Start the retry' }));
+    fireEvent.click(buttonByText('Start the retry'));
     expect(hooks.actions.retry.mutate).not.toHaveBeenCalled();
     expect(await screen.findByText(/its spent \$0\.2 is not returned/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Go on' }));
+    fireEvent.click(buttonByText('Go on'));
     expect(hooks.actions.retry.mutate).toHaveBeenCalledTimes(1);
   });
 
   it('нулевой лимит повтора не принимается', () => {
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Translate again' }));
+    fireEvent.click(buttonByText('Translate again'));
     fireEvent.change(screen.getByLabelText('Limit, $'), { target: { value: '0' } });
-    expect(screen.getByRole('button', { name: 'Start the retry' })).toBeDisabled();
+    expect(buttonByText('Start the retry')).toBeDisabled();
   });
 
   it('отказ повтора — подписью кода', () => {
     hooks.actions.retry.error = conflict('RUN_ACTIVE');
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Translate again' }));
+    fireEvent.click(buttonByText('Translate again'));
     expect(screen.getByText(/pause the run first/)).toBeInTheDocument();
   });
 
@@ -242,13 +243,13 @@ describe('ChunkCard', () => {
       chunkOf({ retry: { ...pausedRetry, status: 'pending', operationStatus: 'active' } })
     );
     expect(screen.getByText(/Retry in progress: waiting for the model/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Translate again' })).toBeDisabled();
+    expect(buttonByText('Translate again')).toBeDisabled();
   });
 
   it('операция попытки закончилась без итога — кнопки не заблокированы навсегда', () => {
     renderCard(chunkOf({ retry: { ...pausedRetry, operationStatus: 'cancelled' } }));
     expect(screen.getByText(/The retry stopped without a result/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Translate again' })).toBeEnabled();
+    expect(buttonByText('Translate again')).toBeEnabled();
   });
 
   it('повтор на паузе: «продолжить» зовёт свою операцию', () => {
@@ -263,9 +264,9 @@ describe('ChunkCard', () => {
 
   it('повтор на паузе: «отменить» — только после подтверждения', async () => {
     renderCard(chunkOf({ retry: pausedRetry }));
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(buttonByText('Cancel'));
     expect(hooks.actions.cancelRetry.mutate).not.toHaveBeenCalled();
-    fireEvent.click(await screen.findByRole('button', { name: 'Cancel the retry' }));
+    fireEvent.click(await findButtonByText('Cancel the retry'));
     expect(hooks.actions.cancelRetry.mutate).toHaveBeenCalledTimes(1);
     expect(hooks.actions.cancelRetry.mutate).toHaveBeenCalledWith('op-retry');
   });
@@ -273,7 +274,7 @@ describe('ChunkCard', () => {
   it('повтор на паузе с лимитом — «продолжить» только с новым лимитом', () => {
     renderCard(chunkOf({ retry: { ...pausedRetry, pauseReason: 'LIMIT_REACHED' } }));
     fireEvent.change(screen.getByLabelText('New limit of the retry'), { target: { value: '2' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Resume' }));
+    fireEvent.click(buttonByText('Resume'));
     expect(hooks.actions.resumeRetry.mutate).toHaveBeenCalledWith({
       id: 'op-retry',
       limitUsd: '2',
@@ -339,14 +340,14 @@ describe('ChunkCard', () => {
 
   it('правка при повторе на паузе — сохранение только через подтверждение с потраченным', async () => {
     renderCard(chunkOf({ retry: pausedRetry }));
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    fireEvent.click(buttonByText('Edit'));
     fireEvent.change(screen.getByLabelText('Translation of block 5'), {
       target: { value: 'five' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    fireEvent.click(buttonByText('Save'));
     expect(hooks.actions.edit.mutate).not.toHaveBeenCalled();
     expect(await screen.findByText(/paused retry of this piece is cancelled/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Go on' }));
+    fireEvent.click(buttonByText('Go on'));
     expect(hooks.actions.edit.mutate).toHaveBeenCalledTimes(1);
     expect(hooks.actions.edit.mutate).toHaveBeenCalledWith(
       {
@@ -364,18 +365,18 @@ describe('ChunkCard', () => {
 
   it('попытка на паузе без суммы — подтверждение всё равно есть', async () => {
     renderCard(chunkOf({ retry: { ...pausedRetry, spentUsd: null } }));
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    fireEvent.click(buttonByText('Edit'));
     fireEvent.change(screen.getByLabelText('Translation of block 5'), {
       target: { value: 'five' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    fireEvent.click(buttonByText('Save'));
     expect(hooks.actions.edit.mutate).not.toHaveBeenCalled();
     expect(await screen.findByText(/what it spent is not returned/)).toBeInTheDocument();
   });
 
   it('кусок сменился, пока форма открыта, — сохранение только после «взять новый текст»', () => {
     const { rerender } = renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    fireEvent.click(buttonByText('Edit'));
     fireEvent.change(screen.getByLabelText('Translation of block 5'), {
       target: { value: 'mine' },
     });
@@ -387,20 +388,20 @@ describe('ChunkCard', () => {
     });
     rerender(cardOf(updated));
     expect(screen.getByText(/The piece changed after the form was opened/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: 'Take the new text' }));
+    expect(buttonByText('Save')).toBeDisabled();
+    fireEvent.click(buttonByText('Take the new text'));
     expect(screen.getByLabelText('Translation of block 4')).toHaveValue('their four');
     fireEvent.change(screen.getByLabelText('Translation of block 5'), {
       target: { value: 'mine' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    fireEvent.click(buttonByText('Save'));
     expect(hooks.actions.edit.mutate).toHaveBeenCalledTimes(1);
   });
 
   it('без изменений «Save» неактивна: пустая правка не помечает кусок', () => {
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    fireEvent.click(buttonByText('Edit'));
+    expect(buttonByText('Save')).toBeDisabled();
   });
 
   it('правка принята — форма закрывается, итог виден на карточке', () => {
@@ -411,11 +412,11 @@ describe('ChunkCard', () => {
       }
     );
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    fireEvent.click(buttonByText('Edit'));
     fireEvent.change(screen.getByLabelText('Translation of block 5'), {
       target: { value: 'five' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    fireEvent.click(buttonByText('Save'));
     expect(screen.queryByLabelText('Edit the piece')).not.toBeInTheDocument();
     expect(
       screen.getByText(/The piece is saved and the chapter of the draft is rewritten/)
@@ -427,26 +428,26 @@ describe('ChunkCard', () => {
       (_vars: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.()
     );
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Translate again' }));
+    fireEvent.click(buttonByText('Translate again'));
     fireEvent.change(screen.getByLabelText('Limit, $'), { target: { value: '1' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Start the retry' }));
+    fireEvent.click(buttonByText('Start the retry'));
     expect(screen.queryByLabelText('Translate again')).not.toBeInTheDocument();
   });
 
   it('каталог моделей не прочитан — плашка с причиной в окне повтора', () => {
     hooks.modelsError = new Error('boom');
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Translate again' }));
+    fireEvent.click(buttonByText('Translate again'));
     expect(screen.getByRole('alert')).toHaveTextContent('The request failed');
   });
 
   it('правка без повтора на паузе — сразу, один вызов, все блоки в теле', () => {
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    fireEvent.click(buttonByText('Edit'));
     fireEvent.change(screen.getByLabelText('Translation of block 5'), {
       target: { value: 'five' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    fireEvent.click(buttonByText('Save'));
     expect(hooks.actions.edit.mutate).toHaveBeenCalledTimes(1);
     expect(hooks.actions.edit.mutate).toHaveBeenCalledWith(
       {
@@ -489,7 +490,7 @@ describe('ChunkCard', () => {
       data: { code: 'CHUNK_BLOCKS_INVALID', message: ['block 4: <div> not allowed'] },
     });
     renderCard(chunkOf());
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    fireEvent.click(buttonByText('Edit'));
     expect(screen.getByText(/block 4: <div> not allowed/)).toBeInTheDocument();
   });
 });

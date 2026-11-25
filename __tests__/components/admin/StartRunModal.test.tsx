@@ -8,6 +8,7 @@ import type {
   TranslationRunEstimateParams,
   TranslationSource,
 } from '@/types/api-schema';
+import { buttonByText, checkboxByLabel, queryCheckboxByLabel } from '../../helpers/cheapQueries';
 
 /**
  * F05-7: окно запуска перевода. Хуки подменены: проверяется, какие языки можно выбрать (§2.2,
@@ -158,11 +159,11 @@ describe('Окно запуска перевода (F05-7)', () => {
   it('язык исходника не предлагается; языки с версией, вне анкеты и с идущим переводом недоступны, каждый со своей подписью', () => {
     renderModal();
 
-    expect(screen.queryByRole('checkbox', { name: 'EN' })).not.toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: 'ES' })).toBeEnabled();
-    expect(screen.getByRole('checkbox', { name: 'FR' })).toBeDisabled();
-    expect(screen.getByRole('checkbox', { name: 'PT' })).toBeDisabled();
-    expect(screen.getByRole('checkbox', { name: 'RU' })).toBeDisabled();
+    expect(queryCheckboxByLabel('EN')).not.toBeInTheDocument();
+    expect(checkboxByLabel('ES')).toBeEnabled();
+    expect(checkboxByLabel('FR')).toBeDisabled();
+    expect(checkboxByLabel('PT')).toBeDisabled();
+    expect(checkboxByLabel('RU')).toBeDisabled();
     expect(
       screen.getByText('the version in this language already has chapter content')
     ).toBeInTheDocument();
@@ -178,8 +179,8 @@ describe('Окно запуска перевода (F05-7)', () => {
       ],
     });
 
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
-    fireEvent.click(screen.getByRole('checkbox', { name: 'FR' }));
+    fireEvent.click(checkboxByLabel('ES'));
+    fireEvent.click(checkboxByLabel('FR'));
 
     expect(hooks.estimateParams[0]).toBeNull();
     expect(hooks.estimateParams).toContainEqual({
@@ -226,8 +227,8 @@ describe('Окно запуска перевода (F05-7)', () => {
     );
     // Сумма остаётся оценкой, старт не блокируется (решение арбитра T147 (а)).
     expect(screen.getByText('Dossier (own limit $0.75)')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
-    expect(screen.getByRole('button', { name: 'Start' })).toBeEnabled();
+    fireEvent.click(checkboxByLabel('ES'));
+    expect(buttonByText('Start')).toBeEnabled();
   });
 
   it('досье свежее или строится (`dossier: null`) — окно рисуется без подписи отказа (T147)', () => {
@@ -242,8 +243,8 @@ describe('Окно запуска перевода (F05-7)', () => {
     renderModal();
 
     expect(screen.getByLabelText('Run limit, $')).toHaveAttribute('placeholder', '$20');
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    fireEvent.click(checkboxByLabel('ES'));
+    fireEvent.click(buttonByText('Start'));
 
     expect(hooks.mutate).toHaveBeenCalledWith({
       languages: ['es'],
@@ -263,7 +264,7 @@ describe('Окно запуска перевода (F05-7)', () => {
         source={source}
       />
     );
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(checkboxByLabel('ES'));
     rerender(
       <StartRunModal
         isOpen
@@ -278,27 +279,27 @@ describe('Окно запуска перевода (F05-7)', () => {
       />
     );
 
-    expect(screen.getByRole('checkbox', { name: 'ES' })).toBeEnabled();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
-    expect(screen.getByRole('checkbox', { name: 'ES' })).toBeDisabled();
+    expect(checkboxByLabel('ES')).toBeEnabled();
+    fireEvent.click(checkboxByLabel('ES'));
+    expect(checkboxByLabel('ES')).toBeDisabled();
   });
 
   it('без выбранных языков запустить нельзя', () => {
     ready();
     renderModal();
 
-    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
+    expect(buttonByText('Start')).toBeDisabled();
   });
 
   it('лимит и модель перевода уходят в старт; неверный лимит запуск блокирует', () => {
     ready();
     renderModal();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(checkboxByLabel('ES'));
 
     fireEvent.change(screen.getByLabelText('Run limit, $'), { target: { value: '1,5' } });
-    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
+    expect(buttonByText('Start')).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Run limit, $'), { target: { value: '7.5' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    fireEvent.click(buttonByText('Start'));
 
     expect(hooks.mutate).toHaveBeenCalledWith({
       languages: ['es'],
@@ -311,9 +312,9 @@ describe('Окно запуска перевода (F05-7)', () => {
   it('оценка перечитывается в фоне — Start ждёт новую', () => {
     ready({ isFetching: true });
     renderModal();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(checkboxByLabel('ES'));
 
-    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
+    expect(buttonByText('Start')).toBeDisabled();
   });
 
   it('D9: опубликованная версия — своя подпись; код вне словаря (выкат порознь) — как есть', () => {
@@ -329,7 +330,7 @@ describe('Окно запуска перевода (F05-7)', () => {
       ],
     });
 
-    expect(screen.getByRole('checkbox', { name: 'ES' })).toBeDisabled();
+    expect(checkboxByLabel('ES')).toBeDisabled();
     expect(screen.getByText('the version in this language is published')).toBeInTheDocument();
     expect(screen.getByText('SOMETHING_NEW')).toBeInTheDocument();
     // D9: раздел пишется в версию языка - новую или черновик редактора.
@@ -385,11 +386,11 @@ describe('Окно запуска перевода (F05-7)', () => {
     ready();
     renderModal();
 
-    const toggle = screen.getByRole('checkbox', { name: 'Write Summary' });
+    const toggle = checkboxByLabel('Write Summary');
     expect(toggle).toBeChecked();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(checkboxByLabel('ES'));
     fireEvent.click(toggle);
-    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    fireEvent.click(buttonByText('Start'));
 
     expect(hooks.estimateParams.at(-1)).toEqual({ languages: ['es'], writeAnalysis: true });
     expect(hooks.mutate).toHaveBeenCalledWith({ languages: ['es'], writeAnalysis: true });
@@ -399,11 +400,11 @@ describe('Окно запуска перевода (F05-7)', () => {
     ready();
     renderModal();
 
-    const analysis = screen.getByRole('checkbox', { name: 'Write Analysis' });
+    const analysis = checkboxByLabel('Write Analysis');
     expect(analysis).toBeChecked();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(checkboxByLabel('ES'));
     fireEvent.click(analysis);
-    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    fireEvent.click(buttonByText('Start'));
 
     // Снят только анализ — пересказ остаётся; обратный случай — тест Write Summary выше.
     expect(hooks.estimateParams.at(-1)).toEqual({ languages: ['es'], writeSummary: true });
@@ -415,10 +416,10 @@ describe('Окно запуска перевода (F05-7)', () => {
     ready();
     renderModal();
 
-    const worldBox = screen.getByRole('checkbox', { name: 'Write World' });
+    const worldBox = checkboxByLabel('Write World');
     expect(worldBox).not.toBeChecked();
     expect(worldBox).toBeEnabled();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(checkboxByLabel('ES'));
     expect(hooks.estimateParams.at(-1)).toEqual({
       languages: ['es'],
       writeSummary: true,
@@ -434,17 +435,17 @@ describe('Окно запуска перевода (F05-7)', () => {
     });
 
     // Analysis снят - World неактивен и из запроса уходит.
-    const analysis = screen.getByRole('checkbox', { name: 'Write Analysis' });
+    const analysis = checkboxByLabel('Write Analysis');
     fireEvent.click(analysis);
-    expect(screen.getByRole('checkbox', { name: 'Write World' })).toBeDisabled();
-    expect(screen.getByRole('checkbox', { name: 'Write World' })).not.toBeChecked();
+    expect(checkboxByLabel('Write World')).toBeDisabled();
+    expect(checkboxByLabel('Write World')).not.toBeChecked();
     expect(hooks.estimateParams.at(-1)).toEqual({ languages: ['es'], writeSummary: true });
 
     // Analysis вернули - World остаётся выключенным: включать его заново.
     fireEvent.click(analysis);
-    expect(screen.getByRole('checkbox', { name: 'Write World' })).not.toBeChecked();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Write World' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    expect(checkboxByLabel('Write World')).not.toBeChecked();
+    fireEvent.click(checkboxByLabel('Write World'));
+    fireEvent.click(buttonByText('Start'));
     expect(hooks.mutate).toHaveBeenCalledTimes(1);
     expect(hooks.mutate).toHaveBeenCalledWith({
       languages: ['es'],
@@ -474,7 +475,7 @@ describe('Окно запуска перевода (F05-7)', () => {
       },
     });
     renderModal();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(checkboxByLabel('ES'));
 
     expect(screen.getByText('World ES (own limit)')).toBeInTheDocument();
     expect(
@@ -492,7 +493,7 @@ describe('Окно запуска перевода (F05-7)', () => {
       },
     });
     renderModal();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(checkboxByLabel('ES'));
 
     expect(
       screen.getByText('Total (upper bound), including Analysis $0.7').nextSibling
@@ -513,7 +514,7 @@ describe('Окно запуска перевода (F05-7)', () => {
       },
     });
     renderModal();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(checkboxByLabel('ES'));
 
     expect(screen.getByText('Analysis ES (own limit)').nextSibling).toHaveTextContent('$0.7');
     expect(screen.getByText('Translation ES').nextSibling).toHaveTextContent('$1.31');
@@ -532,7 +533,7 @@ describe('Окно запуска перевода (F05-7)', () => {
       },
     });
     renderModal();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(checkboxByLabel('ES'));
 
     expect(screen.getByText('Summary ES (own limit)').nextSibling).toHaveTextContent('$0.5');
     expect(screen.getByText('Translation ES').nextSibling).toHaveTextContent('$1.31');
@@ -544,7 +545,7 @@ describe('Окно запуска перевода (F05-7)', () => {
   it('Write Summary включён, а у оценки summaryUsd нет — строк Summary нет, итог без разбивки', () => {
     ready();
     renderModal();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'ES' }));
+    fireEvent.click(checkboxByLabel('ES'));
 
     expect(screen.queryByText(/^Summary ES/)).not.toBeInTheDocument();
     expect(screen.getByText('Total (upper bound)').nextSibling).toHaveTextContent('$1.81');
