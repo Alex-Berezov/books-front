@@ -19,6 +19,8 @@ const UPLOAD_ROUTES: readonly string[] = [
   '/admin/rights/review-imports/:id/report-pdf',
   '/admin/rights/profiles/:id/source-file',
   '/admin/rights/evidence/:id/archive-copy',
+  // Файл иллюстрации героя (F08-11d-3): версия и ключ сущности - оба сегменты-параметры.
+  '/admin/versions/:id/world/:id/image',
 ];
 
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

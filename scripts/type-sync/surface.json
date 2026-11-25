@@ -16096,6 +16096,26 @@
     ]
   },
   {
+    "route": "POST /admin/versions/{id}/world/{key}/image",
+    "hasResponseSchema": true,
+    "fields": [
+      "accepted",
+      "accepted.height",
+      "accepted.mediaId",
+      "accepted.url",
+      "accepted.width",
+      "acceptedAt",
+      "allowed",
+      "key",
+      "pending",
+      "pending.height",
+      "pending.mediaId",
+      "pending.url",
+      "pending.width",
+      "roleAllowed"
+    ]
+  },
+  {
     "route": "POST /admin/versions/{id}/world/{key}/image/accept",
     "hasResponseSchema": true,
     "fields": [

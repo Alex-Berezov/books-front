@@ -117,6 +117,24 @@ export const getWorldImage = async (versionId: string, key: string): Promise<Wor
     `/admin/versions/${encodeURIComponent(versionId)}/world/${encodeURIComponent(key)}/image`
   );
 
+/**
+ * Загрузка файла иллюстрации в ожидающую ячейку (F08-11d-3): multipart, одно поле `file`
+ * (текстовых полей бэкенд не принимает). 400 `WORLD_IMAGE_NOT_IMAGE` / `WORLD_IMAGE_TOO_LARGE` /
+ * `WORLD_IMAGE_TOO_SMALL`, 409 `WORLD_IMAGE_NOT_ALLOWED`.
+ */
+export const uploadWorldImage = async (
+  versionId: string,
+  key: string,
+  file: File
+): Promise<WorldImageState> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return httpPostAuth<WorldImageState>(
+    `/admin/versions/${encodeURIComponent(versionId)}/world/${encodeURIComponent(key)}/image`,
+    formData
+  );
+};
+
 /** «Accept» — 409 `WORLD_IMAGE_NONE`, `WORLD_IMAGE_CHANGED`, `WORLD_IMAGE_NOT_ALLOWED`. */
 export const acceptWorldImage = async (
   versionId: string,

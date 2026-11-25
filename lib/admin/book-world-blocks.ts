@@ -62,6 +62,19 @@ export const BOOK_WORLD_LIMITS = {
  */
 export const WORLD_IMAGE_ROLES: readonly string[] = ['main', 'secondary'];
 
+/**
+ * Предел файла портрета (F08-11d-3). Копия `WORLD_IMAGE_LIMITS` из
+ * `books/src/modules/translation/world-image/world-image.constants.ts` и типов `sniffImage`
+ * (`books/src/shared/image/image-check.ts`) — change both together: подсказка у поля загрузки,
+ * проверка размера до отправки и тексты отказов берут числа отсюда.
+ */
+export const WORLD_IMAGE_FILE_LIMITS = {
+  maxMb: 12,
+  minSide: 1200,
+  maxMegapixels: 40,
+  types: ['image/png', 'image/jpeg', 'image/webp'],
+} as const;
+
 const CHARACTER = ['character'] as const;
 const PAIR = ['pair'] as const;
 const BOTH = ['character', 'pair'] as const;

@@ -2,6 +2,7 @@
  * F08-11c (хвосты ревью 11b, решение `F08 | F08-11b`): ключ картинки героя лежит под ключом
  * сущности — импорт, пересчёт и удаление сбрасывают его вместе с карточкой; ответ «Accept»
  * отменяет летящее перечитывание до записи своего состояния в кэш (генерации нет с F08-11d).
+ * F08-11d-3: так же ответ загрузки файла; отказ загрузки перечитывает состояние.
  */
 import React, { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -10,6 +11,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   bookWorldQueryKeys,
   useAcceptWorldImage,
+  useUploadWorldImage,
   useDeleteBookWorldEntity,
   useSaveBookWorld,
   useSaveBookWorldEntity,
@@ -35,6 +37,10 @@ vi.mock('@/api/endpoints/admin/bookWorld', async (importOriginal) => ({
   })),
   deleteBookWorldEntity: vi.fn(async () => undefined),
   acceptWorldImage: vi.fn(async () => ({ ...STATE, accepted: { mediaId: 'm1' } })),
+  uploadWorldImage: vi.fn(async (_v: string, key: string) => {
+    if (key === 'refused') throw new Error('409');
+    return { ...STATE, pending: { mediaId: 'up1' } };
+  }),
 }));
 
 const seeded = () => {
@@ -96,5 +102,38 @@ describe('illustration cache key (F08-11c)', () => {
     expect(client.isFetching()).toBe(0);
     const state = client.getQueryData<{ accepted: { mediaId: string } | null }>(key);
     expect(state?.accepted?.mediaId ?? null).toBe('m1');
+  });
+
+  it('upload: a re-read in flight does not overwrite the state from the response', async () => {
+    const { client, wrapper } = seeded();
+    const key = bookWorldQueryKeys.image('v1', 'a');
+    let late!: (value: unknown) => void;
+    const inflight = client
+      .fetchQuery({ queryKey: key, queryFn: () => new Promise((resolve) => (late = resolve)) })
+      .catch(() => undefined);
+    const { result } = renderHook(() => useUploadWorldImage(), { wrapper });
+    const file = new File(['x'], 'p.png', { type: 'image/png' });
+    await act(() => result.current.mutateAsync({ versionId: 'v1', key: 'a', file }));
+    late({ ...STATE, pending: { mediaId: 'stale' } });
+    await act(async () => {
+      await inflight;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    const state = client.getQueryData<{ pending: { mediaId: string } | null }>(key);
+    expect(state?.pending?.mediaId ?? null).toBe('up1');
+  });
+
+  it('upload refused: only its own illustration is re-read', async () => {
+    const { client, wrapper, stale } = seeded();
+    client.setQueryData(bookWorldQueryKeys.image('v1', 'refused'), STATE);
+    const { result } = renderHook(() => useUploadWorldImage(), { wrapper });
+    const file = new File(['x'], 'p.png', { type: 'image/png' });
+    await act(async () => {
+      await result.current
+        .mutateAsync({ versionId: 'v1', key: 'refused', file })
+        .catch(() => undefined);
+    });
+    expect(stale(bookWorldQueryKeys.image('v1', 'refused'))).toBe(true);
+    expect(stale(bookWorldQueryKeys.image('v1', 'a'))).toBe(false);
   });
 });

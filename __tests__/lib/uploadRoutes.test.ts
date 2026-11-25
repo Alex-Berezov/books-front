@@ -21,8 +21,8 @@ import { isUploadRoute, uploadRoutePattern } from '@/lib/upload-routes';
 const REPO_ROOT = resolve(__dirname, '../..');
 const API_DIR = join(REPO_ROOT, 'api');
 
-/** Число загрузок на 12.10.2026: четыре `FormData`, многочастный XHR, прямая загрузка. */
-const EXPECTED_UPLOAD_CALLS = 6;
+/** Число загрузок на 25.11.2026: пять `FormData` (с F08-11d-3 - иллюстрация героя), многочастный XHR, прямая загрузка. */
+const EXPECTED_UPLOAD_CALLS = 7;
 
 const DIRECT_UPLOAD_PATH = '/uploads/direct';
 

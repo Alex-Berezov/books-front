@@ -264,4 +264,183 @@ describe('WorldImagePanel (F08-11b, F08-11d)', () => {
     expect(screen.getByText(/Only main and secondary/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: NO_GENERATION })).toBeNull();
   });
+
+  describe('file upload (F08-11d-3)', () => {
+    const picture = () => new File(['portrait-bytes'], 'portrait.png', { type: 'image/png' });
+    const fileInput = async () =>
+      (await screen.findByText(/^Upload a/)).querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+    const choose = async () => {
+      fireEvent.change(await fileInput(), { target: { files: [picture()] } });
+    };
+    const refused = (code: string, status = 400) =>
+      HttpResponse.json({ statusCode: status, code, message: 'x' }, { status });
+
+    it('sends the chosen file as the one multipart field "file"; the new picture waits for Accept', async () => {
+      let received: FormData | undefined;
+      server.use(
+        http.get(URL_IMAGE, () => HttpResponse.json(state({ accepted: file('old') }))),
+        http.post(URL_IMAGE, async ({ request }) => {
+          received = await request.formData();
+          return HttpResponse.json(state({ accepted: file('old'), pending: file('new') }));
+        })
+      );
+      renderPanel();
+      await choose();
+      expect(
+        await screen.findByRole('img', { name: 'Sonya: Waiting for Accept' })
+      ).toBeInTheDocument();
+      expect(received, 'the upload request did not arrive').toBeDefined();
+      expect([...received!.keys()]).toEqual(['file']);
+      const sent = received!.get('file') as File;
+      expect(await sent.text()).toBe('portrait-bytes');
+      expect(sent.type).toBe('image/png');
+      expect(screen.getByRole('img', { name: 'Sonya: Accepted' })).toBeInTheDocument();
+    });
+
+    it.each([
+      ['WORLD_IMAGE_NOT_IMAGE', 'not a PNG, JPEG or WebP image'],
+      ['WORLD_IMAGE_TOO_LARGE', 'up to 12 MB and 40 megapixels'],
+      ['WORLD_IMAGE_TOO_SMALL', 'both sides must be at least 1200 px'],
+    ])('a refused file %s shows its reason', async (code, text) => {
+      server.use(
+        http.get(URL_IMAGE, () => HttpResponse.json(state())),
+        http.post(URL_IMAGE, () => refused(code))
+      );
+      renderPanel();
+      await choose();
+      expect(await screen.findByRole('alert')).toHaveTextContent(text);
+    });
+
+    it('the label says what happens to the accepted and the waiting picture', async () => {
+      server.use(http.get(URL_IMAGE, () => HttpResponse.json(state({ accepted: file('old') }))));
+      const client = renderPanel();
+      expect(
+        await screen.findByText(/the accepted one stays on the site until Accept/)
+      ).toBeInTheDocument();
+      client.setQueryData(
+        bookWorldQueryKeys.image('v1', 'sonya'),
+        state({ accepted: file('old'), pending: file('new') })
+      );
+      expect(await screen.findByText(/replace the one waiting for Accept/)).toBeInTheDocument();
+    });
+
+    it('Accept clears a previous upload refusal', async () => {
+      server.use(
+        http.get(URL_IMAGE, () => HttpResponse.json(state({ pending: file('new') }))),
+        http.post(URL_IMAGE, () => refused('WORLD_IMAGE_TOO_SMALL')),
+        http.post(`${URL_IMAGE}/accept`, () => HttpResponse.json(state({ accepted: file('new') })))
+      );
+      renderPanel();
+      await choose();
+      expect(await screen.findByRole('alert')).toHaveTextContent('at least 1200 px');
+      fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
+      await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
+    });
+
+    it('the file field is locked while Accept is in flight', async () => {
+      let release: () => void = () => {};
+      server.use(
+        http.get(URL_IMAGE, () => HttpResponse.json(state({ pending: file('new') }))),
+        http.post(
+          `${URL_IMAGE}/accept`,
+          () =>
+            new Promise<Response>((resolve) => {
+              release = () => resolve(HttpResponse.json(state({ accepted: file('new') })));
+            })
+        )
+      );
+      renderPanel();
+      fireEvent.click(await screen.findByRole('button', { name: 'Accept' }));
+      await waitFor(async () => expect(await fileInput()).toBeDisabled());
+      release();
+      await waitFor(async () => expect(await fileInput()).toBeEnabled());
+    });
+
+    it('409 WORLD_IMAGE_NOT_ALLOWED re-reads the state: the field and Accept go away', async () => {
+      let gets = 0;
+      server.use(
+        http.get(URL_IMAGE, () => {
+          gets += 1;
+          return HttpResponse.json(
+            gets === 1
+              ? state({ pending: file('new') })
+              : state({ allowed: false, roleAllowed: false, pending: file('new') })
+          );
+        }),
+        http.post(URL_IMAGE, () => refused('WORLD_IMAGE_NOT_ALLOWED', 409))
+      );
+      renderPanel();
+      await choose();
+      expect(await screen.findByText(/Only main and secondary/)).toBeInTheDocument();
+      // Отказ по роли сказан один раз — подсказкой, без второй красной строки.
+      expect(screen.getAllByText(/Only main and secondary/)).toHaveLength(1);
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(screen.queryByText(/^Upload a/)).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull();
+    });
+
+    it('a file over 12 MB is refused before sending: no request', async () => {
+      let posts = 0;
+      server.use(
+        http.get(URL_IMAGE, () => HttpResponse.json(state())),
+        http.post(URL_IMAGE, () => {
+          posts += 1;
+          return HttpResponse.json(state());
+        })
+      );
+      renderPanel();
+      const big = new File(['x'], 'big.png', { type: 'image/png' });
+      Object.defineProperty(big, 'size', { value: 12 * 1024 * 1024 + 1 });
+      fireEvent.change(await fileInput(), { target: { files: [big] } });
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('The file is too large: up to 12 MB.');
+      // Отказ до отправки — только по размеру: мегапиксели браузеру не известны.
+      expect(alert).not.toHaveTextContent('megapixels');
+      expect(posts).toBe(0);
+    });
+
+    it('413 with the code shows the size reason', async () => {
+      server.use(
+        http.get(URL_IMAGE, () => HttpResponse.json(state())),
+        http.post(URL_IMAGE, () => refused('WORLD_IMAGE_TOO_LARGE', 413))
+      );
+      renderPanel();
+      await choose();
+      expect(await screen.findByRole('alert')).toHaveTextContent('up to 12 MB');
+    });
+
+    it('while the file goes up the field and Accept are locked; after a refusal the field is cleared', async () => {
+      let release: () => void = () => {};
+      server.use(
+        http.get(URL_IMAGE, () => HttpResponse.json(state({ pending: file('old') }))),
+        http.post(
+          URL_IMAGE,
+          () =>
+            new Promise<Response>((resolve) => {
+              release = () => resolve(refused('WORLD_IMAGE_TOO_SMALL'));
+            })
+        )
+      );
+      renderPanel();
+      await choose();
+      await waitFor(async () => expect(await fileInput()).toBeDisabled());
+      expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled();
+      release();
+      expect(await screen.findByRole('alert')).toHaveTextContent('at least 1200 px');
+      const input = await fileInput();
+      expect(input).toBeEnabled();
+      expect(input.value).toBe('');
+    });
+
+    it('no upload for a hero without the right to an illustration', async () => {
+      server.use(
+        http.get(URL_IMAGE, () => HttpResponse.json(state({ allowed: false, roleAllowed: false })))
+      );
+      renderPanel();
+      expect(await screen.findByText('No illustration yet.')).toBeInTheDocument();
+      expect(screen.queryByText(/^Upload a/)).toBeNull();
+    });
+  });
 });
