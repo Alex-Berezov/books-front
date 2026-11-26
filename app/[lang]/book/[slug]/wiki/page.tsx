@@ -65,7 +65,9 @@ export default async function BookWorldPage({ params }: Props) {
   const relationMap = analysis?.characters ? buildRelationMap(analysis.characters) : null;
 
   // Главы версии списком мира не отдаются: «впервые - глава N» считает бэкенд по тексту версии,
-  // поэтому глава есть, когда у книги есть текст.
+  // поэтому глава есть, когда у книги есть текст. Глава сцены места держится тем же пересчётом:
+  // сцена удалённой главы уходит в `mentions.stale`, и бэкенд не отдаёт её в карточке
+  // (`freshScenes`, решение `F08 | F08-12c` R1).
   const linker = {
     label: (n: number) => fillTemplate(ctx.analysisStrings.analysisChapter, { n }),
     href: (n: number) => (ctx.read ? readerChapterHref(ctx.bookHref, n) : null),
@@ -80,8 +82,14 @@ export default async function BookWorldPage({ params }: Props) {
     routeSlug: slug,
   });
 
+  const places = world.places;
   const sections = buildIndexSections({
     characters,
+    places,
+    spoiler: {
+      progressVersionId: book.versionIds?.text ?? null,
+      chapterNumbers: [...new Set(places.flatMap((p) => p.scenes.map((s) => s.chapter)))],
+    },
     strings,
     analysisStrings: ctx.analysisStrings,
     linker,

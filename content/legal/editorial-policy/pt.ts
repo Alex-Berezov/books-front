@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'De onde vêm os textos do Bibliaris, quem prepara os resumos e escreve as descrições, como são elaboradas as análises de livros, como os textos dos livros são preparados e como os erros são corrigidos.',
   title: 'Política editorial',
-  updatedAt: '2026-11-24',
+  updatedAt: '2026-11-26',
   toc: false,
   sections: [
     {
@@ -156,7 +156,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'As páginas do mundo do livro sobre os personagens são preparadas pela Redação do Bibliaris.',
+              text: 'As páginas do mundo do livro sobre os personagens e os lugares são preparadas pela Redação do Bibliaris.',
             },
           ],
         },
@@ -165,7 +165,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Uma página é preparada com um modelo de linguagem seguindo as instruções da redação, a partir do texto desta versão do livro. Numa página escrita diretamente no site, o modelo lê os capítulos em que o personagem aparece (num livro longo, os capítulos em que ele aparece com mais frequência e os resumos dos capítulos, em vez do texto inteiro); depois, um segundo modelo, de outro desenvolvedor, revisa a página e assinala os trechos duvidosos. Uma página também pode ser carregada já pronta: nesse caso, é preparada fora do site com as mesmas instruções. A redação lê a página e a publica ela mesma; uma página que não foi lida não é exibida no site.',
+              text: 'Uma página é preparada com um modelo de linguagem seguindo as instruções da redação, a partir do texto desta versão do livro. Numa página escrita diretamente no site, o modelo lê os capítulos em que o personagem ou o lugar aparece (num livro longo, os capítulos em que ele aparece com mais frequência e os resumos dos capítulos, em vez do texto inteiro); depois, um segundo modelo, de outro desenvolvedor, revisa a página e assinala os trechos duvidosos. Uma página também pode ser carregada já pronta: nesse caso, é preparada fora do site com as mesmas instruções. A redação lê a página e a publica ela mesma; uma página que não foi lida não é exibida no site.',
             },
           ],
         },
@@ -174,7 +174,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'As citações são conferidas literalmente com o texto do livro publicado no Bibliaris: uma citação que não está no texto é rejeitada ao ser carregada na redação, e uma que deixa de coincidir depois de o texto ser corrigido é ocultada do site. Uma citação não confirmada não chega ao site. O número do capítulo ao lado de uma citação ou de uma cena é o número do capítulo nesta versão no site; ele leva a esse capítulo no leitor apenas se o capítulo existir. Os capítulos em que um personagem aparece são contados por um programa a partir do texto dos capítulos, não escritos pelo modelo.',
+              text: 'As citações são conferidas literalmente com o texto do livro publicado no Bibliaris: uma citação que não está no texto é rejeitada ao ser carregada na redação, e uma que deixa de coincidir depois de o texto ser corrigido é ocultada do site. Uma citação não confirmada não chega ao site. O número do capítulo ao lado de uma citação ou de uma cena é o número do capítulo nesta versão no site; ele leva a esse capítulo no leitor apenas se o capítulo existir. Os capítulos em que um personagem aparece ou um lugar é mencionado são contados por um programa a partir do texto dos capítulos, não escritos pelo modelo.',
             },
           ],
         },

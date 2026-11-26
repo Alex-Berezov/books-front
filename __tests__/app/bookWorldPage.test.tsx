@@ -1423,3 +1423,235 @@ describe('страница героя: спойлер-остров (F08-10b)', (
     expect(screen.getAllByText('Откроется после главы 2', { exact: false })).toHaveLength(2);
   });
 });
+
+describe('страница места и места на /wiki (F08-12c)', () => {
+  const PLACE = {
+    ...summary('harbor', 'Old Harbor', {
+      type: 'place',
+      role: null,
+      short: 'Where the map begins.',
+    }),
+    aliases: null,
+    profile: null,
+    appearance: null,
+    character: null,
+    arc: null,
+    relations: null,
+    critique: null,
+    prototypes: null,
+    adaptations: null,
+    sources: null,
+    compare: null,
+    bonds: null,
+    differences: null,
+    conclusion: null,
+    kind: 'fictional',
+    location: 'At the mouth of the river',
+    significance: 'The harbor is where Anna Lark decides to leave.',
+    description: 'Grey piers and gulls.',
+    wikidataId: null,
+    point: null,
+    scenes: [
+      { chapter: 1, title: 'The arrival', text: 'Ships come in.', paragraph: 2 },
+      { chapter: 3, title: 'The farewell', text: 'Anna leaves.' },
+    ],
+    quotes: [{ text: 'Harbor quote.', chapter: 2, interpretation: 'Salt.', speakerKey: 'anna' }],
+    faq: [{ question: 'Is the harbor real?', answer: 'No, it is invented.' }],
+    mentions: { chapters: [1, 2, 3], first: 1, perChapter: [], coPresence: [] },
+    createdAt: '2026-11-01T10:00:00.000Z',
+  };
+  const card = (over: Record<string, unknown> = {}) => ({
+    key: 'harbor',
+    name: 'Old Harbor',
+    short: 'Where the map begins.',
+    kind: 'fictional',
+    location: 'At the mouth of the river',
+    hasPage: true,
+    point: { lat: 1, lng: 2, sourceUrl: 'https://www.wikidata.org/wiki/Q1' },
+    scenes: [
+      { title: 'The arrival', chapter: 1, paragraph: 2 },
+      { title: 'The farewell', chapter: 3, paragraph: null },
+    ],
+    ...over,
+  });
+
+  afterEach(() => {
+    spoiler.session = { data: null, status: 'unauthenticated' };
+    spoiler.progress = undefined;
+  });
+
+  it('h1 по формуле места и разделы §7 в порядке Q3; разделов героя и картинки нет', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse(PLACE, {
+        image: { url: 'https://cdn.bibliaris.com/x.webp', width: 1200, height: 675 },
+      })
+    );
+    await renderEntity('harbor');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Old Harbor in World Book');
+    expect(h2Texts()).toEqual([
+      'In brief',
+      'Meaning in the book',
+      'Description',
+      'The place in quotes',
+      'What happens here',
+      'Presence across the chapters',
+      'Questions about Old Harbor',
+    ]);
+    const brief = within(document.getElementById('in-brief')!);
+    expect(brief.getByText('Fictional place')).toBeInTheDocument();
+    expect(brief.getByText('At the mouth of the river')).toBeInTheDocument();
+    // Говорящий цитаты места - герой (`speakerKey`).
+    expect(document.getElementById('quotes')!.textContent).toContain('Anna Lark');
+    for (const id of ['character', 'path', 'about', 'relations', 'next']) {
+      expect(document.getElementById(id)).toBeNull();
+    }
+    expect(document.querySelector('figure')).toBeNull();
+    expect(screen.queryByText('Character analysis', { exact: false })).toBeNull();
+  });
+
+  it('мета места: title по формуле Q5, description из «Коротко»; ru - «в книге»', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(PLACE));
+    const meta = await entityMeta('harbor');
+    expect(meta.title).toBe('Old Harbor in World Book by Jane Writer: meaning and scenes');
+    expect(meta.description).toBe('Where the map begins.');
+
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse({ ...PLACE, name: 'Старая гавань' }, { language: 'ru' })
+    );
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        versions: [version('en', 'world-book', 3), version('ru', 'mir-kniga', 3)],
+        slug: 'mir-kniga',
+      })
+    );
+    const ru = await entityMeta('harbor', 'ru', 'mir-kniga');
+    expect(ru.title).toBe('Старая гавань в книге «Мир-книга», Jane Writer: значение и сцены');
+    await renderEntity('harbor', 'ru', 'mir-kniga');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
+      'Старая гавань в книге «Мир-книга»'
+    );
+  });
+
+  it('/wiki: раздел мест после карты отношений; со страницей - ссылка, без - текстом; сцены с главой, точки нет', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST,
+      places: [card(), card({ key: 'mill', name: 'The Mill', hasPage: false, short: null })],
+    });
+    await renderIndex();
+    const map = document.getElementById('relations-map')!;
+    const placesSection = document.getElementById('places')!;
+    const more = document.getElementById('more')!;
+    // После карты отношений и перед «Ссылками» (§4 п.6).
+    expect(
+      map.compareDocumentPosition(placesSection) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      placesSection.compareDocumentPosition(more) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    const places = within(document.getElementById('places')!);
+    expect(places.getByRole('link', { name: 'Old Harbor' })).toHaveAttribute(
+      'href',
+      '/en/book/world-book/wiki/harbor'
+    );
+    expect(places.queryByRole('link', { name: 'The Mill' })).toBeNull();
+    expect(places.getByText('The Mill')).toBeInTheDocument();
+    expect(places.getAllByText('Fictional place')).toHaveLength(2);
+    expect(places.getAllByRole('link', { name: 'Chapter 3' })[0]).toHaveAttribute(
+      'href',
+      '/en/book/world-book/read?chapter=3'
+    );
+    expect(document.getElementById('places')!.innerHTML).not.toContain('wikidata');
+  });
+
+  it('/wiki: вошедший на главе 1 - сцена главы 3 свёрнута, главы 1 - нет', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue({ ...LIST, places: [card()] });
+    spoiler.session = { data: { user: { id: 'u1' } }, status: 'authenticated' };
+    spoiler.progress = { chapterNumber: 1 };
+    await renderIndex();
+    const places = within(document.getElementById('places')!);
+    expect(places.getByText('The farewell', { exact: false }).closest('[hidden]')).not.toBeNull();
+    expect(places.getByText('The arrival', { exact: false }).closest('[hidden]')).toBeNull();
+  });
+
+  it('вид места: реальное - «Real place», без вида - строки «Kind» нет', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse({ ...PLACE, kind: 'real' }));
+    await renderEntity('harbor');
+    const brief = within(document.getElementById('in-brief')!);
+    expect(brief.getByText('Real place')).toBeInTheDocument();
+    cleanup();
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse({ ...PLACE, kind: null }));
+    await renderEntity('harbor');
+    const plain = within(document.getElementById('in-brief')!);
+    expect(plain.queryByText('Kind')).toBeNull();
+    expect(plain.queryByText('Real place')).toBeNull();
+    expect(plain.queryByText('Fictional place')).toBeNull();
+  });
+
+  it('место без данных разделов: ни заголовка, ни пункта оглавления (§1 п.5)', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse({
+        ...PLACE,
+        short: null,
+        kind: null,
+        location: null,
+        significance: null,
+        description: '  ',
+        quotes: null,
+        scenes: null,
+        faq: null,
+        mentions: null,
+      })
+    );
+    await renderEntity('harbor');
+    expect(screen.queryAllByRole('heading', { level: 2 })).toHaveLength(0);
+    for (const id of [
+      'in-brief',
+      'significance',
+      'description',
+      'quotes',
+      'scenes',
+      'presence',
+      'faq',
+    ]) {
+      expect(document.getElementById(id)).toBeNull();
+    }
+  });
+
+  it('/wiki: гость видит все сцены мест раскрытыми', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue({ ...LIST, places: [card()] });
+    await renderIndex();
+    const places = within(document.getElementById('places')!);
+    expect(places.getByText('The farewell', { exact: false }).closest('[hidden]')).toBeNull();
+    expect(places.queryByRole('button', { name: 'reveal now' })).toBeNull();
+  });
+
+  it('/wiki: карточка без вида и места - без подписи вида и строки «Location»', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST,
+      places: [card({ kind: null, location: null, scenes: [] })],
+    });
+    await renderIndex();
+    const section = document.getElementById('places')!;
+    expect(within(section).getByRole('link', { name: 'Old Harbor' })).toBeInTheDocument();
+    expect(section.textContent).not.toContain('Location');
+    expect(within(section).queryByText('Fictional place')).toBeNull();
+    expect(within(section).queryByText('Real place')).toBeNull();
+    expect(section.querySelectorAll('ul ul')).toHaveLength(0);
+  });
+
+  it('places: [] (рубильник мест выключен) - раздела мест нет, страница как прежде', async () => {
+    await renderIndex();
+    expect(document.getElementById('places')).toBeNull();
+    expect(h2Texts()).not.toContain('Places');
+  });
+
+  it('ответ без places - отказ загрузки, а не пустой раздел', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue({
+      language: 'en',
+      alternates: ALTERNATES,
+      entities: LIST.entities,
+    });
+    await expect(renderIndex()).rejects.toThrow(/places/);
+    expect(mocks.notFound).not.toHaveBeenCalled();
+  });
+});

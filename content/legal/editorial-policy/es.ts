@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'De dónde salen los textos de Bibliaris, quién prepara los resúmenes y escribe las descripciones, cómo se elaboran los análisis de libros, cómo se preparan los textos de los libros y cómo se corrigen los errores.',
   title: 'Política editorial',
-  updatedAt: '2026-11-24',
+  updatedAt: '2026-11-26',
   toc: false,
   sections: [
     {
@@ -163,7 +163,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Las páginas del mundo del libro sobre los personajes las prepara la Redacción de Bibliaris.',
+              text: 'Las páginas del mundo del libro sobre los personajes y los lugares las prepara la Redacción de Bibliaris.',
             },
           ],
         },
@@ -172,7 +172,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Una página se prepara con un modelo de lenguaje siguiendo las instrucciones de la redacción, a partir del texto de esta versión del libro. En una página escrita directamente en el sitio, el modelo lee los capítulos en los que aparece el personaje (en un libro largo, los capítulos en los que aparece con más frecuencia y los resúmenes de los capítulos en lugar del texto completo); después, un segundo modelo de otro desarrollador revisa la página y marca los pasajes dudosos. Una página también puede cargarse ya terminada: entonces se prepara fuera del sitio con las mismas instrucciones. La redacción lee la página y la publica ella misma; una página que no ha sido leída no se muestra en el sitio.',
+              text: 'Una página se prepara con un modelo de lenguaje siguiendo las instrucciones de la redacción, a partir del texto de esta versión del libro. En una página escrita directamente en el sitio, el modelo lee los capítulos en los que aparece el personaje o el lugar (en un libro largo, los capítulos en los que aparece con más frecuencia y los resúmenes de los capítulos en lugar del texto completo); después, un segundo modelo de otro desarrollador revisa la página y marca los pasajes dudosos. Una página también puede cargarse ya terminada: entonces se prepara fuera del sitio con las mismas instrucciones. La redacción lee la página y la publica ella misma; una página que no ha sido leída no se muestra en el sitio.',
             },
           ],
         },
@@ -181,7 +181,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Las citas se cotejan literalmente con el texto del libro publicado en Bibliaris: una cita que no está en el texto se rechaza al cargar la página en la redacción, y una que deja de coincidir después de corregirse el texto se oculta del sitio. Una cita no confirmada no llega al sitio. El número de capítulo junto a una cita o una escena es el número del capítulo en esta versión del sitio; enlaza a ese capítulo en el lector solo si el capítulo existe. Los capítulos en los que aparece un personaje los cuenta un programa a partir del texto de los capítulos; no los escribe el modelo.',
+              text: 'Las citas se cotejan literalmente con el texto del libro publicado en Bibliaris: una cita que no está en el texto se rechaza al cargar la página en la redacción, y una que deja de coincidir después de corregirse el texto se oculta del sitio. Una cita no confirmada no llega al sitio. El número de capítulo junto a una cita o una escena es el número del capítulo en esta versión del sitio; enlaza a ese capítulo en el lector solo si el capítulo existe. Los capítulos en los que aparece un personaje o se menciona un lugar los cuenta un programa a partir del texto de los capítulos; no los escribe el modelo.',
             },
           ],
         },

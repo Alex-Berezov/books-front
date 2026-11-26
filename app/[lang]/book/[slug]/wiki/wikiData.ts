@@ -81,8 +81,13 @@ export async function loadWorldOrNotFound(book: BookOverview, lang: string, slug
     ),
     analysisOf(version),
   ]);
-  if (!world || !Array.isArray(world.entities) || !Array.isArray(world.alternates)) {
-    throw new Error(`World of version "${version.id}" carries no entities or alternates`);
+  if (
+    !world ||
+    !Array.isArray(world.entities) ||
+    !Array.isArray(world.alternates) ||
+    !Array.isArray(world.places)
+  ) {
+    throw new Error(`World of version "${version.id}" carries no entities, alternates or places`);
   }
   if (world.entities.length === 0) notFound();
 

@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'Where the texts on Bibliaris come from, who prepares the summaries and writes the descriptions, how book analyses are prepared, how book texts are prepared, and how mistakes are corrected.',
   title: 'Editorial Policy',
-  updatedAt: '2026-11-24',
+  updatedAt: '2026-11-26',
   toc: false,
   sections: [
     {
@@ -156,7 +156,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Book world pages about characters are prepared by the Bibliaris Editorial Team.',
+              text: 'Book world pages about characters and places are prepared by the Bibliaris Editorial Team.',
             },
           ],
         },
@@ -165,7 +165,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'A page is prepared with a language model following the editorial team’s instructions, from the text of this version of the book. For a page written directly on the site, the model reads the chapters where the character appears (for a long book, the chapters where the character appears most often and chapter summaries rather than the whole text), and a second model from a different developer then checks the page and marks doubtful passages. A page can also be uploaded ready-made: it is then prepared outside the site under the same instructions. The editorial team reads the page and publishes it itself; a page that has not been read is not shown on the site.',
+              text: 'A page is prepared with a language model following the editorial team’s instructions, from the text of this version of the book. For a page written directly on the site, the model reads the chapters where the character or place appears (for a long book, the chapters where they appear most often and chapter summaries rather than the whole text), and a second model from a different developer then checks the page and marks doubtful passages. A page can also be uploaded ready-made: it is then prepared outside the site under the same instructions. The editorial team reads the page and publishes it itself; a page that has not been read is not shown on the site.',
             },
           ],
         },
@@ -174,7 +174,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Quotations are checked word for word against the text of the book published on Bibliaris: a quotation that is not in the text is rejected when the page is loaded into the editorial system, and one that no longer matches after the text is corrected is hidden from the site. An unconfirmed quotation does not reach the site. The chapter number next to a quotation or a scene is the number of the chapter in this version on the site; it links to that chapter in the reader only if the chapter exists. The chapters where a character appears are counted by a program from the text of the chapters, not written by the model.',
+              text: 'Quotations are checked word for word against the text of the book published on Bibliaris: a quotation that is not in the text is rejected when the page is loaded into the editorial system, and one that no longer matches after the text is corrected is hidden from the site. An unconfirmed quotation does not reach the site. The chapter number next to a quotation or a scene is the number of the chapter in this version on the site; it links to that chapter in the reader only if the chapter exists. The chapters where a character appears or a place is mentioned are counted by a program from the text of the chapters, not written by the model.',
             },
           ],
         },

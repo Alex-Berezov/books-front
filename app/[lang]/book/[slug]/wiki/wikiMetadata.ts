@@ -176,7 +176,10 @@ export async function buildWorldEntityMetadata(
             title,
             author,
           })
-        : fillTemplate(strings.worldEntityMetaTitle, { name: entity.name, title, author });
+        : fillTemplate(
+            entity.type === 'place' ? strings.worldPlaceMetaTitle : strings.worldEntityMetaTitle,
+            { name: entity.name, title, author }
+          );
     const description = describeWorld(entity.short);
     const canonical = buildLangUrl(
       supportedLang,

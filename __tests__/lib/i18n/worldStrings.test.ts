@@ -134,3 +134,61 @@ describe('строки мира книги: пять языков (F08-3b, produ
     });
   });
 });
+
+describe('строки места (F08-12c, product.md §15, решение `F08 | F08-12` Q5)', () => {
+  it('h1 и title места: формулы §15 на пяти языках, «в книге», а не «в романе»', async () => {
+    const { worldStrings } = await load();
+    expect(worldStrings.ru.worldPlaceTitle).toBe('{name} в книге «{title}»');
+    expect(worldStrings.ru.worldPlaceMetaTitle).toBe(
+      '{name} в книге «{title}», {author}: значение и сцены'
+    );
+    expect(worldStrings.en.worldPlaceTitle).toBe('{name} in {title}');
+    expect(worldStrings.en.worldPlaceMetaTitle).toBe(
+      '{name} in {title} by {author}: meaning and scenes'
+    );
+    expect(worldStrings.es.worldPlaceMetaTitle).toBe(
+      '{name} en «{title}» de {author}: significado y escenas'
+    );
+    expect(worldStrings.fr.worldPlaceMetaTitle).toBe(
+      '{name} dans « {title} » de {author} : signification et scènes'
+    );
+    expect(worldStrings.pt.worldPlaceMetaTitle).toBe(
+      '{name} em «{title}» de {author}: significado e cenas'
+    );
+    for (const lang of SUPPORTED_LANGS) {
+      const s = worldStrings[lang];
+      expect(placeholders(s.worldPlaceTitle)).toEqual(['name', 'title']);
+      expect(placeholders(s.worldPlaceMetaTitle)).toEqual(['author', 'name', 'title']);
+      expect(s.worldPlaceTitle).not.toMatch(/роман|novel|novela|roman|romance/i);
+      expect(placeholders(s.worldPlaceLocationLine)).toEqual(['label', 'value']);
+    }
+  });
+
+  it('fr: двоеточие строки «где находится» - с пробелом перед ним', async () => {
+    const { worldStrings } = await load();
+    expect(worldStrings.fr.worldPlaceLocationLine).toBe('{label} : {value}');
+  });
+
+  it('ключи места worldPlace*: непусты на пяти языках и переведены', async () => {
+    const { worldStrings } = await load();
+    const placeKeys = Object.keys(worldStrings.en).filter((k) => k.startsWith('worldPlace'));
+    expect(placeKeys.length).toBeGreaterThan(0);
+    // Совпадает с en по праву: во французском «Description» пишется так же; разделители строк
+    // карточки - типографика, у es/pt/ru она та же, что у en (fr - с пробелом перед двоеточием).
+    const sameAsEn = new Set([
+      'fr.worldPlaceDescriptionTitle',
+      ...['es', 'pt', 'ru'].map((l) => `${l}.worldPlaceLocationLine`),
+      ...['es', 'fr', 'pt', 'ru'].map((l) => `${l}.worldPlaceSceneSeparator`),
+    ]);
+    for (const lang of SUPPORTED_LANGS) {
+      for (const key of placeKeys) {
+        const value = worldStrings[lang][key as keyof (typeof worldStrings)['en']];
+        expect(value.trim(), `${lang}.${key}`).not.toBe('');
+        if (lang === 'en' || sameAsEn.has(`${lang}.${key}`)) continue;
+        expect(value, `${lang}.${key}`).not.toBe(
+          worldStrings.en[key as keyof (typeof worldStrings)['en']]
+        );
+      }
+    }
+  });
+});

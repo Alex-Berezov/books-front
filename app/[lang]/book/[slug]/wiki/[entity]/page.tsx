@@ -30,6 +30,7 @@ import { buildChapterLinker, buildWorldPageContext, formatWorldDate } from '../w
 import { buildEntitySections } from '../WorldEntitySections';
 import { buildPairSections } from '../WorldPairSections';
 import { buildWorldPeople, worldPairLinks } from '../worldPeople';
+import { buildPlaceSections } from '../WorldPlaceSections';
 
 type Props = {
   params: Promise<{ lang: string; slug: string; entity: string }>;
@@ -47,8 +48,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * Страница героя (F08-3b, `product.md` §5) или пары героев (F08-8c, §6; ключ `{a}--{b}`, тип `pair`):
- * серверный рендер. Есть, только если ручка отдала
+ * Страница героя (F08-3b, `product.md` §5), пары героев (F08-8c, §6; ключ `{a}--{b}`, тип `pair`)
+ * или места (F08-12c, §7; тип `place`): серверный рендер. Есть, только если ручка отдала
  * сущность (ядро, «прочитано», показ включён), иначе 404. `isIndexable=false` - открыта, но
  * `noindex, follow` (мета).
  */
@@ -154,13 +155,20 @@ export default async function BookWorldEntityPage({ params }: Props) {
   const names = members
     ? pairDisplayName(strings.worldPairNames, key, (k) => people.get(k)?.name, entity.name)
     : entity.name;
+  const isPlace = entity.type === 'place';
   const sections = members
     ? buildPairSections({ ...sectionsInput, members, names })
-    : buildEntitySections(sectionsInput);
+    : isPlace
+      ? buildPlaceSections(sectionsInput)
+      : buildEntitySections(sectionsInput);
 
+  // Формулы h1 (`product.md` §15): место - «{Место} в книге «{Книга}»» (решение `F08 | F08-12` Q5).
   const pageTitle = members
     ? fillTemplate(strings.worldPairTitle, { names })
-    : fillTemplate(strings.worldEntityTitle, { name: entity.name, title: ctx.title });
+    : fillTemplate(isPlace ? strings.worldPlaceTitle : strings.worldEntityTitle, {
+        name: entity.name,
+        title: ctx.title,
+      });
 
   const jsonLd = buildWorldArticleJsonLd({
     lang: supportedLang,

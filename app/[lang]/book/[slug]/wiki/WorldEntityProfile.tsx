@@ -1,8 +1,8 @@
-import { Fragment, type ReactNode } from 'react';
+import { Fragment } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { hasText } from '@/lib/book-analysis/format';
-import { fillTemplate, isLastThirdChapter, presenceChapters } from '@/lib/book-world/format';
+import { isLastThirdChapter, presenceChapters } from '@/lib/book-world/format';
 import { worldImageSize } from '@/lib/book-world/image';
 import { analysisRoleLabels } from '@/lib/i18n/analysisStrings';
 import { isOptimizableHost } from '@/lib/utils/image-host';
@@ -11,10 +11,15 @@ import type { PageSection } from '../analysis/PageSections';
 import styles from './wiki.module.scss';
 import { WORLD_ANCHORS } from './wikiAnchors';
 import { buildEntityShortSection } from './WorldEntityMore';
+import {
+  buildEntityPresenceSection,
+  buildEntityTextSections,
+  WorldFacts,
+  type WorldFact,
+} from './WorldEntityParts';
 import { withSpoilerGate } from './worldSpoiler';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
-import { ThemeStrip } from '../analysis/ThemeStrip';
 import { LinkedText } from '../LinkedText';
 
 /** Глава первого появления: поле списка, иначе первая глава упоминаний; нет - `null`. */
@@ -35,7 +40,7 @@ export function buildEntityProfileSections(input: WorldEntitySectionsInput): Pag
   const firstChapter = entityFirstChapter(entity);
 
   // Инфобокс (п.4): только строки со значением.
-  const infoRows: { label: string; value: ReactNode }[] = [];
+  const infoRows: WorldFact[] = [];
   if (entity.role) infoRows.push({ label: strings.worldInfoRole, value: roleLabels[entity.role] });
   if (hasText(entity.profile?.position)) {
     infoRows.push({ label: strings.worldInfoPosition, value: entity.profile?.position });
@@ -74,16 +79,7 @@ export function buildEntityProfileSections(input: WorldEntitySectionsInput): Pag
               </figcaption>
             </figure>
           ) : null}
-          {infoRows.length > 0 ? (
-            <dl className={analysisStyles.facts}>
-              {infoRows.map((row) => (
-                <div key={row.label} className={analysisStyles.fact}>
-                  <dt>{row.label}</dt>
-                  <dd>{row.value}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : null}
+          {infoRows.length > 0 ? <WorldFacts rows={infoRows} /> : null}
         </>
       ),
     });
@@ -92,39 +88,22 @@ export function buildEntityProfileSections(input: WorldEntitySectionsInput): Pag
   const short = buildEntityShortSection(input);
   if (short) sections.push(short);
 
-  if (present.length > 0) {
-    sections.push({
-      id: WORLD_ANCHORS.presence,
-      title: strings.worldPresenceTitle,
-      body: (
-        <ThemeStrip
-          themeChapters={present}
-          chapterNumbers={chapterNumbers}
-          linker={linker}
-          label={fillTemplate(strings.worldPresenceLabel, { name: entity.name })}
-          chaptersLabel={analysisStrings.analysisChapters}
-          colorClassName={styles.presenceColor}
-        />
-      ),
-    });
-  }
+  const presence = buildEntityPresenceSection(input);
+  if (presence) sections.push(presence);
 
-  const texts = [
-    { id: WORLD_ANCHORS.appearance, title: strings.worldAppearanceTitle, text: entity.appearance },
-    { id: WORLD_ANCHORS.character, title: strings.worldCharacterTitle, text: entity.character },
-  ];
-  for (const { id, title, text } of texts) {
-    if (!hasText(text)) continue;
-    sections.push({
-      id,
-      title,
-      body: (
-        <div className={analysisStyles.text}>
-          <Paragraphs text={text} links={textLinks} />
-        </div>
-      ),
-    });
-  }
+  sections.push(
+    ...buildEntityTextSections(
+      [
+        {
+          id: WORLD_ANCHORS.appearance,
+          title: strings.worldAppearanceTitle,
+          text: entity.appearance,
+        },
+        { id: WORLD_ANCHORS.character, title: strings.worldCharacterTitle, text: entity.character },
+      ],
+      textLinks
+    )
+  );
 
   const arc = entity.arc;
   const stages = arc?.stages ?? [];

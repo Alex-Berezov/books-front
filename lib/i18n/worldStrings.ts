@@ -70,6 +70,19 @@ const en = {
   worldPairFaqTitle: 'Questions about {names}',
   worldPairHeroesTitle: 'The characters',
   worldPairLink: 'Compare {names}',
+  worldPlaceTitle: '{name} in {title}',
+  worldPlaceMetaTitle: '{name} in {title} by {author}: meaning and scenes',
+  worldPlaceInfoKind: 'Kind',
+  worldPlaceInfoLocation: 'Location',
+  worldPlaceReal: 'Real place',
+  worldPlaceFictional: 'Fictional place',
+  worldPlaceSignificanceTitle: 'Meaning in the book',
+  worldPlaceDescriptionTitle: 'Description',
+  worldPlaceQuotesTitle: 'The place in quotes',
+  worldPlaceScenesTitle: 'What happens here',
+  worldPlacesTitle: 'Places',
+  worldPlaceLocationLine: '{label}: {value}',
+  worldPlaceSceneSeparator: ' — ',
 };
 
 const es: WorldStrings = {
@@ -131,6 +144,19 @@ const es: WorldStrings = {
   worldPairFaqTitle: 'Preguntas sobre {names}',
   worldPairHeroesTitle: 'Los personajes',
   worldPairLink: 'Comparar a {names}',
+  worldPlaceTitle: '{name} en «{title}»',
+  worldPlaceMetaTitle: '{name} en «{title}» de {author}: significado y escenas',
+  worldPlaceInfoKind: 'Tipo',
+  worldPlaceInfoLocation: 'Ubicación',
+  worldPlaceReal: 'Lugar real',
+  worldPlaceFictional: 'Lugar ficticio',
+  worldPlaceSignificanceTitle: 'Significado en el libro',
+  worldPlaceDescriptionTitle: 'Descripción',
+  worldPlaceQuotesTitle: 'El lugar en citas',
+  worldPlaceScenesTitle: 'Qué ocurre aquí',
+  worldPlacesTitle: 'Lugares',
+  worldPlaceLocationLine: '{label}: {value}',
+  worldPlaceSceneSeparator: ' — ',
 };
 
 const fr: WorldStrings = {
@@ -192,6 +218,19 @@ const fr: WorldStrings = {
   worldPairFaqTitle: 'Questions sur {names}',
   worldPairHeroesTitle: 'Les personnages',
   worldPairLink: 'Comparer {names}',
+  worldPlaceTitle: '{name} dans « {title} »',
+  worldPlaceMetaTitle: '{name} dans « {title} » de {author} : signification et scènes',
+  worldPlaceInfoKind: 'Nature',
+  worldPlaceInfoLocation: 'Emplacement',
+  worldPlaceReal: 'Lieu réel',
+  worldPlaceFictional: 'Lieu imaginaire',
+  worldPlaceSignificanceTitle: 'Signification dans le livre',
+  worldPlaceDescriptionTitle: 'Description',
+  worldPlaceQuotesTitle: 'Le lieu en citations',
+  worldPlaceScenesTitle: 'Ce qui se passe ici',
+  worldPlacesTitle: 'Lieux',
+  worldPlaceLocationLine: '{label} : {value}',
+  worldPlaceSceneSeparator: ' — ',
 };
 
 const pt: WorldStrings = {
@@ -253,6 +292,19 @@ const pt: WorldStrings = {
   worldPairFaqTitle: 'Perguntas sobre {names}',
   worldPairHeroesTitle: 'Os personagens',
   worldPairLink: 'Comparar {names}',
+  worldPlaceTitle: '{name} em «{title}»',
+  worldPlaceMetaTitle: '{name} em «{title}» de {author}: significado e cenas',
+  worldPlaceInfoKind: 'Tipo',
+  worldPlaceInfoLocation: 'Localização',
+  worldPlaceReal: 'Lugar real',
+  worldPlaceFictional: 'Lugar fictício',
+  worldPlaceSignificanceTitle: 'Significado no livro',
+  worldPlaceDescriptionTitle: 'Descrição',
+  worldPlaceQuotesTitle: 'O lugar em citações',
+  worldPlaceScenesTitle: 'O que acontece aqui',
+  worldPlacesTitle: 'Lugares',
+  worldPlaceLocationLine: '{label}: {value}',
+  worldPlaceSceneSeparator: ' — ',
 };
 
 const ru: WorldStrings = {
@@ -314,6 +366,19 @@ const ru: WorldStrings = {
   worldPairFaqTitle: 'Частые вопросы: {names}',
   worldPairHeroesTitle: 'Герои пары',
   worldPairLink: '{names}: сравнительная характеристика',
+  worldPlaceTitle: '{name} в книге «{title}»',
+  worldPlaceMetaTitle: '{name} в книге «{title}», {author}: значение и сцены',
+  worldPlaceInfoKind: 'Вид',
+  worldPlaceInfoLocation: 'Где находится',
+  worldPlaceReal: 'Реальное место',
+  worldPlaceFictional: 'Вымышленное место',
+  worldPlaceSignificanceTitle: 'Значение в книге',
+  worldPlaceDescriptionTitle: 'Описание',
+  worldPlaceQuotesTitle: 'Место в цитатах',
+  worldPlaceScenesTitle: 'Что здесь происходит',
+  worldPlacesTitle: 'Места',
+  worldPlaceLocationLine: '{label}: {value}',
+  worldPlaceSceneSeparator: ' — ',
 };
 
 export type WorldStrings = { [K in keyof typeof en]: string };

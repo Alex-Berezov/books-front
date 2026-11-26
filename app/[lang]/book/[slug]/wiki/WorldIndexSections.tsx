@@ -1,21 +1,33 @@
 import Link from 'next/link';
 import { hasText } from '@/lib/book-analysis/format';
+import { fillTemplate } from '@/lib/book-world/format';
 import { analysisRoleLabels, type AnalysisStrings } from '@/lib/i18n/analysisStrings';
 import type { PageSection } from '../analysis/PageSections';
 import type { RelationMap as RelationMapData } from '@/lib/book-analysis/relation-map';
 import type { LinkSession } from '@/lib/book-world/link-entities';
 import type { WorldStrings } from '@/lib/i18n/worldStrings';
-import type { BookWorldEntitySummary } from '@/types/api-schema';
+import type { BookWorldEntitySummary, BookWorldPlaceCard } from '@/types/api-schema';
 import styles from './wiki.module.scss';
 import { WORLD_ANCHORS } from './wikiAnchors';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ChapterRef, Paragraphs, type ChapterLinker } from '../analysis/AnalysisBlocks';
 import { RelationMap } from '../analysis/RelationMap';
 import { LinkedMark } from '../LinkedText';
+import { placeKindLabel } from './WorldPlaceSections';
+import { withSpoilerGate, type WorldSpoilerInput } from './worldSpoiler';
 
 export interface WorldIndexSectionsInput {
   /** Публичные сущности версии (список читателя отдаёт только их). */
   characters: readonly BookWorldEntitySummary[];
+  /** Места общей страницы (F08-12a, Q4): со страницей и без; точка карты в `F08-12d`. */
+  places: readonly BookWorldPlaceCard[];
+  /**
+   * Спойлер-остров сцен мест (решение `F08 | F08-12c` Q4): текстовая версия прогресса и главы.
+   * Глав версии список мира не отдаёт - вызывающий передаёт главы сцен мест: сцену удалённой главы
+   * пересчёт присутствия уводит в `mentions.stale`, и в карточку она не попадает (решение
+   * `F08 | F08-12c` R1).
+   */
+  spoiler: Pick<WorldSpoilerInput, 'progressVersionId' | 'chapterNumbers'>;
   strings: WorldStrings;
   analysisStrings: AnalysisStrings;
   linker: ChapterLinker;
@@ -34,12 +46,13 @@ export interface WorldIndexSectionsInput {
 
 /**
  * Разделы общей страницы мира (`product.md` §4): герои карточками с «впервые - глава N» и ссылкой на
- * страницу героя, карта отношений своим разделом узлами-ссылками, ссылки на анализ, пересказ и чтение
- * с начала.
+ * страницу героя, карта отношений своим разделом узлами-ссылками, места списком (F08-12c), ссылки
+ * на анализ, пересказ и чтение с начала.
  * Раздел без данных не выводится (§1 п.5).
  */
 export function buildIndexSections(input: WorldIndexSectionsInput): PageSection[] {
-  const { characters, strings, analysisStrings, linker, relationMap, textLinks, links } = input;
+  const { characters, places, strings, analysisStrings, linker, relationMap, textLinks, links } =
+    input;
   const sections: PageSection[] = [];
   const roleLabels = analysisRoleLabels(analysisStrings);
 
@@ -95,6 +108,23 @@ export function buildIndexSections(input: WorldIndexSectionsInput): PageSection[
     });
   }
 
+  // Места (§4 п.6, решение `F08 | F08-12c` Q4) - после карты отношений.
+  if (places.length > 0) {
+    sections.push({
+      id: WORLD_ANCHORS.places,
+      title: strings.worldPlacesTitle,
+      body: (
+        <ul className={analysisStyles.cards}>
+          {places.map((p) => (
+            <li key={p.key} className={analysisStyles.card}>
+              {placeCardBody(p, input)}
+            </li>
+          ))}
+        </ul>
+      ),
+    });
+  }
+
   if (links.analysis || links.summary || links.read) {
     sections.push({
       id: WORLD_ANCHORS.links,
@@ -128,4 +158,62 @@ export function buildIndexSections(input: WorldIndexSectionsInput): PageSection[
   }
 
   return sections;
+}
+
+/**
+ * Карточка места на `/wiki` (решение `F08 | F08-12c` Q4): имя ссылкой только при своей странице,
+ * вид, «Коротко», где находится, сцены с «глава N» под спойлер-островом своей главы; без точки.
+ * У места без страницы и без «Коротко» отметки перелинковки нет: ссылки на него нет вовсе.
+ */
+function placeCardBody(p: BookWorldPlaceCard, input: WorldIndexSectionsInput) {
+  const { strings, linker, textLinks } = input;
+  const kind = placeKindLabel(p.kind, strings);
+  const gate = { ...input.spoiler, strings };
+  const mark = p.hasPage ? <LinkedMark links={textLinks} entityKey={p.key} /> : null;
+  return (
+    <>
+      <h3 className={analysisStyles.cardTitle}>
+        {p.hasPage ? (
+          <Link href={input.entityHref(p.key)} className={analysisStyles.textLink}>
+            {p.name}
+          </Link>
+        ) : (
+          p.name
+        )}
+        {kind ? <span className={analysisStyles.role}>{kind}</span> : null}
+      </h3>
+      {hasText(p.short) ? (
+        <div className={analysisStyles.text}>
+          <Paragraphs text={p.short} links={textLinks} linkedKey={p.hasPage ? p.key : undefined} />
+        </div>
+      ) : (
+        mark
+      )}
+      {hasText(p.location) ? (
+        <p className={analysisStyles.cardMeta}>
+          {fillTemplate(strings.worldPlaceLocationLine, {
+            label: strings.worldPlaceInfoLocation,
+            value: p.location,
+          })}
+        </p>
+      ) : null}
+      {p.scenes.length > 0 ? (
+        <ul className={styles.plainList}>
+          {p.scenes.map((scene, i) => (
+            <li key={`${scene.chapter}-${i}`}>
+              {withSpoilerGate(
+                gate,
+                scene.chapter,
+                <>
+                  {scene.title}
+                  {strings.worldPlaceSceneSeparator}
+                  <ChapterRef n={scene.chapter} linker={linker} />
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </>
+  );
 }

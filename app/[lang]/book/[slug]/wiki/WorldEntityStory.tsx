@@ -7,10 +7,9 @@ import type { BookWorldCoPresence } from '@/types/api-schema';
 import styles from './wiki.module.scss';
 import { WORLD_ANCHORS } from './wikiAnchors';
 import { buildEntityQuotesSection } from './WorldEntityMore';
+import { buildEntityScenesSection } from './WorldEntityParts';
 import { WorldPersonRef } from './WorldPersonRef';
-import { withSpoilerGate } from './worldSpoiler';
 import analysisStyles from '../analysis/analysis.module.scss';
-import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
 import { LinkedMark } from '../LinkedText';
 
 /**
@@ -22,68 +21,11 @@ export function buildEntityStorySections(
   input: WorldEntitySectionsInput,
   coPresence: readonly BookWorldCoPresence[]
 ): PageSection[] {
-  const { entity, strings, linker, textLinks, people, pairLinks } = input;
+  const { entity, strings, textLinks, people, pairLinks } = input;
   const sections: PageSection[] = [];
 
-  const scenes = entity.scenes ?? [];
-  if (scenes.length > 0) {
-    sections.push({
-      id: WORLD_ANCHORS.scenes,
-      title: strings.worldScenesTitle,
-      body: (
-        <ul className={analysisStyles.cards}>
-          {scenes.map((scene, i) => {
-            // «Читать сцену» - на абзаце сцены, если ход его нашёл (`F08-10a`).
-            const readHref = input.readerHref(scene.chapter, scene.paragraph ?? null);
-            // «Слушать» - на аудиоглаву того же номера, только если она есть (Q6).
-            const listenHref =
-              input.listenHref && input.audioChapters.has(scene.chapter)
-                ? input.listenHref(scene.chapter)
-                : null;
-            return (
-              <li key={`${scene.chapter}-${i}`} className={analysisStyles.card}>
-                {withSpoilerGate(
-                  input,
-                  scene.chapter,
-                  <>
-                    <h3 className={analysisStyles.cardTitle}>{scene.title}</h3>
-                    <p className={analysisStyles.cardMeta}>
-                      <ChapterRef n={scene.chapter} linker={linker} />
-                    </p>
-                    <div className={analysisStyles.text}>
-                      <Paragraphs text={scene.text} links={textLinks} />
-                    </div>
-                    {readHref || listenHref ? (
-                      <p className={styles.sceneActions}>
-                        {readHref ? (
-                          <Link
-                            href={readHref}
-                            prefetch={false}
-                            className={analysisStyles.textLink}
-                          >
-                            {strings.worldReadScene}
-                          </Link>
-                        ) : null}
-                        {listenHref ? (
-                          <Link
-                            href={listenHref}
-                            prefetch={false}
-                            className={analysisStyles.textLink}
-                          >
-                            {strings.worldListenScene}
-                          </Link>
-                        ) : null}
-                      </p>
-                    ) : null}
-                  </>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      ),
-    });
-  }
+  const scenes = buildEntityScenesSection(input, strings.worldScenesTitle);
+  if (scenes) sections.push(scenes);
 
   // Связь выводится, только если у цели есть имя (публичный герой или герой анализа): сырой ключ
   // непубличной сущности читателю не показывается (§1 п.9).
