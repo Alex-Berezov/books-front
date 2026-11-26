@@ -2,8 +2,11 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   BRIEF_NO_APPEARANCE,
+  BRIEF_NO_DESCRIPTION,
   BRIEF_NOT_WRITTEN,
+  BRIEF_NOT_WRITTEN_PLACE,
   BRIEF_STALE,
+  BRIEF_STALE_PLACE,
   imageBriefState,
   WorldImageBrief,
 } from '@/components/admin/books/WorldTab/WorldImageBrief';
@@ -111,5 +114,40 @@ describe('WorldImageBrief (F08-11d-2)', () => {
   it('второстепенный minor — раздела нет вовсе', () => {
     const { container } = render(<WorldImageBrief entity={entity({ role: 'minor' })} />);
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+// F08-12b, решение `F08 | F08-12b` Q2: ТЗ у любого места, без роли, по «Описанию», а не по «Внешности».
+describe('WorldImageBrief: a place (F08-12b)', () => {
+  const place = (
+    patch: Partial<BookWorldEntity> = {},
+    imageBrief: string | null = BRIEF,
+    stale = false
+  ) =>
+    entity(
+      { type: 'place', role: null, appearance: null, description: 'A low garret.', ...patch },
+      imageBrief,
+      stale
+    );
+
+  it('a place without a role gets the section; the basis is the description', () => {
+    expect(imageBriefState(place())).toEqual({ brief: BRIEF, stale: false });
+    expect(imageBriefState(place({ description: ' ' }))).toEqual({ reason: BRIEF_NO_DESCRIPTION });
+    expect(imageBriefState(place({ appearance: 'Tall.', description: null }))).toEqual({
+      reason: BRIEF_NO_DESCRIPTION,
+    });
+    expect(imageBriefState(place({}, null))).toEqual({ reason: BRIEF_NOT_WRITTEN_PLACE });
+  });
+
+  it('a stale place brief says Description, not Appearance, and is not copied', () => {
+    render(<WorldImageBrief entity={place({}, BRIEF, true)} />);
+    expect(screen.getByText(BRIEF_STALE_PLACE)).toBeInTheDocument();
+    expect(screen.queryByText(BRIEF_STALE)).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Copy brief' })).toBeNull();
+  });
+
+  it('a place without a description shows the reason', () => {
+    render(<WorldImageBrief entity={place({ description: null })} />);
+    expect(screen.getByText(BRIEF_NO_DESCRIPTION)).toBeInTheDocument();
   });
 });

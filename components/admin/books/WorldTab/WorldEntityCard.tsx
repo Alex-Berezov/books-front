@@ -97,6 +97,7 @@ export const WorldEntityCard: FC<WorldEntityCardProps> = (props) => {
         recountNotice={card.recountNotice}
         onReloadPresence={card.reloadPresence}
         presenceReloadError={card.presenceReloadError}
+        geo={entity ? (entity.editor?.geo ?? null) : undefined}
       />
 
       {entity && <WorldImageBrief entity={entity} />}

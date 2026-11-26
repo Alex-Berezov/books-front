@@ -92,8 +92,17 @@ describe('worldWrite.utils progressText', () => {
   });
 
   it('no candidate under the number: the step without a name (past the heroes - a pair step, as stepAt)', () => {
-    // Нумерация как stepAt бэкенда (F08-8e): без героев номер 1 уже стоит после их шагов, это шаг пары.
-    expect(progressText(run(1, { candidates: [] }))).toBe('Step 2 of 3: Pair…');
+    // Нумерация как stepAt бэкенда (F08-8e, F08-12b): без героев и пар номер 1 уже стоит после их шагов,
+    // это шаг места; с парой под номером - шаг пары.
+    expect(progressText(run(1, { candidates: [] }))).toBe('Step 2 of 3: Place…');
+    expect(
+      progressText(
+        run(1, {
+          candidates: [],
+          pairs: [{ key: 'a--b', a: 'a', b: 'b', linked: true, chapters: [] }],
+        })
+      )
+    ).toBe('Step 2 of 3: Pair: a--b (pair 1 of 1)…');
   });
 });
 
@@ -103,6 +112,7 @@ describe('worldWrite.utils writeEstimateText (F08-8b)', () => {
     glossary: null,
     candidates,
     pairs: 0,
+    places: 0,
     stageUsd: '0.5',
     upperBound: false,
     suggestedLimitUsd: '1',
@@ -147,9 +157,10 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
     expect(progressText(pairRun(9))).toBe('Step 9 of 9: finishing…');
   });
 
-  it('a step number past the heroes with no pair under it is a pair step without a name (as stepAt)', () => {
-    expect(progressText(pairRun(7, { pairs: [] }))).toBe('Step 8 of 9: Pair…');
-    expect(progressText(pairRun(7, { pairs: null }))).toBe('Step 8 of 9: Pair…');
+  // F08-12b: после героев и пар идут места (stepAt бэкенда) - номер без пары и без места - шаг места без имени.
+  it('a step number past the heroes and the pairs with nothing under it is a place step without a name (as stepAt)', () => {
+    expect(progressText(pairRun(7, { pairs: [] }))).toBe('Step 8 of 9: Place…');
+    expect(progressText(pairRun(7, { pairs: null }))).toBe('Step 8 of 9: Place…');
   });
 
   it('titles of the pair step and of its blocks name both heroes', () => {
@@ -200,6 +211,7 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
       dossier: null,
       glossary: null,
       candidates: 3,
+      places: 0,
       stageUsd: '0.5',
       upperBound: false,
       suggestedLimitUsd: '1',
@@ -349,6 +361,13 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
     ],
     ['WORLD_MENTIONS_MOVED', 'the chapter text moved while the presence was recounted'],
   ])('pair step failure without a call %s is named', (code, text) => {
+    expect(reasonText(code)).toBe(text);
+  });
+
+  it.each([
+    ['WORLD_PLACE_NOT_FOUND', 'the name forms found the place in no chapter'],
+    ['WORLD_PLACE_KEY_TAKEN', 'the key of the place is taken by an entity of another type'],
+  ])('place step failure %s is named for a place, not a character (F08-12b)', (code, text) => {
     expect(reasonText(code)).toBe(text);
   });
 });

@@ -243,6 +243,17 @@ describe('WorldTab (F08-1)', () => {
     expect((rec.puts[1].body as { entities: unknown[] }).entities).toHaveLength(en.entities.length);
   });
 
+  // /qa круг 2 (front-tests, F08-12b): подсказка обоих окон называет тип и поля места.
+  const PLACE_HINT_RE =
+    /A place: type "place", fields kind \("real" or "fictional"\), wikidataId \(only for a real place, e\.g\. "Q90"\), location, significance, description, aliases, short, scenes, quotes, faq, imageBrief\./;
+
+  it('import hint of the version names the place type and its fields (F08-12b)', async () => {
+    renderWorldTab(true);
+    await rowOf('sonya');
+    fireEvent.click(screen.getByRole('button', { name: 'Import JSON' }));
+    expect(screen.getByText(PLACE_HINT_RE)).toBeInTheDocument();
+  });
+
   /** Окно импорта одной сущности из карточки; JSON вставлен. */
   const importIntoCard = async (region: string, json: unknown) => {
     const card = within(await screen.findByRole('region', { name: region }));
@@ -259,6 +270,14 @@ describe('WorldTab (F08-1)', () => {
     await waitFor(() => expect((confirm as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(confirm);
   };
+
+  it('import hint of one entity names the place type and its fields (F08-12b)', async () => {
+    renderWorldTab(true);
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit sonya' }));
+    const card = within(await screen.findByRole('region', { name: 'Entity sonya' }));
+    fireEvent.click(await card.findByRole('button', { name: 'Import JSON' }));
+    expect(screen.getByText(PLACE_HINT_RE)).toBeInTheDocument();
+  });
 
   it('one entity: a dry run, then PUT by the key of the card checked against what the card showed', async () => {
     renderWorldTab(true);

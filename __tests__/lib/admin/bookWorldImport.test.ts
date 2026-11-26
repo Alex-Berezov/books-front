@@ -106,8 +106,16 @@ describe('book world import (F08-1)', () => {
     ]);
   });
 
-  it("type 'place' is refused: only characters are written in F08-1", () => {
-    expect(paths(spoilt((e) => (e.type = 'place')))).toEqual(['entities.0.type']);
+  // F08-12b: тип места принимается; поля героя у него - поля чужого типа (как `checkWorldTypeFields`).
+  it("type 'place' on a character entity: the hero fields are refused as not a field of a place", () => {
+    const errors = issues(spoilt((e) => (e.type = 'place')));
+    expect(errors).toContain('entities.0.role: not a field of a place');
+    expect(errors).toContain('entities.0.appearance: not a field of a place');
+    expect(errors.some((e) => e.endsWith('unknown key'))).toBe(false);
+  });
+
+  it("type 'object' is refused: only characters, pairs and places are written", () => {
+    expect(paths(spoilt((e) => (e.type = 'object')))).toEqual(['entities.0.type']);
   });
 
   it('key A_b is refused by its path', () => {
@@ -186,8 +194,177 @@ describe('book world import of one entity (F08-1)', () => {
       'language',
     ]);
     expect(
-      analyzeBookWorldEntityImport(one({ type: 'place' }), 'en', null).errors.map((e) => e.path)
+      analyzeBookWorldEntityImport(one({ type: 'object' }), 'en', null).errors.map((e) => e.path)
     ).toEqual(['type']);
+  });
+});
+
+// F08-12b (решения арбитра `F08 | F08-12a` R5, `F08 | F08-12b` Q2): место - копия правила бэкенда
+// (`WORLD_BLOCKS_OF_TYPE`, `checkWorldTypeFields`).
+describe('book world import of a place (F08-12b)', () => {
+  const QUOTE = {
+    text: 'A cupboard.',
+    chapter: 1,
+    speakerKey: 'raskolnikov',
+    interpretation: 'Poverty.',
+  };
+  const place = (patch: Record<string, unknown> = {}): Record<string, unknown> => ({
+    key: 'garret',
+    type: 'place',
+    name: 'The garret',
+    aliases: ['the room'],
+    short: 'A tiny room under the roof.',
+    kind: 'real',
+    wikidataId: 'Q656',
+    location: 'St Petersburg, near the Haymarket',
+    significance: 'The hero plans the murder here.',
+    description: 'A low closet under the roof with yellow wallpaper.',
+    scenes: [{ chapter: 1, title: 'The plan', text: 'He lies and thinks.' }],
+    quotes: [QUOTE],
+    faq: [{ question: 'Where is it?', answer: 'Under the roof.' }],
+    imageBrief: 'Wide 16:9 view of a garret, at least 1200x675 px.',
+    ...patch,
+  });
+  const world = (...entities: Record<string, unknown>[]) => ({ language: 'en', entities });
+  const placeIssues = (patch: Record<string, unknown>) => issues(world(place(patch)));
+
+  it('a place passes the version import and keeps its fields', () => {
+    const result = checkBookWorldImport(world(place()), 'en');
+    expect(result.errors).toEqual([]);
+    expect(result.data?.entities[0]).toMatchObject({
+      type: 'place',
+      kind: 'real',
+      wikidataId: 'Q656',
+      location: 'St Petersburg, near the Haymarket',
+      imageBrief: 'Wide 16:9 view of a garret, at least 1200x675 px.',
+    });
+  });
+
+  it('a place passes the import of one entity: the key goes to the address', () => {
+    const result = analyzeBookWorldEntityImport(
+      JSON.stringify({ ...place(), language: 'en' }),
+      'en',
+      null
+    );
+    expect(result.errors).toEqual([]);
+    expect(result.data?.key).toBe('garret');
+    expect(result.data?.body).toMatchObject({
+      type: 'place',
+      description: 'A low closet under the roof with yellow wallpaper.',
+    });
+  });
+
+  it('a non-empty hero or pair field at a place is not a field of a place; empty is cleared', () => {
+    expect(
+      placeIssues({
+        appearance: 'Tall.',
+        role: 'main',
+        sources: [{ title: 'W', url: 'https://w.org' }],
+      }).sort()
+    ).toEqual([
+      'entities.0.appearance: not a field of a place',
+      'entities.0.role: not a field of a place',
+      'entities.0.sources: not a field of a place',
+    ]);
+    expect(placeIssues({ bonds: 'x' })).toEqual(['entities.0.bonds: not a field of a place']);
+    expect(placeIssues({ quotes: [{ ...QUOTE, aboutKey: 'sonya' }] })).toEqual([
+      'entities.0.quotes.0.aboutKey: not a field of a place',
+    ]);
+    const empty = checkBookWorldImport(world(place({ appearance: ' ', role: null })), 'en');
+    expect(empty.errors).toEqual([]);
+    expect(empty.data?.entities[0]).toMatchObject({ appearance: null, role: null });
+  });
+
+  it('an unknown key at a place is an unknown key by its path', () => {
+    expect(placeIssues({ coordinates: [59.9, 30.3] })).toEqual([
+      'entities.0.coordinates: unknown key',
+    ]);
+  });
+
+  it('wikidataId only at a real place; without kind in the body the server decides', () => {
+    const onlyReal = 'entities.0.wikidataId: wikidataId is only for a real place (kind: real)';
+    expect(placeIssues({ kind: 'fictional' })).toEqual([onlyReal]);
+    expect(placeIssues({ kind: null })).toEqual([onlyReal]);
+    expect(placeIssues({ kind: 'fictional', wikidataId: null })).toEqual([]);
+    expect(placeIssues({ kind: undefined })).toEqual([]);
+    expect(placeIssues({ wikidataId: '90' })).toEqual([
+      'entities.0.wikidataId: must be a Wikidata item ID, e.g. Q90',
+    ]);
+    expect(placeIssues({ kind: 'castle' }).map((e) => e.split(':')[0])).toEqual([
+      'entities.0.kind',
+    ]);
+  });
+
+  it('wikidataId: up to 16 characters - a longer one is refused by the same rule', () => {
+    const at = `Q${'1'.repeat(15)}`;
+    expect(at).toHaveLength(16);
+    expect(placeIssues({ wikidataId: at })).toEqual([]);
+    expect(placeIssues({ wikidataId: `${at}1` })).toEqual([
+      'entities.0.wikidataId: must be a Wikidata item ID, e.g. Q90',
+    ]);
+  });
+
+  it.each([
+    ['location', BOOK_WORLD_LIMITS.location],
+    ['significance', BOOK_WORLD_LIMITS.significance],
+    ['description', BOOK_WORLD_LIMITS.description],
+  ] as const)('%s: up to its limit passes, one character over is refused', (field, max) => {
+    expect(placeIssues({ [field]: 'a'.repeat(max) })).toEqual([]);
+    expect(placeIssues({ [field]: 'a'.repeat(max + 1) }).map((e) => e.split(':')[0])).toEqual([
+      `entities.0.${field}`,
+    ]);
+  });
+
+  it('kind "" is empty: kept as null, and wikidataId with it is refused', () => {
+    const empty = checkBookWorldImport(world(place({ kind: '', wikidataId: null })), 'en');
+    expect(empty.errors).toEqual([]);
+    expect(empty.data?.entities[0]).toMatchObject({ kind: null, wikidataId: null });
+    expect(placeIssues({ kind: '' })).toEqual([
+      'entities.0.wikidataId: wikidataId is only for a real place (kind: real)',
+    ]);
+  });
+
+  it('imageBrief is a field of a place, of a pair it is not', () => {
+    expect(placeIssues({})).toEqual([]);
+    expect(
+      issues(world({ key: 'raskolnikov--sonya', type: 'pair', name: 'R and S', imageBrief: 'x' }))
+    ).toEqual(['entities.0.imageBrief: not a field of a pair']);
+  });
+
+  it('place fields at a character or a pair are not their fields', () => {
+    expect(issues(spoilt((e) => (e.kind = 'real')))).toEqual([
+      'entities.0.kind: not a field of a character',
+    ]);
+    expect(
+      issues(world({ key: 'raskolnikov--sonya', type: 'pair', name: 'R and S', location: 'x' }))
+    ).toEqual(['entities.0.location: not a field of a pair']);
+  });
+
+  it('the place card form goes back through the body; a fictional place clears wikidataId', () => {
+    const entity = {
+      ...(place() as unknown as BookWorldEntity),
+      role: null,
+      hasCore: false,
+      isIndexable: true,
+      updatedAt: '2026-11-25T00:00:00.000Z',
+      createdAt: '2026-11-25T00:00:00.000Z',
+      mentions: null,
+    };
+    const form = formFromWorldEntity(entity);
+    const built = worldEntityRequestFromForm(form, 'en', 'place');
+    expect(built.errors).toEqual([]);
+    expect(built.data).toMatchObject({
+      type: 'place',
+      kind: 'real',
+      wikidataId: 'Q656',
+      description: 'A low closet under the roof with yellow wallpaper.',
+      aliases: ['the room'],
+    });
+    expect(built.data).not.toHaveProperty('role');
+    expect(built.data).not.toHaveProperty('appearance');
+    const fictional = worldEntityRequestFromForm({ ...form, kind: 'fictional' }, 'en', 'place');
+    expect(fictional.errors).toEqual([]);
+    expect(fictional.data).toMatchObject({ kind: 'fictional', wikidataId: null });
   });
 });
 

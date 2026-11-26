@@ -140,18 +140,10 @@ export const worldEntityRequestFromForm = (
       faq: lists.faq,
     });
   }
-  const position = text(t.position);
-  const relationToMain = text(t.relationToMain);
-  const arcFrom = text(t.arcFrom);
-  const arcTo = text(t.arcTo);
   const aliases = lines(values.aliases);
   const aliasExclusions = lines(values.aliasExclusions);
-
-  const body = {
-    language,
-    type,
-    name: values.name.trim(),
-    role: values.role || null,
+  // Формы имени и исключения - у героя и места (у пары их нет).
+  const nameForms = {
     aliases: aliases.length > 0 ? aliases : null,
     ...(values.aliasExclusionsKnown || aliasExclusions.length > 0
       ? { aliasExclusions: aliasExclusions.length > 0 ? aliasExclusions : null }
@@ -161,6 +153,37 @@ export const worldEntityRequestFromForm = (
           aliasChapterExclusions: chapterExclusions.list.length > 0 ? chapterExclusions.list : null,
         }
       : {}),
+  };
+  if (type === 'place') {
+    // Место (F08-12b): свои поля и общие, роли и полей героя нет. Номер Wikidata - только у реального:
+    // у вымышленного уходит `null` (очистить), иначе бэкенд отбил бы запись 400.
+    return checkBookWorldEntityRequest({
+      language,
+      type,
+      name: values.name.trim(),
+      ...nameForms,
+      short: text(t.short),
+      kind: values.kind || null,
+      wikidataId: values.kind === 'real' ? text(values.wikidataId) : null,
+      location: text(t.location),
+      significance: text(t.significance),
+      description: text(t.description),
+      scenes: lists.scenes,
+      quotes: lists.quotes,
+      faq: lists.faq,
+    });
+  }
+  const position = text(t.position);
+  const relationToMain = text(t.relationToMain);
+  const arcFrom = text(t.arcFrom);
+  const arcTo = text(t.arcTo);
+
+  const body = {
+    language,
+    type,
+    name: values.name.trim(),
+    role: values.role || null,
+    ...nameForms,
     short: text(t.short),
     profile: position || relationToMain ? { position, relationToMain } : null,
     appearance: text(t.appearance),

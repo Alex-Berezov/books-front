@@ -1,8 +1,8 @@
 import type { BookWorldListKey, BookWorldTextKey } from '@/lib/admin/book-world-blocks';
-import type { BookWorldEntity, BookWorldRole } from '@/types/api-schema';
+import type { BookWorldEntity, BookWorldRole, WorldPlaceKind } from '@/types/api-schema';
 
 /**
- * Форма карточки героя (F08-1) без `zod`: тексты — полями, списки — JSON-текстом, формы имени —
+ * Форма карточки героя, пары и места (F08-1, F08-8c, F08-12b) без `zod`: тексты — полями, списки — JSON-текстом, формы имени —
  * по строке на форму. Проверку и сборку тела записи делает ленивый `book-world-validation.ts`.
  */
 export interface WorldEntityFormValues {
@@ -22,6 +22,10 @@ export interface WorldEntityFormValues {
   aliasChapterExclusions: string;
   /** Как `aliasExclusionsKnown`: поле пришло с сервером или сущность новая. */
   aliasChapterExclusionsKnown: boolean;
+  /** Вид места (F08-12b); `''` — не задан. */
+  kind: WorldPlaceKind | '';
+  /** Номер Wikidata места (`Q90`); уходит только у реального места. */
+  wikidataId: string;
   texts: Record<BookWorldTextKey, string>;
   /** JSON-текст списков; пусто — списка нет. */
   lists: Record<BookWorldListKey, string>;
@@ -42,6 +46,8 @@ export const formFromWorldEntity = (entity: BookWorldEntity | null): WorldEntity
     .join('\n'),
   aliasChapterExclusionsKnown:
     entity === null || entity.editor?.aliasChapterExclusions !== undefined,
+  kind: entity?.kind ?? '',
+  wikidataId: entity?.wikidataId ?? '',
   texts: {
     short: entity?.short ?? '',
     position: entity?.profile?.position ?? '',
@@ -55,6 +61,9 @@ export const formFromWorldEntity = (entity: BookWorldEntity | null): WorldEntity
     bonds: entity?.bonds ?? '',
     differences: entity?.differences ?? '',
     conclusion: entity?.conclusion ?? '',
+    location: entity?.location ?? '',
+    significance: entity?.significance ?? '',
+    description: entity?.description ?? '',
   },
   lists: {
     stages: json(entity?.arc?.stages),

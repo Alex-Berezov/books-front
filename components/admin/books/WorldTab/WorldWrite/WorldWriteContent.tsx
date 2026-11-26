@@ -8,7 +8,7 @@ import {
   type ProposalContent,
 } from '@/components/admin/books/ContentDraft';
 import type { WorldWriteItem, WorldWriteValue } from '@/types/api-schema';
-import { isExternalBlock, refusalText } from './worldWrite.utils';
+import { isExternalBlock, placeValueText, refusalText } from './worldWrite.utils';
 import draftStyles from '@/components/admin/books/ContentDraft/ContentDraft.module.scss';
 
 /** Поля содержимого, кроме текста и источников: структура — JSON, как в карточке сущности. */
@@ -32,9 +32,11 @@ const filled = (field: unknown): boolean =>
   !(Array.isArray(field) && field.length === 0) &&
   !(typeof field === 'object' && !Array.isArray(field) && Object.keys(field).length === 0);
 
-/** Предложение ничего не пишет в блок: текста нет, списки пусты — «Accept» очистит блок. */
+/** Предложение ничего не пишет в блок: текста нет, вида места нет, списки пусты — «Accept» очистит блок. */
 const isEmptyProposal = (value: WorldWriteValue): boolean =>
-  !filled(value.text) && STRUCT_FIELDS.every((field) => !filled(value[field]));
+  !filled(value.text) &&
+  placeValueText(value.place) === null &&
+  STRUCT_FIELDS.every((field) => !filled(value[field]));
 
 /**
  * Блок требует сверки фактов человеком: внешний блок (критика, прототипы, экранизации) или блок
@@ -57,6 +59,7 @@ export const WorldWriteContent: FC<{
   const { value } = content;
   const written = item.outcome === 'written';
   const verify = needsFactCheck(item) && (written || (item.outcome === 'proposed' && !!value));
+  const place = value ? placeValueText(value.place) : null;
   return (
     <>
       <ProposalStatus content={content} refusal={refusalText} />
@@ -64,6 +67,7 @@ export const WorldWriteContent: FC<{
         <p className={draftStyles.hint}>The proposal empties this block: Accept clears it.</p>
       )}
       {value && filled(value.text) && <pre className={draftStyles.preview}>{value.text}</pre>}
+      {place && <p className={draftStyles.preview}>{place}</p>}
       {value &&
         STRUCT_FIELDS.map((field) =>
           filled(value[field]) ? (

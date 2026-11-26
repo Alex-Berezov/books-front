@@ -90,6 +90,7 @@ const value = (patch: Partial<WorldWriteValue> = {}): WorldWriteValue => ({
   adaptations: null,
   compare: null,
   sources: null,
+  place: null,
   ...patch,
 });
 
@@ -134,6 +135,7 @@ describe('WorldWrite (F08-4b)', () => {
         glossary: null,
         candidates: 2,
         pairs: 1,
+        places: 0,
         stageUsd: '1.2',
         upperBound: false,
         suggestedLimitUsd: '1.8',
@@ -150,6 +152,27 @@ describe('WorldWrite (F08-4b)', () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Start' }));
       expect(actions().start.mutate).toHaveBeenCalledTimes(1);
       expect(actions().start.mutate).toHaveBeenCalledWith({});
+    });
+
+    it('Write World: the estimate names the places when there are any (F08-12b)', () => {
+      hooks.run = null;
+      hooks.estimate = {
+        dossier: null,
+        glossary: null,
+        candidates: 2,
+        pairs: 1,
+        places: 3,
+        stageUsd: '1.2',
+        upperBound: false,
+        suggestedLimitUsd: '1.8',
+      };
+      view();
+      fireEvent.click(button('Write World'));
+      expect(
+        within(screen.getByRole('dialog')).getByText(
+          /The world: at most 2 characters \(main and secondary\), at most 1 character pair, at most 3 places, up to \$1\.2\./
+        )
+      ).toBeInTheDocument();
     });
 
     it.each([
@@ -521,6 +544,67 @@ describe('WorldWrite (F08-4b)', () => {
       expect(
         screen.getByText(/No pairs in this run: the language has no pair sample yet/)
       ).toBeInTheDocument();
+    });
+
+    it('the places of the run: the line with chapters and a place step done (F08-12b)', () => {
+      hooks.run = run({
+        places: [
+          { key: 'garret', name: 'The garret', aliases: ['garret'], chapters: [1, 2] },
+          { key: 'square', name: 'The square', aliases: [], chapters: [4] },
+        ],
+        stepsTotal: 5,
+        steps: [step(), step({ step: 3, kind: 'place', key: 'garret' })],
+        items: [],
+      });
+      view();
+      expect(
+        screen.getByText('Places: The garret (2 chapters); The square (1 chapter).')
+      ).toBeInTheDocument();
+      expect(screen.getByText(/Step 4 of 5: Place: The garret — done/)).toBeInTheDocument();
+    });
+
+    // /qa круг 2 (front-tests): выброшенная цитата места видна у шага места по его ключу.
+    it('a place step shows the quote dropped by its key, not the quotes of others (F08-12b)', () => {
+      hooks.run = run({
+        places: [{ key: 'garret', name: 'The garret', aliases: ['garret'], chapters: [1, 2] }],
+        stepsTotal: 5,
+        steps: [step(), step({ step: 3, kind: 'place', key: 'garret' })],
+        droppedQuotes: [
+          { key: 'garret', chapter: 2, text: 'Garret words', reason: 'QUOTE_NOT_VERBATIM' },
+          { key: 'anna', chapter: 1, text: 'Anna words', reason: 'QUOTE_NOT_VERBATIM' },
+        ],
+        items: [],
+      });
+      view();
+      const dropped = screen.getByRole('list', { name: 'Dropped at step 4' });
+      expect(within(dropped).getByText(/Quote dropped: «Garret words»/)).toBeInTheDocument();
+      expect(within(dropped).queryByText(/Anna words/)).toBeNull();
+    });
+
+    it('no places for a language without a sample: the block of steps is there with the reason', () => {
+      // Только `placesOff`, без шагов, отсеянных и `pairsOff`: блок шагов не пуст.
+      hooks.run = run({ placesOff: 'WORLD_PLACE_LANGUAGE', steps: [], items: [] });
+      view();
+      const steps = screen.getByLabelText('Steps of the run');
+      expect(steps).toHaveTextContent(
+        'No places in this run: the language has no place sample yet.'
+      );
+    });
+
+    it.each([
+      [{ kind: 'real' as const, wikidataId: 'Q656' }, 'real, Wikidata Q656'],
+      [{ kind: 'real' as const, wikidataId: null }, 'real, no Wikidata ID'],
+      [{ kind: 'fictional' as const, wikidataId: null }, 'fictional'],
+    ])('the kind of a place %j is shown as «%s» (F08-12b R3)', (place, text) => {
+      hooks.run = run({
+        places: [{ key: 'garret', name: 'The garret', aliases: [], chapters: [1] }],
+        items: [item({ key: 'garret', block: 'kind' })],
+      });
+      hooks.proposals = { 0: value({ place }) };
+      view();
+      const c = card('The garret: Real or fictional, Wikidata ID');
+      expect(within(c).getByText(text)).toBeInTheDocument();
+      expect(within(c).queryByText(/The proposal empties this block/)).toBeNull();
     });
 
     it('an external block: «Verify facts» and its own verified sources', () => {

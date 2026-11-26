@@ -6,7 +6,7 @@ import {
 } from '@/lib/admin/book-world-blocks';
 import type { WorldRecountNotice } from './useWorldRecountNotice';
 import type { WorldEntityFormValues } from '@/lib/admin/book-world-form-state';
-import type { BookWorldMentions, WorldEntityType } from '@/types/api-schema';
+import type { BookWorldGeoCheck, BookWorldMentions, WorldEntityType } from '@/types/api-schema';
 import {
   CHARACTER_NAME_PATHS,
   WorldCharacterNameForms,
@@ -15,6 +15,7 @@ import {
 import { WorldEntityPresence, WorldEntityStale } from './WorldEntityPresence';
 import { CHARACTER_KEY_RULE } from './worldErrors';
 import { FieldIssues, matchesIssuePath } from './WorldFieldIssues';
+import { PLACE_FIELD_PATHS, WorldPlaceFields } from './WorldPlaceFields';
 import styles from './WorldTab.module.scss';
 
 /** Подсказка у ключа нового героя (`LEGACY-507`). */
@@ -29,6 +30,7 @@ const fieldPathsOf = (type: WorldEntityType): string[] => [
   'key',
   'name',
   ...(type === 'pair' ? [] : CHARACTER_NAME_PATHS),
+  ...(type === 'place' ? PLACE_FIELD_PATHS : []),
   ...worldTextFieldsOf(type).map((f) => f.path),
   ...worldListFieldsOf(type).map((f) => f.path),
 ];
@@ -60,12 +62,15 @@ interface WorldEntityFieldsProps {
   onReloadPresence: () => void;
   /** Отказ Reload присутствия; `null` — не было. */
   presenceReloadError: string | null;
+  /** Только у места (F08-12b): последняя проверка точки (`editor.geo`); `undefined` — не сохранено. */
+  geo?: BookWorldGeoCheck | null;
 }
 
 /**
  * Поля героя (`tech.md` §3): тексты — полем, списки — JSON, формы имени — по строке. У пары (F08-8c)
  * свои поля и общие; роли, форм имени, исключений и полей героя у неё нет, а присутствие — общие
- * главы героев, только чтение.
+ * главы героев, только чтение. У места (F08-12b) — формы имени, вид, номер Wikidata и свои поля; роли
+ * и полей героя у него нет.
  */
 export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
   form,
@@ -79,9 +84,11 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
   recountNotice,
   onReloadPresence,
   presenceReloadError,
+  geo,
 }) => {
   const isNew = entityKey === null;
   const isPair = type === 'pair';
+  const isCharacter = type === 'character';
   const issuesFor = (path: string) => issues.filter((i) => matchesIssuePath(i, path));
   const set = (patch: Partial<WorldEntityFormValues>) => setForm((prev) => ({ ...prev, ...patch }));
 
@@ -103,7 +110,7 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
           {!isNew && (
             <span className={styles.hint}>The key of a saved entity does not change.</span>
           )}
-          {isNew && !isPair && <span className={styles.hint}>{CHARACTER_KEY_HINT}</span>}
+          {isNew && isCharacter && <span className={styles.hint}>{CHARACTER_KEY_HINT}</span>}
           <FieldIssues issues={issuesFor('key')} />
         </div>
         <div className={styles.field}>
@@ -122,7 +129,7 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
           />
           <FieldIssues issues={issuesFor('name')} />
         </div>
-        {!isPair && <WorldCharacterRole form={form} set={set} />}
+        {isCharacter && <WorldCharacterRole form={form} set={set} />}
         <div className={styles.field}>
           <span className={styles.label}>{isPair ? 'Shared chapters' : 'Presence'}</span>
           <WorldEntityPresence
@@ -140,6 +147,10 @@ export const WorldEntityFields: FC<WorldEntityFieldsProps> = ({
       <WorldEntityStale stale={stale} />
 
       {!isPair && <WorldCharacterNameForms form={form} set={set} issuesFor={issuesFor} />}
+
+      {type === 'place' && (
+        <WorldPlaceFields form={form} set={set} issuesFor={issuesFor} geo={geo} />
+      )}
 
       {worldTextFieldsOf(type).map((field) => (
         <div key={field.key} className={styles.field}>

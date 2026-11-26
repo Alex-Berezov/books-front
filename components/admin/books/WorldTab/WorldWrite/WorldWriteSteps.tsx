@@ -8,6 +8,8 @@ import {
   leftOutText,
   pairLine,
   pairsOffText,
+  placeLine,
+  placesOffText,
   coreMissingText,
   reasonText,
   stepTitle,
@@ -23,7 +25,10 @@ import draftStyles from '@/components/admin/books/ContentDraft/ContentDraft.modu
 export const WorldWriteSteps: FC<{ run: WorldWrite }> = ({ run }) => {
   const leftOut = run.leftOut ?? [];
   const pairsOff = pairsOffText(run);
-  if (run.steps.length === 0 && leftOut.length === 0 && pairsOff === null) return null;
+  const placesOff = placesOffText(run);
+  if (run.steps.length === 0 && leftOut.length === 0 && pairsOff === null && placesOff === null) {
+    return null;
+  }
   const total = run.stepsTotal;
   return (
     <div className={draftStyles.steps} aria-label="Steps of the run">
@@ -44,6 +49,10 @@ export const WorldWriteSteps: FC<{ run: WorldWrite }> = ({ run }) => {
         </p>
       )}
       {pairsOff && <p className={draftStyles.hint}>{pairsOff}</p>}
+      {run.places && run.places.length > 0 && (
+        <p className={draftStyles.hint}>Places: {run.places.map(placeLine).join('; ')}.</p>
+      )}
+      {placesOff && <p className={draftStyles.hint}>{placesOff}</p>}
       {leftOut.length > 0 && (
         <ul className={draftStyles.list} aria-label="Left out of the run">
           {leftOut.map((skip, i) => (
@@ -53,7 +62,7 @@ export const WorldWriteSteps: FC<{ run: WorldWrite }> = ({ run }) => {
       )}
       {run.steps.map((s) => {
         const quotes =
-          s.kind === 'page' || s.kind === 'pair'
+          s.kind === 'page' || s.kind === 'pair' || s.kind === 'place'
             ? run.droppedQuotes.filter((q) => q.key === s.key)
             : [];
         const sources =

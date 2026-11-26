@@ -92,6 +92,8 @@ const state = (
     stepsTotal: 3,
     candidates: [],
     pairs: [],
+    places: [],
+    placesOff: null,
     leftOut: [],
     pairsOff: null,
     steps: [],

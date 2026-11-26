@@ -52,9 +52,22 @@ export const BOOK_WORLD_LIMITS = {
   chapter: A.chapter,
   paragraph: 10_000,
   adaptationYear: A.adaptationYear,
-  // ТЗ на иллюстрацию героя (F08-11d-2): только импорт и ход, в карточке поля нет (`F08 | F08-11d-2`).
+  // Место (F08-12b, решение арбитра `F08 | F08-12` Q1): копия `BOOK_WORLD_LIMITS` бэкенда, менять вместе.
+  location: A.mainIdea,
+  significance: A.interpretation,
+  description: A.mediumText,
+  // ТЗ на иллюстрацию героя и места (F08-11d-2, F08-12b): только импорт и ход, в карточке поля нет.
   imageBrief: A.mediumText,
 } as const;
+
+/**
+ * Место реальное или вымышленное и номер Wikidata реального места (F08-12b). Копия `WORLD_PLACE_KINDS`,
+ * `WIKIDATA_ID_REGEX` и `WIKIDATA_ID_MAX` из `books/src/modules/book-world/dto/book-world-blocks.dto.ts` —
+ * менять вместе.
+ */
+export const WORLD_PLACE_KINDS = ['real', 'fictional'] as const;
+export const WIKIDATA_ID_REGEX = /^Q[1-9]\d*$/;
+export const WIKIDATA_ID_MAX = 16;
 
 /**
  * Роли героя, которому положена иллюстрация и ТЗ на неё (F08-11d-2). Копия `WORLD_IMAGE_ROLES`
@@ -77,14 +90,16 @@ export const WORLD_IMAGE_FILE_LIMITS = {
 
 const CHARACTER = ['character'] as const;
 const PAIR = ['pair'] as const;
-const BOTH = ['character', 'pair'] as const;
+const PLACE = ['place'] as const;
+const CHARACTER_PLACE = ['character', 'place'] as const;
+const ANY = ['character', 'pair', 'place'] as const;
 
 /**
  * Текстовые поля карточки героя — полем формы: подпись — по-человечески, путь — как у поля тела
  * записи (им же подписаны ошибки сервера, он виден подсказкой).
  */
 export const BOOK_WORLD_TEXT_FIELDS = [
-  { key: 'short', path: 'short', label: 'Short', rows: 3, kinds: BOTH },
+  { key: 'short', path: 'short', label: 'Short', rows: 3, kinds: ANY },
   {
     key: 'position',
     path: 'profile.position',
@@ -115,23 +130,36 @@ export const BOOK_WORLD_TEXT_FIELDS = [
     kinds: PAIR,
   },
   { key: 'conclusion', path: 'conclusion', label: 'Pair: conclusion', rows: 4, kinds: PAIR },
+  // Поля места (F08-12b): у героя и пары их нет; вид и номер Wikidata — своими полями карточки.
+  { key: 'location', path: 'location', label: 'Place: location', rows: 2, kinds: PLACE },
+  {
+    key: 'significance',
+    path: 'significance',
+    label: 'Place: significance in the book',
+    rows: 5,
+    kinds: PLACE,
+  },
+  { key: 'description', path: 'description', label: 'Place: description', rows: 4, kinds: PLACE },
 ] as const;
 export type BookWorldTextKey = (typeof BOOK_WORLD_TEXT_FIELDS)[number]['key'];
 
 /** Списки карточки — JSON-редактором, как у анализа; путь — как у поля тела записи. */
 export const BOOK_WORLD_LIST_FIELDS = [
   { key: 'stages', path: 'arc.stages', label: 'Arc: stages', kinds: CHARACTER },
-  { key: 'scenes', path: 'scenes', label: 'Key scenes', kinds: CHARACTER },
+  { key: 'scenes', path: 'scenes', label: 'Key scenes', kinds: CHARACTER_PLACE },
   { key: 'relations', path: 'relations', label: 'Relations', kinds: CHARACTER },
   { key: 'compare', path: 'compare', label: 'Pair: comparison table', kinds: PAIR },
-  { key: 'quotes', path: 'quotes', label: 'Quotes', kinds: BOTH },
+  { key: 'quotes', path: 'quotes', label: 'Quotes', kinds: ANY },
   { key: 'adaptations', path: 'adaptations', label: 'Adaptations', kinds: CHARACTER },
-  { key: 'faq', path: 'faq', label: 'FAQ', kinds: BOTH },
+  { key: 'faq', path: 'faq', label: 'FAQ', kinds: ANY },
   { key: 'sources', path: 'sources', label: 'Sources', kinds: CHARACTER },
 ] as const;
 export type BookWorldListKey = (typeof BOOK_WORLD_LIST_FIELDS)[number]['key'];
 
-/** Поля карточки сущности этого типа: у пары - свои и общие (`short`, `quotes`, `faq`), без полей героя. */
+/**
+ * Поля карточки сущности этого типа: у пары и места - свои и общие (`short`, `quotes`, `faq`; у места
+ * ещё `scenes`), без полей героя.
+ */
 export const worldTextFieldsOf = (type: string) =>
   BOOK_WORLD_TEXT_FIELDS.filter((f) => (f.kinds as readonly string[]).includes(type));
 export const worldListFieldsOf = (type: string) =>

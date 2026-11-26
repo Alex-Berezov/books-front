@@ -32,7 +32,9 @@ export interface WorldWriteEstimate {
   candidates: number;
   /** До N страниц пар (`F08-8e`): min(10, герои·(герои−1)/2), 0 на языке без эталона пары; цена пар уже в `stageUsd`. */
   pairs: number;
-  /** Оценка сверху: выбор форм имени, на героя (главного и второстепенного до порога глав) страница и внешние блоки, затем до `pairs` страниц пар, проверяющая каждого шага, × 2 прохода. */
+  /** До N страниц мест (`F08-12b`): min(10, мест досье) до подсчёта глав (10 — досье ещё нет), 0 на языке без эталона места; цена мест уже в `stageUsd`. */
+  places: number;
+  /** Оценка сверху: выбор форм имени, на героя (главного и второстепенного до порога глав) страница и внешние блоки, затем до `pairs` страниц пар и до `places` страниц мест, проверяющая каждого шага, × 2 прохода. */
   stageUsd: LlmMoney;
   /** Досье или глоссарий не готовы: их размер — по их этапам. */
   upperBound: boolean;
@@ -101,11 +103,19 @@ export type WorldWriteBlock =
   | 'bonds'
   | 'differences'
   | 'conclusion'
-  /** ТЗ на иллюстрацию героя для редакции (F08-11d-2), по-английски. */
-  | 'imageBrief';
+  /** ТЗ на иллюстрацию героя и места для редакции (F08-11d-2, F08-12b), по-английски. */
+  | 'imageBrief'
+  /**
+   * Блоки места (`F08-12b`). Вид места и номер Wikidata — один пункт `kind` со значением `place`
+   * (решение `F08 | F08-12b` R3): отдельного пункта `wikidataId` нет.
+   */
+  | 'kind'
+  | 'location'
+  | 'significance'
+  | 'description';
 
-/** Вид шага: выбор героев и форм имени, страница героя, внешние блоки героя, страница пары (`F08-8e`). */
-export type WorldWriteStepKind = 'select' | 'page' | 'external' | 'pair';
+/** Вид шага: выбор героев и форм имени, страница героя, внешние блоки героя, страница пары (`F08-8e`), страница места (`F08-12b`). */
+export type WorldWriteStepKind = 'select' | 'page' | 'external' | 'pair' | 'place';
 
 /** Что код снял без переделки (`WORLD_FIX_CODES`). */
 export type WorldWriteFixCode =
@@ -121,7 +131,9 @@ export type WorldWriteFixCode =
   /** ТЗ без «Внешности» снято кодом (F08-11d-2). */
   | 'BRIEF_WITHOUT_APPEARANCE'
   /** ТЗ у героя не `main`/`secondary` снято кодом (F08-11d-2). */
-  | 'BRIEF_NOT_ALLOWED';
+  | 'BRIEF_NOT_ALLOWED'
+  /** ТЗ места без «Описания» снято кодом (F08-12b). */
+  | 'BRIEF_WITHOUT_DESCRIPTION';
 
 export interface WorldWriteFix {
   code: WorldWriteFixCode;
@@ -170,13 +182,26 @@ export interface WorldWritePair {
   chapters: number[];
 }
 
-/** Почему герой или пара в ход не вошли (`WORLD_SKIP_REASONS`): вызова не было. */
+/** Место хода (`F08-12b`): место досье, прошедшее порог глав; шаг места — после шагов пар. */
+export interface WorldWritePlace {
+  /** Ключ места (ключ досье). */
+  key: string;
+  name: string;
+  aliases: string[];
+  /** Главы, где формы названия нашли место (считано на шаге выбора). */
+  chapters: number[];
+}
+
+/** Почему герой, пара или место в ход не вошли (`WORLD_SKIP_REASONS`): вызова не было. */
 export type WorldWriteSkipReason =
   | 'BELOW_MIN_CHAPTERS'
   | 'KEY_PAIR_FORM'
   | 'PAIR_KEY_INVALID'
   | 'PAIR_KEY_TAKEN'
-  | 'PAIRS_MAX';
+  | 'PAIRS_MAX'
+  | 'PLACE_BELOW_MIN_CHAPTERS'
+  | 'PLACE_KEY_TAKEN'
+  | 'PLACES_MAX';
 
 /** Отсеянный шагом выбора герой или пара. */
 export interface WorldWriteLeftOut {
@@ -195,6 +220,9 @@ export interface WorldWriteLeftOut {
 /** Ход не пишет пар: `WORLD_PAIR_LANGUAGE` — у языка нет эталона пары. */
 export type WorldWritePairsOff = 'WORLD_PAIR_LANGUAGE';
 
+/** Ход не пишет мест: `WORLD_PLACE_LANGUAGE` — у языка нет эталона места (`F08-12b`). */
+export type WorldWritePlacesOff = 'WORLD_PLACE_LANGUAGE';
+
 export interface WorldWriteStep {
   /** 0 — выбор форм имени, затем на героя страница и внешние блоки, затем по шагу на пару (`F08-8e`). */
   step: number;
@@ -206,7 +234,7 @@ export interface WorldWriteStep {
   /** 2 — текст единственной переделки. */
   attempt: number;
   outcome: 'done' | 'failed';
-  /** Почему шаг не дал текста: `DRAFT_TOO_LONG`, `DRAFT_INVALID_RESPONSE`, `WORLD_CHARACTER_NOT_FOUND`; шаг пары без вызова — `WORLD_PAIR_MEMBER_MISSING`, `WORLD_PAIR_KEY_TAKEN`, `WORLD_PAIR_NOT_FOUNDED` (пара не связана в анализе и без общих глав — новая и заведённая; либо новая пара не проходит условие заведения по сохранённому присутствию), `WORLD_MENTIONS_MOVED`. */
+  /** Почему шаг не дал текста: `DRAFT_TOO_LONG`, `DRAFT_INVALID_RESPONSE`, `WORLD_CHARACTER_NOT_FOUND`, `WORLD_PLACE_NOT_FOUND` (формы названия не нашли место ни в одной главе); шаг пары без вызова — `WORLD_PAIR_MEMBER_MISSING`, `WORLD_PAIR_KEY_TAKEN`, `WORLD_PAIR_NOT_FOUNDED` (пара не связана в анализе и без общих глав — новая и заведённая; либо новая пара не проходит условие заведения по сохранённому присутствию), `WORLD_MENTIONS_MOVED`; шаг места без вызова — `WORLD_PLACE_KEY_TAKEN` (`F08-12b`). */
   failedReason: string | null;
   authorModel: string | null;
   review: WorldWriteReview | null;
@@ -263,7 +291,7 @@ export interface WorldWrite {
   /** Чего ждёт: досье или глоссарий строятся своими операциями. */
   waitingFor: 'dossier' | 'glossary' | null;
   operation: LlmOperation;
-  /** Шагов хода: 1 + 2 на героя + 1 на пару; `null` — герои ещё не выбраны. */
+  /** Шагов хода: 1 + 2 на героя + 1 на пару + 1 на место; `null` — герои ещё не выбраны. */
   stepsTotal: number | null;
   /** Кандидаты; `null` — герои ещё не выбраны. */
   candidates: WorldWriteCandidate[] | null;
@@ -273,6 +301,10 @@ export interface WorldWrite {
   leftOut: WorldWriteLeftOut[];
   /** Пар нет и почему; `null` — есть или выбор ещё не прошёл. */
   pairsOff: WorldWritePairsOff | null;
+  /** Места хода (`F08-12b`), их шаги идут после шагов пар; `null` — выбор не прошёл; `[]` — ход до `F08-12b`. */
+  places: WorldWritePlace[] | null;
+  /** Мест нет и почему; `null` — есть или выбор ещё не прошёл. */
+  placesOff: WorldWritePlacesOff | null;
   /** Пройденные шаги по порядку. */
   steps: WorldWriteStep[];
   items: WorldWriteItem[];
@@ -288,13 +320,19 @@ export interface WorldWriteState {
   draft: WorldWrite | null;
 }
 
+/** Значение пункта `kind` места: реальное или вымышленное и номер Wikidata реального. */
+export interface WorldWritePlaceValue {
+  kind: 'real' | 'fictional' | null;
+  wikidataId: string | null;
+}
+
 /**
  * Ответ `GET /admin/content-drafts/:id/items/:index`: содержимое предложения. Заполнено ровно одно
  * поле по блоку, остальные `null`; у внешнего блока — ещё `sources` (проверенные источники,
  * «Accept» добавит их к источникам сущности).
  */
 export interface WorldWriteValue {
-  /** `short`, `appearance`, `character`, `critique`, `prototypes`, `bonds`, `differences`, `conclusion`, `imageBrief`. */
+  /** `short`, `appearance`, `character`, `critique`, `prototypes`, `bonds`, `differences`, `conclusion`, `imageBrief`; у места — `location`, `significance`, `description`. */
   text: string | null;
   aliases: string[] | null;
   profile: BookWorldProfile | null;
@@ -307,6 +345,11 @@ export interface WorldWriteValue {
   /** Таблица сравнения пары. */
   compare: BookWorldCompare[] | null;
   sources: BookAnalysisSource[] | null;
+  /**
+   * Пункт `kind` места (F08-12b, решение `F08 | F08-12b` R3): вид и номер Wikidata одним предложением;
+   * `text` у такого пункта — `null`. У остальных пунктов — `null`.
+   */
+  place: WorldWritePlaceValue | null;
   /** Отпечаток предложения: «Accept» отдаёт его как `expectedPrint`. */
   print: string;
 }

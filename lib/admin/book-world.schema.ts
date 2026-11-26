@@ -3,6 +3,9 @@ import {
   BOOK_WORLD_KEY_REGEX,
   BOOK_WORLD_LIMITS as L,
   BOOK_WORLD_ROLES,
+  WIKIDATA_ID_MAX,
+  WIKIDATA_ID_REGEX,
+  WORLD_PLACE_KINDS,
   type BookWorldIssue,
 } from '@/lib/admin/book-world-blocks';
 import { SUPPORTED_LANGS } from '@/lib/i18n/lang';
@@ -48,10 +51,11 @@ const optionalKey = () =>
     .optional()
     .transform((value) => (value ? value : null));
 
-type EntityKind = 'pair' | 'character';
+type EntityKind = 'pair' | 'character' | 'place';
 
 /**
- * Поле не своего типа (у пары - поле героя, у героя - поле пары): бэкенд принимает его пустым - после
+ * Поле не своего типа (у пары - поле героя или места, у героя - поле пары или места, у места - поле
+ * героя или пары; перечни - `WORLD_BLOCKS_OF_TYPE` в `books/src/modules/book-world/book-world-data.ts`): бэкенд принимает его пустым - после
  * слияния (`compactBlock`) оно пусто, а `checkWorldTypeFields` (`books/src/modules/book-world/world-refs.ts`)
  * отбивает только непустое. Пустое - по виду поля, как его пропускает DTO бэкенда
  * (`books/src/modules/book-world/dto/update-book-world.dto.ts`): у списка `null` и `[]`, у текста `null`
@@ -65,13 +69,14 @@ const notAField = (kind: EntityKind) => ({ error: `not a field of a ${kind}` });
 const cleared = <T extends z.ZodType>(schema: T) =>
   schema.optional().transform((value) => (value === undefined ? undefined : null));
 
-const emptyText = () => z.string().trim().max(0);
+/** Строка из пробелов; непустая - та же ошибка «не поле этого типа», что у бэкенда. */
+const emptyText = (kind: EntityKind) => z.string().trim().max(0, notAField(kind));
 
 const foreignList = (kind: EntityKind) =>
   cleared(z.union([z.null(), z.array(z.never()).max(0)], notAField(kind)));
 
 const foreignText = (kind: EntityKind) =>
-  cleared(z.union([z.null(), emptyText()], notAField(kind)));
+  cleared(z.union([z.null(), emptyText(kind)], notAField(kind)));
 
 const foreignObject = (kind: EntityKind) => cleared(z.null(notAField(kind)));
 
@@ -97,11 +102,15 @@ const quoteShape = () => ({
   interpretation: requiredText(L.interpretation),
 });
 
-/** Цитата героя: `aboutKey` - поле цитаты пары, у героя принимается только пустым (как бэкенд). */
-const characterQuoteShape = () => ({
+/** Цитата героя и места: `aboutKey` - поле цитаты пары, у них принимается только пустым (как бэкенд). */
+const nonPairQuoteShape = (kind: Exclude<EntityKind, 'pair'>) => ({
   ...quoteShape(),
-  aboutKey: foreignText('character'),
+  aboutKey: foreignText(kind),
 });
+
+/** Пустое (`null`, `''`, пробелы) - «очистить» (`null`), ключа нет - «не трогать», как `isAbsent` бэкенда. */
+const absentToNull = <T>(value: T | null | undefined): T | null | undefined =>
+  value === undefined ? undefined : value || null;
 
 export const BOOK_WORLD_LIST_SCHEMAS = {
   stages: list(
@@ -130,7 +139,8 @@ export const BOOK_WORLD_LIST_SCHEMAS = {
     L.scenes
   ),
   relations: list(z.strictObject({ to: key(), label: requiredText(L.label) }), L.relations),
-  quotes: list(z.strictObject(characterQuoteShape()), L.quotes),
+  quotes: list(z.strictObject(nonPairQuoteShape('character')), L.quotes),
+  placeQuotes: list(z.strictObject(nonPairQuoteShape('place')), L.quotes),
   // Цитата пары (F08-8c): кто говорит и о ком - оба обязательны и непусты (`checkWorldPair` бэкенда);
   // что оба - разные герои ключа пары, проверяет бэкенд на слитой записи.
   pairQuotes: list(
@@ -175,6 +185,17 @@ export const BOOK_WORLD_LIST_SCHEMAS = {
   ),
 };
 
+/** Поля места (F08-12b) у героя и пары - только пустыми (`checkWorldTypeFields` бэкенда). */
+function foreignPlaceFields(kind: Exclude<EntityKind, 'place'>) {
+  return {
+    kind: foreignText(kind),
+    location: foreignText(kind),
+    significance: foreignText(kind),
+    description: foreignText(kind),
+    wikidataId: foreignText(kind),
+  };
+}
+
 const characterFields = {
   name: requiredText(L.name).optional(),
   role: z.enum(BOOK_WORLD_ROLES).nullable().optional(),
@@ -215,11 +236,12 @@ const characterFields = {
   sources: clearable(BOOK_WORLD_LIST_SCHEMAS.sources),
   // ТЗ на иллюстрацию (F08-11d-2): у героя любой роли, по-английски; читателю не отдаётся.
   imageBrief: clearable(z.string().trim().max(L.imageBrief)),
-  // Поля пары - у героя только пустыми.
+  // Поля пары и места - у героя только пустыми.
   compare: foreignList('character'),
   bonds: foreignText('character'),
   differences: foreignText('character'),
   conclusion: foreignText('character'),
+  ...foreignPlaceFields('character'),
 };
 
 /**
@@ -252,11 +274,95 @@ const pairFields = {
   adaptations: foreignList('pair'),
   sources: foreignList('pair'),
   imageBrief: foreignText('pair'),
+  ...foreignPlaceFields('pair'),
 };
+
+/** Вид места: `real`/`fictional` после обрезки; `''` - пусто, как `@Trim() @IsIn` с `isAbsent` бэкенда. */
+const placeKind = () =>
+  z
+    .string()
+    .trim()
+    .pipe(z.enum([...WORLD_PLACE_KINDS, '']))
+    .nullable()
+    .optional()
+    .transform(absentToNull);
+
+/** Номер Wikidata (`Q90`); `''` - пусто, как `@Trim() @MaxLength @Matches` с `isAbsent` бэкенда. */
+const wikidataId = () =>
+  z
+    .string()
+    .trim()
+    .refine(
+      (value) => value === '' || (value.length <= WIKIDATA_ID_MAX && WIKIDATA_ID_REGEX.test(value)),
+      'must be a Wikidata item ID, e.g. Q90'
+    )
+    .nullable()
+    .optional()
+    .transform(absentToNull);
+
+/**
+ * Поля места (F08-12b, решения арбитра `F08 | F08-12` Q1 и `F08 | F08-12b` Q2): имя, формы имени,
+ * «коротко», вид, где, значение, описание, номер Wikidata, сцены, цитаты, частые вопросы и ТЗ на
+ * иллюстрацию. Роли, источников, полей героя и пары у места нет: непустое бэкенд отбивает 400.
+ */
+const placeFields = {
+  name: requiredText(L.name).optional(),
+  aliases: characterFields.aliases,
+  aliasExclusions: characterFields.aliasExclusions,
+  aliasChapterExclusions: characterFields.aliasChapterExclusions,
+  short: clearable(z.string().trim().max(L.short)),
+  kind: placeKind(),
+  location: clearable(z.string().trim().max(L.location)),
+  significance: clearable(z.string().trim().max(L.significance)),
+  description: clearable(z.string().trim().max(L.description)),
+  wikidataId: wikidataId(),
+  scenes: clearable(BOOK_WORLD_LIST_SCHEMAS.scenes),
+  quotes: clearable(BOOK_WORLD_LIST_SCHEMAS.placeQuotes),
+  faq: clearable(BOOK_WORLD_LIST_SCHEMAS.faq),
+  imageBrief: clearable(z.string().trim().max(L.imageBrief)),
+  // Поля героя и пары - у места только пустыми.
+  role: foreignObject('place'),
+  sources: foreignList('place'),
+  profile: foreignProfile('place'),
+  appearance: foreignText('place'),
+  character: foreignText('place'),
+  arc: foreignObject('place'),
+  relations: foreignList('place'),
+  critique: foreignText('place'),
+  prototypes: foreignText('place'),
+  adaptations: foreignList('place'),
+  compare: foreignList('place'),
+  bonds: foreignText('place'),
+  differences: foreignText('place'),
+  conclusion: foreignText('place'),
+};
+
+/**
+ * Номер Wikidata - только у реального места (`checkWorldTypeFields` бэкенда). Вид в теле не задан
+ * (импорт «не трогать») - вид сохранённый, его знает только сервер: решает пробная запись.
+ */
+const wikidataOnlyForReal = (
+  value: { kind?: unknown; wikidataId?: unknown },
+  ctx: z.RefinementCtx
+) => {
+  if (value.wikidataId && value.kind !== undefined && value.kind !== 'real') {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['wikidataId'],
+      message: 'wikidataId is only for a real place (kind: real)',
+    });
+  }
+};
+
+const placeSchema = <T extends z.ZodRawShape>(shape: T) =>
+  z
+    .strictObject({ ...shape, type: z.literal('place'), ...placeFields })
+    .superRefine(wikidataOnlyForReal);
 
 const entitySchema = z.discriminatedUnion('type', [
   z.strictObject({ key: key(), type: z.literal('character'), ...characterFields }),
   z.strictObject({ key: key(), type: z.literal('pair'), ...pairFields }),
+  placeSchema({ key: key() }),
 ]);
 
 const importSchema = z
@@ -282,6 +388,7 @@ const entityRequestSchema = z.discriminatedUnion('type', [
     ...characterFields,
   }),
   z.strictObject({ language: z.enum(SUPPORTED_LANGS), type: z.literal('pair'), ...pairFields }),
+  placeSchema({ language: z.enum(SUPPORTED_LANGS) }),
 ]);
 
 export const toWorldIssues = (error: z.ZodError, prefix = ''): BookWorldIssue[] =>
@@ -339,6 +446,7 @@ const entityImportSchema = z.discriminatedUnion('type', [
     type: z.literal('pair'),
     ...pairFields,
   }),
+  placeSchema({ language: z.enum(SUPPORTED_LANGS), key: key().optional() }),
 ]);
 
 /** Импорт одной сущности: ключ адреса и тело записи (ключ — в адресе, в теле его нет). */
