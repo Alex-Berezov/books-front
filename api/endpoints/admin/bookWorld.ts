@@ -120,7 +120,9 @@ export const getWorldImage = async (versionId: string, key: string): Promise<Wor
 /**
  * Загрузка файла иллюстрации в ожидающую ячейку (F08-11d-3): multipart, одно поле `file`
  * (текстовых полей бэкенд не принимает). 400 `WORLD_IMAGE_NOT_IMAGE` / `WORLD_IMAGE_TOO_LARGE` /
- * `WORLD_IMAGE_TOO_SMALL`, 409 `WORLD_IMAGE_NOT_ALLOWED`.
+ * `WORLD_IMAGE_TOO_SMALL` (место - от 1200×675, F08-12c-2), 409 `WORLD_IMAGE_NOT_ALLOWED` /
+ * `WORLD_IMAGE_KEY_CONFLICT` (строка ключа - у сущности другого типа с правом и живым файлом),
+ * `WORLD_IMAGE_ENTITY_CHANGED` (тип сущности сменился параллельно).
  */
 export const uploadWorldImage = async (
   versionId: string,
@@ -135,7 +137,7 @@ export const uploadWorldImage = async (
   );
 };
 
-/** «Accept» — 409 `WORLD_IMAGE_NONE`, `WORLD_IMAGE_CHANGED`, `WORLD_IMAGE_NOT_ALLOWED`. */
+/** «Accept» — 409 `WORLD_IMAGE_NONE`, `WORLD_IMAGE_CHANGED`, `WORLD_IMAGE_NOT_ALLOWED`, `WORLD_IMAGE_KEY_CONFLICT`, `WORLD_IMAGE_ENTITY_CHANGED`. */
 export const acceptWorldImage = async (
   versionId: string,
   key: string,

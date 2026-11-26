@@ -9,16 +9,17 @@ import type { LegalBlock } from '@/content/legal/types';
  * разделе на каждом языке есть абзац об иллюстрациях. Слов «ИИ»/«нейросеть» в политике нет
  * (сторож F01-4 в `trustPages.test.tsx`). С F08-11d сайт картинки не генерирует: абзац говорит,
  * что их вручную готовит редакция сторонними сервисами генерации изображений, а не «модель».
+ * С F08-12c-2 абзац называет и места: у места тоже есть картинка.
  */
 const paragraphText = (block: LegalBlock): string =>
   block.kind === 'paragraph' ? block.content.map((part) => part.text).join('') : '';
 
 const ILLUSTRATIONS: Record<(typeof SUPPORTED_LANGS)[number], RegExp> = {
-  en: /^Illustrations of characters are prepared manually by the editorial team with third-party image generation services/,
-  es: /^Las ilustraciones de los personajes las prepara manualmente la redacción con servicios externos de generación de imágenes/,
-  fr: /^Les illustrations des personnages sont préparées manuellement par la rédaction avec des services tiers de génération d’images/,
-  pt: /^As ilustrações dos personagens são preparadas manualmente pela redação com serviços externos de geração de imagens/,
-  ru: /^Иллюстрации героев редакция готовит вручную с помощью сторонних сервисов генерации изображений/,
+  en: /^Illustrations of characters and places are prepared manually by the editorial team with third-party image generation services/,
+  es: /^Las ilustraciones de los personajes y de los lugares las prepara manualmente la redacción con servicios externos de generación de imágenes/,
+  fr: /^Les illustrations des personnages et des lieux sont préparées manuellement par la rédaction avec des services tiers de génération d’images/,
+  pt: /^As ilustrações dos personagens e dos lugares são preparadas manualmente pela redação com serviços externos de geração de imagens/,
+  ru: /^Иллюстрации героев и мест редакция готовит вручную с помощью сторонних сервисов генерации изображений/,
 };
 
 /** Прежняя формулировка F08-11c — генерация «моделью» на стороне сайта — неправдива с F08-11d. */

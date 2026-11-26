@@ -340,16 +340,22 @@ export interface WorldImageFile extends BookWorldImage {
   mediaId: string;
 }
 
-/** Иллюстрация героя во вкладке World: принятая и ожидающая принятия (F08-11a, без генерации с F08-11d). */
+/** Иллюстрация героя или места (F08-12c-2) во вкладке World: принятая и ожидающая принятия (F08-11a, без генерации с F08-11d). */
 export interface WorldImageState {
   key: string;
-  /** Герой `main`/`secondary`: иллюстрация возможна (с F08-11d только по роли, без условия внешности). */
+  /** Герой `main`/`secondary` или место (F08-12c-2): иллюстрация возможна (с F08-11d только по роли, без условия внешности). */
   allowed: boolean;
   /**
    * Тип и роль допускают иллюстрацию (F08-12a, хвост F08-11b): `false` — «Accept» отвечает
    * 409 `WORLD_IMAGE_NOT_ALLOWED`.
    */
   roleAllowed: boolean;
+  /**
+   * Ключ занят картинкой сущности другого типа, у которой ещё есть право и живой файл (F08-12c-2,
+   * решение `F08 | F08-12c-2` круг 1 Q2): загрузка и «Accept» ответят 409 `WORLD_IMAGE_KEY_CONFLICT`,
+   * `accepted` и `pending` тогда `null`. Старый бэкенд поля не шлёт - читается как `false`.
+   */
+  keyConflict: boolean;
   /** Принятая: её видит сайт. */
   accepted: WorldImageFile | null;
   acceptedAt: string | null;

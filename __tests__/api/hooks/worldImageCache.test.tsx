@@ -16,11 +16,13 @@ import {
   useSaveBookWorld,
   useSaveBookWorldEntity,
 } from '@/api/hooks';
+import { ApiError } from '@/types/api';
 
 const STATE = {
   key: 'a',
   allowed: true,
   roleAllowed: true,
+  keyConflict: false,
   accepted: null,
   acceptedAt: null,
   pending: null,
@@ -36,9 +38,25 @@ vi.mock('@/api/endpoints/admin/bookWorld', async (importOriginal) => ({
     recountQueued: true,
   })),
   deleteBookWorldEntity: vi.fn(async () => undefined),
-  acceptWorldImage: vi.fn(async () => ({ ...STATE, accepted: { mediaId: 'm1' } })),
+  acceptWorldImage: vi.fn(async (_v: string, key: string) => {
+    if (key === 'b') {
+      throw new ApiError({
+        statusCode: 409,
+        message: 'x',
+        data: { code: 'WORLD_IMAGE_ENTITY_CHANGED' },
+      });
+    }
+    return { ...STATE, accepted: { mediaId: 'm1' } };
+  }),
   uploadWorldImage: vi.fn(async (_v: string, key: string) => {
     if (key === 'refused') throw new Error('409');
+    if (key === 'b') {
+      throw new ApiError({
+        statusCode: 409,
+        message: 'x',
+        data: { code: 'WORLD_IMAGE_ENTITY_CHANGED' },
+      });
+    }
     return { ...STATE, pending: { mediaId: 'up1' } };
   }),
 }));
@@ -135,5 +153,33 @@ describe('illustration cache key (F08-11c)', () => {
     });
     expect(stale(bookWorldQueryKeys.image('v1', 'refused'))).toBe(true);
     expect(stale(bookWorldQueryKeys.image('v1', 'a'))).toBe(false);
+  });
+
+  // F08-12c-2: тип сущности сменился параллельно - перечитывается карточка (тип и предел панели),
+  // картинка лежит под ней; соседняя карточка не трогается.
+  it('upload refused with WORLD_IMAGE_ENTITY_CHANGED: the entity card is re-read with its illustration', async () => {
+    const { wrapper, stale } = seeded();
+    const { result } = renderHook(() => useUploadWorldImage(), { wrapper });
+    await act(async () => {
+      await result.current
+        .mutateAsync({ versionId: 'v1', key: 'b', file: new File(['x'], 'x.png') })
+        .catch(() => undefined);
+    });
+    expect(stale(bookWorldQueryKeys.entity('v1', 'b'))).toBe(true);
+    expect(stale(bookWorldQueryKeys.image('v1', 'b'))).toBe(true);
+    expect(stale(bookWorldQueryKeys.entity('v1', 'a'))).toBe(false);
+  });
+
+  it('Accept refused with WORLD_IMAGE_ENTITY_CHANGED: the entity card is re-read too', async () => {
+    const { wrapper, stale } = seeded();
+    const { result } = renderHook(() => useAcceptWorldImage(), { wrapper });
+    await act(async () => {
+      await result.current
+        .mutateAsync({ versionId: 'v1', key: 'b', mediaId: 'm1' })
+        .catch(() => undefined);
+    });
+    expect(stale(bookWorldQueryKeys.entity('v1', 'b'))).toBe(true);
+    expect(stale(bookWorldQueryKeys.image('v1', 'b'))).toBe(true);
+    expect(stale(bookWorldQueryKeys.entity('v1', 'a'))).toBe(false);
   });
 });

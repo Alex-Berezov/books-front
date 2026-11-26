@@ -3,6 +3,7 @@ import { EditorialByline } from '@/components/public/books/EditorialByline';
 import { Breadcrumbs } from '@/components/public/Breadcrumbs/Breadcrumbs';
 import { WorldBeacon } from '@/components/public/WorldBeacon';
 import { fillTemplate } from '@/lib/book-world/format';
+import { worldImageTypeAllowed } from '@/lib/book-world/image';
 import { canonicalPairMembers, pairDisplayName } from '@/lib/book-world/pair';
 import { worldNavLabel } from '@/lib/i18n/worldStrings';
 import { isWorldEntityKey } from '@/lib/seo/book-world';
@@ -113,13 +114,15 @@ export default async function BookWorldEntityPage({ params }: Props) {
         })
       : [];
 
-  // Иллюстрация (F08-11c): только у героя; `alt` и подпись - по языку страницы, файл общий.
-  const image = entity.type === 'character' ? (detail.image ?? null) : null;
+  // Иллюстрация (F08-11c): у героя и места (F08-12c-2, `worldImageTypeAllowed`); `alt` и подпись -
+  // по языку страницы, файл общий.
+  const image = worldImageTypeAllowed(entity.type) ? (detail.image ?? null) : null;
   const illustration: WorldIllustration | null = image
     ? {
         image,
         alt: fillTemplate(strings.worldImageAlt, { name: entity.name, title: ctx.title }),
         caption: strings.worldImageCaption,
+        entityType: entity.type,
         policyHref: `/${supportedLang}/editorial-policy#world`,
       }
     : null;

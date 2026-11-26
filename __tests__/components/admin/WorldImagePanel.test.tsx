@@ -29,6 +29,7 @@ const state = (patch: Partial<WorldImageState> = {}): WorldImageState => ({
   key: 'sonya',
   allowed: true,
   roleAllowed: true,
+  keyConflict: false,
   accepted: null,
   acceptedAt: null,
   pending: null,
@@ -37,11 +38,11 @@ const state = (patch: Partial<WorldImageState> = {}): WorldImageState => ({
 const conflict = (code: string) =>
   HttpResponse.json({ statusCode: 409, code, message: 'x' }, { status: 409 });
 
-const renderPanel = () => {
+const renderPanel = (entityType: 'character' | 'place' = 'character') => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <WorldImagePanel versionId="v1" entityKey="sonya" name="Sonya" />
+      <WorldImagePanel versionId="v1" entityKey="sonya" name="Sonya" entityType={entityType} />
     </QueryClientProvider>
   );
   return client;
@@ -221,7 +222,7 @@ describe('WorldImagePanel (F08-11b, F08-11d)', () => {
     renderPanel();
     expect(await screen.findByText('No illustration yet.')).toBeInTheDocument();
     expect(
-      screen.getByText('Only main and secondary characters get an illustration.')
+      screen.getByText('Only places and main or secondary characters get an illustration.')
     ).toBeInTheDocument();
     expect(screen.queryByRole('button')).toBeNull();
   });
@@ -234,14 +235,14 @@ describe('WorldImagePanel (F08-11b, F08-11d)', () => {
     );
     renderPanel();
     expect(await screen.findByRole('button', { name: 'Accept' })).toBeEnabled();
-    expect(screen.queryByText(/Only main and secondary/)).toBeNull();
+    expect(screen.queryByText(/Only places and main or secondary/)).toBeNull();
   });
 
   it('allowed: no role hint', async () => {
     server.use(http.get(URL_IMAGE, () => HttpResponse.json(state())));
     renderPanel();
     expect(await screen.findByText('No illustration yet.')).toBeInTheDocument();
-    expect(screen.queryByText(/Only main and secondary/)).toBeNull();
+    expect(screen.queryByText(/Only places and main or secondary/)).toBeNull();
   });
 
   it('not allowed with pictures: they stay visible, no Accept, the role hint', async () => {
@@ -261,7 +262,7 @@ describe('WorldImagePanel (F08-11b, F08-11d)', () => {
     expect(await screen.findByRole('img', { name: 'Sonya: Accepted' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Sonya: Waiting for Accept' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull();
-    expect(screen.getByText(/Only main and secondary/)).toBeInTheDocument();
+    expect(screen.getByText(/Only places and main or secondary/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: NO_GENERATION })).toBeNull();
   });
 
@@ -302,7 +303,7 @@ describe('WorldImagePanel (F08-11b, F08-11d)', () => {
     it.each([
       ['WORLD_IMAGE_NOT_IMAGE', 'not a PNG, JPEG or WebP image'],
       ['WORLD_IMAGE_TOO_LARGE', 'up to 12 MB and 40 megapixels'],
-      ['WORLD_IMAGE_TOO_SMALL', 'both sides must be at least 1200 px'],
+      ['WORLD_IMAGE_TOO_SMALL', 'too small: at least 1200×1200 px'],
     ])('a refused file %s shows its reason', async (code, text) => {
       server.use(
         http.get(URL_IMAGE, () => HttpResponse.json(state())),
@@ -326,6 +327,22 @@ describe('WorldImagePanel (F08-11b, F08-11d)', () => {
       expect(await screen.findByText(/replace the one waiting for Accept/)).toBeInTheDocument();
     });
 
+    // F08-12c-2: у места свой предел - от 1200×675 (круг 1 Q3, без «16:9»); у героя - портрет от 1200×1200.
+    it('the rule in the label follows the entity type: a place from 1200×675, a hero 1200×1200', async () => {
+      server.use(http.get(URL_IMAGE, () => HttpResponse.json(state())));
+      renderPanel('place');
+      expect(await screen.findByText(/from 1200×675 px/)).toBeInTheDocument();
+      expect(screen.queryByText(/from 1200×1200 px/)).toBeNull();
+      expect(screen.queryByText(/16:9/)).toBeNull();
+    });
+
+    it('a hero keeps the portrait rule 1200×1200', async () => {
+      server.use(http.get(URL_IMAGE, () => HttpResponse.json(state())));
+      renderPanel();
+      expect(await screen.findByText(/from 1200×1200 px/)).toBeInTheDocument();
+      expect(screen.queryByText(/16:9/)).toBeNull();
+    });
+
     it('Accept clears a previous upload refusal', async () => {
       server.use(
         http.get(URL_IMAGE, () => HttpResponse.json(state({ pending: file('new') }))),
@@ -334,7 +351,7 @@ describe('WorldImagePanel (F08-11b, F08-11d)', () => {
       );
       renderPanel();
       await choose();
-      expect(await screen.findByRole('alert')).toHaveTextContent('at least 1200 px');
+      expect(await screen.findByRole('alert')).toHaveTextContent('at least 1200×1200 px');
       fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
       await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
     });
@@ -373,11 +390,113 @@ describe('WorldImagePanel (F08-11b, F08-11d)', () => {
       );
       renderPanel();
       await choose();
-      expect(await screen.findByText(/Only main and secondary/)).toBeInTheDocument();
+      expect(await screen.findByText(/Only places and main or secondary/)).toBeInTheDocument();
       // Отказ по роли сказан один раз — подсказкой, без второй красной строки.
-      expect(screen.getAllByText(/Only main and secondary/)).toHaveLength(1);
+      expect(screen.getAllByText(/Only places and main or secondary/)).toHaveLength(1);
       expect(screen.queryByRole('alert')).toBeNull();
       expect(screen.queryByText(/^Upload a/)).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull();
+    });
+
+    // F08-12c-2 (круг 1 Q2): ключ занят картинкой сущности другого типа - действий нет, причина сказана.
+    it('keyConflict: no upload field and no Accept, the reason as a hint, no request is sent', async () => {
+      let posts = 0;
+      server.use(
+        http.get(URL_IMAGE, () => HttpResponse.json(state({ keyConflict: true }))),
+        http.post(URL_IMAGE, () => {
+          posts += 1;
+          return HttpResponse.json(state());
+        })
+      );
+      renderPanel('place');
+      expect(
+        await screen.findByText(/already holds the illustration of another entity/)
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/^Upload a/)).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull();
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(posts).toBe(0);
+    });
+
+    it('a place upload: the file goes up, then 409 WORLD_IMAGE_KEY_CONFLICT re-reads the state and is said once', async () => {
+      let gets = 0;
+      let posts = 0;
+      server.use(
+        http.get(URL_IMAGE, () => {
+          gets += 1;
+          return HttpResponse.json(state(gets === 1 ? {} : { keyConflict: true }));
+        }),
+        http.post(URL_IMAGE, () => {
+          posts += 1;
+          return refused('WORLD_IMAGE_KEY_CONFLICT', 409);
+        })
+      );
+      renderPanel('place');
+      await choose();
+      expect(
+        await screen.findByText(/already holds the illustration of another entity/)
+      ).toBeInTheDocument();
+      expect(posts).toBe(1);
+      expect(screen.getAllByText(/already holds the illustration of another entity/)).toHaveLength(
+        1
+      );
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(screen.queryByText(/^Upload a/)).toBeNull();
+    });
+
+    it('a place: a too small file names only the place limit', async () => {
+      server.use(
+        http.get(URL_IMAGE, () => HttpResponse.json(state())),
+        http.post(URL_IMAGE, () => refused('WORLD_IMAGE_TOO_SMALL'))
+      );
+      renderPanel('place');
+      await choose();
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('too small: at least 1200×675 px');
+      expect(alert).not.toHaveTextContent('1200×1200');
+    });
+
+    it('keyConflict with a lost right: only the right hint, no conflict hint, no actions', async () => {
+      server.use(
+        http.get(URL_IMAGE, () =>
+          HttpResponse.json(state({ allowed: false, roleAllowed: false, keyConflict: true }))
+        )
+      );
+      renderPanel('place');
+      expect(await screen.findByText(/Only places and main or secondary/)).toBeInTheDocument();
+      expect(screen.queryByText(/already holds the illustration of another entity/)).toBeNull();
+      expect(screen.queryByText(/^Upload a/)).toBeNull();
+    });
+
+    it('an old backend without keyConflict: the upload field stays', async () => {
+      const old: Partial<WorldImageState> = state();
+      delete old.keyConflict;
+      server.use(http.get(URL_IMAGE, () => HttpResponse.json(old)));
+      renderPanel('place');
+      expect(await screen.findByText(/^Upload a file/)).toBeInTheDocument();
+      expect(screen.queryByText(/already holds the illustration of another entity/)).toBeNull();
+    });
+
+    it('409 WORLD_IMAGE_KEY_CONFLICT on Accept: re-read, the reason said once, Accept gone', async () => {
+      let gets = 0;
+      server.use(
+        http.get(URL_IMAGE, () => {
+          gets += 1;
+          return HttpResponse.json(
+            gets === 1 ? state({ pending: file('new') }) : state({ keyConflict: true })
+          );
+        }),
+        http.post(`${URL_IMAGE}/accept`, () => refused('WORLD_IMAGE_KEY_CONFLICT', 409))
+      );
+      renderPanel('place');
+      fireEvent.click(await screen.findByRole('button', { name: 'Accept' }));
+      expect(
+        await screen.findByText(/already holds the illustration of another entity/)
+      ).toBeInTheDocument();
+      expect(screen.getAllByText(/already holds the illustration of another entity/)).toHaveLength(
+        1
+      );
+      expect(screen.queryByRole('alert')).toBeNull();
       expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull();
     });
 
@@ -428,7 +547,7 @@ describe('WorldImagePanel (F08-11b, F08-11d)', () => {
       await waitFor(async () => expect(await fileInput()).toBeDisabled());
       expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled();
       release();
-      expect(await screen.findByRole('alert')).toHaveTextContent('at least 1200 px');
+      expect(await screen.findByRole('alert')).toHaveTextContent('at least 1200×1200 px');
       const input = await fileInput();
       expect(input).toBeEnabled();
       expect(input.value).toBe('');

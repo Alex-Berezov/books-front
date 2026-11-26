@@ -137,38 +137,55 @@ describe('WorldTab place card (F08-12b)', () => {
     }
   });
 
-  // R1 (`F08 | F08-12b`): картинки места в 12b нет - ТЗ по «Описанию» видно, панели загрузки нет.
+  // F08-12c-2 (решение `F08 | F08-12c-2`): у места картинка есть - ТЗ по «Описанию» видно всем,
+  // панель загрузки с пределом от 1200×675 - только администратору; не администратору ручка не зовётся.
   it.each([
     ['admin', true],
     ['not admin', false],
-  ])('%s: a place shows the brief and no illustration panel', async (_who, isAdmin) => {
-    const imageRequests: string[] = [];
-    server.use(
-      http.get('http://localhost:5000/api/admin/versions/v1/world/:key/image', ({ params }) => {
-        imageRequests.push(String(params.key));
-        return HttpResponse.json({});
-      })
-    );
-    rec.entityReply = (key) =>
-      HttpResponse.json({
-        ...detail(key),
-        entity:
-          key === PLACE_KEY
-            ? {
-                ...placeEntity(),
-                editor: {
-                  ...placeEntity().editor,
-                  imageBrief: 'Wide view of a low garret.',
-                  imageBriefStale: false,
-                },
-              }
-            : detail(key).entity,
-      });
-    const card = await openPlace(isAdmin);
-    const brief = await card.findByRole('region', { name: 'Illustration brief' });
-    expect(brief).toHaveTextContent('Wide view of a low garret.');
-    expect(card.queryByRole('region', { name: 'Illustration' })).toBeNull();
-    expect(card.queryByText(/^Upload a/)).toBeNull();
-    expect(imageRequests).toEqual([]);
-  });
+  ])(
+    '%s: a place shows the brief; the illustration panel only for an admin',
+    async (_who, isAdmin) => {
+      const imageRequests: string[] = [];
+      server.use(
+        http.get('http://localhost:5000/api/admin/versions/v1/world/:key/image', ({ params }) => {
+          imageRequests.push(String(params.key));
+          return HttpResponse.json({
+            key: String(params.key),
+            allowed: true,
+            roleAllowed: true,
+            keyConflict: false,
+            accepted: null,
+            acceptedAt: null,
+            pending: null,
+          });
+        })
+      );
+      rec.entityReply = (key) =>
+        HttpResponse.json({
+          ...detail(key),
+          entity:
+            key === PLACE_KEY
+              ? {
+                  ...placeEntity(),
+                  editor: {
+                    ...placeEntity().editor,
+                    imageBrief: 'Wide view of a low garret.',
+                    imageBriefStale: false,
+                  },
+                }
+              : detail(key).entity,
+        });
+      const card = await openPlace(isAdmin);
+      const brief = await card.findByRole('region', { name: 'Illustration brief' });
+      expect(brief).toHaveTextContent('Wide view of a low garret.');
+      if (isAdmin) {
+        expect(await card.findByText(/from 1200×675 px/)).toBeInTheDocument();
+        expect(imageRequests).toEqual([PLACE_KEY]);
+      } else {
+        expect(card.queryByRole('region', { name: 'Illustration' })).toBeNull();
+        expect(card.queryByText(/^Upload a/)).toBeNull();
+        expect(imageRequests).toEqual([]);
+      }
+    }
+  );
 });

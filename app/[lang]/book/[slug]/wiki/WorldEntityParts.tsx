@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { hasText } from '@/lib/book-analysis/format';
 import { fillTemplate, presenceChapters } from '@/lib/book-world/format';
+import { worldImageSize } from '@/lib/book-world/image';
+import { isOptimizableHost } from '@/lib/utils/image-host';
 import type { WorldEntitySectionsInput } from './worldEntityTypes';
 import type { PageSection } from '../analysis/PageSections';
 import styles from './wiki.module.scss';
@@ -16,6 +19,29 @@ import { ThemeStrip } from '../analysis/ThemeStrip';
  * `WorldEntityStory`), и место (`WorldPlaceSections`). Здесь только то, что не завязано на тип
  * сущности; разделы одного типа живут в файле этого типа.
  */
+
+/** Принятая иллюстрация сущности с подписью-ссылкой на редполитику (F08-11c): у героя и места (F08-12c-2). */
+export function WorldIllustrationFigure({
+  illustration,
+}: {
+  illustration: NonNullable<WorldEntitySectionsInput['illustration']>;
+}) {
+  return (
+    <figure className={styles.illustration}>
+      <Image
+        src={illustration.image.url}
+        alt={illustration.alt}
+        {...worldImageSize(illustration.image, illustration.entityType)}
+        sizes="100vw"
+        unoptimized={!isOptimizableHost(illustration.image.url)}
+        className={styles.illustrationImage}
+      />
+      <figcaption className={styles.illustrationCaption}>
+        <Link href={illustration.policyHref}>{illustration.caption}</Link>
+      </figcaption>
+    </figure>
+  );
+}
 
 /** Строка списка фактов: подпись и значение. */
 export interface WorldFact {

@@ -192,7 +192,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Illustrations of characters are prepared manually by the editorial team with third-party image generation services from the description of the character’s appearance in the text of the book, without the faces of real actors from screen adaptations and without imitating recognisable artists. Each illustration is checked and accepted by the editorial team before it is published, and each one carries a caption that links to this section. An illustration is a visual interpretation, not a portrait taken from the book; one illustration serves all language versions of the page.',
+              text: 'Illustrations of characters and places are prepared manually by the editorial team with third-party image generation services from the description of the character’s appearance or of the place in the text of the book, without the faces of real actors from screen adaptations and without imitating recognisable artists. Each illustration is checked and accepted by the editorial team before it is published, and each one carries a caption that links to this section. An illustration is a visual interpretation, not an image taken from the book; one illustration serves all language versions of the page.',
             },
           ],
         },

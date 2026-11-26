@@ -2,8 +2,9 @@
  * React Query hooks for the illustration of a world hero (F08-11b).
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { acceptWorldImage, getWorldImage, uploadWorldImage } from '@/api/endpoints/admin/bookWorld';
+import { errorCode } from '@/lib/admin/request-errors';
 import type { WorldImageState } from '@/types/api-schema';
 import { bookWorldQueryKeys } from './useBookWorld';
 
@@ -34,11 +35,27 @@ export const useAcceptWorldImage = () => {
       });
     },
     // 409 «картинка сменилась» / «нечего принимать» — показать то, что есть сейчас.
-    onError: (_err, { versionId, key }) => {
-      void queryClient.invalidateQueries({ queryKey: bookWorldQueryKeys.image(versionId, key) });
-    },
+    onError: (err, { versionId, key }) => rereadAfterRefusal(queryClient, err, versionId, key),
   });
 };
+
+/**
+ * Перечитывание после отказа ручки картинки: состояние картинки всегда; на 409
+ * `WORLD_IMAGE_ENTITY_CHANGED` (тип сущности сменился, F08-12c-2) — и карточку целиком: панель берёт
+ * тип и предел из неё, ключ картинки лежит под ключом карточки.
+ */
+function rereadAfterRefusal(
+  queryClient: QueryClient,
+  error: unknown,
+  versionId: string,
+  key: string
+): void {
+  const queryKey =
+    errorCode(error) === 'WORLD_IMAGE_ENTITY_CHANGED'
+      ? bookWorldQueryKeys.entity(versionId, key)
+      : bookWorldQueryKeys.image(versionId, key);
+  void queryClient.invalidateQueries({ queryKey });
+}
 
 /** Загрузка файла: в ожидающую ячейку, принятая не трогается; состояние берётся из ответа. */
 export const useUploadWorldImage = () => {
@@ -50,8 +67,6 @@ export const useUploadWorldImage = () => {
       queryClient.setQueryData(bookWorldQueryKeys.image(versionId, key), state);
     },
     // 409 «не тот герой» (роль сменили) — перечитать: панель уберёт поле загрузки и «Accept».
-    onError: (_err, { versionId, key }) => {
-      void queryClient.invalidateQueries({ queryKey: bookWorldQueryKeys.image(versionId, key) });
-    },
+    onError: (err, { versionId, key }) => rereadAfterRefusal(queryClient, err, versionId, key),
   });
 };

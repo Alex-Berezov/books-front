@@ -10,6 +10,7 @@ import {
   buildEntityScenesSection,
   buildEntityTextSections,
   WorldFacts,
+  WorldIllustrationFigure,
   type WorldFact,
 } from './WorldEntityParts';
 import analysisStyles from '../analysis/analysis.module.scss';
@@ -25,11 +26,11 @@ export function placeKindLabel(kind: WorldPlaceKind | null | undefined, strings:
 /**
  * Разделы страницы места (`product.md` §7, решение арбитра `F08 | F08-12c` Q3): «Коротко» с видом
  * и местоположением текстом, значение в книге, описание и цитаты, что здесь происходит (сцены с
- * главой), присутствие по главам, частые вопросы. Раздел без данных не собирается (§1 п.5). Точки
- * на карте и иллюстрации места нет (карта - `F08-12d`, картинка - `F08-12c-2`).
+ * главой), присутствие по главам, частые вопросы. Раздел без данных не собирается (§1 п.5). Принятая
+ * картинка места (`F08-12c-2`) - в «Коротко», как у героя в инфобоксе. Точки на карте нет (`F08-12d`).
  */
 export function buildPlaceSections(input: WorldEntitySectionsInput): PageSection[] {
-  const { entity, strings, textLinks, people } = input;
+  const { entity, strings, textLinks, people, illustration } = input;
   const sections: PageSection[] = [];
 
   const facts: WorldFact[] = [];
@@ -38,12 +39,13 @@ export function buildPlaceSections(input: WorldEntitySectionsInput): PageSection
   if (hasText(entity.location)) {
     facts.push({ label: strings.worldPlaceInfoLocation, value: entity.location });
   }
-  if (hasText(entity.short) || facts.length > 0) {
+  if (hasText(entity.short) || facts.length > 0 || illustration) {
     sections.push({
       id: WORLD_ANCHORS.short,
       title: strings.worldShortTitle,
       body: (
         <>
+          {illustration ? <WorldIllustrationFigure illustration={illustration} /> : null}
           {hasText(entity.short) ? (
             <div className={analysisStyles.mainIdea}>
               <Paragraphs text={entity.short} links={textLinks} />

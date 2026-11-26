@@ -34,6 +34,7 @@ const imageState = (allowed: boolean): WorldImageState => ({
   key: 'sonya',
   allowed,
   roleAllowed: allowed,
+  keyConflict: false,
   accepted: null,
   acceptedAt: null,
   pending: null,
@@ -105,10 +106,10 @@ describe('WorldTab illustration panel (F08-11b)', () => {
       } satisfies BookWorldEntitySaveResponse);
     const card = await openSonya(true);
     expect(await card.findByText('No illustration yet.')).toBeInTheDocument();
-    expect(card.getByText(/Only main and secondary/)).toBeInTheDocument();
+    expect(card.getByText(/Only places and main or secondary/)).toBeInTheDocument();
     fireEvent.change(await card.findByLabelText('Short'), { target: { value: 'New short' } });
     fireEvent.click(card.getByRole('button', { name: 'Save entity' }));
-    await waitFor(() => expect(card.queryByText(/Only main and secondary/)).toBeNull());
+    await waitFor(() => expect(card.queryByText(/Only places and main or secondary/)).toBeNull());
     await waitFor(() => expect(imageGets).toBe(2));
   });
 });

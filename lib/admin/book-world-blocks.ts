@@ -88,6 +88,31 @@ export const WORLD_IMAGE_FILE_LIMITS = {
   types: ['image/png', 'image/jpeg', 'image/webp'],
 } as const;
 
+/**
+ * Предел файла картинки места (F08-12c-2): кадр от 1200×675 px (пропорция не проверяется), файл и пиксели - как у
+ * портрета. Копия `WORLD_PLACE_IMAGE_LIMITS` из
+ * `books/src/modules/translation/world-image/world-image.constants.ts` — change both together.
+ */
+export const WORLD_PLACE_IMAGE_FILE_LIMITS = {
+  maxMb: WORLD_IMAGE_FILE_LIMITS.maxMb,
+  minWidth: 1200,
+  minHeight: 675,
+  maxMegapixels: WORLD_IMAGE_FILE_LIMITS.maxMegapixels,
+  types: WORLD_IMAGE_FILE_LIMITS.types,
+} as const;
+
+/** Предел файла по типу сущности в одной форме (F08-12c-2): подпись поля, проверка до отправки, отказ. */
+export const worldImageFileLimitsOf = (entityType?: string) =>
+  entityType === 'place'
+    ? WORLD_PLACE_IMAGE_FILE_LIMITS
+    : {
+        maxMb: WORLD_IMAGE_FILE_LIMITS.maxMb,
+        minWidth: WORLD_IMAGE_FILE_LIMITS.minSide,
+        minHeight: WORLD_IMAGE_FILE_LIMITS.minSide,
+        maxMegapixels: WORLD_IMAGE_FILE_LIMITS.maxMegapixels,
+        types: WORLD_IMAGE_FILE_LIMITS.types,
+      };
+
 const CHARACTER = ['character'] as const;
 const PAIR = ['pair'] as const;
 const PLACE = ['place'] as const;

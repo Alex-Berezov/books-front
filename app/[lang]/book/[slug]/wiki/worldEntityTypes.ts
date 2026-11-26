@@ -12,17 +12,19 @@ export interface WorldPerson {
   short?: string | null;
 }
 
-/** Иллюстрация героя на странице (F08-11c): файл, готовые `alt` и подпись, адрес редполитики. */
+/** Иллюстрация героя или места на странице (F08-11c, F08-12c-2): файл, готовые `alt` и подпись, адрес редполитики. */
 export interface WorldIllustration {
   image: BookWorldImage;
   alt: string;
   caption: string;
   policyHref: string;
+  /** Тип сущности: запасная пропорция картинки без размеров (место - 1200×675, F08-12c-2). */
+  entityType: string;
 }
 
 export interface WorldEntitySectionsInput {
   entity: BookWorldEntity;
-  /** Принятая иллюстрация героя; `null` - нет (у пары и не-героя тоже нет). */
+  /** Принятая иллюстрация героя или места (F08-12c-2); `null` - нет (у пары тоже нет). */
   illustration: WorldIllustration | null;
   /**
    * Текстовая версия книги на языке страницы (`versionIds.text`): под ней читалка пишет прогресс,

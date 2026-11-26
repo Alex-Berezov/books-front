@@ -199,7 +199,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Las ilustraciones de los personajes las prepara manualmente la redacción con servicios externos de generación de imágenes a partir de la descripción del aspecto del personaje en el texto del libro, sin rostros de actores reales de adaptaciones al cine y la televisión y sin imitar a artistas reconocibles. La redacción revisa y acepta cada ilustración antes de publicarla, y cada una lleva un pie que enlaza con esta sección. Una ilustración es una interpretación visual, no un retrato tomado del libro; una misma ilustración sirve a todas las versiones de idioma de la página.',
+              text: 'Las ilustraciones de los personajes y de los lugares las prepara manualmente la redacción con servicios externos de generación de imágenes a partir de la descripción del aspecto del personaje o del lugar en el texto del libro, sin rostros de actores reales de adaptaciones al cine y la televisión y sin imitar a artistas reconocibles. La redacción revisa y acepta cada ilustración antes de publicarla, y cada una lleva un pie que enlaza con esta sección. Una ilustración es una interpretación visual, no una imagen tomada del libro; una misma ilustración sirve a todas las versiones de idioma de la página.',
             },
           ],
         },

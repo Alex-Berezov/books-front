@@ -928,9 +928,24 @@ describe('страница героя: иллюстрация (F08-11c)', () => 
     expect(about.querySelector('dl')).toBeNull();
   });
 
-  it('не герой: картинки из ответа нет ни на странице, ни в Article.image', async () => {
+  // F08-12c-2: у места картинка есть - на странице и в Article.image, как у героя.
+  it('место: картинка из ответа на странице и в Article.image', async () => {
     mocks.getPublicBookWorldEntity.mockResolvedValue(
       entityResponse({ ...ENTITY_FULL, type: 'place' }, { image: IMAGE })
+    );
+    const { container } = await renderEntity();
+    expect(container.querySelector('figure img')).not.toBeNull();
+    const data = JSON.parse(
+      container.querySelector('script[type="application/ld+json"]')?.textContent ?? '{}'
+    );
+    expect(data.image).toBe(IMAGE.url);
+  });
+
+  // F08-12c-2: картинка - только у героя и места (`worldImageTypeAllowed`); предмет - нет, даже если
+  // ответ её несёт.
+  it('предмет: картинки из ответа нет ни на странице, ни в Article.image', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse({ ...ENTITY_FULL, type: 'object' }, { image: IMAGE })
     );
     const { container } = await renderEntity();
     expect(container.querySelector('figure')).toBeNull();
@@ -1480,7 +1495,7 @@ describe('страница места и места на /wiki (F08-12c)', () =>
     spoiler.progress = undefined;
   });
 
-  it('h1 по формуле места и разделы §7 в порядке Q3; разделов героя и картинки нет', async () => {
+  it('h1 по формуле места и разделы §7 в порядке Q3; разделов героя нет, картинка - в «Коротко»', async () => {
     mocks.getPublicBookWorldEntity.mockResolvedValue(
       entityResponse(PLACE, {
         image: { url: 'https://cdn.bibliaris.com/x.webp', width: 1200, height: 675 },
@@ -1505,8 +1520,37 @@ describe('страница места и места на /wiki (F08-12c)', () =>
     for (const id of ['character', 'path', 'about', 'relations', 'next']) {
       expect(document.getElementById(id)).toBeNull();
     }
-    expect(document.querySelector('figure')).toBeNull();
+    // F08-12c-2: принятая картинка места - в «Коротко», с alt по языку и подписью-ссылкой на редполитику.
+    const figure = document.getElementById('in-brief')!.querySelector('figure') as HTMLElement;
+    expect(figure).not.toBeNull();
+    expect(within(figure).getByRole('img').getAttribute('alt')).toBe(
+      'Old Harbor, illustration for the book “World Book”'
+    );
+    expect(
+      within(figure).getByRole('link', { name: 'Editorial illustration, created with AI' })
+    ).toHaveAttribute('href', '/en/editorial-policy#world');
+    expect(document.querySelectorAll('figure')).toHaveLength(1);
     expect(screen.queryByText('Character analysis', { exact: false })).toBeNull();
+  });
+
+  it('место только с картинкой (без «Коротко», вида и местоположения): раздел есть ради картинки', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse(
+        { ...PLACE, short: null, kind: null, location: null },
+        { image: { url: 'https://cdn.bibliaris.com/x.webp', width: 1200, height: 675 } }
+      )
+    );
+    await renderEntity('harbor');
+    const brief = document.getElementById('in-brief') as HTMLElement;
+    expect(brief).not.toBeNull();
+    expect(brief.querySelector('figure img')).not.toBeNull();
+    expect(brief.querySelector('dl')).toBeNull();
+  });
+
+  it('место без картинки: фигуры нет', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(PLACE));
+    await renderEntity('harbor');
+    expect(document.querySelector('figure')).toBeNull();
   });
 
   it('мета места: title по формуле Q5, description из «Коротко»; ru - «в книге»', async () => {

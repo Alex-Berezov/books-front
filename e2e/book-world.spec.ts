@@ -403,6 +403,7 @@ test.describe('Book world: phone width (F08-3b, §1 п.8)', () => {
     ['general page', wikiUrl('en', SLUG.book)],
     ['hero page', entityUrl('en', SLUG.book, 'anna-lark')],
     ['pair page', entityUrl('en', SLUG.book, PAIR)],
+    ['place page', entityUrl('en', SLUG.book, 'salt-quay')],
   ] as const) {
     test(`${name}: no horizontal scroll`, async ({ page }) => {
       await page.goto(url);
@@ -417,4 +418,25 @@ test.describe('Book world: phone width (F08-3b, §1 п.8)', () => {
       expect(overflow).toBeLessThanOrEqual(0);
     });
   }
+});
+
+test.describe('Book world: places at phone width (F08-12c-2, decision F08 | F08-12c R2)', () => {
+  test.use({ viewport: { width: 375, height: 800 } });
+
+  test('place page: h1, location and scenes are visible', async ({ page }) => {
+    await page.goto(entityUrl('en', SLUG.book, 'salt-quay'));
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Salt Quay');
+    const brief = page.locator('#in-brief');
+    await expect(
+      brief.getByText('Below the bridge, on the near bank', { exact: true })
+    ).toBeVisible();
+    await expect(page.getByText('The empty quay', { exact: true })).toHaveCount(1);
+  });
+
+  test('general page: the place is listed with a link to its page', async ({ page }) => {
+    await page.goto(wikiUrl('en', SLUG.book));
+    const link = page.getByRole('link', { name: 'Salt Quay', exact: true });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute('href', entityUrl('en', SLUG.book, 'salt-quay'));
+  });
 });

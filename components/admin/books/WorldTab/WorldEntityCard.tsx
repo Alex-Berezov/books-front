@@ -5,6 +5,7 @@ import { MessageLines } from '@/components/admin/common/MessageLines';
 import { Modal } from '@/components/admin/common/Modal';
 import { Spinner } from '@/components/admin/shared';
 import { formatDataIssue } from '@/lib/admin/data-issue';
+import { worldImageTypeAllowed } from '@/lib/book-world/image';
 import { ImportWorldModal } from './ImportWorldModal';
 import { useWorldEntityCard, type WorldEntityCardOptions } from './useWorldEntityCard';
 import { unplacedIssues, WorldEntityFields } from './WorldEntityFields';
@@ -102,8 +103,13 @@ export const WorldEntityCard: FC<WorldEntityCardProps> = (props) => {
 
       {entity && <WorldImageBrief entity={entity} />}
 
-      {isAdmin && entityKey !== null && entity && entityType === 'character' && (
-        <WorldImagePanel versionId={props.versionId} entityKey={entityKey} name={entity.name} />
+      {isAdmin && entityKey !== null && entity && worldImageTypeAllowed(entityType) && (
+        <WorldImagePanel
+          versionId={props.versionId}
+          entityKey={entityKey}
+          name={entity.name}
+          entityType={entityType}
+        />
       )}
 
       {card.issues.length > 0 && (

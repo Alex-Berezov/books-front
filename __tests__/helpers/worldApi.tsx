@@ -266,6 +266,7 @@ export const installWorldApi = (): WorldApi => {
         key: String(params.key),
         allowed: false,
         roleAllowed: false,
+        keyConflict: false,
         accepted: null,
         acceptedAt: null,
         pending: null,
