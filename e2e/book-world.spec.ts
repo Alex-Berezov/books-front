@@ -404,6 +404,7 @@ test.describe('Book world: phone width (F08-3b, §1 п.8)', () => {
     ['hero page', entityUrl('en', SLUG.book, 'anna-lark')],
     ['pair page', entityUrl('en', SLUG.book, PAIR)],
     ['place page', entityUrl('en', SLUG.book, 'salt-quay')],
+    ['real place page with a map', entityUrl('en', SLUG.book, 'london')],
   ] as const) {
     test(`${name}: no horizontal scroll`, async ({ page }) => {
       await page.goto(url);
@@ -438,5 +439,70 @@ test.describe('Book world: places at phone width (F08-12c-2, decision F08 | F08-
     const link = page.getByRole('link', { name: 'Salt Quay', exact: true });
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('href', entityUrl('en', SLUG.book, 'salt-quay'));
+  });
+});
+
+// Литературная карта (F08-12d, решение `F08 | F08-12d` Р5): реальное место сида `london` с точкой
+// Wikidata; тайлы бэкенд контейнера CI берёт подставным транспортом (`WORLD_MAP_TILE_STUB=png`),
+// в живой OSM прогон не ходит. Карты нет - тест красный: блок обязан быть в серверном HTML.
+test.describe('Book world: literary map at phone width (F08-12d)', () => {
+  test.use({ viewport: { width: 375, height: 800 } });
+
+  const noHorizontalScroll = (page: import('@playwright/test').Page) =>
+    page.evaluate(() =>
+      Math.max(
+        document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        document.body.scrollWidth - document.documentElement.clientWidth
+      )
+    );
+
+  test('general page: the map is in the places section, fits the screen and credits OSM', async ({
+    page,
+  }) => {
+    await page.goto(wikiUrl('en', SLUG.book));
+    const places = page.locator('#places');
+    await expect(places.getByRole('heading', { level: 3, name: 'Literary map' })).toBeVisible();
+    const map = places.getByRole('img', { name: /^Literary map: places of the book/ });
+    await expect(map).toBeVisible();
+    const box = await map.boundingBox();
+    expect(box?.width ?? Infinity).toBeLessThanOrEqual(375);
+    expect(box?.height ?? 0).toBeGreaterThan(0);
+    // Мозаика - не меньше 2×2 тайлов (сетка min(4, 2^z) × min(3, 2^z) при z >= 1), а не один тайл.
+    await expect(map.locator('img').nth(3)).toBeVisible();
+    await expect(map.locator('svg [data-point="london"]')).toHaveCount(1);
+    await expect(map.locator('svg [data-point="salt-quay"]')).toHaveCount(0);
+    for (const src of await map
+      .locator('img')
+      .evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src') ?? ''))) {
+      expect(src).not.toContain('openstreetmap.org');
+    }
+    await expect(places.getByRole('link', { name: '© OpenStreetMap contributors' })).toBeVisible();
+    const legend = places.locator('ol').first();
+    await expect(legend.getByRole('link', { name: 'London', exact: true })).toHaveAttribute(
+      'href',
+      entityUrl('en', SLUG.book, 'london')
+    );
+    await expect(legend.getByRole('link', { name: 'Wikidata' })).toHaveAttribute(
+      'href',
+      'https://www.wikidata.org/wiki/Q84'
+    );
+    expect(await noHorizontalScroll(page)).toBeLessThanOrEqual(0);
+  });
+
+  test('real place page: the small map follows In brief, fictional place has none', async ({
+    page,
+  }) => {
+    await page.goto(entityUrl('en', SLUG.book, 'london'));
+    const block = page.locator('#map');
+    await expect(block.getByRole('img', { name: 'London on the map' })).toBeVisible();
+    await expect(block.getByRole('img', { name: 'London on the map' }).locator('img')).toHaveCount(
+      4
+    );
+    await expect(block.getByRole('link', { name: '© OpenStreetMap contributors' })).toBeVisible();
+    expect(await noHorizontalScroll(page)).toBeLessThanOrEqual(0);
+
+    await page.goto(entityUrl('en', SLUG.book, 'salt-quay'));
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Salt Quay');
+    await expect(page.locator('#map')).toHaveCount(0);
   });
 });

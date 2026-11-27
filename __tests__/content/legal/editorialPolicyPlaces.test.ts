@@ -7,8 +7,8 @@ import type { LegalBlock } from '@/content/legal/types';
 /**
  * F08-12c (`product.md` §12, решение арбитра `F08 | F08-12c` Q5): с выходом страниц мест раздел
  * `world` редполитики называет места в первых двух тезисах - кто готовит страницы и по каким главам
- * пишет модель - и в тезисе о главах, которые считает программа. Wikidata и иллюстрации мест здесь
- * не упоминаются: точка видна с `F08-12d`, картинка места - с `F08-12c-2`.
+ * пишет модель - и в тезисе о главах, которые считает программа. Абзац о точке на карте (Wikidata
+ * и OpenStreetMap, `F08-12d`) держит `editorialPolicyMap.test.ts`.
  */
 const paragraphText = (block: LegalBlock): string =>
   block.kind === 'paragraph' ? block.content.map((part) => part.text).join('') : '';
@@ -37,7 +37,6 @@ describe('editorial policy: places in the world section', () => {
       expect(paragraphs[0]).toMatch(preparedBy);
       expect(paragraphs[1]).toMatch(written);
       expect(paragraphs[2]).toMatch(quotes);
-      expect(paragraphs.join(' ')).not.toMatch(/Wikidata/);
     }
   );
 });

@@ -20,7 +20,12 @@ import type { SupportedLang } from '@/lib/i18n/lang';
 import type { VersionPreview } from '@/types/api-schema';
 import type { Metadata } from 'next';
 import { getCachedBookOverview, getCachedBookSeo } from '../bookData';
-import { analysisOf, getCachedBookWorld, getCachedBookWorldEntity } from './wikiData';
+import {
+  analysisOf,
+  getCachedBookWorld,
+  getCachedBookWorldEntity,
+  getCachedBookWorldIndex,
+} from './wikiData';
 import { buildWorldPeople } from './worldPeople';
 
 const NOINDEX = { index: false, follow: true } as const;
@@ -82,7 +87,7 @@ export async function buildWorldIndexMetadata(
       getCachedBookSeo(supportedLang, slug),
     ]);
     const version = book ? pickWorldPageVersion(book, supportedLang) : null;
-    const world = version ? await getCachedBookWorld(version.id) : null;
+    const world = version ? await getCachedBookWorldIndex(version.id) : null;
     if (!book || !version || !world || world.entities.length === 0) {
       return { robots: NOINDEX };
     }

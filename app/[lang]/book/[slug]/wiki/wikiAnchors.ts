@@ -29,4 +29,5 @@ export const WORLD_ANCHORS = {
   pairConclusion: 'conclusion',
   placeSignificance: 'significance',
   placeDescription: 'description',
+  placeMap: 'map',
 } as const;

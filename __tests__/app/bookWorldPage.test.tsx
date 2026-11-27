@@ -1698,4 +1698,327 @@ describe('страница места и места на /wiki (F08-12c)', () =>
     await expect(renderIndex()).rejects.toThrow(/places/);
     expect(mocks.notFound).not.toHaveBeenCalled();
   });
+
+  describe('литературная карта (F08-12d, решения `F08 | F08-12d`)', () => {
+    const tiles = (cols: number, rows: number) =>
+      Array.from({ length: cols * rows }, (_, i) => ({
+        col: i % cols,
+        row: Math.floor(i / cols),
+        url: `https://cdn.bibliaris.com/world-map/osm/9/${i}/1/abcdef0123456789.png`,
+      }));
+    const BOOK_MAP = {
+      zoom: 9,
+      cols: 4,
+      rows: 3,
+      tiles: tiles(4, 3),
+      points: [
+        { key: 'harbor', left: 40, top: 50 },
+        { key: 'mill', left: 60, top: 25 },
+      ],
+    };
+    const PLACE_MAP = {
+      zoom: 12,
+      cols: 2,
+      rows: 2,
+      tiles: tiles(2, 2),
+      points: [{ key: 'harbor', left: 50, top: 50 }],
+    };
+    const REAL_POINT = { lat: 59.9, lng: 30.3, sourceUrl: 'https://www.wikidata.org/wiki/Q656' };
+    const realCard = (over: Record<string, unknown> = {}) =>
+      card({ kind: 'real', point: REAL_POINT, ...over });
+
+    it('/wiki заказывает карту (?map=1) и в теле, и в мете; страница героя - список без карты', async () => {
+      await renderIndex();
+      await indexMeta();
+      expect(mocks.getPublicBookWorld.mock.calls.length).toBeGreaterThan(0);
+      for (const call of mocks.getPublicBookWorld.mock.calls) {
+        expect(call).toEqual(['v-en', { map: true }]);
+      }
+      cleanup();
+      mocks.getPublicBookWorld.mockClear();
+      await renderEntity('anna');
+      expect(mocks.getPublicBookWorld.mock.calls.length).toBeGreaterThan(0);
+      for (const call of mocks.getPublicBookWorld.mock.calls) expect(call).toEqual(['v-en']);
+    });
+
+    it('/wiki: карта внутри «Места» перед списком - мозаика из хранилища, номера, подпись OSM, легенда', async () => {
+      mocks.getPublicBookWorld.mockResolvedValue({
+        ...LIST,
+        places: [
+          realCard(),
+          realCard({
+            key: 'mill',
+            name: 'The Mill',
+            hasPage: false,
+            point: { ...REAL_POINT, sourceUrl: 'https://www.wikidata.org/wiki/Q2' },
+          }),
+        ],
+        map: BOOK_MAP,
+      });
+      await renderIndex();
+      const section = document.getElementById('places')!;
+      // Нового раздела и пункта оглавления нет (П1): карта - внутри «Места».
+      expect(h2Texts().filter((t) => t === 'Literary map')).toEqual([]);
+      const scope = within(section);
+      expect(scope.getByRole('heading', { level: 3, name: 'Literary map' })).toBeInTheDocument();
+      const mosaic = scope.getByRole('img', {
+        name: 'Literary map: places of the book “World Book”',
+      });
+      const imgs = mosaic.querySelectorAll('img');
+      expect(imgs).toHaveLength(12);
+      expect([...imgs].map((i) => i.getAttribute('src'))).toEqual(BOOK_MAP.tiles.map((t) => t.url));
+      for (const img of imgs) expect(img.getAttribute('alt')).toBe('');
+      expect(section.innerHTML).not.toContain('tile.openstreetmap.org');
+      // Точки - слой SVG, номер у каждой; JS нет - только разметка.
+      const points = mosaic.querySelectorAll('svg [data-point]');
+      expect([...points].map((p) => p.getAttribute('data-point'))).toEqual(['harbor', 'mill']);
+      expect([...points].map((p) => p.textContent)).toEqual(['1', '2']);
+      expect(mosaic.querySelector('svg')!.getAttribute('viewBox')).toBe('0 0 1024 768');
+      expect(mosaic.querySelector('circle')!.getAttribute('cx')).toBe(String(0.4 * 1024));
+      // Подпись OSM - ссылкой, видна под картой.
+      expect(scope.getByRole('link', { name: '© OpenStreetMap contributors' })).toHaveAttribute(
+        'href',
+        'https://www.openstreetmap.org/copyright'
+      );
+      // Легенда: номер - пункт списка, имя ссылкой только со страницей, источник - Wikidata.
+      const legend = section.querySelector('ol')!;
+      const items = within(legend)
+        .getAllByRole('listitem')
+        .filter((li) => li.parentElement === legend);
+      expect(items).toHaveLength(2);
+      expect(within(items[0]).getByRole('link', { name: 'Old Harbor' })).toHaveAttribute(
+        'href',
+        '/en/book/world-book/wiki/harbor'
+      );
+      expect(within(items[1]).queryByRole('link', { name: 'The Mill' })).toBeNull();
+      expect(items[1].textContent).toContain('The Mill');
+      expect(within(items[0]).getByRole('link', { name: 'Wikidata' })).toHaveAttribute(
+        'href',
+        'https://www.wikidata.org/wiki/Q656'
+      );
+      expect(within(items[1]).getByRole('link', { name: 'Wikidata' })).toHaveAttribute(
+        'href',
+        'https://www.wikidata.org/wiki/Q2'
+      );
+      expect(items[0].textContent).toContain('Coordinates');
+      expect(within(items[0]).getAllByRole('link', { name: 'Chapter 3' })[0]).toHaveAttribute(
+        'href',
+        '/en/book/world-book/read?chapter=3'
+      );
+      // Карта - перед списком карточек.
+      const cards = section.querySelector('ul')!;
+      expect(mosaic.compareDocumentPosition(cards) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('/wiki: сцены легенды - под тем же спойлер-островом, что в карточке', async () => {
+      mocks.getPublicBookWorld.mockResolvedValue({ ...LIST, places: [realCard()], map: BOOK_MAP });
+      spoiler.session = { data: { user: { id: 'u1' } }, status: 'authenticated' };
+      spoiler.progress = { chapterNumber: 1 };
+      await renderIndex();
+      const legend = within(document.getElementById('places')!.querySelector('ol')!);
+      expect(legend.getByText('The farewell', { exact: false }).closest('[hidden]')).not.toBeNull();
+      expect(legend.getByText('The arrival', { exact: false }).closest('[hidden]')).toBeNull();
+    });
+
+    it.each([
+      ['map: null', { map: null }],
+      ['без поля map (бэкенд до F08-12d)', {}],
+      [
+        'ответ не той формы (тайлов меньше cols × rows)',
+        { map: { ...BOOK_MAP, tiles: tiles(2, 2) } },
+      ],
+    ])('/wiki: %s - блока карты нет, список мест на месте', async (_, over) => {
+      mocks.getPublicBookWorld.mockResolvedValue({ ...LIST, places: [realCard()], ...over });
+      await renderIndex();
+      const section = document.getElementById('places')!;
+      expect(section.querySelector('figure')).toBeNull();
+      expect(section.textContent).not.toContain('Literary map');
+      expect(section.textContent).not.toContain('OpenStreetMap');
+      expect(within(section).getByRole('link', { name: 'Old Harbor' })).toBeInTheDocument();
+    });
+
+    it.each([
+      ['колонок 0', { cols: 0, tiles: [] }],
+      ['колонок 5 (класса сетки нет)', { cols: 5, rows: 1, tiles: tiles(5, 1) }],
+      ['строк 0', { rows: 0, tiles: [] }],
+      ['tiles не массив', { tiles: null }],
+      ['points не массив', { points: null }],
+    ])('/wiki: карта не той формы (%s) - блока карты нет', async (_, over) => {
+      mocks.getPublicBookWorld.mockResolvedValue({
+        ...LIST,
+        places: [realCard()],
+        map: { ...BOOK_MAP, ...over },
+      });
+      await renderIndex();
+      const section = document.getElementById('places')!;
+      expect(section.querySelector('figure')).toBeNull();
+      expect(section.textContent).not.toContain('Literary map');
+    });
+
+    it('/wiki: точка без места в списке не рисуется ни на карте, ни в легенде; номера совпадают', async () => {
+      mocks.getPublicBookWorld.mockResolvedValue({
+        ...LIST,
+        places: [realCard()],
+        map: {
+          ...BOOK_MAP,
+          points: [
+            { key: 'ghost', left: 10, top: 10 },
+            { key: 'harbor', left: 40, top: 50 },
+          ],
+        },
+      });
+      await renderIndex();
+      const section = document.getElementById('places')!;
+      const points = section.querySelectorAll('svg [data-point]');
+      expect([...points].map((p) => p.getAttribute('data-point'))).toEqual(['harbor']);
+      expect([...points].map((p) => p.textContent)).toEqual(['1']);
+      const legend = section.querySelector('ol')!;
+      expect([...legend.children].map((li) => li.querySelector('a')?.textContent)).toEqual([
+        'Old Harbor',
+      ]);
+    });
+
+    it('/wiki: у всех точек нет мест в списке - блока карты нет', async () => {
+      mocks.getPublicBookWorld.mockResolvedValue({
+        ...LIST,
+        places: [realCard()],
+        map: { ...BOOK_MAP, points: [{ key: 'ghost', left: 10, top: 10 }] },
+      });
+      await renderIndex();
+      expect(document.getElementById('places')!.querySelector('figure')).toBeNull();
+    });
+
+    it('/wiki: точка у края мозаики не выходит за край (центр не ближе радиуса)', async () => {
+      mocks.getPublicBookWorld.mockResolvedValue({
+        ...LIST,
+        places: [realCard()],
+        map: { ...BOOK_MAP, points: [{ key: 'harbor', left: 0, top: 100 }] },
+      });
+      await renderIndex();
+      const circle = document.getElementById('places')!.querySelector('circle')!;
+      const r = Number(circle.getAttribute('r'));
+      expect(r).toBeGreaterThan(0);
+      expect(Number(circle.getAttribute('cx'))).toBe(r);
+      expect(Number(circle.getAttribute('cy'))).toBe(768 - r);
+    });
+
+    it('ru: заголовок и доступное имя карты по языку, подпись OSM без перевода', async () => {
+      mocks.getBookOverview.mockResolvedValue(
+        makeBook({
+          versions: [version('en', 'world-book', 3), version('ru', 'mir-kniga', 3)],
+          slug: 'mir-kniga',
+        })
+      );
+      mocks.getPublicBookWorld.mockResolvedValue({
+        ...LIST,
+        language: 'ru',
+        places: [realCard()],
+        map: BOOK_MAP,
+      });
+      await renderIndex('ru', 'mir-kniga');
+      const section = within(document.getElementById('places')!);
+      expect(
+        section.getByRole('heading', { level: 3, name: 'Литературная карта' })
+      ).toBeInTheDocument();
+      expect(
+        section.getByRole('img', { name: 'Литературная карта: места книги «Мир-книга»' })
+      ).toBeInTheDocument();
+      expect(
+        section.getByRole('link', { name: '© OpenStreetMap contributors' })
+      ).toBeInTheDocument();
+      expect(section.getByText('Координаты', { exact: false })).toBeInTheDocument();
+    });
+
+    it('страница реального места: малая карта отдельным блоком сразу после «Коротко», без номера', async () => {
+      mocks.getPublicBookWorldEntity.mockResolvedValue(
+        entityResponse({ ...PLACE, kind: 'real', point: REAL_POINT }, { map: PLACE_MAP })
+      );
+      await renderEntity('harbor');
+      expect(h2Texts().slice(0, 2)).toEqual(['In brief', 'Location']);
+      const block = document.getElementById('map')!;
+      expect(
+        document.getElementById('in-brief')!.compareDocumentPosition(block) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+      const scope = within(block);
+      const mosaic = scope.getByRole('img', { name: 'Old Harbor on the map' });
+      expect(mosaic.querySelectorAll('img')).toHaveLength(4);
+      expect(mosaic.querySelector('svg')!.getAttribute('viewBox')).toBe('0 0 512 512');
+      expect(mosaic.querySelector('text')).toBeNull();
+      expect(scope.getByRole('link', { name: 'Wikidata' })).toHaveAttribute(
+        'href',
+        'https://www.wikidata.org/wiki/Q656'
+      );
+      expect(scope.getByRole('link', { name: '© OpenStreetMap contributors' })).toHaveAttribute(
+        'href',
+        'https://www.openstreetmap.org/copyright'
+      );
+      // Строка «Location» текстом в «Коротко» остаётся.
+      expect(
+        within(document.getElementById('in-brief')!).getByText('At the mouth of the river')
+      ).toBeInTheDocument();
+    });
+
+    it.each([
+      ['карты нет (null)', { kind: 'real', point: REAL_POINT }, { map: null }],
+      ['без поля map (бэкенд до F08-12d)', { kind: 'real', point: REAL_POINT }, {}],
+      ['точки нет', { kind: 'real', point: null }, { map: PLACE_MAP }],
+    ])('страница места: %s - блока карты нет', async (_, entity, over) => {
+      mocks.getPublicBookWorldEntity.mockResolvedValue(
+        entityResponse({ ...PLACE, ...entity }, over)
+      );
+      await renderEntity('harbor');
+      expect(document.getElementById('map')).toBeNull();
+      expect(document.body.textContent).not.toContain('OpenStreetMap');
+    });
+
+    it.each([
+      ['тайлов меньше cols × rows', { tiles: tiles(1, 1) }],
+      ['колонок 5', { cols: 5, rows: 1, tiles: tiles(5, 1) }],
+    ])('страница места: карта не той формы (%s) - блока нет', async (_, over) => {
+      mocks.getPublicBookWorldEntity.mockResolvedValue(
+        entityResponse(
+          { ...PLACE, kind: 'real', point: REAL_POINT },
+          { map: { ...PLACE_MAP, ...over } }
+        )
+      );
+      await renderEntity('harbor');
+      expect(document.getElementById('map')).toBeNull();
+    });
+
+    it('размер точки растёт с сеткой: на телефоне номер читается при 4 и при 2 колонках', async () => {
+      const sizes = async (map: typeof BOOK_MAP) => {
+        cleanup();
+        mocks.getPublicBookWorld.mockResolvedValue({ ...LIST, places: [realCard()], map });
+        await renderIndex();
+        const section = document.getElementById('places')!;
+        const circle = section.querySelector('circle')!;
+        return {
+          r: Number(circle.getAttribute('r')),
+          stroke: Number(circle.getAttribute('stroke-width')),
+          font: Number(section.querySelector('svg text')!.getAttribute('font-size')),
+        };
+      };
+      const wide = await sizes({ ...BOOK_MAP, points: [{ key: 'harbor', left: 50, top: 50 }] });
+      const small = await sizes({
+        ...BOOK_MAP,
+        cols: 2,
+        rows: 2,
+        tiles: tiles(2, 2),
+        points: [{ key: 'harbor', left: 50, top: 50 }],
+      });
+      // Доля ширины мозаики одна и та же: на экране 375 px номер около 12 px при любой сетке.
+      expect(wide).toEqual({ r: 32, stroke: 6, font: 36 });
+      expect(small).toEqual({ r: 16, stroke: 3, font: 18 });
+    });
+
+    it('страница героя: карта в ответе (так бэкенд не отдаёт) не рисуется', async () => {
+      mocks.getPublicBookWorldEntity.mockResolvedValue(
+        entityResponse({ ...ENTITY_FULL, point: REAL_POINT }, { map: PLACE_MAP })
+      );
+      await renderEntity('anna');
+      expect(document.getElementById('map')).toBeNull();
+      expect(document.body.textContent).not.toContain('OpenStreetMap');
+    });
+  });
 });

@@ -209,6 +209,32 @@ export interface BookWorldPlaceCard {
   scenes: BookWorldPlaceScene[];
 }
 
+/** Тайл мозаики литературной карты (F08-12d): место в сетке и адрес копии в хранилище сайта. */
+export interface BookWorldMapTile {
+  col: number;
+  row: number;
+  url: string;
+}
+
+/** Точка на мозаике: ключ места и положение в процентах ширины и высоты мозаики (0-100). */
+export interface BookWorldMapPoint {
+  key: string;
+  left: number;
+  top: number;
+}
+
+/**
+ * Литературная карта (F08-12d): мозаика тайлов OpenStreetMap одного масштаба (`cols × rows`,
+ * по строкам) из хранилища сайта и точки реальных мест. Подпись OSM ставит страница.
+ */
+export interface BookWorldMap {
+  zoom: number;
+  cols: number;
+  rows: number;
+  tiles: BookWorldMapTile[];
+  points: BookWorldMapPoint[];
+}
+
 /** Форма имени и главы, где она не считается — тёзки внутри одной формы (F08-8a). */
 export interface BookWorldChapterExclusion {
   form: string;
@@ -300,6 +326,12 @@ export interface BookWorldListResponse {
    * с F08-12c); выключенный — пусто. Один и тот же набор редактору и читателю.
    */
   places: BookWorldPlaceCard[];
+  /**
+   * Литературная карта (F08-12d): только читателю с `?map=1` (страница `/wiki`); `null` - без
+   * параметра, редактору, в ответе записи, без точек или если тайл не взялся. Необязательное:
+   * бэкенд до F08-12d поля не отдаёт.
+   */
+  map?: BookWorldMap | null;
 }
 
 export interface BookWorldEntity
@@ -326,6 +358,11 @@ export interface BookWorldEntityResponse {
    * нет или ещё не принята. Ожидающая принятия картинка сюда не попадает никогда, редактору тоже.
    */
   image: BookWorldImage | null;
+  /**
+   * Малая карта реального места с точкой (F08-12d, 2×2 тайла): только читателю; иначе `null`.
+   * Необязательное: бэкенд до F08-12d поля не отдаёт.
+   */
+  map?: BookWorldMap | null;
 }
 
 /** Иллюстрация сущности: абсолютный адрес исходника и размеры из заголовка файла (F08-11a). */

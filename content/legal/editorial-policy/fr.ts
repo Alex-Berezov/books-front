@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'D’où viennent les textes de Bibliaris, qui prépare les résumés et écrit les descriptions, comment sont rédigées les analyses de livres, comment les textes des livres sont préparés et comment les erreurs sont corrigées.',
   title: 'Politique éditoriale',
-  updatedAt: '2026-11-26',
+  updatedAt: '2026-11-27',
   toc: false,
   sections: [
     {
@@ -195,6 +195,15 @@ export const document: LegalDocument = {
             {
               kind: 'text',
               text: 'Les illustrations des personnages et des lieux sont préparées manuellement par la rédaction avec des services tiers de génération d’images à partir de la description de l’apparence du personnage ou du lieu dans le texte du livre, sans les visages d’acteurs réels d’adaptations à l’écran et sans imiter d’artistes reconnaissables. La rédaction vérifie et accepte chaque illustration avant de la publier, et chaque illustration porte une légende qui renvoie à cette section. Une illustration est une interprétation visuelle, non une image tirée du livre ; une même illustration sert toutes les versions linguistiques de la page.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'Le point d’un lieu réel sur la carte provient uniquement de Wikidata : le modèle ou la rédaction indique le numéro de l’élément Wikidata, et le site en lit lui-même les coordonnées. Le point n’est placé que si l’élément se rapporte à la Terre, si les coordonnées sont dans les limites valides et si le nom de l’élément dans la langue de la page (ou son nom commun à toutes les langues) correspond au nom du lieu ou à l’une de ses formes ; sinon, le lieu n’a pas de point, et un lieu fictif n’en a jamais. Le point est revérifié lorsque le numéro Wikidata ou les noms du lieu changent (et, si Wikidata n’a pas répondu, au prochain enregistrement du lieu) ; il ne se met pas à jour de lui-même. Le fond de carte provient d’OpenStreetMap (© OpenStreetMap contributors) ; le site conserve ses propres copies des tuiles de la carte, de sorte qu’en ouvrant la carte le lecteur ne se connecte pas à OpenStreetMap.',
             },
           ],
         },

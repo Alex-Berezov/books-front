@@ -14,6 +14,14 @@ import { assertOverviewCarriesCount } from '../overviewShape';
 /** Один запрос списка мира на рендер: его читают и `generateMetadata`, и сама страница. */
 export const getCachedBookWorld = cache((versionId: string) => getPublicBookWorld(versionId));
 
+/**
+ * Список мира с литературной картой (F08-12d) - только для общей страницы `/wiki`: её тело
+ * и `generateMetadata` делят один запрос `?map=1`, остальные страницы карту не заказывают.
+ */
+export const getCachedBookWorldIndex = cache((versionId: string) =>
+  getPublicBookWorld(versionId, { map: true })
+);
+
 export const getCachedBookWorldEntity = cache((versionId: string, key: string) =>
   getPublicBookWorldEntity(versionId, key)
 );
@@ -76,7 +84,7 @@ export async function loadWorldOrNotFound(book: BookOverview, lang: string, slug
 
   // Список и анализ независимы - одним заходом.
   const [world, analysis] = await Promise.all([
-    getCachedBookWorld(version.id).catch((error: unknown) =>
+    getCachedBookWorldIndex(version.id).catch((error: unknown) =>
       isClosed(error) ? notFound() : handleContentFailure(error, notFound)
     ),
     analysisOf(version),

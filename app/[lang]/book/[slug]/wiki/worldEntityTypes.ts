@@ -2,7 +2,7 @@ import type { ChapterLinker } from '../analysis/AnalysisBlocks';
 import type { LinkSession } from '@/lib/book-world/link-entities';
 import type { AnalysisStrings } from '@/lib/i18n/analysisStrings';
 import type { WorldStrings } from '@/lib/i18n/worldStrings';
-import type { BookWorldEntity, BookWorldImage } from '@/types/api-schema';
+import type { BookWorldEntity, BookWorldImage, BookWorldMap } from '@/types/api-schema';
 
 /** Герой версии для ссылок: имя, адрес страницы (только у публичных) и «Коротко» для карточки. */
 export interface WorldPerson {
@@ -26,6 +26,8 @@ export interface WorldEntitySectionsInput {
   entity: BookWorldEntity;
   /** Принятая иллюстрация героя или места (F08-12c-2); `null` - нет (у пары тоже нет). */
   illustration: WorldIllustration | null;
+  /** Малая карта реального места с точкой (F08-12d); `null` - нет (у героя и пары тоже нет). */
+  map: BookWorldMap | null;
   /**
    * Текстовая версия книги на языке страницы (`versionIds.text`): под ней читалка пишет прогресс,
    * по нему спойлер-остров сворачивает элементы (`F08-10b`). `null` - текста нет, свёртки нет.

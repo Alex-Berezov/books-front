@@ -31,6 +31,20 @@ describe('getPublicBookWorld и getPublicBookWorldEntity', () => {
     expect(country).toBe('XX');
   });
 
+  it('карта (F08-12d): с { map: true } запрос уходит с ?map=1, без опций - без параметров', async () => {
+    const searches: string[] = [];
+    server.use(
+      http.get('http://localhost:5000/api/versions/:versionId/world', ({ request }) => {
+        searches.push(new URL(request.url).search);
+        return HttpResponse.json({ language: 'en', alternates: [], entities: [], places: [] });
+      })
+    );
+    await getPublicBookWorld('ver-1', { map: true });
+    await getPublicBookWorld('ver-1');
+    await getPublicBookWorld('ver-1', { map: false });
+    expect(searches).toEqual(['?map=1', '', '']);
+  });
+
   it('сущность: ключ уходит в путь, страна XX, без токена', async () => {
     let url = '';
     let country: string | null = null;

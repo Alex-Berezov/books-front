@@ -83,6 +83,10 @@ const en = {
   worldPlacesTitle: 'Places',
   worldPlaceLocationLine: '{label}: {value}',
   worldPlaceSceneSeparator: ' — ',
+  worldMapTitle: 'Literary map',
+  worldMapLabel: 'Literary map: places of the book “{title}”',
+  worldPlaceMapLabel: '{name} on the map',
+  worldMapCoordinates: 'Coordinates',
 };
 
 const es: WorldStrings = {
@@ -157,6 +161,10 @@ const es: WorldStrings = {
   worldPlacesTitle: 'Lugares',
   worldPlaceLocationLine: '{label}: {value}',
   worldPlaceSceneSeparator: ' — ',
+  worldMapTitle: 'Mapa literario',
+  worldMapLabel: 'Mapa literario: lugares del libro «{title}»',
+  worldPlaceMapLabel: '{name} en el mapa',
+  worldMapCoordinates: 'Coordenadas',
 };
 
 const fr: WorldStrings = {
@@ -231,6 +239,10 @@ const fr: WorldStrings = {
   worldPlacesTitle: 'Lieux',
   worldPlaceLocationLine: '{label} : {value}',
   worldPlaceSceneSeparator: ' — ',
+  worldMapTitle: 'Carte littéraire',
+  worldMapLabel: 'Carte littéraire : lieux du livre « {title} »',
+  worldPlaceMapLabel: '{name} sur la carte',
+  worldMapCoordinates: 'Coordonnées',
 };
 
 const pt: WorldStrings = {
@@ -305,6 +317,10 @@ const pt: WorldStrings = {
   worldPlacesTitle: 'Lugares',
   worldPlaceLocationLine: '{label}: {value}',
   worldPlaceSceneSeparator: ' — ',
+  worldMapTitle: 'Mapa literário',
+  worldMapLabel: 'Mapa literário: lugares do livro «{title}»',
+  worldPlaceMapLabel: '{name} no mapa',
+  worldMapCoordinates: 'Coordenadas',
 };
 
 const ru: WorldStrings = {
@@ -379,6 +395,10 @@ const ru: WorldStrings = {
   worldPlacesTitle: 'Места',
   worldPlaceLocationLine: '{label}: {value}',
   worldPlaceSceneSeparator: ' — ',
+  worldMapTitle: 'Литературная карта',
+  worldMapLabel: 'Литературная карта: места книги «{title}»',
+  worldPlaceMapLabel: '{name} на карте',
+  worldMapCoordinates: 'Координаты',
 };
 
 export type WorldStrings = { [K in keyof typeof en]: string };

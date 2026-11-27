@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'De dónde salen los textos de Bibliaris, quién prepara los resúmenes y escribe las descripciones, cómo se elaboran los análisis de libros, cómo se preparan los textos de los libros y cómo se corrigen los errores.',
   title: 'Política editorial',
-  updatedAt: '2026-11-26',
+  updatedAt: '2026-11-27',
   toc: false,
   sections: [
     {
@@ -200,6 +200,15 @@ export const document: LegalDocument = {
             {
               kind: 'text',
               text: 'Las ilustraciones de los personajes y de los lugares las prepara manualmente la redacción con servicios externos de generación de imágenes a partir de la descripción del aspecto del personaje o del lugar en el texto del libro, sin rostros de actores reales de adaptaciones al cine y la televisión y sin imitar a artistas reconocibles. La redacción revisa y acepta cada ilustración antes de publicarla, y cada una lleva un pie que enlaza con esta sección. Una ilustración es una interpretación visual, no una imagen tomada del libro; una misma ilustración sirve a todas las versiones de idioma de la página.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'El punto de un lugar real en el mapa procede solo de Wikidata: el modelo o la redacción indican el número del elemento de Wikidata y el sitio lee sus coordenadas por sí mismo. El punto se coloca solo si el elemento se refiere a la Tierra, las coordenadas están dentro de los límites válidos y el nombre del elemento en el idioma de la página (o su nombre común a todos los idiomas) coincide con el nombre del lugar o con una de sus formas; de lo contrario, el lugar no tiene punto, y un lugar ficticio no lo tiene nunca. El punto se vuelve a comprobar cuando cambian el número de Wikidata o los nombres del lugar (y, si Wikidata no respondió, la próxima vez que se guarde el lugar); no se actualiza por sí solo. El fondo del mapa es de OpenStreetMap (© OpenStreetMap contributors); el sitio guarda sus propias copias de los fragmentos del mapa, por lo que al abrir el mapa el lector no se conecta a OpenStreetMap.',
             },
           ],
         },

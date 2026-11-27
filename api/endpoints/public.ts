@@ -128,10 +128,15 @@ export const getPublicBookAnalysis = async (
  * Список мира книги для публичной страницы `/{lang}/book/{slug}/wiki` (F08-3b): только публичные
  * сущности версии (`isListed`), кластер hreflang в `alternates`. Без токена и со страной
  * «неизвестна» по тем же причинам, что анализ выше: ответ ложится в общий ISR-кэш, а редактору
- * ручка отдаёт служебные поля. 404 - версии нет или она не опубликована.
+ * ручка отдаёт служебные поля. 404 - версии нет или она не опубликована. `map` (F08-12d) - только
+ * для страницы `/wiki`: литературную карту бэкенд строит лишь по `?map=1`, тайлы OSM берутся там,
+ * где карту видят (решение арбитра `F08 | F08-12d` Р3); прочие страницы зовут список без него.
  */
-export const getPublicBookWorld = async (versionId: string): Promise<BookWorldListResponse> =>
-  httpGet<BookWorldListResponse>(`/versions/${versionId}/world`, {
+export const getPublicBookWorld = async (
+  versionId: string,
+  options: { map?: boolean } = {}
+): Promise<BookWorldListResponse> =>
+  httpGet<BookWorldListResponse>(`/versions/${versionId}/world${options.map ? '?map=1' : ''}`, {
     next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
     headers: { [VISITOR_COUNTRY_HEADER]: UNKNOWN_COUNTRY },
   });

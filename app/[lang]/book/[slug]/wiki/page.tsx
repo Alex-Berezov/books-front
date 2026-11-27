@@ -86,6 +86,9 @@ export default async function BookWorldPage({ params }: Props) {
   const sections = buildIndexSections({
     characters,
     places,
+    // Карта (F08-12d) - только у ответа с `?map=1`; старый бэкенд поля не отдаёт.
+    map: world.map ?? null,
+    bookTitle: ctx.title,
     spoiler: {
       progressVersionId: book.versionIds?.text ?? null,
       chapterNumbers: [...new Set(places.flatMap((p) => p.scenes.map((s) => s.chapter)))],

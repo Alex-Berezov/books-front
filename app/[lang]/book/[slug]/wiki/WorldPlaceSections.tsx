@@ -1,4 +1,5 @@
 import { hasText } from '@/lib/book-analysis/format';
+import { fillTemplate } from '@/lib/book-world/format';
 import type { WorldEntitySectionsInput } from './worldEntityTypes';
 import type { PageSection } from '../analysis/PageSections';
 import type { WorldStrings } from '@/lib/i18n/worldStrings';
@@ -13,6 +14,7 @@ import {
   WorldIllustrationFigure,
   type WorldFact,
 } from './WorldEntityParts';
+import { isDrawableMap, WikidataSource, WorldMap } from './WorldMap';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { Paragraphs } from '../analysis/AnalysisBlocks';
 
@@ -27,10 +29,11 @@ export function placeKindLabel(kind: WorldPlaceKind | null | undefined, strings:
  * Разделы страницы места (`product.md` §7, решение арбитра `F08 | F08-12c` Q3): «Коротко» с видом
  * и местоположением текстом, значение в книге, описание и цитаты, что здесь происходит (сцены с
  * главой), присутствие по главам, частые вопросы. Раздел без данных не собирается (§1 п.5). Принятая
- * картинка места (`F08-12c-2`) - в «Коротко», как у героя в инфобоксе. Точки на карте нет (`F08-12d`).
+ * картинка места (`F08-12c-2`) - в «Коротко», как у героя в инфобоксе. Малая карта реального места
+ * с точкой (`F08-12d`, решение `F08 | F08-12d` П3) - отдельным блоком сразу после «Коротко».
  */
 export function buildPlaceSections(input: WorldEntitySectionsInput): PageSection[] {
-  const { entity, strings, textLinks, people, illustration } = input;
+  const { entity, strings, textLinks, people, illustration, map } = input;
   const sections: PageSection[] = [];
 
   const facts: WorldFact[] = [];
@@ -53,6 +56,23 @@ export function buildPlaceSections(input: WorldEntitySectionsInput): PageSection
           ) : null}
           {facts.length > 0 ? <WorldFacts rows={facts} /> : null}
         </>
+      ),
+    });
+  }
+
+  // Нет карты или точки (вымышленное, без проверки, тайл не взялся) - блока нет (§1 п.5).
+  if (isDrawableMap(map) && entity.point) {
+    const source = entity.point.sourceUrl;
+    sections.push({
+      id: WORLD_ANCHORS.placeMap,
+      title: strings.worldPlaceInfoLocation,
+      body: (
+        <WorldMap
+          map={map}
+          numbered={false}
+          label={fillTemplate(strings.worldPlaceMapLabel, { name: entity.name })}
+          caption={<WikidataSource href={source} label={strings.worldMapCoordinates} />}
+        />
       ),
     });
   }

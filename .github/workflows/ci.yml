@@ -91,6 +91,11 @@ jobs:
       # как настоящий ключ. Плейсхолдеры вроде `secret` и `changeme` бэкенд отвергает сам
       # (`books/src/common/config/jwt-secrets.ts`).
       #
+      # `WORLD_MAP_TILE_STUB=png` (F08-12d, решение арбитра `F08 | F08-12d` Р5): тайлы литературной
+      # карты бэкенд берёт подставным транспортом - серым PNG без сети. Прогон не ходит в живой
+      # tile.openstreetmap.org (политика OSM, недетерминизм), а playwright видит карту на 375 px.
+      # Без переменной карта в e2e пропала бы, и спека `literary map` покраснела бы.
+      #
       # Схему накатывает энтрипойнт образа. Он же глушит свои отказы и продолжает старт
       # при недоступной базе — поэтому готовность проверяется снаружи, следующим шагом.
       - name: Start the backend the e2e run against
@@ -102,6 +107,7 @@ jobs:
             -e JWT_ACCESS_SECRET="$(openssl rand -hex 32)" \
             -e JWT_REFRESH_SECRET="$(openssl rand -hex 32)" \
             -e CORS_ORIGIN='*' \
+            -e WORLD_MAP_TILE_STUB=png \
             ghcr.io/alex-berezov/books:latest
           docker inspect --format '{{index .RepoDigests 0}}' ghcr.io/alex-berezov/books:latest
 

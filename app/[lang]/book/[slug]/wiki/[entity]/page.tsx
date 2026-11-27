@@ -130,6 +130,8 @@ export default async function BookWorldEntityPage({ params }: Props) {
   const sectionsInput: WorldEntitySectionsInput = {
     entity,
     illustration,
+    // Малая карта (F08-12d) - только у реального места с точкой; старый бэкенд поля не отдаёт.
+    map: entity.type === 'place' ? (detail.map ?? null) : null,
     progressVersionId: book.versionIds?.text ?? null,
     chapterNumbers,
     strings,

@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'Where the texts on Bibliaris come from, who prepares the summaries and writes the descriptions, how book analyses are prepared, how book texts are prepared, and how mistakes are corrected.',
   title: 'Editorial Policy',
-  updatedAt: '2026-11-26',
+  updatedAt: '2026-11-27',
   toc: false,
   sections: [
     {
@@ -193,6 +193,15 @@ export const document: LegalDocument = {
             {
               kind: 'text',
               text: 'Illustrations of characters and places are prepared manually by the editorial team with third-party image generation services from the description of the character’s appearance or of the place in the text of the book, without the faces of real actors from screen adaptations and without imitating recognisable artists. Each illustration is checked and accepted by the editorial team before it is published, and each one carries a caption that links to this section. An illustration is a visual interpretation, not an image taken from the book; one illustration serves all language versions of the page.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'The point of a real place on the map comes only from Wikidata: the model or the editors give the number of the Wikidata item, and the site reads its coordinates itself. The point is set only if the item refers to the Earth, the coordinates are within valid limits and the name of the item in the language of the page (or its name common to all languages) matches the name of the place or one of its forms; otherwise the place has no point, and a fictional place never has one. The point is checked again when the Wikidata number or the names of the place change (and, if Wikidata did not answer, on the next save of the place); it does not update by itself. The map background is from OpenStreetMap (© OpenStreetMap contributors); the site keeps its own copies of the map tiles, so opening the map does not send the reader to OpenStreetMap.',
             },
           ],
         },

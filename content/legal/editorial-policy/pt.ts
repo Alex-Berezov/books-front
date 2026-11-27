@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'De onde vêm os textos do Bibliaris, quem prepara os resumos e escreve as descrições, como são elaboradas as análises de livros, como os textos dos livros são preparados e como os erros são corrigidos.',
   title: 'Política editorial',
-  updatedAt: '2026-11-26',
+  updatedAt: '2026-11-27',
   toc: false,
   sections: [
     {
@@ -193,6 +193,15 @@ export const document: LegalDocument = {
             {
               kind: 'text',
               text: 'As ilustrações dos personagens e dos lugares são preparadas manualmente pela redação com serviços externos de geração de imagens a partir da descrição da aparência do personagem ou do lugar no texto do livro, sem os rostos de atores reais de adaptações para o cinema e a TV e sem imitar artistas reconhecíveis. A redação revisa e aceita cada ilustração antes de publicá-la, e cada ilustração leva uma legenda com link para esta seção. Uma ilustração é uma interpretação visual, não uma imagem tirada do livro; a mesma ilustração serve a todas as versões de idioma da página.',
+            },
+          ],
+        },
+        {
+          kind: 'paragraph',
+          content: [
+            {
+              kind: 'text',
+              text: 'O ponto de um lugar real no mapa vem apenas do Wikidata: o modelo ou a redação indicam o número do item do Wikidata, e o site lê as suas coordenadas por conta própria. O ponto só é colocado se o item se referir à Terra, se as coordenadas estiverem dentro dos limites válidos e se o nome do item no idioma da página (ou o seu nome comum a todos os idiomas) coincidir com o nome do lugar ou com uma das suas formas; caso contrário, o lugar não tem ponto, e um lugar fictício nunca o tem. O ponto volta a ser verificado quando mudam o número do Wikidata ou os nomes do lugar (e, se o Wikidata não respondeu, na próxima vez que o lugar for salvo); não se atualiza sozinho. O fundo do mapa é do OpenStreetMap (© OpenStreetMap contributors); o site guarda as suas próprias cópias dos fragmentos do mapa, por isso, ao abrir o mapa, o leitor não se conecta ao OpenStreetMap.',
             },
           ],
         },
