@@ -1,4 +1,9 @@
-import { worldListFieldsOf, type BookWorldIssue } from '@/lib/admin/book-world-blocks';
+import {
+  isWorldObjectType,
+  worldListFieldsOf,
+  worldTextFieldsOf,
+  type BookWorldIssue,
+} from '@/lib/admin/book-world-blocks';
 import {
   checkBookWorldEntityImport,
   checkBookWorldEntityRequest,
@@ -142,7 +147,7 @@ export const worldEntityRequestFromForm = (
   }
   const aliases = lines(values.aliases);
   const aliasExclusions = lines(values.aliasExclusions);
-  // Формы имени и исключения - у героя и места (у пары их нет).
+  // Формы имени и исключения - у всех, кроме пары.
   const nameForms = {
     aliases: aliases.length > 0 ? aliases : null,
     ...(values.aliasExclusionsKnown || aliasExclusions.length > 0
@@ -154,6 +159,18 @@ export const worldEntityRequestFromForm = (
         }
       : {}),
   };
+  if (isWorldObjectType(type)) {
+    // Предмет, понятие и событие (F08-13b): только поля своего перечня (`worldTextFieldsOf`,
+    // `worldListFieldsOf`); роли, полей героя и ТЗ нет - бэкенд отбил бы их 400.
+    return checkBookWorldEntityRequest({
+      language,
+      type,
+      name: values.name.trim(),
+      ...nameForms,
+      ...Object.fromEntries(worldTextFieldsOf(type).map((f) => [f.path, text(t[f.key])])),
+      ...Object.fromEntries(worldListFieldsOf(type).map((f) => [f.path, lists[f.key]])),
+    });
+  }
   if (type === 'place') {
     // Место (F08-12b): свои поля и общие, роли и полей героя нет. Номер Wikidata - только у реального:
     // у вымышленного уходит `null` (очистить), иначе бэкенд отбил бы запись 400.

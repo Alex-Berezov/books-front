@@ -114,6 +114,8 @@ describe('worldWrite.utils places (F08-12b)', () => {
       glossary: null,
       candidates: 2,
       pairs: 1,
+      objects: 0,
+      terms: 0,
       stageUsd: '0.5',
       upperBound: false,
       suggestedLimitUsd: '1',

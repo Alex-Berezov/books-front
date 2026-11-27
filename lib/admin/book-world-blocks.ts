@@ -58,7 +58,19 @@ export const BOOK_WORLD_LIMITS = {
   description: A.mediumText,
   // ТЗ на иллюстрацию героя и места (F08-11d-2, F08-12b): только импорт и ход, в карточке поля нет.
   imageBrief: A.mediumText,
+  // Связи предмета и события (F08-13a): копия `BOOK_WORLD_LIMITS` бэкенда, менять вместе.
+  characterKeys: 10,
+  themeKeys: A.themeKeys,
 } as const;
+
+/**
+ * Предмет, понятие и событие (F08-13a). Копия `WORLD_OBJECT_TYPES` из
+ * `books/src/modules/book-world/dto/book-world-blocks.dto.ts` — менять вместе.
+ */
+export const WORLD_OBJECT_TYPES = ['object', 'term', 'event'] as const;
+export type WorldObjectType = (typeof WORLD_OBJECT_TYPES)[number];
+export const isWorldObjectType = (type: string): type is WorldObjectType =>
+  (WORLD_OBJECT_TYPES as readonly string[]).includes(type);
 
 /**
  * Место реальное или вымышленное и номер Wikidata реального места (F08-12b). Копия `WORLD_PLACE_KINDS`,
@@ -116,8 +128,18 @@ export const worldImageFileLimitsOf = (entityType?: string) =>
 const CHARACTER = ['character'] as const;
 const PAIR = ['pair'] as const;
 const PLACE = ['place'] as const;
-const CHARACTER_PLACE = ['character', 'place'] as const;
-const ANY = ['character', 'pair', 'place'] as const;
+/**
+ * Перечни полей карточки по типу — копия `WORLD_BLOCKS_OF_TYPE` из
+ * `books/src/modules/book-world/book-world-data.ts` (F08-13a): предмет — значение, описание, цитаты,
+ * частые вопросы, связи с героями и темами; понятие — значение и цитаты; событие — значение, сцены,
+ * цитаты и связи с героями. Менять вместе.
+ */
+const OBJECT = ['object'] as const;
+const OBJECT_TERM_EVENT = WORLD_OBJECT_TYPES;
+const OBJECT_EVENT = ['object', 'event'] as const;
+const SCENES = ['character', 'place', 'event'] as const;
+const FAQ = ['character', 'pair', 'place', 'object'] as const;
+const ANY = ['character', 'pair', 'place', ...WORLD_OBJECT_TYPES] as const;
 
 /**
  * Текстовые поля карточки героя — полем формы: подпись — по-человечески, путь — как у поля тела
@@ -165,25 +187,47 @@ export const BOOK_WORLD_TEXT_FIELDS = [
     kinds: PLACE,
   },
   { key: 'description', path: 'description', label: 'Place: description', rows: 4, kinds: PLACE },
+  // Предмет, понятие и событие (F08-13a): те же поля тела, что у места, со своей подписью.
+  {
+    key: 'significance',
+    path: 'significance',
+    label: 'Significance in the book',
+    rows: 5,
+    kinds: OBJECT_TERM_EVENT,
+  },
+  { key: 'description', path: 'description', label: 'Description', rows: 4, kinds: OBJECT },
 ] as const;
 export type BookWorldTextKey = (typeof BOOK_WORLD_TEXT_FIELDS)[number]['key'];
 
 /** Списки карточки — JSON-редактором, как у анализа; путь — как у поля тела записи. */
 export const BOOK_WORLD_LIST_FIELDS = [
   { key: 'stages', path: 'arc.stages', label: 'Arc: stages', kinds: CHARACTER },
-  { key: 'scenes', path: 'scenes', label: 'Key scenes', kinds: CHARACTER_PLACE },
+  { key: 'scenes', path: 'scenes', label: 'Key scenes', kinds: SCENES },
   { key: 'relations', path: 'relations', label: 'Relations', kinds: CHARACTER },
   { key: 'compare', path: 'compare', label: 'Pair: comparison table', kinds: PAIR },
   { key: 'quotes', path: 'quotes', label: 'Quotes', kinds: ANY },
   { key: 'adaptations', path: 'adaptations', label: 'Adaptations', kinds: CHARACTER },
-  { key: 'faq', path: 'faq', label: 'FAQ', kinds: ANY },
+  { key: 'faq', path: 'faq', label: 'FAQ', kinds: FAQ },
   { key: 'sources', path: 'sources', label: 'Sources', kinds: CHARACTER },
+  // Связи предмета и события (F08-13a): ключи героев мира и тем анализа версии, JSON-списком строк.
+  {
+    key: 'characterKeys',
+    path: 'characterKeys',
+    label: 'Linked characters (character keys)',
+    kinds: OBJECT_EVENT,
+  },
+  {
+    key: 'themeKeys',
+    path: 'themeKeys',
+    label: 'Linked themes (analysis theme keys)',
+    kinds: OBJECT,
+  },
 ] as const;
 export type BookWorldListKey = (typeof BOOK_WORLD_LIST_FIELDS)[number]['key'];
 
 /**
  * Поля карточки сущности этого типа: у пары и места - свои и общие (`short`, `quotes`, `faq`; у места
- * ещё `scenes`), без полей героя.
+ * ещё `scenes`), без полей героя; у предмета, понятия и события - свои по перечню выше (F08-13a).
  */
 export const worldTextFieldsOf = (type: string) =>
   BOOK_WORLD_TEXT_FIELDS.filter((f) => (f.kinds as readonly string[]).includes(type));

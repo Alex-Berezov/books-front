@@ -91,6 +91,8 @@ const value = (patch: Partial<WorldWriteValue> = {}): WorldWriteValue => ({
   compare: null,
   sources: null,
   place: null,
+  characterKeys: null,
+  themeKeys: null,
   ...patch,
 });
 
@@ -589,6 +591,78 @@ describe('WorldWrite (F08-4b)', () => {
       expect(steps).toHaveTextContent(
         'No places in this run: the language has no place sample yet.'
       );
+    });
+
+    // F08-13b-1 (/qa круг 1, front-correctness, front-data): связи предмета приходят своими полями.
+    it.each([
+      ['characterKeys' as const, 'Linked characters'],
+      ['themeKeys' as const, 'Linked themes'],
+    ])(
+      'a proposal of %s of an object shows the keys, it does not empty the block (F08-13b)',
+      (block, title) => {
+        hooks.run = run({
+          objects: [{ key: 'axe', name: 'The axe', aliases: [], chapters: [1] }],
+          items: [item({ key: 'axe', block })],
+        });
+        hooks.proposals = { 0: value({ [block]: ['raskolnikov', 'sonya'] }) };
+        view();
+        const c = card(`The axe: ${title}`);
+        expect(within(c).getByText(/"raskolnikov"/)).toBeInTheDocument();
+        expect(within(c).queryByText(/The proposal empties this block/)).toBeNull();
+      }
+    );
+
+    // F08-13b-1 (/qa круг 1, front-tests): строки предметов и понятий, шаг и выброшенная цитата предмета.
+    it('the objects and terms of the run: their lines, an object step and its dropped quote (F08-13b)', () => {
+      hooks.run = run({
+        objects: [{ key: 'axe', name: 'The axe', aliases: ['axe'], chapters: [1, 2] }],
+        terms: [{ key: 'pledge', name: 'The pledge', aliases: [], chapters: [3] }],
+        stepsTotal: 5,
+        steps: [step(), step({ step: 3, kind: 'object', key: 'axe' })],
+        droppedQuotes: [
+          { key: 'axe', chapter: 2, text: 'Axe words', reason: 'QUOTE_NOT_VERBATIM' },
+          { key: 'anna', chapter: 1, text: 'Anna words', reason: 'QUOTE_NOT_VERBATIM' },
+        ],
+        items: [],
+      });
+      view();
+      expect(screen.getByText('Objects: The axe (2 chapters).')).toBeInTheDocument();
+      expect(screen.getByText('Terms: The pledge (1 chapter).')).toBeInTheDocument();
+      expect(screen.getByText(/Step 4 of 5: Object: The axe — done/)).toBeInTheDocument();
+      const dropped = screen.getByRole('list', { name: 'Dropped at step 4' });
+      expect(within(dropped).getByText(/Quote dropped: «Axe words»/)).toBeInTheDocument();
+      expect(within(dropped).queryByText(/Anna words/)).toBeNull();
+    });
+
+    it('a term step shows its dropped quote too (F08-13b)', () => {
+      hooks.run = run({
+        terms: [{ key: 'pledge', name: 'The pledge', aliases: [], chapters: [3] }],
+        stepsTotal: 4,
+        steps: [step(), step({ step: 3, kind: 'term', key: 'pledge' })],
+        droppedQuotes: [
+          { key: 'pledge', chapter: 3, text: 'Pledge words', reason: 'QUOTE_NOT_VERBATIM' },
+        ],
+        items: [],
+      });
+      view();
+      const dropped = screen.getByRole('list', { name: 'Dropped at step 4' });
+      expect(within(dropped).getByText(/Quote dropped: «Pledge words»/)).toBeInTheDocument();
+    });
+
+    it('no objects or terms for a language without a sample: the block of steps is there with the reasons (F08-13b)', () => {
+      // Только `objectsOff`/`termsOff`, без шагов и отсеянных: блок шагов не пуст.
+      hooks.run = run({
+        objectsOff: 'WORLD_OBJECT_LANGUAGE',
+        termsOff: 'WORLD_TERM_LANGUAGE',
+        steps: [],
+        items: [],
+      });
+      view();
+      const steps = screen.getByLabelText('Steps of the run');
+      expect(steps).toHaveTextContent(
+        'No objects in this run: the language has no object sample yet.'
+      );
+      expect(steps).toHaveTextContent('No terms in this run: the language has no term sample yet.');
     });
 
     it.each([

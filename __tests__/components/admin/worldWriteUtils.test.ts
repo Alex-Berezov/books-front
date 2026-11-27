@@ -92,9 +92,9 @@ describe('worldWrite.utils progressText', () => {
   });
 
   it('no candidate under the number: the step without a name (past the heroes - a pair step, as stepAt)', () => {
-    // Нумерация как stepAt бэкенда (F08-8e, F08-12b): без героев и пар номер 1 уже стоит после их шагов,
-    // это шаг места; с парой под номером - шаг пары.
-    expect(progressText(run(1, { candidates: [] }))).toBe('Step 2 of 3: Place…');
+    // Нумерация как stepAt бэкенда (F08-8e, F08-12b, F08-13b): без героев номер 1 стоит после их шагов;
+    // с парой под номером - шаг пары, без сущностей ни одного типа - шаг без вида (с F08-13b не место).
+    expect(progressText(run(1, { candidates: [] }))).toBe('Step 2 of 3: Step…');
     expect(
       progressText(
         run(1, {
@@ -113,6 +113,8 @@ describe('worldWrite.utils writeEstimateText (F08-8b)', () => {
     candidates,
     pairs: 0,
     places: 0,
+    objects: 0,
+    terms: 0,
     stageUsd: '0.5',
     upperBound: false,
     suggestedLimitUsd: '1',
@@ -158,9 +160,9 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
   });
 
   // F08-12b: после героев и пар идут места (stepAt бэкенда) - номер без пары и без места - шаг места без имени.
-  it('a step number past the heroes and the pairs with nothing under it is a place step without a name (as stepAt)', () => {
-    expect(progressText(pairRun(7, { pairs: [] }))).toBe('Step 8 of 9: Place…');
-    expect(progressText(pairRun(7, { pairs: null }))).toBe('Step 8 of 9: Place…');
+  it('a step number past the heroes and the pairs with nothing under it is a nameless step, not a place (as stepAt, F08-13b)', () => {
+    expect(progressText(pairRun(7, { pairs: [] }))).toBe('Step 8 of 9: Step…');
+    expect(progressText(pairRun(7, { pairs: null }))).toBe('Step 8 of 9: Step…');
   });
 
   it('titles of the pair step and of its blocks name both heroes', () => {
@@ -212,6 +214,8 @@ describe('worldWrite.utils pairs (F08-8e)', () => {
       glossary: null,
       candidates: 3,
       places: 0,
+      objects: 0,
+      terms: 0,
       stageUsd: '0.5',
       upperBound: false,
       suggestedLimitUsd: '1',

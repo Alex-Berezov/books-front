@@ -34,7 +34,11 @@ export interface WorldWriteEstimate {
   pairs: number;
   /** До N страниц мест (`F08-12b`): min(10, мест досье) до подсчёта глав (10 — досье ещё нет), 0 на языке без эталона места; цена мест уже в `stageUsd`. */
   places: number;
-  /** Оценка сверху: выбор форм имени, на героя (главного и второстепенного до порога глав) страница и внешние блоки, затем до `pairs` страниц пар и до `places` страниц мест, проверяющая каждого шага, × 2 прохода. */
+  /** До N страниц предметов (`F08-13b`): min(10, предметов досье) до подсчёта глав (10 — досье ещё нет), 0 на языке без эталона предмета; цена уже в `stageUsd`. */
+  objects: number;
+  /** До N страниц понятий (`F08-13b`): min(10, понятий досье) до подсчёта глав (10 — досье ещё нет), 0 на языке без эталона понятия; цена уже в `stageUsd`. */
+  terms: number;
+  /** Оценка сверху: выбор форм имени, на героя (главного и второстепенного до порога глав) страница и внешние блоки, затем до `pairs` страниц пар, до `places` страниц мест, до `objects` страниц предметов и до `terms` страниц понятий, проверяющая каждого шага, × 2 прохода. */
   stageUsd: LlmMoney;
   /** Досье или глоссарий не готовы: их размер — по их этапам. */
   upperBound: boolean;
@@ -112,10 +116,24 @@ export type WorldWriteBlock =
   | 'kind'
   | 'location'
   | 'significance'
-  | 'description';
+  | 'description'
+  /** Связи предмета (`F08-13b`): герои мира версии и темы анализа версии; значение — поля `characterKeys`/`themeKeys`. */
+  | 'characterKeys'
+  | 'themeKeys';
 
-/** Вид шага: выбор героев и форм имени, страница героя, внешние блоки героя, страница пары (`F08-8e`), страница места (`F08-12b`). */
-export type WorldWriteStepKind = 'select' | 'page' | 'external' | 'pair' | 'place';
+/**
+ * Вид шага: выбор героев и форм имени, страница героя, внешние блоки героя, страница пары (`F08-8e`),
+ * страница места (`F08-12b`), предмета и понятия (`F08-13b`); `event` — шаги событий (`F08-13b-2`).
+ */
+export type WorldWriteStepKind =
+  | 'select'
+  | 'page'
+  | 'external'
+  | 'pair'
+  | 'place'
+  | 'object'
+  | 'term'
+  | 'event';
 
 /** Что код снял без переделки (`WORLD_FIX_CODES`). */
 export type WorldWriteFixCode =
@@ -182,7 +200,10 @@ export interface WorldWritePair {
   chapters: number[];
 }
 
-/** Место хода (`F08-12b`): место досье, прошедшее порог глав; шаг места — после шагов пар. */
+/**
+ * Место хода (`F08-12b`): место досье, прошедшее порог глав; шаг места — после шагов пар. Та же форма —
+ * у предмета и понятия хода (`F08-13b`, `objects`, `terms`).
+ */
 export interface WorldWritePlace {
   /** Ключ места (ключ досье). */
   key: string;
@@ -201,7 +222,16 @@ export type WorldWriteSkipReason =
   | 'PAIRS_MAX'
   | 'PLACE_BELOW_MIN_CHAPTERS'
   | 'PLACE_KEY_TAKEN'
-  | 'PLACES_MAX';
+  | 'PLACES_MAX'
+  /** Предметы и понятия досье (`F08-13b`, решение `F08 | F08-13b` Q1): нет ни в одной главе, ключ занят, за потолком 10. */
+  | 'OBJECT_BELOW_MIN_CHAPTERS'
+  | 'OBJECT_KEY_TAKEN'
+  | 'OBJECTS_MAX'
+  | 'TERM_BELOW_MIN_CHAPTERS'
+  | 'TERM_KEY_TAKEN'
+  | 'TERMS_MAX'
+  /** Организация досье: страницы у неё нет (решение `F08 | F08-13` Q5). */
+  | 'ORGANIZATION_SKIPPED';
 
 /** Отсеянный шагом выбора герой или пара. */
 export interface WorldWriteLeftOut {
@@ -223,8 +253,14 @@ export type WorldWritePairsOff = 'WORLD_PAIR_LANGUAGE';
 /** Ход не пишет мест: `WORLD_PLACE_LANGUAGE` — у языка нет эталона места (`F08-12b`). */
 export type WorldWritePlacesOff = 'WORLD_PLACE_LANGUAGE';
 
+/** Ход не пишет предметов: `WORLD_OBJECT_LANGUAGE` — у языка нет эталона предмета (`F08-13b`). */
+export type WorldWriteObjectsOff = 'WORLD_OBJECT_LANGUAGE';
+
+/** Ход не пишет понятий: `WORLD_TERM_LANGUAGE` — у языка нет эталона понятия (`F08-13b`). */
+export type WorldWriteTermsOff = 'WORLD_TERM_LANGUAGE';
+
 export interface WorldWriteStep {
-  /** 0 — выбор форм имени, затем на героя страница и внешние блоки, затем по шагу на пару (`F08-8e`). */
+  /** 0 — выбор форм имени, затем на героя страница и внешние блоки, затем по шагу на пару (`F08-8e`), место (`F08-12b`), предмет и понятие (`F08-13b`). */
   step: number;
   kind: WorldWriteStepKind;
   /** Ключ героя или пары; у шага выбора — `null`. */
@@ -305,6 +341,14 @@ export interface WorldWrite {
   places: WorldWritePlace[] | null;
   /** Мест нет и почему; `null` — есть или выбор ещё не прошёл. */
   placesOff: WorldWritePlacesOff | null;
+  /** Предметы хода (`F08-13b`), их шаги идут после шагов мест; `null` — выбор не прошёл; `[]` — ход до `F08-13b`. */
+  objects: WorldWritePlace[] | null;
+  /** Понятия хода (`F08-13b`), их шаги идут после шагов предметов; `null` — выбор не прошёл; `[]` — ход до `F08-13b`. */
+  terms: WorldWritePlace[] | null;
+  /** Предметов нет и почему; `null` — есть или выбор ещё не прошёл. */
+  objectsOff: WorldWriteObjectsOff | null;
+  /** Понятий нет и почему; `null` — есть или выбор ещё не прошёл. */
+  termsOff: WorldWriteTermsOff | null;
   /** Пройденные шаги по порядку. */
   steps: WorldWriteStep[];
   items: WorldWriteItem[];
@@ -350,6 +394,10 @@ export interface WorldWriteValue {
    * `text` у такого пункта — `null`. У остальных пунктов — `null`.
    */
   place: WorldWritePlaceValue | null;
+  /** Пункт `characterKeys` предмета (`F08-13b`): ключи героев мира версии; у остальных пунктов — `null`. */
+  characterKeys: string[] | null;
+  /** Пункт `themeKeys` предмета (`F08-13b`): ключи тем анализа версии; у остальных пунктов — `null`. */
+  themeKeys: string[] | null;
   /** Отпечаток предложения: «Accept» отдаёт его как `expectedPrint`. */
   print: string;
 }

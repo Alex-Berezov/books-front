@@ -2,7 +2,7 @@ import type { BookWorldListKey, BookWorldTextKey } from '@/lib/admin/book-world-
 import type { BookWorldEntity, BookWorldRole, WorldPlaceKind } from '@/types/api-schema';
 
 /**
- * Форма карточки героя, пары и места (F08-1, F08-8c, F08-12b) без `zod`: тексты — полями, списки — JSON-текстом, формы имени —
+ * Форма карточки героя, пары, места, предмета, понятия и события (F08-1, F08-8c, F08-12b, F08-13b) без `zod`: тексты — полями, списки — JSON-текстом, формы имени —
  * по строке на форму. Проверку и сборку тела записи делает ленивый `book-world-validation.ts`.
  */
 export interface WorldEntityFormValues {
@@ -74,5 +74,7 @@ export const formFromWorldEntity = (entity: BookWorldEntity | null): WorldEntity
     adaptations: json(entity?.adaptations),
     faq: json(entity?.faq),
     sources: json(entity?.sources),
+    characterKeys: json(entity?.characterKeys),
+    themeKeys: json(entity?.themeKeys),
   },
 });

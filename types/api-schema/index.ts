@@ -760,6 +760,7 @@ export type {
   WorldWriteItem,
   WorldWriteItemOutcome,
   WorldWriteLeftOut,
+  WorldWriteObjectsOff,
   WorldWritePair,
   WorldWritePairsOff,
   WorldWritePlace,
@@ -772,6 +773,7 @@ export type {
   WorldWriteState,
   WorldWriteStep,
   WorldWriteStepKind,
+  WorldWriteTermsOff,
   WorldWriteValue,
   WorldWriteVerdict,
 } from './world-write';

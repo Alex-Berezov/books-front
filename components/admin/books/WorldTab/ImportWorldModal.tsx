@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { JsonImportPreviewModal } from '@/components/admin/common/JsonImportPreviewModal';
+import { worldListFieldsOf, worldTextFieldsOf } from '@/lib/admin/book-world-blocks';
 import { formatDataIssue } from '@/lib/admin/data-issue';
 import type { WorldImportPreviewOk } from './WorldTab.types';
 import type {
@@ -33,6 +34,24 @@ interface ImportWorldModalProps<T extends object> {
 const PLACE_HINT =
   'A place: type "place", fields kind ("real" or "fictional"), wikidataId (only for a real place, e.g. "Q90"), location, significance, description, aliases, short, scenes, quotes, faq, imageBrief.';
 
+/**
+ * Предмет, понятие и событие (F08-13b): поля собраны из перечней карточки (`worldTextFieldsOf`/
+ * `worldListFieldsOf` - копия `WORLD_BLOCKS_OF_TYPE` бэкенда), а не второй копией текстом;
+ * роли, источников и imageBrief у них нет.
+ */
+const OBJECT_HINT = `${(
+  [
+    ['An object', 'object'],
+    ['A term', 'term'],
+    ['An event', 'event'],
+  ] as const
+)
+  .map(
+    ([what, type]) =>
+      `${what}: type "${type}", fields ${['aliases', ...worldTextFieldsOf(type).map((f) => f.path), ...worldListFieldsOf(type).map((f) => f.path)].join(', ')}.`
+  )
+  .join(' ')} They have no role, sources or imageBrief.`;
+
 const TEXTS: Record<WorldImportMode, { title: string; placeholder: string; hint: string }> = {
   version: {
     title: 'Import world JSON',
@@ -40,7 +59,7 @@ const TEXTS: Record<WorldImportMode, { title: string; placeholder: string; hint:
   "language": "en",
   "entities": [{ "key": "raskolnikov", "type": "character", "name": "…", "short": "…" }]
 }`,
-    hint: `Paste JSON of the whole version. Entities missing from the JSON stay as they are; fields missing from an entity stay as they are; null, "" or [] clears a field; a list replaces the previous one entirely. A pair of characters: type "pair", key "a--b" (two character keys in alphabetical order), fields compare, bonds, differences, quotes (with speakerKey and aboutKey), conclusion, faq. ${PLACE_HINT} ${CHARACTER_KEY_RULE}.`,
+    hint: `Paste JSON of the whole version. Entities missing from the JSON stay as they are; fields missing from an entity stay as they are; null, "" or [] clears a field; a list replaces the previous one entirely. A pair of characters: type "pair", key "a--b" (two character keys in alphabetical order), fields compare, bonds, differences, quotes (with speakerKey and aboutKey), conclusion, faq. ${PLACE_HINT} ${OBJECT_HINT} ${CHARACTER_KEY_RULE}.`,
   },
   entity: {
     title: 'Import entity JSON',
@@ -50,7 +69,7 @@ const TEXTS: Record<WorldImportMode, { title: string; placeholder: string; hint:
   "type": "character",
   "short": "…"
 }`,
-    hint: `Paste JSON of one entity: language, key, type and its fields. The entity is written at once: fields missing from the JSON stay as they are; null, "" or [] clears a field; a list replaces the previous one entirely. Unsaved edits in the card are replaced by the saved entity. ${PLACE_HINT} ${CHARACTER_KEY_RULE}.`,
+    hint: `Paste JSON of one entity: language, key, type and its fields. The entity is written at once: fields missing from the JSON stay as they are; null, "" or [] clears a field; a list replaces the previous one entirely. Unsaved edits in the card are replaced by the saved entity. ${PLACE_HINT} ${OBJECT_HINT} ${CHARACTER_KEY_RULE}.`,
   },
 };
 

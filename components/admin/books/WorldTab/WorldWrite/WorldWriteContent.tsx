@@ -22,6 +22,9 @@ const STRUCT_FIELDS = [
   'faq',
   'adaptations',
   'compare',
+  // Связи предмета (F08-13b): ключи героев мира и тем анализа — значение пункта в своём поле.
+  'characterKeys',
+  'themeKeys',
 ] as const satisfies readonly (keyof WorldWriteValue)[];
 
 /** Поле есть и не пустой список: пустой список не рисуется «[]». */

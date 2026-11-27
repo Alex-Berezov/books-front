@@ -59,7 +59,7 @@ describe('пара героев: импорт и запись (F08-8c)', () => {
   it('запись принимает героя и пару, другой тип отбивает по пути type', () => {
     expect(paths(world({ key: 'anna', type: 'character', name: 'Anna' }))).toEqual([]);
     expect(paths(world(pair()))).toEqual([]);
-    expect(paths(world({ key: 'harbour', type: 'object', name: 'Harbour' }))).toEqual([
+    expect(paths(world({ key: 'harbour', type: 'organization', name: 'Harbour' }))).toEqual([
       'entities.0.type',
     ]);
   });
@@ -214,7 +214,7 @@ describe('пара героев: импорт и запись (F08-8c)', () => {
   });
 
   it('другие типы по-прежнему не принимаются', () => {
-    expect(paths(world({ key: 'harbour', type: 'object', name: 'Harbour' }))).toEqual([
+    expect(paths(world({ key: 'harbour', type: 'organization', name: 'Harbour' }))).toEqual([
       'entities.0.type',
     ]);
   });

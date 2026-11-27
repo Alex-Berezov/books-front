@@ -114,8 +114,18 @@ describe('book world import (F08-1)', () => {
     expect(errors.some((e) => e.endsWith('unknown key'))).toBe(false);
   });
 
-  it("type 'object' is refused: only characters, pairs and places are written", () => {
-    expect(paths(spoilt((e) => (e.type = 'object')))).toEqual(['entities.0.type']);
+  // F08-13b: тип предмета принимается (F08-13a); поля героя у него - поля чужого типа, не unknown key.
+  it("type 'object' on a character entity: the hero fields are not a field of an object", () => {
+    const errors = issues(spoilt((e) => (e.type = 'object')));
+    expect(errors).toContain('entities.0.role: not a field of an object');
+    expect(errors).toContain('entities.0.imageBrief: not a field of an object');
+    expect(errors.some((e) => e.endsWith('unknown key') || e.startsWith('entities.0.type'))).toBe(
+      false
+    );
+  });
+
+  it('an unknown type is refused by its path', () => {
+    expect(paths(spoilt((e) => (e.type = 'organization')))).toEqual(['entities.0.type']);
   });
 
   it('key A_b is refused by its path', () => {
@@ -194,7 +204,9 @@ describe('book world import of one entity (F08-1)', () => {
       'language',
     ]);
     expect(
-      analyzeBookWorldEntityImport(one({ type: 'object' }), 'en', null).errors.map((e) => e.path)
+      analyzeBookWorldEntityImport(one({ type: 'organization' }), 'en', null).errors.map(
+        (e) => e.path
+      )
     ).toEqual(['type']);
   });
 });

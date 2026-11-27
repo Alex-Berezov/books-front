@@ -6,6 +6,7 @@ import type { WorldWrite } from '@/types/api-schema';
 import {
   droppedQuoteText,
   leftOutText,
+  objectsOffTexts,
   pairLine,
   pairsOffText,
   placeLine,
@@ -26,7 +27,14 @@ export const WorldWriteSteps: FC<{ run: WorldWrite }> = ({ run }) => {
   const leftOut = run.leftOut ?? [];
   const pairsOff = pairsOffText(run);
   const placesOff = placesOffText(run);
-  if (run.steps.length === 0 && leftOut.length === 0 && pairsOff === null && placesOff === null) {
+  const objectsOff = objectsOffTexts(run);
+  if (
+    run.steps.length === 0 &&
+    leftOut.length === 0 &&
+    pairsOff === null &&
+    placesOff === null &&
+    objectsOff.length === 0
+  ) {
     return null;
   }
   const total = run.stepsTotal;
@@ -53,6 +61,18 @@ export const WorldWriteSteps: FC<{ run: WorldWrite }> = ({ run }) => {
         <p className={draftStyles.hint}>Places: {run.places.map(placeLine).join('; ')}.</p>
       )}
       {placesOff && <p className={draftStyles.hint}>{placesOff}</p>}
+      {/* Предметы и понятия хода (`F08-13b`): та же строка, что у мест. */}
+      {run.objects && run.objects.length > 0 && (
+        <p className={draftStyles.hint}>Objects: {run.objects.map(placeLine).join('; ')}.</p>
+      )}
+      {run.terms && run.terms.length > 0 && (
+        <p className={draftStyles.hint}>Terms: {run.terms.map(placeLine).join('; ')}.</p>
+      )}
+      {objectsOff.map((text) => (
+        <p key={text} className={draftStyles.hint}>
+          {text}
+        </p>
+      ))}
       {leftOut.length > 0 && (
         <ul className={draftStyles.list} aria-label="Left out of the run">
           {leftOut.map((skip, i) => (
@@ -62,7 +82,11 @@ export const WorldWriteSteps: FC<{ run: WorldWrite }> = ({ run }) => {
       )}
       {run.steps.map((s) => {
         const quotes =
-          s.kind === 'page' || s.kind === 'pair' || s.kind === 'place'
+          s.kind === 'page' ||
+          s.kind === 'pair' ||
+          s.kind === 'place' ||
+          s.kind === 'object' ||
+          s.kind === 'term'
             ? run.droppedQuotes.filter((q) => q.key === s.key)
             : [];
         const sources =

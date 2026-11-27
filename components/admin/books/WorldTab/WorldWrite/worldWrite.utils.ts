@@ -27,6 +27,7 @@ import type {
   WorldWriteEstimate,
   WorldWriteItem,
   WorldWriteLeftOut,
+  WorldWriteObjectsOff,
   WorldWritePair,
   WorldWritePairsOff,
   WorldWritePlace,
@@ -35,6 +36,7 @@ import type {
   WorldWriteRemark,
   WorldWriteSkipReason,
   WorldWriteStep,
+  WorldWriteTermsOff,
 } from '@/types/api-schema';
 
 /**
@@ -72,6 +74,8 @@ const BLOCK_TITLES: Record<WorldWriteBlock, string> = {
   location: 'Location',
   significance: 'Significance',
   description: 'Description',
+  characterKeys: 'Linked characters',
+  themeKeys: 'Linked themes',
 };
 
 /**
@@ -90,7 +94,7 @@ export const characterName = (run: Pick<WorldWrite, 'candidates'>, key: string):
 
 /** Что нужно для имён хода: кандидаты-герои, пары (имя пары — по её героям) и места (`F08-12b`). */
 export type RunNames = Pick<WorldWrite, 'candidates'> &
-  Partial<Pick<WorldWrite, 'pairs' | 'places'>>;
+  Partial<Pick<WorldWrite, 'pairs' | 'places' | 'objects' | 'terms'>>;
 
 /** Имя пары в подписях админки: «{Имя} and {Имя}». */
 const PAIR_NAME_TEMPLATE = '{a} and {b}';
@@ -113,9 +117,12 @@ const pairName = (run: RunNames, key: string): string =>
  */
 export const entityName = (run: RunNames, key: string): string => {
   if (run.pairs?.some((p) => p.key === key)) return pairName(run, key);
-  // Место хода (`F08-12b`): по `places`, имя — из выбора.
-  const place = run.places?.find((p) => p.key === key);
-  return place ? place.name : characterName(run, key);
+  // Место (`F08-12b`), предмет и понятие (`F08-13b`) хода: по своим спискам, имя — из выбора.
+  const named =
+    run.places?.find((p) => p.key === key) ??
+    run.objects?.find((o) => o.key === key) ??
+    run.terms?.find((t) => t.key === key);
+  return named ? named.name : characterName(run, key);
 };
 
 export const itemTitle = (run: RunNames, item: WorldWriteItem): string =>
@@ -144,6 +151,9 @@ const STEP_KIND_TITLES: Record<Exclude<WorldWriteStep['kind'], 'select'>, string
   external: 'External blocks',
   pair: 'Pair',
   place: 'Place',
+  object: 'Object',
+  term: 'Term',
+  event: 'Event',
 };
 
 /** Название шага: «Choice of name forms», «Page: Name», «External blocks: Name», «Pair: A and B». */
@@ -155,37 +165,52 @@ export const stepTitle = (run: RunNames, step: WorldWriteStep): string => {
 };
 
 /**
- * Что пишет шаг с номером `step` (с 0): после шагов героев (`2 · героев`) идут шаги пар, по одному
- * на пару (`F08-8e`, `stepAt` бэкенда), после них — шаги мест, по одному на место (`F08-12b`):
- * нечётный шаг героя — страница, чётный — внешние блоки. Пары, места или героя под этим номером
- * нет (ответ разошёлся со счётом) — тот же вид шага без имени.
+ * Что пишет шаг с номером `step` (с 0): на героя два шага (нечётный — страница, чётный — внешние
+ * блоки), затем по одному шагу на пару (`F08-8e`), место (`F08-12b`), предмет, понятие (`F08-13b`)
+ * и событие (`F08-13b-2`) — в этом порядке. Вид шага после героев выводится из длин списков
+ * ответа, как `stepAt` бэкенда из числа сущностей: номер сверх всех списков (ответ разошёлся
+ * со счётом) — шаг без вида и без имени («Step»).
  * Копия нумерации stepAt из books/src/modules/translation/world-write/world-write.data.ts; менять вместе.
  */
 const stepAhead = (
   run: WorldWrite,
   step: number
-): { title: string; name?: string; pairNo?: number; placeNo?: number } => {
+): { title: string; name?: string; no?: number; of?: number; word?: string } => {
   const heroSteps = (run.candidates?.length ?? 0) * 2;
-  const pairSteps = run.pairs?.length ?? 0;
-  const pairIndex = step - 1 - heroSteps;
-  if (step > heroSteps + pairSteps) {
-    const placeIndex = pairIndex - pairSteps;
-    const place = run.places?.[placeIndex];
-    return place
-      ? { title: 'Place', name: place.name, placeNo: placeIndex + 1 }
-      : { title: 'Place' };
+  if (step <= heroSteps) {
+    const candidate = run.candidates?.[Math.floor((step - 1) / 2)];
+    return { title: (step - 1) % 2 === 0 ? 'Page' : 'External blocks', name: candidate?.name };
   }
-  if (step > heroSteps) {
-    const pair = run.pairs?.[pairIndex];
-    return pair
-      ? { title: 'Pair', name: entityName(run, pair.key), pairNo: pairIndex + 1 }
-      : { title: 'Pair' };
+  // Событий у хода пока нет (`F08-13b-2`): поле в ответе ещё не заведено.
+  const tail: ReadonlyArray<{
+    title: string;
+    word: string;
+    list: ReadonlyArray<{ key: string; name?: string }>;
+    name: (entry: { key: string; name?: string }) => string;
+  }> = [
+    { title: 'Pair', word: 'pair', list: run.pairs ?? [], name: (e) => entityName(run, e.key) },
+    { title: 'Place', word: 'place', list: run.places ?? [], name: (e) => e.name ?? e.key },
+    { title: 'Object', word: 'object', list: run.objects ?? [], name: (e) => e.name ?? e.key },
+    { title: 'Term', word: 'term', list: run.terms ?? [], name: (e) => e.name ?? e.key },
+  ];
+  let at = step - 1 - heroSteps;
+  for (const part of tail) {
+    const entry = part.list[at];
+    if (entry) {
+      return {
+        title: part.title,
+        name: part.name(entry),
+        no: at + 1,
+        of: part.list.length,
+        word: part.word,
+      };
+    }
+    at -= part.list.length;
   }
-  const candidate = run.candidates?.[Math.floor((step - 1) / 2)];
-  return { title: (step - 1) % 2 === 0 ? 'Page' : 'External blocks', name: candidate?.name };
+  return { title: 'Step' };
 };
 
-/** Ход пишется: какой шаг сейчас; чего ждёт; пауза — причиной. Шаги: 0 — выбор, затем на героя два, затем по одному на пару. */
+/** Ход пишется: какой шаг сейчас; чего ждёт; пауза — причиной. Шаги: 0 — выбор, затем на героя два, затем по одному на пару, место, предмет и понятие (нумерация — `stepAhead`). */
 export const progressText = (run: WorldWrite): string => {
   const done = run.steps.length;
   const total = run.stepsTotal;
@@ -198,14 +223,7 @@ export const progressText = (run: WorldWrite): string => {
   } else {
     // Кандидата или пары под этим номером нет (ответ хода разошёлся со счётом) — шаг без имени.
     const next = stepAhead(run, done);
-    const pairs = run.pairs?.length ?? 0;
-    const places = run.places?.length ?? 0;
-    const count =
-      next.pairNo !== undefined
-        ? ` (pair ${next.pairNo} of ${pairs})`
-        : next.placeNo !== undefined
-          ? ` (place ${next.placeNo} of ${places})`
-          : '';
+    const count = next.no !== undefined ? ` (${next.word} ${next.no} of ${next.of})` : '';
     writing = `Step ${done + 1} of ${total}: ${next.title}${next.name ? `: ${next.name}` : ''}${count}…`;
   }
   return operationStatusText(run.operation, run.waitingFor, writing);
@@ -262,6 +280,12 @@ const RUN_FAILURES: Readonly<Record<string, string>> = {
   WORLD_MENTIONS_MOVED: 'the chapter text moved while the presence was recounted',
   WORLD_PLACE_NOT_FOUND: 'the name forms found the place in no chapter',
   WORLD_PLACE_KEY_TAKEN: 'the key of the place is taken by an entity of another type',
+  WORLD_OBJECT_NOT_FOUND: 'the name forms found the object in no chapter',
+  WORLD_OBJECT_KEY_TAKEN: 'the key of the object is taken by an entity of another type',
+  WORLD_TERM_NOT_FOUND: 'the name forms found the term in no chapter',
+  WORLD_TERM_KEY_TAKEN: 'the key of the term is taken by an entity of another type',
+  WORLD_STEP_OUT_OF_RUN:
+    'the step number is past every list of the run: the run data does not match its count',
   WORLD_WRITE_REFUSED: 'the world import refused the write',
   IMPORT_INVALID: 'the block failed the world checks after the redo',
 };
@@ -278,9 +302,13 @@ export const writeEstimateText = (estimate: WorldWriteEstimate): string => {
     estimate.pairs > 0 ? `, at most ${pluralWord(estimate.pairs, 'character pair')}` : '';
   // Места (`F08-12b`): тег бэкенда уезжает первым, ответ без поля фронт не получает.
   const placesPart = estimate.places > 0 ? `, at most ${pluralWord(estimate.places, 'place')}` : '';
+  // Предметы и понятия (`F08-13b`): тег бэкенда уезжает первым.
+  const objectsPart =
+    estimate.objects > 0 ? `, at most ${pluralWord(estimate.objects, 'object')}` : '';
+  const termsPart = estimate.terms > 0 ? `, at most ${pluralWord(estimate.terms, 'term')}` : '';
   return [
     ...contextEstimateLines(estimate),
-    `The world: at most ${estimate.candidates} ${estimate.candidates === 1 ? 'character' : 'characters'} (main and secondary)${pairsPart}${placesPart}, up to ${formatMoney(estimate.stageUsd)}${upper}.`,
+    `The world: at most ${estimate.candidates} ${estimate.candidates === 1 ? 'character' : 'characters'} (main and secondary)${pairsPart}${placesPart}${objectsPart}${termsPart}, up to ${formatMoney(estimate.stageUsd)}${upper}.`,
     limitLine(estimate.suggestedLimitUsd),
   ].join(' ');
 };
@@ -333,6 +361,15 @@ const SKIP_REASON_TEXT: Record<WorldWriteSkipReason, string> = {
   PLACE_BELOW_MIN_CHAPTERS: 'a place in fewer than 2 chapters',
   PLACE_KEY_TAKEN: 'the key of the place is taken by an entity of another type',
   PLACES_MAX: 'over the limit of places per run',
+  OBJECT_BELOW_MIN_CHAPTERS: 'the name forms found the object in no chapter',
+  OBJECT_KEY_TAKEN:
+    'the key of the object is taken by an entity or a candidate of another type (a place of the dossier counts too: the dossier is shared by all languages, the key keeps its type in every one)',
+  OBJECTS_MAX: 'over the limit of objects per run',
+  TERM_BELOW_MIN_CHAPTERS: 'the name forms found the term in no chapter',
+  TERM_KEY_TAKEN:
+    'the key of the term is taken by an entity or a candidate of another type (a place or an object of the dossier counts too: the dossier is shared by all languages, the key keeps its type in every one)',
+  TERMS_MAX: 'over the limit of terms per run',
+  ORGANIZATION_SKIPPED: 'an organization of the dossier: the world has no page type for it',
 };
 
 /** Причины отсева пары: ключ такой записи — ключ пары (`PAIR_KEY_INVALID` — как вышел бы), а не героя. */
@@ -364,6 +401,22 @@ export const leftOutText = (run: RunNames, skip: WorldWriteLeftOut): string => {
  */
 export const coreMissingText = (remark: WorldWriteRemark): string =>
   `The step left the core without ${Object.hasOwn(BLOCK_TITLES, remark.where) ? BLOCK_TITLES[remark.where as WorldWriteBlock] : remark.where}: ${remark.note}`;
+
+const OBJECTS_OFF_TEXT: Record<WorldWriteObjectsOff, string> = {
+  WORLD_OBJECT_LANGUAGE: 'No objects in this run: the language has no object sample yet.',
+};
+
+const TERMS_OFF_TEXT: Record<WorldWriteTermsOff, string> = {
+  WORLD_TERM_LANGUAGE: 'No terms in this run: the language has no term sample yet.',
+};
+
+/** Ход не пишет предметов или понятий: причины словами; пусто — пишет или выбор не прошёл (`F08-13b`). */
+export const objectsOffTexts = (
+  run: Partial<Pick<WorldWrite, 'objectsOff' | 'termsOff'>>
+): string[] => [
+  ...(run.objectsOff == null ? [] : [OBJECTS_OFF_TEXT[run.objectsOff] ?? run.objectsOff]),
+  ...(run.termsOff == null ? [] : [TERMS_OFF_TEXT[run.termsOff] ?? run.termsOff]),
+];
 
 const PLACES_OFF_TEXT: Record<WorldWritePlacesOff, string> = {
   WORLD_PLACE_LANGUAGE: 'No places in this run: the language has no place sample yet.',
