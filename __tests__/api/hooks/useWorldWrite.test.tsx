@@ -98,6 +98,8 @@ const state = (
     terms: [],
     objectsOff: null,
     termsOff: null,
+    events: [],
+    eventsOff: null,
     leftOut: [],
     pairsOff: null,
     steps: [],

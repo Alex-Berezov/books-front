@@ -74,6 +74,8 @@ export const run = (patch: Partial<WorldWriteRun> = {}): WorldWriteRun => ({
   terms: [],
   objectsOff: null,
   termsOff: null,
+  events: [],
+  eventsOff: null,
   steps: [],
   items: [item()],
   droppedQuotes: [],

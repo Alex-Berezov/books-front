@@ -665,6 +665,85 @@ describe('WorldWrite (F08-4b)', () => {
       expect(steps).toHaveTextContent('No terms in this run: the language has no term sample yet.');
     });
 
+    // F08-13b-2: строка событий, шаг события и его выброшенная цитата, причина выключения событий.
+    it('the events of the run: their line, an event step and its dropped quote (F08-13b-2)', () => {
+      hooks.run = run({
+        events: [{ key: 'the-murder', name: 'The murder', aliases: ['murder'], chapters: [7, 8] }],
+        stepsTotal: 4,
+        steps: [step(), step({ step: 3, kind: 'event', key: 'the-murder' })],
+        droppedQuotes: [
+          { key: 'the-murder', chapter: 7, text: 'Murder words', reason: 'QUOTE_NOT_VERBATIM' },
+        ],
+        items: [],
+      });
+      view();
+      expect(screen.getByText('Events: The murder (2 chapters).')).toBeInTheDocument();
+      expect(screen.getByText(/Step 4 of 4: Event: The murder — done/)).toBeInTheDocument();
+      const dropped = screen.getByRole('list', { name: 'Dropped at step 4' });
+      expect(within(dropped).getByText(/Quote dropped: «Murder words»/)).toBeInTheDocument();
+    });
+
+    it('no events for a language without a sample: the block of steps says so (F08-13b-2)', () => {
+      hooks.run = run({ eventsOff: 'WORLD_EVENT_LANGUAGE', steps: [], items: [] });
+      view();
+      expect(screen.getByLabelText('Steps of the run')).toHaveTextContent(
+        'No events in this run: the language has no event sample yet.'
+      );
+    });
+
+    it('a failed event step and a left-out event (F08-13b-2)', () => {
+      hooks.run = run({
+        events: [{ key: 'the-trial', name: 'The trial', aliases: [], chapters: [3] }],
+        stepsTotal: 4,
+        steps: [
+          step(),
+          step({
+            step: 3,
+            kind: 'event',
+            key: 'the-trial',
+            outcome: 'failed',
+            failedReason: 'WORLD_EVENT_NOT_FOUND',
+          }),
+        ],
+        leftOut: [
+          { key: 'the-ball', reason: 'EVENT_NO_CHAPTER', names: ['The ball'], chapters: null },
+        ],
+        items: [],
+      });
+      view();
+      expect(screen.getByText(/Step 4 of 4: Event: The trial —/)).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'failed: neither the name forms nor the choice step found the event in any chapter of the version'
+        )
+      ).toBeInTheDocument();
+      const left = screen.getByRole('list', { name: 'Left out of the run' });
+      expect(
+        within(left).getByText(
+          /the choice step named the event without any chapter of this version/
+        )
+      ).toBeInTheDocument();
+    });
+
+    // Ответ бэкенда до F08-13b-2: поля событий нет вовсе - шаги показываются, строки событий нет.
+    it('a run without the event fields: steps are shown, no events line (F08-13b-2)', () => {
+      const old: Partial<WorldWriteRun> = run({ steps: [step()], items: [] });
+      delete old.events;
+      delete old.eventsOff;
+      hooks.run = old as WorldWriteRun;
+      view();
+      expect(screen.getByLabelText('Steps of the run')).toBeInTheDocument();
+      expect(screen.queryByText(/^Events:/)).toBeNull();
+    });
+
+    // Выбор ещё не прошёл: `events: null` - шаги до выбора показываются, строки событий нет.
+    it('events not chosen yet (null): steps are shown, no events line (F08-13b-2)', () => {
+      hooks.run = run({ events: null, stepsTotal: null, steps: [step()], items: [] });
+      view();
+      expect(screen.getByLabelText('Steps of the run')).toBeInTheDocument();
+      expect(screen.queryByText(/^Events:/)).toBeNull();
+    });
+
     it.each([
       [{ kind: 'real' as const, wikidataId: 'Q656' }, 'real, Wikidata Q656'],
       [{ kind: 'real' as const, wikidataId: null }, 'real, no Wikidata ID'],

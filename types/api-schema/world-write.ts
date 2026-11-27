@@ -38,7 +38,9 @@ export interface WorldWriteEstimate {
   objects: number;
   /** До N страниц понятий (`F08-13b`): min(10, понятий досье) до подсчёта глав (10 — досье ещё нет), 0 на языке без эталона понятия; цена уже в `stageUsd`. */
   terms: number;
-  /** Оценка сверху: выбор форм имени, на героя (главного и второстепенного до порога глав) страница и внешние блоки, затем до `pairs` страниц пар, до `places` страниц мест, до `objects` страниц предметов и до `terms` страниц понятий, проверяющая каждого шага, × 2 прохода. */
+  /** До N страниц событий (`F08-13b-2`): 10 — события называет шаг выбора, до него число неизвестно; 0 на языке без эталона события; цена уже в `stageUsd`. */
+  events: number;
+  /** Оценка сверху: выбор форм имени, на героя (главного и второстепенного до порога глав) страница и внешние блоки, затем до `pairs` страниц пар, до `places` страниц мест, до `objects` страниц предметов, до `terms` страниц понятий и до `events` страниц событий, проверяющая каждого шага, × 2 прохода. */
   stageUsd: LlmMoney;
   /** Досье или глоссарий не готовы: их размер — по их этапам. */
   upperBound: boolean;
@@ -202,7 +204,7 @@ export interface WorldWritePair {
 
 /**
  * Место хода (`F08-12b`): место досье, прошедшее порог глав; шаг места — после шагов пар. Та же форма —
- * у предмета и понятия хода (`F08-13b`, `objects`, `terms`).
+ * у предмета и понятия хода (`F08-13b`, `objects`, `terms`) и события (`F08-13b-2`, `events`).
  */
 export interface WorldWritePlace {
   /** Ключ места (ключ досье). */
@@ -231,7 +233,16 @@ export type WorldWriteSkipReason =
   | 'TERM_KEY_TAKEN'
   | 'TERMS_MAX'
   /** Организация досье: страницы у неё нет (решение `F08 | F08-13` Q5). */
-  | 'ORGANIZATION_SKIPPED';
+  | 'ORGANIZATION_SKIPPED'
+  /**
+   * События шага выбора (`F08-13b-2`, решения `F08 | F08-13b` Q2, Q3): ни одной главы версии, ключ занят
+   * сущностью или кандидатом другого типа, ключ не построить (ни из мира других версий, ни из названия),
+   * за потолком 10.
+   */
+  | 'EVENT_NO_CHAPTER'
+  | 'EVENT_KEY_TAKEN'
+  | 'EVENT_KEY_INVALID'
+  | 'EVENTS_MAX';
 
 /** Отсеянный шагом выбора герой или пара. */
 export interface WorldWriteLeftOut {
@@ -259,8 +270,11 @@ export type WorldWriteObjectsOff = 'WORLD_OBJECT_LANGUAGE';
 /** Ход не пишет понятий: `WORLD_TERM_LANGUAGE` — у языка нет эталона понятия (`F08-13b`). */
 export type WorldWriteTermsOff = 'WORLD_TERM_LANGUAGE';
 
+/** Ход не пишет событий: `WORLD_EVENT_LANGUAGE` — у языка нет эталона события (`F08-13b-2`). */
+export type WorldWriteEventsOff = 'WORLD_EVENT_LANGUAGE';
+
 export interface WorldWriteStep {
-  /** 0 — выбор форм имени, затем на героя страница и внешние блоки, затем по шагу на пару (`F08-8e`), место (`F08-12b`), предмет и понятие (`F08-13b`). */
+  /** 0 — выбор форм имени, затем на героя страница и внешние блоки, затем по шагу на пару (`F08-8e`), место (`F08-12b`), предмет и понятие (`F08-13b`), событие (`F08-13b-2`). */
   step: number;
   kind: WorldWriteStepKind;
   /** Ключ героя или пары; у шага выбора — `null`. */
@@ -270,7 +284,7 @@ export interface WorldWriteStep {
   /** 2 — текст единственной переделки. */
   attempt: number;
   outcome: 'done' | 'failed';
-  /** Почему шаг не дал текста: `DRAFT_TOO_LONG`, `DRAFT_INVALID_RESPONSE`, `WORLD_CHARACTER_NOT_FOUND`, `WORLD_PLACE_NOT_FOUND` (формы названия не нашли место ни в одной главе); шаг пары без вызова — `WORLD_PAIR_MEMBER_MISSING`, `WORLD_PAIR_KEY_TAKEN`, `WORLD_PAIR_NOT_FOUNDED` (пара не связана в анализе и без общих глав — новая и заведённая; либо новая пара не проходит условие заведения по сохранённому присутствию), `WORLD_MENTIONS_MOVED`; шаг места без вызова — `WORLD_PLACE_KEY_TAKEN` (`F08-12b`). */
+  /** Почему шаг не дал текста: `DRAFT_TOO_LONG`, `DRAFT_INVALID_RESPONSE`, `WORLD_CHARACTER_NOT_FOUND`, `WORLD_PLACE_NOT_FOUND` (формы названия не нашли место ни в одной главе); шаг пары без вызова — `WORLD_PAIR_MEMBER_MISSING`, `WORLD_PAIR_KEY_TAKEN`, `WORLD_PAIR_NOT_FOUNDED` (пара не связана в анализе и без общих глав — новая и заведённая; либо новая пара не проходит условие заведения по сохранённому присутствию), `WORLD_MENTIONS_MOVED`; шаг места без вызова — `WORLD_PLACE_KEY_TAKEN` (`F08-12b`); шаг предмета, понятия (`F08-13b`) и события (`F08-13b-2`) — `WORLD_OBJECT_NOT_FOUND`, `WORLD_TERM_NOT_FOUND`, `WORLD_EVENT_NOT_FOUND` (ни одной главы — вызова не было), `WORLD_OBJECT_KEY_TAKEN`, `WORLD_TERM_KEY_TAKEN`, `WORLD_EVENT_KEY_TAKEN` (ключ занят сущностью другого типа, без вызова); номер шага сверх всех списков хода — `WORLD_STEP_OUT_OF_RUN` (данные хода разошлись со счётом, в том числе при перегенерации). */
   failedReason: string | null;
   authorModel: string | null;
   review: WorldWriteReview | null;
@@ -327,7 +341,7 @@ export interface WorldWrite {
   /** Чего ждёт: досье или глоссарий строятся своими операциями. */
   waitingFor: 'dossier' | 'glossary' | null;
   operation: LlmOperation;
-  /** Шагов хода: 1 + 2 на героя + 1 на пару + 1 на место; `null` — герои ещё не выбраны. */
+  /** Шагов хода: 1 + 2 на героя + 1 на пару, место, предмет, понятие и событие; `null` — герои ещё не выбраны. */
   stepsTotal: number | null;
   /** Кандидаты; `null` — герои ещё не выбраны. */
   candidates: WorldWriteCandidate[] | null;
@@ -349,6 +363,10 @@ export interface WorldWrite {
   objectsOff: WorldWriteObjectsOff | null;
   /** Понятий нет и почему; `null` — есть или выбор ещё не прошёл. */
   termsOff: WorldWriteTermsOff | null;
+  /** События хода (`F08-13b-2`): называет шаг выбора, ключ строит код; шаги — после шагов понятий; `null` — выбор не прошёл; `[]` — ход до `F08-13b-2`. */
+  events: WorldWritePlace[] | null;
+  /** Событий нет и почему; `null` — есть или выбор ещё не прошёл. */
+  eventsOff: WorldWriteEventsOff | null;
   /** Пройденные шаги по порядку. */
   steps: WorldWriteStep[];
   items: WorldWriteItem[];

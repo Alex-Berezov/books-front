@@ -25,6 +25,7 @@ import type {
   WorldWriteBlock,
   WorldWriteDroppedQuote,
   WorldWriteEstimate,
+  WorldWriteEventsOff,
   WorldWriteItem,
   WorldWriteLeftOut,
   WorldWriteObjectsOff,
@@ -94,7 +95,7 @@ export const characterName = (run: Pick<WorldWrite, 'candidates'>, key: string):
 
 /** Что нужно для имён хода: кандидаты-герои, пары (имя пары — по её героям) и места (`F08-12b`). */
 export type RunNames = Pick<WorldWrite, 'candidates'> &
-  Partial<Pick<WorldWrite, 'pairs' | 'places' | 'objects' | 'terms'>>;
+  Partial<Pick<WorldWrite, 'pairs' | 'places' | 'objects' | 'terms' | 'events'>>;
 
 /** Имя пары в подписях админки: «{Имя} and {Имя}». */
 const PAIR_NAME_TEMPLATE = '{a} and {b}';
@@ -117,11 +118,12 @@ const pairName = (run: RunNames, key: string): string =>
  */
 export const entityName = (run: RunNames, key: string): string => {
   if (run.pairs?.some((p) => p.key === key)) return pairName(run, key);
-  // Место (`F08-12b`), предмет и понятие (`F08-13b`) хода: по своим спискам, имя — из выбора.
+  // Место (`F08-12b`), предмет и понятие (`F08-13b`), событие (`F08-13b-2`) хода: по своим спискам, имя — из выбора.
   const named =
     run.places?.find((p) => p.key === key) ??
     run.objects?.find((o) => o.key === key) ??
-    run.terms?.find((t) => t.key === key);
+    run.terms?.find((t) => t.key === key) ??
+    run.events?.find((e) => e.key === key);
   return named ? named.name : characterName(run, key);
 };
 
@@ -181,7 +183,7 @@ const stepAhead = (
     const candidate = run.candidates?.[Math.floor((step - 1) / 2)];
     return { title: (step - 1) % 2 === 0 ? 'Page' : 'External blocks', name: candidate?.name };
   }
-  // Событий у хода пока нет (`F08-13b-2`): поле в ответе ещё не заведено.
+  // `?? []` у событий: ход до `F08-13b-2` и ответ бэкенда до тега с полем.
   const tail: ReadonlyArray<{
     title: string;
     word: string;
@@ -192,6 +194,7 @@ const stepAhead = (
     { title: 'Place', word: 'place', list: run.places ?? [], name: (e) => e.name ?? e.key },
     { title: 'Object', word: 'object', list: run.objects ?? [], name: (e) => e.name ?? e.key },
     { title: 'Term', word: 'term', list: run.terms ?? [], name: (e) => e.name ?? e.key },
+    { title: 'Event', word: 'event', list: run.events ?? [], name: (e) => e.name ?? e.key },
   ];
   let at = step - 1 - heroSteps;
   for (const part of tail) {
@@ -210,7 +213,7 @@ const stepAhead = (
   return { title: 'Step' };
 };
 
-/** Ход пишется: какой шаг сейчас; чего ждёт; пауза — причиной. Шаги: 0 — выбор, затем на героя два, затем по одному на пару, место, предмет и понятие (нумерация — `stepAhead`). */
+/** Ход пишется: какой шаг сейчас; чего ждёт; пауза — причиной. Шаги: 0 — выбор, затем на героя два, затем по одному на пару, место, предмет, понятие и событие (нумерация — `stepAhead`). */
 export const progressText = (run: WorldWrite): string => {
   const done = run.steps.length;
   const total = run.stepsTotal;
@@ -284,6 +287,9 @@ const RUN_FAILURES: Readonly<Record<string, string>> = {
   WORLD_OBJECT_KEY_TAKEN: 'the key of the object is taken by an entity of another type',
   WORLD_TERM_NOT_FOUND: 'the name forms found the term in no chapter',
   WORLD_TERM_KEY_TAKEN: 'the key of the term is taken by an entity of another type',
+  WORLD_EVENT_NOT_FOUND:
+    'neither the name forms nor the choice step found the event in any chapter of the version',
+  WORLD_EVENT_KEY_TAKEN: 'the key of the event is taken by an entity of another type',
   WORLD_STEP_OUT_OF_RUN:
     'the step number is past every list of the run: the run data does not match its count',
   WORLD_WRITE_REFUSED: 'the world import refused the write',
@@ -306,9 +312,12 @@ export const writeEstimateText = (estimate: WorldWriteEstimate): string => {
   const objectsPart =
     estimate.objects > 0 ? `, at most ${pluralWord(estimate.objects, 'object')}` : '';
   const termsPart = estimate.terms > 0 ? `, at most ${pluralWord(estimate.terms, 'term')}` : '';
+  // События (`F08-13b-2`): тег бэкенда уезжает первым; `?? 0` — окно выката без поля.
+  const events = estimate.events ?? 0;
+  const eventsPart = events > 0 ? `, at most ${pluralWord(events, 'event')}` : '';
   return [
     ...contextEstimateLines(estimate),
-    `The world: at most ${estimate.candidates} ${estimate.candidates === 1 ? 'character' : 'characters'} (main and secondary)${pairsPart}${placesPart}${objectsPart}${termsPart}, up to ${formatMoney(estimate.stageUsd)}${upper}.`,
+    `The world: at most ${estimate.candidates} ${estimate.candidates === 1 ? 'character' : 'characters'} (main and secondary)${pairsPart}${placesPart}${objectsPart}${termsPart}${eventsPart}, up to ${formatMoney(estimate.stageUsd)}${upper}.`,
     limitLine(estimate.suggestedLimitUsd),
   ].join(' ');
 };
@@ -370,6 +379,12 @@ const SKIP_REASON_TEXT: Record<WorldWriteSkipReason, string> = {
     'the key of the term is taken by an entity or a candidate of another type (a place or an object of the dossier counts too: the dossier is shared by all languages, the key keeps its type in every one)',
   TERMS_MAX: 'over the limit of terms per run',
   ORGANIZATION_SKIPPED: 'an organization of the dossier: the world has no page type for it',
+  EVENT_NO_CHAPTER: 'the choice step named the event without any chapter of this version',
+  EVENT_KEY_TAKEN:
+    'the key of the event is taken by an entity or a candidate of another type (the key is shared by all languages and keeps its type in every one)',
+  EVENT_KEY_INVALID:
+    'no valid key for the event: none from the world of other versions, and the name gives no Latin key',
+  EVENTS_MAX: 'over the limit of events per run',
 };
 
 /** Причины отсева пары: ключ такой записи — ключ пары (`PAIR_KEY_INVALID` — как вышел бы), а не героя. */
@@ -410,12 +425,17 @@ const TERMS_OFF_TEXT: Record<WorldWriteTermsOff, string> = {
   WORLD_TERM_LANGUAGE: 'No terms in this run: the language has no term sample yet.',
 };
 
-/** Ход не пишет предметов или понятий: причины словами; пусто — пишет или выбор не прошёл (`F08-13b`). */
+const EVENTS_OFF_TEXT: Record<WorldWriteEventsOff, string> = {
+  WORLD_EVENT_LANGUAGE: 'No events in this run: the language has no event sample yet.',
+};
+
+/** Ход не пишет предметов, понятий (`F08-13b`) или событий (`F08-13b-2`): причины словами; пусто — пишет или выбор не прошёл. */
 export const objectsOffTexts = (
-  run: Partial<Pick<WorldWrite, 'objectsOff' | 'termsOff'>>
+  run: Partial<Pick<WorldWrite, 'objectsOff' | 'termsOff' | 'eventsOff'>>
 ): string[] => [
   ...(run.objectsOff == null ? [] : [OBJECTS_OFF_TEXT[run.objectsOff] ?? run.objectsOff]),
   ...(run.termsOff == null ? [] : [TERMS_OFF_TEXT[run.termsOff] ?? run.termsOff]),
+  ...(run.eventsOff == null ? [] : [EVENTS_OFF_TEXT[run.eventsOff] ?? run.eventsOff]),
 ];
 
 const PLACES_OFF_TEXT: Record<WorldWritePlacesOff, string> = {

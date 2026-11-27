@@ -68,6 +68,10 @@ export const WorldWriteSteps: FC<{ run: WorldWrite }> = ({ run }) => {
       {run.terms && run.terms.length > 0 && (
         <p className={draftStyles.hint}>Terms: {run.terms.map(placeLine).join('; ')}.</p>
       )}
+      {/* События хода (`F08-13b-2`): называет шаг выбора, строка та же. */}
+      {run.events && run.events.length > 0 && (
+        <p className={draftStyles.hint}>Events: {run.events.map(placeLine).join('; ')}.</p>
+      )}
       {objectsOff.map((text) => (
         <p key={text} className={draftStyles.hint}>
           {text}
@@ -86,7 +90,8 @@ export const WorldWriteSteps: FC<{ run: WorldWrite }> = ({ run }) => {
           s.kind === 'pair' ||
           s.kind === 'place' ||
           s.kind === 'object' ||
-          s.kind === 'term'
+          s.kind === 'term' ||
+          s.kind === 'event'
             ? run.droppedQuotes.filter((q) => q.key === s.key)
             : [];
         const sources =

@@ -1,6 +1,11 @@
 import type { ReactElement } from 'react';
 import { JsonImportPreviewModal } from '@/components/admin/common/JsonImportPreviewModal';
-import { worldListFieldsOf, worldTextFieldsOf } from '@/lib/admin/book-world-blocks';
+import {
+  WORLD_OBJECT_TYPES,
+  worldListFieldsOf,
+  worldTextFieldsOf,
+  type WorldObjectType,
+} from '@/lib/admin/book-world-blocks';
 import { formatDataIssue } from '@/lib/admin/data-issue';
 import type { WorldImportPreviewOk } from './WorldTab.types';
 import type {
@@ -34,18 +39,19 @@ interface ImportWorldModalProps<T extends object> {
 const PLACE_HINT =
   'A place: type "place", fields kind ("real" or "fictional"), wikidataId (only for a real place, e.g. "Q90"), location, significance, description, aliases, short, scenes, quotes, faq, imageBrief.';
 
+/** Подпись типа в подсказке: `Record` по `WorldObjectType` — новый тип без подписи не соберётся. */
+const OBJECT_TYPE_TITLES: Record<WorldObjectType, string> = {
+  object: 'An object',
+  term: 'A term',
+  event: 'An event',
+};
+
 /**
  * Предмет, понятие и событие (F08-13b): поля собраны из перечней карточки (`worldTextFieldsOf`/
  * `worldListFieldsOf` - копия `WORLD_BLOCKS_OF_TYPE` бэкенда), а не второй копией текстом;
  * роли, источников и imageBrief у них нет.
  */
-const OBJECT_HINT = `${(
-  [
-    ['An object', 'object'],
-    ['A term', 'term'],
-    ['An event', 'event'],
-  ] as const
-)
+const OBJECT_HINT = `${WORLD_OBJECT_TYPES.map((type) => [OBJECT_TYPE_TITLES[type], type] as const)
   .map(
     ([what, type]) =>
       `${what}: type "${type}", fields ${['aliases', ...worldTextFieldsOf(type).map((f) => f.path), ...worldListFieldsOf(type).map((f) => f.path)].join(', ')}.`

@@ -149,6 +149,7 @@ describe('worldWrite.utils objects and terms (F08-13b)', () => {
       candidates: 2,
       pairs: 0,
       places: 0,
+      events: 0,
       stageUsd: '0.5',
       upperBound: false,
       suggestedLimitUsd: '1',
