@@ -8405,7 +8405,13 @@
       "places[].scenes[].chapter",
       "places[].scenes[].paragraph",
       "places[].scenes[].title",
-      "places[].short"
+      "places[].short",
+      "terms",
+      "terms[].chapter",
+      "terms[].hasPage",
+      "terms[].key",
+      "terms[].name",
+      "terms[].short"
     ]
   },
   {
@@ -8433,6 +8439,7 @@
       "entity.arc.to",
       "entity.bonds",
       "entity.character",
+      "entity.characterKeys",
       "entity.compare",
       "entity.compare[].a",
       "entity.compare[].b",
@@ -8512,6 +8519,7 @@
       "entity.sources",
       "entity.sources[].title",
       "entity.sources[].url",
+      "entity.themeKeys",
       "entity.type",
       "entity.updatedAt",
       "entity.wikidataId",
@@ -17269,7 +17277,13 @@
       "world.places[].scenes[].chapter",
       "world.places[].scenes[].paragraph",
       "world.places[].scenes[].title",
-      "world.places[].short"
+      "world.places[].short",
+      "world.terms",
+      "world.terms[].chapter",
+      "world.terms[].hasPage",
+      "world.terms[].key",
+      "world.terms[].name",
+      "world.terms[].short"
     ]
   },
   {
@@ -17293,6 +17307,7 @@
       "entity.arc.to",
       "entity.bonds",
       "entity.character",
+      "entity.characterKeys",
       "entity.compare",
       "entity.compare[].a",
       "entity.compare[].b",
@@ -17372,6 +17387,7 @@
       "entity.sources",
       "entity.sources[].title",
       "entity.sources[].url",
+      "entity.themeKeys",
       "entity.type",
       "entity.updatedAt",
       "entity.wikidataId",

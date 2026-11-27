@@ -9,7 +9,11 @@ import type { BookAnalysisRole } from './book-analysis';
 import type { ISODate } from './common';
 import type { SupportedLang } from '@/lib/i18n/lang';
 
-/** Тип сущности; запись принимает `character`, `pair` (F08-8c) и `place` (F08-12a), прочие — пачками своего типа. */
+/**
+ * Тип сущности; запись на бэкенде принимает все шесть: `character`, `pair` (F08-8c), `place` (F08-12a),
+ * `object`, `term` и `event` (F08-13a; на сайте — с F08-13c). Импорт админки фронта (`lib/admin/book-world.schema.ts`)
+ * знает новые три с F08-13b.
+ */
 export type WorldEntityType = 'character' | 'pair' | 'place' | 'object' | 'term' | 'event';
 
 export type BookWorldRole = BookAnalysisRole;
@@ -159,6 +163,17 @@ export interface BookWorldPlaceFields {
   wikidataId: string | null;
 }
 
+/**
+ * Связи предмета и события (F08-13a, решение арбитра `F08 | F08-13` Q1): `characterKeys` — герои мира
+ * этой версии (у предмета и события), `themeKeys` — темы анализа версии (только у предмета). У других
+ * типов — `null`. Читателю бэкенд отдаёт только героев на сайте и темы анализа с ядром, редактору — все.
+ * Необязательные: бэкенд до F08-13a полей не отдаёт.
+ */
+export interface BookWorldObjectFields {
+  characterKeys?: string[] | null;
+  themeKeys?: string[] | null;
+}
+
 /** Проверенная точка реального места: координаты из Wikidata P625 и страница источника (F08-12a). */
 export interface BookWorldPoint {
   lat: number;
@@ -207,6 +222,20 @@ export interface BookWorldPlaceCard {
   hasPage: boolean;
   point: BookWorldPoint | null;
   scenes: BookWorldPlaceScene[];
+}
+
+/**
+ * Строка глоссария общей страницы `/wiki` (F08-13a, `product.md` §7): понятие, и без своей страницы
+ * (`hasPage: false`) — строкой без ссылки; «термин — определение — глава».
+ */
+export interface BookWorldTermCard {
+  key: string;
+  name: string;
+  /** Определение («Коротко»). */
+  short: string | null;
+  /** Первая глава, где понятие найдено; `null` — не посчитано. */
+  chapter: number | null;
+  hasPage: boolean;
 }
 
 /** Тайл мозаики литературной карты (F08-12d): место в сетке и адрес копии в хранилище сайта. */
@@ -327,6 +356,12 @@ export interface BookWorldListResponse {
    */
   places: BookWorldPlaceCard[];
   /**
+   * Глоссарий общей страницы (F08-13a): понятия по первой главе, затем по ключу; «показывать»,
+   * «прочитано», рубильник новых типов на бэкенде (выключен до F08-13c) — пусто. Необязательное:
+   * бэкенд до F08-13a поля не отдаёт.
+   */
+  terms?: BookWorldTermCard[];
+  /**
    * Литературная карта (F08-12d): только читателю с `?map=1` (страница `/wiki`); `null` - без
    * параметра, редактору, в ответе записи, без точек или если тайл не взялся. Необязательное:
    * бэкенд до F08-12d поля не отдаёт.
@@ -339,7 +374,8 @@ export interface BookWorldEntity
     BookWorldEntitySummary,
     Omit<BookWorldCharacterFields, 'short'>,
     BookWorldPairFields,
-    BookWorldPlaceFields {
+    BookWorldPlaceFields,
+    BookWorldObjectFields {
   mentions: BookWorldMentions | null;
   /** Только у места (F08-12a): проверенная точка для текущего `wikidataId`; иначе `null`. */
   point: BookWorldPoint | null;
@@ -423,7 +459,8 @@ export type BookWorldEntityInput = {
   imageBrief?: string | null;
 } & Partial<BookWorldCharacterFields> &
   Partial<BookWorldPairFields> &
-  Partial<BookWorldPlaceFields>;
+  Partial<BookWorldPlaceFields> &
+  BookWorldObjectFields;
 
 /** Тело `PUT versions/:id/world`: вся версия; сущности вне тела не трогаются. */
 export interface SaveBookWorldRequest {
