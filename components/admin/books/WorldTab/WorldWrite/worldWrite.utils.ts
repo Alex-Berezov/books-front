@@ -381,7 +381,7 @@ const SKIP_REASON_TEXT: Record<WorldWriteSkipReason, string> = {
   ORGANIZATION_SKIPPED: 'an organization of the dossier: the world has no page type for it',
   EVENT_NO_CHAPTER: 'the choice step named the event without any chapter of this version',
   EVENT_KEY_TAKEN:
-    'the key of the event is taken by an entity or a candidate of another type (the key is shared by all languages and keeps its type in every one)',
+    'the key of the event is taken by an entity or a candidate of another type (the key is shared by all languages and keeps its type in every one), or by another event of the run whose long name starts the same way',
   EVENT_KEY_INVALID:
     'no valid key for the event: none from the world of other versions, and the name gives no Latin key',
   EVENTS_MAX: 'over the limit of events per run',
@@ -429,8 +429,8 @@ const EVENTS_OFF_TEXT: Record<WorldWriteEventsOff, string> = {
   WORLD_EVENT_LANGUAGE: 'No events in this run: the language has no event sample yet.',
 };
 
-/** Ход не пишет предметов, понятий (`F08-13b`) или событий (`F08-13b-2`): причины словами; пусто — пишет или выбор не прошёл. */
-export const objectsOffTexts = (
+/** Ход не пишет предметов, понятий (`F08-13b`) или событий (`F08-13b-2`): причины словами; пусто — пишет или выбор не прошёл (`F08-13b-3`: имя по всем трём, не только по предметам). */
+export const runOffTexts = (
   run: Partial<Pick<WorldWrite, 'objectsOff' | 'termsOff' | 'eventsOff'>>
 ): string[] => [
   ...(run.objectsOff == null ? [] : [OBJECTS_OFF_TEXT[run.objectsOff] ?? run.objectsOff]),

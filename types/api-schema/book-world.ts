@@ -236,7 +236,7 @@ export interface BookWorldObjectCard {
   short: string | null;
   /**
    * Первая глава: у предмета и понятия — первое упоминание формы, у события — первая глава сцен;
-   * `null` — не посчитано или сцены без главы.
+   * `null` — не посчитано, сцены без главы или ни одной главы сцен в этой версии.
    */
   chapter: number | null;
   hasPage: boolean;

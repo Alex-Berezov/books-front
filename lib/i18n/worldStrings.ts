@@ -273,7 +273,7 @@ const fr: WorldStrings = {
   worldEventsTitle: 'Événements',
   worldGlossaryTitle: 'Glossaire',
   worldEventScenesTitle: 'Comment cela se passe',
-  worldObjectLinksTitle: 'Liens',
+  worldObjectLinksTitle: 'Éléments liés',
   worldObjectCharacters: 'Personnages',
   worldObjectThemes: 'Thèmes de l’analyse',
   worldObjectPresenceTitle: 'Où cela apparaît',

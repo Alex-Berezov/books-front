@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   itemTitle,
   leftOutText,
-  objectsOffTexts,
+  runOffTexts,
   progressText,
   reasonText,
   stepTitle,
@@ -113,7 +113,7 @@ describe('worldWrite.utils objects and terms (F08-13b)', () => {
 
   it('an event step is titled by its kind; an unknown off code is shown as is', () => {
     expect(stepTitle(run(0), stepFixture({ step: 8, kind: 'event', key: null }))).toBe('Event');
-    expect(objectsOffTexts({ objectsOff: 'WORLD_OBJECT_NEW' as never, termsOff: null })).toEqual([
+    expect(runOffTexts({ objectsOff: 'WORLD_OBJECT_NEW' as never, termsOff: null })).toEqual([
       'WORLD_OBJECT_NEW',
     ]);
   });
@@ -132,14 +132,14 @@ describe('worldWrite.utils objects and terms (F08-13b)', () => {
 
   it('a language without an object or a term sample says so; none when both are written', () => {
     expect(
-      objectsOffTexts({ objectsOff: 'WORLD_OBJECT_LANGUAGE', termsOff: 'WORLD_TERM_LANGUAGE' })
+      runOffTexts({ objectsOff: 'WORLD_OBJECT_LANGUAGE', termsOff: 'WORLD_TERM_LANGUAGE' })
     ).toEqual([
       'No objects in this run: the language has no object sample yet.',
       'No terms in this run: the language has no term sample yet.',
     ]);
-    expect(objectsOffTexts({ objectsOff: null, termsOff: null })).toEqual([]);
+    expect(runOffTexts({ objectsOff: null, termsOff: null })).toEqual([]);
     // Ход до F08-13b: полей нет.
-    expect(objectsOffTexts({})).toEqual([]);
+    expect(runOffTexts({})).toEqual([]);
   });
 
   it('the estimate names objects and terms; zero of a type is not named', () => {

@@ -187,6 +187,25 @@ describe('строки места (F08-12c, product.md §15, решение `F08
     }
   });
 
+  it('заголовки новых разделов /wiki и связей предмета (F08-13c, §15): es, fr, pt, ru', async () => {
+    const { worldStrings } = await load();
+    const titles = {
+      es: ['Objetos', 'Glosario', 'Acontecimientos', 'Conexiones'],
+      fr: ['Objets', 'Glossaire', 'Événements', 'Éléments liés'],
+      pt: ['Objetos', 'Glossário', 'Acontecimentos', 'Ligações'],
+      ru: ['Предметы', 'Глоссарий', 'События', 'Связи'],
+    } as const;
+    for (const lang of ['es', 'fr', 'pt', 'ru'] as const) {
+      const s = worldStrings[lang];
+      expect(
+        [s.worldObjectsTitle, s.worldGlossaryTitle, s.worldEventsTitle, s.worldObjectLinksTitle],
+        lang
+      ).toEqual(titles[lang]);
+    }
+    // «Liens» по-французски - ещё и гиперссылки: раздел связей предмета называется однозначно.
+    expect(worldStrings.fr.worldObjectLinksTitle).not.toBe('Liens');
+  });
+
   it('fr: двоеточие строки «где находится» - с пробелом перед ним', async () => {
     const { worldStrings } = await load();
     expect(worldStrings.fr.worldPlaceLocationLine).toBe('{label} : {value}');

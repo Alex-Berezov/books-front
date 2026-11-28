@@ -2240,6 +2240,143 @@ describe('страницы предмета, понятия, события и �
     ).toHaveAttribute('href', '/en/book/world-book/wiki/lark-law');
   });
 
+  it('событие: после прочтения главы последней сцены значение открыто (остров главы 3 снят)', async () => {
+    spoiler.session = { data: { user: { id: 'u1' } }, status: 'authenticated' };
+    spoiler.progress = { chapterNumber: 3 };
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(DUEL));
+    await renderEntity('duel');
+    expect(screen.getByText('Tom loses the duel.').closest('[hidden]')).toBeNull();
+    expect(screen.getByText('Tom falls.').closest('[hidden]')).toBeNull();
+  });
+
+  it('цитата предмета: говорящий - герой по speakerKey; без ключа и с чужим ключом подписи нет', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(ROBE));
+    await renderEntity('robe');
+    expect(document.getElementById('quotes')!.textContent).toContain('Anna Lark');
+    cleanup();
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(TERM));
+    await renderEntity('lark-law');
+    expect(document.getElementById('quotes')!.textContent).toContain('Law quote.');
+    expect(document.getElementById('quotes')!.textContent).not.toContain('Anna Lark');
+    cleanup();
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse({
+        ...TERM,
+        quotes: [{ text: 'Law quote.', chapter: 1, interpretation: 'Rule.', speakerKey: 'nobody' }],
+      })
+    );
+    await renderEntity('lark-law');
+    expect(document.getElementById('quotes')!.textContent).toContain('Law quote.');
+    expect(document.getElementById('quotes')!.textContent).not.toMatch(/nobody/);
+  });
+
+  it('связи предмета: ссылки на анализ нет - тема названием без ссылки, герой по-прежнему ссылкой', async () => {
+    const { worldStrings } = await import('@/lib/i18n/worldStrings');
+    const { buildObjectSections } =
+      await import('@/app/[lang]/book/[slug]/wiki/WorldObjectSections');
+    // Страница сюда не приводит (без анализа по счётчику его и не запрашивают), поэтому - сам сборщик.
+    const input = {
+      entity: {
+        ...ROBE,
+        short: null,
+        significance: null,
+        description: null,
+        quotes: null,
+        faq: null,
+      },
+      strings: worldStrings.en,
+      textLinks: null,
+      people: new Map([['anna', { name: 'Anna Lark', href: '/en/book/world-book/wiki/anna' }]]),
+      themeTitles: new Map([['courage', 'Courage']]),
+      links: { analysis: null, analysisHasThemes: false, summary: null },
+      chapterNumbers: [1, 2, 3],
+      progressVersionId: null,
+      analysisStrings: { analysisChapters: 'Chapters' },
+      linker: { label: (n: number) => `Chapter ${n}`, href: () => null },
+    } as unknown as Parameters<typeof buildObjectSections>[0];
+    const section = buildObjectSections(input).find((x) => x.id === 'connections')!;
+    render(<>{section.body}</>);
+    expect(screen.getByText('Courage')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Courage' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Anna Lark' })).toHaveAttribute(
+      'href',
+      '/en/book/world-book/wiki/anna'
+    );
+  });
+
+  it('/wiki: карточка предмета и события без главы - без строки главы; без «Коротко» и без страницы - только имя', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST,
+      objects: [objCard('robe', 'The Robe', { chapter: null })],
+      events: [objCard('duel', 'The Duel', { chapter: null, short: null, hasPage: false })],
+    });
+    await renderIndex();
+    for (const id of ['objects', 'events']) {
+      const section = within(document.getElementById(id)!);
+      expect(section.queryByRole('link', { name: /Chapter/ })).toBeNull();
+      expect(document.getElementById(id)!.textContent).not.toMatch(/Chapter/);
+    }
+    expect(within(document.getElementById('events')!).getByText('The Duel')).toBeInTheDocument();
+    expect(document.getElementById('events')!.querySelectorAll('p')).toHaveLength(0);
+  });
+
+  it('/wiki: карточка со своей страницей и без «Коротко» занимает слот ссылки - имя дальше по тексту не ссылка', async () => {
+    const mention = objCard('cane', 'The Cane', {
+      short: 'Leaned against The Robe.',
+      hasPage: false,
+    });
+    const robe = objCard('robe', 'The Robe', { short: null });
+    const paragraphOf = () =>
+      screen.getByText(
+        (_, el) => el?.tagName === 'P' && el.textContent === 'Leaned against The Robe.'
+      );
+    const world = {
+      ...LIST,
+      entities: [
+        ...LIST.entities,
+        { ...summary('robe', 'The Robe', { type: 'object', role: null }), forms: ['The Robe'] },
+      ],
+    };
+    mocks.getPublicBookWorld.mockResolvedValue({ ...world, objects: [robe, mention] });
+    await renderIndex();
+    expect(within(paragraphOf()).queryAllByRole('link')).toEqual([]);
+    cleanup();
+    // Контроль: упоминание раньше карточки предмета остаётся ссылкой - слот тратит именно карточка.
+    mocks.getPublicBookWorld.mockResolvedValue({ ...world, objects: [mention, robe] });
+    await renderIndex();
+    expect(within(paragraphOf()).getAllByRole('link')).toHaveLength(1);
+  });
+
+  it('/wiki: порядок §4 п.6 при наличии мест - места, предметы, глоссарий, события, ссылки', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST,
+      places: [
+        {
+          key: 'harbor',
+          name: 'Old Harbor',
+          short: 'Where the map begins.',
+          kind: null,
+          location: null,
+          hasPage: true,
+          point: null,
+          scenes: [],
+        },
+      ],
+      objects: [objCard('robe', 'The Robe')],
+      terms: [objCard('lark-law', 'Lark law')],
+      events: [objCard('duel', 'The Duel')],
+    });
+    await renderIndex();
+    const ids = ['places', 'objects', 'glossary', 'events', 'more'];
+    for (let i = 1; i < ids.length; i++) {
+      const before = document.getElementById(ids[i - 1])!;
+      const after = document.getElementById(ids[i])!;
+      expect(before, ids[i - 1]).not.toBeNull();
+      expect(after, ids[i]).not.toBeNull();
+      expect(before.compareDocumentPosition(after) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+  });
+
   it('/wiki: бэкенд без карточек (до F08-13c) - разделов нет', async () => {
     mocks.getPublicBookWorld.mockResolvedValue(LIST);
     await renderIndex();

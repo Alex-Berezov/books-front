@@ -1,4 +1,4 @@
-import { isWorldObjectType } from '@/lib/admin/book-world-blocks';
+import { isWorldObjectType, type WorldObjectType } from '@/lib/admin/book-world-blocks';
 import type { WorldStrings } from '@/lib/i18n/worldStrings';
 
 /*
@@ -21,9 +21,11 @@ export function entityPageTitle(type: string, strings: WorldStrings): string {
  * `F08 | F08-13` Q7); герой и прочее - формулой героя.
  */
 export function entityMetaTitle(type: string, strings: WorldStrings): string {
-  if (type === 'place') return strings.worldPlaceMetaTitle;
-  if (type === 'object') return strings.worldObjectMetaTitle;
-  if (type === 'term') return strings.worldTermMetaTitle;
-  if (type === 'event') return strings.worldEventMetaTitle;
-  return strings.worldEntityMetaTitle;
+  const byType: Record<'place' | WorldObjectType, string> = {
+    place: strings.worldPlaceMetaTitle,
+    object: strings.worldObjectMetaTitle,
+    term: strings.worldTermMetaTitle,
+    event: strings.worldEventMetaTitle,
+  };
+  return type === 'place' || isWorldObjectType(type) ? byType[type] : strings.worldEntityMetaTitle;
 }

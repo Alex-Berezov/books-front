@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   entityName,
   leftOutText,
-  objectsOffTexts,
+  runOffTexts,
   progressText,
   reasonText,
   stepTitle,
@@ -62,7 +62,7 @@ describe('worldWrite.utils events (F08-13b-2)', () => {
       'K: the choice step named the event without any chapter of this version.'
     );
     expect(line('EVENT_KEY_TAKEN', null)).toBe(
-      'K: the key of the event is taken by an entity or a candidate of another type (the key is shared by all languages and keeps its type in every one).'
+      'K: the key of the event is taken by an entity or a candidate of another type (the key is shared by all languages and keeps its type in every one), or by another event of the run whose long name starts the same way.'
     );
     expect(line('EVENT_KEY_INVALID', null)).toBe(
       'K: no valid key for the event: none from the world of other versions, and the name gives no Latin key.'
@@ -81,9 +81,9 @@ describe('worldWrite.utils events (F08-13b-2)', () => {
 
   it('a language without an event sample says so', () => {
     expect(
-      objectsOffTexts({ objectsOff: null, termsOff: null, eventsOff: 'WORLD_EVENT_LANGUAGE' })
+      runOffTexts({ objectsOff: null, termsOff: null, eventsOff: 'WORLD_EVENT_LANGUAGE' })
     ).toEqual(['No events in this run: the language has no event sample yet.']);
-    expect(objectsOffTexts({ objectsOff: null, termsOff: null, eventsOff: null })).toEqual([]);
+    expect(runOffTexts({ objectsOff: null, termsOff: null, eventsOff: null })).toEqual([]);
   });
 
   it('the estimate names events; zero events or no field is not named', () => {

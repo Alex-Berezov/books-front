@@ -6,7 +6,7 @@ import type { WorldWrite } from '@/types/api-schema';
 import {
   droppedQuoteText,
   leftOutText,
-  objectsOffTexts,
+  runOffTexts,
   pairLine,
   pairsOffText,
   placeLine,
@@ -27,13 +27,13 @@ export const WorldWriteSteps: FC<{ run: WorldWrite }> = ({ run }) => {
   const leftOut = run.leftOut ?? [];
   const pairsOff = pairsOffText(run);
   const placesOff = placesOffText(run);
-  const objectsOff = objectsOffTexts(run);
+  const runOff = runOffTexts(run);
   if (
     run.steps.length === 0 &&
     leftOut.length === 0 &&
     pairsOff === null &&
     placesOff === null &&
-    objectsOff.length === 0
+    runOff.length === 0
   ) {
     return null;
   }
@@ -72,7 +72,7 @@ export const WorldWriteSteps: FC<{ run: WorldWrite }> = ({ run }) => {
       {run.events && run.events.length > 0 && (
         <p className={draftStyles.hint}>Events: {run.events.map(placeLine).join('; ')}.</p>
       )}
-      {objectsOff.map((text) => (
+      {runOff.map((text) => (
         <p key={text} className={draftStyles.hint}>
           {text}
         </p>
