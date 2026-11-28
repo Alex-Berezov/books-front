@@ -47,6 +47,11 @@ export interface WorldEntitySectionsInput {
    * анализа нет - пусто.
    */
   themeTitles: ReadonlyMap<string, string>;
+  /**
+   * Ключи тем героя - `themeKeys` карточки анализа с ключом героя (решение арбитра `F08 | F08-13` Q3);
+   * не герой или карточки нет - пусто. Названия - из `themeTitles`.
+   */
+  heroThemeKeys: readonly string[];
   /** Номера аудиоглав версии: «Слушать» - только на существующую. */
   audioChapters: ReadonlySet<number>;
   /** Адрес плеера на аудиоглаве `n`; `null` - аудио у книги нет. */

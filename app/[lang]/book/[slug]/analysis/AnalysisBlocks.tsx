@@ -8,7 +8,7 @@ import {
   splitParagraphs,
   themeColorIndex,
 } from '@/lib/book-analysis/format';
-import { markLinked, type LinkSession } from '@/lib/book-world/link-entities';
+import { entityTargetByName, markLinked, type LinkSession } from '@/lib/book-world/link-entities';
 import type {
   BookAnalysisCharacter,
   BookAnalysisKeyQuote,
@@ -18,6 +18,7 @@ import type {
   BookAnalysisTheme,
 } from '@/types/api-schema';
 import styles from './analysis.module.scss';
+import { themeAnchor } from './analysisAnchors';
 import { LinkedText } from '../LinkedText';
 import { ThemeStrip } from './ThemeStrip';
 
@@ -217,6 +218,7 @@ export function ThemesList({
       {themes.map((theme, i) => (
         <li
           key={theme.key}
+          id={themeAnchor(theme.key)}
           className={`${styles.card} ${styles.themeCard} ${themeClass(themeColorIndex(i))}`}
         >
           <h3 className={styles.cardTitle}>{theme.title}</h3>
@@ -314,29 +316,51 @@ export function CharactersList({
   );
 }
 
+/**
+ * Символы (§11 п.2, решения арбитра `F08 | F08-13` Q2 и `F08 | F08-13d` V2): свёрнутое название
+ * символа - форма ровно одной публичной сущности мира, и она предмет со страницей, - под толкованием
+ * «Подробнее о предмете»; в тексте карточки имя предмета второй ссылкой не становится. Заголовок
+ * ссылкой не становится (§11 п.1); у второго символа того же предмета строки нет.
+ */
 export function SymbolsList({
   symbols,
   linker,
   links,
   chaptersLabel,
+  objectMore,
 }: {
   symbols: readonly BookAnalysisSymbol[];
   linker: ChapterLinker;
   links: LinkSession | null;
   chaptersLabel: string;
+  objectMore: string;
 }) {
+  const moreShown = new Set<string>();
   return (
     <ul className={styles.cards}>
-      {symbols.map((s, i) => (
-        <li key={`${s.title}-${i}`} className={styles.card}>
-          <h3 className={styles.cardTitle}>{s.title}</h3>
-          <div className={styles.text}>
-            <Paragraphs text={s.interpretation} links={links} />
-          </div>
-          <ChapterList chapters={s.chapters} linker={linker} label={chaptersLabel} />
-          {s.quote?.text ? <QuoteBlock quote={s.quote} linker={linker} links={links} /> : null}
-        </li>
-      ))}
+      {symbols.map((s, i) => {
+        const found = links ? entityTargetByName(links.index, s.title, 'object') : null;
+        // Два символа одного предмета: «Подробнее о предмете» - у первого (§11 п.1, одна на сущность).
+        const object = found && !moreShown.has(found.key) ? found : null;
+        if (object) moreShown.add(object.key);
+        return (
+          <li key={`${s.title}-${i}`} className={styles.card}>
+            <h3 className={styles.cardTitle}>{s.title}</h3>
+            <div className={styles.text}>
+              <Paragraphs text={s.interpretation} links={links} linkedKey={object?.key} />
+            </div>
+            <ChapterList chapters={s.chapters} linker={linker} label={chaptersLabel} />
+            {s.quote?.text ? <QuoteBlock quote={s.quote} linker={linker} links={links} /> : null}
+            {object ? (
+              <p>
+                <Link href={object.href} className={styles.textLink}>
+                  {objectMore}
+                </Link>
+              </p>
+            ) : null}
+          </li>
+        );
+      })}
     </ul>
   );
 }

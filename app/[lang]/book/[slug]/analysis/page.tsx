@@ -216,6 +216,7 @@ export default async function BookAnalysisPage({ params }: Props) {
             tocTitle={dict.common.tableOfContents}
             faqTitle={t.faqTitle}
             characterMore={worldStrings.worldCardMore}
+            objectMore={worldStrings.worldObjectMore}
             heroes={{
               title: worldStrings.worldBookHeroesTitle,
               heroes: pickBookHeroes(worldEntities),

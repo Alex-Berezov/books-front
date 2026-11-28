@@ -757,6 +757,116 @@ describe('страница героя: полный герой', () => {
     );
   });
 
+  // Темы героя (решения арбитра `F08 | F08-13` Q3, `F08 | F08-13d` V1): `themeKeys` его карточки
+  // анализа - ссылками на карточки тем вместо общей «Analysis: themes»; ключа нет в анализе - темы нет.
+  it('«Дальше»: темы героя из анализа - ссылками на theme-{key}, вместо общей ссылки на темы', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      ...ANALYSIS,
+      themes: [
+        { key: 'courage', title: 'Courage' },
+        { key: 'maps', title: 'Maps' },
+      ],
+      characters: ANALYSIS.characters.map((c) =>
+        c.key === 'anna' ? { ...c, themeKeys: ['courage', 'gone', 'maps'] } : c
+      ),
+    });
+    const { container } = await renderEntity();
+    const next = container.querySelector('#next') as HTMLElement;
+    expect(within(next).getByRole('link', { name: 'Courage' })).toHaveAttribute(
+      'href',
+      '/en/book/world-book/analysis#theme-courage'
+    );
+    expect(within(next).getByRole('link', { name: 'Maps' })).toHaveAttribute(
+      'href',
+      '/en/book/world-book/analysis#theme-maps'
+    );
+    expect(next).toHaveTextContent('Themes of the analysis: Courage, Maps');
+    expect(next.textContent).not.toMatch(/gone/);
+    expect(within(next).queryByRole('link', { name: 'Analysis: themes' })).toBeNull();
+  });
+
+  it('«Дальше»: ни одна тема героя не нашлась в анализе - общая ссылка «Analysis: themes»', async () => {
+    mocks.getPublicBookAnalysis.mockResolvedValue({
+      ...ANALYSIS,
+      characters: ANALYSIS.characters.map((c) =>
+        c.key === 'anna' ? { ...c, themeKeys: ['gone'] } : c
+      ),
+    });
+    const { container } = await renderEntity();
+    const next = container.querySelector('#next') as HTMLElement;
+    expect(within(next).getByRole('link', { name: 'Analysis: themes' })).toHaveAttribute(
+      'href',
+      '/en/book/world-book/analysis#themes'
+    );
+    expect(next.textContent).not.toMatch(/gone|Themes of the analysis/);
+  });
+
+  it('пункт анализа «Дальше»: страницы анализа нет - темы героя названием без ссылки, повтор ключа - одна тема', async () => {
+    const { worldStrings } = await import('@/lib/i18n/worldStrings');
+    const { worldNextAnalysisItem } = await import('@/app/[lang]/book/[slug]/wiki/worldThemes');
+    // Страница сюда не приводит (без анализа по счётчику его и не запрашивают), поэтому - сам пункт.
+    render(
+      <>
+        {worldNextAnalysisItem({
+          strings: worldStrings.en,
+          themeTitles: new Map([['courage', 'Courage']]),
+          heroThemeKeys: ['courage', 'courage', 'gone'],
+          links: { analysis: null, analysisHasThemes: true, summary: null },
+        })}
+      </>
+    );
+    expect(document.body).toHaveTextContent(/^Themes of the analysis: Courage$/);
+    expect(screen.queryByRole('link')).toBeNull();
+  });
+
+  it('пункт анализа «Дальше»: своих тем нет - у анализа без тем ссылка без якоря, без страницы анализа - пункта нет', async () => {
+    const { worldStrings } = await import('@/lib/i18n/worldStrings');
+    const { worldNextAnalysisItem } = await import('@/app/[lang]/book/[slug]/wiki/worldThemes');
+    const item = (analysis: string | null, analysisHasThemes: boolean) =>
+      worldNextAnalysisItem({
+        strings: worldStrings.en,
+        themeTitles: new Map(),
+        heroThemeKeys: [],
+        links: { analysis, analysisHasThemes, summary: null },
+      });
+    expect(item(null, true)).toBeNull();
+    render(<>{item('/en/book/b/analysis', false)}</>);
+    expect(screen.getByRole('link', { name: 'Analysis of the book' })).toHaveAttribute(
+      'href',
+      '/en/book/b/analysis'
+    );
+  });
+
+  it('темы героя - только у героя: у не-героя с ключом героя анализа и у героя без карточки - пусто', async () => {
+    const { heroThemeKeysOf } = await import('@/app/[lang]/book/[slug]/wiki/worldThemes');
+    const analysis = {
+      characters: [{ key: 'anna', name: 'Anna', role: 'main' as const, themeKeys: ['courage'] }],
+    };
+    expect(heroThemeKeysOf({ type: 'character', key: 'anna' }, analysis)).toEqual(['courage']);
+    for (const type of ['object', 'place', 'pair', 'term', 'event']) {
+      expect(heroThemeKeysOf({ type, key: 'anna' }, analysis)).toEqual([]);
+    }
+    expect(heroThemeKeysOf({ type: 'character', key: 'tom' }, analysis)).toEqual([]);
+    expect(heroThemeKeysOf({ type: 'character', key: 'anna' }, null)).toEqual([]);
+  });
+
+  it('пункт анализа «Дальше»: повтор ключа темы героя - одна ссылка', async () => {
+    const { worldStrings } = await import('@/lib/i18n/worldStrings');
+    const { worldNextAnalysisItem } = await import('@/app/[lang]/book/[slug]/wiki/worldThemes');
+    render(
+      <>
+        {worldNextAnalysisItem({
+          strings: worldStrings.fr,
+          themeTitles: new Map([['courage', 'Courage']]),
+          heroThemeKeys: ['courage', 'courage'],
+          links: { analysis: '/fr/book/b/analysis', analysisHasThemes: true, summary: null },
+        })}
+      </>
+    );
+    expect(screen.getAllByRole('link')).toHaveLength(1);
+    expect(document.body).toHaveTextContent('Thèmes de l’analyse : Courage');
+  });
+
   it('цитаты: говорящий и толкование в HTML сервера; FAQ - h3 и ответ, без FAQPage', async () => {
     const { container } = await renderEntity();
     const quotes = container.querySelector('#quotes') as HTMLElement;
@@ -2092,7 +2202,7 @@ describe('страницы предмета, понятия, события и �
     spoiler.progress = undefined;
   });
 
-  it('предмет: h1 по формуле места, разделы в порядке Q1, связи - герой ссылкой и тема на #themes анализа', async () => {
+  it('предмет: h1 по формуле места, разделы в порядке Q1, связи - герой ссылкой и тема на карточку своей темы анализа', async () => {
     mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(ROBE));
     await renderEntity('robe');
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('The Robe in World Book');
@@ -2110,9 +2220,10 @@ describe('страницы предмета, понятия, события и �
       'href',
       '/en/book/world-book/wiki/anna'
     );
+    // Карточка своей темы (`theme-{key}`, решение арбитра `F08 | F08-13` Q7; до F08-13d - #themes).
     expect(links.getByRole('link', { name: 'Courage' })).toHaveAttribute(
       'href',
-      '/en/book/world-book/analysis#themes'
+      '/en/book/world-book/analysis#theme-courage'
     );
     // Ключ вне героев и вне текущего анализа - не выводится, голого ключа нет (Q5).
     expect(document.getElementById('connections')!.textContent).not.toMatch(/nobody|gone/);

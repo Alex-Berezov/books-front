@@ -13,8 +13,8 @@ import styles from './wiki.module.scss';
 import { WORLD_ANCHORS } from './wikiAnchors';
 import { WorldPersonRef } from './WorldPersonRef';
 import { withSpoilerGate } from './worldSpoiler';
+import { worldNextAnalysisItem } from './worldThemes';
 import analysisStyles from '../analysis/analysis.module.scss';
-import { ANALYSIS_ANCHORS } from '../analysis/analysisAnchors';
 import { ChapterRef, Paragraphs } from '../analysis/AnalysisBlocks';
 import { SourcesList } from '../analysis/AnalysisLowerBlocks';
 import { LinkedMark } from '../LinkedText';
@@ -168,8 +168,8 @@ export function buildEntityFaqSection(input: WorldEntitySectionsInput): PageSect
 }
 
 /**
- * «Дальше» (§5 п.15): до 6 соседних героев карточками, «Анализ: темы» - на раздел тем анализа
- * (тем у анализа нет - ссылка на анализ без якоря), пересказ и чтение главы первого появления.
+ * «Дальше» (§5 п.15): до 6 соседних героев карточками, пункт анализа (темы героя или «Анализ: темы»,
+ * `worldNextAnalysisItem`), пересказ и чтение главы первого появления.
  */
 export function buildEntityNextSection(
   input: WorldEntitySectionsInput,
@@ -177,12 +177,13 @@ export function buildEntityNextSection(
   firstChapter: number | null
 ): PageSection | null {
   const { entity, strings, people, links, textLinks } = input;
+  const analysisItem = worldNextAnalysisItem(input);
   const next = coPresence.slice(0, WORLD_NEXT_LIMIT).flatMap((c) => {
     const person = people.get(c.key);
     return person ? [{ key: c.key, person }] : [];
   });
   const firstHref = firstChapter !== null ? input.readerHref(firstChapter) : null;
-  if (next.length === 0 && !links.analysis && !links.summary && !firstHref) return null;
+  if (next.length === 0 && !analysisItem && !links.summary && !firstHref) return null;
 
   return {
     id: WORLD_ANCHORS.next,
@@ -213,22 +214,7 @@ export function buildEntityNextSection(
           </ul>
         ) : null}
         <ul className={styles.plainList}>
-          {links.analysis ? (
-            <li>
-              {links.analysisHasThemes ? (
-                <Link
-                  href={`${links.analysis}#${ANALYSIS_ANCHORS.themes}`}
-                  className={analysisStyles.textLink}
-                >
-                  {strings.worldAnalysisThemes}
-                </Link>
-              ) : (
-                <Link href={links.analysis} className={analysisStyles.textLink}>
-                  {strings.worldAnalysisLink}
-                </Link>
-              )}
-            </li>
-          ) : null}
+          {analysisItem ? <li>{analysisItem}</li> : null}
           {links.summary ? (
             <li>
               <Link href={links.summary.href} className={analysisStyles.textLink}>

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildLinkIndex,
   entityHrefByName,
+  entityTargetByName,
   createLinkSession,
   foldKeepingLength,
   foldMention,
@@ -381,6 +382,27 @@ describe('F08-5b круг 3: владельцы формы, тип, кавычк
     expect(entityHrefByName(index, 'Hope')).toBe('/ru/book/b/wiki/hope');
     expect(entityHrefByName(index, 'Анна', 'character')).toBeNull();
     expect(entityHrefByName(index, 'Петр', 'character')).toBe('/ru/book/b/wiki/petr');
+  });
+
+  it('entityTargetByName: символ -> предмет - ключ и адрес только у единственного владельца-предмета (F08-13d, Q2)', () => {
+    const index = buildLinkIndex(
+      [
+        entity('skull', ['Череп Йорика'], { type: 'object' }),
+        entity('ring', ['Кольцо'], { type: 'object' }),
+        entity('ring-place', ['Кольцо'], { type: 'place' }),
+        entity('hope', ['Надежда']),
+      ],
+      hrefOf
+    );
+    expect(entityTargetByName(index, 'череп йорика', 'object')).toMatchObject({
+      key: 'skull',
+      href: '/ru/book/b/wiki/skull',
+    });
+    expect(entityTargetByName(index, 'Кольцо', 'object')).toBeNull();
+    expect(entityTargetByName(index, 'Надежда', 'object')).toBeNull();
+    expect(entityTargetByName(index, 'Надежда')?.key).toBe('hope');
+    expect(entityTargetByName(index, 'Корона', 'object')).toBeNull();
+    expect(entityTargetByName(index, 'Корона')).toBeNull();
   });
 
   it('прямая кавычка, закрытая в следующем текстовом узле абзаца, - цитата', () => {

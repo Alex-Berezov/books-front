@@ -31,6 +31,8 @@ interface AnalysisSectionsProps {
   faqTitle: string;
   /** «Подробнее о герое» на карточке героя (F08-5). */
   characterMore: string;
+  /** «Подробнее о предмете» под символом, совпавшим с предметом мира (`F08 | F08-13d` V2). */
+  objectMore: string;
   /** «Герои книги» (F08-5, решение арбитра Q10): герои, уже отобранные страницей (`pickBookHeroes`). */
   heroes: Omit<WorldHeroesBlockProps, 'id' | 'links'>;
 }
@@ -49,6 +51,7 @@ export function AnalysisSections({
   tocTitle,
   faqTitle,
   characterMore,
+  objectMore,
   heroes,
 }: AnalysisSectionsProps) {
   const themes = analysis.themes ?? [];
@@ -116,6 +119,7 @@ export function AnalysisSections({
           linker={linker}
           links={links}
           chaptersLabel={strings.analysisChapters}
+          objectMore={objectMore}
         />
       ),
     });

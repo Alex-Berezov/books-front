@@ -138,6 +138,8 @@
 
 // Карточка темы: полоса слева цветом темы (`--theme-color` ставит класс `.themeN`).
 .themeCard {
+  // По якорю `theme-{key}` (F08-13d) заголовок карточки не уходит под шапку - как у `.section`.
+  scroll-margin-top: $spacing-xxl;
   border-left: $spacing-xs solid var(--theme-color, var(--public-border));
 }
 

@@ -32,6 +32,7 @@ import { buildSectionsOfType } from '../WorldEntitySections';
 import { entityPageTitle } from '../worldEntityTitles';
 import { buildPairSections } from '../WorldPairSections';
 import { buildWorldPeople, worldPairLinks } from '../worldPeople';
+import { heroThemeKeysOf } from '../worldThemes';
 
 type Props = {
   params: Promise<{ lang: string; slug: string; entity: string }>;
@@ -141,6 +142,7 @@ export default async function BookWorldEntityPage({ params }: Props) {
     textLinks,
     people,
     themeTitles: new Map((analysis?.themes ?? []).map((th) => [th.key, th.title])),
+    heroThemeKeys: heroThemeKeysOf(entity, analysis),
     audioChapters,
     listenHref: ctx.listen ? (n) => listenChapterHref(ctx.bookHref, n) : null,
     readerHref: (n, p = null) => (chapterSet.has(n) ? readerSceneHref(ctx.bookHref, n, p) : null),

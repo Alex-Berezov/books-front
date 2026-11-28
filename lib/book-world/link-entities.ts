@@ -459,9 +459,21 @@ export function linkHtml(safeHtml: string, session: LinkSession): string {
  * и `F08 | F08-5b` Q3, круг 3).
  */
 export function entityHrefByName(index: LinkIndex, name: string, type?: string): string | null {
+  return entityTargetByName(index, name, type)?.href ?? null;
+}
+
+/**
+ * То же правило, что `entityHrefByName`, с ключом сущности: карточке, которая сама ставит ссылку
+ * (символ анализа -> предмет, решение арбитра `F08 | F08-13` Q2), ключ нужен для `linkedKey`.
+ */
+export function entityTargetByName(
+  index: LinkIndex,
+  name: string,
+  type?: string
+): LinkTarget | null {
   const target = index.byForm.get(foldMention(name));
   if (!target || (type !== undefined && target.type !== type)) return null;
-  return target.href;
+  return target;
 }
 
 /**

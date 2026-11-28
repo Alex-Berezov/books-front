@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Link from 'next/link';
 import { hasText } from '@/lib/book-analysis/format';
 import type { WorldEntitySectionsInput } from './worldEntityTypes';
 import type { PageSection } from '../analysis/PageSections';
@@ -12,8 +11,8 @@ import {
 } from './WorldEntityParts';
 import { WorldPersonRef } from './WorldPersonRef';
 import { withSpoilerGate } from './worldSpoiler';
+import { worldThemeItems } from './worldThemes';
 import analysisStyles from '../analysis/analysis.module.scss';
-import { ANALYSIS_ANCHORS } from '../analysis/analysisAnchors';
 import { Paragraphs } from '../analysis/AnalysisBlocks';
 
 /**
@@ -32,8 +31,9 @@ export function lastSceneChapter(input: WorldEntitySectionsInput): number | null
 
 /**
  * Связи (решение арбитра `F08 | F08-13c` Q5): герои мира - ссылкой только при своей странице
- * (`people`), темы анализа - названием из текущего анализа со ссылкой на раздел тем анализа (якоря
- * тем - `F08-13d`); ключа нет ни среди героев, ни в анализе - пункта нет. Ничего нет - раздела нет.
+ * (`people`), темы анализа - названием из текущего анализа со ссылкой на карточку своей темы
+ * (`theme-{key}`, `F08 | F08-13` Q7; страницы анализа нет - текстом); ключа нет ни среди героев,
+ * ни в анализе - пункта нет. Ничего нет - раздела нет.
  */
 function buildLinksSection(input: WorldEntitySectionsInput): PageSection | null {
   const { entity, strings, people, links, themeTitles } = input;
@@ -41,12 +41,8 @@ function buildLinksSection(input: WorldEntitySectionsInput): PageSection | null 
     const person = people.get(key);
     return person ? [{ key, person }] : [];
   });
-  const themes = (entity.themeKeys ?? []).flatMap((key) => {
-    const title = themeTitles.get(key);
-    return title ? [{ key, title }] : [];
-  });
+  const themes = worldThemeItems(entity.themeKeys, themeTitles, links.analysis);
   if (heroes.length === 0 && themes.length === 0) return null;
-  const themesHref = links.analysis ? `${links.analysis}#${ANALYSIS_ANCHORS.themes}` : null;
   const rows: { label: string; items: ReactNode[] }[] = [];
   if (heroes.length > 0) {
     rows.push({
@@ -57,15 +53,7 @@ function buildLinksSection(input: WorldEntitySectionsInput): PageSection | null 
   if (themes.length > 0) {
     rows.push({
       label: strings.worldObjectThemes,
-      items: themes.map(({ key, title }) =>
-        themesHref ? (
-          <Link key={key} href={themesHref} className={analysisStyles.textLink}>
-            {title}
-          </Link>
-        ) : (
-          <span key={key}>{title}</span>
-        )
-      ),
+      items: themes,
     });
   }
   return {

@@ -1228,3 +1228,114 @@ describe('страница анализа: перелинковка мира (F0
     expect(sectionOf(ANALYSIS_ANCHORS.titleMeaning).textContent).toContain('Yorick is the jester.');
   });
 });
+
+// F08-13d: якорь карточки темы (решение арбитра `F08 | F08-13` Q7) и символ -> предмет
+// (Q2, `F08 | F08-13d` V2): название символа - форма ровно одной публичной сущности, и она предмет
+// со страницей, - «More about the object» под толкованием; иначе ссылки нет.
+describe('страница анализа: якоря тем и символ -> предмет (F08-13d)', () => {
+  const entity = (key: string, type: string, forms: string[], extra = {}) => ({
+    key,
+    type,
+    name: forms[0],
+    role: type === 'character' ? 'secondary' : null,
+    short: null,
+    hasCore: true,
+    isIndexable: true,
+    mentionFirst: 1,
+    updatedAt: '2026-10-18T10:00:00.000Z',
+    forms,
+    ...extra,
+  });
+  const symbolsSection = () => within(document.getElementById(ANALYSIS_ANCHORS.symbols)!);
+  const withWorld = (entities: unknown[], symbols: unknown[]) => {
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        versions: [
+          version('en', 'hamlet', 1, {
+            _count: { chapters: 3, audioChapters: 0, summaries: 1, analyses: 1, worldEntities: 4 },
+          }),
+        ],
+      })
+    );
+    mocks.getPublicBookWorld.mockReset();
+    mocks.getPublicBookWorld.mockResolvedValue({ language: 'en', alternates: [], entities });
+    mocks.getPublicBookAnalysis.mockResolvedValue({ ...FULL, symbols });
+  };
+  const skull = {
+    title: 'Yorick’s skull',
+    interpretation: 'The skull of Yorick stands for mortality.',
+    chapters: [5],
+  };
+
+  it('у карточки каждой темы якорь theme-{key} внутри раздела тем', async () => {
+    await renderPage();
+    const themes = document.getElementById(ANALYSIS_ANCHORS.themes)!;
+    expect(themes.querySelector('#theme-revenge')).toHaveTextContent('Revenge');
+    expect(themes.querySelector('#theme-madness')).toHaveTextContent('Madness');
+    expect(document.querySelectorAll('[id="theme-revenge"]')).toHaveLength(1);
+  });
+
+  it('символ, чьё название - форма ровно одного предмета со страницей: «More about the object», без второй ссылки в толковании', async () => {
+    withWorld([entity('yoricks-skull', 'object', ["Yorick's skull", 'skull of Yorick'])], [skull]);
+    await renderPage();
+    const section = symbolsSection();
+    expect(section.getByRole('link', { name: 'More about the object' })).toHaveAttribute(
+      'href',
+      '/en/book/hamlet/wiki/yoricks-skull'
+    );
+    // Имя предмета в толковании - текстом: ссылка на предмет одна, под толкованием.
+    expect(
+      section.getAllByRole('link').filter((a) => a.getAttribute('href')?.includes('/wiki/'))
+    ).toHaveLength(1);
+    expect(section.getByText(/The skull of Yorick stands/)).toBeInTheDocument();
+    expect(section.getByRole('heading', { level: 3 })).toHaveTextContent('Yorick’s skull');
+    expect(within(section.getByRole('heading', { level: 3 })).queryByRole('link')).toBeNull();
+  });
+
+  it('два символа одного предмета: «More about the object» только у первого', async () => {
+    withWorld(
+      [entity('yoricks-skull', 'object', ["Yorick's skull", 'skull of Yorick'])],
+      [skull, { title: 'Skull of Yorick', interpretation: 'Again.', chapters: [5] }]
+    );
+    await renderPage();
+    expect(symbolsSection().getAllByRole('link', { name: 'More about the object' })).toHaveLength(
+      1
+    );
+  });
+
+  it.each([
+    [
+      'название не форма ни одной сущности (предмет снят с публикации)',
+      [entity('crown', 'object', ['The crown'])],
+      skull,
+    ],
+    [
+      'та же форма у второй сущности',
+      [
+        entity('yoricks-skull', 'object', ["Yorick's skull"]),
+        entity('skull-scene', 'event', ["Yorick's skull"]),
+      ],
+      skull,
+    ],
+    [
+      'единственный владелец формы - герой',
+      [entity('yoricks-skull', 'character', ["Yorick's skull"])],
+      skull,
+    ],
+    [
+      'предмет без страницы (без ядра)',
+      [entity('yoricks-skull', 'object', ["Yorick's skull"], { hasCore: false })],
+      skull,
+    ],
+    [
+      'название короче трёх букв',
+      [entity('ox', 'object', ['Ox'])],
+      { title: 'Ox', interpretation: 'Strength.', chapters: [5] },
+    ],
+  ])('без ссылки на предмет: %s', async (_, entities, symbol) => {
+    withWorld(entities, [symbol]);
+    await renderPage();
+    expect(symbolsSection().getByRole('heading', { level: 3 })).toHaveTextContent(symbol.title);
+    expect(symbolsSection().queryByRole('link', { name: 'More about the object' })).toBeNull();
+  });
+});
