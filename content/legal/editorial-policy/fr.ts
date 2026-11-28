@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'D’où viennent les textes de Bibliaris, qui prépare les résumés et écrit les descriptions, comment sont rédigées les analyses de livres, comment les textes des livres sont préparés et comment les erreurs sont corrigées.',
   title: 'Politique éditoriale',
-  updatedAt: '2026-11-27',
+  updatedAt: '2026-11-28',
   toc: false,
   sections: [
     {
@@ -158,7 +158,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Les pages de l’univers du livre consacrées aux personnages et aux lieux sont préparées par la Rédaction de Bibliaris.',
+              text: 'Les pages de l’univers du livre consacrées aux personnages et aux lieux sont préparées par la Rédaction de Bibliaris. Il en va de même des pages consacrées aux objets, aux notions et aux événements du livre ; toutes les notions figurent dans le glossaire de la page de l’univers du livre, celle qui a sa propre page sous forme de lien.',
             },
           ],
         },
@@ -176,7 +176,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Les citations sont vérifiées mot pour mot avec le texte du livre publié sur Bibliaris : une citation absente du texte est rejetée lors de l’import de la page dans la rédaction, et une citation qui ne correspond plus au texte après sa correction est masquée sur le site. Une citation non confirmée n’apparaît pas sur le site. Le numéro de chapitre à côté d’une citation ou d’une scène est celui du chapitre dans cette version sur le site ; il renvoie à ce chapitre dans le lecteur seulement si le chapitre existe. Les chapitres où apparaît un personnage ou un lieu sont comptés par un programme à partir du texte des chapitres, ils ne sont pas écrits par le modèle.',
+              text: 'Les citations sont vérifiées mot pour mot avec le texte du livre publié sur Bibliaris : une citation absente du texte est rejetée lors de l’import de la page dans la rédaction, et une citation qui ne correspond plus au texte après sa correction est masquée sur le site. Une citation non confirmée n’apparaît pas sur le site. Le numéro de chapitre à côté d’une citation ou d’une scène est celui du chapitre dans cette version sur le site ; il renvoie à ce chapitre dans le lecteur seulement si le chapitre existe. Les chapitres où apparaît un personnage ou un lieu sont comptés par un programme à partir du texte des chapitres, ils ne sont pas écrits par le modèle. Les chapitres où un objet, une notion ou un événement est mentionné sont comptés de la même façon ; un événement reçoit en outre les chapitres des scènes décrites sur sa page.',
             },
           ],
         },

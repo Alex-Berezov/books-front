@@ -87,6 +87,17 @@ const en = {
   worldMapLabel: 'Literary map: places of the book “{title}”',
   worldPlaceMapLabel: '{name} on the map',
   worldMapCoordinates: 'Coordinates',
+  worldObjectMetaTitle: '{name} in {title} by {author}: meaning and quotes',
+  worldTermMetaTitle: '{name} in {title} by {author}: what it means',
+  worldEventMetaTitle: '{name} in {title} by {author}: what happens and why it matters',
+  worldObjectsTitle: 'Objects',
+  worldEventsTitle: 'Events',
+  worldGlossaryTitle: 'Glossary',
+  worldEventScenesTitle: 'How it happens',
+  worldObjectLinksTitle: 'Connections',
+  worldObjectCharacters: 'Characters',
+  worldObjectThemes: 'Themes of the analysis',
+  worldObjectPresenceTitle: 'Where it appears',
 };
 
 const es: WorldStrings = {
@@ -165,6 +176,17 @@ const es: WorldStrings = {
   worldMapLabel: 'Mapa literario: lugares del libro «{title}»',
   worldPlaceMapLabel: '{name} en el mapa',
   worldMapCoordinates: 'Coordenadas',
+  worldObjectMetaTitle: '{name} en «{title}» de {author}: significado y citas',
+  worldTermMetaTitle: '{name} en «{title}» de {author}: qué significa',
+  worldEventMetaTitle: '{name} en «{title}» de {author}: qué sucede y por qué importa',
+  worldObjectsTitle: 'Objetos',
+  worldEventsTitle: 'Acontecimientos',
+  worldGlossaryTitle: 'Glosario',
+  worldEventScenesTitle: 'Cómo sucede',
+  worldObjectLinksTitle: 'Conexiones',
+  worldObjectCharacters: 'Personajes',
+  worldObjectThemes: 'Temas del análisis',
+  worldObjectPresenceTitle: 'Dónde aparece',
 };
 
 const fr: WorldStrings = {
@@ -243,6 +265,18 @@ const fr: WorldStrings = {
   worldMapLabel: 'Carte littéraire : lieux du livre « {title} »',
   worldPlaceMapLabel: '{name} sur la carte',
   worldMapCoordinates: 'Coordonnées',
+  worldObjectMetaTitle: '{name} dans « {title} » de {author} : signification et citations',
+  worldTermMetaTitle: '{name} dans « {title} » de {author} : ce que cela signifie',
+  worldEventMetaTitle:
+    '{name} dans « {title} » de {author} : ce qui se passe et pourquoi c’est important',
+  worldObjectsTitle: 'Objets',
+  worldEventsTitle: 'Événements',
+  worldGlossaryTitle: 'Glossaire',
+  worldEventScenesTitle: 'Comment cela se passe',
+  worldObjectLinksTitle: 'Liens',
+  worldObjectCharacters: 'Personnages',
+  worldObjectThemes: 'Thèmes de l’analyse',
+  worldObjectPresenceTitle: 'Où cela apparaît',
 };
 
 const pt: WorldStrings = {
@@ -321,6 +355,17 @@ const pt: WorldStrings = {
   worldMapLabel: 'Mapa literário: lugares do livro «{title}»',
   worldPlaceMapLabel: '{name} no mapa',
   worldMapCoordinates: 'Coordenadas',
+  worldObjectMetaTitle: '{name} em «{title}» de {author}: significado e citações',
+  worldTermMetaTitle: '{name} em «{title}» de {author}: o que significa',
+  worldEventMetaTitle: '{name} em «{title}» de {author}: o que acontece e por que importa',
+  worldObjectsTitle: 'Objetos',
+  worldEventsTitle: 'Acontecimentos',
+  worldGlossaryTitle: 'Glossário',
+  worldEventScenesTitle: 'Como acontece',
+  worldObjectLinksTitle: 'Ligações',
+  worldObjectCharacters: 'Personagens',
+  worldObjectThemes: 'Temas da análise',
+  worldObjectPresenceTitle: 'Onde aparece',
 };
 
 const ru: WorldStrings = {
@@ -399,6 +444,17 @@ const ru: WorldStrings = {
   worldMapLabel: 'Литературная карта: места книги «{title}»',
   worldPlaceMapLabel: '{name} на карте',
   worldMapCoordinates: 'Координаты',
+  worldObjectMetaTitle: '{name} в книге «{title}», {author}: значение и цитаты',
+  worldTermMetaTitle: '{name} в книге «{title}», {author}: что это значит',
+  worldEventMetaTitle: '{name} в книге «{title}», {author}: что происходит и значение',
+  worldObjectsTitle: 'Предметы',
+  worldEventsTitle: 'События',
+  worldGlossaryTitle: 'Глоссарий',
+  worldEventScenesTitle: 'Как это происходит',
+  worldObjectLinksTitle: 'Связи',
+  worldObjectCharacters: 'Герои',
+  worldObjectThemes: 'Темы анализа',
+  worldObjectPresenceTitle: 'Где появляется',
 };
 
 export type WorldStrings = { [K in keyof typeof en]: string };

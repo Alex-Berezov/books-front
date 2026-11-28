@@ -86,6 +86,12 @@ export default async function BookWorldPage({ params }: Props) {
   const sections = buildIndexSections({
     characters,
     places,
+    // Карточки F08-13c: старый бэкенд полей не отдаёт - разделов нет.
+    objectCards: {
+      objects: world.objects ?? [],
+      terms: world.terms ?? [],
+      events: world.events ?? [],
+    },
     // Карта (F08-12d) - только у ответа с `?map=1`; старый бэкенд поля не отдаёт.
     map: world.map ?? null,
     bookTitle: ctx.title,

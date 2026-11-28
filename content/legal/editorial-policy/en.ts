@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'Where the texts on Bibliaris come from, who prepares the summaries and writes the descriptions, how book analyses are prepared, how book texts are prepared, and how mistakes are corrected.',
   title: 'Editorial Policy',
-  updatedAt: '2026-11-27',
+  updatedAt: '2026-11-28',
   toc: false,
   sections: [
     {
@@ -156,7 +156,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Book world pages about characters and places are prepared by the Bibliaris Editorial Team.',
+              text: 'Book world pages about characters and places are prepared by the Bibliaris Editorial Team. The same applies to pages about objects, terms and events of the book; all terms are listed in the glossary on the book world page, a term with its own page as a link.',
             },
           ],
         },
@@ -174,7 +174,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Quotations are checked word for word against the text of the book published on Bibliaris: a quotation that is not in the text is rejected when the page is loaded into the editorial system, and one that no longer matches after the text is corrected is hidden from the site. An unconfirmed quotation does not reach the site. The chapter number next to a quotation or a scene is the number of the chapter in this version on the site; it links to that chapter in the reader only if the chapter exists. The chapters where a character appears or a place is mentioned are counted by a program from the text of the chapters, not written by the model.',
+              text: 'Quotations are checked word for word against the text of the book published on Bibliaris: a quotation that is not in the text is rejected when the page is loaded into the editorial system, and one that no longer matches after the text is corrected is hidden from the site. An unconfirmed quotation does not reach the site. The chapter number next to a quotation or a scene is the number of the chapter in this version on the site; it links to that chapter in the reader only if the chapter exists. The chapters where a character appears or a place is mentioned are counted by a program from the text of the chapters, not written by the model. The chapters where an object, a term or an event is mentioned are counted the same way; an event also gets the chapters of the scenes described on its page.',
             },
           ],
         },

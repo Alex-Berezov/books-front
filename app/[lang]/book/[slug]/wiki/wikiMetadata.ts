@@ -26,6 +26,7 @@ import {
   getCachedBookWorldEntity,
   getCachedBookWorldIndex,
 } from './wikiData';
+import { entityMetaTitle } from './worldEntityTitles';
 import { buildWorldPeople } from './worldPeople';
 
 const NOINDEX = { index: false, follow: true } as const;
@@ -181,10 +182,7 @@ export async function buildWorldEntityMetadata(
             title,
             author,
           })
-        : fillTemplate(
-            entity.type === 'place' ? strings.worldPlaceMetaTitle : strings.worldEntityMetaTitle,
-            { name: entity.name, title, author }
-          );
+        : fillTemplate(entityMetaTitle(entity.type, strings), { name: entity.name, title, author });
     const description = describeWorld(entity.short);
     const canonical = buildLangUrl(
       supportedLang,

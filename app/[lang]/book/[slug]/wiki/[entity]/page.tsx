@@ -28,10 +28,10 @@ import styles from '../wiki.module.scss';
 import { loadWorldEntityOrNotFound } from '../wikiData';
 import { buildWorldEntityMetadata } from '../wikiMetadata';
 import { buildChapterLinker, buildWorldPageContext, formatWorldDate } from '../wikiPageContext';
-import { buildEntitySections } from '../WorldEntitySections';
+import { buildSectionsOfType } from '../WorldEntitySections';
+import { entityPageTitle } from '../worldEntityTitles';
 import { buildPairSections } from '../WorldPairSections';
 import { buildWorldPeople, worldPairLinks } from '../worldPeople';
-import { buildPlaceSections } from '../WorldPlaceSections';
 
 type Props = {
   params: Promise<{ lang: string; slug: string; entity: string }>;
@@ -49,8 +49,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * Страница героя (F08-3b, `product.md` §5), пары героев (F08-8c, §6; ключ `{a}--{b}`, тип `pair`)
- * или места (F08-12c, §7; тип `place`): серверный рендер. Есть, только если ручка отдала
+ * Страница героя (F08-3b, `product.md` §5), пары героев (F08-8c, §6; ключ `{a}--{b}`, тип `pair`),
+ * места (F08-12c, §7; тип `place`) или предмета, понятия, события (F08-13c, §7; `object`, `term`,
+ * `event`): серверный рендер. Есть, только если ручка отдала
  * сущность (ядро, «прочитано», показ включён), иначе 404. `isIndexable=false` - открыта, но
  * `noindex, follow` (мета).
  */
@@ -139,6 +140,7 @@ export default async function BookWorldEntityPage({ params }: Props) {
     linker,
     textLinks,
     people,
+    themeTitles: new Map((analysis?.themes ?? []).map((th) => [th.key, th.title])),
     audioChapters,
     listenHref: ctx.listen ? (n) => listenChapterHref(ctx.bookHref, n) : null,
     readerHref: (n, p = null) => (chapterSet.has(n) ? readerSceneHref(ctx.bookHref, n, p) : null),
@@ -160,17 +162,14 @@ export default async function BookWorldEntityPage({ params }: Props) {
   const names = members
     ? pairDisplayName(strings.worldPairNames, key, (k) => people.get(k)?.name, entity.name)
     : entity.name;
-  const isPlace = entity.type === 'place';
   const sections = members
     ? buildPairSections({ ...sectionsInput, members, names })
-    : isPlace
-      ? buildPlaceSections(sectionsInput)
-      : buildEntitySections(sectionsInput);
+    : buildSectionsOfType(sectionsInput);
 
-  // Формулы h1 (`product.md` §15): место - «{Место} в книге «{Книга}»» (решение `F08 | F08-12` Q5).
+  // Формулы h1 по типу (`product.md` §15) - `entityPageTitle`, рядом с формулой title.
   const pageTitle = members
     ? fillTemplate(strings.worldPairTitle, { names })
-    : fillTemplate(isPlace ? strings.worldPlaceTitle : strings.worldEntityTitle, {
+    : fillTemplate(entityPageTitle(entity.type, strings), {
         name: entity.name,
         title: ctx.title,
       });

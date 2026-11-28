@@ -88,14 +88,20 @@ export function buildEntityTextSections(
   );
 }
 
-/** Присутствие по главам (`product.md` §5 п.6, у места - §7): посчитанные главы версии; нет - раздела нет. */
-export function buildEntityPresenceSection(input: WorldEntitySectionsInput): PageSection | null {
+/**
+ * Присутствие по главам (`product.md` §5 п.6, у места - §7; у предмета, понятия и события -
+ * «Где появляется», `title`): посчитанные главы версии; нет - раздела нет.
+ */
+export function buildEntityPresenceSection(
+  input: WorldEntitySectionsInput,
+  title: string = input.strings.worldPresenceTitle
+): PageSection | null {
   const { entity, chapterNumbers, strings, analysisStrings, linker } = input;
   const present = presenceChapters(entity.mentions?.chapters, chapterNumbers);
   if (present.length === 0) return null;
   return {
     id: WORLD_ANCHORS.presence,
-    title: strings.worldPresenceTitle,
+    title,
     body: (
       <ThemeStrip
         themeChapters={present}

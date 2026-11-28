@@ -2022,3 +2022,229 @@ describe('страница места и места на /wiki (F08-12c)', () =>
     });
   });
 });
+
+describe('страницы предмета, понятия, события и их разделы на /wiki (F08-13c)', () => {
+  const base = (key: string, name: string, type: string) => ({
+    ...summary(key, name, { type, role: null, short: `${name} in brief.` }),
+    aliases: null,
+    profile: null,
+    appearance: null,
+    character: null,
+    arc: null,
+    relations: null,
+    critique: null,
+    prototypes: null,
+    adaptations: null,
+    sources: null,
+    compare: null,
+    bonds: null,
+    differences: null,
+    conclusion: null,
+    kind: null,
+    location: null,
+    significance: null,
+    description: null,
+    wikidataId: null,
+    point: null,
+    scenes: null,
+    quotes: null,
+    faq: null,
+    characterKeys: null,
+    themeKeys: null,
+    mentions: { chapters: [1, 2], first: 1, perChapter: [], coPresence: [] },
+    createdAt: '2026-11-01T10:00:00.000Z',
+  });
+  const ROBE = {
+    ...base('robe', 'The Robe', 'object'),
+    significance: 'The robe is his idleness.',
+    description: 'Of Persian cloth.',
+    quotes: [{ text: 'Robe quote.', chapter: 2, interpretation: 'Softness.', speakerKey: 'anna' }],
+    faq: [{ question: 'Why the robe?', answer: 'Comfort.' }],
+    characterKeys: ['anna', 'nobody'],
+    themeKeys: ['courage', 'gone'],
+  };
+  const TERM = {
+    ...base('lark-law', 'Lark law', 'term'),
+    significance: 'The rule of the map.',
+    quotes: [{ text: 'Law quote.', chapter: 1, interpretation: 'Rule.' }],
+  };
+  const DUEL = {
+    ...base('duel', 'The Duel', 'event'),
+    significance: 'Tom loses the duel.',
+    scenes: [
+      { chapter: 1, title: 'The challenge', text: 'A glove falls.' },
+      { chapter: 3, title: 'The shot', text: 'Tom falls.' },
+    ],
+    characterKeys: ['tom'],
+    mentions: { chapters: [1, 3], first: 1, perChapter: [], coPresence: [] },
+  };
+  const objCard = (key: string, name: string, over: Record<string, unknown> = {}) => ({
+    key,
+    name,
+    short: `${name} in brief.`,
+    chapter: 2,
+    hasPage: true,
+    ...over,
+  });
+
+  afterEach(() => {
+    spoiler.session = { data: null, status: 'unauthenticated' };
+    spoiler.progress = undefined;
+  });
+
+  it('предмет: h1 по формуле места, разделы в порядке Q1, связи - герой ссылкой и тема на #themes анализа', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(ROBE));
+    await renderEntity('robe');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('The Robe in World Book');
+    expect(h2Texts()).toEqual([
+      'In brief',
+      'Meaning in the book',
+      'Description',
+      'Quotes',
+      'Connections',
+      'Where it appears',
+      'Questions about The Robe',
+    ]);
+    const links = within(document.getElementById('connections')!);
+    expect(links.getByRole('link', { name: 'Anna Lark' })).toHaveAttribute(
+      'href',
+      '/en/book/world-book/wiki/anna'
+    );
+    expect(links.getByRole('link', { name: 'Courage' })).toHaveAttribute(
+      'href',
+      '/en/book/world-book/analysis#themes'
+    );
+    // Ключ вне героев и вне текущего анализа - не выводится, голого ключа нет (Q5).
+    expect(document.getElementById('connections')!.textContent).not.toMatch(/nobody|gone/);
+    for (const id of ['character', 'path', 'relations', 'next', 'scenes']) {
+      expect(document.getElementById(id)).toBeNull();
+    }
+  });
+
+  it('понятие: без связей и описания; событие: сцены и герои, значение под островом последней главы сцен (Q6)', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(TERM));
+    await renderEntity('lark-law');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Lark law in World Book');
+    expect(h2Texts()).toEqual(['In brief', 'Meaning in the book', 'Quotes', 'Where it appears']);
+    cleanup();
+
+    spoiler.session = { data: { user: { id: 'u1' } }, status: 'authenticated' };
+    spoiler.progress = { chapterNumber: 1 };
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(DUEL));
+    await renderEntity('duel');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('The Duel in World Book');
+    expect(h2Texts()).toEqual([
+      'In brief',
+      'Meaning in the book',
+      'How it happens',
+      'Connections',
+      'Where it appears',
+    ]);
+    // «Коротко» открыто; значение несёт исход - под островом главы 3; сцена главы 1 открыта.
+    expect(screen.getByText('The Duel in brief.').closest('[hidden]')).toBeNull();
+    expect(screen.getByText('Tom loses the duel.').closest('[hidden]')).not.toBeNull();
+    expect(screen.getByText('A glove falls.').closest('[hidden]')).toBeNull();
+    expect(screen.getByText('Tom falls.').closest('[hidden]')).not.toBeNull();
+  });
+
+  it('событие: последняя сцена вне глав версии - значение под островом последней главы сцен среди глав версии, а не открыто', async () => {
+    spoiler.session = { data: { user: { id: 'u1' } }, status: 'authenticated' };
+    spoiler.progress = { chapterNumber: 1 };
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse({
+        ...DUEL,
+        scenes: [...DUEL.scenes, { chapter: 12, title: 'Gone', text: 'Out of the version.' }],
+      })
+    );
+    await renderEntity('duel');
+    // Глава 12 не в `chapterNumbers` [1, 2, 3]: остров значения - главы 3.
+    expect(screen.getByText('Tom loses the duel.').closest('[hidden]')).not.toBeNull();
+  });
+
+  it('событие без сцен в главах версии и аноним без прогресса: значение открыто, острова нет', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse({ ...DUEL, scenes: null }));
+    await renderEntity('duel');
+    expect(screen.getByText('Tom loses the duel.').closest('[hidden]')).toBeNull();
+    cleanup();
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(DUEL));
+    await renderEntity('duel');
+    // Аноним: прогресса нет - остров свёрнут не будет, как у краулера.
+    expect(screen.getByText('Tom loses the duel.').closest('[hidden]')).toBeNull();
+  });
+
+  it('мета: title по хвосту типа (§15), description из «Коротко»; ru - «в книге»', async () => {
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(ROBE));
+    expect((await entityMeta('robe')).title).toBe(
+      'The Robe in World Book by Jane Writer: meaning and quotes'
+    );
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(TERM));
+    expect((await entityMeta('lark-law')).title).toBe(
+      'Lark law in World Book by Jane Writer: what it means'
+    );
+    mocks.getPublicBookWorldEntity.mockResolvedValue(entityResponse(DUEL));
+    const meta = await entityMeta('duel');
+    expect(meta.title).toBe(
+      'The Duel in World Book by Jane Writer: what happens and why it matters'
+    );
+    expect(meta.description).toBe('The Duel in brief.');
+
+    mocks.getPublicBookWorldEntity.mockResolvedValue(
+      entityResponse({ ...ROBE, name: 'Халат' }, { language: 'ru' })
+    );
+    mocks.getBookOverview.mockResolvedValue(
+      makeBook({
+        versions: [version('en', 'world-book', 3), version('ru', 'mir-kniga', 3)],
+        slug: 'mir-kniga',
+      })
+    );
+    expect((await entityMeta('robe', 'ru', 'mir-kniga')).title).toBe(
+      'Халат в книге «Мир-книга», Jane Writer: значение и цитаты'
+    );
+  });
+
+  it('/wiki: предметы и события карточками, глоссарий строками; ссылка только при своей странице; после мест (Q2-Q4)', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue({
+      ...LIST,
+      objects: [objCard('robe', 'The Robe'), objCard('cane', 'The Cane', { hasPage: false })],
+      events: [objCard('duel', 'The Duel', { chapter: 1 })],
+      terms: [
+        objCard('lark-law', 'Lark law', { short: 'The rule of the map.', chapter: 1 }),
+        objCard('fog', 'Fog', { short: null, chapter: 3, hasPage: false }),
+        objCard('dew', 'Dew', { short: null, chapter: null, hasPage: false }),
+      ],
+    });
+    await renderIndex();
+    // Порядок §4 п.6: предметы, понятия (глоссарий), события.
+    const ids = ['objects', 'glossary', 'events', 'more'];
+    for (let i = 1; i < ids.length; i++) {
+      const before = document.getElementById(ids[i - 1])!;
+      const after = document.getElementById(ids[i])!;
+      expect(before.compareDocumentPosition(after) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+    const objects = within(document.getElementById('objects')!);
+    expect(objects.getByRole('link', { name: 'The Robe' })).toHaveAttribute(
+      'href',
+      '/en/book/world-book/wiki/robe'
+    );
+    expect(objects.queryByRole('link', { name: 'The Cane' })).toBeNull();
+    expect(objects.getByText('The Cane')).toBeInTheDocument();
+    const events = within(document.getElementById('events')!);
+    expect(events.getByText('The Duel in brief.')).toBeInTheDocument();
+    expect(events.getByRole('link', { name: 'Chapter 1' })).toBeInTheDocument();
+    const rows = [...document.getElementById('glossary')!.querySelectorAll('li')].map(
+      (li) => li.textContent
+    );
+    expect(rows).toEqual(['Lark law — The rule of the map. — Chapter 1', 'Fog — Chapter 3', 'Dew']);
+    expect(
+      within(document.getElementById('glossary')!).getByRole('link', { name: 'Lark law' })
+    ).toHaveAttribute('href', '/en/book/world-book/wiki/lark-law');
+  });
+
+  it('/wiki: бэкенд без карточек (до F08-13c) - разделов нет', async () => {
+    mocks.getPublicBookWorld.mockResolvedValue(LIST);
+    await renderIndex();
+    for (const id of ['objects', 'events', 'glossary']) {
+      expect(document.getElementById(id)).toBeNull();
+    }
+  });
+});

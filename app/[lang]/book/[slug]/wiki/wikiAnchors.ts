@@ -5,6 +5,9 @@
 export const WORLD_ANCHORS = {
   heroes: 'characters',
   places: 'places',
+  objects: 'objects',
+  events: 'events',
+  glossary: 'glossary',
   relationsMap: 'relations-map',
   links: 'more',
   about: 'about',
@@ -30,4 +33,5 @@ export const WORLD_ANCHORS = {
   placeSignificance: 'significance',
   placeDescription: 'description',
   placeMap: 'map',
+  objectLinks: 'connections',
 } as const;

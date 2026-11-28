@@ -42,6 +42,11 @@ export interface WorldEntitySectionsInput {
   textLinks: LinkSession | null;
   /** Герои по ключу: публичные из списка мира и запасные имена из анализа. */
   people: ReadonlyMap<string, WorldPerson>;
+  /**
+   * Названия тем текущего анализа по ключу (связи предмета, решение арбитра `F08 | F08-13c` Q5);
+   * анализа нет - пусто.
+   */
+  themeTitles: ReadonlyMap<string, string>;
   /** Номера аудиоглав версии: «Слушать» - только на существующую. */
   audioChapters: ReadonlySet<number>;
   /** Адрес плеера на аудиоглаве `n`; `null` - аудио у книги нет. */

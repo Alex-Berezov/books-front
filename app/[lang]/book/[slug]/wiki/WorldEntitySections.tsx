@@ -1,3 +1,4 @@
+import { isWorldObjectType } from '@/lib/admin/book-world-blocks';
 import { rankCoPresence } from '@/lib/book-world/format';
 import type { WorldEntitySectionsInput } from './worldEntityTypes';
 import type { PageSection } from '../analysis/PageSections';
@@ -8,6 +9,8 @@ import {
 } from './WorldEntityMore';
 import { buildEntityProfileSections, entityFirstChapter } from './WorldEntityProfile';
 import { buildEntityStorySections } from './WorldEntityStory';
+import { buildObjectSections } from './WorldObjectSections';
+import { buildPlaceSections } from './WorldPlaceSections';
 
 /**
  * Разделы страницы героя в порядке `product.md` §5 (п.4-п.15). Каждый раздел собирается, только если
@@ -29,4 +32,15 @@ export function buildEntitySections(input: WorldEntitySectionsInput): PageSectio
     ...(faq ? [faq] : []),
     ...(next ? [next] : []),
   ];
+}
+
+/**
+ * Разделы страницы сущности по типу (кроме пары - у неё свой вход с героями ключа): место
+ * (`F08-12c`), предмет, понятие и событие (`F08-13c`) - своими сборщиками, герой и прочее -
+ * сборщиком героя.
+ */
+export function buildSectionsOfType(input: WorldEntitySectionsInput): PageSection[] {
+  if (input.entity.type === 'place') return buildPlaceSections(input);
+  if (isWorldObjectType(input.entity.type)) return buildObjectSections(input);
+  return buildEntitySections(input);
 }

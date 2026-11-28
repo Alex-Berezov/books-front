@@ -164,6 +164,29 @@ describe('строки места (F08-12c, product.md §15, решение `F08
     }
   });
 
+  it('title предмета, понятия, события (F08-13c, §15): хвост по типу на пяти языках', async () => {
+    const { worldStrings } = await load();
+    const tails = {
+      ru: ['значение и цитаты', 'что это значит', 'что происходит и значение'],
+      en: ['meaning and quotes', 'what it means', 'what happens and why it matters'],
+      es: ['significado y citas', 'qué significa', 'qué sucede y por qué importa'],
+      fr: [
+        'signification et citations',
+        'ce que cela signifie',
+        'ce qui se passe et pourquoi c’est important',
+      ],
+      pt: ['significado e citações', 'o que significa', 'o que acontece e por que importa'],
+    } as const;
+    for (const lang of SUPPORTED_LANGS) {
+      const s = worldStrings[lang];
+      // Начало - формула места (§15), хвост - свой у типа.
+      const head = s.worldPlaceMetaTitle.slice(0, s.worldPlaceMetaTitle.lastIndexOf(': ') + 2);
+      expect([s.worldObjectMetaTitle, s.worldTermMetaTitle, s.worldEventMetaTitle]).toEqual(
+        tails[lang].map((tail) => `${head}${tail}`)
+      );
+    }
+  });
+
   it('fr: двоеточие строки «где находится» - с пробелом перед ним', async () => {
     const { worldStrings } = await load();
     expect(worldStrings.fr.worldPlaceLocationLine).toBe('{label} : {value}');

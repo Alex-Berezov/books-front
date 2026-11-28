@@ -11,6 +11,7 @@ import type { BookWorldEntitySummary, BookWorldMap, BookWorldPlaceCard } from '@
 import styles from './wiki.module.scss';
 import { WORLD_ANCHORS } from './wikiAnchors';
 import { literaryMap, placeScenes } from './WorldIndexMap';
+import { buildObjectIndexSections, type WorldIndexObjectCards } from './WorldIndexObjects';
 import analysisStyles from '../analysis/analysis.module.scss';
 import { ChapterRef, Paragraphs, type ChapterLinker } from '../analysis/AnalysisBlocks';
 import { RelationMap } from '../analysis/RelationMap';
@@ -22,6 +23,8 @@ export interface WorldIndexSectionsInput {
   characters: readonly BookWorldEntitySummary[];
   /** Места общей страницы (F08-12a, Q4): со страницей и без. */
   places: readonly BookWorldPlaceCard[];
+  /** Предметы, глоссарий понятий и события (F08-13c): со страницей и без. */
+  objectCards: WorldIndexObjectCards;
   /**
    * Литературная карта (`F08-12d`): `null` или нет поля - блока карты нет, список мест остаётся
    * (точек нет, тайл не взялся, бэкенд до F08-12d).
@@ -54,7 +57,8 @@ export interface WorldIndexSectionsInput {
 
 /**
  * Разделы общей страницы мира (`product.md` §4): герои карточками с «впервые - глава N» и ссылкой на
- * страницу героя, карта отношений своим разделом узлами-ссылками, места списком (F08-12c), ссылки
+ * страницу героя, карта отношений своим разделом узлами-ссылками, места списком (F08-12c),
+ * предметы и события карточками и глоссарий понятий (F08-13c), ссылки
  * на анализ, пересказ и чтение с начала.
  * Раздел без данных не выводится (§1 п.5).
  */
@@ -135,6 +139,9 @@ export function buildIndexSections(input: WorldIndexSectionsInput): PageSection[
       ),
     });
   }
+
+  // Предметы, события и глоссарий (§4 п.6, F08-13c) - после мест.
+  sections.push(...buildObjectIndexSections(input.objectCards, input));
 
   if (links.analysis || links.summary || links.read) {
     sections.push({

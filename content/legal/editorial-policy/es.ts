@@ -8,7 +8,7 @@ export const document: LegalDocument = {
   metaDescription:
     'De dónde salen los textos de Bibliaris, quién prepara los resúmenes y escribe las descripciones, cómo se elaboran los análisis de libros, cómo se preparan los textos de los libros y cómo se corrigen los errores.',
   title: 'Política editorial',
-  updatedAt: '2026-11-27',
+  updatedAt: '2026-11-28',
   toc: false,
   sections: [
     {
@@ -163,7 +163,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Las páginas del mundo del libro sobre los personajes y los lugares las prepara la Redacción de Bibliaris.',
+              text: 'Las páginas del mundo del libro sobre los personajes y los lugares las prepara la Redacción de Bibliaris. Lo mismo vale para las páginas sobre los objetos, conceptos y acontecimientos del libro; todos los conceptos figuran en el glosario de la página del mundo del libro, y el que tiene página propia, como enlace.',
             },
           ],
         },
@@ -181,7 +181,7 @@ export const document: LegalDocument = {
           content: [
             {
               kind: 'text',
-              text: 'Las citas se cotejan literalmente con el texto del libro publicado en Bibliaris: una cita que no está en el texto se rechaza al cargar la página en la redacción, y una que deja de coincidir después de corregirse el texto se oculta del sitio. Una cita no confirmada no llega al sitio. El número de capítulo junto a una cita o una escena es el número del capítulo en esta versión del sitio; enlaza a ese capítulo en el lector solo si el capítulo existe. Los capítulos en los que aparece un personaje o se menciona un lugar los cuenta un programa a partir del texto de los capítulos; no los escribe el modelo.',
+              text: 'Las citas se cotejan literalmente con el texto del libro publicado en Bibliaris: una cita que no está en el texto se rechaza al cargar la página en la redacción, y una que deja de coincidir después de corregirse el texto se oculta del sitio. Una cita no confirmada no llega al sitio. El número de capítulo junto a una cita o una escena es el número del capítulo en esta versión del sitio; enlaza a ese capítulo en el lector solo si el capítulo existe. Los capítulos en los que aparece un personaje o se menciona un lugar los cuenta un programa a partir del texto de los capítulos; no los escribe el modelo. Del mismo modo se cuentan los capítulos en los que se menciona un objeto, un concepto o un acontecimiento; a un acontecimiento se suman además los capítulos de las escenas descritas en su página.',
             },
           ],
         },
