@@ -11,6 +11,8 @@ import { test, expect } from '@playwright/test';
  * - `anna-lark--tom-reed` (в `world-acceptance`) - пара героев `F08-8c`, только `en`, `isListed=true`:
  *   «коротко», четыре строки сравнения (Work, At the bridge, At the end, Who leads), общие главы 1-3,
  *   связи, различия, одна цитата Анны о Томе (глава 3), вывод, один вопрос; на `ru` пары нет - 404;
+ * - `brass-compass` (предмет, связь с `anna-lark`), `high-water` (понятие), `night-crossing` (событие,
+ *   сцены в главах 2 и 3, герой `anna-lark`) в `world-acceptance` - `F08-13c`, только `en`;
  * - `world-acceptance-noindex` - редакторский `noindex` книги: мир есть, но закрыт от индекса;
  * - `world-acceptance-hidden` - сущность скрыта: `/wiki` - 404.
  *
@@ -37,6 +39,15 @@ const robots = (page: import('@playwright/test').Page) =>
   page
     .locator('meta[name="robots"]')
     .evaluateAll((metas) => metas.map((m) => m.getAttribute('content') ?? ''));
+
+/** Горизонтальная прокрутка страницы в пикселях: больше нуля - страница шире экрана. */
+const horizontalOverflow = (page: import('@playwright/test').Page) =>
+  page.evaluate(() =>
+    Math.max(
+      document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      document.body.scrollWidth - document.documentElement.clientWidth
+    )
+  );
 
 test.describe('Book world: general page (F08-3b, §4)', () => {
   test('en: h1, public heroes as cards with links, hidden ones absent', async ({ page }) => {
@@ -410,13 +421,7 @@ test.describe('Book world: phone width (F08-3b, §1 п.8)', () => {
       await page.goto(url);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
-      const overflow = await page.evaluate(() =>
-        Math.max(
-          document.documentElement.scrollWidth - document.documentElement.clientWidth,
-          document.body.scrollWidth - document.documentElement.clientWidth
-        )
-      );
-      expect(overflow).toBeLessThanOrEqual(0);
+      expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
     });
   }
 });
@@ -448,14 +453,6 @@ test.describe('Book world: places at phone width (F08-12c-2, decision F08 | F08-
 test.describe('Book world: literary map at phone width (F08-12d)', () => {
   test.use({ viewport: { width: 375, height: 800 } });
 
-  const noHorizontalScroll = (page: import('@playwright/test').Page) =>
-    page.evaluate(() =>
-      Math.max(
-        document.documentElement.scrollWidth - document.documentElement.clientWidth,
-        document.body.scrollWidth - document.documentElement.clientWidth
-      )
-    );
-
   test('general page: the map is in the places section, fits the screen and credits OSM', async ({
     page,
   }) => {
@@ -486,7 +483,7 @@ test.describe('Book world: literary map at phone width (F08-12d)', () => {
       'href',
       'https://www.wikidata.org/wiki/Q84'
     );
-    expect(await noHorizontalScroll(page)).toBeLessThanOrEqual(0);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
   });
 
   test('real place page: the small map follows In brief, fictional place has none', async ({
@@ -499,10 +496,93 @@ test.describe('Book world: literary map at phone width (F08-12d)', () => {
       4
     );
     await expect(block.getByRole('link', { name: '© OpenStreetMap contributors' })).toBeVisible();
-    expect(await noHorizontalScroll(page)).toBeLessThanOrEqual(0);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
 
     await page.goto(entityUrl('en', SLUG.book, 'salt-quay'));
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Salt Quay');
     await expect(page.locator('#map')).toHaveCount(0);
+  });
+});
+
+// Предмет, понятие и событие (F08-13c, решения `F08 | F08-13c` Q1-Q9): сид бэкенда `brass-compass`,
+// `high-water`, `night-crossing` в `world-acceptance`; страницы и разделы `/wiki` на 375 px. Посетитель
+// без входа: острова спойлеров раскрыты (§10).
+test.describe('Book world: objects, terms and events at phone width (F08-13c)', () => {
+  test.use({ viewport: { width: 375, height: 800 } });
+
+  test('object page: h1, In brief, connections to the hero', async ({ page }) => {
+    await page.goto(entityUrl('en', SLUG.book, 'brass-compass'));
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Brass Compass');
+    await expect(
+      page.locator('#in-brief').getByText('The compass Anna Lark carries across the river.')
+    ).toBeVisible();
+    await expect(
+      page.locator('#connections').getByRole('link', { name: 'Anna Lark', exact: true })
+    ).toHaveAttribute('href', entityUrl('en', SLUG.book, 'anna-lark'));
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
+  });
+
+  test('term page: h1 and In brief, no connections block without links', async ({ page }) => {
+    await page.goto(entityUrl('en', SLUG.book, 'high-water'));
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('High Water');
+    await expect(
+      page.locator('#in-brief').getByText('The yearly flood the town waits for.')
+    ).toBeVisible();
+    await expect(page.locator('#connections')).toHaveCount(0);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
+  });
+
+  test('event page: In brief, significance, both scenes, connections and chapters from scenes', async ({
+    page,
+  }) => {
+    await page.goto(entityUrl('en', SLUG.book, 'night-crossing'));
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Night Crossing');
+    await expect(
+      page.locator('#in-brief').getByText('Anna Lark leads the town over the bridge.')
+    ).toBeVisible();
+    await expect(
+      page.locator('#significance').getByText('the crossing ends with the map closed for good', {
+        exact: false,
+      })
+    ).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'How it happens' })).toBeVisible();
+    await expect(page.getByText('The bridge', { exact: true })).toBeVisible();
+    await expect(page.getByText('The last map', { exact: true })).toBeVisible();
+    await expect(
+      page.locator('#connections').getByRole('link', { name: 'Anna Lark', exact: true })
+    ).toHaveAttribute('href', entityUrl('en', SLUG.book, 'anna-lark'));
+    // Названия события в тексте нет: главы - из сцен (R2 `F08 | F08-13a`).
+    await expect(page.locator('#presence')).toContainText('Chapters: 2–3');
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
+  });
+
+  test('general page: objects, glossary and events sections link to their pages', async ({
+    page,
+  }) => {
+    await page.goto(wikiUrl('en', SLUG.book));
+    for (const [section, name, key, short] of [
+      [
+        '#objects',
+        'Brass Compass',
+        'brass-compass',
+        'The compass Anna Lark carries across the river.',
+      ],
+      ['#glossary', 'High Water', 'high-water', 'The yearly flood the town waits for.'],
+      ['#events', 'Night Crossing', 'night-crossing', 'Anna Lark leads the town over the bridge.'],
+    ] as const) {
+      const block = page.locator(section);
+      const link = block.getByRole('link', { name, exact: true });
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute('href', entityUrl('en', SLUG.book, key));
+      await expect(block).toContainText(short);
+    }
+    // Глава карточки события - первая глава сцен; сцены (исход) в список не выходят (Q6).
+    const events = page.locator('#events');
+    await expect(events.getByRole('link', { name: 'Chapter 2', exact: true })).toBeVisible();
+    await expect(events).not.toContainText('The last map');
+    await expect(
+      page.locator('#glossary').getByRole('link', { name: 'Chapter 1', exact: true })
+    ).toBeVisible();
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
   });
 });
